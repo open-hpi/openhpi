@@ -3403,6 +3403,11 @@ static SaErrorT oh_build_event_hotswap(oh_big_textbuffer *buffer, const SaHpiEve
                         oh_lookup_hsstate(event->EventDataUnion.HotSwapEvent.PreviousHotSwapState));
         oh_append_bigtext(buffer, str);
 
+        oh_append_offset(buffer, offsets + 1);
+        snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "CauseOfStateChange: %s\n",
+                        oh_lookup_hscauseofstatechange(event->EventDataUnion.HotSwapEvent.CauseOfStateChange));
+        oh_append_bigtext(buffer, str);
+
         return(SA_OK);
 }
 
