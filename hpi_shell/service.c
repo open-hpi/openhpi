@@ -46,6 +46,8 @@
 #define HSCAPAB_PROC	2
 #define THDMASK_PROC	3
 #define RANGEMASK_PROC	4
+#define FUMIACCESSPROT_PROC 5
+#define FUMICAPAB_PROC 6
 
 extern char	*lookup_proc(int num, int val);
 extern SaErrorT	decode_proc(int num, void *val, char *buf, int bufsize);
@@ -202,6 +204,74 @@ static void oh_range_mask(SaHpiSensorRangeFlagsT mask, char *buf, int bufsize)
 	return;
 }
 
+static void decode_bits(unsigned int mask,
+                        unsigned int bitmask,
+                        const char * name,
+                        unsigned int * decoded_mask,
+                        char * buf,
+                        int bufsize)
+{
+    if ( mask & bitmask ) {
+        if ( (*decoded_mask) != 0 ) {
+            strncat( buf, "|", bufsize );
+        }
+        strncat( buf, name, bufsize );
+        *decoded_mask |= bitmask;
+    }
+}
+
+static void oh_fumi_access_prot_mask(SaHpiFumiProtocolT mask, char *buf, int bufsize)
+{
+    SaHpiFumiProtocolT decoded = 0;
+
+    if ( mask == 0 ) {
+        return;
+    }
+    strncpy( buf, "{", bufsize );
+    decode_bits( mask, SAHPI_FUMI_PROT_TFTP, " TFTP ", &decoded, buf, bufsize );
+    decode_bits( mask, SAHPI_FUMI_PROT_FTP, " FTP ", &decoded, buf, bufsize );
+    decode_bits( mask, SAHPI_FUMI_PROT_HTTP, " HTTP ", &decoded, buf, bufsize );
+    decode_bits( mask, SAHPI_FUMI_PROT_LDAP, " LDAP ", &decoded, buf, bufsize );
+    decode_bits( mask, SAHPI_FUMI_PROT_LOCAL, " LOCAL ", &decoded, buf, bufsize );
+    decode_bits( mask, SAHPI_FUMI_PROT_NFS, " NFS ", &decoded, buf, bufsize );
+    decode_bits( mask, SAHPI_FUMI_PROT_DBACCESS, " DBACCESS ", &decoded, buf, bufsize );
+    decode_bits( mask, mask ^ decoded, " UNKNOWN ", &decoded, buf, bufsize );
+    strncat( buf, "}", bufsize );
+}
+
+static void oh_fumi_caps_mask(SaHpiFumiCapabilityT mask, char *buf, int bufsize)
+{
+    SaHpiFumiCapabilityT decoded = 0;
+
+    if ( mask == 0 ) {
+        return;
+    }
+    strncpy( buf, "{", bufsize );
+    decode_bits( mask, SAHPI_FUMI_CAP_ROLLBACK,
+                 " ROLLBACK ", &decoded, buf, bufsize );
+    decode_bits( mask, SAHPI_FUMI_CAP_BANKCOPY,
+                 " BANKCOPY ", &decoded, buf, bufsize );
+    decode_bits( mask, SAHPI_FUMI_CAP_BANKREORDER,
+                 " BANKREORDER ", &decoded, buf, bufsize );
+    decode_bits( mask, SAHPI_FUMI_CAP_BACKUP,
+                 " BACKUP ", &decoded, buf, bufsize );
+    decode_bits( mask, SAHPI_FUMI_CAP_TARGET_VERIFY,
+                 " TARGET_VERIFY ", &decoded, buf, bufsize );
+    decode_bits( mask, SAHPI_FUMI_CAP_TARGET_VERIFY_MAIN,
+                 " TARGET_VERIFY_MAIN ", &decoded, buf, bufsize );
+    decode_bits( mask, SAHPI_FUMI_CAP_COMPONENTS,
+                 " COMPONENTS ", &decoded, buf, bufsize );
+    decode_bits( mask, SAHPI_FUMI_CAP_AUTOROLLBACK,
+                 " AUTOROLLBACK ", &decoded, buf, bufsize );
+    decode_bits( mask, SAHPI_FUMI_CAP_AUTOROLLBACK_CAN_BE_DISABLED,
+                 " AUTOROLLBACK_CAN_BE_DISABLED ", &decoded, buf, bufsize );
+    decode_bits( mask, SAHPI_FUMI_CAP_MAIN_NOT_PERSISTENT,
+                 " MAIN_NOT_PERSISTENT ", &decoded, buf, bufsize );
+    decode_bits( mask, mask ^ decoded,
+                 " UNKNOWN ", &decoded, buf, bufsize );
+    strncat( buf, "}", bufsize );
+}
+
 SaErrorT decode1_proc(int num, int val, char *buf, int bufsize)
 {
 	SaHpiTextBufferT	tbuf;
@@ -222,6 +292,12 @@ SaErrorT decode1_proc(int num, int val, char *buf, int bufsize)
 			return(SA_OK);
 		case RANGEMASK_PROC:
 			oh_range_mask(val, buf, bufsize);
+			return(SA_OK);
+        case FUMIACCESSPROT_PROC:
+            oh_fumi_access_prot_mask(val, buf, bufsize);
+			return(SA_OK);
+        case FUMICAPAB_PROC:
+            oh_fumi_caps_mask(val, buf, bufsize);
 			return(SA_OK);
 	};
 	strncpy(buf, (char *)(tbuf.Data), bufsize);
@@ -705,8 +781,8 @@ static Attributes_t *make_attrs_dimi(SaHpiDimiRecT *dimi)
 
 attr_t	Def_fumi_rdr[] = {
 	{ "Num",		INT_TYPE,	0, { .d = 0} },	//  0
-	{ "AccessProt",		INT_TYPE,	0, { .d = 0} },	//  1
-	{ "Capability",		INT_TYPE,	0, { .d = 0} },	//  2
+	{ "AccessProt",	DECODE1_TYPE,	FUMIACCESSPROT_PROC, { .d = 0} },	//  1
+	{ "Capability",	DECODE1_TYPE,	FUMICAPAB_PROC, { .d = 0} },	//  2
 	{ "NumBanks",	INT_TYPE,	0, { .d = 0} },	//  3
 	{ "Oem",		INT_TYPE,	0, { .d = 0} }	//  4
 };

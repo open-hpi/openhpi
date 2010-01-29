@@ -63,6 +63,45 @@ int main(int argc, char **argv)
 	return 0;
 }
 
+ret_code_t ask_entity(SaHpiEntityPathT *ret)
+{
+	term_def_t	*term;
+	int	res;
+    SaErrorT rv;
+    char buf[256];
+    const char * epstr;
+
+	term = get_next_term();
+	if (term == NULL) {
+        SaHpiEntityPathT root;
+        root.Entry[0].EntityType = SAHPI_ENT_ROOT;
+        root.Entry[0].EntityLocation = 0;
+
+		if (read_file) return(HPI_SHELL_PARM_ERROR);
+		rv = show_entity_tree(Domain, &root, 0, ui_print);
+		if (rv != SA_OK) {
+			printf("NO entities!\n");
+			return(HPI_SHELL_CMD_ERROR);
+		};
+		res = get_string_param("Entity Path ==> ", buf, sizeof(buf));
+		if (res != 0) {
+            printf("Invalid entity path");
+            return(HPI_SHELL_PARM_ERROR);
+        }
+        epstr = buf;
+	} else {
+        epstr = term->term;
+	};
+
+    rv = oh_encode_entitypath(epstr, ret); 
+    if ( rv != SA_OK ) {
+        printf("Invalid entity path");
+        return(HPI_SHELL_PARM_ERROR);
+    }
+
+	return(HPI_SHELL_OK);
+}
+
 ret_code_t ask_rpt(SaHpiResourceIdT *ret)
 {
 	term_def_t	*term;

@@ -147,6 +147,10 @@ extern SaErrorT	show_control(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourc
 extern SaErrorT	show_control_state(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 			SaHpiCtrlNumT num, hpi_ui_print_cb_t proc, get_int_param_t);
 extern SaErrorT	show_dat(Domain_t *domain, hpi_ui_print_cb_t proc);
+extern SaErrorT	show_entity_management(Domain_t *domain, const SaHpiEntityPathT * ep,
+            SaHpiRdrTypeT type, hpi_ui_print_cb_t proc);
+extern SaErrorT	show_entity_tree(Domain_t *domain, const SaHpiEntityPathT * parent,
+            unsigned int level, hpi_ui_print_cb_t proc);
 extern SaErrorT	show_event_log(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 			int show_short, hpi_ui_print_cb_t proc);
 extern void	show_inv_area_header(SaHpiIdrAreaHeaderT *Header, int del,
