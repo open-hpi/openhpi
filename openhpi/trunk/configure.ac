@@ -151,7 +151,7 @@ AC_CHECK_HEADER([sysfs/libsysfs.h], [], [have_sysfs=no])
 OH_CHECK_NETSNMP
 
 AC_CHECK_LIB([uuid], [uuid_generate], [have_uuid=yes], [
-    OH_CHECK_FAIL(libuuid,e2fsprogs-devel)
+    OH_CHECK_FAIL(libuuid,libuuid-devel or e2fsprogs-devel)
     ])
 
 dnl ssl is used for md2/md5 authentification in ipmidirect
