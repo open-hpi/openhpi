@@ -1050,6 +1050,156 @@ SaErrorT show_dat(Domain_t *domain, hpi_ui_print_cb_t proc)
         return(rv);
 }
 
+SaErrorT show_entity_management( Domain_t *domain, const SaHpiEntityPathT * ep,
+                                 SaHpiRdrTypeT type, hpi_ui_print_cb_t proc )
+{
+    SaErrorT rv;
+    char buf[SHOW_BUF_SZ];
+
+    SaHpiUint32T i;
+    SaHpiResourceIdT rid;
+    SaHpiInstrumentIdT instr;
+    SaHpiUint32T update_cnt;
+    SaHpiBoolT first, found;
+
+    oh_big_textbuffer tmpbuf;
+    oh_init_bigtext(&tmpbuf);
+    rv = oh_decode_entitypath( ep, &tmpbuf );
+    if ( rv != SA_OK ) {
+        proc( "Invalid Entity" );
+        return rv;
+    }
+    strcpy( buf, "Management access for " );
+    strncat( buf, (const char *)tmpbuf.Data, tmpbuf.DataLength );
+    strcat( buf, ":\n" );
+    proc( buf );
+
+    rv = SA_OK;    
+    i = SAHPI_FIRST_ENTRY;
+    first = SAHPI_TRUE;
+    found = SAHPI_FALSE;
+    while ( rv == SA_OK ) {
+        buf[0] = '\0';
+        rv = saHpiGetIdByEntityPath( domain->sessionId, *ep, type, &i, &rid, &instr, &update_cnt );
+        if ( rv != SA_OK ) {
+            break;
+        }
+        if ( type == SAHPI_NO_RECORD ) {
+            snprintf( buf, SHOW_BUF_SZ, "  Resource %u\n", rid );
+        } else {
+            const char * type_str;
+            switch ( type ) {
+                case SAHPI_CTRL_RDR:
+                    type_str = "Control";
+                    type = SAHPI_CTRL_RDR;
+                    break;
+                case SAHPI_SENSOR_RDR:
+                    type_str = "Sensor";
+                    type = SAHPI_SENSOR_RDR;
+                    break;
+                case SAHPI_INVENTORY_RDR:
+                    type_str = "IDR";
+                    type = SAHPI_INVENTORY_RDR;
+                    break;
+                case SAHPI_WATCHDOG_RDR:
+                    type_str = "Watchdog";
+                    type = SAHPI_WATCHDOG_RDR;
+                    break;
+                case SAHPI_ANNUNCIATOR_RDR:
+                    type_str = "Annunciator";
+                    type = SAHPI_ANNUNCIATOR_RDR;
+                    break;
+                case SAHPI_DIMI_RDR:
+                    type_str = "DIMI";
+                    type = SAHPI_DIMI_RDR;
+                    break;
+                case SAHPI_FUMI_RDR:
+                    type_str = "FUMI";
+                    type = SAHPI_FUMI_RDR;
+                    break;
+                default:
+                    type_str = "Unknown Instrument";
+            }
+            snprintf( buf, SHOW_BUF_SZ, "  Resource %u, %s %u\n", rid, type_str, instr );
+        }
+        proc( buf );
+        found = SAHPI_TRUE;
+        first = SAHPI_FALSE;
+        if ( i == SAHPI_LAST_ENTRY ) {
+            break;
+        }
+    }
+    if ( found == SAHPI_FALSE ) {
+        if ( type == SAHPI_NO_RECORD ) {
+            proc( "  No resources found\n" );
+        } else {
+            proc( "  No instruments found\n" );
+        }
+    }
+    if ( ( rv == SA_ERR_HPI_NOT_PRESENT ) && ( first != SAHPI_FALSE ) ) {
+        return SA_OK;
+    } else if ( rv != SA_OK ) {
+        snprintf( buf, SHOW_BUF_SZ, "ERROR!!! saHpiGetIdByEntityPath: %s\n",
+                  oh_lookup_error( rv ) );
+        proc( buf );
+    }
+    return rv;
+}
+
+SaErrorT show_entity_tree( Domain_t *domain, const SaHpiEntityPathT * parent,
+                           unsigned int level, hpi_ui_print_cb_t proc )
+{
+    SaErrorT rv;
+    char buf[SHOW_BUF_SZ];
+    oh_big_textbuffer tmpbuf;
+
+    SaHpiEntityPathT child;
+    SaHpiUint32T i, j;
+    SaHpiBoolT first;
+    SaHpiUint32T update_cnt;
+
+    rv = SA_OK;    
+    i = SAHPI_FIRST_ENTRY;
+    first = SAHPI_TRUE;
+    while ( rv == SA_OK ) {
+        buf[0] = '\0';
+        rv = saHpiGetChildEntityPath( domain->sessionId, *parent, &i, &child, &update_cnt );
+        if ( rv != SA_OK ) {
+            break;
+        }
+        for ( j = 1; j <= level; ++j ) {
+            if ( j == level ) {
+                strcat( buf, " |-" );
+            } else {
+                strcat( buf, " | " );
+            }
+        }
+        oh_init_bigtext(&tmpbuf);
+        rv = oh_decode_entitypath( &child, &tmpbuf );
+        if ( rv == SA_OK ) {
+            strncat( buf, (const char *)tmpbuf.Data, tmpbuf.DataLength );
+            strcat( buf, "\n" );
+        } else {
+            strcat( buf, "Invalid Entity\n" );
+        }
+        proc( buf );
+        rv = show_entity_tree( domain, &child, level + 1, proc );
+
+        first = SAHPI_FALSE;
+        if ( i == SAHPI_LAST_ENTRY ) {
+            break;
+        }
+    }
+    if ( ( rv == SA_ERR_HPI_NOT_PRESENT ) && ( first != SAHPI_FALSE ) ) {
+        return SA_OK;
+    } else if ( rv != SA_OK ) {
+        snprintf( buf, SHOW_BUF_SZ, "ERROR!!! saHpiGetChildEntityPath: %s\n",
+                  oh_lookup_error( rv ) );
+        proc( buf );
+    }
+    return rv;
+}
+
 SaErrorT show_inventory(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
                         SaHpiIdrIdT IdrId, SaHpiEntryIdT areaid, hpi_ui_print_cb_t proc)
 {

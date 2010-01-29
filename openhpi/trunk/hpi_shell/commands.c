@@ -318,6 +318,26 @@ static ret_code_t reset(void)
         return HPI_SHELL_OK;
 }
 
+static ret_code_t remove_failed_resource(void)
+{
+        SaErrorT                rv;
+        SaHpiResourceIdT        resourceid;
+        ret_code_t              ret;
+
+        ret = ask_rpt(&resourceid);
+        if (ret != HPI_SHELL_OK) {
+            return ret;
+        }
+
+        rv = saHpiResourceFailedRemove(Domain->sessionId, resourceid);
+        if (rv != SA_OK) {
+            printf("saHpiResourceFailedRemove error %s\n", oh_lookup_error(rv));
+            return HPI_SHELL_CMD_ERROR;
+        }
+
+        return HPI_SHELL_OK;
+}
+
 static ret_code_t clear_evtlog(void)
 {
         SaHpiResourceIdT        resourceid;
@@ -470,6 +490,16 @@ static ret_code_t discovery(void)
 static ret_code_t dat_list(void)
 {
         return show_dat(Domain, ui_print);
+}
+
+static ret_code_t listent(void)
+{
+    SaHpiEntityPathT root;
+    root.Entry[0].EntityType = SAHPI_ENT_ROOT;
+    root.Entry[0].EntityLocation = 0;
+
+    return ( show_entity_tree(Domain, &root, 0, ui_print) == SA_OK ) ?
+           HPI_SHELL_OK : HPI_SHELL_CMD_ERROR;
 }
 
 static ret_code_t listres(void)
@@ -781,6 +811,26 @@ static ret_code_t show_rdr(void)
         show_Rdr(&tmp_rdr, ui_print);
         free_attrs(&(tmp_rdr.Attrutes));
         return HPI_SHELL_OK;
+}
+
+static ret_code_t show_rdrupdatecounter(void)
+{
+    ret_code_t       ret;
+    SaHpiResourceIdT rptid;
+    SaErrorT         rv;
+    SaHpiUint32T     cnt;
+
+    ret = ask_rpt(&rptid);
+    if (ret != HPI_SHELL_OK) return(ret);
+
+    rv = saHpiRdrUpdateCountGet(Domain->sessionId, rptid, &cnt);
+    if ( rv != SA_OK ) {
+        printf( "ERROR!!! saHpiRdrUpdateCountGet: %s\n", oh_lookup_error( rv ) );
+        return HPI_SHELL_CMD_ERROR;
+    }
+    printf( "Update counter for the resource %u data records: %u\n", rptid, cnt );
+
+    return HPI_SHELL_OK;
 }
 
 static ret_code_t show_ver(void)
@@ -1145,6 +1195,77 @@ static ret_code_t echo(void)
         return(HPI_SHELL_OK);
 }
 
+static ret_code_t entity_instruments(void)
+{
+    term_def_t * term;
+    SaHpiEntityPathT ep;
+    SaHpiRdrTypeT type;
+    ret_code_t ret;
+    char buf[3];
+    char type_symbol;
+
+    ret = ask_entity(&ep);
+    if (ret != HPI_SHELL_OK) {
+        return(ret);
+    }
+
+    term = get_next_term();
+    if (term == NULL) {
+        if (read_file) return(HPI_SHELL_CMD_ERROR);
+        ret = get_string_param("Instrument Type (s|a|c|w|i|d|f) ==> ", buf, sizeof(buf));
+        if ( ( ret != 0 ) || ( buf[0] == '\0' ) || ( buf[1] != 0 ) ) {
+    		return HPI_SHELL_PARM_ERROR;
+        }
+        type_symbol = buf[0];
+    } else {
+        if ( ( term->term[0] == '\0' ) || ( term->term[1] != 0 ) ) {
+    		return HPI_SHELL_PARM_ERROR;
+        }
+        type_symbol = term->term[0];
+    };
+    switch ( type_symbol ) {
+        case 'c':
+            type = SAHPI_CTRL_RDR;
+            break;
+        case 's':
+            type = SAHPI_SENSOR_RDR;
+            break;
+        case 'i':
+            type = SAHPI_INVENTORY_RDR;
+            break;
+        case 'w':
+            type = SAHPI_WATCHDOG_RDR;
+            break;
+        case 'a':
+            type = SAHPI_ANNUNCIATOR_RDR;
+            break;
+        case 'd':
+            type = SAHPI_DIMI_RDR;
+            break;
+        case 'f':
+            type = SAHPI_FUMI_RDR;
+            break;
+        default:
+            return HPI_SHELL_PARM_ERROR;
+    }
+
+    return ( show_entity_management(Domain, &ep, type, ui_print) == SA_OK) ?
+           HPI_SHELL_OK : HPI_SHELL_CMD_ERROR;
+}
+
+static ret_code_t entity_resources(void)
+{
+    SaHpiEntityPathT ep;
+    ret_code_t ret;
+
+    ret = ask_entity(&ep);
+    if (ret != HPI_SHELL_OK) {
+        return(ret);
+    }
+    return ( show_entity_management(Domain, &ep, SAHPI_NO_RECORD, ui_print) == SA_OK) ?
+           HPI_SHELL_OK : HPI_SHELL_CMD_ERROR;
+}
+
 static ret_code_t domain_info(void)
 {
         SaHpiDomainInfoT        info;
@@ -1303,6 +1424,13 @@ const char dscvhelp[] = "dscv: discovery resources\n"
                         "Usage: dscv ";
 const char echohelp[] = "echo: pass string to the stdout\n"
                         "Usage: echo <string>";
+const char entinstrhelp[] = "entinstr: list instruments for an entity\n"
+                        "Usage: entinstr [<entity>] [type]\n"
+                        "       type =  c - control, s - sensor, i - inventory\n"
+                        "               w - watchdog, a - annunciatori, d - dimi,\n"
+                        "               f - fumi";
+const char entreshelp[] = "entres: list resources for an entity\n"
+                        "Usage: entres [<entity>]";
 const char eventhelp[] = "event: enable or disable event display on screen\n"
                         "Usage: event [enable|disable|short|full] ";
 const char evtlresethelp[] = "evtlogreset: reset the OverflowFlag in the event log\n"
@@ -1329,6 +1457,8 @@ const char hsstathelp[] = "hotswapstat: retrieve hot swap state of a resource\n"
 const char invhelp[] =  "inv: inventory command block\n"
                         "Usage: inv [<InvId>]\n"
                         "       InvId:: <resourceId> <IdrId>\n";
+const char lenthelp[] = "lenthelp: list entities visible in the system\n"
+                        "Usage: lsent";
 const char lreshelp[] = "lsres: list resources\n"
                         "Usage: lsres [stat] [path]";
 const char lsorhelp[] = "lsensor: list sensors\n"
@@ -1342,8 +1472,13 @@ const char powerhelp[] = "power: power the resource on, off or cycle\n"
                         "Usage: power <resource id> [on|off|cycle]";
 const char quithelp[] = "quit: close session and quit console\n"
                         "Usage: quit";
+const char rdrupdatecounterhelp[] = "rdrupdatecounter: shows update counter for the"
+                        " resource data records\n"
+                        "Usage: rdrupdatecounter <resource id>\n";
 const char resethelp[] = "reset: perform specified reset on the entity\n"
                         "Usage: reset <resource id> [cold|warm|assert|deassert]";
+const char removefailedhelp[] = "removefailed: remove RPT entry for failed resource\n"
+                        "Usage: removefailed <resource id>";
 const char reopenhelp[] = "reopen: reopens session\n"
                         "Usage: reopen [force]\n"
                           "force flag skips old session closing check";
@@ -1365,8 +1500,9 @@ const char showinvhelp[] = "showinv: show inventory data of a resource\n"
 const char showrdrhelp[] = "showrdr: show resource data record\n"
                         "Usage: showrdr [<resource id> [type [<rdr num>]]]\n"
                         "   or  rdr [<resource id> [type [<rdr num>]]]\n"
-                        "       type =  c - control rdr, s - sensor, i - inventory rdr\n"
-                        "               w - watchdog, a - annunciator";
+                        "       type =  c - control, s - sensor, i - inventory\n"
+                        "               w - watchdog, a - annunciatori, d - dimi,\n"
+                        "               f - fumi";
 const char showrpthelp[] = "showrpt: show resource information\n"
                         "Usage: showrpt [<resource id>]\n"
                         "   or  rpt [<resource id>]";
@@ -1463,14 +1599,20 @@ const char dimi_statushelp[] = "status: shows status of specified test\n"
 const char dimi_resultshelp[] = "results: show results from the last run of specified test\n"
                         "Usage: results <testNum>";
 //  FUMI command block
+const char fumi_specinfohelp[] = "specinfo: identifies the specification-defined framework "
+                         "underlying a FUMI implementation\n"
+                         "Usage: specinfo";
+const char fumi_serviceimpacthelp[] = "serviceimpact: shows information about the potential service "
+                        "impact of an upgrade process on a FUMI\n"
+                        "Usage: serviceimpact";
 const char fumi_setsourcehelp[] = "setsource : set new source information to the specified bank\n"
                         "Usage: setsource <bankNum> <sourceURI>";
 const char fumi_validatesourcehelp[] = "validatesource : initiates the validation of the integrity of "
                         "the source image associated with the designated bank\n"
                         "Usage: validatesource <bankNum>";
-const char fumi_getsourcehelp[] = "getsource : shows information about the source image assigned to "
+const char fumi_sourceinfohelp[] = "sourceinfo : shows information about the source image assigned to "
                         "designated bank\n"
-                        "Usage: getsource <bankNum>";
+                        "Usage: sourceinfo <bankNum>";
 const char fumi_targetinfohelp[] = "targetinfo : shows information about the specified bank\n"
                         "Usage: targetinfo <bankNum>";
 const char fumi_backuphelp[] = "backup : initiates a backup of currently active bank\n"
@@ -1484,15 +1626,24 @@ const char fumi_installhelp[] = "install : starts an installation process, loadi
                         "Usage: install <bankNum>";
 const char fumi_statushelp[] = "status : shows upgrade status of the FUMI\n"
                         "Usage: status <bankNum>";
-const char fumi_verifytargethelp[] = "verifytarget : starts the verification process of the upgraded image\n"
-                        "Usage: verifytarget <bankNum>";
+const char fumi_verifyhelp[] = "verify : starts the verification process of the upgraded image\n"
+                        "Usage: verify <bankNum>";
+const char fumi_verifymainhelp[] = "verifymain : starts the verification process of the "
+                        "main firmware instance in the logical bank\n"
+                        "Usage: verifymain";
 const char fumi_cancelhelp[] = "cancel : stops upgrade asynchronous operation in progress\n"
                         "Usage: cancel <bankNum>";
+const char fumi_disableautorollbackhelp[] = "disableautorollback: gets/sets autorollback disable option\n"
+                        "Usage: disableautorollback [ on | off ]";
 const char fumi_rollbackhelp[] = "rollback : initiates a rollback operation to "
                         "restore the currently active bank with a backup version\n"
                         "Usage: rollback ";
-const char fumi_activatehelp[] = "activate : starts execution of the active image on the FUMI\n"
-                        "Usage: activate ";
+const char fumi_activatehelp[] = "activate : initiates firmware activation in either "
+                        "the logical bank or the explicit banks on the FUMI\n"
+                        "Usage: activate [logical]";
+const char fumi_cleanuphelp[] = "cleanup: performs cleanup after an upgrade process on the "
+                        "specified bank, returning it to a predefined state\n"
+                        "Usage: cleanup <bankNum>";
 
 command_def_t commands[] = {
     { "addcfg",         add_config,     addcfghelp,     MAIN_COM },
@@ -1506,6 +1657,8 @@ command_def_t commands[] = {
     { "domaininfo",     domain_info,    domaininfohelp, MAIN_COM },
     { "dscv",           discovery,      dscvhelp,       MAIN_COM },
     { "echo",           echo,           echohelp,       UNDEF_COM },
+    { "entinstr",       entity_instruments, entinstrhelp,   UNDEF_COM },
+    { "entres",         entity_resources, entreshelp,   UNDEF_COM },
     { "event",          event,          eventhelp,      UNDEF_COM },
     { "evtlogtime",     evtlog_time,    evtlogtimehelp, MAIN_COM },
     { "evtlogreset",    evtlog_reset,   evtlresethelp,  MAIN_COM },
@@ -1516,6 +1669,7 @@ command_def_t commands[] = {
     { "history",        history_cmd,    historyhelp,    UNDEF_COM },
     { "hs",             hs_block,       hsblockhelp,    MAIN_COM },
     { "inv",            inv_block,      invhelp,        MAIN_COM },
+    { "lsent",          listent,        lenthelp,       UNDEF_COM },
     { "lsres",          listres,        lreshelp,       UNDEF_COM },
     { "lsensor",        list_sensor,    lsorhelp,       MAIN_COM },
     { "more",           moreset,        morehelp,       UNDEF_COM },
@@ -1523,7 +1677,9 @@ command_def_t commands[] = {
     { "power",          power,          powerhelp,      MAIN_COM },
     { "quit",           quit,           quithelp,       UNDEF_COM },
     { "rdr",            show_rdr,       showrdrhelp,    MAIN_COM },
+    { "rdrupdatecounter", show_rdrupdatecounter,       rdrupdatecounterhelp,    MAIN_COM },
     { "reopen",         reopen_session, reopenhelp,     UNDEF_COM },
+    { "removefailed",   remove_failed_resource, removefailedhelp,  MAIN_COM },
     { "reset",          reset,          resethelp,      MAIN_COM },
     { "rpt",            show_rpt,       showrpthelp,    MAIN_COM },
     { "run",            run,            runhelp,        MAIN_COM },
@@ -1589,19 +1745,24 @@ command_def_t commands[] = {
     { "status",         dimi_block_status,   dimi_statushelp,   DIMI_COM },
     { "results",        dimi_block_results,  dimi_resultshelp,  DIMI_COM },
 // FUMI command block
-    { "setsource",      fumi_block_setsource,      fumi_setsourcehelp,       FUMI_COM },
-    { "validatesource", fumi_block_validatesource, fumi_validatesourcehelp,  FUMI_COM },
-    { "getsource",      fumi_block_getsource,      fumi_getsourcehelp,       FUMI_COM },
-    { "targetinfo",     fumi_block_targetinfo,     fumi_targetinfohelp,      FUMI_COM },
-    { "backup",         fumi_block_backup,         fumi_backuphelp,          FUMI_COM },
-    { "setbootorder",   fumi_block_setbootorder,   fumi_setbootorderhelp,    FUMI_COM },
-    { "bankcopy",       fumi_block_bankcopy,       fumi_bankcopyhelp,        FUMI_COM },
-    { "install",        fumi_block_install,        fumi_installhelp,         FUMI_COM },
-    { "status",         fumi_block_status,         fumi_statushelp,          FUMI_COM },
-    { "verifytarget",   fumi_block_verifytarget,   fumi_verifytargethelp,    FUMI_COM },
-    { "cancel",         fumi_block_cancel,         fumi_cancelhelp,          FUMI_COM },
-    { "rollback",       fumi_block_rollback,       fumi_rollbackhelp,        FUMI_COM },
-    { "activate",       fumi_block_activate,       fumi_activatehelp,        FUMI_COM },
+    { "specinfo",       fumi_block_specinfo,                   fumi_specinfohelp,            FUMI_COM },
+    { "serviceimpact",  fumi_block_serviceimpact,              fumi_serviceimpacthelp,       FUMI_COM },
+    { "setsource",      fumi_block_setsource,                  fumi_setsourcehelp,           FUMI_COM },
+    { "validatesource", fumi_block_validatesource,             fumi_validatesourcehelp,      FUMI_COM },
+    { "sourceinfo",     fumi_block_sourceinfo,                 fumi_sourceinfohelp,          FUMI_COM },
+    { "targetinfo",     fumi_block_targetinfo,                 fumi_targetinfohelp,          FUMI_COM },
+    { "backup",         fumi_block_backup,                     fumi_backuphelp,              FUMI_COM },
+    { "setbootorder",   fumi_block_setbootorder,               fumi_setbootorderhelp,        FUMI_COM },
+    { "bankcopy",       fumi_block_bankcopy,                   fumi_bankcopyhelp,            FUMI_COM },
+    { "install",        fumi_block_install,                    fumi_installhelp,             FUMI_COM },
+    { "status",         fumi_block_status,                     fumi_statushelp,              FUMI_COM },
+    { "verify",         fumi_block_verify,                     fumi_verifyhelp,              FUMI_COM },
+    { "verifymain",     fumi_block_verifymain,                 fumi_verifymainhelp,          FUMI_COM },
+    { "cancel",         fumi_block_cancel,                     fumi_cancelhelp,              FUMI_COM },
+    { "disableautorollback",   fumi_block_disableautorollback, fumi_disableautorollbackhelp, FUMI_COM },
+    { "rollback",       fumi_block_rollback,                   fumi_rollbackhelp,            FUMI_COM },
+    { "activate",       fumi_block_activate,                   fumi_activatehelp,            FUMI_COM },
+    { "cleanup",        fumi_block_cleanup,                    fumi_cleanuphelp,             FUMI_COM },
 // Terminator
     { NULL,             NULL,           NULL,           MAIN_COM }
 };
