@@ -255,57 +255,107 @@ static int process_resource_event(struct oh_domain *d, struct oh_event *e)
         SaHpiRptEntryT *exists = NULL;
         unsigned int *hidp = NULL;
         SaErrorT error = SA_OK;
-        SaHpiResourceEventTypeT *retype = NULL;
-        SaHpiHsStateT state = SAHPI_HS_STATE_NOT_PRESENT;
-        SaHpiBoolT process_hpi = TRUE;
+        SaHpiBoolT process = TRUE;
+        SaHpiBoolT update  = FALSE;
+        SaHpiBoolT remove  = FALSE;
 
-        if (!d || !e) return -1;
+        if (!d || !e) {
+            return -1;
+        }
 
-	rpt = &(d->rpt);
-	exists = oh_get_resource_by_id(rpt, e->resource.ResourceId);
+        rpt = &(d->rpt);
+        exists = oh_get_resource_by_id(rpt, e->resource.ResourceId);
 
-	if (e->event.EventType == SAHPI_ET_RESOURCE) {
-		retype = &e->event.EventDataUnion.ResourceEvent.ResourceEventType;
-		if (*retype != SAHPI_RESE_RESOURCE_FAILURE) {
-			/* If previously failed, set EventT to RESTORED */
-			if (exists && exists->ResourceFailed) {
-				*retype = SAHPI_RESE_RESOURCE_RESTORED;
-			} else if (exists &&
-				   !exists->ResourceFailed) {
-				process_hpi = FALSE;
-			}
-			e->resource.ResourceFailed = SAHPI_FALSE;
-		} else {
-			e->resource.ResourceFailed = SAHPI_TRUE;
-		}
-	} else if (e->event.EventType == SAHPI_ET_HOTSWAP) {
-		state = e->event.EventDataUnion.HotSwapEvent.HotSwapState;
-		if (state == SAHPI_HS_STATE_NOT_PRESENT) {
-			oh_remove_resource(rpt, e->resource.ResourceId);
-		}
-	} else {
-		err("Expected a resource or hotswap event.");
-		return -1;
-	}
+        switch ( e->event.EventDataUnion.ResourceEvent.ResourceEventType ) {
+            case SAHPI_RESE_RESOURCE_FAILURE:
+            case SAHPI_RESE_RESOURCE_INACCESSIBLE:
+                if ( exists && exists->ResourceFailed ) {
+                    process = FALSE;
+                } else {
+                    e->resource.ResourceFailed = SAHPI_TRUE;
+                }
+                break;
+            case SAHPI_RESE_RESOURCE_RESTORED:
+                if ( exists && exists->ResourceFailed ) {
+                    e->resource.ResourceFailed = SAHPI_FALSE;
+                } else {
+                    process = FALSE;
+                }
+                break;
+            case SAHPI_RESE_RESOURCE_ADDED:
+            case SAHPI_RESE_RESOURCE_UPDATED:
+                update = TRUE;
+                break;
+            case SAHPI_RESE_RESOURCE_REMOVED:
+                remove = TRUE;
+                break;
+            default:
+                // unknown resource event
+                // do nothing
+                err("Got unknown resource event.");
+                return -1;
+        }
 
-	if (e->event.EventType == SAHPI_ET_RESOURCE ||
-	    (e->event.EventType == SAHPI_ET_HOTSWAP &&
-	     state != SAHPI_HS_STATE_NOT_PRESENT)) {
-        	hidp = g_malloc0(sizeof(unsigned int));
-		*hidp = e->hid;
-		error = oh_add_resource(rpt, &e->resource,
-					hidp, FREE_RPT_DATA);
-		if (error == SA_OK && !exists) {
-			GSList *node = NULL;
-			for (node = e->rdrs; node; node = node->next) {
-                                SaHpiRdrT *rdr = (SaHpiRdrT *)node->data;
-				oh_add_rdr(rpt, e->resource.ResourceId,
-					   rdr, NULL, 0);
-			}
-		}
-	}
+        if ( remove ) {
+            oh_remove_resource(rpt, e->resource.ResourceId);
+        } else {
+            hidp = g_malloc0(sizeof(unsigned int));
+            *hidp = e->hid;
+            error = oh_add_resource(rpt, &e->resource, hidp, FREE_RPT_DATA);
+            if (error != SA_OK) {
+                g_free( hidp );
+                err("Cannot update resource.");
+                return -1;
+            }
+            if ( update ) {
+                GSList *node = NULL;
+                for (node = e->rdrs; node; node = node->next) {
+                    SaHpiRdrT *rdr = (SaHpiRdrT *)node->data;
+                    oh_add_rdr(rpt, e->resource.ResourceId, rdr, NULL, 0);
+                }
+            }
+        }
 
-	if (process_hpi) process_hpi_event(d, e);
+        if ( process ) {
+            process_hpi_event(d, e);
+        }
+
+        return 0;
+}
+
+static int process_hs_event(struct oh_domain *d, struct oh_event *e)
+{
+        RPTable *rpt = NULL;
+        SaHpiRptEntryT *exists = NULL;
+        SaHpiHotSwapEventT * hse = NULL;
+        unsigned int *hidp = NULL;
+        SaErrorT error = SA_OK;
+
+        if (!d || !e) {
+            return -1;
+        }
+
+        rpt = &(d->rpt);
+        exists = oh_get_resource_by_id(rpt, e->resource.ResourceId);
+        hse = &e->event.EventDataUnion.HotSwapEvent;
+        if (hse->HotSwapState == SAHPI_HS_STATE_NOT_PRESENT) {
+            oh_remove_resource(rpt, e->resource.ResourceId);
+        } else {
+            hidp = g_malloc0(sizeof(unsigned int));
+            *hidp = e->hid;
+            error = oh_add_resource(rpt, &e->resource, hidp, FREE_RPT_DATA);
+            if (error == SA_OK && !exists) {
+                GSList *node = NULL;
+                for (node = e->rdrs; node; node = node->next) {
+                    SaHpiRdrT *rdr = (SaHpiRdrT *)node->data;
+                    oh_add_rdr(rpt, e->resource.ResourceId, rdr, NULL, 0);
+                }
+            }
+        }
+
+        if (hse->HotSwapState != hse->PreviousHotSwapState) {
+            process_hpi_event(d, e);
+        }
 
         return 0;
 }
@@ -355,7 +405,7 @@ static int process_event(SaHpiDomainIdT did,
                         err("Invalid event. Resource in hotswap event "
                                 "has no FRU capability. Dropping.");
                 } else {
-                        process_resource_event(d, e);
+                        process_hs_event(d, e);
                 }
                 break;
         case SAHPI_ET_SENSOR:
