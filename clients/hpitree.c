@@ -19,6 +19,7 @@
  *
  * Changes:
  *     11/03/2004  kouzmich   Fixed Bug #1057934
+ *     09/02/2010  lwetzel    Fixed Bug ResourceId 255 (0xFF) is a valid ResourceId 
  *
  */
 
@@ -82,7 +83,6 @@ void sensor_readingthreshold(SaHpiSessionIdT sessionid,
 			SaHpiResourceIdT resourceid,
 			SaHpiRdrT *rdrptr);
 
-#define all_resources 255
 
 /* 
  * Globals for this driver
@@ -97,6 +97,8 @@ int f_rdr     = 0;
 int f_wdog    = 0;
 int f_ann     = 0;
 int f_overview = 0;
+int f_allres  = 1;
+
 /* 
  * Main                
  */
@@ -106,7 +108,7 @@ main(int argc, char **argv)
 	SaErrorT 	rv = SA_OK;
 	
 	SaHpiSessionIdT sessionid;
-	SaHpiResourceIdT resourceid = all_resources;
+	SaHpiResourceIdT resourceid = 0;
 
 	int c;
 	    
@@ -122,10 +124,10 @@ main(int argc, char **argv)
 			case 'w': f_wdog    = 1; break;
 			case 'o': f_overview = 1; break; 			 
 			case 'n':
-				if (optarg)
+				if (optarg) {
 					resourceid = atoi(optarg);
-				else 
-					resourceid = all_resources;
+					f_allres = 0;
+				}
 				break;
 			case 'x': fdebug = 1; break;
 			default:
@@ -211,10 +213,10 @@ SaErrorT list_resources(SaHpiSessionIdT sessionid,SaHpiResourceIdT resourceid)
 						
 		if (rvRptGet == SA_OK 
                    	&& (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_RDR) 
-			&& ((resourceid == 0xFF) || (resourceid == rptentry.ResourceId)))
+			&& ((f_allres) || (resourceid == rptentry.ResourceId)))
 		{
 			l_resourceid = rptentry.ResourceId;
-			if (resourceid != 0xFF) 
+			if (!f_allres) 
 				 nextrptentryid = SAHPI_LAST_ENTRY;
 
 			/* walk the RDR list for this RPT entry */
@@ -260,7 +262,7 @@ SaErrorT list_rpt(SaHpiRptEntryT *rptptr,SaHpiResourceIdT resourceid)
 {
 	SaErrorT rv = SA_OK;
 
-	if ((resourceid == all_resources) ||
+	if ((f_allres) ||
 		(resourceid == rptptr->ResourceId)) {
 
 		/* Always print resource header */

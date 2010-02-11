@@ -18,7 +18,7 @@
  *	This routine display highlevel topology for a managed openHPI complex
  *
  * Changes:
- *     
+ *    09/02/2010  lwetzel    Fixed Bug: ResourceId 255 (0xFF) is a valid ResourceId 
  *
  */
 
@@ -75,7 +75,6 @@ static SaErrorT show_wdog(SaHpiSessionIdT sessionid,
 void same_system(oh_big_textbuffer *bigbuf);
 void show_trailer(char *system);
 						
-#define all_resources 255
 #define EPATHSTRING_END_DELIMITER "}"
 #define rpt_startblock "    |\n    +--- "
 #define rdr_startblock "    |    |__ "
@@ -90,6 +89,7 @@ int f_wdog     = 0;
 int f_ann     = 0;
 int f_ctrl     = 0;
 int f_overview = 0;
+int f_allres   = 1;
 
 char previous_system[SAHPI_MAX_TEXT_BUFFER_LENGTH] = "";
 /* 
@@ -101,7 +101,7 @@ main(int argc, char **argv)
 	SaErrorT 	rv = SA_OK;
 	
 	SaHpiSessionIdT sessionid;
-	SaHpiResourceIdT resourceid = all_resources;
+	SaHpiResourceIdT resourceid = 0;
 
 	int c;
 	    
@@ -115,10 +115,10 @@ main(int argc, char **argv)
 			case 'w': f_wdog = 1; break;
 			case 'a': f_ann = 1; break;
 			case 'n':
-				if (optarg)
+				if (optarg) {
 					resourceid = atoi(optarg);
-				else 
-					resourceid = all_resources;
+					f_allres = 0;
+				}
 				break;
 			case 'x': fdebug = 1; break;
 			default:
@@ -201,10 +201,10 @@ SaErrorT list_resources(SaHpiSessionIdT sessionid,SaHpiResourceIdT resourceid)
 						
 		if (rvRptGet == SA_OK 
                    	&& (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_RDR) 
-			&& ((resourceid == 0xFF) || (resourceid == rptentry.ResourceId)))
+			&& ((f_allres) || (resourceid == rptentry.ResourceId)))
 		{
 			l_resourceid = rptentry.ResourceId;
-			if (resourceid != 0xFF) 
+			if (!f_allres) 
 				 nextrptentryid = SAHPI_LAST_ENTRY;
 
 			/* walk the RDR list for this RPT entry */
@@ -292,7 +292,7 @@ SaErrorT show_rpt(SaHpiRptEntryT *rptptr,SaHpiResourceIdT resourceid)
 	if (err) return(err);
 
 		
-	if ((resourceid == all_resources) ||
+	if ((f_allres) ||
 		(resourceid == rptptr->ResourceId)) {
 
 		rv  = oh_decode_entitypath(&rptptr->ResourceEntity, &bigbuf2);
