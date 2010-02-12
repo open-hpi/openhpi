@@ -39,6 +39,7 @@
 //	function numbers for decode_proc
 
 #define EPATH_PROC	1
+#define GUID_PROC 2
 
 //	function numbers for decode1_proc
 
@@ -79,7 +80,7 @@ attr_t	Def_resinfo[] = {
 	{ "FirmwareMajorRev",	INT_TYPE,	0, { .d = 0} },	//  5
 	{ "FirmwareMinorRev",	INT_TYPE,	0, { .d = 0} },	//  6
 	{ "AuxFirmwareRev",	INT_TYPE,	0, { .d = 0} },	//  7
-	{ "Guid",		STR_TYPE,	0, { .d = 0} }	//  8
+	{ "Guid",		DECODE_TYPE,	GUID_PROC, { .d = 0} }	//  8
 };
 
 char *lookup_proc(int num, int val)
@@ -121,6 +122,45 @@ char *lookup_proc(int num, int val)
 	return(string);
 }
 
+static void append_char_to_big_text(oh_big_textbuffer * buf, unsigned char c)
+{
+    buf->Data[buf->DataLength] = c;
+    ++buf->DataLength;
+}
+
+static void append_hex_to_big_text(oh_big_textbuffer * buf, unsigned char c)
+{
+    static const unsigned char tt[] = "0123456789ABCDEF";
+    append_char_to_big_text(buf, tt[c >> 4]);
+    append_char_to_big_text(buf, tt[c & 0xF]);
+}
+
+static void decode_guid(const SaHpiGuidT * guid, oh_big_textbuffer * buf)
+{
+    unsigned int i;
+	oh_init_bigtext(buf);
+    for (i = 0; i < 4; ++i) {
+        append_hex_to_big_text(buf, (*guid)[i]);
+    }
+    append_char_to_big_text(buf, '-');
+    for (i = 4; i < 6; ++i) {
+        append_hex_to_big_text(buf, (*guid)[i]);
+    }
+    append_char_to_big_text(buf, '-');
+    for (i = 6; i < 8; ++i) {
+        append_hex_to_big_text(buf, (*guid)[i]);
+    }
+    append_char_to_big_text(buf, '-');
+    for (i = 8; i < 10; ++i) {
+        append_hex_to_big_text(buf, (*guid)[i]);
+    }
+    append_char_to_big_text(buf,'-');
+    for (i = 10; i < 16; ++i) {
+        append_hex_to_big_text(buf, (*guid)[i]);
+    }
+    append_char_to_big_text(buf,'\0');
+}
+
 SaErrorT decode_proc(int num, void *val, char *buf, int bufsize)
 {
 	oh_big_textbuffer	tmpbuf;
@@ -133,6 +173,9 @@ SaErrorT decode_proc(int num, void *val, char *buf, int bufsize)
 			rv = oh_decode_entitypath((SaHpiEntityPathT *)val, &tmpbuf);
 			if (rv != SA_OK) return(-1);
 			break;
+        case GUID_PROC:
+            decode_guid((const SaHpiGuidT*)val, &tmpbuf);
+            break;
 	};
 	strncpy(buf, (char *)(tmpbuf.Data), bufsize);
 	return(SA_OK);
@@ -376,7 +419,7 @@ void make_attrs_rpt(Rpt_t *Rpt, SaHpiRptEntryT *rptentry)
 	att1[5].value.i = obj->ResourceInfo.FirmwareMajorRev;
 	att1[6].value.i = obj->ResourceInfo.FirmwareMinorRev;
 	att1[7].value.i = obj->ResourceInfo.AuxFirmwareRev;
-	att1[8].value.s = (char *)(obj->ResourceInfo.Guid);
+	att1[8].value.a = &obj->ResourceInfo.Guid;
 	att[i++].value.a = &(obj->ResourceEntity);
 	att[i++].value.i = obj->ResourceCapabilities;
 	att[i++].value.i = obj->HotSwapCapabilities;
