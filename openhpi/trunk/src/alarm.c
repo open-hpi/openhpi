@@ -500,7 +500,7 @@ static void oh_detect_hpi_alarm(struct oh_domain *d, SaHpiEventT *event)
 static void oh_detect_resource_alarm(struct oh_domain *d, SaHpiRptEntryT *res)
 {
         SaHpiAlarmT a;
-        SaHpiStatusCondTypeT type = SAHPI_STATUS_COND_TYPE_SENSOR;
+        SaHpiStatusCondTypeT type = SAHPI_STATUS_COND_TYPE_RESOURCE;
 
         if (!d || !res) return;
 
