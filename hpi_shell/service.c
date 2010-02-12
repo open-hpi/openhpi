@@ -49,6 +49,7 @@
 #define RANGEMASK_PROC	4
 #define FUMIACCESSPROT_PROC 5
 #define FUMICAPAB_PROC 6
+#define MANUFACTURERID_PROC 7
 
 extern char	*lookup_proc(int num, int val);
 extern SaErrorT	decode_proc(int num, void *val, char *buf, int bufsize);
@@ -75,7 +76,7 @@ attr_t	Def_resinfo[] = {
 	{ "ResourceRev",	INT_TYPE,	0, { .d = 0} },	//  0
 	{ "SpecificVer",	INT_TYPE,	0, { .d = 0} },	//  1
 	{ "DeviceSupport",	INT_TYPE,	0, { .d = 0} },	//  2
-	{ "ManufacturerId",	INT_TYPE,	0, { .d = 0} },	//  3
+	{ "ManufacturerId",	DECODE1_TYPE,	MANUFACTURERID_PROC, { .d = 0} },	//  3
 	{ "ProductId",		INT_TYPE,	0, { .d = 0} },	//  4
 	{ "FirmwareMajorRev",	INT_TYPE,	0, { .d = 0} },	//  5
 	{ "FirmwareMinorRev",	INT_TYPE,	0, { .d = 0} },	//  6
@@ -315,6 +316,15 @@ static void oh_fumi_caps_mask(SaHpiFumiCapabilityT mask, char *buf, int bufsize)
     strncat( buf, "}", bufsize );
 }
 
+static void oh_manufacturer_id(SaHpiManufacturerIdT mid, char *buf, int bufsize)
+{
+    if (mid != SAHPI_MANUFACTURER_ID_UNSPECIFIED) {
+        snprintf(buf, bufsize, "%d (0x%08X)", mid, mid);
+    } else {
+        strcpy(buf, "Unspecified");
+    }
+}
+
 SaErrorT decode1_proc(int num, int val, char *buf, int bufsize)
 {
 	SaHpiTextBufferT	tbuf;
@@ -341,6 +351,9 @@ SaErrorT decode1_proc(int num, int val, char *buf, int bufsize)
 			return(SA_OK);
         case FUMICAPAB_PROC:
             oh_fumi_caps_mask(val, buf, bufsize);
+			return(SA_OK);
+        case MANUFACTURERID_PROC:
+            oh_manufacturer_id(val, buf, bufsize);
 			return(SA_OK);
 	};
 	strncpy(buf, (char *)(tbuf.Data), bufsize);
