@@ -13,7 +13,7 @@ INCLUDES 		+= -I$(top_srcdir)/openhpid \
 			   -DCLIENT
 COMMONLIBS		= $(top_builddir)/marshal/libohtcpconnx.la \
 			   $(top_builddir)/utils/libopenhpiutils.la \
-			   $(top_builddir)/openhpid/libopenhpi.la
+			   $(top_builddir)/baselib/libopenhpi.la
 
 bin_PROGRAMS		= hpi_shell
 

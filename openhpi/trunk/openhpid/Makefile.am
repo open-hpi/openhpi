@@ -21,15 +21,29 @@ INCLUDES 		= \
 	@OPENHPI_INCLUDES@  -I$(top_srcdir)/marshal @OH_SSL_INCLUDES@
 
 EXTRA_DIST		= \
-	openhpid.sh.in oh_client.h oh_client_conf.h oh_client_session.h
+	openhpid.sh.in
 
 # daemon
 sbin_PROGRAMS           = openhpid
 
-openhpid_SOURCES        = openhpid.cpp
+openhpid_SOURCES        = config.c \
+                          domain.c \
+                          event.c \
+                          threaded.c \
+                          alarm.c \
+                          hotswap.c \
+                          lock.c \
+                          plugin.c \
+                          plugin_static.c \
+                          init.c \
+                          safhpi.c \
+                          session.c \
+                          ohpi.c \
+                          openhpid.cpp
 
 
-openhpid_LDADD         = $(top_builddir)/src/libopenhpi.la \
+
+openhpid_LDADD         = $(top_builddir)/baselib/libopenhpi.la \
 	                 $(top_builddir)/utils/libopenhpiutils.la \
 	                 $(top_builddir)/marshal/libopenhpimarshal.la \
 			 $(top_builddir)/marshal/libohtcpconnx.la
@@ -45,15 +59,6 @@ else
 openhpid_LDADD          += -lstdc++
 endif
 
-
-lib_LTLIBRARIES	        = libopenhpi.la
-
-libopenhpi_la_SOURCES = oh_client.cpp oh_client_session.cpp oh_client_conf.c
-
-libopenhpi_la_LDFLAGS = -version-info @HPI_LIB_VERSION@
-libopenhpi_la_LIBADD  = $(top_builddir)/marshal/libohtcpconnx.la -lstdc++ \
-                        $(top_builddir)/marshal/libopenhpimarshal.la \
-                        $(top_builddir)/utils/libopenhpiutils.la
 
 install-data-local:
 	$(mkinstalldirs) $(DESTDIR)$(sysconfdir)/init.d

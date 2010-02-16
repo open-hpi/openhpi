@@ -7,7 +7,7 @@ EXTRA_DIST	     = oh_clients.h
 
 COMMONLIBS 	     = @STATIC_PLUGIN_LIBS@ @STATIC_PLUGIN_EXTRA_LIBS@
 
-COMMONLIBS	     += $(top_builddir)/openhpid/libopenhpi.la
+COMMONLIBS	     += $(top_builddir)/baselib/libopenhpi.la
 
 CLIENTS_SRC 	     = clients.c
 

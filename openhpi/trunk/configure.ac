@@ -427,7 +427,7 @@ for name in $STATIC_PLUGIN_LIST; do
         STATIC_PLUGIN_LIBS="$STATIC_PLUGIN_LIBS \$(top_builddir)/plugins/$name/lib${name}.la";
 done
 
-dnl use src/plugin_static.c.in
+dnl use openhpid/plugin_static.c.in
 AC_SUBST(STATIC_PLUGIN_EXTERN)
 AC_SUBST(STATIC_PLUGIN)
 
@@ -717,15 +717,15 @@ AC_CONFIG_FILES([openhpi.spec
         scripts/test/Makefile
         snmp/Makefile
 	ssl/Makefile
-        src/Makefile
-        src/plugin_static.c
-        src/t/Makefile
-        src/t/ohpi/Makefile
+        baselib/Makefile
         docs/Makefile
         docs/hld/Makefile
         docs/man/Makefile
         openhpid/Makefile
         openhpid/openhpid.sh
+        openhpid/plugin_static.c
+        openhpid/t/Makefile
+        openhpid/t/ohpi/Makefile
         hpi_shell/Makefile
         cpp/Makefile
         cpp/t/Makefile
