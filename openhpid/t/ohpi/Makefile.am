@@ -15,13 +15,13 @@ EXTRA_DIST              = openhpi.conf
 
 INCLUDES		= @OPENHPI_INCLUDES@
 
-TDEPLIB                 = $(top_builddir)/src/libopenhpi.la \
+TDEPLIB                 = $(top_builddir)/baselib/libopenhpi.la \
 			  $(top_builddir)/utils/libopenhpiutils.la
 
 TESTS_ENVIRONMENT = OPENHPI_PATH=$(top_builddir)/plugins/simulator:$(top_builddir)/plugins/watchdog
 TESTS_ENVIRONMENT += OPENHPI_UID_MAP=$(top_builddir)/src/t/ohpi/uid_map
 TESTS_ENVIRONMENT += OPENHPI_CONF=$(top_srcdir)/src/t/ohpi/openhpi.conf
-TESTS_ENVIRONMENT += LD_LIBRARY_PATH=$(top_srcdir)/src/.libs:$(top_srcdir)/ssl/.libs:$(top_srcdir)/utils/.libs
+TESTS_ENVIRONMENT += LD_LIBRARY_PATH=$(top_srcdir)/baselib/.libs:$(top_srcdir)/ssl/.libs:$(top_srcdir)/utils/.libs
 
 TESTS = \
         ohpi_007 \
