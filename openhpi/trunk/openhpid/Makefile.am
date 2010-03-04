@@ -20,6 +20,9 @@ MAINTAINERCLEANFILES 	= Makefile.in *~
 INCLUDES 		= \
 	@OPENHPI_INCLUDES@  -I$(top_srcdir)/marshal @OH_SSL_INCLUDES@
 
+SUBDIRS = t  
+DIST_SUBDIRS = t
+
 EXTRA_DIST		= \
 	openhpid.sh.in
 
