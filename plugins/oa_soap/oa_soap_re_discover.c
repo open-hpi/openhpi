@@ -2034,6 +2034,7 @@ SaErrorT add_fan(struct oh_handler_state *oh_handler,
  *      SA_OK                     - on success.
  *      SA_ERR_HPI_INVALID_PARAMS - on wrong parameters
  *      SA_ERR_HPI_INTERNAL_ERROR - on failure.
+ *      SA_ERR_HPI_OUT_OF_MEMORY  - on out of memory
  **/
 SaErrorT re_discover_ps_unit(struct oh_handler_state *oh_handler,
                              SOAP_CON *con)
@@ -2041,7 +2042,7 @@ SaErrorT re_discover_ps_unit(struct oh_handler_state *oh_handler,
         SaErrorT rv = SA_OK;
         struct oa_soap_handler *oa_handler;
         struct getPowerSupplyInfo request;
-        struct powerSupplyInfo response;
+        struct powerSupplyInfo *response = NULL;
         SaHpiInt32T i;
         enum resource_presence_status state = RES_ABSENT;
         SaHpiBoolT replace_resource = SAHPI_FALSE;
@@ -2053,11 +2054,23 @@ SaErrorT re_discover_ps_unit(struct oh_handler_state *oh_handler,
 
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
 
+        response = (struct powerSupplyInfo *)g_malloc0(sizeof(struct
+                   powerSupplyInfo));
+        if ( response == NULL )
+                return SA_ERR_HPI_OUT_OF_MEMORY;
+
         for (i = 1; i <= oa_handler->oa_soap_resources.ps_unit.max_bays; i++) {
                 request.bayNumber = i;
-                rv = soap_getPowerSupplyInfo(con, &request, &response);
+                response->presence = PRESENCE_NO_OP;
+                response->modelNumber[0] = '\0';
+                response->sparePartNumber[0] = '\0';
+                response->serialNumber[0] = '\0';
+
+                rv = soap_getPowerSupplyInfo(con, &request, response);
                 if (rv != SOAP_OK) {
                         err("Get power supply info failed");
+                        g_free(response);
+                        response = NULL;
                         return SA_ERR_HPI_INTERNAL_ERROR;
                 }
 
@@ -2067,8 +2080,8 @@ SaErrorT re_discover_ps_unit(struct oh_handler_state *oh_handler,
                  * response structure is NULL. Consider the faulty power supply
                  * unit as ABSENT
                  */
-                if (response.presence != PRESENT ||
-                    response.serialNumber == NULL) {
+                if (response->presence != PRESENT ||
+                    (response->serialNumber == NULL || response->serialNumber[0] == '\0')) {
                         /* The power supply unit is absent.  Is the power
                          * supply unit absent in the presence matrix?
                          */
@@ -2091,7 +2104,7 @@ SaErrorT re_discover_ps_unit(struct oh_handler_state *oh_handler,
                                  */
                                 if (strcmp(oa_handler->oa_soap_resources.
                                            ps_unit.serial_number[i - 1],
-                                           response.serialNumber) != 0) {
+                                           response->serialNumber) != 0) {
                                         replace_resource = SAHPI_TRUE;
                                  } else {
 					/* Check the power supply sensors
@@ -2102,6 +2115,8 @@ SaErrorT re_discover_ps_unit(struct oh_handler_state *oh_handler,
 					if (rv != SA_OK) {
 						err("Re-discover power supply "
 						    "sensors failed");
+                                                g_free(response);
+                                                response = NULL;
 						return rv;
 					}
                                         continue;
@@ -2119,6 +2134,8 @@ SaErrorT re_discover_ps_unit(struct oh_handler_state *oh_handler,
                         rv = remove_ps_unit(oh_handler, i);
                         if (rv != SA_OK) {
                                 err("Power Supply Unit %d removal failed", i);
+                                g_free(response);
+                                response = NULL;
                                 return rv;
                         } else
                                 err("Power Supply Unit %d removed", i);
@@ -2130,9 +2147,11 @@ SaErrorT re_discover_ps_unit(struct oh_handler_state *oh_handler,
                          * added.  Add the power supply unit resource from
                          * RPTable.
                          */
-                        rv = add_ps_unit(oh_handler, con, &response);
+                        rv = add_ps_unit(oh_handler, con, response);
                         if (rv != SA_OK) {
                                 err("Power Supply Unit %d add failed", i);
+                                g_free(response);
+                                response = NULL;
                                 return rv;
                         } else
                                 err("Power Supply Unit %d added", i);
@@ -2140,6 +2159,8 @@ SaErrorT re_discover_ps_unit(struct oh_handler_state *oh_handler,
                         replace_resource = SAHPI_FALSE;
                 }
         } /* End of for loop */
+        
+        g_free(response);
         return SA_OK;
 }
 
@@ -2242,7 +2263,7 @@ SaErrorT add_ps_unit(struct oh_handler_state *oh_handler,
         struct oh_event event;
         SaHpiResourceIdT resource_id;
         struct getPowerSupplyInfo request;
-        struct powerSupplyInfo response;
+        struct powerSupplyInfo *response = NULL;
 	GSList *asserted_sensors = NULL;
 	SaHpiRptEntryT *rpt;
 
@@ -2254,11 +2275,24 @@ SaErrorT add_ps_unit(struct oh_handler_state *oh_handler,
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
         update_hotswap_event(oh_handler, &event);
 
+
         /* Get power supply info to obtain the serial number */
         request.bayNumber = info->bayNumber;
-        rv = soap_getPowerSupplyInfo(con, &request, &response);
+        response = (struct powerSupplyInfo *)g_malloc0(sizeof(struct
+                   powerSupplyInfo));
+        if ( response == NULL )
+                return SA_ERR_HPI_OUT_OF_MEMORY;
+
+        response->presence = PRESENCE_NO_OP;
+        response->modelNumber[0] = '\0';
+        response->sparePartNumber[0] = '\0';
+        response->serialNumber[0] = '\0';
+
+        rv = soap_getPowerSupplyInfo(con, &request, response);
         if (rv != SOAP_OK) {
                 err("Get power supply info failed");
+                g_free(response);
+                response = NULL;
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
@@ -2267,6 +2301,8 @@ SaErrorT add_ps_unit(struct oh_handler_state *oh_handler,
                                     info->bayNumber, &resource_id);
         if (rv != SA_OK) {
                 err("build power supply rpt failed");
+                g_free(response);
+                response = NULL;
                 return rv;
         }
 
@@ -2275,7 +2311,7 @@ SaErrorT add_ps_unit(struct oh_handler_state *oh_handler,
          */
         oa_soap_update_resource_status(
                       &oa_handler->oa_soap_resources.ps_unit, info->bayNumber,
-                      response.serialNumber, resource_id, RES_PRESENT);
+                      response->serialNumber, resource_id, RES_PRESENT);
 
         /* Build the RDRs */
         rv = build_power_supply_rdr(oh_handler, con, info, resource_id);
@@ -2293,6 +2329,9 @@ SaErrorT add_ps_unit(struct oh_handler_state *oh_handler,
                               &oa_handler->oa_soap_resources.ps_unit,
                               info->bayNumber,
                               "", SAHPI_UNSPECIFIED_RESOURCE_ID, RES_ABSENT);
+
+                g_free(response);
+                response = NULL;
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
@@ -2300,6 +2339,8 @@ SaErrorT add_ps_unit(struct oh_handler_state *oh_handler,
 				    &asserted_sensors);
         if (rv != SA_OK) {
                 err("Populating event struct failed");
+                g_free(response);
+                response = NULL;
                 return rv;
         }
 
@@ -2320,6 +2361,8 @@ SaErrorT add_ps_unit(struct oh_handler_state *oh_handler,
 		oa_soap_assert_sen_evt(oh_handler, rpt, asserted_sensors);
 	}
 
+        g_free(response);
+        response = NULL;
         return SA_OK;
 }
 

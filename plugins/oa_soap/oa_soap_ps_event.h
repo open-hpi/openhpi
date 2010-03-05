@@ -32,8 +32,8 @@
  *      Raghavendra P.G. <raghavendra.pg@hp.com>
  */
 
-#ifndef _OA_SOAP_POWER_SUPPLY_EVENT_H
-#define _OA_SOAP_POWER_SUPPLY_EVENT_H
+#ifndef _OA_SOAP_PS_EVENT_H
+#define _OA_SOAP_PS_EVENT_H
 
 /* Include files */
 #include "oa_soap_re_discover.h"

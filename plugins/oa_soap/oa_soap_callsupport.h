@@ -37,8 +37,8 @@
  */
 
 
-#ifndef _INC_OA_SOAP_CALLSUPPORT_H_
-#define _INC_OA_SOAP_CALLSUPPORT_H_
+#ifndef _OA_SOAP_CALLSUPPORT_H_
+#define _OA_SOAP_CALLSUPPORT_H_
 
 
 /* Include files */
@@ -252,4 +252,4 @@ int             soap_inv_enum(char *result, const char *enums, int value);
         "<SOAP-ENV:Body>\n"
 
 
-#endif  /* _INC_OASOAP_CALLSUPPORT_H_ */
+#endif  /* _OA_SOAP_CALLSUPPORT_H_ */

@@ -32,6 +32,7 @@
  *      Raghavendra P.G. <raghavendra.pg@hp.com>
  *      Shuah Khan <shuah.khan@hp.com>
  *      Raghavendra M.S.  <raghavendra.ms@hp.com>
+ *      Mohan Devarajulu  <mohan@fc.hp.com>
  *
  * This file has the interconnect blade related events handling
  *
@@ -43,6 +44,9 @@
  *
  *      process_interconnect_insertion_event()  - Process the interconeect
  *                                                insertion event
+ *
+ *      process_interconnect_info_event()       - Process the interconnect
+ *                                                info event
  *
  *      process_interconnect_extraction_event() - Process the interconeect
  *                                                extraction event
@@ -446,6 +450,89 @@ SaErrorT process_interconnect_insertion_event(struct oh_handler_state
 	}
 
         return SA_OK;
+}
+
+/**
+ * process_interconnect_info_event
+ *      @oh_handler: Pointer to openhpi handler structure
+ *      @con:        Pointer to the SOAP_CON structure
+ *      @oa_event:   Pointer to OA event structure
+ *
+ * Purpose:
+ *      Check if the serial number is there, if so insert.
+ *      This is bad as the query does not get the complete details
+ *      We need to make OA do the right stuff.
+ *      This is created only as an additional mechanism to get the
+ *      part/serial number of the already inserted interconnect. 
+ *      So not much error handling
+ *
+ * Detailed Description: NA
+ *
+ * Return values:
+ *      SA_OK                     - success.
+ *      SA_ERR_HPI_INVALID_PARAMS - Invalid parameters
+ *      SA_ERR_HPI_OUT_OF_MEMORY  - Out of memory      
+ **/
+SaErrorT process_interconnect_info_event(struct oh_handler_state
+                                               *oh_handler,
+                                               SOAP_CON *con,
+                                               struct eventInfo *oa_event)
+{
+        SaErrorT rv = SA_OK;
+        struct oa_soap_handler *oa_handler = NULL;
+        SaHpiInt32T bay_number, len;
+        char *serial_number = NULL;
+        char *name = NULL;
+        SaHpiResourceIdT resource_id;
+
+
+        if (oh_handler == NULL || oa_event == NULL) {
+                err("Invalid parameters");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        oa_handler = (struct oa_soap_handler *) oh_handler->data;
+        bay_number = oa_event->eventData.interconnectTrayInfo.bayNumber;
+        len = strlen(oa_event->eventData.interconnectTrayInfo.serialNumber);
+        serial_number = (char *)g_malloc0(sizeof(char) * len + 1);
+        strcpy(serial_number, oa_event->eventData.interconnectTrayInfo.serialNumber);
+        serial_number[len]='\0';
+        if (strcmp(serial_number,"[Unknown]") == 0 )  {
+                g_free(serial_number);
+                return SA_ERR_HPI_OUT_OF_MEMORY;
+        }
+        name = oa_event->eventData.interconnectTrayInfo.name;
+ 
+         resource_id = oa_handler->
+                oa_soap_resources.interconnect.resource_id[bay_number - 1];
+	
+        /* Build the inserted interconnect RPT entry */
+        rv = build_interconnect_rpt(oh_handler, con, name,
+                                    bay_number, &resource_id, TRUE);
+        if (rv != SA_OK) {
+                err("Failed to build the interconnect RPT");
+                g_free(serial_number);
+                return rv;
+        }
+
+        /* Update resource_status structure with resource_id,
+         * serial_number, and presence status
+         */
+        oa_soap_update_resource_status(
+                 &oa_handler->oa_soap_resources.interconnect, bay_number,
+                 serial_number, resource_id, RES_PRESENT);
+
+        /* The RDR already exist, but the relevant data is available only now 
+         * So just go ahead and correct it. When building the RDR the code does
+         * take care of already existing RDR. 
+         */
+        rv = build_interconnect_rdr(oh_handler, con,
+                                    bay_number, resource_id);
+	
+        g_free(serial_number);
+        return SA_OK;
+
+
 }
 
 /**

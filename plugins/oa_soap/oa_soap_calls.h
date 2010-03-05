@@ -35,12 +35,17 @@
  *     Anand S <S.Anand@hp.com>
  */
 
-#ifndef _INC_OA_SOAP_CALLS_H_
-#define _INC_OA_SOAP_CALLS_H_
+#ifndef _OA_SOAP_CALLS_H_
+#define _OA_SOAP_CALLS_H_
 
 
 /* Include files */
 #include "oa_soap_callsupport.h"
+
+/* Maximum length of the serial number, model number and part number */
+#define MAX_SERIAL_NUM_LENGTH 32
+#define MAX_PART_NUM_LENGTH 32
+#define MAX_MODEL_NUM_LENGTH 32
 
 
 /* Data types used to help us be more consistent with the WSDL description */
@@ -1244,9 +1249,9 @@ struct powerSupplyInfo
 {
         byte bayNumber;
         enum presence presence;
-        char *modelNumber;
-        char *sparePartNumber;
-        char *serialNumber;
+        char modelNumber[MAX_MODEL_NUM_LENGTH];
+        char sparePartNumber[MAX_PART_NUM_LENGTH];
+        char serialNumber[MAX_SERIAL_NUM_LENGTH];
         int capacity;
         int actualOutput;
         xmlNode *extraData;             /* Items are struct extraDataInfo */

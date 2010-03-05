@@ -41,6 +41,7 @@
 #include <oh_error.h>
 #define OA_SOAP_CALLS_FILE              /* Defines ENUM strings in this file */
 #include "oa_soap_calls.h"
+#include "oa_soap_discover.h"
 
 
 /* Macros used in this file, to simplify common code */
@@ -419,12 +420,39 @@ static void     parse_interconnectTrayInfo(xmlNode *node,
 static void     parse_powerSupplyInfo(xmlNode *node,
                                       struct powerSupplyInfo *response)
 {
+	char *temp_val=NULL;
+	int len=0;
         response->bayNumber = atoi(soap_tree_value(node, "bayNumber"));
         response->presence =
                 soap_enum(presence_S, soap_tree_value(node, "presence"));
-        response->modelNumber = soap_tree_value(node, "modelNumber");
-        response->sparePartNumber = soap_tree_value(node, "sparePartNumber");
-        response->serialNumber = soap_tree_value(node, "serialNumber");
+
+	temp_val=soap_tree_value(node, "modelNumber");
+	if ( temp_val != NULL && (len = strlen(temp_val) < MAX_MODEL_NUM_LENGTH)) { 
+		strcpy(response->modelNumber, temp_val);
+	}
+	else {
+		dbg("Internal Error: Power Supply modelNumber does not exist or too long");
+                response->modelNumber[0] = '\0';
+        }
+
+	temp_val=soap_tree_value(node, "sparePartNumber");
+	if ( temp_val != NULL && (len = strlen(temp_val) < MAX_PART_NUM_LENGTH)) {
+		strcpy(response->sparePartNumber, temp_val);
+	}
+	else {
+		dbg("Internal Error: Power Supply modelNumber does not exist or too long");
+                response->sparePartNumber[0] = '\0';
+        }
+
+	temp_val=soap_tree_value(node, "serialNumber");
+	if ( temp_val != NULL && (len = strlen(temp_val) < MAX_SERIAL_NUM_LENGTH)) {
+		strcpy(response->serialNumber, temp_val);
+	}
+	else {
+		dbg("Internal Error: Power Supply modelNumber does not exist or too long");
+                response->serialNumber[0] = '\0';
+        }
+
         response->capacity = atoi(soap_tree_value(node, "capacity"));
         response->actualOutput = atoi(soap_tree_value(node, "actualOutput"));
         response->extraData = soap_walk_tree(node, "extraData");

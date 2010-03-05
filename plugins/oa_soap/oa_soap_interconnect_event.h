@@ -50,6 +50,11 @@ SaErrorT process_interconnect_insertion_event(struct oh_handler_state
                                               SOAP_CON *con,
                                               struct eventInfo *oa_event);
 
+SaErrorT process_interconnect_info_event(struct oh_handler_state
+                                              *oh_handler,
+                                              SOAP_CON *con,
+                                              struct eventInfo *oa_event);
+
 SaErrorT process_interconnect_extraction_event(struct oh_handler_state
                                                *oh_handler,
                                                struct eventInfo *oa_event);

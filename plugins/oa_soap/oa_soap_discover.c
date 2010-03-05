@@ -2708,7 +2708,7 @@ SaErrorT build_power_supply_rdr(struct oh_handler_state *oh_handler,
 	SaHpiInt32T sensor_status;
 	enum diagnosticStatus diag_ex_status[OA_SOAP_MAX_DIAG_EX];
 
-        if (oh_handler == NULL || con == NULL || response == NULL) {
+        if (oh_handler == NULL || con == NULL ) {
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
@@ -2797,6 +2797,7 @@ SaErrorT build_power_supply_rdr(struct oh_handler_state *oh_handler,
  *      SA_OK                     - on success.
  *      SA_ERR_HPI_INVALID_PARAMS - on wrong parameters
  *      SA_ERR_HPI_INTERNAL_ERROR - on failure.
+ *      SA_ERR_HPI_OUT_OF_MEMORY  - on out of memory.
  **/
 SaErrorT discover_power_supply(struct oh_handler_state *oh_handler)
 {
@@ -2804,7 +2805,7 @@ SaErrorT discover_power_supply(struct oh_handler_state *oh_handler)
         struct oa_soap_handler *oa_handler = NULL;
         SaHpiInt32T i;
         struct getPowerSupplyInfo request;
-        struct powerSupplyInfo response;
+        struct powerSupplyInfo *response = NULL;
         char power_supply[] = POWER_SUPPLY_NAME;
         SaHpiResourceIdT resource_id;
 
@@ -2815,17 +2816,29 @@ SaErrorT discover_power_supply(struct oh_handler_state *oh_handler)
 
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
 
+        response = (struct powerSupplyInfo *)g_malloc0(sizeof(struct 
+                      powerSupplyInfo));
+        if( response == NULL){
+                return SA_ERR_HPI_OUT_OF_MEMORY;
+        }
         for (i = 1; i <= oa_handler->oa_soap_resources.ps_unit.max_bays; i++) {
+                response->presence = PRESENCE_NO_OP;
+                response->modelNumber[0] = '\0';
+                response->sparePartNumber[0] = '\0';
+                response->serialNumber[0] = '\0';
+
                 request.bayNumber = i;
                 rv = soap_getPowerSupplyInfo(oa_handler->active_con,
-                                             &request, &response);
+                                             &request, response);
                 if (rv != SOAP_OK) {
                         err("Get power supply info failed");
+                        g_free(response);
+                        response = NULL;
                         return SA_ERR_HPI_INTERNAL_ERROR;
                 }
 
                 /* If resource not present, continue checking for next bay */
-                if (response.presence != PRESENT)
+                if (response->presence != PRESENT)
                         continue;
 
                 /* If the power supply unit does not have the power cord
@@ -2834,7 +2847,7 @@ SaErrorT discover_power_supply(struct oh_handler_state *oh_handler)
                  * response structure is NULL. Consider the faulty power supply
                  *  unit as ABSENT
                  */
-                if (response.serialNumber == NULL)
+                if (response->serialNumber[0] == '\0')
                         continue;
 
                 /* Build the rpt entry for power supply unit */
@@ -2842,6 +2855,8 @@ SaErrorT discover_power_supply(struct oh_handler_state *oh_handler)
                                             i, &resource_id);
                 if (rv != SA_OK) {
                         err("build power supply unit rpt failed");
+                        g_free(response);
+                        response = NULL;
                         return rv;
                 }
 
@@ -2850,21 +2865,25 @@ SaErrorT discover_power_supply(struct oh_handler_state *oh_handler)
                  */
                 oa_soap_update_resource_status(
                       &oa_handler->oa_soap_resources.ps_unit, i,
-                      response.serialNumber, resource_id, RES_PRESENT);
+                      response->serialNumber, resource_id, RES_PRESENT);
 
                 /* Build the rdr entry for power supply */
                 rv = build_power_supply_rdr(oh_handler, oa_handler->active_con,
-                                            &response, resource_id);
+                                            response, resource_id);
                 if (rv != SA_OK) {
                         err("build power supply unit RDR failed");
                         /* Reset resource_status structure to default values */
                         oa_soap_update_resource_status(
                               &oa_handler->oa_soap_resources.ps_unit, i,
                               "", SAHPI_UNSPECIFIED_RESOURCE_ID, RES_ABSENT);
+                        g_free(response);
+                        response = NULL;
                         return rv;
                 }
 
         }
+        g_free(response);
+        response = NULL;
         return SA_OK;
 }
 
