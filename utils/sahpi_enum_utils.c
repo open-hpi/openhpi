@@ -795,7 +795,7 @@ char * oh_lookup_entitytype(SaHpiEntityTypeT value)
         case SAHPI_ENT_INDICATOR:
                 return "INDICATOR";
         default:
-                return oh_lookup_atcahpientitytype(value);
+                return oh_lookup_xtcahpientitytype(value);
         }
 }
 
@@ -939,7 +939,7 @@ SaErrorT oh_encode_entitytype(SaHpiTextBufferT *buffer, SaHpiEntityTypeT *type)
 		*type = entitytype_strings[i].entity_type;
 	}
 	else {
-		return(oh_encode_atcahpientitytype(buffer, type));
+		return(oh_encode_xtcahpientitytype(buffer, type));
 	}
 	
 	return(SA_OK);

@@ -84,6 +84,7 @@ ALLSOURCES = \
 includedir=$(base_includedir)/openhpi
 # These are the only headers that users should have any access to
 include_HEADERS = $(top_srcdir)/include/SaHpi.h \
+                  $(top_srcdir)/include/SaHpiXtca.h \
                   $(top_srcdir)/include/SaHpiAtca.h \
 		  $(top_srcdir)/include/SaHpiBladeCenter.h \
                   $(top_srcdir)/include/oHpi.h \
@@ -91,6 +92,7 @@ include_HEADERS = $(top_srcdir)/include/SaHpi.h \
                   $(top_srcdir)/utils/announcement_utils.h \
                   $(top_srcdir)/utils/rpt_utils.h \
                   $(top_srcdir)/utils/sahpi_enum_utils.h \
+		  $(top_srcdir)/utils/sahpixtca_enum_utils.h \
 		  $(top_srcdir)/utils/sahpiatca_enum_utils.h \
                   $(top_srcdir)/utils/sahpi_event_encode.h \
                   $(top_srcdir)/utils/sahpi_event_utils.h \
@@ -105,6 +107,9 @@ docs_DATA = README README.daemon COPYING
 
 $(top_srcdir)/utils/sahpi_enum_utils.h:
 	make -C $(top_builddir)/utils sahpi_enum_utils.h
+
+$(top_srcdir)/utils/sahpixtca_enum_utils.h:
+	make -C $(top_builddir)/utils sahpixtca_enum_utils.h
 
 $(top_srcdir)/utils/sahpiatca_enum_utils.h:
 	make -C $(top_builddir)/utils sahpiatca_enum_utils.h
