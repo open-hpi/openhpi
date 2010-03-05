@@ -62,13 +62,14 @@
  *      SA_OK                     - success.
  *      SA_ERR_HPI_INVALID_PARAMS - on wrong parameters.
  *      SA_ERR_HPI_INTERNAL_ERROR - on failure
+ *      SA_ERR_HPI_OUT_OF_MEMORY  - on out of memory.
  **/
 SaErrorT process_ps_insertion_event(struct oh_handler_state *oh_handler,
                                     SOAP_CON *con,
                                     struct eventInfo *oa_event)
 {
         struct getPowerSupplyInfo info;
-        struct powerSupplyInfo response;
+        struct powerSupplyInfo *response = NULL;
         SaErrorT rv = SA_OK;
 
         if (oh_handler == NULL || con == NULL || oa_event == NULL) {
@@ -77,9 +78,20 @@ SaErrorT process_ps_insertion_event(struct oh_handler_state *oh_handler,
         }
 
         info.bayNumber = oa_event->eventData.powerSupplyStatus.bayNumber;
-        rv = soap_getPowerSupplyInfo(con, &info, &response);
+        response = (struct powerSupplyInfo *)g_malloc0(sizeof(struct powerSupplyInfo));
+        if( response == NULL){
+                return SA_ERR_HPI_OUT_OF_MEMORY;
+        }
+        response->presence = PRESENCE_NO_OP;
+        response->modelNumber[0] = '\0';
+        response->sparePartNumber[0] = '\0';
+        response->serialNumber[0] = '\0';
+
+        rv = soap_getPowerSupplyInfo(con, &info, response);
         if (rv != SOAP_OK) {
                 err("Get power supply info failed");
+                g_free(response);
+                response = NULL;
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
@@ -88,16 +100,23 @@ SaErrorT process_ps_insertion_event(struct oh_handler_state *oh_handler,
          * all the information in the response structure is NULL. Consider the
          * faulty power supply unit as ABSENT
          */
-        if (response.serialNumber == NULL) {
+        if (response->serialNumber[0] == '\0') {
                 err("Inserted power supply unit may be faulty");
+                g_free(response);
+                response = NULL;
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        rv = add_ps_unit(oh_handler, con, &response);
+        rv = add_ps_unit(oh_handler, con, response);
         if (rv != SA_OK) {
                 err("Add power supply unit failed");
+                g_free(response);
+                response = NULL;
+                return rv;
         }
 
+        g_free(response);
+        response = NULL;
         return SA_OK;
 }
 

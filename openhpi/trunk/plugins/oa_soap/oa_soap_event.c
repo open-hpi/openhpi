@@ -756,7 +756,9 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                                 break;
 
                         case EVENT_INTERCONNECT_INFO:
-                                dbg("EVENT_INTERCONNECT_INFO -- Not processed");
+                                dbg("EVENT_INTERCONNECT_INFO");
+                                rv = process_interconnect_info_event(
+                                        oh_handler, oa->event_con2, &event);
                                 break;
                         case EVENT_INTERCONNECT_HEALTH_LED:
                                 dbg("EVENT_INTERCONNECT_HEALTH_LED "

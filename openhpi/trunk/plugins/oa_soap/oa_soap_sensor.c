@@ -1024,7 +1024,7 @@ SaErrorT update_sensor_rdr(struct oh_handler_state *oh_handler,
         struct getFanInfo fan_request;
         struct fanInfo fan_response;
         struct getPowerSupplyInfo power_supply_request;
-        struct powerSupplyInfo power_supply_response;
+        struct powerSupplyInfo *power_supply_response = NULL;
         struct powerSubsystemInfo ps_response;
         SaHpiInt32T location = -1;
 
@@ -1211,17 +1211,29 @@ SaErrorT update_sensor_rdr(struct oh_handler_state *oh_handler,
                         /* Fetching current actual power output info of
                          * power supply in the specified bay number
                          */
+                        power_supply_response = (struct powerSupplyInfo *)g_malloc0
+                              (sizeof(struct powerSupplyInfo));
+                        if ( power_supply_response == NULL )
+                                return SA_ERR_HPI_OUT_OF_MEMORY;
+                        power_supply_response->presence = PRESENCE_NO_OP;
+                        power_supply_response->modelNumber[0] = '\0';
+                        power_supply_response->sparePartNumber[0] = '\0';
+                        power_supply_response->serialNumber[0] = '\0';
+
                         rv = soap_getPowerSupplyInfo(oa_handler->active_con,
                                                      &power_supply_request,
-                                                     &power_supply_response);
-                        if (rv != SOAP_OK) {
+                                                     power_supply_response);
+                        if (rv != SOAP_OK) { 
+                                g_free(power_supply_response);
                                 return SA_ERR_HPI_INTERNAL_ERROR;
                         }
                         sensor_data->data.IsSupported = SAHPI_TRUE;
                         sensor_data->data.Type =
                                 SAHPI_SENSOR_READING_TYPE_FLOAT64;
                         sensor_data->data.Value.SensorFloat64 =
-                                power_supply_response.actualOutput;
+                                power_supply_response->actualOutput;
+                        g_free(power_supply_response);
+                        power_supply_response = NULL;
                         break;
                 default:
                         err("Wrong resource type");

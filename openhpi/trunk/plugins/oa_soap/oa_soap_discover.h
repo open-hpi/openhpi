@@ -50,8 +50,6 @@
 #define POWER_SUBSYSTEM_NAME "Power Subsystem"
 #define OA_NAME "Onboard Administrator"
 #define MAX_NAME_LEN 64
-/* Maximum length of the serial number */
-#define MAX_SERIAL_NUM_LENGTH 32
 
 #define CISCO "CISCO"                   /* Identifies the Cisco interconnects */
 

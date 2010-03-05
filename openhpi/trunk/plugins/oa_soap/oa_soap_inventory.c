@@ -2356,7 +2356,7 @@ SaErrorT build_power_inv_rdr(struct oh_handler_state *oh_handler,
         SaHpiResourceIdT resource_id;
         SaHpiRptEntryT *rpt = NULL;
 
-        if (oh_handler == NULL || response == NULL || rdr == NULL ||
+        if (oh_handler == NULL || rdr == NULL ||
             inventory == NULL) {
                 err("Invalid parameter.");
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -2681,7 +2681,8 @@ SaErrorT add_board_area(struct oa_soap_area **area,
         /* If both part number and serial number information is NULL
          * then board area is not created
          */
-        if (part_number == NULL && serial_number == NULL) {
+        if ((part_number == NULL && serial_number == NULL) &&
+            (part_number[0] == '\0' && serial_number[0] == '\0')) {
                 err("Board Area:Required information not available");
                 err("Board area not created");
                 *success_flag = SAHPI_FALSE;
@@ -2701,7 +2702,7 @@ SaErrorT add_board_area(struct oa_soap_area **area,
 
         /* Add the fields to the newly created product area */
         field = local_area->field_list;
-        if (part_number != NULL) {
+        if (part_number != NULL && part_number[0] != '\0') {
 
                 memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
                 hpi_field.AreaId = local_area->idr_area_head.AreaId;
@@ -2720,7 +2721,7 @@ SaErrorT add_board_area(struct oa_soap_area **area,
                 }
                 local_area->idr_area_head.NumFields++;
         }
-        if (serial_number != NULL) {
+        if (serial_number != NULL && serial_number[0] != '\0') {
                 memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
                 hpi_field.AreaId = local_area->idr_area_head.AreaId;
                 hpi_field.Type = SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER;

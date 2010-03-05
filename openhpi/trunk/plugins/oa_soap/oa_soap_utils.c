@@ -1468,9 +1468,8 @@ void oa_soap_update_resource_status(resource_status_t *res_status,
                     index);
                 return;
         }
-        if (serial_number != NULL) {
+        if ((serial_number != NULL) && (serial_number[0] != '\0')) {
                 size_t len;
-
                 len = strlen(serial_number);
                 strncpy(res_status->serial_number[index-1], serial_number, len);
                 res_status->serial_number[index-1][len] = '\0';

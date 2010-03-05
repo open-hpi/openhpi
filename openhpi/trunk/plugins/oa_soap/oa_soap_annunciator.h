@@ -31,8 +31,8 @@
  * Author(s)
  *      Raghavendra M.S. <raghavendra.ms@hp.com>
  */
-#ifndef _OA_SOAP_ANNUCIATOR_H
-#define _OA_SOAP_ANNUCIATOR_H
+#ifndef _OA_SOAP_ANNUNCIATOR_H
+#define _OA_SOAP_ANNUNCIATOR_H
 
 /* Include files */
 #include <SaHpi.h>

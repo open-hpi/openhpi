@@ -57,6 +57,7 @@
  *                                        from OA
  **/
 
+#include "oa_soap_discover.h"
 #include "oa_soap.h"
 #include "oa_soap_utils.h"
 
