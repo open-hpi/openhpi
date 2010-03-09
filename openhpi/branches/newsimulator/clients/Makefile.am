@@ -16,6 +16,7 @@ bin_PROGRAMS = \
 	hpifan \
         hpiinv \
 	hpiel \
+	hpigensimdata \
 	hpisensor \
         hpipower \
 	hpitree \
@@ -46,6 +47,9 @@ hpireset_LDADD          = $(COMMONLIBS)
 
 hpiel_SOURCES           = hpiel.c $(CLIENTS_SRC)
 hpiel_LDADD             = $(COMMONLIBS)
+
+hpigensimdata_SOURCES   = hpigensimdata.c $(CLIENTS_SRC)
+hpigensimdata_LDADD     = $(COMMONLIBS)
 
 hpisensor_SOURCES       = hpisensor.c $(CLIENTS_SRC)
 hpisensor_LDADD         = $(COMMONLIBS)
