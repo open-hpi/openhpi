@@ -20,6 +20,8 @@
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
  *     Pierre Sangouard  <psangouard@eso-tech.com>
+ * Fix:
+ * 10/03/04 2963277 Comparison of text buffer data field 
  */
 
 #include <string.h>
@@ -499,7 +501,7 @@ cIpmiTextBuffer::operator==( const cIpmiTextBuffer &tb ) const
        return false;
 
   if ( m_buffer.DataLength )
-       return memcmp( m_buffer.Data, m_buffer.Data, tb.m_buffer.DataLength ) == 0;
+       return memcmp( m_buffer.Data, tb.m_buffer.Data, tb.m_buffer.DataLength ) == 0;
 
   return true;
 }
