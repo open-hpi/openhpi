@@ -20,6 +20,10 @@
 %define with_simulator 1
 %endif
 
+%if "x@NEW_SIMULATOR@" == "xnew_simulator"
+%define with_new_simulator 1
+%endif
+
 %define with_rtas @WITH_RTAS@
 %define with_sysfs @WITH_SYSFS@
 
@@ -101,6 +105,13 @@ Group: System/Monitoring
 Requires: openhpi = %{version}
 %endif
 
+%if 0%{?with_new_simulator}
+%package new_simulator
+Summary: OpenHPI plugin for testing the core library
+Group: System/Monitoring
+Requires: openhpi = %{version}
+%endif
+
 %if 0%{?with_bladecenter}
 %package bladecenter
 Summary: OpenHPI plugin for the IBM Blade Center
@@ -175,6 +186,12 @@ from IBM PPC systems.
 
 %if 0%{?with_simulator}
 %description simulator
+OpenHPI plugin that reports fakes hardware used for
+testing the core library.
+%endif
+
+%if 0%{?with_new_simulator}
+%description new simulator
 OpenHPI plugin that reports fakes hardware used for
 testing the core library.
 %endif
@@ -306,6 +323,14 @@ make DESTDIR=%{buildroot} install
 ###################################################
 %defattr(-,root,root)
 %{_libdir}/%{name}/libsimulator.*
+%endif
+
+###################################################
+%if 0%{?with_new_simulator}
+%files new_simulator
+###################################################
+%defattr(-,root,root)
+%{_libdir}/%{name}/libnewsim.*
 %endif
 
 ###################################################
