@@ -14,6 +14,7 @@
  *      Steve Sherman <stevees@us.ibm.com>
  *      Racing Guo <racing.guo@intel.com>
  *      Renier Morales <renier@openhpi.org>
+ *      Lars Wetzel <larswetzel@users.sourceforge.net>
  */
 
 #include <glib.h>
@@ -286,7 +287,7 @@ SaErrorT oh_decode_manufacturerid(SaHpiManufacturerIdT value, SaHpiTextBufferT *
                 if (err) { return(err); }
                 break;
         case 27768:
-                err = oh_append_textbuffer(&working, "Gesellschaft für Netzwerk- und Automatisierungs-Technologie GmbH");
+                err = oh_append_textbuffer(&working, "Gesellschaft fï¿½r Netzwerk- und Automatisierungs-Technologie GmbH");
                 if (err) { return(err); }
                 break;
         case 29333:
@@ -4066,19 +4067,30 @@ SaErrorT oh_valid_thresholds(SaHpiSensorThresholdsT *thds, SaHpiRdrT *rdr)
             rdr->RdrTypeUnion.SensorRec.ThresholdDefn.IsAccessible == SAHPI_FALSE ||
             rdr->RdrTypeUnion.SensorRec.ThresholdDefn.WriteThold == 0) return(SA_ERR_HPI_INVALID_CMD);
 
+        dbg("Start of threshold validation:");
+        dbg("Check SAHPI_STM_LOW_CRIT");
         validate_threshold(LowCritical, SAHPI_STM_LOW_CRIT);
+        dbg("Check SAHPI_STM_LOW_MAJOR");
         validate_threshold(LowMajor, SAHPI_STM_LOW_MAJOR);
+        dbg("Check SAHPI_STM_LOW_MINOR");
         validate_threshold(LowMinor, SAHPI_STM_LOW_MINOR);
+        dbg("Check SAHPI_STM_UP_CRIT");
         validate_threshold(UpCritical, SAHPI_STM_UP_CRIT);
+        dbg("Check SAHPI_STM_UP_MAJOR");
         validate_threshold(UpMajor, SAHPI_STM_UP_MAJOR);
+        dbg("Check SAHPI_STM_UP_MINOR");
         validate_threshold(UpMinor, SAHPI_STM_UP_MINOR);
+        dbg("Check SAHPI_STM_UP_HYSTERESIS");
         validate_threshold(PosThdHysteresis, SAHPI_STM_UP_HYSTERESIS);
+        dbg("Check SAHPI_STM_LOW_HYSTERESIS");
         validate_threshold(NegThdHysteresis, SAHPI_STM_LOW_HYSTERESIS);
 
         /* Validate defined thresholds are in order:
          * upper critical >= upper major >= upper minor >=
          * lower minor >= lower major >= lower critical
          */
+         
+        dbg("Start of ordering validation.");
         switch (format.ReadingType) {
         case SAHPI_SENSOR_READING_TYPE_INT64:
                 validate_threshold_order(SensorInt64);

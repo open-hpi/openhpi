@@ -20,6 +20,7 @@
  *     Renier Morales <renier@openhpi.org>
  *     Racing Guo <racing.guo@intel.com>
  *     Anton Pak <anton.pak@pigeonpoint.com>
+ *     Lars Wetzel <larswetzel@users.sourceforge.net>
  */
 
 #include <string.h>
@@ -2009,7 +2010,7 @@ SaErrorT SAHPI_API saHpiSensorThresholdsSet (
         SAHPI_IN  SaHpiSessionIdT        SessionId,
         SAHPI_IN  SaHpiResourceIdT       ResourceId,
         SAHPI_IN  SaHpiSensorNumT        SensorNum,
-        SAHPI_OUT SaHpiSensorThresholdsT *SensorThresholds)
+        SAHPI_IN  SaHpiSensorThresholdsT *SensorThresholds)
 {
         SaErrorT rv;
         SaErrorT (*set_func) (void *, SaHpiResourceIdT, SaHpiSensorNumT,
@@ -2042,38 +2043,7 @@ SaErrorT SAHPI_API saHpiSensorThresholdsSet (
                 return SA_ERR_HPI_NOT_PRESENT;
         }
 
-
-        /* Merging thresholds*/
-        SaHpiSensorThresholdsT tmp;
-
-        rv = saHpiSensorThresholdsGet( SessionId, ResourceId, SensorNum, &tmp );
-
-        if (rv != SA_OK) {
-            err("Can't get sensor thresholds. Sensor %d, ResourceId %d, Domain %d",
-            SensorNum, ResourceId, did);
-            oh_release_domain(d);
-            return rv;
-        }
-
-        SaHpiSensorThdMaskT wmask = rdr->RdrTypeUnion.SensorRec.ThresholdDefn.WriteThold;
-
-#define COPY_TH( TH, MASK ) \
-{ \
-    if ( ( SensorThresholds->TH.IsSupported == SAHPI_TRUE ) && ( ( wmask & MASK ) != 0 ) ) { \
-        tmp.TH = SensorThresholds->TH; \
-    } \
-}
-        COPY_TH( UpCritical, SAHPI_STM_UP_CRIT );
-        COPY_TH( UpMajor, SAHPI_STM_UP_MAJOR );
-        COPY_TH( UpMinor, SAHPI_STM_UP_MINOR );
-        COPY_TH( LowCritical, SAHPI_STM_LOW_CRIT );
-        COPY_TH( LowMajor, SAHPI_STM_LOW_MAJOR );
-        COPY_TH( LowMinor, SAHPI_STM_LOW_MINOR );
-        COPY_TH( PosThdHysteresis, SAHPI_STM_UP_HYSTERESIS );
-        COPY_TH( NegThdHysteresis, SAHPI_STM_LOW_HYSTERESIS );
-#undef COPY_TH
-
-        rv = oh_valid_thresholds(&tmp, rdr);
+        rv = oh_valid_thresholds(SensorThresholds, rdr);
         if (rv != SA_OK) { /* Invalid sensor threshold */
                 err("Invalid sensor threshold.");
                 oh_release_domain(d);
