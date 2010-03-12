@@ -177,3 +177,14 @@ handler libsimulator {
 #        STANDBY_OA = "hostname" # Standby OA hostname or IP address (optional)
 #}
 
+## Section for new_simulator plugin
+#handler libnew_simulator {
+#        entity_root = "{SYSTEM_CHASSIS,9}"
+#        file = "etc/openhpi/simulation.data"
+#        # infos goes to logfile and stdout
+#        # the logfile are log00.log, log01.log ...
+#        logflags = "file stdout"
+#        logfile = "newsim"
+#        # if #logfile_max reached replace the oldest one
+#        logfile_max = "5"
+#}
