@@ -4030,6 +4030,59 @@ if (thds->LowMajor.IsSupported == SAHPI_TRUE) { \
 } \
 } while(0)
 
+
+/**
+ * oh_valid_ordering:
+ * @thds: Location of threshold definitions to verify.
+ * @rdr: Location of sensor's RDR.
+ *
+ * Validates the ordering of threshold values 
+ *
+ * Return values:
+ * SA_OK - normal case.
+ * SA_ERR_HPI_INVALID_CMD - invalid data type.
+ * SA_ERR_HPI_INVALID_DATA - Threshold values out of order.
+ * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) are NULL.
+ **/
+SaErrorT oh_valid_ordering(SaHpiSensorThresholdsT *thds, SaHpiRdrT *rdr)
+{
+	    SaHpiSensorDataFormatT format;
+        /* Validate defined thresholds are in order:
+         * upper critical >= upper major >= upper minor >=
+         * lower minor >= lower major >= lower critical
+         */
+        if (!thds || !rdr) {
+                err("Invalid parameter.");
+                return(SA_ERR_HPI_INVALID_PARAMS);
+        }
+        if (rdr->RdrType != SAHPI_SENSOR_RDR) {
+                err("Invalid parameter");
+                return(SA_ERR_HPI_INVALID_PARAMS);
+        }
+
+        format = rdr->RdrTypeUnion.SensorRec.DataFormat;
+         
+        dbg("Start of ordering validation.");
+        switch (format.ReadingType) {
+        case SAHPI_SENSOR_READING_TYPE_INT64:
+                validate_threshold_order(SensorInt64);
+                break;
+        case SAHPI_SENSOR_READING_TYPE_FLOAT64:
+                validate_threshold_order(SensorFloat64);
+                break;
+        case SAHPI_SENSOR_READING_TYPE_UINT64:
+                validate_threshold_order(SensorUint64);
+                break;
+        case SAHPI_SENSOR_READING_TYPE_BUFFER:
+		break;
+        default:
+                err("Invalid threshold reading type.");
+                return(SA_ERR_HPI_INVALID_CMD);
+        }
+
+        return(SA_OK);
+}
+
 /**
  * oh_valid_thresholds:
  * @thds: Location of threshold definitions to verify.
@@ -4043,14 +4096,14 @@ if (thds->LowMajor.IsSupported == SAHPI_TRUE) { \
  * Return values:
  * SA_OK - normal case.
  * SA_ERR_HPI_INVALID_CMD - Non-writable thresholds, invalid thresholds values, or invalid data type.
- * SA_ERR_HPI_INVALID_DATA - Threshold values out of order; negative hysteresis value.
+ * SA_ERR_HPI_INVALID_DATA - negative hysteresis value.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) are NULL.
  **/
 SaErrorT oh_valid_thresholds(SaHpiSensorThresholdsT *thds, SaHpiRdrT *rdr)
 {
-        SaHpiSensorDataFormatT format;
         SaHpiSensorThdMaskT writable_thds;
-
+        SaHpiSensorDataFormatT format;
+        
         if (!thds || !rdr) {
                 err("Invalid parameter.");
                 return(SA_ERR_HPI_INVALID_PARAMS);
@@ -4060,9 +4113,9 @@ SaErrorT oh_valid_thresholds(SaHpiSensorThresholdsT *thds, SaHpiRdrT *rdr)
                 return(SA_ERR_HPI_INVALID_PARAMS);
         }
 
-        format = rdr->RdrTypeUnion.SensorRec.DataFormat;
         writable_thds = rdr->RdrTypeUnion.SensorRec.ThresholdDefn.WriteThold;
-
+        format = rdr->RdrTypeUnion.SensorRec.DataFormat;
+        
         if (rdr->RdrTypeUnion.SensorRec.Category != SAHPI_EC_THRESHOLD ||
             rdr->RdrTypeUnion.SensorRec.ThresholdDefn.IsAccessible == SAHPI_FALSE ||
             rdr->RdrTypeUnion.SensorRec.ThresholdDefn.WriteThold == 0) return(SA_ERR_HPI_INVALID_CMD);
@@ -4085,30 +4138,7 @@ SaErrorT oh_valid_thresholds(SaHpiSensorThresholdsT *thds, SaHpiRdrT *rdr)
         dbg("Check SAHPI_STM_LOW_HYSTERESIS");
         validate_threshold(NegThdHysteresis, SAHPI_STM_LOW_HYSTERESIS);
 
-        /* Validate defined thresholds are in order:
-         * upper critical >= upper major >= upper minor >=
-         * lower minor >= lower major >= lower critical
-         */
-         
-        dbg("Start of ordering validation.");
-        switch (format.ReadingType) {
-        case SAHPI_SENSOR_READING_TYPE_INT64:
-                validate_threshold_order(SensorInt64);
-                break;
-        case SAHPI_SENSOR_READING_TYPE_FLOAT64:
-                validate_threshold_order(SensorFloat64);
-                break;
-        case SAHPI_SENSOR_READING_TYPE_UINT64:
-                validate_threshold_order(SensorUint64);
-                break;
-        case SAHPI_SENSOR_READING_TYPE_BUFFER:
-		break;
-        default:
-                err("Invalid threshold reading type.");
-                return(SA_ERR_HPI_INVALID_CMD);
-        }
-
-        return(SA_OK);
+        return (SA_OK);
 }
 
 /**
