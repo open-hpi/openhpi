@@ -327,6 +327,10 @@ SaErrorT  NewSimulatorInventory::AddArea( SaHpiIdrAreaTypeT type,
  **/  
 SaErrorT NewSimulatorInventory::AddAreaById( SaHpiIdrAreaTypeT type, 
                                              SaHpiEntryIdT id ) {
+                                             	
+   // Ok, we can try to add a new area
+   stdlog << "DBG: NewSimulatorInventory::AddAreaById Try to add a new area by id.\n";
+   
    if ( IsReadOnly() )
       return SA_ERR_HPI_READ_ONLY;
    
@@ -343,7 +347,6 @@ SaErrorT NewSimulatorInventory::AddAreaById( SaHpiIdrAreaTypeT type,
    if ( id == SAHPI_LAST_ENTRY )
       return SA_ERR_HPI_INVALID_PARAMS;
    
-   // Ok, we can try to add a new area
    SaHpiIdrAreaHeaderT ah;
    NewSimulatorInventoryArea *ida;
    
@@ -356,7 +359,8 @@ SaErrorT NewSimulatorInventory::AddAreaById( SaHpiIdrAreaTypeT type,
      ida = new NewSimulatorInventoryArea( ah );
      m_areas.Insert( 0, ida );
      IncUpdateCount();
-
+     stdlog << "DBG: Area was added with id " << ah.AreaId << "\n";
+     
      return SA_OK;	  
    } 
    
@@ -559,9 +563,6 @@ SaErrorT NewSimulatorInventory::SetField( SaHpiIdrFieldT field ) {
       if ( ( m_areas[i]->Num() == field.AreaId ) ||
             ( field.AreaId == SAHPI_FIRST_ENTRY ) ) {
       
-         if (  m_areas[i]->IsReadOnly() )
-            return SA_ERR_HPI_READ_ONLY;
-         
          rv = m_areas[i]->SetField( field );
          if ( rv == SA_OK )
             IncUpdateCount();

@@ -1379,25 +1379,25 @@ static SaErrorT NewSimulatorAddIdrArea( void *hnd,
  * @param areaid id of area to use
  * 
  * @return HPI error code
- **/ 
+ **/
 static SaErrorT NewSimulatorAddIdrAreaById( void *,
                                          SaHpiResourceIdT,
                                          SaHpiIdrIdT,
                                          SaHpiIdrAreaTypeT,
-                                         SaHpiEntryIdT * ) __attribute__((used));
+                                         SaHpiEntryIdT ) __attribute__((used));
 
 static SaErrorT NewSimulatorAddIdrAreaById( void *hnd,
                                          SaHpiResourceIdT id,
                                          SaHpiIdrIdT idrid,
                                          SaHpiIdrAreaTypeT areatype,
-                                         SaHpiEntryIdT *areaid ) {
+                                         SaHpiEntryIdT areaid ) {
    NewSimulator *newsim = 0;
    NewSimulatorInventory *inv = VerifyInventoryAndEnter( hnd, id, idrid, newsim );
 
    if ( !inv )
       return SA_ERR_HPI_NOT_PRESENT;
 
-   SaErrorT rv = inv->AddAreaById( areatype, *areaid );
+   SaErrorT rv = inv->AddAreaById( areatype, areaid );
 
    newsim->IfLeave();
 
@@ -1528,7 +1528,7 @@ static SaErrorT NewSimulatorAddIdrField( void *hnd,
  * @param field pointer on field record to add
  * 
  * @return HPI error code
- **/ 
+ **/             
 static SaErrorT NewSimulatorAddIdrFieldById( void *,
                                           SaHpiResourceIdT,
                                           SaHpiIdrIdT,
@@ -2315,7 +2315,7 @@ void * oh_get_idr_area_header (void *, SaHpiResourceIdT, SaHpiIdrIdT,
 
 /// Alias definition
 void * oh_add_idr_area (void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiIdrAreaTypeT,
-                        SaHpiEntryIdT)
+                        SaHpiEntryIdT *)
                 __attribute__ ((weak, alias("NewSimulatorAddIdrArea")));
 
 /// Alias definition
