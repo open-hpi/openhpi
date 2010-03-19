@@ -105,6 +105,7 @@ class NewSimulatorFileUtil {
 
    bool process_textbuffer(NewSimulatorTextBuffer &buffer);
    bool process_textbuffer(SaHpiTextBufferT &text);
+   bool process_entity( SaHpiEntityPathT &path );
    
    bool process_hexstring(guint max_len, gchar *str, SaHpiUint8T *hexlist);
 };

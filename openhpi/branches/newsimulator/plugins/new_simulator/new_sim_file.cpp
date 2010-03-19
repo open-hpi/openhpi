@@ -28,6 +28,8 @@
 #include "new_sim_file_rdr.h"
 #include "new_sim_file_sensor.h"
 #include "new_sim_file_control.h"
+#include "new_sim_file_annunciator.h"
+#include "new_sim_file_inventory.h"
 #include "new_sim_domain.h"
 #include "new_sim_entity.h"
 #include "new_sim_utils.h"
@@ -584,8 +586,14 @@ bool NewSimulatorFile::process_rdr_token( NewSimulatorResource *res ) {
             break;
             
          case INVENTORY_TOKEN_HANDLER:
-         case WATCHDOG_TOKEN_HANDLER:
+            filerdr = new NewSimulatorFileInventory( m_scanner );
+            break;
+            
          case ANNUNCIATOR_TOKEN_HANDLER:
+            filerdr = new NewSimulatorFileAnnunciator( m_scanner );
+            break;
+            
+         case WATCHDOG_TOKEN_HANDLER:
          case DIMI_TOKEN_HANDLER:
          case FUMI_TOKEN_HANDLER:
             emptyrun = true;
@@ -604,11 +612,10 @@ bool NewSimulatorFile::process_rdr_token( NewSimulatorResource *res ) {
          if (success)
             rdr = filerdr->process_token( res );
          if ( rdr != NULL ) {
-            stdlog << "DBG: process_token returns rdr pointer.\n";
+            stdlog << "DBG: Dump the input.\n";
             rdr->Dump( stdlog );
+            stdlog << "DBG: End Dump -----.\n";
          }
-            
-         stdlog << "DBG: Try to dump into log - maybe a cast is necessary.\n";
          
          delete filerdr;
          filerdr = NULL;

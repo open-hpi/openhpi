@@ -204,7 +204,12 @@ NewSimulatorWatchdog *NewSimulatorDomain::VerifyWatchdog ( NewSimulatorWatchdog 
 }
 **/
 
-/**
+/** 
+ * Verify Inventory
+ *
+ * @param inv pointer on a NewSimulatorInventory object to be verified
+ * @return inv pointer for successfull verification
+ **/
 NewSimulatorInventory *NewSimulatorDomain::VerifyInventory( NewSimulatorInventory *inv ) {
 
    for( int i = 0; i < m_resources.Num(); i++ ) {
@@ -214,7 +219,7 @@ NewSimulatorInventory *NewSimulatorDomain::VerifyInventory( NewSimulatorInventor
 
    return 0;
 }
-**/
+
 
 /**
  * Dump some information about the resources hold in the domain

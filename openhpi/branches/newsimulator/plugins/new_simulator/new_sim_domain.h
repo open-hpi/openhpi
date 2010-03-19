@@ -65,6 +65,10 @@ extern "C" {
 #include "new_sim_announcement.h"
 #endif
 
+#ifndef __NEW_SIM_INVENTORY_H__
+#include "new_sim_inventory.h"
+#endif
+
 #ifndef __NEW_SIM_WATCHDOG_H__
 #include "new_sim_watchdog.h"
 #endif
@@ -155,7 +159,7 @@ public:
   NewSimulatorControl   *VerifyControl( NewSimulatorControl *c );
   NewSimulatorAnnunciator *VerifyAnnunciator( NewSimulatorAnnunciator *a );
 //  NewSimulatorWatchdog  *VerifyWatchdog( NewSimulatorWatchdog *c );
-//  NewSimulatorInventory *VerifyInventory( NewSimulatorInventory *i );
+  NewSimulatorInventory *VerifyInventory( NewSimulatorInventory *i );
 
   /// abstract method for adding a hpi event
   virtual void AddHpiEvent( oh_event *event ) = 0;

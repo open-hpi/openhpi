@@ -53,6 +53,10 @@ libnew_simulator_la_SOURCES= \
         new_sim_file_sensor.cpp \
         new_sim_file_control.h \
         new_sim_file_control.cpp \
+        new_sim_file_annunciator.cpp \
+        new_sim_file_annunciator.h  \
+        new_sim_file_inventory.cpp \
+        new_sim_file_inventory.h \
 		new_sim_entity.h \
 		new_sim_entity.cpp \
 		new_sim_log.h \
@@ -83,6 +87,10 @@ libnew_simulator_la_SOURCES= \
         new_sim_control_text.cpp \
         	new_sim_control_oem.h \
         new_sim_control_oem.cpp \
+        new_sim_inventory.cpp \
+        new_sim_inventory.h \
+        new_sim_inventory_data.cpp \
+        new_sim_inventory_data.h \
 		new_sim_text_buffer.h \
 		new_sim_text_buffer.cpp \
 		new_sim_utils.h \

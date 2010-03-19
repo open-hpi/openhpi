@@ -288,6 +288,26 @@ bool NewSimulatorTextBuffer::SetAscii( const char *string,
 
 
 /**
+ * Fill m_buffer
+ * 
+ * @param data SaHpiTextBufferT record to set internally 
+ * @return true
+ **/
+bool NewSimulatorTextBuffer::SetData( SaHpiTextBufferT data ) {
+   stdlog << "get DataLength = " << data.DataLength << "\n";
+   
+   memcpy( &m_buffer, &data, sizeof( SaHpiTextBufferT ));
+ 
+   stdlog << "Databuffer: ";
+   for (int i = 0; i < m_buffer.DataLength; i++)
+      stdlog << m_buffer.Data[i];
+   stdlog << "\n";
+   
+   return true;
+}
+
+
+/**
  * Return the type of the string
  * 
  * @param s pointer on the string
