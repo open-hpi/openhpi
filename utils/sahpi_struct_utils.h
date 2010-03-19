@@ -94,6 +94,9 @@ SaErrorT oh_decode_fumicapabilities(SaHpiFumiCapabilityT capabilities,
  *************************/
 SaHpiBoolT oh_valid_textbuffer(SaHpiTextBufferT *buffer);
 
+SaErrorT oh_valid_ordering(SaHpiSensorThresholdsT *thds,
+                           SaHpiRdrT *rdr);
+
 SaErrorT oh_valid_thresholds(SaHpiSensorThresholdsT *thds,
                              SaHpiRdrT *rdr);
 
