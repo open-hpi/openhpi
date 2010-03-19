@@ -74,6 +74,9 @@ public:
   // convert ascii string to text buffer
   bool SetAscii( const char *string, SaHpiTextTypeT type,
 		         SaHpiLanguageT l = SAHPI_LANG_ENGLISH );
+  
+  // copy data in the internal buffer
+  bool SetData( SaHpiTextBufferT data );
 
   // returns length of string or -1 on error
   int GetAscii( char *buffer, unsigned int len ) const;

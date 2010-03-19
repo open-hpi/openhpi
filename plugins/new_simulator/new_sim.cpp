@@ -24,13 +24,11 @@
  *  
  * @todo simulation of Sel 
  * simulation of Watchdog.
- * simulation of Inventory
  * simulation of Dimi
  * simulation of Fumi
  * simulation of hotswap states
  * 
- * @todo Interface functions for Inventory, 
- * Interface functions for Dimi, 
+ * @todo Interface functions for Dimi, 
  * Interface functions for Fumi, 
  * Interface functions for Sel, 
  * Interface functions for Hotswap
@@ -38,7 +36,7 @@
  *  
  * @todo alias definition for hotswap state and action  
  * alias definition for eventlog
- * alias definition for idr and hotswap policy
+ * alias definition for hotswap policy
  * alias definition for watchdog
  * 
  *
@@ -247,6 +245,45 @@ static NewSimulatorResource *VerifyResourceAndEnter( void *hnd, SaHpiResourceIdT
    return res;
 }
 
+/**
+ * Function for verification of handler and inventory data in the cache.
+ * It returns a pointer on the equivalent NewSimulatorInventory object.\n
+ * 
+ * @param hnd pointer on a oh_handler
+ * @param rid resource id
+ * @param newsim pointer on the address of a newsim object
+ * @return pointer on NewSimulatorInventory object equivalent to the input
+ **/
+static NewSimulatorInventory * VerifyInventoryAndEnter( void *hnd, SaHpiResourceIdT rid, 
+                                                         SaHpiIdrIdT idrid,
+                                                         NewSimulator *&newsim ) {
+  newsim = VerifyNewSimulator( hnd );
+
+  if ( !newsim ) return 0;
+
+  newsim->IfEnter();
+
+  SaHpiRdrT *rdr = oh_get_rdr_by_type( newsim->GetHandler()->rptcache,
+                                       rid, SAHPI_INVENTORY_RDR, idrid );
+  if ( !rdr ) {
+    newsim->IfLeave();
+    return 0;
+  }
+
+  NewSimulatorInventory *inv = (NewSimulatorInventory *)oh_get_rdr_data( newsim->GetHandler()->rptcache,
+                                                                         rid, rdr->RecordId );
+  if ( !inv ) {
+    newsim->IfLeave();
+    return 0;
+  }
+
+  if ( !newsim->VerifyInventory( inv ) ) {
+    newsim->IfLeave();
+    return 0;
+  }
+
+  return inv;
+}
 
 /* TODO: SENSOR, CONTROL, INVENTORY, etc.
  * 
@@ -281,36 +318,6 @@ static NewSimulatorWatchdog *VerifyWatchdogAndEnter( void *hnd, SaHpiResourceIdT
   return watchdog;
 }
 
-static NewSimulatorInventory * VerifyInventoryAndEnter( void *hnd, SaHpiResourceIdT rid, 
-                                                         SaHpiIdrIdT idrid,
-                                                         NewSimulator *&newsim ) {
-  newsim = VerifyNewSimulator( hnd );
-
-  if ( !newsim ) return 0;
-
-  newsim->IfEnter();
-
-  SaHpiRdrT *rdr = oh_get_rdr_by_type( newsim->GetHandler()->rptcache,
-                                       rid, SAHPI_INVENTORY_RDR, idrid );
-  if ( !rdr ) {
-    newsim->IfLeave();
-    return 0;
-  }
-
-  NewSimulatorInventory *inv = (NewSimulatorInventory *)oh_get_rdr_data( newsim->GetHandler()->rptcache,
-                                                                         rid, rdr->RecordId );
-  if ( !inv ) {
-    newsim->IfLeave();
-    return 0;
-  }
-
-  if ( !newsim->VerifyInventory( inv ) ) {
-    newsim->IfLeave();
-    return 0;
-  }
-
-  return inv;
-}
 
 static NewSimulatorSel *VerifySelAndEnter( void *hnd, SaHpiResourceIdT rid, 
                                             NewSimulator *&newsim ) {
@@ -1247,8 +1254,17 @@ static SaErrorT NewSimulatorSetAnnMode(void *hnd, SaHpiResourceIdT id,
 }
 
  
-/* TODO: IDR
+/**
+ * Interface for GetIdrInfo 
+ * Inside the function the method NewSimulatorInventory::GetIdrInfo is called. 
+ *  
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param idrid number of inventory
+ * @param idrinfo info record to be filled
  * 
+ * @return HPI error code
+ **/ 
 static SaErrorT NewSimulatorGetIdrInfo( void *,
                                          SaHpiResourceIdT,
                                          SaHpiIdrIdT,
@@ -1264,7 +1280,7 @@ static SaErrorT NewSimulatorGetIdrInfo( void *hnd,
    if ( !inv )
       return SA_ERR_HPI_NOT_PRESENT;
 
-   SaErrorT rv = inv->GetIdrInfo( idrid, *idrinfo );
+   SaErrorT rv = inv->GetIdrInfo( *idrinfo );
 
    newsim->IfLeave();
 
@@ -1272,6 +1288,20 @@ static SaErrorT NewSimulatorGetIdrInfo( void *hnd,
 }
 
 
+/**
+ * Interface for GetIdrAreaHeader
+ * Inside the function the method NewSimulatorInventory::GetAreaHeader is called. 
+ *  
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param idrid number of inventory
+ * @param areatype type of area to be found
+ * @param areaid id of area to be found
+ * @param nextareaid id of next area
+ * @param header header information to be filled
+ * 
+ * @return HPI error code
+ **/ 
 static SaErrorT NewSimulatorGetIdrAreaHeader( void *,
                                                SaHpiResourceIdT,
                                                SaHpiIdrIdT,
@@ -1293,7 +1323,7 @@ static SaErrorT NewSimulatorGetIdrAreaHeader( void *hnd,
    if ( !inv )
       return SA_ERR_HPI_NOT_PRESENT;
 
-   SaErrorT rv = inv->GetIdrAreaHeader( idrid, areatype, areaid, *nextareaid, *header );
+   SaErrorT rv = inv->GetAreaHeader( areatype, areaid, *nextareaid, *header );
 
    newsim->IfLeave();
 
@@ -1301,6 +1331,18 @@ static SaErrorT NewSimulatorGetIdrAreaHeader( void *hnd,
 }
 
 
+/**
+ * Interface for AddIdrArea
+ * Inside the function the method NewSimulatorInventory::AddArea is called. 
+ *  
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param idrid number of inventory
+ * @param areatype type of area to be added
+ * @param areaid id of area which is added
+ * 
+ * @return HPI error code
+ **/ 
 static SaErrorT NewSimulatorAddIdrArea( void *,
                                          SaHpiResourceIdT,
                                          SaHpiIdrIdT,
@@ -1318,7 +1360,7 @@ static SaErrorT NewSimulatorAddIdrArea( void *hnd,
    if ( !inv )
       return SA_ERR_HPI_NOT_PRESENT;
 
-   SaErrorT rv = inv->AddIdrArea( idrid, areatype, *areaid );
+   SaErrorT rv = inv->AddArea( areatype, *areaid );
 
    newsim->IfLeave();
 
@@ -1326,6 +1368,53 @@ static SaErrorT NewSimulatorAddIdrArea( void *hnd,
 }
 
 
+/**
+ * Interface for AddIdrAreaById
+ * Inside the function the method NewSimulatorInventory::AddAreaById is called. 
+ *  
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param idrid number of inventory
+ * @param areatype type of area to be added
+ * @param areaid id of area to use
+ * 
+ * @return HPI error code
+ **/ 
+static SaErrorT NewSimulatorAddIdrAreaById( void *,
+                                         SaHpiResourceIdT,
+                                         SaHpiIdrIdT,
+                                         SaHpiIdrAreaTypeT,
+                                         SaHpiEntryIdT * ) __attribute__((used));
+
+static SaErrorT NewSimulatorAddIdrAreaById( void *hnd,
+                                         SaHpiResourceIdT id,
+                                         SaHpiIdrIdT idrid,
+                                         SaHpiIdrAreaTypeT areatype,
+                                         SaHpiEntryIdT *areaid ) {
+   NewSimulator *newsim = 0;
+   NewSimulatorInventory *inv = VerifyInventoryAndEnter( hnd, id, idrid, newsim );
+
+   if ( !inv )
+      return SA_ERR_HPI_NOT_PRESENT;
+
+   SaErrorT rv = inv->AddAreaById( areatype, *areaid );
+
+   newsim->IfLeave();
+
+   return rv;
+}
+
+/**
+ * Interface for DelIdrArea
+ * Inside the function the method NewSimulatorInventory::DeleteArea is called. 
+ *  
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param idrid number of inventory
+ * @param areaid id of area to be deleted
+ * 
+ * @return HPI error code
+ **/ 
 static SaErrorT NewSimulatorDelIdrArea( void *,
                                          SaHpiResourceIdT,
                                          SaHpiIdrIdT,
@@ -1341,7 +1430,7 @@ static SaErrorT NewSimulatorDelIdrArea( void *hnd,
    if ( !inv )
       return SA_ERR_HPI_NOT_PRESENT;
 
-   SaErrorT rv = inv->DelIdrArea( idrid, areaid );
+   SaErrorT rv = inv->DeleteArea( areaid );
 
    newsim->IfLeave();
 
@@ -1349,6 +1438,21 @@ static SaErrorT NewSimulatorDelIdrArea( void *hnd,
 }
 
 
+/**
+ * Interface for GetIdrField
+ * Inside the function the method NewSimulatorInventory::GetField is called. 
+ *  
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param idrid number of inventory
+ * @param areaid id of area
+ * @param fieldtype type of the field
+ * @param fieldid id of the field
+ * @param nextfieldid id of next field
+ * @param field pointer on field record to be filled
+ * 
+ * @return HPI error code
+ **/ 
 static SaErrorT NewSimulatorGetIdrField( void *,
                                           SaHpiResourceIdT,
                                           SaHpiIdrIdT,
@@ -1372,7 +1476,7 @@ static SaErrorT NewSimulatorGetIdrField( void *hnd,
    if ( !inv )
       return SA_ERR_HPI_NOT_PRESENT;
 
-   SaErrorT rv = inv->GetIdrField( idrid, areaid, fieldtype, fieldid, *nextfieldid, *field );
+   SaErrorT rv = inv->GetField( areaid, fieldtype, fieldid, *nextfieldid, *field );
 
    newsim->IfLeave();
 
@@ -1380,6 +1484,17 @@ static SaErrorT NewSimulatorGetIdrField( void *hnd,
 }
 
 
+/**
+ * Interface for AddIdrField
+ * Inside the function the method NewSimulatorInventory::AddField is called. 
+ *  
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param idrid number of inventory
+ * @param field pointer on field record to add
+ * 
+ * @return HPI error code
+ **/ 
 static SaErrorT NewSimulatorAddIdrField( void *,
                                           SaHpiResourceIdT,
                                           SaHpiIdrIdT,
@@ -1395,7 +1510,7 @@ static SaErrorT NewSimulatorAddIdrField( void *hnd,
    if ( !inv )
       return SA_ERR_HPI_NOT_PRESENT;
 
-   SaErrorT rv = inv->AddIdrField( idrid, *field );
+   SaErrorT rv = inv->AddField( *field );
 
    newsim->IfLeave();
 
@@ -1403,6 +1518,50 @@ static SaErrorT NewSimulatorAddIdrField( void *hnd,
 }
 
 
+/**
+ * Interface for AddIdrFieldById
+ * Inside the function the method NewSimulatorInventory::AddFieldById is called. 
+ *  
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param idrid number of inventory
+ * @param field pointer on field record to add
+ * 
+ * @return HPI error code
+ **/ 
+static SaErrorT NewSimulatorAddIdrFieldById( void *,
+                                          SaHpiResourceIdT,
+                                          SaHpiIdrIdT,
+                                          SaHpiIdrFieldT * ) __attribute__((used));
+
+static SaErrorT NewSimulatorAddIdrFieldById( void *hnd,
+                                          SaHpiResourceIdT id,
+                                          SaHpiIdrIdT idrid,
+                                          SaHpiIdrFieldT *field ) {
+   NewSimulator *newsim = 0;
+   NewSimulatorInventory *inv = VerifyInventoryAndEnter( hnd, id, idrid, newsim );
+
+   if ( !inv )
+      return SA_ERR_HPI_NOT_PRESENT;
+
+   SaErrorT rv = inv->AddFieldById( *field );
+
+   newsim->IfLeave();
+
+   return rv;
+}
+
+/**
+ * Interface for SetIdrField
+ * Inside the function the method NewSimulatorInventory::SetField is called. 
+ *  
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param idrid number of inventory
+ * @param field pointer on field record to be set
+ * 
+ * @return HPI error code
+ **/ 
 static SaErrorT NewSimulatorSetIdrField( void *,
                                           SaHpiResourceIdT,
                                           SaHpiIdrIdT,
@@ -1418,14 +1577,25 @@ static SaErrorT NewSimulatorSetIdrField( void *hnd,
    if ( !inv )
       return SA_ERR_HPI_NOT_PRESENT;
 
-   SaErrorT rv = inv->SetIdrField( idrid, *field );
+   SaErrorT rv = inv->SetField( *field );
 
    newsim->IfLeave();
 
    return rv;
 }
 
-
+/**
+ * Interface for DelIdrField
+ * Inside the function the method NewSimulatorInventory::DeleteField is called. 
+ *  
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param idrid number of inventory
+ * @param areaid id of area
+ * @param fieldid id of field to be deleted
+ * 
+ * @return HPI error code
+ **/ 
 static SaErrorT NewSimulatorDelIdrField( void *,
                                           SaHpiResourceIdT,
                                           SaHpiIdrIdT,
@@ -1443,14 +1613,14 @@ static SaErrorT NewSimulatorDelIdrField( void *hnd,
    if ( !inv )
       return SA_ERR_HPI_NOT_PRESENT;
 
-   SaErrorT rv = inv->DelIdrField( idrid, areaid, fieldid );
+   SaErrorT rv = inv->DeleteField( areaid, fieldid );
 
    newsim->IfLeave();
 
    return rv;
 }
 
-
+/* TODO: SEL
 static SaErrorT NewSimulatorGetSelInfo( void *,
                                          SaHpiResourceIdT,
                                          SaHpiEventLogInfoT * ) __attribute__((used));
@@ -2032,15 +2202,19 @@ void * oh_open (GHashTable *, unsigned int, oh_evt_queue *)
 
 /// Alias definition
 void * oh_close (void *) __attribute__ ((weak, alias("NewSimulatorClose")));
+
 /// Alias definition
 void * oh_get_event (void *)
                 __attribute__ ((weak, alias("NewSimulatorGetEvent")));
+
 /// Alias definition
 void * oh_discover_resources (void *)
                 __attribute__ ((weak, alias("NewSimulatorDiscoverResources")));
+
 /// Alias definition
 void * oh_set_resource_tag (void *, SaHpiResourceIdT, SaHpiTextBufferT *)
                 __attribute__ ((weak, alias("NewSimulatorSetResourceTag")));
+
 /// Alias definition
 void * oh_set_resource_severity (void *, SaHpiResourceIdT, SaHpiSeverityT)
                 __attribute__ ((weak, alias("NewSimulatorSetResourceSeverity")));
@@ -2071,86 +2245,112 @@ void * oh_get_sensor_reading (void *, SaHpiResourceIdT,
                              SaHpiSensorReadingT *,
                              SaHpiEventStateT    *)
                 __attribute__ ((weak, alias("NewSimulatorGetSensorReading")));
+
 /// Alias definition
 void * oh_get_sensor_thresholds (void *, SaHpiResourceIdT,
                                  SaHpiSensorNumT,
                                  SaHpiSensorThresholdsT *)
                 __attribute__ ((weak, alias("NewSimulatorGetSensorThresholds")));
+
 /// Alias definition
 void * oh_set_sensor_thresholds (void *, SaHpiResourceIdT,
                                  SaHpiSensorNumT,
                                  const SaHpiSensorThresholdsT *)
                 __attribute__ ((weak, alias("NewSimulatorSetSensorThresholds")));
+
 /// Alias definition
 void * oh_get_sensor_enable (void *, SaHpiResourceIdT,
                              SaHpiSensorNumT,
                              SaHpiBoolT *)
                 __attribute__ ((weak, alias("NewSimulatorGetSensorEnable")));
+
 /// Alias definition
 void * oh_set_sensor_enable (void *, SaHpiResourceIdT,
                              SaHpiSensorNumT,
                              SaHpiBoolT)
                 __attribute__ ((weak, alias("NewSimulatorSetSensorEnable")));
+
 /// Alias definition
 void * oh_get_sensor_event_enables (void *, SaHpiResourceIdT,
                                     SaHpiSensorNumT,
                                     SaHpiBoolT *)
                 __attribute__ ((weak, alias("NewSimulatorGetSensorEventEnables")));
+
 /// Alias definition
 void * oh_set_sensor_event_enables (void *, SaHpiResourceIdT id, SaHpiSensorNumT,
                                     SaHpiBoolT *)
                 __attribute__ ((weak, alias("NewSimulatorSetSensorEventEnables")));
+
 /// Alias definition
 void * oh_get_sensor_event_masks (void *, SaHpiResourceIdT, SaHpiSensorNumT,
                                   SaHpiEventStateT *, SaHpiEventStateT *)
                 __attribute__ ((weak, alias("NewSimulatorGetSensorEventMasks")));
+
 /// Alias definition
 void * oh_set_sensor_event_masks (void *, SaHpiResourceIdT, SaHpiSensorNumT,
                                   SaHpiSensorEventMaskActionT,
                                   SaHpiEventStateT,
                                   SaHpiEventStateT)
                 __attribute__ ((weak, alias("NewSimulatorSetSensorEventMasks")));
+
 /// Alias definition
 void * oh_get_control_state (void *, SaHpiResourceIdT, SaHpiCtrlNumT,
                              SaHpiCtrlModeT *, SaHpiCtrlStateT *)
                 __attribute__ ((weak, alias("NewSimulatorGetControlState")));
+
 /// Alias definition
 void * oh_set_control_state (void *, SaHpiResourceIdT,SaHpiCtrlNumT,
                              SaHpiCtrlModeT, SaHpiCtrlStateT *)
                 __attribute__ ((weak, alias("NewSimulatorSetControlState")));
 
-/*
- * 
-void * oh_get_idr_info (void *hnd, SaHpiResourceIdT, SaHpiIdrIdT,SaHpiIdrInfoT)
+/// Alias definition
+void * oh_get_idr_info (void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiIdrInfoT *)
                 __attribute__ ((weak, alias("NewSimulatorGetIdrInfo")));
 
+/// Alias definition
 void * oh_get_idr_area_header (void *, SaHpiResourceIdT, SaHpiIdrIdT,
                                 SaHpiIdrAreaTypeT, SaHpiEntryIdT, SaHpiEntryIdT,
                                 SaHpiIdrAreaHeaderT)
                 __attribute__ ((weak, alias("NewSimulatorGetIdrAreaHeader")));
 
+/// Alias definition
 void * oh_add_idr_area (void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiIdrAreaTypeT,
                         SaHpiEntryIdT)
                 __attribute__ ((weak, alias("NewSimulatorAddIdrArea")));
 
+/// Alias definition
+void * oh_add_idr_area_id (void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiIdrAreaTypeT,
+                        SaHpiEntryIdT)
+                __attribute__ ((weak, alias("NewSimulatorAddIdrAreaById")));
+                
+/// Alias definition
 void * oh_del_idr_area (void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiEntryIdT)
                 __attribute__ ((weak, alias("NewSimulatorDelIdrArea")));
 
+/// Alias definition
 void * oh_get_idr_field (void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiEntryIdT,
                          SaHpiIdrFieldTypeT, SaHpiEntryIdT, SaHpiEntryIdT,
                          SaHpiIdrFieldT)
                 __attribute__ ((weak, alias("NewSimulatorGetIdrField")));
 
-void * oh_add_idr_field (void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiIdrFieldT)
+/// Alias definition
+void * oh_add_idr_field (void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiIdrFieldT *)
                 __attribute__ ((weak, alias("NewSimulatorAddIdrField")));
 
+/// Alias definition
+void * oh_add_idr_field_id (void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiIdrFieldT *)
+                __attribute__ ((weak, alias("NewSimulatorAddIdrFieldById")));
+                
+/// Alias definition
 void * oh_set_idr_field (void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiIdrFieldT)
                 __attribute__ ((weak, alias("NewSimulatorSetIdrField")));
 
+/// Alias definition
 void * oh_del_idr_field (void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiEntryIdT,
                          SaHpiEntryIdT)
                 __attribute__ ((weak, alias("NewSimulatorDelIdrField")));
 
+/*
 void * oh_hotswap_policy_cancel (void *, SaHpiResourceIdT, SaHpiTimeoutT)
                 __attribute__ ((weak, alias("NewSimulatorHotswapPolicyCancel")));
 */
@@ -2158,9 +2358,11 @@ void * oh_hotswap_policy_cancel (void *, SaHpiResourceIdT, SaHpiTimeoutT)
 /// Alias definition
 void * oh_set_autoinsert_timeout (void *, SaHpiTimeoutT)
                 __attribute__ ((weak, alias("NewSimulatorSetAutoInsertTimeout")));
+
 /// Alias definition
 void * oh_get_autoextract_timeout (void *, SaHpiResourceIdT, SaHpiTimeoutT *)
                 __attribute__ ((weak, alias("NewSimulatorGetAutoExtractTimeout")));
+
 /// Alias definition
 void * oh_set_autoextract_timeout (void *, SaHpiResourceIdT, SaHpiTimeoutT)
                 __attribute__ ((weak, alias("NewSimulatorSetAutoExtractTimeout")));
@@ -2179,23 +2381,29 @@ void * oh_request_hotswap_action (void *, SaHpiResourceIdT, SaHpiHsActionT)
 /// Alias definition
 void * oh_get_power_state (void *, SaHpiResourceIdT, SaHpiPowerStateT *)
                 __attribute__ ((weak, alias("NewSimulatorGetPowerState")));
+
 /// Alias definition
 void * oh_set_power_state (void *, SaHpiResourceIdT, SaHpiPowerStateT)
                 __attribute__ ((weak, alias("NewSimulatorSetPowerState")));
+
 /// Alias definition
 void * oh_get_indicator_state (void *, SaHpiResourceIdT,
                                SaHpiHsIndicatorStateT *)
                 __attribute__ ((weak, alias("NewSimulatorGetIndicatorState")));
+
 /// Alias definition
 void * oh_set_indicator_state (void *, SaHpiResourceIdT,
                                SaHpiHsIndicatorStateT)
                 __attribute__ ((weak, alias("NewSimulatorSetIndicatorState")));
+
 /// Alias definition
 void * oh_control_parm (void *, SaHpiResourceIdT, SaHpiParmActionT)
                 __attribute__ ((weak, alias("NewSimulatorControlParm")));
+
 /// Alias definition
 void * oh_get_reset_state (void *, SaHpiResourceIdT, SaHpiResetActionT *)
                 __attribute__ ((weak, alias("NewSimulatorGetResetState")));
+
 /// Alias definition
 void * oh_set_reset_state (void *, SaHpiResourceIdT, SaHpiResetActionT)
                 __attribute__ ((weak, alias("NewSimulatorSetResetState")));
@@ -2215,26 +2423,32 @@ void * oh_reset_watchdog (void *, SaHpiResourceIdT , SaHpiWatchdogNumT )
 void * oh_get_next_announce(void *, SaHpiResourceIdT, SaHpiAnnunciatorNumT, 
                             SaHpiSeverityT, SaHpiBoolT, SaHpiAnnouncementT *)
                __attribute__ ((weak, alias("NewSimulatorGetNextAnnouncement")));
+
 /// Alias definition       
 void * oh_get_announce(void *, SaHpiResourceIdT, SaHpiAnnunciatorNumT, 
                         SaHpiEntryIdT, SaHpiAnnouncementT *)
                __attribute__ ((weak, alias("NewSimulatorGetAnnouncement")));
+
 /// Alias definition
 void * oh_ack_announce(void *, SaHpiResourceIdT, SaHpiAnnunciatorNumT, 
                         SaHpiEntryIdT, SaHpiSeverityT)
                __attribute__ ((weak, alias("NewSimulatorAckAnnouncement")));
+
 /// Alias definition              
 void * oh_add_announce(void *, SaHpiResourceIdT, SaHpiAnnunciatorNumT, 
                         SaHpiAnnouncementT *)
                __attribute__ ((weak, alias("NewSimulatorAddAnnouncement")));
+
 /// Alias definition
 void * oh_del_announce(void *, SaHpiResourceIdT, SaHpiAnnunciatorNumT, 
                         SaHpiEntryIdT, SaHpiSeverityT)
                __attribute__ ((weak, alias("NewSimulatorDelAnnouncement")));
- /// Alias definition             
+
+/// Alias definition             
 void * oh_get_annunc_mode(void *, SaHpiResourceIdT, SaHpiAnnunciatorNumT,
                           SaHpiAnnunciatorModeT *)
                __attribute__ ((weak, alias("NewSimulatorGetAnnMode")));
+
 /// Alias definition               
 void * oh_set_annunc_mode(void *, SaHpiResourceIdT, SaHpiAnnunciatorNumT,
                           SaHpiAnnunciatorModeT)

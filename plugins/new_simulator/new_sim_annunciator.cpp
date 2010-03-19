@@ -45,10 +45,9 @@ NewSimulatorAnnunciator::NewSimulatorAnnunciator( NewSimulatorResource *res )
  * Full qualified constructor to fill an object with the parsed data
  **/
 NewSimulatorAnnunciator::NewSimulatorAnnunciator( NewSimulatorResource *res,
-                                        SaHpiRdrT rdr, 
-                                        SaHpiAnnunciatorModeT mode)
+                                        SaHpiRdrT rdr )
   : NewSimulatorRdr( res, SAHPI_ANNUNCIATOR_RDR, rdr.Entity, rdr.IsFru, rdr.IdString ),
-    m_mode( mode ),
+    m_mode( SAHPI_ANNUNCIATOR_MODE_SHARED ),
     m_ann_id( 0 ) {
 
    memcpy(&m_ann_rec, &rdr.RdrTypeUnion.AnnunciatorRec, sizeof( SaHpiAnnunciatorRecT ));
@@ -140,6 +139,18 @@ bool NewSimulatorAnnunciator::AddAnnouncement( NewSimulatorAnnouncement *ann ) {
    return true;
 }
 
+
+/**
+ * The annunciator data is copied into the internal record structer
+ * 
+ * @param ann_data Record to be copied into the internal structure
+ **/ 
+void NewSimulatorAnnunciator::SetData( SaHpiAnnunciatorRecT ann_data ) {
+	
+   memcpy( &m_ann_rec, &ann_data, sizeof( SaHpiAnnunciatorRecT ));   
+}
+
+
 // Official HPI functions
  
  /**
@@ -165,6 +176,9 @@ SaErrorT NewSimulatorAnnunciator::GetNextAnnouncement( SaHpiSeverityT severity,
    if (&ann == NULL)
       return SA_ERR_HPI_INVALID_PARAMS;
 
+   if (m_anns.Num() == 0)
+      return SA_ERR_HPI_NOT_PRESENT;
+
    if (ann.EntryId == SAHPI_FIRST_ENTRY) {
       a = m_anns[0];
       num = a->EntryId();
@@ -177,6 +191,12 @@ SaErrorT NewSimulatorAnnunciator::GetNextAnnouncement( SaHpiSeverityT severity,
    
    for (int i = 0; i < m_anns.Num(); i++) {
       a = m_anns[i];
+      
+      // Be aware that the previos Announcement can already be deleted
+      if (( a->EntryId() > num ) && ( a->TimeStamp() >= time )) {
+         found = true;
+      }
+      
       if (found) {
         // If we have found the previous announcement, we have to check the criteria	
       	if ( (severity == SAHPI_ALL_SEVERITIES) ||
@@ -187,8 +207,14 @@ SaErrorT NewSimulatorAnnunciator::GetNextAnnouncement( SaHpiSeverityT severity,
       	         	
       	      memcpy( &ann, &a->AnnRec(), sizeof( SaHpiAnnouncementT ));
       	      return SA_OK;
+      	      
+      	   } else if (uackOnly == SAHPI_FALSE) {
+
+      	      memcpy( &ann, &a->AnnRec(), sizeof( SaHpiAnnouncementT ));
+      	      return SA_OK;
       	   }
       	}
+
       } else {
          // Find the previous announciator
          if ( a->EntryId() == num ) {
@@ -304,7 +330,6 @@ SaErrorT NewSimulatorAnnunciator::AddAnnouncement( SaHpiAnnouncementT &ann ) {
  * HPI function saHpiAnnunciatorDelete()
  * 
  * See also the description of the function inside the specification or header file.
- * Copying the internal reading values (if a read is allowed).
  * 
  * @param num entryId of announcement to be deleted
  * @param severity severity of announcements to be deleted
@@ -317,7 +342,7 @@ SaErrorT NewSimulatorAnnunciator::DeleteAnnouncement( SaHpiEntryIdT &num,
    if (m_mode == SAHPI_ANNUNCIATOR_MODE_AUTO)
       return SA_ERR_HPI_READ_ONLY;
    
-   for (int i = 0; i < m_anns.Num(); i++) {
+   for (int i = m_anns.Num() - 1; i >= 0; i--) {
       NewSimulatorAnnouncement *ann = m_anns[i];
       
       if (num != SAHPI_ENTRY_UNSPECIFIED) {
@@ -380,7 +405,7 @@ SaErrorT NewSimulatorAnnunciator::SetMode( SaHpiAnnunciatorModeT mode ) {
         (mode != SAHPI_ANNUNCIATOR_MODE_SHARED))
       return SA_ERR_HPI_INVALID_PARAMS;
       
-   mode = m_mode;
+   m_mode = mode;
 
    return SA_OK;
 }

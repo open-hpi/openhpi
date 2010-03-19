@@ -112,34 +112,11 @@ bool NewSimulatorFileRdr::process_rdr_token( void ) {
          	   }
          	 
             } else if (!strcmp(rdrfield, "Entity")) {
-               stdlog << "DBG: rdr - Entity\n";
-               if (cur_token == G_TOKEN_LEFT_CURLY) {
-            	      m_depth++;
-            	      cur_token = g_scanner_get_next_token(m_scanner);
-               
-                  if (cur_token == G_TOKEN_STRING) {
-                     gchar *val_str;
-                     val_str = g_strdup(m_scanner->value.v_string);
-                     ep.FromString(val_str);
-                     m_rdr.Entity = ep;
-                     stdlog << "DBG: rdr - Enitity " << ep << "\n";
-                  
-                  } else {
-                     success = false;
-                     err("Processing parse rdr - wrong Entity value");
-                  }
-               
-                  cur_token = g_scanner_get_next_token(m_scanner);
-                  if (cur_token != G_TOKEN_RIGHT_CURLY) {
-                     success = false;
-                     err("Processing parse rdr entity - Missing right culy");
-                  }
-                  m_depth--;
-            
-               } else {	
-         	      err("Processing parse rdr entity: Missing left curly");
-         	   }
-         	
+            	   if (cur_token == G_TOKEN_LEFT_CURLY)
+            	      success = process_entity( m_rdr.Entity );
+            	   if ( !success )
+            	      err("Error at parsing the entity path");
+          	
             } else if (!strcmp(rdrfield, "IsFru")) {
                if (cur_token == G_TOKEN_INT) {
          	      m_rdr.IsFru = m_scanner->value.v_int;

@@ -58,8 +58,7 @@ private:
 public:
   NewSimulatorAnnunciator( NewSimulatorResource *res );
   NewSimulatorAnnunciator( NewSimulatorResource *res,
-                           SaHpiRdrT rdr, 
-                           SaHpiAnnunciatorModeT mode );
+                           SaHpiRdrT rdr );
                       
   virtual ~NewSimulatorAnnunciator();
 
@@ -73,6 +72,7 @@ public:
   bool AddAnnouncement( NewSimulatorAnnouncement *ann );
   // create an RDR sensor record
   virtual bool CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr );
+  virtual void SetData( SaHpiAnnunciatorRecT ann_data );
   
   // Official HPI functions
   SaErrorT GetMode( SaHpiAnnunciatorModeT &mode );

@@ -25,6 +25,7 @@
 
 #include "new_sim_file_util.h"
 #include "new_sim_text_buffer.h"
+#include "new_sim_entity.h"
 #include "new_sim_log.h"
 
 
@@ -85,10 +86,11 @@ NewSimulatorFileUtil::~NewSimulatorFileUtil() {
  * 
  **/
 bool NewSimulatorFileUtil::process_textbuffer( NewSimulatorTextBuffer &buffer ) {
-   bool success = true, dataval = false;
+   bool success = true;
+   SaHpiTextBufferT tmp;
    char *datafield = NULL;
    char *field;
-   guint val=0, type = 0, lang = 0, len = 0;
+   guint val=0;
    guint cur_token = g_scanner_get_next_token(m_scanner);
    
    if (cur_token == G_TOKEN_STRING) { 
@@ -120,13 +122,13 @@ bool NewSimulatorFileUtil::process_textbuffer( NewSimulatorTextBuffer &buffer ) 
       }
       
       if (!strcmp( "DataType", field )) {
-         type = val;
+         tmp.DataType = ( SaHpiTextTypeT ) val;
       } else if (!strcmp( "Language", field )) {
-         lang = val;
+         tmp.Language = ( SaHpiLanguageT ) val;
       } else if (!strcmp( "DataLength", field )) {
-         len = val;
+         tmp.DataLength = val;
       } else if (!strcmp( "Data", field )) {
-         dataval = true;
+         strncpy ((char *) tmp.Data, datafield, SAHPI_MAX_TEXT_BUFFER_LENGTH);
       } else {
          err("Processing parse textbuffer: unknown field %s", field);
       }
@@ -144,8 +146,8 @@ bool NewSimulatorFileUtil::process_textbuffer( NewSimulatorTextBuffer &buffer ) 
       }
    }
    
-   if (success && dataval)
-      return buffer.SetAscii(datafield, (SaHpiTextTypeT) type, (SaHpiLanguageT) lang);
+   if (success)
+      return buffer.SetData( tmp );
     
    return success;
 }
@@ -204,4 +206,40 @@ bool NewSimulatorFileUtil::process_hexstring( guint max_len, gchar *str, SaHpiUi
    }
 
    return success; 	
+}
+
+/** 
+ * Parse the entity string
+ *
+ * Common function to parse entity string.\n
+ * The scanner should be on token \c G_TOKEN_LEFT_CURLY and will be afterwards 
+ * on token \c G_TOKEN_RIGHT_CURLY.\n
+ * 
+ * @param address of entity structure
+ * @return success value
+ **/
+bool NewSimulatorFileUtil::process_entity( SaHpiEntityPathT &path ) {
+   NewSimulatorEntityPath ep;
+   bool success=true;
+   guint cur_token = g_scanner_get_next_token(m_scanner);
+               
+   if (cur_token == G_TOKEN_STRING) {
+      gchar *val_str;
+      val_str = g_strdup(m_scanner->value.v_string);
+      ep.FromString(val_str);
+      path = ep;
+
+   } else {
+      success = false;
+      err("Processing parse rdr - wrong Entity value");
+
+   }
+               
+   cur_token = g_scanner_get_next_token(m_scanner);
+   if (cur_token != G_TOKEN_RIGHT_CURLY) {
+      success = false;
+      err("Processing parse rdr entity - Missing right culy");
+   }
+
+   return success;
 }
