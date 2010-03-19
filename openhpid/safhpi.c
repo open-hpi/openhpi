@@ -565,12 +565,19 @@ SaErrorT SAHPI_API saHpiGetChildEntityPath (
         OH_GET_DOMAIN(did, d); /* Lock domain */
         
         /* Check to see the parent entity path exists */
-        rpte = oh_get_resource_by_ep(&d->rpt, &ParentEntityPath);
-        if (rpte == NULL) {
-                oh_release_domain(d);
-                return SA_ERR_HPI_INVALID_DATA;
+        /* There is special handling for {ROOT, 0} */
+        if (
+            (ParentEntityPath.Entry[0].EntityType != SAHPI_ENT_ROOT) ||
+            (ParentEntityPath.Entry[0].EntityLocation != 0)
+           )
+        {
+            rpte = oh_get_resource_by_ep(&d->rpt, &ParentEntityPath);
+            if (rpte == NULL) {
+                    oh_release_domain(d);
+                    return SA_ERR_HPI_INVALID_DATA;
+            }
+            rpte = NULL;
         }
-        rpte = NULL;
         
         /* Create an entity path pattern from the parent entity path
          * that looks like the following: <ParentEntityPath>{.,.}
