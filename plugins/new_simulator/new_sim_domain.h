@@ -95,6 +95,10 @@ protected:
    bool                   m_own_domain;
    /// id of the used plugin handler
    int                    m_handler_id;
+   /// flag if a watchdog is running and should be checked
+   bool                   m_running_wdt;
+   /// flag if a fumi is running and should be checked
+   bool                   m_running_fumi;
 
 public:
   /// return the own domain id
@@ -105,6 +109,14 @@ public:
   SaHpiTimeoutT &ExtractTimeout() { return m_extract_timeout; }
   /// return the handler id
   int HandlerId() { return m_handler_id; }
+  /// return if a watchdog timer is running
+  bool HasRunningWdt() { return m_running_wdt; }
+  /// return if a fumi is running
+  bool HasRunningFumi() { return m_running_fumi; }
+  /// set running watchdog flag
+  void SetRunningWdt( bool flag ) { m_running_wdt = flag; }
+  /// set running fumi flag
+  void SetRunningFumi( bool flag ) { m_running_fumi = flag; }
 
 protected:
   /// Major version 
@@ -139,6 +151,8 @@ public:
 
 
 public:
+  /// Return the number of resource in the domain
+  int Num() { return m_resources.Num(); }
   void AddResource( NewSimulatorResource *res );
   bool CleanupResource( NewSimulatorResource *res );
   void RemResource( NewSimulatorResource *res );
@@ -158,7 +172,7 @@ public:
   NewSimulatorSensor    *VerifySensor( NewSimulatorSensor *s );
   NewSimulatorControl   *VerifyControl( NewSimulatorControl *c );
   NewSimulatorAnnunciator *VerifyAnnunciator( NewSimulatorAnnunciator *a );
-//  NewSimulatorWatchdog  *VerifyWatchdog( NewSimulatorWatchdog *c );
+  NewSimulatorWatchdog  *VerifyWatchdog( NewSimulatorWatchdog *c );
   NewSimulatorInventory *VerifyInventory( NewSimulatorInventory *i );
 
   /// abstract method for adding a hpi event

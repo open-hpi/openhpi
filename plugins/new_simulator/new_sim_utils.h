@@ -212,7 +212,7 @@ public:
   }
 
   /**
-   * add mses value operator 
+   * add msec value operator 
    **/
   cTime &operator+=( int ms )
   {
@@ -225,12 +225,25 @@ public:
   }
 
   /**
-   * subtract mses value operator 
+   * subtract time value operator 
    **/
   cTime &operator-=( int ms )
   {
     m_time.tv_sec  -= ms / 1000;
     m_time.tv_usec -= (ms % 1000) * 1000;
+
+    Normalize();
+
+    return *this;
+  }
+  
+  /**
+   * subtract time value operator 
+   **/
+  cTime &operator-=( cTime t )
+  {
+    m_time.tv_sec  -= t.m_time.tv_sec;
+    m_time.tv_usec -= t.m_time.tv_usec;
 
     Normalize();
 
@@ -247,6 +260,31 @@ public:
 
     return t;
   }
+  
+  /**
+   * get the time value in msec
+   **/
+   unsigned int GetMsec()
+   {
+   	  return (unsigned int) (m_time.tv_sec * 1000 + m_time.tv_usec / 1000);
+   }
+   
+   /**
+   * Clear the value
+   **/
+   void Clear()
+   {
+      m_time.tv_sec  = 0;
+      m_time.tv_usec = 0;
+   }
+   
+   /**
+   * Check whether the time was set
+   **/
+   bool IsSet()
+   {
+      return ( !(( m_time.tv_sec == 0 ) && ( m_time.tv_usec == 0 )) );
+   }
 };
 
 

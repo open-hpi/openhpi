@@ -565,12 +565,19 @@ SaErrorT SAHPI_API saHpiGetChildEntityPath (
         OH_GET_DOMAIN(did, d); /* Lock domain */
         
         /* Check to see the parent entity path exists */
-        rpte = oh_get_resource_by_ep(&d->rpt, &ParentEntityPath);
-        if (rpte == NULL) {
-                oh_release_domain(d);
-                return SA_ERR_HPI_INVALID_DATA;
+        /* There is special handling for {ROOT, 0} */
+        if (
+            (ParentEntityPath.Entry[0].EntityType != SAHPI_ENT_ROOT) ||
+            (ParentEntityPath.Entry[0].EntityLocation != 0)
+           )
+        {
+            rpte = oh_get_resource_by_ep(&d->rpt, &ParentEntityPath);
+            if (rpte == NULL) {
+                    oh_release_domain(d);
+                    return SA_ERR_HPI_INVALID_DATA;
+            }
+            rpte = NULL;
         }
-        rpte = NULL;
         
         /* Create an entity path pattern from the parent entity path
          * that looks like the following: <ParentEntityPath>{.,.}
@@ -3308,17 +3315,19 @@ SaErrorT SAHPI_API saHpiIdrFieldAddById(
                 return SA_ERR_HPI_READ_ONLY;
         }
         /* Check if FieldId requested does not already exists */
-        get_idr_field = h ? h->abi->get_idr_field : NULL;
-        if (!get_idr_field) {
+        if ( Field->FieldId != SAHPI_FIRST_ENTRY ) {
+           get_idr_field = h ? h->abi->get_idr_field : NULL;
+           if (!get_idr_field) {
                 oh_release_handler(h);
                 return SA_ERR_HPI_INTERNAL_ERROR;
-        }
-        error = get_idr_field(h->hnd, ResourceId, IdrId, Field->AreaId,
-                              SAHPI_IDR_FIELDTYPE_UNSPECIFIED,
-                              Field->FieldId, &nextid, &field);
-        if (error == SA_OK) {
+           }
+           error = get_idr_field(h->hnd, ResourceId, IdrId, Field->AreaId,
+                                         SAHPI_IDR_FIELDTYPE_UNSPECIFIED,
+                                         Field->FieldId, &nextid, &field);
+           if (error == SA_OK) {
                 oh_release_handler(h);
                 return SA_ERR_HPI_DUPLICATE;
+           }
         }        
         /* All checks done. Pass call down to plugin */
         add_idr_field_id = h ? h->abi->add_idr_field_id : NULL;

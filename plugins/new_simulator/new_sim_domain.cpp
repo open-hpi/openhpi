@@ -40,6 +40,8 @@ NewSimulatorDomain::NewSimulatorDomain()
     	
    m_did = 0;
    m_own_domain = false;
+   m_running_wdt = false;
+   m_running_fumi = false;
    stdlog << "DBG: NewSimulatorDomain.Constructor is called\n";
 }
 
@@ -77,7 +79,6 @@ bool NewSimulatorDomain::Init( NewSimulatorFile *file ) {
    m_did = 0;
 
    stdlog << "Domain ID " << m_did << "\n";
-   // TODO Debug information about resources
    Dump( stdlog );
    
    return true;
@@ -189,10 +190,13 @@ NewSimulatorAnnunciator *NewSimulatorDomain::VerifyAnnunciator( NewSimulatorAnnu
    return 0;
 }
 
-/**
- * @todo Verify Watchdog, Inventory, Fumi and Dimi
- * 
 
+/** 
+ * Verify Watchdog
+ *
+ * @param c pointer on a NewSimulatorInventory object to be verified
+ * @return c pointer for successfull verification
+ **/
 NewSimulatorWatchdog *NewSimulatorDomain::VerifyWatchdog ( NewSimulatorWatchdog *c ) {
 
    for( int i = 0; i < m_resources.Num(); i++ ) {
@@ -202,7 +206,7 @@ NewSimulatorWatchdog *NewSimulatorDomain::VerifyWatchdog ( NewSimulatorWatchdog 
 
    return 0;
 }
-**/
+
 
 /** 
  * Verify Inventory

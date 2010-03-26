@@ -55,6 +55,8 @@ public:
    int NumRdr() { return Num(); }
    /// Get a rdr object by index
    NewSimulatorRdr *GetRdr( int idx ) { return operator[]( idx ); }
+   
+   bool CheckWatchdogTimer();
 
 protected:
    /// flag if active or not

@@ -30,6 +30,7 @@
 #include "new_sim_file_control.h"
 #include "new_sim_file_annunciator.h"
 #include "new_sim_file_inventory.h"
+#include "new_sim_file_watchdog.h"
 #include "new_sim_domain.h"
 #include "new_sim_entity.h"
 #include "new_sim_utils.h"
@@ -594,6 +595,9 @@ bool NewSimulatorFile::process_rdr_token( NewSimulatorResource *res ) {
             break;
             
          case WATCHDOG_TOKEN_HANDLER:
+            filerdr = new NewSimulatorFileWatchdog( m_scanner );
+            break;
+            
          case DIMI_TOKEN_HANDLER:
          case FUMI_TOKEN_HANDLER:
             emptyrun = true;

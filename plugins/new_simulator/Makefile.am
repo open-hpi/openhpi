@@ -57,6 +57,8 @@ libnew_simulator_la_SOURCES= \
         new_sim_file_annunciator.h  \
         new_sim_file_inventory.cpp \
         new_sim_file_inventory.h \
+        new_sim_file_watchdog.cpp \
+        new_sim_file_watchdog.h \
 		new_sim_entity.h \
 		new_sim_entity.cpp \
 		new_sim_log.h \
@@ -91,6 +93,8 @@ libnew_simulator_la_SOURCES= \
         new_sim_inventory.h \
         new_sim_inventory_data.cpp \
         new_sim_inventory_data.h \
+        new_sim_watchdog.cpp \
+        new_sim_watchdog.h \
 		new_sim_text_buffer.h \
 		new_sim_text_buffer.cpp \
 		new_sim_utils.h \
