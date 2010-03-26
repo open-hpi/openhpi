@@ -47,9 +47,9 @@ extern "C" {
 #endif
 
 /**
- * @class NewSimulatorFileControl
+ * @class NewSimulatorFileInventory
  * 
- * Provides some functions for parsing the control section of the simulation file.
+ * Provides some functions for parsing the inventory section of the simulation file.
  **/
 class NewSimulatorFileInventory : public NewSimulatorFileRdr {
    private:

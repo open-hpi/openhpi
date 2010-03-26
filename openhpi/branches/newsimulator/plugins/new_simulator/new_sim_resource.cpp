@@ -223,6 +223,27 @@ bool NewSimulatorResource::RemRdr( NewSimulatorRdr *rdr ) {
    return true;
 }
 
+
+/**
+ * Check Watchdog Timer 
+ * 
+ * NewSimulatorWatchdog:CheckWatchdogTimer is called and if it returns true a true is returned.
+ * 
+ * @return true if one watchdog timer is running
+ */
+bool NewSimulatorResource::CheckWatchdogTimer() {
+   for( int i = 0; i < NumRdr(); i++ ) {
+      NewSimulatorRdr *r = GetRdr( i );
+
+      if ( r->Type() == SAHPI_WATCHDOG_RDR ) {
+         NewSimulatorWatchdog *wdt = dynamic_cast<NewSimulatorWatchdog *>( r );
+         if ( wdt->CheckWatchdogTimer() )
+            return true;
+      }
+   }
+   
+   return false;
+}
 /**
  * Initialize a new resource 
  * 

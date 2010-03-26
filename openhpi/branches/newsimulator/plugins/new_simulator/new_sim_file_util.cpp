@@ -215,7 +215,7 @@ bool NewSimulatorFileUtil::process_hexstring( guint max_len, gchar *str, SaHpiUi
  * The scanner should be on token \c G_TOKEN_LEFT_CURLY and will be afterwards 
  * on token \c G_TOKEN_RIGHT_CURLY.\n
  * 
- * @param address of entity structure
+ * @param path address of entity structure
  * @return success value
  **/
 bool NewSimulatorFileUtil::process_entity( SaHpiEntityPathT &path ) {

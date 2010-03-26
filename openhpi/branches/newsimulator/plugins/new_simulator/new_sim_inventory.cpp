@@ -85,8 +85,9 @@ void NewSimulatorInventory::Dump( NewSimulatorLog &dump ) const {
 
   dump << "Inventory: " << m_inv_rec.IdrId << "\n";
   dump << "Persistent: " << m_inv_rec.Persistent << "\n";
-  dump << "Oem; " << m_inv_rec.Oem << "\n";
-  dump << "Area: " << "\n";
+  dump << "Oem: " << m_inv_rec.Oem << "\n";
+  dump << "Area(s): " << "\n";
+  dump << "-------------------\n";
   for (int i= 0; i < m_areas.Num(); i++) {
       m_areas[i]->Dump( dump );
   }
@@ -274,7 +275,7 @@ SaErrorT NewSimulatorInventory::GetAreaHeader( SaHpiIdrAreaTypeT type,
  * See also the description of the function inside the specification or header file.
  * 
  * @param type type of area to add
- * @param nextId address to copy the Id of the new area header
+ * @param newId address to copy the Id of the new area header
  * 
  * @return HPI return code
  **/

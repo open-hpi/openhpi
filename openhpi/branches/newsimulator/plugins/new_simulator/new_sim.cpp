@@ -23,7 +23,6 @@
  *     Andy Cress        <arcress@users.sourceforge.net>
  *  
  * @todo simulation of Sel 
- * simulation of Watchdog.
  * simulation of Dimi
  * simulation of Fumi
  * simulation of hotswap states
@@ -32,14 +31,10 @@
  * Interface functions for Fumi, 
  * Interface functions for Sel, 
  * Interface functions for Hotswap
- * Interface functions for Watchdog,
  *  
  * @todo alias definition for hotswap state and action  
  * alias definition for eventlog
  * alias definition for hotswap policy
- * alias definition for watchdog
- * 
- *
  * 
  **/
 
@@ -79,6 +74,18 @@ static NewSimulator *VerifyNewSimulator( void *hnd ) {
       return 0;
    }
 
+   if ( newsim->HasRunningWdt() ) {
+   	
+   	  NewSimulatorResource *res;
+      stdlog << "DBG: Start running wdt check\n";
+      newsim->SetRunningWdt( false );
+      for (int i=0; i < newsim->Num(); i++) {
+         
+         res = newsim->GetResource( i );
+         if ( res->CheckWatchdogTimer() )
+            newsim->SetRunningWdt( true );
+      }
+   }
    stdlog << "DBG: return newsim\n";
    return newsim;
 }
@@ -285,8 +292,6 @@ static NewSimulatorInventory * VerifyInventoryAndEnter( void *hnd, SaHpiResource
   return inv;
 }
 
-/* TODO: SENSOR, CONTROL, INVENTORY, etc.
- * 
 static NewSimulatorWatchdog *VerifyWatchdogAndEnter( void *hnd, SaHpiResourceIdT rid, 
                                                       SaHpiWatchdogNumT num,
                                                       NewSimulator *&newsim ) {
@@ -319,6 +324,7 @@ static NewSimulatorWatchdog *VerifyWatchdogAndEnter( void *hnd, SaHpiResourceIdT
 }
 
 
+/**
 static NewSimulatorSel *VerifySelAndEnter( void *hnd, SaHpiResourceIdT rid, 
                                             NewSimulator *&newsim ) {
    newsim = VerifyNewSimulator( hnd );
@@ -352,11 +358,16 @@ static NewSimulatorSel *VerifySelAndEnter( void *hnd, SaHpiResourceIdT rid,
 
 
 
-
-
-
+/** 
+ * @name New Plugin interface
+ * Implementation of the alias definitions. Inside the functions the corresponding object methods
+ * are called. 
+ */
+//@{
 // new plugin_loader
 extern "C" {
+
+static void * NewSimulatorOpen( GHashTable *, unsigned int, oh_evt_queue * ) __attribute__((used));
 
 /**
  * @fn static void * NewSimulatorOpen( GHashTable *handler_config, unsigned int hid, 
@@ -372,8 +383,6 @@ extern "C" {
  * 
  * @return pointer on handler if everything works successfully.  
  **/
-static void * NewSimulatorOpen( GHashTable *, unsigned int, oh_evt_queue * ) __attribute__((used));
-
 static void * NewSimulatorOpen( GHashTable *handler_config, unsigned int hid, 
                                   oh_evt_queue *eventq ) {
    // open log
@@ -458,14 +467,15 @@ static void * NewSimulatorOpen( GHashTable *handler_config, unsigned int hid,
    return handler;
 }
 
+
+static void NewSimulatorClose( void * ) __attribute__((used));
+
 /**
  * @relate NewSimulatorClose( void * )
  * Close the plugin and clean up the allocated memory. 
  *  
  * @param hnd pointer on handler
  **/
-static void NewSimulatorClose( void * ) __attribute__((used));
-
 static void NewSimulatorClose( void *hnd ) {
   dbg( "NewSimulatorClose" );
 
@@ -1816,8 +1826,21 @@ static SaErrorT NewSimulatorRequestHotswapAction( void *hnd, SaHpiResourceIdT id
 
    return rv;
 }
+*/
 
-TODO: WATCHDOG
+
+/**
+ * Interface for GetWatchdogInfo. 
+ * Inside the function the method NewSimulatorWatchdog::GetWatchdogInfo
+ * is called. 
+ *  
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param num number of watchdog
+ * @param watchdog watchdog information record to be filled
+ * 
+ * @return HPI error code
+ **/
 static SaErrorT NewSimulatorGetWatchdogInfo(void *,
                                              SaHpiResourceIdT,
                                              SaHpiWatchdogNumT,
@@ -1836,6 +1859,19 @@ static SaErrorT NewSimulatorGetWatchdogInfo(void *hnd,
    return rv; 
 }
 
+
+/**
+ * Interface for SetWatchdogInfo. 
+ * Inside the function the method NewSimulatorWatchdog::SetWatchdogInfo
+ * is called. 
+ *  
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param num number of watchdog
+ * @param watchdog record with the information which should be set
+ * 
+ * @return HPI error code
+ **/
 static SaErrorT NewSimulatorSetWatchdogInfo(void *,
                                              SaHpiResourceIdT,
                                              SaHpiWatchdogNumT,
@@ -1854,6 +1890,18 @@ static SaErrorT NewSimulatorSetWatchdogInfo(void *hnd,
    return rv; 
 }
 
+
+/**
+ * Interface for ResetWatchdog. 
+ * Inside the function the method NewSimulatorWatchdog::ResetWatchdog
+ * is called. 
+ *  
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param num number of watchdog
+ * 
+ * @return HPI error code
+ **/
 static SaErrorT NewSimulatorResetWatchdog(void *,
                                            SaHpiResourceIdT,
                                            SaHpiWatchdogNumT) __attribute__((used));
@@ -1869,8 +1917,6 @@ static SaErrorT NewSimulatorResetWatchdog(void *hnd,
    newsim->IfLeave();
    return rv; 
 }
-
-*/
 
 
 /**
@@ -2191,9 +2237,14 @@ static SaErrorT NewSimulatorSetResetState( void *hnd,
 }
 
 } // new plugin_loader
+//@}
 
 
-
+/** 
+ * @name Plugin interface
+ * Defining alias names for the abi functions, 
+ */
+//@{
 extern "C" {
 
 /// Alias definition
@@ -2407,17 +2458,20 @@ void * oh_get_reset_state (void *, SaHpiResourceIdT, SaHpiResetActionT *)
 /// Alias definition
 void * oh_set_reset_state (void *, SaHpiResourceIdT, SaHpiResetActionT)
                 __attribute__ ((weak, alias("NewSimulatorSetResetState")));
-/*
- * 
+
+/// Alias definition
 void * oh_get_watchdog_info (void *, SaHpiResourceIdT, SaHpiWatchdogNumT,
                              SaHpiWatchdogT *)
                 __attribute__ ((weak, alias("NewSimulatorGetWatchdogInfo")));
+
+/// Alias definition
 void * oh_set_watchdog_info (void *, SaHpiResourceIdT, SaHpiWatchdogNumT,
                              SaHpiWatchdogT *)
                 __attribute__ ((weak, alias("NewSimulatorSetWatchdogInfo")));
+
+/// Alias definition
 void * oh_reset_watchdog (void *, SaHpiResourceIdT , SaHpiWatchdogNumT )
                 __attribute__ ((weak, alias("NewSimulatorResetWatchdog")));
-*/
 
 /// Alias definition
 void * oh_get_next_announce(void *, SaHpiResourceIdT, SaHpiAnnunciatorNumT, 
@@ -2455,6 +2509,7 @@ void * oh_set_annunc_mode(void *, SaHpiResourceIdT, SaHpiAnnunciatorNumT,
                __attribute__ ((weak, alias("NewSimulatorSetAnnMode")));
                
 }
+//@}
 
 /*
  * Isn't needed at the moment
