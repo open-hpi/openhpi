@@ -3315,17 +3315,19 @@ SaErrorT SAHPI_API saHpiIdrFieldAddById(
                 return SA_ERR_HPI_READ_ONLY;
         }
         /* Check if FieldId requested does not already exists */
-        get_idr_field = h ? h->abi->get_idr_field : NULL;
-        if (!get_idr_field) {
+        if ( Field->FieldId != SAHPI_FIRST_ENTRY ) {
+           get_idr_field = h ? h->abi->get_idr_field : NULL;
+           if (!get_idr_field) {
                 oh_release_handler(h);
                 return SA_ERR_HPI_INTERNAL_ERROR;
-        }
-        error = get_idr_field(h->hnd, ResourceId, IdrId, Field->AreaId,
-                              SAHPI_IDR_FIELDTYPE_UNSPECIFIED,
-                              Field->FieldId, &nextid, &field);
-        if (error == SA_OK) {
+           }
+           error = get_idr_field(h->hnd, ResourceId, IdrId, Field->AreaId,
+                                         SAHPI_IDR_FIELDTYPE_UNSPECIFIED,
+                                         Field->FieldId, &nextid, &field);
+           if (error == SA_OK) {
                 oh_release_handler(h);
                 return SA_ERR_HPI_DUPLICATE;
+           }
         }        
         /* All checks done. Pass call down to plugin */
         add_idr_field_id = h ? h->abi->add_idr_field_id : NULL;
