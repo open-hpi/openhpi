@@ -99,6 +99,10 @@ libnew_simulator_la_SOURCES= \
 		new_sim_text_buffer.cpp \
 		new_sim_utils.h \
 		new_sim_utils.cpp \
+		new_sim_hotswap.h \
+		new_sim_hotswap.cpp \
+		new_sim_timer_thread.h \
+		new_sim_timer_thread.cpp \
 		thread.h \
 		thread.cpp
 

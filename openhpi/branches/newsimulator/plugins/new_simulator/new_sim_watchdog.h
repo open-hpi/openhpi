@@ -29,6 +29,10 @@
 #include "new_sim_utils.h"
 #endif
 
+#ifndef __NEW_SIM_TIMER_THREAD_H__
+#include "new_sim_timer_thread.h"
+#endif
+
 extern "C" {
 #include "SaHpi.h"
 }
@@ -38,14 +42,14 @@ extern "C" {
  * 
  * Provides functions for simulating a watchdog timer.
  **/
-class NewSimulatorWatchdog : public NewSimulatorRdr {
+class NewSimulatorWatchdog : public NewSimulatorRdr, public NewSimulatorTimerThread {
 private:
    /// Rdr information 
-   SaHpiWatchdogRecT     m_wdt_rec;
+   SaHpiWatchdogRecT       m_wdt_rec;
    /// Watchdog information
-   SaHpiWatchdogT        m_wdt_data;
+   SaHpiWatchdogT          m_wdt_data;
    /// Watchdog start time
-   cTime                 m_start;
+   cTime                   m_start;
    
    /// State of the simulator watchdog timer
    enum WdtStateT {
@@ -59,7 +63,9 @@ private:
    void TriggerAction( WdtStateT state );
    void SendEvent( SaHpiWatchdogActionEventT wdtaction, SaHpiSeverityT sev );
    
-   
+protected:
+    virtual bool TriggerAction();
+      
 public:
    NewSimulatorWatchdog( NewSimulatorResource *res );
    NewSimulatorWatchdog( NewSimulatorResource *res, SaHpiRdrT rdr, 
@@ -73,9 +79,7 @@ public:
 
   // create an RDR sensor record
   bool CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr );
-  // Check if the timer is running and start an action if necessary
-  bool CheckWatchdogTimer();
-  // Dump watchdog 
+  // Dump 
   void Dump( NewSimulatorLog &dump ) const;
   
   // HPI functions

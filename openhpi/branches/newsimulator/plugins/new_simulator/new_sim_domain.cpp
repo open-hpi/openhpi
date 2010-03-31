@@ -42,6 +42,9 @@ NewSimulatorDomain::NewSimulatorDomain()
    m_own_domain = false;
    m_running_wdt = false;
    m_running_fumi = false;
+   m_insert_timeout = SAHPI_TIMEOUT_IMMEDIATE;
+   m_extract_timeout = SAHPI_TIMEOUT_IMMEDIATE;
+   
    stdlog << "DBG: NewSimulatorDomain.Constructor is called\n";
 }
 
@@ -75,7 +78,6 @@ bool NewSimulatorDomain::Init( NewSimulatorFile *file ) {
    m_file = file;
    file->Discover( this );
 
-   m_insert_timeout = SAHPI_TIMEOUT_IMMEDIATE;
    m_did = 0;
 
    stdlog << "Domain ID " << m_did << "\n";
