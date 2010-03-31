@@ -241,6 +241,18 @@ NewSimulatorLog & NewSimulatorLog::operator<<( int i ) {
    return *this;
 }
 
+/**
+ * Output operator definition for a long value
+ **/
+NewSimulatorLog & NewSimulatorLog::operator<<( long l ) {
+   Start();
+
+   char b[20];
+   snprintf( b, sizeof(b), "%ld", l );
+   Output( b );
+
+   return *this;
+}
 
 /**
  * Output operator definition for a unsigned int value

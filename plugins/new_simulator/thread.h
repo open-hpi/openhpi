@@ -22,8 +22,8 @@
  *
  * Copyright (c) 2004 by FORCE Computers.  
  */
-#ifndef dThread_h
-#define dThread_h
+#ifndef __THREAD_H__
+#define __THREAD_H__
 
 
 #include <pthread.h>

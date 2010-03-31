@@ -4,7 +4,7 @@
  * The file includes a class for watchdog handling:\n
  * NewSimulatorWatchdog
  * 
- * @todo Generating of events and maybe some watchdog actions
+ * @todo maybe some watchdog actions
  * 
  * @author  Lars Wetzel <larswetzel@users.sourceforge.net>
  * @version 0.1
@@ -22,12 +22,14 @@
 #include "new_sim_watchdog.h"
 #include "new_sim_utils.h"
 #include "new_sim_domain.h"
+#include "new_sim_timer_thread.h"
 
 /**
  * Constructor
  **/
 NewSimulatorWatchdog::NewSimulatorWatchdog( NewSimulatorResource *res )
                     : NewSimulatorRdr( res, SAHPI_WATCHDOG_RDR ),
+                      NewSimulatorTimerThread( 0 ),
                       m_state( NONE ) {
 
    memset( &m_wdt_rec, 0, sizeof( SaHpiWatchdogRecT ));
@@ -43,6 +45,7 @@ NewSimulatorWatchdog::NewSimulatorWatchdog( NewSimulatorResource *res,
                       SaHpiRdrT rdr, 
                       SaHpiWatchdogT wdt_data)
                     : NewSimulatorRdr( res, SAHPI_WATCHDOG_RDR, rdr.Entity, rdr.IsFru, rdr.IdString ),
+                      NewSimulatorTimerThread(  (wdt_data.InitialCount - wdt_data.PreTimeoutInterval) ),
                       m_state( NONE ) {
 
    memcpy( &m_wdt_rec, &rdr.RdrTypeUnion.WatchdogRec, sizeof( SaHpiWatchdogRecT ));
@@ -53,7 +56,10 @@ NewSimulatorWatchdog::NewSimulatorWatchdog( NewSimulatorResource *res,
 /**
  * Destructor
  **/
-NewSimulatorWatchdog::~NewSimulatorWatchdog() {}
+NewSimulatorWatchdog::~NewSimulatorWatchdog() {
+
+   Stop();
+}
 
 
 /**
@@ -106,50 +112,47 @@ void NewSimulatorWatchdog::Dump( NewSimulatorLog &dump ) const {
 
 
 /**
- * Check whether the watchdog timer is running or not. 
+ * Check whether the watchdog timer is running and trigger proper action 
  * 
- * Trigger proper action if necessary.
- * 
- * @return true if it is running, false if not
+ * @return true if thread can exit, false if not
  **/
-bool NewSimulatorWatchdog::CheckWatchdogTimer() {
-	
+bool NewSimulatorWatchdog::TriggerAction() {
+   
+   stdlog << "DBG: CheckWatchdogTimer\n";
+    
    if ( m_wdt_data.Running == SAHPI_FALSE )
-      return false;
+      return true;
       
    if ( ! m_start.IsSet() )
-      return false;
+      return true;
    
    // Ok, we have a running wdt
    cTime now( cTime::Now() );
    now -= m_start;
    
    if ( now.GetMsec() >= m_wdt_data.InitialCount ) {
-   	
+   	  
+   	  if ( m_state != PRETIMEOUT );
+   	     TriggerAction( PRETIMEOUT );
       TriggerAction( TIMEOUT );
-      m_wdt_data.Running = SAHPI_FALSE;
-      m_wdt_data.PresentCount = 0;
-      m_start.Clear();
       
       stdlog << "DBG: WatchdogTimer expires.\n";
       
-      return false;
+      return true;
    }
    
    if ( now.GetMsec() >= m_wdt_data.InitialCount - m_wdt_data.PreTimeoutInterval ) {
    	
    	  TriggerAction( PRETIMEOUT );
-   	  m_wdt_data.PresentCount = m_wdt_data.InitialCount - now.GetMsec();
-   	  return true;
+   	  
+   	  return false;
    }
    
    m_wdt_data.PresentCount = m_wdt_data.InitialCount - now.GetMsec();
 
-   return true;
+   return false;
 }
-
-
-
+ 
 /**
  * Trigger an action, like sending an event and setting the exp_mask
  * 
@@ -161,19 +164,35 @@ void NewSimulatorWatchdog::TriggerAction( WdtStateT state ) {
    
    if ( ( state == PRETIMEOUT ) &&
          ( m_state != PRETIMEOUT ) ) {
-     
+      cTime now( cTime::Now() );
+      now -= m_start;
       m_state = PRETIMEOUT;
       wdtaction = SAHPI_WAE_TIMER_INT;
       sev = SAHPI_MAJOR;
-      if ( m_wdt_data.Log == SAHPI_TRUE )
-         SendEvent( wdtaction, sev );
+      
+      m_wdt_data.PresentCount = m_wdt_data.InitialCount - now.GetMsec();
+      Reset( m_wdt_data.PreTimeoutInterval );
+      
+      if ( m_wdt_data.Log == SAHPI_TRUE ) {
+         // The next is implementation specific, HPI-B, p. 154
+         // An event is generated when the pre-timer expires, unless the 
+         // pre-timer interrupt action is “None” and the pre-timer interval is zero, 
+         // in which case it is implementation-dependent whether an event is generated.
+         if (!(    (m_wdt_data.PretimerInterrupt == SAHPI_WPI_NONE)
+                && (m_wdt_data.PreTimeoutInterval == 0)  ))
+            SendEvent( wdtaction, sev );
+            
+      }
    }
   
    if ( state == TIMEOUT ) {
-      m_state = TIMEOUT;
+
       m_wdt_data.Running = SAHPI_FALSE;
       m_wdt_data.PresentCount = 0;
       m_start.Clear();
+      stdlog << "DBG: Stop TimerThread due to TimerAction\n";
+      Stop();
+      m_state = TIMEOUT;
       
       switch ( m_wdt_data.TimerAction ) {
          case SAHPI_WA_NO_ACTION:
@@ -232,7 +251,7 @@ void NewSimulatorWatchdog::TriggerAction( WdtStateT state ) {
              err("Invalid TimerUse is configured inside Watchdog");
              break;
       }
-      
+      stdlog << "DBG: Watchdog::SendEvent if allowed\n";
       if ( m_wdt_data.Log == SAHPI_TRUE )
          SendEvent( wdtaction, sev ); 
    }
@@ -350,17 +369,21 @@ SaErrorT NewSimulatorWatchdog::SetWatchdogInfo( SaHpiWatchdogT &watchdog ) {
 
    if ( watchdog.Running == SAHPI_TRUE ) {
       if ( m_start.IsSet() ) {
-         m_start = cTime::Now();  
+         m_start = cTime::Now();
+         Reset( m_wdt_data.InitialCount - m_wdt_data.PreTimeoutInterval );
+         if ( !m_running )
+            Start();
 
       } else {
-      	 m_start.Clear();
       	 m_wdt_data.Running = SAHPI_FALSE;
       	 m_wdt_data.PresentCount = 0;
       }
       
    } else {
       m_start.Clear();
+      Stop();
       m_wdt_data.PresentCount = 0;
+
    }
    
    // ClearFlags
@@ -391,14 +414,25 @@ SaErrorT NewSimulatorWatchdog::ResetWatchdog() {
          stdlog << "DBG: ResetWatchdog not allowed: num " << m_wdt_rec.WatchdogNum << ":\n";
          stdlog << "DBG: Time expire in ms: " << now.GetMsec() << " > " 
                 << (m_wdt_data.InitialCount - m_wdt_data.PreTimeoutInterval) << "\n";
+
          return SA_ERR_HPI_INVALID_REQUEST;
       }
+      
+      // Reset the Timer
+      Reset( m_wdt_data.InitialCount - m_wdt_data.PreTimeoutInterval );
+      m_start = cTime::Now();
+
    } else {
    	
-      m_start = cTime::Now();  
+      m_start = cTime::Now();
+      // Reset the Timer
+      Reset( m_wdt_data.InitialCount - m_wdt_data.PreTimeoutInterval );
+      if (!m_running)
+         Start();
+
    }
 
-   m_wdt_data.Running = SAHPI_TRUE;
+   m_wdt_data.Running = SAHPI_TRUE;  
    Domain()->SetRunningWdt( true );
    stdlog << "DBG: ResetWatchdog successfully: num " << m_wdt_rec.WatchdogNum << "\n";
    

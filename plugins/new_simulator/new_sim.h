@@ -91,15 +91,7 @@ public:
   virtual SaErrorT IfSetResourceSeverity( NewSimulatorResource *res, SaHpiSeverityT sev );
 
   // hot swap
-  /*
-  virtual SaErrorT IfGetHotswapState( NewSimulatorResource *res, SaHpiHsStateT &state );
-  virtual SaErrorT IfSetHotswapState( NewSimulatorResource *res, SaHpiHsStateT state );
-  virtual SaErrorT IfRequestHotswapAction( NewSimulatorResource *res, SaHpiHsActionT act );
-  virtual SaErrorT IfHotswapPolicyCancel( NewSimulatorResource *res, SaHpiTimeoutT timeout );
-  */
   virtual SaErrorT IfSetAutoInsertTimeout( SaHpiTimeoutT  timeout);
-  virtual SaErrorT IfGetAutoExtractTimeout( NewSimulatorResource *res, SaHpiTimeoutT  &timeout);
-  virtual SaErrorT IfSetAutoExtractTimeout( NewSimulatorResource *res, SaHpiTimeoutT  timeout);
 
   virtual SaErrorT IfGetPowerState    ( NewSimulatorResource *res, SaHpiPowerStateT &state );
   virtual SaErrorT IfSetPowerState    ( NewSimulatorResource *res, SaHpiPowerStateT state );

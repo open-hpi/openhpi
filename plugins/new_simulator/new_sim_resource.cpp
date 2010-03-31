@@ -34,14 +34,13 @@
  * Constructor
  **/
 NewSimulatorResource::NewSimulatorResource( NewSimulatorDomain *domain )
-                     : m_domain( domain ), 
+                     : m_domain( domain ),
+                       m_hotswap( this ),
                        m_is_fru( false ),
-                       m_policy_canceled( true ),
                        m_oem( 0 ), 
                        m_current_control_id( 0 ),
                        m_populate( false ) {
 
-   m_extract_timeout = Domain()->ExtractTimeout();
    for( int i = 0; i < 256; i++ ) m_sensor_num[i] = -1;
    m_power_state = SAHPI_POWER_OFF;
    memset( &m_rpt_entry, 0, sizeof( SaHpiRptEntryT ));
@@ -225,26 +224,6 @@ bool NewSimulatorResource::RemRdr( NewSimulatorRdr *rdr ) {
 
 
 /**
- * Check Watchdog Timer 
- * 
- * NewSimulatorWatchdog:CheckWatchdogTimer is called and if it returns true a true is returned.
- * 
- * @return true if one watchdog timer is running
- */
-bool NewSimulatorResource::CheckWatchdogTimer() {
-   for( int i = 0; i < NumRdr(); i++ ) {
-      NewSimulatorRdr *r = GetRdr( i );
-
-      if ( r->Type() == SAHPI_WATCHDOG_RDR ) {
-         NewSimulatorWatchdog *wdt = dynamic_cast<NewSimulatorWatchdog *>( r );
-         if ( wdt->CheckWatchdogTimer() )
-            return true;
-      }
-   }
-   
-   return false;
-}
-/**
  * Initialize a new resource 
  * 
  * @param entry address of RptEntry structure
@@ -331,16 +310,29 @@ bool NewSimulatorResource::Populate() {
          return false;
       }
 
+      // find updated resource in plugin cache
+      SaHpiRptEntryT *resource = oh_get_resource_by_id( Domain()->GetHandler()->rptcache,
+                                                        m_rpt_entry.ResourceId );
+      if (!resource) return false;
+      
       for( int i = 0; i < NumRdr(); i++ ) {
          NewSimulatorRdr *rdr = GetRdr( i );
          if ( rdr->Populate(&e->rdrs) == false ) return false;
       }
 
-      // find updated resource in plugin cache
-      SaHpiRptEntryT *resource = oh_get_resource_by_id( Domain()->GetHandler()->rptcache,
-                                                        m_rpt_entry.ResourceId );
-      if (!resource) return false;
+      m_hotswap.SetTimeouts( Domain()->InsertTimeout(), Domain()->ExtractTimeout());
+      
+      // Update resource in event accordingly
+      memcpy(&e->resource, resource, sizeof (SaHpiRptEntryT));
+      
+      stdlog << "NewSimulatorResource::Populate start the hotswap state transitions\n";
+      if ( m_hotswap.StartResource( e ) != SA_OK ) return false;
+      
+      if ( ResourceCapabilities() & SAHPI_CAPABILITY_MANAGED_HOTSWAP )
+         if ( m_hotswap.ActionRequest( SAHPI_HS_ACTION_INSERTION ) != SA_OK )
+            stdlog << "ERR: ActionRequest returns an error\n";
 
+/*      
       // Update resource in event accordingly
       memcpy(&e->resource, resource, sizeof (SaHpiRptEntryT));
 
@@ -348,7 +340,8 @@ bool NewSimulatorResource::Populate() {
          e->event.EventType = SAHPI_ET_HOTSWAP;
 
          if (e->resource.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP) {
-            SaHpiHsStateT hpi_state = GetHpiState();
+         	SaHpiHsStateT hpi_state = SAHPI_HS_STATE_ACTIVE;
+//            SaHpiHsStateT hpi_state = HotSwapState();
             e->event.EventDataUnion.HotSwapEvent.HotSwapState = hpi_state;
             e->event.EventDataUnion.HotSwapEvent.PreviousHotSwapState = hpi_state;
             stdlog << "NewSimulatorResource::Populate SAHPI_ET_HOTSWAP Managed FRU Event resource " << m_rpt_entry.ResourceId << " State " << hpi_state << "\n";
@@ -368,6 +361,7 @@ bool NewSimulatorResource::Populate() {
       oh_gettimeofday(&e->event.Timestamp);
 
       Domain()->AddHpiEvent( e );
+*/
   
       m_populate = true;
    }
@@ -383,7 +377,7 @@ bool NewSimulatorResource::Populate() {
  * (hotswap policy cancel)
  *  
  * @return success
- **/
+ 
 bool NewSimulatorResource::Activate() {
    //TODO: Fix the activation of a resource
    // Change the state properly
@@ -425,7 +419,7 @@ bool NewSimulatorResource::Activate() {
    
    return true;
 }
-
+**/
 
 /**
  * Deactivation of the resource
@@ -433,7 +427,7 @@ bool NewSimulatorResource::Activate() {
  * @todo implement deactivation process
  *  
  * @return success
- **/
+ 
 void NewSimulatorResource::Deactivate() {
     // TODO: Do the same with the deactivation 
  	// Send a first hpi event wait to receive such an event
@@ -442,7 +436,7 @@ void NewSimulatorResource::Deactivate() {
  	stdlog << "DBG: Resource.Deactivate is called but nothing is done --> TODO!\n";
  
 }
-
+**/
 
 /**
  * Set HPI state of resource 
@@ -451,7 +445,7 @@ void NewSimulatorResource::Deactivate() {
  * 
  * @param new_hs_state hotswap state to be set
  * @return success
- **/
+ 
 SaHpiHsStateT NewSimulatorResource::SetHpiState( SaHpiHsStateT new_hs_state ) {
    // TODO: Change it properly -- is new
    // Send the correct events
@@ -461,7 +455,7 @@ SaHpiHsStateT NewSimulatorResource::SetHpiState( SaHpiHsStateT new_hs_state ) {
    
    return m_hotswap_state;
 }
-
+ **/
 
 /**
  * Dump the information of the resource 

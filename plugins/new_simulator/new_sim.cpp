@@ -74,18 +74,6 @@ static NewSimulator *VerifyNewSimulator( void *hnd ) {
       return 0;
    }
 
-   if ( newsim->HasRunningWdt() ) {
-   	
-   	  NewSimulatorResource *res;
-      stdlog << "DBG: Start running wdt check\n";
-      newsim->SetRunningWdt( false );
-      for (int i=0; i < newsim->Num(); i++) {
-         
-         res = newsim->GetResource( i );
-         if ( res->CheckWatchdogTimer() )
-            newsim->SetRunningWdt( true );
-      }
-   }
    stdlog << "DBG: return newsim\n";
    return newsim;
 }
@@ -358,15 +346,23 @@ static NewSimulatorSel *VerifySelAndEnter( void *hnd, SaHpiResourceIdT rid,
 
 
 
-/** 
+/*******************************************************
+ * 
+ * 
  * @name New Plugin interface
  * Implementation of the alias definitions. Inside the functions the corresponding object methods
  * are called. 
+ *
  */
 //@{
 // new plugin_loader
 extern "C" {
 
+/**
+ * @fn alias("NewSimulatorOpen")
+ * 
+ * Alias for @ref öh_open(), implemented by @ref NewSimulatorOpen().
+ **/
 static void * NewSimulatorOpen( GHashTable *, unsigned int, oh_evt_queue * ) __attribute__((used));
 
 /**
@@ -467,11 +463,15 @@ static void * NewSimulatorOpen( GHashTable *handler_config, unsigned int hid,
    return handler;
 }
 
-
+/**
+ * @fn alias("NewSimulatorClose")
+ * 
+ * Alias for @ref öh_close(), implemented by @ref NewSimulatorClose().
+ **/
 static void NewSimulatorClose( void * ) __attribute__((used));
 
 /**
- * @relate NewSimulatorClose( void * )
+ * @relate alias("NewSimulatorClose")
  * Close the plugin and clean up the allocated memory. 
  *  
  * @param hnd pointer on handler
@@ -561,7 +561,7 @@ static SaErrorT NewSimulatorDiscoverResources( void *hnd ) {
       return SA_ERR_HPI_INTERNAL_ERROR;
    }
 
-   stdlog << "DBG: new_sim.cpp:NewSimulatorDiscoverResources let's go: " << hnd << "\n";
+   stdlog << "DBG: new_sim.cpp::NewSimulatorDiscoverResources let's go: " << hnd << "\n";
 
    SaErrorT rv = newsim->IfDiscoverResources();
 
@@ -1751,7 +1751,20 @@ static SaErrorT NewSimulatorClearSel( void *hnd, SaHpiResourceIdT id ) {
 
    return rv;
 }
+*/
 
+
+/**
+ * Interface for HotswapPolicyCancel. 
+ * Inside the function the method NewSimulatorResource::HotswapPolicyCancel()
+ * is called. 
+ *  
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param state Pointer on state variable to be filled
+ * 
+ * @return HPI error code
+ **/
 static SaErrorT NewSimulatorHotswapPolicyCancel( void *, SaHpiResourceIdT,
                                                   SaHpiTimeoutT ) __attribute__((used));
 
@@ -1763,7 +1776,7 @@ static SaErrorT NewSimulatorHotswapPolicyCancel( void *hnd, SaHpiResourceIdT id,
    if ( !res )
       return SA_ERR_HPI_NOT_PRESENT;
 
-   SaErrorT rv = newsim->IfHotswapPolicyCancel( res, timeout );
+   SaErrorT rv = res->HotswapPolicyCancel();
 
    newsim->IfLeave();
 
@@ -1771,6 +1784,17 @@ static SaErrorT NewSimulatorHotswapPolicyCancel( void *hnd, SaHpiResourceIdT id,
 }
 
 
+/**
+ * Interface for GetHotswapState. 
+ * Inside the function the method NewSimulatorResource::GetHotswapState()
+ * is called. 
+ *  
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param state Pointer on state variable to be filled
+ * 
+ * @return HPI error code
+ **/
 static SaErrorT NewSimulatorGetHotswapState( void *, SaHpiResourceIdT ,
                                               SaHpiHsStateT * ) __attribute__((used));
 
@@ -1782,7 +1806,7 @@ static SaErrorT NewSimulatorGetHotswapState( void *hnd, SaHpiResourceIdT id,
    if ( !res )
      return SA_ERR_HPI_NOT_PRESENT;
 
-   SaErrorT rv = newsim->IfGetHotswapState( res, *state );
+   SaErrorT rv = res->GetHotswapState( *state );
 
    newsim->IfLeave();
 
@@ -1790,18 +1814,42 @@ static SaErrorT NewSimulatorGetHotswapState( void *hnd, SaHpiResourceIdT id,
 }
 
 
+/**
+ * Interface for SetHotswapState. 
+ * Inside the function the method in dependency of the given state
+ * NewSimulatorResource::SetStateActive() or NewSimulatorResource::SetStateInactive()
+ * is called. 
+ *  
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param state HotSwap state to be set
+ * 
+ * @return HPI error code
+ **/
 static SaErrorT NewSimulatorSetHotswapState( void *, SaHpiResourceIdT,
                                               SaHpiHsStateT ) __attribute__((used));
 
 static SaErrorT NewSimulatorSetHotswapState( void *hnd, SaHpiResourceIdT id,
                                               SaHpiHsStateT state ) {
+   SaErrorT rv = SA_OK;
    NewSimulator *newsim = 0;
    NewSimulatorResource *res = VerifyResourceAndEnter( hnd, id, newsim );
 
    if ( !res )
       return SA_ERR_HPI_NOT_PRESENT;
 
-   SaErrorT rv = newsim->IfSetHotswapState( res, state );
+   rv = SA_ERR_HPI_INTERNAL_ERROR;
+   
+   if ( state == SAHPI_HS_STATE_ACTIVE ) {
+      rv = res->SetStateActive();
+
+   } else if ( state == SAHPI_HS_STATE_INACTIVE ) {
+      rv = res->SetStateInactive();
+
+   }
+   
+   if ( rv == SA_ERR_HPI_INTERNAL_ERROR )
+      err( "It looks like the plugin got an invalid state for SetHotswapState.");
 
    newsim->IfLeave();
 
@@ -1809,6 +1857,17 @@ static SaErrorT NewSimulatorSetHotswapState( void *hnd, SaHpiResourceIdT id,
 }
 
 
+/**
+ * Interface for RequestHotswapAction. 
+ * Inside the function the method NewSimulatorResource::RequestHotswapAction()
+ * is called. 
+ *  
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param act action requested
+ * 
+ * @return HPI error code
+ **/
 static SaErrorT NewSimulatorRequestHotswapAction( void *, SaHpiResourceIdT,
                                                    SaHpiHsActionT ) __attribute__((used));
 
@@ -1820,13 +1879,13 @@ static SaErrorT NewSimulatorRequestHotswapAction( void *hnd, SaHpiResourceIdT id
    if ( !res )
       return SA_ERR_HPI_NOT_PRESENT;
 
-   SaErrorT rv = newsim->IfRequestHotswapAction( res, act );
+   SaErrorT rv = res->RequestHotswapAction( act );
 
    newsim->IfLeave();
 
    return rv;
 }
-*/
+
 
 
 /**
@@ -1947,14 +2006,11 @@ static SaErrorT NewSimulatorSetAutoInsertTimeout( void *hnd, SaHpiTimeoutT  time
 
 /**
  * Interface for GetAutoExtractTimeout. 
- * Inside the function the method NewSimulator::IfGetAutoExtractTimeout is called. 
- * 
- * @todo  It should be implemented inside class NewSimulatorResource instead 
- * of class NewSimulator.
+ * Inside the function the method NewSimulatorResource::GetAutoExtractTimeout is called. 
  * 
  * @param hnd pointer on handler
  * @param id resource id
- * @param timeout pointer on structure to be filled
+ * @param timeout pointer to be filled
  * 
  * @return HPI error code
  **/
@@ -1969,7 +2025,7 @@ static SaErrorT NewSimulatorGetAutoExtractTimeout( void *hnd, SaHpiResourceIdT i
    if ( !res )
       return SA_ERR_HPI_NOT_PRESENT;
 
-   SaErrorT rv = newsim->IfGetAutoExtractTimeout( res, *timeout );
+   SaErrorT rv = res->GetAutoExtractTimeout( *timeout );
 
    newsim->IfLeave();
 
@@ -1979,10 +2035,8 @@ static SaErrorT NewSimulatorGetAutoExtractTimeout( void *hnd, SaHpiResourceIdT i
 
 /**
  * Interface for SetAutoExtractTimeout. 
- * Inside the function the method NewSimulator::IfSetAutoExtractTimeout is called. 
  * 
- * @todo  It should be implemented inside class NewSimulatorResource instead 
- * of class NewSimulator.
+ * Inside the function the method NewSimulatorResource::SetAutoExtractTimeout is called. 
  * 
  * @param hnd pointer on handler
  * @param id resource id
@@ -2001,7 +2055,7 @@ static SaErrorT NewSimulatorSetAutoExtractTimeout( void *hnd, SaHpiResourceIdT i
    if ( !res )
       return SA_ERR_HPI_NOT_PRESENT;
 
-   SaErrorT rv = newsim->IfSetAutoExtractTimeout( res, timeout );
+   SaErrorT rv = res->SetAutoExtractTimeout( timeout );
 
    newsim->IfLeave();
 
@@ -2239,10 +2293,18 @@ static SaErrorT NewSimulatorSetResetState( void *hnd,
 } // new plugin_loader
 //@}
 
+/*
+ * End of new plugin 
+ ************************************************************************************/
+
 
 /** 
+ * 
+ * 
  * @name Plugin interface
- * Defining alias names for the abi functions, 
+ * Defining alias names for the abi functions, If someone has an idea how the link
+ * between both plugin interfaces can be documented, be free and give me a hint.
+ * 
  */
 //@{
 extern "C" {
@@ -2271,7 +2333,6 @@ void * oh_set_resource_severity (void *, SaHpiResourceIdT, SaHpiSeverityT)
                 __attribute__ ((weak, alias("NewSimulatorSetResourceSeverity")));
 
 /*
- *
 void * oh_get_el_info (void *, SaHpiResourceIdT, SaHpiEventLogInfoT *)
                 __attribute__ ((weak, alias("NewSimulatorGetSelInfo")));
 
@@ -2401,10 +2462,9 @@ void * oh_del_idr_field (void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiEntryIdT,
                          SaHpiEntryIdT)
                 __attribute__ ((weak, alias("NewSimulatorDelIdrField")));
 
-/*
+/// Alias definition
 void * oh_hotswap_policy_cancel (void *, SaHpiResourceIdT, SaHpiTimeoutT)
                 __attribute__ ((weak, alias("NewSimulatorHotswapPolicyCancel")));
-*/
 
 /// Alias definition
 void * oh_set_autoinsert_timeout (void *, SaHpiTimeoutT)
@@ -2418,16 +2478,18 @@ void * oh_get_autoextract_timeout (void *, SaHpiResourceIdT, SaHpiTimeoutT *)
 void * oh_set_autoextract_timeout (void *, SaHpiResourceIdT, SaHpiTimeoutT)
                 __attribute__ ((weak, alias("NewSimulatorSetAutoExtractTimeout")));
 
-/*
+/// Alias definition
 void * oh_get_hotswap_state (void *, SaHpiResourceIdT, SaHpiHsStateT *)
                 __attribute__ ((weak, alias("NewSimulatorGetHotswapState")));
 
+/// Alias definition
 void * oh_set_hotswap_state (void *, SaHpiResourceIdT, SaHpiHsStateT)
                 __attribute__ ((weak, alias("NewSimulatorSetHotswapState")));
 
+/// Alias definition
 void * oh_request_hotswap_action (void *, SaHpiResourceIdT, SaHpiHsActionT)
                 __attribute__ ((weak, alias("NewSimulatorRequestHotswapAction")));
-*/
+
 
 /// Alias definition
 void * oh_get_power_state (void *, SaHpiResourceIdT, SaHpiPowerStateT *)
@@ -2550,6 +2612,11 @@ static SaHpiTimeoutT GetTimeout( GHashTable *handler_config, const char *str,
 */
 
 
+
+/*****************************************************************
+ * Implementation of class NewSimulator
+ */
+
 /**
  * Constructor
  **/
@@ -2626,6 +2693,7 @@ SaHpiRptEntryT * NewSimulator::FindResource( SaHpiResourceIdT rid ) {
  * Interface function Enter - only a lock is set
  **/
 void NewSimulator::IfEnter() {
+	
   ReadLock();
 }
 
@@ -2718,18 +2786,22 @@ void NewSimulator::IfClose() {
 }
 
 /**
- * Interface GetEvent - deletion of file object
+ * Interface GetEvent
  * m_event_lock is set and unset.
+ * It is also used to reduce the keep alive interval time
  * 
  * @param event pointer on oh_event
  * @return 0
  **/
 int NewSimulator::IfGetEvent( oh_event *event ) {
-  int rv = 0;
-  m_event_lock.Lock();
-  m_event_lock.Unlock();
+   int rv = 0;
+   
+   stdlog << "DBG: Keep alive call NewSimulator::IfGetEvent.\n";
 
-  return rv;
+   m_event_lock.Lock();
+   m_event_lock.Unlock();
+
+   return rv;
 }
 
 
@@ -2834,46 +2906,6 @@ SaErrorT NewSimulator::IfSetAutoInsertTimeout( SaHpiTimeoutT timeout ) {
   return SA_OK;
 }
 
-
-/** 
- * HPI function saHpiAutoExtractTimeoutGet()
- * 
- * See also the description of the function inside the specification or header file.
- * Get the extraction timeout
- * 
- * @todo it fits better to implement it in class NewSimulatorResource
- * 
- * @param res pointer on NewSimulatorResource to be used
- * @param timeout address of timeout structure to be filled
- *  
- * @return HPI error code 
- **/
-SaErrorT NewSimulator::IfGetAutoExtractTimeout( NewSimulatorResource *res, SaHpiTimeoutT &timeout ) {
-
-  timeout = res->ExtractTimeout();
-
-  return SA_OK;
-}
-
-/** 
- * HPI function saHpiAutoExtractTimeoutSet()
- * 
- * See also the description of the function inside the specification or header file.
- * Set the extraction timeout
- * 
- * @todo it fits better to implement it in class NewSimulatorResource
- * 
- * @param res pointer on NewSimulatorResource to be used
- * @param timeout new timeout value
- *  
- * @return HPI error code 
- **/
-SaErrorT NewSimulator::IfSetAutoExtractTimeout( NewSimulatorResource *res, SaHpiTimeoutT timeout ) {
-
-  res->ExtractTimeout() = timeout;
-
-  return SA_OK;
-}
 
 
 /** 

@@ -249,7 +249,7 @@ bool NewSimulatorFile::Open() {
  * Starting with \c RPT_TOKEN_HANDLER the rpt information
  * is read inside NewSimulatorFile::process_rpt_token.
  *
- * @param domain Pointer to the domainn to which the information should be linked
+ * @param domain Pointer to the domain to which the information should be linked
  * 
  * @return success 
  **/
@@ -636,7 +636,7 @@ bool NewSimulatorFile::process_rdr_token( NewSimulatorResource *res ) {
             
    } // while RDR TOKEN
          
-   stdlog << "DBG: Populate the resource including all rdr information\n";
+   stdlog << "DBG: Populate the resource including all rdr information.\n";
    if (res->Populate()) {
       stdlog << "DBG: Resource::Populate was successful.\n";
    } else {

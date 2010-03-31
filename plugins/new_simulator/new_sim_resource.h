@@ -25,14 +25,18 @@
 #ifndef __NEW_SIM_RESOURCE_H__
 #define __NEW_SIM_RESOURCE_H__
 
-
 #ifndef __NEW_SIM_CONTROL_H__
 #include "new_sim_control.h"
+#endif
+
+#ifndef __NEW_SIM_HOTSWAP_H__
+#include "new_sim_hotswap.h"
 #endif
 
 #ifndef __ARRAY_H__
 #include "array.h"
 #endif
+
 
 /**
  * @class NewSimulatorResource
@@ -56,26 +60,18 @@ public:
    /// Get a rdr object by index
    NewSimulatorRdr *GetRdr( int idx ) { return operator[]( idx ); }
    
-   bool CheckWatchdogTimer();
 
 protected:
-   /// flag if active or not
-   bool                 m_active;
    /// pointer on the domain
    NewSimulatorDomain   *m_domain;
+   /// hotswap state of the FRU
+   NewSimulatorHotSwap      m_hotswap;
    /// entity path of the resource   
    NewSimulatorEntityPath    m_entity_path;
    /// is the resource a FRU or not
    bool                     m_is_fru;
-   /// hotswap state of the FRU
-   SaHpiHsStateT             m_hotswap_state;
+   
 
-   // state only to create state change Mx -> M0
-   // where Mx is m_picmg_fru_state
-   /// Flag if policy is canceled
-   bool                     m_policy_canceled;
-   /// Extraction timeout
-   SaHpiTimeoutT             m_extract_timeout;
    /// oem value
    unsigned int            m_oem;
 
@@ -101,10 +97,7 @@ public:
    unsigned int          GetControlNum() { return ++m_current_control_id; }
    
 public:
-   /// set/get PolicyCanceled
-   bool                  &PolicyCanceled() { return m_policy_canceled; }
-   /// set/get Extraction timeout value
-   SaHpiTimeoutT          &ExtractTimeout() { return m_extract_timeout; }
+   
    NewSimulatorDomain     *Domain() const;
    /// set/get oem value
    unsigned int         &Oem() { return m_oem; }
@@ -114,8 +107,8 @@ public:
    bool                  &IsFru() { return m_is_fru; }
    /// set/get resource tag
    NewSimulatorTextBuffer &ResourceTag() { return m_resource_tag; }
-   /// set/get hotswap state
-   SaHpiHsStateT          &HotSwapState() { return m_hotswap_state; }
+   /// get hotswap state
+   SaHpiHsStateT          HotSwapState() { return m_hotswap.GetState(); }
    /// set/get power state
    SaHpiPowerStateT       &PowerState() { return m_power_state; }
    /// set/get hotswap indicator state
@@ -143,11 +136,34 @@ public:
    virtual bool Destroy();
    void          Dump( NewSimulatorLog &dump ) const;
 
-   bool Activate();
-   void Deactivate();
-   /// Get HPI hotswap state
-   SaHpiHsStateT GetHpiState() { return m_hotswap_state; }
-   SaHpiHsStateT SetHpiState( SaHpiHsStateT new_hs_state );
+//   bool Activate();
+//   void Deactivate();
+   
+   /// HPI Function implement in NewSimulatorHotSwap::SetExtractTimeout()
+   SaErrorT SetAutoExtractTimeout( SaHpiTimeoutT timeout ) 
+                                     { return m_hotswap.SetExtractTimeout( timeout ); }
+
+   /// HPI Function implement in NewSimulatorHotSwap::GetExtractTimeout()
+   SaErrorT GetAutoExtractTimeout( SaHpiTimeoutT &timeout ) 
+                                     { return m_hotswap.SetExtractTimeout( timeout ); }
+
+   /// HPI Function implement in NewSimulatorHotSwap::ActionRequest()
+   SaErrorT RequestHotswapAction( SaHpiHsActionT action )
+                                     { return m_hotswap.ActionRequest( action ); }
+
+   /// HPI Function implement in NewSimulatorHotSwap::GetState()
+   SaErrorT GetHotswapState( SaHpiHsStateT &state )
+                                     { return m_hotswap.GetState( state ); }
+
+   /// HPI Function implement in NewSimulatorHotSwap::SetActive()
+   SaErrorT SetStateActive() { return m_hotswap.SetActive(); }
+
+   /// HPI Function implement in NewSimulatorHotSwap::SetInactive()
+   SaErrorT SetStateInactive() { return m_hotswap.SetInactive(); }
+
+   /// HPI Function implement in NewSimulatorHotSwap::CancelPolicy()
+   SaErrorT HotswapPolicyCancel() { return m_hotswap.CancelPolicy(); }
+                   
    void SetResourceInfo( SaHpiResourceInfoT resinfo );
    // bool CreateResourceInfo( SaHpiResourceInfoT &resinfo );
 

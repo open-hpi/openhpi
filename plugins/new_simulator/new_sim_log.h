@@ -128,6 +128,7 @@ public:
    NewSimulatorLog &operator<<( unsigned char c );
    NewSimulatorLog &operator<<( int i );
    NewSimulatorLog &operator<<( unsigned int i );
+   NewSimulatorLog &operator<<( long l );
    NewSimulatorLog &operator<<( double d );
    NewSimulatorLog &operator<<( const char *str );
 
