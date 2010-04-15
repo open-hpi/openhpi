@@ -5828,7 +5828,7 @@ SaErrorT oHpiHandlerCreate(GHashTable *config,
         if (!config || !id)
         	return SA_ERR_HPI_INVALID_PARAMS;
         
-        err = oh_create_connx(SAHPI_UNSPECIFIED_DOMAIN_ID, &pinst);
+        err = oh_create_connx(OH_DEFAULT_DOMAIN_ID, &pinst);
         if (err) return err;
 
         handler_config.NumberOfParams = 0;
@@ -5870,7 +5870,7 @@ SaErrorT oHpiHandlerDestroy(oHpiHandlerIdT id)
 	char cmd[] = "oHpiHandlerDestroy";
         pcstrmsock pinst = NULL;
 
-        err = oh_create_connx(SAHPI_UNSPECIFIED_DOMAIN_ID, &pinst);
+        err = oh_create_connx(OH_DEFAULT_DOMAIN_ID, &pinst);
         if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFoHpiHandlerDestroy);
@@ -5906,7 +5906,7 @@ SaErrorT oHpiHandlerInfo(oHpiHandlerIdT id, oHpiHandlerInfoT *info)
 	char cmd[] = "oHpiHandlerInfo";
         pcstrmsock pinst = NULL;
 
-        err = oh_create_connx(SAHPI_UNSPECIFIED_DOMAIN_ID, &pinst);
+        err = oh_create_connx(OH_DEFAULT_DOMAIN_ID, &pinst);
         if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFoHpiHandlerInfo);
@@ -5942,7 +5942,7 @@ SaErrorT oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id)
 	char cmd[] = "oHpiHandlerGetNext";
         pcstrmsock pinst = NULL;
 
-        err = oh_create_connx(SAHPI_UNSPECIFIED_DOMAIN_ID, &pinst);
+        err = oh_create_connx(OH_DEFAULT_DOMAIN_ID, &pinst);
         if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFoHpiHandlerGetNext);
@@ -5978,7 +5978,7 @@ SaErrorT oHpiHandlerFind(SaHpiSessionIdT sid,
         char cmd[] = "oHpiHandlerFind";  
         pcstrmsock pinst = NULL;
 
-        err = oh_create_connx(SAHPI_UNSPECIFIED_DOMAIN_ID, &pinst);
+        err = oh_create_connx(OH_DEFAULT_DOMAIN_ID, &pinst);
         if (err) return err;
 
         if (!id || !sid || !rid) {
@@ -6021,7 +6021,7 @@ SaErrorT oHpiHandlerRetry(oHpiHandlerIdT id)
         char cmd[] = "oHpiHandlerRetry";  
         pcstrmsock pinst = NULL;
 
-        err = oh_create_connx(SAHPI_UNSPECIFIED_DOMAIN_ID, &pinst);
+        err = oh_create_connx(OH_DEFAULT_DOMAIN_ID, &pinst);
         if (err) return err;
 
         if (!id) {
@@ -6065,7 +6065,7 @@ SaErrorT oHpiGlobalParamGet(oHpiGlobalParamT *param)
 	char cmd[] = "oHpiGlobalParamGet";
         pcstrmsock pinst = NULL;
 
-        err = oh_create_connx(SAHPI_UNSPECIFIED_DOMAIN_ID, &pinst);
+        err = oh_create_connx(OH_DEFAULT_DOMAIN_ID, &pinst);
         if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFoHpiGlobalParamGet);
@@ -6101,7 +6101,7 @@ SaErrorT oHpiGlobalParamSet(oHpiGlobalParamT *param)
 	char cmd[] = "oHpiGlobalParamSet";
         pcstrmsock pinst = NULL;
 
-        err = oh_create_connx(SAHPI_UNSPECIFIED_DOMAIN_ID, &pinst);
+        err = oh_create_connx(OH_DEFAULT_DOMAIN_ID, &pinst);
         if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFoHpiGlobalParamSet);
@@ -6139,7 +6139,7 @@ SaErrorT oHpiInjectEvent(oHpiHandlerIdT id,
         char cmd[] = "oHpiInjectEvent";  
         pcstrmsock pinst = NULL;
 
-        err = oh_create_connx(SAHPI_UNSPECIFIED_DOMAIN_ID, &pinst);
+        err = oh_create_connx(OH_DEFAULT_DOMAIN_ID, &pinst);
         if (err) return err;
 
         if (!id) {
