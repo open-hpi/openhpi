@@ -59,9 +59,12 @@ SaErrorT oa_soap_set_control_state(void *oh_handler,
                                    SaHpiCtrlModeT mode,
                                    SaHpiCtrlStateT *state);
 
+/* Set analog limits to 0 if building a non-analog control. */
 SaErrorT oa_soap_build_control_rdr(struct oh_handler_state *oh_handler,
                            SaHpiRdrT *rdr,
                            SaHpiResourceIdT resource_id,
-                           SaHpiCtrlNumT control_num);
+                           SaHpiCtrlNumT control_num,
+                           int analogLimitLow,
+                           int analogLimitHigh);
 
 #endif
