@@ -47,6 +47,11 @@
 #define MAX_PART_NUM_LENGTH 32
 #define MAX_MODEL_NUM_LENGTH 32
 
+/* Moved these #defines from oa_soap.h - which includes this header file. */
+/* Max Blade in HP BladeSystem c7000 c-Class enclosure*/
+#define OA_SOAP_C7000_MAX_BLADE 16
+/* Max Blade in HP BladeSystem c3000 c-Class enclosure*/
+#define OA_SOAP_C3000_MAX_BLADE 8
 
 /* Data types used to help us be more consistent with the WSDL description */
 typedef unsigned char byte;
@@ -113,6 +118,47 @@ typedef unsigned char byte;
                         "<hpoa:getOaInfo>" \
                         "<hpoa:bayNumber>%d</hpoa:bayNumber>" \
                         "</hpoa:getOaInfo>\n"
+
+#define GET_POWER_CONFIG_INFO \
+                        "<hpoa:getPowerConfigInfo>" \
+                        "</hpoa:getPowerConfigInfo>\n"
+
+#define SET_POWER_CONFIG_INFO \
+                        "<hpoa:setPowerConfigInfo>" \
+                        "<hpoa:redundancyMode>%d</hpoa:redundancyMode>" \
+                        "<hpoa:powerCeiling>%d</hpoa:powerCeiling>" \
+                        "<hpoa:dynamicPowerSaverEnabled>%d</hpoa:dynamicPowerSaverEnabled>" \
+                        "</hpoa:setPowerConfigInfo>\n"
+
+#define GET_POWER_CAP_CONFIG \
+                        "<hpoa:getPowerCapConfig>" \
+                        "</hpoa:getPowerCapConfig>\n"
+
+#define SET_POWER_CAP_CONFIG \
+                        "<hpoa:setPowerCapConfig>" \
+                        "<hpoa:config>" \
+                        "<hpoa:powerCap>%d</hpoa:powerCap>" \
+                        "<hpoa:optOutBayArray>" \
+                        "<hpoa:bay>%s</hpoa:bay>" \
+                        "<hpoa:bay>%s</hpoa:bay>" \
+                        "<hpoa:bay>%s</hpoa:bay>" \
+                        "<hpoa:bay>%s</hpoa:bay>" \
+                        "<hpoa:bay>%s</hpoa:bay>" \
+                        "<hpoa:bay>%s</hpoa:bay>" \
+                        "<hpoa:bay>%s</hpoa:bay>" \
+                        "<hpoa:bay>%s</hpoa:bay>" \
+                        "<hpoa:bay>%s</hpoa:bay>" \
+                        "<hpoa:bay>%s</hpoa:bay>" \
+                        "<hpoa:bay>%s</hpoa:bay>" \
+                        "<hpoa:bay>%s</hpoa:bay>" \
+                        "<hpoa:bay>%s</hpoa:bay>" \
+                        "<hpoa:bay>%s</hpoa:bay>" \
+                        "<hpoa:bay>%s</hpoa:bay>" \
+                        "<hpoa:bay>%s</hpoa:bay>" \
+                        "</hpoa:optOutBayArray>" \
+                        "<hpoa:extraData hpoa:name=\"\">%s</hpoa:extraData>" \
+                        "</hpoa:config>" \
+                        "</hpoa:setPowerCapConfig>\n"
 
 #define GET_INTERCONNECT_TRAY_STATUS \
                         "<hpoa:getInterconnectTrayStatus>" \
@@ -234,6 +280,7 @@ typedef unsigned char byte;
 			"</hpoa:setLcdButtonLock>\n"
 
 /* Enumerated types used for specific SOAP commands */
+#define HPOA_BOOLEAN_LENGTH    11      /* Max length of these enums + 1 */
 OA_SOAP_ENUM(hpoa_boolean,
         HPOA_FALSE,
         HPOA_TRUE)
@@ -457,6 +504,7 @@ OA_SOAP_ENUM(redundancy,
         NOT_REDUNDANT,
         REDUNDANT)
 
+#define POWER_REDUNDANCY_LENGTH 42      /* Max length of these enums + 1 */
 OA_SOAP_ENUM(powerRedundancy,
         REDUNDANT_UNKNOWN,
         NON_REDUNDANT,
@@ -465,6 +513,12 @@ OA_SOAP_ENUM(powerRedundancy,
         AC_REDUNDANT_WITH_POWER_CEILING,
         POWER_SUPPLY_REDUNDANT_WITH_POWER_CEILING,
         NON_REDUNDANT_WITH_POWER_CEILING)
+
+#define POWER_LIMIT_MODE_LENGTH 19      /* Max length of these enums + 1 */
+OA_SOAP_ENUM(powerLimitMode,
+        POWER_LIMIT_NONE,
+        STATIC_POWER_LIMIT,
+        DYNAMIC_POWER_CAP)
 
 #define SENSOR_TYPE_LENGTH      25      /* Max length of these enums + 1 */
 OA_SOAP_ENUM(sensorType,
@@ -745,7 +799,8 @@ OA_SOAP_ENUM(eventType,
         EVENT_MEDIA_DRIVE_INSERTED2,
         EVENT_MEDIA_DRIVE_REMOVED2,
         EVENT_MEDIA_INSERTED2,
-        EVENT_MEDIA_REMOVED2)
+        EVENT_MEDIA_REMOVED2,
+        EVENT_ENC_GRP_CAP)
 
 /* This is not part of the SOAP response data from the OA, but is useful
  * for identifying the type of data that comes back from getAllEvents().
@@ -805,7 +860,8 @@ OA_SOAP_ENUM(enum_eventInfo,
         NUMVALUE,
         STRING,
         MESSAGE,
-        NOPAYLOAD)
+        NOPAYLOAD,
+        POWERCAPCONFIG)
 
 OA_SOAP_ENUM(enum_usbMode,
         USB_KVM_ENABLED,
@@ -1304,6 +1360,24 @@ struct powerConfigInfo
         enum powerRedundancy redundancyMode;
         enum hpoa_boolean dynamicPowerSaverEnabled;
         xmlNode *extraData;             /* Items are struct extraDataInfo */
+        /* These are needed as high/low limits of the analog control RDRs */
+        /* static power limit.                                            */
+        int ACLimitLow;
+        int ACLimitHigh;
+};
+
+struct powerCapConfig
+{
+        int enclosureMinWattageMeasured;
+        int enclosureMaxWattageMeasured;
+        int enclosurePowerCapLowerBound;
+        int enclosurePowerCapUpperBound;
+        enum hpoa_boolean enclosureHighLine;
+        int enclosureAcPhaseType;
+        int enclosureEstimatedVoltage;
+        int powerCap;
+        char optOutBayArray[OA_SOAP_C7000_MAX_BLADE][8]; /* holds true or false for each bay */
+        xmlNode *extraData;                              /* Items are struct extraDataInfo   */
 };
 
 struct thermalInfo
@@ -1820,6 +1894,7 @@ union _hpoa__data
         struct powerSupplyStatus powerSupplyStatus;
         struct powerSubsystemInfo powerSubsystemInfo;
         struct powerConfigInfo powerConfigInfo;
+        struct powerCapConfig powerCapConfig;
         struct thermalInfo thermalInfo;
         xmlNode *userInfoArray;         /* Items are struct userInfo */
         struct userInfo userInfo;
@@ -1964,6 +2039,20 @@ int soap_getBladeMpInfo(SOAP_CON *connection,
 
 int soap_getEnclosureInfo(SOAP_CON *connection,
                           struct enclosureInfo *response);
+
+int soap_getPowerConfigInfo(SOAP_CON *connection,
+                            struct powerConfigInfo *response,
+                            uint *desired_static_pwr_limit);
+
+int soap_setPowerConfigInfo(SOAP_CON *connection,
+                            const struct powerConfigInfo *request);
+
+int soap_getPowerCapConfig(SOAP_CON *connection,
+                           struct powerCapConfig *response,
+                           uint *desired_dynamic_pwr_cap_limit);
+
+int soap_setPowerCapConfig(SOAP_CON *connection,
+                           const struct powerCapConfig *request);
 
 int soap_getOaStatus(SOAP_CON *connection,
                      const struct getOaStatus *request,

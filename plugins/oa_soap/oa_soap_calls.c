@@ -288,6 +288,44 @@ static void     parse_enclosureInfo(xmlNode *node,
         response->extraData = soap_walk_tree(node, "extraData");
 }
 
+/* parse_powerConfigInfo - Parses a getPowerConfigInfo response structure */
+static void parse_powerConfigInfo(xmlNode *node, struct powerConfigInfo *response)
+{
+        response->powerCeiling = atoi(soap_tree_value(node, "powerCeiling"));
+        response->redundancyMode =
+                soap_enum(powerRedundancy_S, soap_tree_value(node, "redundancyMode"));
+        response->dynamicPowerSaverEnabled =
+                parse_xsdBoolean(soap_tree_value(node, "dynamicPowerSaverEnabled"));
+        response->extraData = soap_walk_tree(node, "extraData");
+}
+
+/* parse_powerCapConfig - Parses a getPowerCapConfig response structure */
+static void parse_powerCapConfig(xmlNode *node, struct powerCapConfig *response)
+{
+        xmlNode *bay_data;
+        int i;
+
+        response->enclosureMinWattageMeasured = atoi(soap_tree_value(node, "enclosureMinWattageMeasured"));
+        response->enclosureMaxWattageMeasured = atoi(soap_tree_value(node, "enclosureMaxWattageMeasured"));
+        response->enclosurePowerCapLowerBound = atoi(soap_tree_value(node, "enclosurePowerCapLowerBound"));
+        response->enclosurePowerCapUpperBound = atoi(soap_tree_value(node, "enclosurePowerCapUpperBound"));
+        response->enclosureHighLine = parse_xsdBoolean(soap_tree_value(node, "enclosureHighLine"));
+        response->enclosureAcPhaseType = atoi(soap_tree_value(node, "enclosureAcPhaseType"));
+        response->enclosureEstimatedVoltage = atoi(soap_tree_value(node, "enclosureEstimatedVoltage"));
+        response->powerCap = atoi(soap_tree_value(node, "powerCap"));
+        response->extraData = soap_walk_tree(node, "extraData");
+
+        bay_data = soap_walk_tree(node, "optOutBayArray");
+        bay_data = soap_walk_tree(bay_data, "bay");
+        i = 0;
+        while (bay_data) {
+                /* Copy optOutBayArray data for later use: data is either "true" or "false" */
+                strncpy(response->optOutBayArray[i], soap_value(bay_data), 6);
+                bay_data = soap_next_node(bay_data);
+                i++;
+        }
+}
+
 /* parse_oaStatus - Parses an oaStatus response structure */
 static void     parse_oaStatus(xmlNode *node, struct oaStatus *response)
 {
@@ -1327,6 +1365,93 @@ int soap_getEnclosureInfo(SOAP_CON *con,
                                     response);
         }
         return(ret);
+}
+
+int soap_getPowerConfigInfo(SOAP_CON *con,
+                            struct powerConfigInfo *response,
+                            uint *desired_static_pwr_limit)
+{
+        SOAP_PARM_CHECK_NRQ
+        if (! (ret = soap_request(con, GET_POWER_CONFIG_INFO))) {
+                parse_powerConfigInfo(soap_walk_doc(con->doc,
+                                      "Body:"
+                                      "getPowerConfigInfoResponse:"
+                                      "powerConfigInfo"),
+                                      response);
+        }
+
+        /* If user's desired static power limit is 0, then update it with the OA value, */
+        /* otherwise preserve the user's intention for a static power limit.            */
+        if (*desired_static_pwr_limit == 0) {
+                *desired_static_pwr_limit = response->powerCeiling;
+        }
+
+        return(ret);
+}
+
+int soap_setPowerConfigInfo(SOAP_CON *con,
+                            const struct powerConfigInfo *request)
+{
+        char    hpoa_boolean[HPOA_BOOLEAN_LENGTH];
+        char    powerRedundancy[POWER_REDUNDANCY_LENGTH];
+
+        SOAP_PARM_CHECK_NRS
+        if (soap_inv_enum(hpoa_boolean, hpoa_boolean_S, request->dynamicPowerSaverEnabled)) {
+                err("invalid dynamic power parameter");
+                return(-1);
+        }
+        if (soap_inv_enum(powerRedundancy, powerRedundancy_S, request->redundancyMode)) {
+                err("invalid power redundancy mode parameter");
+                return(-1);
+        }
+        return(soap_request(con, SET_POWER_CONFIG_INFO, request->redundancyMode,
+               request->powerCeiling, request->dynamicPowerSaverEnabled));
+}
+
+int soap_getPowerCapConfig(SOAP_CON *con,
+                           struct powerCapConfig *response,
+                           uint *desired_dynamic_pwr_cap_limit)
+{
+        SOAP_PARM_CHECK_NRQ
+        if (! (ret = soap_request(con, GET_POWER_CAP_CONFIG))) {
+                parse_powerCapConfig(soap_walk_doc(con->doc,
+                                      "Body:"
+                                      "getPowerCapConfigResponse:"
+                                      "powerCapConfig"),
+                                      response);
+        }
+
+        /* If user's desired dynamic power cap limit is 0, then update it with the OA value, */
+        /* otherwise preserve the user's intention for a dynamic power cap limit.            */
+        if (*desired_dynamic_pwr_cap_limit == 0) {
+                *desired_dynamic_pwr_cap_limit = response->powerCap;
+        }
+
+        return(ret);
+}
+
+int soap_setPowerCapConfig(SOAP_CON *con,
+                           const struct powerCapConfig *request)
+{
+        SOAP_PARM_CHECK_NRS
+        return(soap_request(con, SET_POWER_CAP_CONFIG, request->powerCap,
+               request->optOutBayArray[0],
+               request->optOutBayArray[1],
+               request->optOutBayArray[2],
+               request->optOutBayArray[3],
+               request->optOutBayArray[4],
+               request->optOutBayArray[5],
+               request->optOutBayArray[6],
+               request->optOutBayArray[7],
+               request->optOutBayArray[8],
+               request->optOutBayArray[9],
+               request->optOutBayArray[10],
+               request->optOutBayArray[11],
+               request->optOutBayArray[12],
+               request->optOutBayArray[13],
+               request->optOutBayArray[14],
+               request->optOutBayArray[15],
+               ""));
 }
 
 int soap_getOaStatus(SOAP_CON *con,

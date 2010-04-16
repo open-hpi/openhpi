@@ -1120,6 +1120,9 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                         case EVENT_ENC_WIZARD_STATUS:
                                 dbg("EVENT_ENC_WIZARD_STATUS -- Not processed");
                                 break;
+                        case EVENT_ENC_GRP_CAP:
+                                dbg("EVENT_ENC_GRP_CAP -- Not processed");
+                                break;
                         case EVENT_SSHKEYS_INSTALLED:
                                 dbg("EVENT_SSHKEYS_INSTALLED -- Not processed");
                                 break;
