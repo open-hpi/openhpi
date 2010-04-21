@@ -6808,6 +6808,42 @@ const struct oa_soap_control oa_soap_cntrl_arr[] = {
 		},
 		.comment = "dynamic power cap control",
 	},
+	/* Derated Circuit Cap Control */
+	{
+		.control = {
+			.Num = OA_SOAP_DERATED_CIRCUIT_CAP_CNTRL,
+			.OutputType = SAHPI_CTRL_POWER_BUDGET,
+			.Type = SAHPI_CTRL_TYPE_ANALOG,
+			.TypeUnion.Analog.Min = 0x00,
+			.TypeUnion.Analog.Max = 0x00,
+			.TypeUnion.Analog.Default = 0x00,
+			.DefaultMode = {
+				.Mode = SAHPI_CTRL_MODE_MANUAL,
+				.ReadOnly = SAHPI_FALSE,
+			},
+			.WriteOnly = SAHPI_FALSE,
+			.Oem = 0,
+		},
+		.comment = "derated circuit cap control",
+	},
+	/* Rated Circuit Cap Control */
+	{
+		.control = {
+			.Num = OA_SOAP_RATED_CIRCUIT_CAP_CNTRL,
+			.OutputType = SAHPI_CTRL_POWER_BUDGET,
+			.Type = SAHPI_CTRL_TYPE_ANALOG,
+			.TypeUnion.Analog.Min = 0x00,
+			.TypeUnion.Analog.Max = 0x00,
+			.TypeUnion.Analog.Default = 0x00,
+			.DefaultMode = {
+				.Mode = SAHPI_CTRL_MODE_MANUAL,
+				.ReadOnly = SAHPI_FALSE,
+			},
+			.WriteOnly = SAHPI_FALSE,
+			.Oem = 0,
+		},
+		.comment = "rated circuit cap control",
+	},
 	{} /* Terminate array with a null element */
 };
 

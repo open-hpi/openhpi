@@ -105,7 +105,7 @@
 #define OA_SOAP_RES_CNTRL_NUM              (SaHpiCtrlNumT)   0x001
 
 /* SOAP XML calls timeout values for event thread and hpi calls */
-#define HPI_CALL_TIMEOUT 10
+#define HPI_CALL_TIMEOUT 20
 #define EVENT_CALL_TIMEOUT 40
 
 /* Error code for SOAP XML calls */
@@ -203,10 +203,13 @@ struct oa_soap_handler
         
         /* This is local state for holding data for the */
         /* enclosure power management controls.         */
+        double active_fm_ver;
         struct powerConfigInfo power_config_info;
         struct powerCapConfig power_cap_config;
         uint desired_static_pwr_limit;
         uint desired_dynamic_pwr_cap;
+        uint desired_derated_circuit_cap;
+        uint desired_rated_circuit_cap;
 };
 
 /* Structure for storing the current hotswap state of the resource */

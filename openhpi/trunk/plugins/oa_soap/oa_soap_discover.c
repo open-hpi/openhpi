@@ -1497,7 +1497,7 @@ SaErrorT build_discovered_server_rpt(struct oh_handler_state *oh_handler,
 				 * blade entry in oa_soap_bay_pwr_status array
 				 */
 				oa_soap_bay_pwr_status[response->bayNumber -1] =
-								 SAHPI_POWER_OFF;
+                                  SAHPI_POWER_OFF;
                                 break;
 
                         default:
@@ -2514,7 +2514,8 @@ SaErrorT build_power_subsystem_rdr(struct oh_handler_state *oh_handler,
 	oa_handler = (struct oa_soap_handler *) oh_handler->data;
         power_config_info = &(oa_handler->power_config_info);
         power_cap_config = &(oa_handler->power_cap_config);
-        /* Initialize user's desired static power limit - and dynamic power cap to zero to start with */
+        /* Initialize user's desired static power limit - and dynamic */
+        /* power cap to zero to start with                            */
         oa_handler->desired_static_pwr_limit = 0;
         oa_handler->desired_dynamic_pwr_cap = 0;
 
@@ -2542,7 +2543,9 @@ SaErrorT build_power_subsystem_rdr(struct oh_handler_state *oh_handler,
         /* Make a soap call to get the enclosure power cap config */
         rv = soap_getPowerCapConfig(oa_handler->active_con,
                                     power_cap_config,
-                                    &(oa_handler->desired_dynamic_pwr_cap));
+                                    &(oa_handler->desired_dynamic_pwr_cap),
+                                    &(oa_handler->desired_derated_circuit_cap),
+                                    &(oa_handler->desired_rated_circuit_cap));
         if (rv != SOAP_OK) {
                 err("build_power_subsystem get power cap config failed");
                 return SA_ERR_HPI_INTERNAL_ERROR;
@@ -2563,6 +2566,8 @@ SaErrorT build_power_subsystem_rdr(struct oh_handler_state *oh_handler,
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 
+        power_config_info->ACLimitLow = 0;
+        power_config_info->ACLimitHigh = 0;
         extra_data = response.extraData;
         while (extra_data) {
                 soap_getExtraData(extra_data, &extra_data_info);
@@ -2594,8 +2599,21 @@ SaErrorT build_power_subsystem_rdr(struct oh_handler_state *oh_handler,
 
         /* Build dynamic power cap config control rdr for Enclosure */
         OA_SOAP_BUILD_CONTROL_RDR(OA_SOAP_DYNAMIC_PWR_CAP_CNTRL,
-                                  power_cap_config->enclosurePowerCapLowerBound,
-                                  power_cap_config->enclosurePowerCapUpperBound);
+                              power_cap_config->enclosurePowerCapLowerBound,
+                              power_cap_config->enclosurePowerCapUpperBound);
+
+        /* These controls are only available on OA firmware 3.00 and higher */
+        if (oa_handler->active_fm_ver >= 3.0) {
+                /* Build derated circuit cap control rdr for Enclosure */
+                OA_SOAP_BUILD_CONTROL_RDR(OA_SOAP_DERATED_CIRCUIT_CAP_CNTRL,
+                              power_cap_config->deratedCircuitCapLowerBound,
+                              power_cap_config->deratedCircuitCapUpperBound);
+
+                /* Build rated circuit cap control rdr for Enclosure */
+                OA_SOAP_BUILD_CONTROL_RDR(OA_SOAP_RATED_CIRCUIT_CAP_CNTRL,
+                              power_cap_config->ratedCircuitCapLowerBound,
+                              power_cap_config->ratedCircuitCapUpperBound);
+        }
 
         return SA_OK;
 }
@@ -4121,8 +4139,8 @@ SaErrorT oa_soap_build_blade_thermal_rdr(struct oh_handler_state *oh_handler,
 					 * caution threshold value provided by
 					 * OA
 					 */
-					sensor->DataFormat.Range.NormalMax.Value.
-								SensorFloat64 =
+					sensor->DataFormat.Range.NormalMax.
+							Value.SensorFloat64 =
 					sensor_info->threshold.UpMajor.Value.
 								SensorFloat64 =
 					bld_thrm_info.cautionThreshold;
