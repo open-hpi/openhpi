@@ -55,28 +55,41 @@
  *
  *	oa_soap_get_uid_cntrl()		- Gets the UID control
  *
- *	oa_soap_set_dynamic_pwr_cntrl()       - Sets the dynamic power control
+ *	oa_soap_set_dynamic_pwr_cntrl()       - Sets the dynamic pwr control
  *
- *	oa_soap_get_dynamic_pwr_cntrl()       - Gets the dynamic power control
+ *	oa_soap_get_dynamic_pwr_cntrl()       - Gets the dynamic pwr control
  *
- *	oa_soap_set_pwr_mode_cntrl()          - Sets the power mode control
+ *	oa_soap_set_pwr_mode_cntrl()          - Sets the pwr mode control
  *
- *	oa_soap_get_pwr_mode_cntrl()          - Gets the power mode control
+ *	oa_soap_get_pwr_mode_cntrl()          - Gets the pwr mode control
  *
- *	oa_soap_set_pwr_limit_mode_cntrl()    - Sets the power limit mode control
+ *	oa_soap_set_pwr_limit_mode_cntrl()    - Sets pwr limit mode control
  * 
- *	oa_soap_get_pwr_limit_mode_cntrl()    - Gets the power limit mode control
+ *	oa_soap_get_pwr_limit_mode_cntrl()    - Gets pwr limit mode control
  *
- *	oa_soap_set_static_pwr_limit_cntrl()  - Sets the static power limit control
+ *	oa_soap_set_static_pwr_limit_cntrl()  - Sets static pwr limit control
  *
- *	oa_soap_get_static_pwr_limit_cntrl()  - Gets the static power limit control
+ *	oa_soap_get_static_pwr_limit_cntrl()  - Gets static pwr limit control
  *
- *	oa_soap_set_dynamic_pwr_cap_cntrl()   - Sets the dynamic power cap control
+ *	oa_soap_set_dynamic_pwr_cap_cntrl()   - Sets dynamic pwr cap control
  *
- *	oa_soap_get_dynamic_pwr_cap_cntrl()   - Gets the dynamic power cap control
+ *	oa_soap_get_dynamic_pwr_cap_cntrl()   - Gets dynamic pwr cap control
+ *
+ *	oa_soap_set_derated_circuit_cap_cntrl() - Sets derated circuit cap
+ *                                                control
+ *
+ *	oa_soap_get_derated_circuit_cap_cntrl() - Gets derated circuit cap
+ *                                                control
+ *
+ *	oa_soap_set_rated_circuit_cap_cntrl() - Sets rated circuit cap
+ *                                              control
+ *
+ *	oa_soap_get_rated_circuit_cap_cntrl() - Gets the rated circuit cap
+ *                                              control
  *
  */
 
+#include <stdio.h>
 #include "oa_soap_control.h"
 
 /* Forward declaraction for static functions */
@@ -102,36 +115,62 @@ static SaErrorT oa_soap_set_uid_cntrl(struct oh_handler_state *oh_handler,
 static SaErrorT oa_soap_get_uid_cntrl(struct oh_handler_state *oh_handler,
 				      SaHpiRptEntryT *rpt,
 				      SaHpiCtrlStateDigitalT *control_state);
-static SaErrorT oa_soap_set_dynamic_pwr_cntrl(struct oh_handler_state *oh_handler,
-				              SaHpiResourceIdT resource_id,
-                                              SaHpiCtrlStateDigitalT control_state);
-static SaErrorT oa_soap_get_dynamic_pwr_cntrl(struct oh_handler_state *oh_handler,
-				              SaHpiResourceIdT resource_id,
-                                              SaHpiCtrlStateDigitalT *control_state);
-static SaErrorT oa_soap_set_pwr_mode_cntrl(struct oh_handler_state *oh_handler,
-				           SaHpiResourceIdT resource_id,
-                                           SaHpiCtrlStateDiscreteT control_state);
-static SaErrorT oa_soap_get_pwr_mode_cntrl(struct oh_handler_state *oh_handler,
-				           SaHpiResourceIdT resource_id,
-                                           SaHpiCtrlStateDiscreteT *control_state);
-static SaErrorT oa_soap_set_pwr_limit_mode_cntrl(struct oh_handler_state *oh_handler,
-				                 SaHpiResourceIdT resource_id,
-                                                 SaHpiCtrlStateDiscreteT control_state);
-static SaErrorT oa_soap_get_pwr_limit_mode_cntrl(struct oh_handler_state *oh_handler,
-				                 SaHpiResourceIdT resource_id,
-                                                 SaHpiCtrlStateDiscreteT *control_state);
-static SaErrorT oa_soap_set_static_pwr_limit_cntrl(struct oh_handler_state *oh_handler,
-				                   SaHpiResourceIdT resource_id,
-                                                   SaHpiCtrlStateAnalogT control_state);
-static SaErrorT oa_soap_get_static_pwr_limit_cntrl(struct oh_handler_state *oh_handler,
-				                   SaHpiResourceIdT resource_id,
-                                                   SaHpiCtrlStateAnalogT *control_state);
-static SaErrorT oa_soap_set_dynamic_pwr_cap_cntrl(struct oh_handler_state *oh_handler,
-				                  SaHpiResourceIdT resource_id,
-                                                  SaHpiCtrlStateAnalogT control_state);
-static SaErrorT oa_soap_get_dynamic_pwr_cap_cntrl(struct oh_handler_state *oh_handler,
-				                  SaHpiResourceIdT resource_id,
-                                                  SaHpiCtrlStateAnalogT *control_state);
+static SaErrorT oa_soap_set_dynamic_pwr_cntrl(
+        struct oh_handler_state *oh_handler,
+        SaHpiResourceIdT resource_id,
+        SaHpiCtrlStateDigitalT control_state);
+static SaErrorT oa_soap_get_dynamic_pwr_cntrl(
+        struct oh_handler_state *oh_handler,
+        SaHpiResourceIdT resource_id,
+        SaHpiCtrlStateDigitalT *control_state);
+static SaErrorT oa_soap_set_pwr_mode_cntrl(
+        struct oh_handler_state *oh_handler,
+        SaHpiResourceIdT resource_id,
+        SaHpiCtrlStateDiscreteT control_state);
+static SaErrorT oa_soap_get_pwr_mode_cntrl(
+        struct oh_handler_state *oh_handler,
+        SaHpiResourceIdT resource_id,
+        SaHpiCtrlStateDiscreteT *control_state);
+static SaErrorT oa_soap_set_pwr_limit_mode_cntrl(
+        struct oh_handler_state *oh_handler,
+        SaHpiResourceIdT resource_id,
+        SaHpiCtrlStateDiscreteT control_state);
+static SaErrorT oa_soap_get_pwr_limit_mode_cntrl(
+        struct oh_handler_state *oh_handler,
+        SaHpiResourceIdT resource_id,
+        SaHpiCtrlStateDiscreteT *control_state);
+static SaErrorT oa_soap_set_static_pwr_limit_cntrl(
+        struct oh_handler_state *oh_handler,
+        SaHpiResourceIdT resource_id,
+        SaHpiCtrlStateAnalogT control_state);
+static SaErrorT oa_soap_get_static_pwr_limit_cntrl(
+        struct oh_handler_state *oh_handler,
+        SaHpiResourceIdT resource_id,
+        SaHpiCtrlStateAnalogT *control_state);
+static SaErrorT oa_soap_set_dynamic_pwr_cap_cntrl(
+        struct oh_handler_state *oh_handler,
+        SaHpiResourceIdT resource_id,
+        SaHpiCtrlStateAnalogT control_state);
+static SaErrorT oa_soap_get_dynamic_pwr_cap_cntrl(
+        struct oh_handler_state *oh_handler,
+        SaHpiResourceIdT resource_id,
+        SaHpiCtrlStateAnalogT *control_state);
+static SaErrorT oa_soap_set_derated_circuit_cap_cntrl(
+        struct oh_handler_state *oh_handler,
+        SaHpiResourceIdT resource_id,
+        SaHpiCtrlStateAnalogT control_state);
+static SaErrorT oa_soap_get_derated_circuit_cap_cntrl(
+        struct oh_handler_state *oh_handler,
+        SaHpiResourceIdT resource_id,
+        SaHpiCtrlStateAnalogT *control_state);
+static SaErrorT oa_soap_set_rated_circuit_cap_cntrl(
+        struct oh_handler_state *oh_handler,
+        SaHpiResourceIdT resource_id,
+        SaHpiCtrlStateAnalogT control_state);
+static SaErrorT oa_soap_get_rated_circuit_cap_cntrl(
+        struct oh_handler_state *oh_handler,
+        SaHpiResourceIdT resource_id,
+        SaHpiCtrlStateAnalogT *control_state);
 
 /**
  * oa_soap_get_control_state
@@ -218,64 +257,93 @@ SaErrorT oa_soap_get_control_state(void *oh_handler,
                         rv = oa_soap_get_pwr_cntrl(handler, resource_id, 
 						   &control_digital_state);
                         if (rv != SA_OK) {
-                                err("Failed to get the power state RDR");
-                                return rv;
+                          err("Failed to get the power state RDR");
+                          return rv;
                         }
 			break;
                 case OA_SOAP_UID_CNTRL:
                         rv = oa_soap_get_uid_cntrl(handler, rpt,
                                                    &control_digital_state);
                         if (rv != SA_OK) {
-                                err("Failed to get the uid status");
-                                return rv;
+                          err("Failed to get the uid status");
+                          return rv;
                         }
 			break;
 		case OA_SOAP_LCD_BUTN_LCK_CNTRL:
 			rv = oa_soap_get_lcd_butn_lck_cntrl(handler, rpt,
 							&control_digital_state);
                         if (rv != SA_OK) {
-                                err("Failed to get the LCD button lock status");
-                                return rv;
+                          err("Failed to get the LCD button lock status");
+                          return rv;
                         }
 			break;
                 case OA_SOAP_DYNAMIC_PWR_CNTRL:
-                        rv = oa_soap_get_dynamic_pwr_cntrl(handler, resource_id, 
-						           &control_digital_state);
+                        rv =
+                          oa_soap_get_dynamic_pwr_cntrl(handler,
+                                                        resource_id, 
+                                                        &control_digital_state);
                         if (rv != SA_OK) {
-                                err("Failed to get the dynamic power state RDR");
-                                return rv;
+                          err("Failed to get the dynamic power state RDR");
+                          return rv;
                         }
 			break;
                 case OA_SOAP_PWR_MODE_CNTRL:
-                        rv = oa_soap_get_pwr_mode_cntrl(handler, resource_id, 
-						        &control_discrete_state);
+                        rv =
+                          oa_soap_get_pwr_mode_cntrl(handler, resource_id, 
+						     &control_discrete_state);
                         if (rv != SA_OK) {
-                                err("Failed to get the power mode state RDR");
-                                return rv;
+                          err("Failed to get the power mode state RDR");
+                          return rv;
                         }
 			break;
                 case OA_SOAP_PWR_LIMIT_MODE_CNTRL:
-                        rv = oa_soap_get_pwr_limit_mode_cntrl(handler, resource_id, 
-						              &control_discrete_state);
+                        rv =
+                          oa_soap_get_pwr_limit_mode_cntrl(handler, resource_id,
+						       &control_discrete_state);
                         if (rv != SA_OK) {
-                                err("Failed to get the power limit mode state RDR");
-                                return rv;
+                          err("Failed to get the power limit mode state RDR");
+                          return rv;
                         }
 			break;
                 case OA_SOAP_STATIC_PWR_LIMIT_CNTRL:
-                        rv = oa_soap_get_static_pwr_limit_cntrl(handler, resource_id, 
-						                &control_analog_state);
+                        rv =
+                          oa_soap_get_static_pwr_limit_cntrl(handler,
+                                                             resource_id, 
+						         &control_analog_state);
                         if (rv != SA_OK) {
-                                err("Failed to get the static power limit state RDR");
-                                return rv;
+                          err("Failed to get the static power limit state RDR");
+                          return rv;
                         }
 			break;
                 case OA_SOAP_DYNAMIC_PWR_CAP_CNTRL:
-                        rv = oa_soap_get_dynamic_pwr_cap_cntrl(handler, resource_id, 
-						               &control_analog_state);
+                        rv =
+                          oa_soap_get_dynamic_pwr_cap_cntrl(handler,
+                                                            resource_id, 
+						        &control_analog_state);
                         if (rv != SA_OK) {
-                                err("Failed to get the dynamic power cap state RDR");
-                                return rv;
+                          err("Failed to get the dynamic power cap state RDR");
+                          return rv;
+                        }
+			break;
+                case OA_SOAP_DERATED_CIRCUIT_CAP_CNTRL:
+                        rv =
+                          oa_soap_get_derated_circuit_cap_cntrl(handler,
+                                                                resource_id, 
+						        &control_analog_state);
+                        if (rv != SA_OK) {
+                          err("Failed to get the derated circuit cap state \
+RDR");
+                          return rv;
+                        }
+			break;
+                case OA_SOAP_RATED_CIRCUIT_CAP_CNTRL:
+                        rv =
+                          oa_soap_get_rated_circuit_cap_cntrl(handler,
+                                                              resource_id, 
+						      &control_analog_state);
+                        if (rv != SA_OK) {
+                          err("Failed to get the rated circuit cap state RDR");
+                          return rv;
                         }
 			break;
                 default:
@@ -295,6 +363,8 @@ SaErrorT oa_soap_get_control_state(void *oh_handler,
                         break;
                 case OA_SOAP_STATIC_PWR_LIMIT_CNTRL:
                 case OA_SOAP_DYNAMIC_PWR_CAP_CNTRL:
+                case OA_SOAP_DERATED_CIRCUIT_CAP_CNTRL:
+                case OA_SOAP_RATED_CIRCUIT_CAP_CNTRL:
         	        ctrl_state.StateUnion.Analog = control_analog_state;
                         break;
         }
@@ -396,18 +466,22 @@ SaErrorT oa_soap_set_control_state(void *oh_handler,
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 	
-        /* If control mode is MANUAL and specified state could be digital, discrete, or
-         * analog type, then the control state is updated with specified state value
+        /*
+         * If control mode is MANUAL and specified state could be digital,
+         * discrete, or analog type, then the control state is updated
+         * with specified state value
          */
 	if (state->Type == SAHPI_CTRL_TYPE_DIGITAL) {
 		ctrl->TypeUnion.Digital.Default = state->StateUnion.Digital;
 	}
 	else {
 	        if (state->Type == SAHPI_CTRL_TYPE_DISCRETE) {
-		        ctrl->TypeUnion.Discrete.Default = state->StateUnion.Discrete;
+		        ctrl->TypeUnion.Discrete.Default =
+                          state->StateUnion.Discrete;
                 }
                 else {
-		        ctrl->TypeUnion.Analog.Default = state->StateUnion.Analog;
+		        ctrl->TypeUnion.Analog.Default =
+                          state->StateUnion.Analog;
                 }
 	}
 	switch (rdr_num) {
@@ -415,64 +489,94 @@ SaErrorT oa_soap_set_control_state(void *oh_handler,
 			rv = oa_soap_set_pwr_cntrl(handler, resource_id,
 						   state->StateUnion.Digital);
 			if (rv != SA_OK) {
-				err("Set power state failed");
-				return rv;
+			  err("Set power state failed");
+			  return rv;
 			}
 			break;
 		case OA_SOAP_UID_CNTRL:
 			rv = oa_soap_set_uid_cntrl(handler, rpt,
 						   state->StateUnion.Digital);
 			if (rv != SA_OK) {
-				err("Set uid state failed");
-				return rv;
+			  err("Set uid state failed");
+			  return rv;
 			}
 			break;
 		case OA_SOAP_LCD_BUTN_LCK_CNTRL:
 			rv = oa_soap_set_lcd_butn_lck_cntrl(handler, rpt,
 						state->StateUnion.Digital);
                         if (rv != SA_OK) {
-                                err("Failed to set the LCD button lock status");
-                                return rv;
+                          err("Failed to set the LCD button lock status");
+                          return rv;
                         }
 			break;
 		case OA_SOAP_DYNAMIC_PWR_CNTRL:
-			rv = oa_soap_set_dynamic_pwr_cntrl(handler, resource_id,
-						           state->StateUnion.Digital);
+			rv =
+                          oa_soap_set_dynamic_pwr_cntrl(handler,
+                                                        resource_id,
+						    state->StateUnion.Digital);
 			if (rv != SA_OK) {
-                                err("Failed to set the dynamic power state");
-				return rv;
+                          err("Failed to set the dynamic power state");
+			  return rv;
 			}
 			break;
 		case OA_SOAP_PWR_MODE_CNTRL:
-			rv = oa_soap_set_pwr_mode_cntrl(handler, resource_id,
-						        state->StateUnion.Discrete);
+			rv =
+                          oa_soap_set_pwr_mode_cntrl(handler,
+                                                     resource_id,
+						 state->StateUnion.Discrete);
 			if (rv != SA_OK) {
-                                err("Failed to set the power mode state");
-				return rv;
+                          err("Failed to set the power mode state");
+			  return rv;
 			}
 			break;
 		case OA_SOAP_PWR_LIMIT_MODE_CNTRL:
-			rv = oa_soap_set_pwr_limit_mode_cntrl(handler, resource_id,
-						              state->StateUnion.Discrete);
+			rv =
+                          oa_soap_set_pwr_limit_mode_cntrl(handler,
+                                                           resource_id,
+                                                   state->StateUnion.Discrete);
 			if (rv != SA_OK) {
-                                err("Failed to set the power limit mode state");
-				return rv;
+                          err("Failed to set the power limit mode state");
+			  return rv;
 			}
 			break;
                 case OA_SOAP_STATIC_PWR_LIMIT_CNTRL:
-			rv = oa_soap_set_static_pwr_limit_cntrl(handler, resource_id,
-						                state->StateUnion.Analog);
+			rv =
+                          oa_soap_set_static_pwr_limit_cntrl(handler,
+                                                             resource_id,
+						     state->StateUnion.Analog);
 			if (rv != SA_OK) {
-                                err("Failed to set the static power limit state");
-				return rv;
+                          err("Failed to set the static power limit state");
+			  return rv;
 			}
 			break;
                 case OA_SOAP_DYNAMIC_PWR_CAP_CNTRL:
-			rv = oa_soap_set_dynamic_pwr_cap_cntrl(handler, resource_id,
-						               state->StateUnion.Analog);
+			rv =
+                          oa_soap_set_dynamic_pwr_cap_cntrl(handler,
+                                                            resource_id,
+						    state->StateUnion.Analog);
 			if (rv != SA_OK) {
-                                err("Failed to set the dynamic power cap state");
-				return rv;
+                          err("Failed to set the dynamic power cap state");
+                          return rv;
+			}
+			break;
+                case OA_SOAP_DERATED_CIRCUIT_CAP_CNTRL:
+			rv =
+                          oa_soap_set_derated_circuit_cap_cntrl(handler,
+                                                                resource_id,
+						    state->StateUnion.Analog);
+			if (rv != SA_OK) {
+                          err("Failed to set the derated circuit cap state");
+                          return rv;
+			}
+			break;
+                case OA_SOAP_RATED_CIRCUIT_CAP_CNTRL:
+			rv =
+                          oa_soap_set_rated_circuit_cap_cntrl(handler,
+                                                              resource_id,
+					              state->StateUnion.Analog);
+			if (rv != SA_OK) {
+                          err("Failed to set the rated circuit cap state");
+                          return rv;
 			}
 			break;
 		default:
@@ -534,8 +638,10 @@ SaErrorT oa_soap_build_control_rdr(struct oh_handler_state *oh_handler,
 			oa_soap_cntrl_arr[control_num].comment);
 
 	if (rdr->RdrTypeUnion.CtrlRec.Type == SAHPI_CTRL_TYPE_ANALOG) {
-                rdr->RdrTypeUnion.CtrlRec.TypeUnion.Analog.Min = analogLimitLow;
-                rdr->RdrTypeUnion.CtrlRec.TypeUnion.Analog.Max = analogLimitHigh;
+                rdr->RdrTypeUnion.CtrlRec.TypeUnion.Analog.Min =
+                  analogLimitLow;
+                rdr->RdrTypeUnion.CtrlRec.TypeUnion.Analog.Max =
+                  analogLimitHigh;
         } 
         return SA_OK;
 }
@@ -1047,9 +1153,10 @@ static SaErrorT oa_soap_set_lcd_butn_lck_cntrl(struct oh_handler_state
  *      SA_ERR_HPI_INVALID_PARAMS - On wrong parameter
  *      SA_ERR_HPI_INTERNAL_ERROR - Internal error encountered
  **/
-static SaErrorT oa_soap_get_dynamic_pwr_cntrl(struct oh_handler_state *oh_handler,
-				              SaHpiResourceIdT resource_id,
-                                              SaHpiCtrlStateDigitalT *control_state)
+static SaErrorT oa_soap_get_dynamic_pwr_cntrl(
+  struct oh_handler_state *oh_handler,
+  SaHpiResourceIdT resource_id,
+  SaHpiCtrlStateDigitalT *control_state)
 {
         SaErrorT rv = SA_OK;
         struct powerConfigInfo *power_config_info;
@@ -1099,17 +1206,18 @@ static SaErrorT oa_soap_get_dynamic_pwr_cntrl(struct oh_handler_state *oh_handle
  *      Sets the control state of the dynamic power control on resource
  *
  * Detailed Description:
- *      - Sets the dynamic power state of resource after mapping the control state
- *	  appropriate dynamic power state
+ *      - Sets the dynamic power state of resource after mapping the control
+ *        state appropriate dynamic power state
  *
  * Return values:
  *      SA_OK - Normal case.
  *      SA_ERR_HPI_INVALID_PARAMS - On wrong parameter
  *      SA_ERR_HPI_INTERNAL_ERROR - Internal error encountered
  **/
-static SaErrorT oa_soap_set_dynamic_pwr_cntrl(struct oh_handler_state *oh_handler,
-				              SaHpiResourceIdT resource_id,
-                                              SaHpiCtrlStateDigitalT control_state)
+static SaErrorT oa_soap_set_dynamic_pwr_cntrl(
+  struct oh_handler_state *oh_handler,
+  SaHpiResourceIdT resource_id,
+  SaHpiCtrlStateDigitalT control_state)
 {
         SaErrorT rv = SA_OK;
         struct powerConfigInfo *power_config_info;
@@ -1164,9 +1272,10 @@ static SaErrorT oa_soap_set_dynamic_pwr_cntrl(struct oh_handler_state *oh_handle
  *      SA_ERR_HPI_INVALID_PARAMS - On wrong parameter
  *      SA_ERR_HPI_INTERNAL_ERROR - Internal error encountered
  **/
-static SaErrorT oa_soap_get_pwr_mode_cntrl(struct oh_handler_state *oh_handler,
-				           SaHpiResourceIdT resource_id,
-                                           SaHpiCtrlStateDiscreteT *control_state)
+static SaErrorT oa_soap_get_pwr_mode_cntrl(
+  struct oh_handler_state *oh_handler,
+  SaHpiResourceIdT resource_id,
+  SaHpiCtrlStateDiscreteT *control_state)
 {
         SaErrorT rv = SA_OK;
         struct powerConfigInfo *power_config_info;
@@ -1221,9 +1330,10 @@ static SaErrorT oa_soap_get_pwr_mode_cntrl(struct oh_handler_state *oh_handler,
  *      SA_ERR_HPI_INVALID_PARAMS - On wrong parameter
  *      SA_ERR_HPI_INTERNAL_ERROR - Internal error encountered
  **/
-static SaErrorT oa_soap_set_pwr_mode_cntrl(struct oh_handler_state *oh_handler,
-				           SaHpiResourceIdT resource_id,
-                                           SaHpiCtrlStateDiscreteT control_state)
+static SaErrorT oa_soap_set_pwr_mode_cntrl(
+  struct oh_handler_state *oh_handler,
+  SaHpiResourceIdT resource_id,
+  SaHpiCtrlStateDiscreteT control_state)
 {
         SaErrorT rv = SA_OK;
         struct powerConfigInfo *power_config_info;
@@ -1237,7 +1347,8 @@ static SaErrorT oa_soap_set_pwr_mode_cntrl(struct oh_handler_state *oh_handler,
 	/* Return error if the control state is PULSE_ON or PULSE_OFF */
 	if ((control_state < NON_REDUNDANT) ||
 	    (control_state > POWER_SUPPLY_REDUNDANT)) {
-		err("Cannot set the control state to %d - value out of range", control_state);
+		err("Cannot set the control state to %d - value out of range",
+                    control_state);
 		return SA_ERR_HPI_INVALID_DATA;
 	}
 
@@ -1267,16 +1378,18 @@ static SaErrorT oa_soap_set_pwr_mode_cntrl(struct oh_handler_state *oh_handler,
  *      Gets the control state of the power limit mode control on resource
  *
  * Detailed Description:
- *      - Gets the power limit mode state of resource and maps it to control state
+ *      - Gets the power limit mode state of resource and maps it to
+ *        control state
  *
  * Return values:
  *      SA_OK - Normal case.
  *      SA_ERR_HPI_INVALID_PARAMS - On wrong parameter
  *      SA_ERR_HPI_INTERNAL_ERROR - Internal error encountered
  **/
-static SaErrorT oa_soap_get_pwr_limit_mode_cntrl(struct oh_handler_state *oh_handler,
-				                 SaHpiResourceIdT resource_id,
-                                                 SaHpiCtrlStateDiscreteT *control_state)
+static SaErrorT oa_soap_get_pwr_limit_mode_cntrl(
+  struct oh_handler_state *oh_handler,
+  SaHpiResourceIdT resource_id,
+  SaHpiCtrlStateDiscreteT *control_state)
 {
         SaErrorT rv = SA_OK;
         struct powerConfigInfo *power_config_info;
@@ -1303,11 +1416,14 @@ static SaErrorT oa_soap_get_pwr_limit_mode_cntrl(struct oh_handler_state *oh_han
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        /* Make a soap call to get the enclosure power dynamic power cap config */
+        /* Make a soap call to get the enclosure power dynamic power */
+        /* cap config                                                */
         g_mutex_lock(oa_handler->mutex);
         rv = soap_getPowerCapConfig(oa_handler->active_con,
                                     power_cap_config,
-                                    &(oa_handler->desired_dynamic_pwr_cap));
+                                    &(oa_handler->desired_dynamic_pwr_cap),
+                                    &(oa_handler->desired_derated_circuit_cap),
+                                    &(oa_handler->desired_rated_circuit_cap));
         g_mutex_unlock(oa_handler->mutex);
         if (rv != SOAP_OK) {
                 err("Get enclosure dynamic power cap config failed");
@@ -1338,17 +1454,18 @@ static SaErrorT oa_soap_get_pwr_limit_mode_cntrl(struct oh_handler_state *oh_han
  *      Sets the control state of the power limit mode control on resource
  *
  * Detailed Description:
- *      - Sets the power limit mode state of resource after mapping the control state
- *	  appropriate power limit mode state
+ *      - Sets the power limit mode state of resource after mapping the
+ *        control state appropriate power limit mode state
  *
  * Return values:
  *      SA_OK - Normal case.
  *      SA_ERR_HPI_INVALID_PARAMS - On wrong parameter
  *      SA_ERR_HPI_INTERNAL_ERROR - Internal error encountered
  **/
-static SaErrorT oa_soap_set_pwr_limit_mode_cntrl(struct oh_handler_state *oh_handler,
-				                 SaHpiResourceIdT resource_id,
-                                                 SaHpiCtrlStateDiscreteT control_state)
+static SaErrorT oa_soap_set_pwr_limit_mode_cntrl(
+  struct oh_handler_state *oh_handler,
+  SaHpiResourceIdT resource_id,
+  SaHpiCtrlStateDiscreteT control_state)
 {
         SaErrorT rv = SA_OK;
         struct powerConfigInfo *power_config_info;
@@ -1363,7 +1480,8 @@ static SaErrorT oa_soap_set_pwr_limit_mode_cntrl(struct oh_handler_state *oh_han
 	/* Return error if the control state is out of range */
 	if ((control_state < POWER_LIMIT_NONE) ||
 	    (control_state > DYNAMIC_POWER_CAP)) {
-		err("Cannot set the control state to %d - value out of range", control_state);
+		err("Cannot set the control state to %d - value out of range",
+                    control_state);
 		return SA_ERR_HPI_INVALID_DATA;
 	}
 
@@ -1374,36 +1492,70 @@ static SaErrorT oa_soap_set_pwr_limit_mode_cntrl(struct oh_handler_state *oh_han
 	if (control_state == POWER_LIMIT_NONE) {
                 power_config_info->powerCeiling = 0;
                 power_cap_config->powerCap = 0;
+                power_cap_config->deratedCircuitCap = 0;
+                power_cap_config->ratedCircuitCap = 0;
         } else {
 	        if (control_state == STATIC_POWER_LIMIT) {
-                        /* Checked desired setting, if non-zero - then send it - else user error */
+                        /* Checked desired setting, if non-zero - then  */
+                        /* send it - else user error                    */
                         if (oa_handler->desired_static_pwr_limit > 0) {
-                                power_config_info->powerCeiling = oa_handler->desired_static_pwr_limit;
+                                power_config_info->powerCeiling =
+                                  oa_handler->desired_static_pwr_limit;
                                 power_cap_config->powerCap = 0;
+                                power_cap_config->deratedCircuitCap = 0;
+                                power_cap_config->ratedCircuitCap = 0;
                         }
                         else {
-		                err("Cannot set the control state to %d - no static pwr limit value has been set",
+		                err("Cannot set the control state to %d - no \
+static pwr limit value has been set",
                                     control_state);
 		                return SA_ERR_HPI_INVALID_DATA;
                         }
                 } else {
                         /* DYNAMIC_POWER_CAP */
-                        /* Checked desired setting, if non-zero - then send it - else user error */
+                        /* Checked power cap, if non-zero - then send it */
+                        /* - else user error                             */
                         if (oa_handler->desired_dynamic_pwr_cap > 0) {
-                                power_cap_config->powerCap = oa_handler->desired_dynamic_pwr_cap;
+                                power_cap_config->powerCap =
+                                  oa_handler->desired_dynamic_pwr_cap;
                                 power_config_info->powerCeiling = 0;
                         }
                         else {
-		                err("Cannot set the control state to %d - no dynamic pwr cap value has been set",
+		                err("Cannot set the control state to %d - no \
+dynamic pwr cap value has been set",
                                     control_state);
 		                return SA_ERR_HPI_INVALID_DATA;
+                        }
+                        if (oa_handler->active_fm_ver >= 3.0) {
+                            if (oa_handler->desired_derated_circuit_cap > 0) {
+                                power_cap_config->deratedCircuitCap =
+                                  oa_handler->desired_derated_circuit_cap;
+                            }
+                            else {
+		                err("Cannot set the control state to %d - no \
+derated circuit cap value has been set",
+                                    control_state);
+		                return SA_ERR_HPI_INVALID_DATA;
+                            }
+                            if (oa_handler->desired_rated_circuit_cap > 0) {
+                                power_cap_config->ratedCircuitCap =
+                                  oa_handler->desired_rated_circuit_cap;
+                            }
+                            else {
+		                err("Cannot set the control state to %d - no \
+rated circuit cap value has been set",
+                                    control_state);
+		                return SA_ERR_HPI_INVALID_DATA;
+                            }
                         }
                 }
         }
 
-        /* Make soaps calls to set the enclosure power config info, and dynamic power cap config */
+        /* Make soaps calls to set the enclosure power config info, and */
+        /* dynamic power cap config                                     */
         if (control_state == POWER_LIMIT_NONE) {
-                /* Must turn off dynamic power cap config, and reset power config info */
+                /* Must turn off dynamic power cap config, and reset    */
+                /* power config info                                    */
                 rv = soap_setPowerCapConfig(oa_handler->active_con,
                                             power_cap_config);
                 if (rv != SOAP_OK) {
@@ -1418,7 +1570,8 @@ static SaErrorT oa_soap_set_pwr_limit_mode_cntrl(struct oh_handler_state *oh_han
                 }
         } else {
                 if (control_state == STATIC_POWER_LIMIT) {
-                        /* Make a soap call to set the enclosure power config info */
+                        /* Make a soap call to set the enclosure power */
+                        /* config info                                 */
                         rv = soap_setPowerConfigInfo(oa_handler->active_con,
                                                      power_config_info);
                         if (rv != SOAP_OK) {
@@ -1428,7 +1581,8 @@ static SaErrorT oa_soap_set_pwr_limit_mode_cntrl(struct oh_handler_state *oh_han
                 }
                 else {
                         /* DYNAMIC_POWER_CAP */
-                        /* Make a soap call to set the enclosure power cap config */
+                        /* Make a soap call to set the enclosure power */
+                        /* cap config                                  */
                         rv = soap_setPowerCapConfig(oa_handler->active_con,
                                                     power_cap_config);
                         if (rv != SOAP_OK) {
@@ -1451,16 +1605,18 @@ static SaErrorT oa_soap_set_pwr_limit_mode_cntrl(struct oh_handler_state *oh_han
  *      Gets the control state of the static power limit control on resource
  *
  * Detailed Description:
- *      - Gets the static power limit state of resource and maps it to control state
+ *      - Gets the static power limit state of resource and maps it to 
+ *        control state
  *
  * Return values:
  *      SA_OK - Normal case.
  *      SA_ERR_HPI_INVALID_PARAMS - On wrong parameter
  *      SA_ERR_HPI_INTERNAL_ERROR - Internal error encountered
  **/
-static SaErrorT oa_soap_get_static_pwr_limit_cntrl(struct oh_handler_state *oh_handler,
-				                   SaHpiResourceIdT resource_id,
-                                                   SaHpiCtrlStateAnalogT *control_state)
+static SaErrorT oa_soap_get_static_pwr_limit_cntrl(
+  struct oh_handler_state *oh_handler,
+  SaHpiResourceIdT resource_id,
+  SaHpiCtrlStateAnalogT *control_state)
 {
         SaErrorT rv = SA_OK;
         struct powerConfigInfo *power_config_info;
@@ -1485,7 +1641,8 @@ static SaErrorT oa_soap_get_static_pwr_limit_cntrl(struct oh_handler_state *oh_h
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        /* Always report the OA view of the static power limit - regardless of the user's desired setting */
+        /* Always report the OA view of the static power limit - regardless */
+        /* of the user's desired setting                                    */
 	*control_state = power_config_info->powerCeiling;
 
 	return SA_OK;
@@ -1501,17 +1658,18 @@ static SaErrorT oa_soap_get_static_pwr_limit_cntrl(struct oh_handler_state *oh_h
  *      Sets the control state of the static power limit control on resource
  *
  * Detailed Description:
- *      - Sets the static power limit state of resource after mapping the control state
- *	  appropriate static power limit state
+ *      - Sets the static power limit state of resource after mapping
+ *        the control state appropriate static power limit state
  *
  * Return values:
  *      SA_OK - Normal case.
  *      SA_ERR_HPI_INVALID_PARAMS - On wrong parameter
  *      SA_ERR_HPI_INTERNAL_ERROR - Internal error encountered
  **/
-static SaErrorT oa_soap_set_static_pwr_limit_cntrl(struct oh_handler_state *oh_handler,
-				                   SaHpiResourceIdT resource_id,
-                                                   SaHpiCtrlStateAnalogT control_state)
+static SaErrorT oa_soap_set_static_pwr_limit_cntrl(
+  struct oh_handler_state *oh_handler,
+  SaHpiResourceIdT resource_id,
+  SaHpiCtrlStateAnalogT control_state)
 {
         SaErrorT rv = SA_OK;
         struct powerConfigInfo *power_config_info;
@@ -1527,7 +1685,8 @@ static SaErrorT oa_soap_set_static_pwr_limit_cntrl(struct oh_handler_state *oh_h
 
         oa_handler->desired_static_pwr_limit = control_state;
 
-        /* If user already has the static power limit turned on, then let this new value go thru */
+        /* If user already has the static power limit turned on, */
+        /* then let this new value go thru                       */
         if (power_config_info->powerCeiling != 0) {
         	power_config_info->powerCeiling = control_state;
 
@@ -1553,16 +1712,18 @@ static SaErrorT oa_soap_set_static_pwr_limit_cntrl(struct oh_handler_state *oh_h
  *      Gets the control state of the dynamic power cap control on resource
  *
  * Detailed Description:
- *      - Gets the dynamic power cap state of resource and maps it to control state
+ *      - Gets the dynamic power cap state of resource and maps it to 
+ *        control state
  *
  * Return values:
  *      SA_OK - Normal case.
  *      SA_ERR_HPI_INVALID_PARAMS - On wrong parameter
  *      SA_ERR_HPI_INTERNAL_ERROR - Internal error encountered
  **/
-static SaErrorT oa_soap_get_dynamic_pwr_cap_cntrl(struct oh_handler_state *oh_handler,
-				                  SaHpiResourceIdT resource_id,
-                                                  SaHpiCtrlStateAnalogT *control_state)
+static SaErrorT oa_soap_get_dynamic_pwr_cap_cntrl(
+  struct oh_handler_state *oh_handler,
+  SaHpiResourceIdT resource_id,
+  SaHpiCtrlStateAnalogT *control_state)
 {
         SaErrorT rv = SA_OK;
         struct powerCapConfig *power_cap_config;
@@ -1580,14 +1741,17 @@ static SaErrorT oa_soap_get_dynamic_pwr_cap_cntrl(struct oh_handler_state *oh_ha
         g_mutex_lock(oa_handler->mutex);
         rv = soap_getPowerCapConfig(oa_handler->active_con,
                                     power_cap_config,
-                                    &(oa_handler->desired_dynamic_pwr_cap));
+                                    &(oa_handler->desired_dynamic_pwr_cap),
+                                    &(oa_handler->desired_derated_circuit_cap),
+                                    &(oa_handler->desired_rated_circuit_cap));
         g_mutex_unlock(oa_handler->mutex);
         if (rv != SOAP_OK) {
                 err("Get enclosure power cap config failed");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        /* Always report the OA view of the dynamic power cap - regardless of the user's desired setting */
+        /* Always report the OA view of the dynamic power cap - regardless of */
+        /* the user's desired setting                                         */
 	*control_state = power_cap_config->powerCap;
 
 	return SA_OK;
@@ -1603,17 +1767,18 @@ static SaErrorT oa_soap_get_dynamic_pwr_cap_cntrl(struct oh_handler_state *oh_ha
  *      Sets the control state of the dynamic power cap control on resource
  *
  * Detailed Description:
- *      - Sets the dynamic power cap state of resource after mapping the control state
- *	  appropriate dynamic power cap state
+ *      - Sets the dynamic power cap state of resource after mapping the
+ *        control state appropriate dynamic power cap state
  *
  * Return values:
  *      SA_OK - Normal case.
  *      SA_ERR_HPI_INVALID_PARAMS - On wrong parameter
  *      SA_ERR_HPI_INTERNAL_ERROR - Internal error encountered
  **/
-static SaErrorT oa_soap_set_dynamic_pwr_cap_cntrl(struct oh_handler_state *oh_handler,
-				                  SaHpiResourceIdT resource_id,
-                                                  SaHpiCtrlStateAnalogT control_state)
+static SaErrorT oa_soap_set_dynamic_pwr_cap_cntrl(
+  struct oh_handler_state *oh_handler,
+  SaHpiResourceIdT resource_id,
+  SaHpiCtrlStateAnalogT control_state)
 {
         SaErrorT rv = SA_OK;
         struct powerConfigInfo *power_config_info;
@@ -1631,9 +1796,234 @@ static SaErrorT oa_soap_set_dynamic_pwr_cap_cntrl(struct oh_handler_state *oh_ha
 
         oa_handler->desired_dynamic_pwr_cap = control_state;
 
-        /* If user already has the dynamic power cap turned on, then let this new value go thru */
+        /* If user already has the dynamic power cap turned on, then let */
+        /* this new value go thru                                         */
         if (power_cap_config->powerCap != 0) {
         	power_cap_config->powerCap = control_state;
+
+        	/* Make a soap call to set the enclosure power cap config */
+        	rv = soap_setPowerCapConfig(oa_handler->active_con,
+                                            power_cap_config);
+                if (rv != SOAP_OK) {
+                        err("Set enclosure power cap config failed");
+                        return SA_ERR_HPI_INTERNAL_ERROR;
+                }
+        }
+
+	return SA_OK;
+}
+
+/**
+ * oa_soap_get_derated_circuit_cap_cntrl:
+ *      @oh_handler: Handler data pointer
+ *      @resource_id: Resource id
+ *      @control state: Pointer to analog control state
+ *
+ * Purpose:
+ *      Gets the control state of the derated circuit cap control on resource
+ *
+ * Detailed Description:
+ *      - Gets the derated circuit cap state of resource and maps it to
+ *        control state
+ *
+ * Return values:
+ *      SA_OK - Normal case.
+ *      SA_ERR_HPI_INVALID_PARAMS - On wrong parameter
+ *      SA_ERR_HPI_INTERNAL_ERROR - Internal error encountered
+ **/
+static SaErrorT oa_soap_get_derated_circuit_cap_cntrl(
+  struct oh_handler_state *oh_handler,
+  SaHpiResourceIdT resource_id,
+  SaHpiCtrlStateAnalogT *control_state)
+{
+        SaErrorT rv = SA_OK;
+        struct powerCapConfig *power_cap_config;
+        struct oa_soap_handler *oa_handler = NULL;
+
+	if (oh_handler == NULL || control_state == NULL) {
+		err("Invalid parameters");
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
+
+        oa_handler = (struct oa_soap_handler *) oh_handler->data;
+        power_cap_config = &(oa_handler->power_cap_config);
+	
+        /* Make a soap call to get the enclosure power cap config */
+        g_mutex_lock(oa_handler->mutex);
+        rv = soap_getPowerCapConfig(oa_handler->active_con,
+                                    power_cap_config,
+                                    &(oa_handler->desired_dynamic_pwr_cap),
+                                    &(oa_handler->desired_derated_circuit_cap),
+                                    &(oa_handler->desired_rated_circuit_cap));
+        g_mutex_unlock(oa_handler->mutex);
+        if (rv != SOAP_OK) {
+                err("Get enclosure derated circuit cap config failed");
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+
+        /* Always report the OA view of the derated circuit cap - regardless */
+        /* of the user's desired setting                                     */
+	*control_state = power_cap_config->deratedCircuitCap;
+
+	return SA_OK;
+}
+
+/**
+ * oa_soap_set_derated_circuit_cap_cntrl:
+ *      @oh_handler: Handler data pointer
+ *      @resource_id: Resource id
+ *      @control state: Analog control state
+ *
+ * Purpose:
+ *      Sets the control state of the derated circuit cap control on resource
+ *
+ * Detailed Description:
+ *      - Sets the derated circuit cap state of resource after mapping the
+ *        control state appropriate derated circuit cap state
+ *
+ * Return values:
+ *      SA_OK - Normal case.
+ *      SA_ERR_HPI_INVALID_PARAMS - On wrong parameter
+ *      SA_ERR_HPI_INTERNAL_ERROR - Internal error encountered
+ **/
+static SaErrorT oa_soap_set_derated_circuit_cap_cntrl(
+  struct oh_handler_state *oh_handler,
+  SaHpiResourceIdT resource_id,
+  SaHpiCtrlStateAnalogT control_state)
+{
+        SaErrorT rv = SA_OK;
+        struct powerConfigInfo *power_config_info;
+        struct powerCapConfig *power_cap_config;
+        struct oa_soap_handler *oa_handler = NULL;
+
+	if (oh_handler == NULL) {
+		err("Invalid parameters");
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
+	
+        oa_handler = (struct oa_soap_handler *) oh_handler->data;
+        power_config_info = &(oa_handler->power_config_info);
+        power_cap_config = &(oa_handler->power_cap_config);
+
+        oa_handler->desired_derated_circuit_cap = control_state;
+
+        /* If user already has the dynamic power cap turned on, then let */
+        /* this new value go thru                                        */
+        if (power_cap_config->powerCap != 0) {
+                /* Need to set derated cap value in the power_cap_config */
+                power_cap_config->deratedCircuitCap = control_state;
+
+        	/* Make a soap call to set the enclosure power cap config */
+        	rv = soap_setPowerCapConfig(oa_handler->active_con,
+                                            power_cap_config);
+                if (rv != SOAP_OK) {
+                        err("Set enclosure power cap config failed");
+                        return SA_ERR_HPI_INTERNAL_ERROR;
+                }
+        }
+
+	return SA_OK;
+}
+
+/**
+ * oa_soap_get_rated_circuit_cap_cntrl:
+ *      @oh_handler: Handler data pointer
+ *      @resource_id: Resource id
+ *      @control state: Pointer to analog control state
+ *
+ * Purpose:
+ *      Gets the control state of the rated circuit cap control on resource
+ *
+ * Detailed Description:
+ *      - Gets the rated circuit cap state of resource and maps it to
+ *        control state
+ *
+ * Return values:
+ *      SA_OK - Normal case.
+ *      SA_ERR_HPI_INVALID_PARAMS - On wrong parameter
+ *      SA_ERR_HPI_INTERNAL_ERROR - Internal error encountered
+ **/
+static SaErrorT oa_soap_get_rated_circuit_cap_cntrl(
+  struct oh_handler_state *oh_handler,
+  SaHpiResourceIdT resource_id,
+  SaHpiCtrlStateAnalogT *control_state)
+{
+        SaErrorT rv = SA_OK;
+        struct powerCapConfig *power_cap_config;
+        struct oa_soap_handler *oa_handler = NULL;
+
+	if (oh_handler == NULL || control_state == NULL) {
+		err("Invalid parameters");
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
+
+        oa_handler = (struct oa_soap_handler *) oh_handler->data;
+        power_cap_config = &(oa_handler->power_cap_config);
+	
+        /* Make a soap call to get the enclosure power cap config */
+        g_mutex_lock(oa_handler->mutex);
+        rv = soap_getPowerCapConfig(oa_handler->active_con,
+                                    power_cap_config,
+                                    &(oa_handler->desired_dynamic_pwr_cap),
+                                    &(oa_handler->desired_derated_circuit_cap),
+                                    &(oa_handler->desired_rated_circuit_cap));
+        g_mutex_unlock(oa_handler->mutex);
+        if (rv != SOAP_OK) {
+                err("Get enclosure rated circuit cap config failed");
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+
+        /* Always report the OA view of the rated circuit cap - regardless */
+        /* of the user's desired setting                                   */
+	*control_state = power_cap_config->ratedCircuitCap;
+
+	return SA_OK;
+}
+
+/**
+ * oa_soap_set_rated_circuit_cap_cntrl:
+ *      @oh_handler: Handler data pointer
+ *      @resource_id: Resource id
+ *      @control state: Analog control state
+ *
+ * Purpose:
+ *      Sets the control state of the rated circuit cap control on resource
+ *
+ * Detailed Description:
+ *      - Sets the rated circuit cap state of resource after mapping the
+ *        control state appropriate rated circuit cap state
+ *
+ * Return values:
+ *      SA_OK - Normal case.
+ *      SA_ERR_HPI_INVALID_PARAMS - On wrong parameter
+ *      SA_ERR_HPI_INTERNAL_ERROR - Internal error encountered
+ **/
+static SaErrorT oa_soap_set_rated_circuit_cap_cntrl(
+  struct oh_handler_state *oh_handler,
+  SaHpiResourceIdT resource_id,
+  SaHpiCtrlStateAnalogT control_state)
+{
+        SaErrorT rv = SA_OK;
+        struct powerConfigInfo *power_config_info;
+        struct powerCapConfig *power_cap_config;
+        struct oa_soap_handler *oa_handler = NULL;
+
+	if (oh_handler == NULL) {
+		err("Invalid parameters");
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
+	
+        oa_handler = (struct oa_soap_handler *) oh_handler->data;
+        power_config_info = &(oa_handler->power_config_info);
+        power_cap_config = &(oa_handler->power_cap_config);
+
+        oa_handler->desired_rated_circuit_cap = control_state;
+
+        /* If user already has the dynamic power cap turned on, then let */
+        /* this new value go thru                                        */
+        if (power_cap_config->powerCap != 0) {
+                /* Need to set rated cap value in the power_cap_config */
+                power_cap_config->ratedCircuitCap = control_state;
 
         	/* Make a soap call to set the enclosure power cap config */
         	rv = soap_setPowerCapConfig(oa_handler->active_con,

@@ -233,6 +233,14 @@
 /* Dynamic Power Cap Control */
 #define OA_SOAP_DYNAMIC_PWR_CAP_CNTRL		(SaHpiCtrlNumT)   0x007
 
+/* The following 2 controls are only available in OA Firmware */
+/* version 3.00 and higher.                                   */
+
+/* Derated Circuit Cap Control */
+#define OA_SOAP_DERATED_CIRCUIT_CAP_CNTRL	(SaHpiCtrlNumT)   0x008
+/* Rated Circuit Cap Control */
+#define OA_SOAP_RATED_CIRCUIT_CAP_CNTRL		(SaHpiCtrlNumT)   0x009
+
 /* HP c7000 Power Modes */
 #define C7000_PWR_NON_REDUNDANT			1
 #define C7000_PWR_AC_REDUNDANT			2

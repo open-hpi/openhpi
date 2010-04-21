@@ -283,7 +283,8 @@ gpointer oa_soap_event_thread(gpointer oa_pointer)
                                                           sleep(60);
                                                 else
                                                           sleep(5);
-                                                err("soap_open for oa->event_con2 failed\n");
+                                                err("soap_open for \
+oa->event_con2 failed\n");
                                         }
                                 }
                         } /* end of else (non-switchover error handling) */
@@ -393,7 +394,8 @@ void oa_soap_error_handling(struct oh_handler_state *oh_handler,
                          */
                 	OA_SOAP_CHEK_SHUTDOWN_REQ(oa_handler, oa_handler->mutex,
 						  oa->mutex, NULL);
-                        rv = oa_soap_re_discover_resources(oh_handler, oa, is_switchover);
+                        rv = oa_soap_re_discover_resources(oh_handler, oa,
+                                                           is_switchover);
                         g_mutex_unlock(oa->mutex);
                         g_mutex_unlock(oa_handler->mutex);
                         if (rv != SA_OK) {
@@ -549,13 +551,15 @@ void process_oa_out_of_access(struct oh_handler_state *oh_handler,
                         if (rv == SA_OK) {
                                 is_oa_reachable = SAHPI_TRUE;
                         } else {
-                                /* If switchover is in progress, then sleep longer */
-                                if (( oa_handler->oa_switching == SAHPI_TRUE ) ||
-                                    ( oa->oa_status == OA_ABSENT )) 
+                                /* If switchover is in progress, then sleep  */
+                                /* longer                                    */
+                                if ((oa_handler->oa_switching == SAHPI_TRUE) ||
+                                    (oa->oa_status == OA_ABSENT)) 
                                         sleep(30);
                                 else
                                         sleep(2);
-                                dbg("check_oa_status failed, oa_status is %d\n",oa->oa_status);
+                                dbg("check_oa_status failed, oa_status is %d\n",
+                                    oa->oa_status);
                                 /* OA is not accessible. Restart the timer */
                                 g_timer_start(timer);
                                 /* Double the timeout value until it reaches
@@ -928,7 +932,8 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                                     "-- Not processed");
                                 break;
                         case EVENT_MEDIA_INSERTED:
-                                /* EVENT_OA_INFO that arrives later is processed */
+                                /* EVENT_OA_INFO that arrives later is  */
+                                /* processed                            */
                                 dbg("EVENT_MEDIA_INSERTED -- Not processed");
                                 break;
                         case EVENT_MEDIA_REMOVED:

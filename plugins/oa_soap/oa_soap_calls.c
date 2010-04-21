@@ -289,13 +289,14 @@ static void     parse_enclosureInfo(xmlNode *node,
 }
 
 /* parse_powerConfigInfo - Parses a getPowerConfigInfo response structure */
-static void parse_powerConfigInfo(xmlNode *node, struct powerConfigInfo *response)
+static void parse_powerConfigInfo(xmlNode *node, \
+                                  struct powerConfigInfo *response)
 {
         response->powerCeiling = atoi(soap_tree_value(node, "powerCeiling"));
         response->redundancyMode =
-                soap_enum(powerRedundancy_S, soap_tree_value(node, "redundancyMode"));
+          soap_enum(powerRedundancy_S, soap_tree_value(node, "redundancyMode"));
         response->dynamicPowerSaverEnabled =
-                parse_xsdBoolean(soap_tree_value(node, "dynamicPowerSaverEnabled"));
+          parse_xsdBoolean(soap_tree_value(node, "dynamicPowerSaverEnabled"));
         response->extraData = soap_walk_tree(node, "extraData");
 }
 
@@ -304,14 +305,37 @@ static void parse_powerCapConfig(xmlNode *node, struct powerCapConfig *response)
 {
         xmlNode *bay_data;
         int i;
+        xmlNode *extra_data;
+        struct extraDataInfo extra_data_info;
 
-        response->enclosureMinWattageMeasured = atoi(soap_tree_value(node, "enclosureMinWattageMeasured"));
-        response->enclosureMaxWattageMeasured = atoi(soap_tree_value(node, "enclosureMaxWattageMeasured"));
-        response->enclosurePowerCapLowerBound = atoi(soap_tree_value(node, "enclosurePowerCapLowerBound"));
-        response->enclosurePowerCapUpperBound = atoi(soap_tree_value(node, "enclosurePowerCapUpperBound"));
-        response->enclosureHighLine = parse_xsdBoolean(soap_tree_value(node, "enclosureHighLine"));
-        response->enclosureAcPhaseType = atoi(soap_tree_value(node, "enclosureAcPhaseType"));
-        response->enclosureEstimatedVoltage = atoi(soap_tree_value(node, "enclosureEstimatedVoltage"));
+        response->enclosureMinWattageMeasured = atoi(soap_tree_value(node,
+                                                "enclosureMinWattageMeasured"));
+        response->enclosureMaxWattageMeasured = atoi(soap_tree_value(node,
+                                                "enclosureMaxWattageMeasured"));
+        response->enclosurePowerCapLowerBound = atoi(soap_tree_value(node,
+                                                "enclosurePowerCapLowerBound"));
+
+        /* These limits default to above limit, unless there is extraData */
+        response->deratedCircuitCapLowerBound =
+          response->enclosurePowerCapLowerBound; 
+        response->ratedCircuitCapLowerBound =
+          response->enclosurePowerCapLowerBound; 
+
+        response->enclosurePowerCapUpperBound = atoi(soap_tree_value(node,
+                                                "enclosurePowerCapUpperBound"));
+
+        /* These limits default to above limit, unless there is extraData */
+        response->deratedCircuitCapUpperBound =
+          response->enclosurePowerCapUpperBound; 
+        response->ratedCircuitCapUpperBound =
+          response->enclosurePowerCapUpperBound; 
+
+        response->enclosureHighLine =
+          parse_xsdBoolean(soap_tree_value(node, "enclosureHighLine"));
+        response->enclosureAcPhaseType =
+          atoi(soap_tree_value(node, "enclosureAcPhaseType"));
+        response->enclosureEstimatedVoltage =
+          atoi(soap_tree_value(node, "enclosureEstimatedVoltage"));
         response->powerCap = atoi(soap_tree_value(node, "powerCap"));
         response->extraData = soap_walk_tree(node, "extraData");
 
@@ -319,11 +343,42 @@ static void parse_powerCapConfig(xmlNode *node, struct powerCapConfig *response)
         bay_data = soap_walk_tree(bay_data, "bay");
         i = 0;
         while (bay_data) {
-                /* Copy optOutBayArray data for later use: data is either "true" or "false" */
+                /* Copy optOutBayArray data for later use:  */
+                /* data is either "true" or "false"         */
                 strncpy(response->optOutBayArray[i], soap_value(bay_data), 6);
                 bay_data = soap_next_node(bay_data);
                 i++;
         }
+
+        response->deratedCircuitCap = 0;
+        response->ratedCircuitCap = 0;
+        extra_data = response->extraData;
+        while (extra_data) {
+                soap_getExtraData(extra_data, &extra_data_info);
+                if (!(strcmp(extra_data_info.name, "deratedCircuit"))) {
+                  response->deratedCircuitCap = atoi(extra_data_info.value);
+                } else if (!(strcmp(extra_data_info.name, "ratedCircuit"))) {
+                  response->ratedCircuitCap = atoi(extra_data_info.value);
+                } else if (!(strcmp(extra_data_info.name,
+                      "deratedCircuitLowerBound"))) {
+                  response->deratedCircuitCapLowerBound
+                    = atoi(extra_data_info.value);
+                } else if (!(strcmp(extra_data_info.name,
+                             "deratedCircuitUpperBound"))) {
+                  response->deratedCircuitCapUpperBound
+                    = atoi(extra_data_info.value);
+                } else if (!(strcmp(extra_data_info.name,
+                             "ratedCircuitLowerBound"))) {
+                  response->ratedCircuitCapLowerBound
+                    = atoi(extra_data_info.value);
+                } else if (!(strcmp(extra_data_info.name,
+                             "ratedCircuitUpperBound"))) {
+                  response->ratedCircuitCapUpperBound
+                    = atoi(extra_data_info.value);
+                }
+                extra_data = soap_next_node(extra_data);
+        }
+
 }
 
 /* parse_oaStatus - Parses an oaStatus response structure */
@@ -465,29 +520,35 @@ static void     parse_powerSupplyInfo(xmlNode *node,
                 soap_enum(presence_S, soap_tree_value(node, "presence"));
 
 	temp_val=soap_tree_value(node, "modelNumber");
-	if ( temp_val != NULL && (len = strlen(temp_val) < MAX_MODEL_NUM_LENGTH)) { 
+	if (temp_val != NULL && (len = strlen(temp_val) < 
+                                 MAX_MODEL_NUM_LENGTH)) { 
 		strcpy(response->modelNumber, temp_val);
 	}
 	else {
-		dbg("Internal Error: Power Supply modelNumber does not exist or too long");
+		dbg("Internal Error: Power Supply modelNumber does not exist \
+or too long");
                 response->modelNumber[0] = '\0';
         }
 
 	temp_val=soap_tree_value(node, "sparePartNumber");
-	if ( temp_val != NULL && (len = strlen(temp_val) < MAX_PART_NUM_LENGTH)) {
+	if (temp_val != NULL && (len = strlen(temp_val)
+                                 < MAX_PART_NUM_LENGTH)) {
 		strcpy(response->sparePartNumber, temp_val);
 	}
 	else {
-		dbg("Internal Error: Power Supply modelNumber does not exist or too long");
+		dbg("Internal Error: Power Supply modelNumber does not exist \
+or too long");
                 response->sparePartNumber[0] = '\0';
         }
 
 	temp_val=soap_tree_value(node, "serialNumber");
-	if ( temp_val != NULL && (len = strlen(temp_val) < MAX_SERIAL_NUM_LENGTH)) {
+	if (temp_val != NULL && (len = strlen(temp_val)
+                                 < MAX_SERIAL_NUM_LENGTH)) {
 		strcpy(response->serialNumber, temp_val);
 	}
 	else {
-		dbg("Internal Error: Power Supply modelNumber does not exist or too long");
+		dbg("Internal Error: Power Supply modelNumber does not exist \
+or too long");
                 response->serialNumber[0] = '\0';
         }
 
@@ -1023,7 +1084,7 @@ void	soap_bladeThermalInfo(xmlNode *node, struct bladeThermalInfo * result)
 	result->entityId = atoi(soap_tree_value(node, "entityId"));
 	result->entityInstance = atoi(soap_tree_value(node, "entityInstance"));
 	result->criticalThreshold = 
-				atoi(soap_tree_value(node, "criticalThreshold"));
+          atoi(soap_tree_value(node, "criticalThreshold"));
 	result->cautionThreshold = 
 				atoi(soap_tree_value(node, "cautionThreshold"));
 	result->temperatureC = atoi(soap_tree_value(node, "temperatureC"));
@@ -1380,8 +1441,9 @@ int soap_getPowerConfigInfo(SOAP_CON *con,
                                       response);
         }
 
-        /* If user's desired static power limit is 0, then update it with the OA value, */
-        /* otherwise preserve the user's intention for a static power limit.            */
+        /* If user's desired static power limit is 0, then update it with  */
+        /* the OA value, otherwise preserve the user's intention for a     */
+        /* static power limit.                                             */
         if (*desired_static_pwr_limit == 0) {
                 *desired_static_pwr_limit = response->powerCeiling;
         }
@@ -1396,11 +1458,13 @@ int soap_setPowerConfigInfo(SOAP_CON *con,
         char    powerRedundancy[POWER_REDUNDANCY_LENGTH];
 
         SOAP_PARM_CHECK_NRS
-        if (soap_inv_enum(hpoa_boolean, hpoa_boolean_S, request->dynamicPowerSaverEnabled)) {
+        if (soap_inv_enum(hpoa_boolean, hpoa_boolean_S,
+            request->dynamicPowerSaverEnabled)) {
                 err("invalid dynamic power parameter");
                 return(-1);
         }
-        if (soap_inv_enum(powerRedundancy, powerRedundancy_S, request->redundancyMode)) {
+        if (soap_inv_enum(powerRedundancy, powerRedundancy_S,
+            request->redundancyMode)) {
                 err("invalid power redundancy mode parameter");
                 return(-1);
         }
@@ -1410,7 +1474,9 @@ int soap_setPowerConfigInfo(SOAP_CON *con,
 
 int soap_getPowerCapConfig(SOAP_CON *con,
                            struct powerCapConfig *response,
-                           uint *desired_dynamic_pwr_cap_limit)
+                           uint *desired_dynamic_pwr_cap_limit,
+                           uint *desired_derated_circuit_cap_limit,
+                           uint *desired_rated_circuit_cap_limit)
 {
         SOAP_PARM_CHECK_NRQ
         if (! (ret = soap_request(con, GET_POWER_CAP_CONFIG))) {
@@ -1421,10 +1487,19 @@ int soap_getPowerCapConfig(SOAP_CON *con,
                                       response);
         }
 
-        /* If user's desired dynamic power cap limit is 0, then update it with the OA value, */
-        /* otherwise preserve the user's intention for a dynamic power cap limit.            */
+        /* If user's desired dynamic power cap limit is 0, then update it  */
+        /* with the OA value, otherwise preserve the user's intention for  */
+        /* a dynamic power cap limit.                                      */
+        /* Do the same for the derated and rated circuit caps.             */
         if (*desired_dynamic_pwr_cap_limit == 0) {
                 *desired_dynamic_pwr_cap_limit = response->powerCap;
+        }
+        if (*desired_derated_circuit_cap_limit == 0) {
+                *desired_derated_circuit_cap_limit =
+                  response->deratedCircuitCap;
+        }
+        if (*desired_rated_circuit_cap_limit == 0) {
+                *desired_rated_circuit_cap_limit = response->ratedCircuitCap;
         }
 
         return(ret);
@@ -1451,7 +1526,8 @@ int soap_setPowerCapConfig(SOAP_CON *con,
                request->optOutBayArray[13],
                request->optOutBayArray[14],
                request->optOutBayArray[15],
-               ""));
+               request->deratedCircuitCap,
+               request->ratedCircuitCap));
 }
 
 int soap_getOaStatus(SOAP_CON *con,
@@ -1856,10 +1932,10 @@ int soap_getBladeThermalInfoArray(SOAP_CON *con,
 	SOAP_PARM_CHECK
 	if (! (ret = soap_request(con, GET_BLADE_THERMAL_INFO_ARRAY,
 				  request->bayNumber))) {
-		parse_getBladeThermalInfoArray(soap_walk_doc(con->doc,
-					     "Body:"
-					     "getBladeThermalInfoArrayResponse"),
-					     response);
+            parse_getBladeThermalInfoArray(soap_walk_doc(con->doc,
+					   "Body:"
+					   "getBladeThermalInfoArrayResponse"),
+					   response);
 	}
 	return(ret);
 }

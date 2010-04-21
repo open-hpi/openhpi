@@ -124,41 +124,42 @@ typedef unsigned char byte;
                         "</hpoa:getPowerConfigInfo>\n"
 
 #define SET_POWER_CONFIG_INFO \
-                        "<hpoa:setPowerConfigInfo>" \
-                        "<hpoa:redundancyMode>%d</hpoa:redundancyMode>" \
-                        "<hpoa:powerCeiling>%d</hpoa:powerCeiling>" \
-                        "<hpoa:dynamicPowerSaverEnabled>%d</hpoa:dynamicPowerSaverEnabled>" \
-                        "</hpoa:setPowerConfigInfo>\n"
+        "<hpoa:setPowerConfigInfo>" \
+        "<hpoa:redundancyMode>%d</hpoa:redundancyMode>" \
+        "<hpoa:powerCeiling>%d</hpoa:powerCeiling>" \
+        "<hpoa:dynamicPowerSaverEnabled>%d</hpoa:dynamicPowerSaverEnabled>" \
+        "</hpoa:setPowerConfigInfo>\n"
 
 #define GET_POWER_CAP_CONFIG \
                         "<hpoa:getPowerCapConfig>" \
                         "</hpoa:getPowerCapConfig>\n"
 
 #define SET_POWER_CAP_CONFIG \
-                        "<hpoa:setPowerCapConfig>" \
-                        "<hpoa:config>" \
-                        "<hpoa:powerCap>%d</hpoa:powerCap>" \
-                        "<hpoa:optOutBayArray>" \
-                        "<hpoa:bay>%s</hpoa:bay>" \
-                        "<hpoa:bay>%s</hpoa:bay>" \
-                        "<hpoa:bay>%s</hpoa:bay>" \
-                        "<hpoa:bay>%s</hpoa:bay>" \
-                        "<hpoa:bay>%s</hpoa:bay>" \
-                        "<hpoa:bay>%s</hpoa:bay>" \
-                        "<hpoa:bay>%s</hpoa:bay>" \
-                        "<hpoa:bay>%s</hpoa:bay>" \
-                        "<hpoa:bay>%s</hpoa:bay>" \
-                        "<hpoa:bay>%s</hpoa:bay>" \
-                        "<hpoa:bay>%s</hpoa:bay>" \
-                        "<hpoa:bay>%s</hpoa:bay>" \
-                        "<hpoa:bay>%s</hpoa:bay>" \
-                        "<hpoa:bay>%s</hpoa:bay>" \
-                        "<hpoa:bay>%s</hpoa:bay>" \
-                        "<hpoa:bay>%s</hpoa:bay>" \
-                        "</hpoa:optOutBayArray>" \
-                        "<hpoa:extraData hpoa:name=\"\">%s</hpoa:extraData>" \
-                        "</hpoa:config>" \
-                        "</hpoa:setPowerCapConfig>\n"
+        "<hpoa:setPowerCapConfig>" \
+        "<hpoa:config>" \
+        "<hpoa:powerCap>%d</hpoa:powerCap>" \
+        "<hpoa:optOutBayArray>" \
+        "<hpoa:bay>%s</hpoa:bay>" \
+        "<hpoa:bay>%s</hpoa:bay>" \
+        "<hpoa:bay>%s</hpoa:bay>" \
+        "<hpoa:bay>%s</hpoa:bay>" \
+        "<hpoa:bay>%s</hpoa:bay>" \
+        "<hpoa:bay>%s</hpoa:bay>" \
+        "<hpoa:bay>%s</hpoa:bay>" \
+        "<hpoa:bay>%s</hpoa:bay>" \
+        "<hpoa:bay>%s</hpoa:bay>" \
+        "<hpoa:bay>%s</hpoa:bay>" \
+        "<hpoa:bay>%s</hpoa:bay>" \
+        "<hpoa:bay>%s</hpoa:bay>" \
+        "<hpoa:bay>%s</hpoa:bay>" \
+        "<hpoa:bay>%s</hpoa:bay>" \
+        "<hpoa:bay>%s</hpoa:bay>" \
+        "<hpoa:bay>%s</hpoa:bay>" \
+        "</hpoa:optOutBayArray>" \
+        "<hpoa:extraData hpoa:name=\"deratedCircuit\">%d</hpoa:extraData>" \
+        "<hpoa:extraData hpoa:name=\"ratedCircuit\">%d</hpoa:extraData>" \
+        "</hpoa:config>" \
+        "</hpoa:setPowerCapConfig>\n"
 
 #define GET_INTERCONNECT_TRAY_STATUS \
                         "<hpoa:getInterconnectTrayStatus>" \
@@ -1376,8 +1377,18 @@ struct powerCapConfig
         int enclosureAcPhaseType;
         int enclosureEstimatedVoltage;
         int powerCap;
-        char optOutBayArray[OA_SOAP_C7000_MAX_BLADE][8]; /* holds true or false for each bay */
-        xmlNode *extraData;                              /* Items are struct extraDataInfo   */
+        /* optOutBayArray holds true or false for each bay */
+        char optOutBayArray[OA_SOAP_C7000_MAX_BLADE][8];
+        /* Items are struct extraDataInfo */
+        xmlNode *extraData;
+        /* The following are needed to hold values associated with */
+        /* the derated and rated circuit caps.                     */
+        int deratedCircuitCap;
+        int ratedCircuitCap;
+        int deratedCircuitCapLowerBound;
+        int deratedCircuitCapUpperBound;
+        int ratedCircuitCapLowerBound;
+        int ratedCircuitCapUpperBound;
 };
 
 struct thermalInfo
@@ -2049,7 +2060,9 @@ int soap_setPowerConfigInfo(SOAP_CON *connection,
 
 int soap_getPowerCapConfig(SOAP_CON *connection,
                            struct powerCapConfig *response,
-                           uint *desired_dynamic_pwr_cap_limit);
+                           uint *desired_dynamic_pwr_cap_limit,
+                           uint *desired_derated_circuit_cap,
+                           uint *desired_rated_circuit_cap);
 
 int soap_setPowerCapConfig(SOAP_CON *connection,
                            const struct powerCapConfig *request);

@@ -219,6 +219,7 @@ SaErrorT get_oa_state(struct oh_handler_state *oh_handler,
         SaHpiInt32T i, bay = 0, active_bay = 0, standby_bay = 0;
         SOAP_CON *hpi_con = NULL, *event_con = NULL;
         struct oa_info *this_oa = NULL, *other_oa = NULL;
+        char *endptr;
 
         if (oh_handler == NULL|| server == NULL) {
                 err("Invalid parameters");
@@ -348,6 +349,16 @@ SaErrorT get_oa_state(struct oh_handler_state *oh_handler,
 
                                 memset(active_fm, 0, MAX_BUF_SIZE);
                                 strncpy(active_fm, firmware, strlen(firmware));
+                                /* Check that string to float conversion */
+                                /* proceeds without error.               */
+                                errno = 0;
+                                oa_handler->active_fm_ver =
+                                  strtod(firmware, &endptr);
+                                if ((errno != 0) || (firmware == endptr)) {
+                                  /* Float conversion did not work */
+                                  err("could not convert OA firmware version \
+%s to a floating point value\n", firmware);
+                                }
                                 break;
                         case STANDBY:
                                 standby_bay = i;
