@@ -146,6 +146,7 @@
  */
 
 #include "oa_soap_inventory.h"
+#include "oa_soap_utils.h"
 
 /* Array defined in oa_soap_resources.c */
 extern const struct oa_soap_inv_rdr oa_soap_inv_arr[];
@@ -1336,7 +1337,8 @@ SaErrorT build_enclosure_inv_rdr(struct oh_handler_state *oh_handler,
         rdr->RdrTypeUnion.InventoryRec.IdrId = SAHPI_DEFAULT_INVENTORY_ID;
         rdr->IdString.DataType = SAHPI_TL_TYPE_TEXT;
         rdr->IdString.Language = SAHPI_LANG_ENGLISH;
-        rdr->IdString.DataLength = strlen(response->name) + 1;
+        oa_soap_trim_whitespace(response->name);
+        rdr->IdString.DataLength = strlen(response->name);
         snprintf((char *)rdr->IdString.Data,
                   strlen(response->name) + 1,
                   "%s", response->name);
@@ -1520,7 +1522,8 @@ SaErrorT build_oa_inv_rdr(struct oh_handler_state *oh_handler,
         rdr->RdrTypeUnion.InventoryRec.IdrId = SAHPI_DEFAULT_INVENTORY_ID;
         rdr->IdString.DataType = SAHPI_TL_TYPE_TEXT;
         rdr->IdString.Language = SAHPI_LANG_ENGLISH;
-        rdr->IdString.DataLength = strlen(response->name) + 1;
+        oa_soap_trim_whitespace(response->name);
+        rdr->IdString.DataLength = strlen(response->name);
         snprintf((char *)rdr->IdString.Data,
                         strlen(response->name)+ 1,"%s",
                         response->name );
@@ -1696,7 +1699,8 @@ SaErrorT build_server_inv_rdr(struct oh_handler_state *oh_handler,
         rdr->RdrTypeUnion.InventoryRec.IdrId = SAHPI_DEFAULT_INVENTORY_ID;
         rdr->IdString.DataType = SAHPI_TL_TYPE_TEXT;
         rdr->IdString.Language = SAHPI_LANG_ENGLISH;
-        rdr->IdString.DataLength = strlen(response.name) + 1;
+        oa_soap_trim_whitespace(response.name);
+        rdr->IdString.DataLength = strlen(response.name);
         snprintf((char *)rdr->IdString.Data,
                         strlen(response.name) + 1,"%s",
                         response.name );
@@ -1873,7 +1877,8 @@ SaErrorT build_inserted_server_inv_rdr(struct oh_handler_state *oh_handler,
         rdr->RdrTypeUnion.InventoryRec.IdrId = SAHPI_DEFAULT_INVENTORY_ID;
         rdr->IdString.DataType = SAHPI_TL_TYPE_TEXT;
         rdr->IdString.Language = SAHPI_LANG_ENGLISH;
-        rdr->IdString.DataLength = strlen(server_inv_str) + 1;
+        oa_soap_trim_whitespace(server_inv_str);
+        rdr->IdString.DataLength = strlen(server_inv_str);
         snprintf((char *)rdr->IdString.Data, strlen(server_inv_str) + 1,"%s",
                  server_inv_str);
 
@@ -2116,7 +2121,8 @@ SaErrorT build_interconnect_inv_rdr(struct oh_handler_state *oh_handler,
         rdr->RdrTypeUnion.InventoryRec.IdrId = SAHPI_DEFAULT_INVENTORY_ID;
         rdr->IdString.DataType = SAHPI_TL_TYPE_TEXT;
         rdr->IdString.Language = SAHPI_LANG_ENGLISH;
-        rdr->IdString.DataLength = strlen(response.name) + 1;
+        oa_soap_trim_whitespace(response.name);
+        rdr->IdString.DataLength = strlen(response.name);
         snprintf((char *)rdr->IdString.Data,
                 strlen(response.name)+ 1,
                 "%s",response.name );
@@ -2248,7 +2254,8 @@ SaErrorT build_fan_inv_rdr(struct oh_handler_state *oh_handler,
         rdr->RdrTypeUnion.InventoryRec.IdrId = SAHPI_DEFAULT_INVENTORY_ID;
         rdr->IdString.DataType = SAHPI_TL_TYPE_TEXT;
         rdr->IdString.Language = SAHPI_LANG_ENGLISH;
-        rdr->IdString.DataLength = strlen(response->name) + 1;
+        oa_soap_trim_whitespace(response->name);
+        rdr->IdString.DataLength = strlen(response->name);
         snprintf((char *)rdr->IdString.Data,
                 strlen(response->name)+ 1, "%s",
                 response->name );
@@ -2379,7 +2386,8 @@ SaErrorT build_power_inv_rdr(struct oh_handler_state *oh_handler,
         rdr->RdrTypeUnion.InventoryRec.IdrId = SAHPI_DEFAULT_INVENTORY_ID;
         rdr->IdString.DataType = SAHPI_TL_TYPE_TEXT;
         rdr->IdString.Language = SAHPI_LANG_ENGLISH;
-        rdr->IdString.DataLength = strlen(power_rdr_str) + 1;
+        oa_soap_trim_whitespace(power_rdr_str);
+        rdr->IdString.DataLength = strlen(power_rdr_str);
         snprintf((char *)rdr->IdString.Data,
                 strlen(power_rdr_str)+ 1,
                 "%s", power_rdr_str);
@@ -3362,10 +3370,11 @@ SaErrorT  idr_field_add(struct oa_soap_field **oa_field,
         hpi_field->ReadOnly = SAHPI_FALSE;
         field->field.Field.DataType = SAHPI_TL_TYPE_TEXT;
         field->field.Field.Language = SAHPI_LANG_ENGLISH;
+        oa_soap_trim_whitespace((char *) hpi_field->Field.Data);
         field->field.Field.DataLength =
-                strlen ((char *)hpi_field->Field.Data) + 1;
+                strlen ((char *)hpi_field->Field.Data);
         snprintf((char *)field->field.Field.Data,
-                 field->field.Field.DataLength,
+                 field->field.Field.DataLength + 1,
                  "%s", hpi_field->Field.Data);
 
         field->next_field = NULL;
@@ -3426,9 +3435,10 @@ SaErrorT idr_field_add_by_id(struct oa_soap_field **head_field,
         field->field.ReadOnly =  SAHPI_FALSE;
         field->field.Field.DataType = SAHPI_TL_TYPE_TEXT;
         field->field.Field.Language = SAHPI_LANG_ENGLISH;
-        field->field.Field.DataLength = strlen (field_data) + 1;
+        oa_soap_trim_whitespace(field_data);
+        field->field.Field.DataLength = strlen (field_data);
         snprintf((char *)field->field.Field.Data,
-                 field->field.Field.DataLength,
+                 field->field.Field.DataLength + 1,
                  "%s", field_data);
 
         /* Check whether the field list is empty  or if the new field is
@@ -3570,7 +3580,7 @@ SaErrorT idr_field_update(struct oa_soap_field *oa_field,
                         memset (oa_field->field.Field.Data, 0,
                                 SAHPI_MAX_TEXT_BUFFER_LENGTH);
                         snprintf((char *)oa_field->field.Field.Data,
-                                 oa_field->field.Field.DataLength,
+                                 oa_field->field.Field.DataLength + 1,
                                  "%s", field->Field.Data);
                         return SA_OK;
                 } else {
@@ -3831,8 +3841,9 @@ static void oa_soap_inv_set_field(struct oa_soap_area *area_list,
 			/* Traverse the fields till we get field_type */
 			while (field) {
 				if (field->field.Type == field_type) {
+                                        oa_soap_trim_whitespace(data);
 					field->field.Field.DataLength =
-						strlen(data) + 1;
+						strlen(data);
 					strcpy((char *) field->field.Field.Data,
 						data);
 					return;
