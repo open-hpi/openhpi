@@ -1491,3 +1491,16 @@ void oa_soap_update_resource_status(resource_status_t *res_status,
         return;
 }
 
+char * oa_soap_trim_whitespace(char *s) {
+  int i, len = strlen(s);
+
+  for (i=(len-1); i>=0; i--) {
+    if ((s[i] == ' ') || (s[i] == '\t')) {
+      s[i] = 0;
+    }
+    else
+      break;
+  }
+  return(s);
+}
+

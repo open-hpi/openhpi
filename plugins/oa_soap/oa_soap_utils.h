@@ -112,4 +112,6 @@ void oa_soap_update_resource_status(resource_status_t *res_status,
                                     char *serial_number,
                                     SaHpiResourceIdT resource_id,
                                     resource_presence_status_t presence);
+
+char * oa_soap_trim_whitespace(char *s);
 #endif

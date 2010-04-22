@@ -834,7 +834,8 @@ SaErrorT build_enclosure_rpt(struct oh_handler_state *oh_handler,
         rpt.HotSwapCapabilities = 0x0;
         rpt.ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
         rpt.ResourceTag.Language = SAHPI_LANG_ENGLISH;
-        rpt.ResourceTag.DataLength = strlen(name) + 1;
+        oa_soap_trim_whitespace(name);
+        rpt.ResourceTag.DataLength = strlen(name);
         memset(rpt.ResourceTag.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
         snprintf((char *) (rpt.ResourceTag.Data),
                  strlen(name) + 1, "%s", name);
@@ -1122,7 +1123,7 @@ SaErrorT build_oa_rpt(struct oh_handler_state *oh_handler,
         rpt.HotSwapCapabilities = 0x0;
         rpt.ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
         rpt.ResourceTag.Language = SAHPI_LANG_ENGLISH;
-        rpt.ResourceTag.DataLength = strlen(OA_NAME) + 1;
+        rpt.ResourceTag.DataLength = strlen(OA_NAME);
         memset(rpt.ResourceTag.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
         snprintf((char *) (rpt.ResourceTag.Data),
                  strlen(OA_NAME) + 1, OA_NAME);
@@ -1620,10 +1621,11 @@ SaErrorT build_server_rpt(struct oh_handler_state *oh_handler,
         rpt->ResourceFailed = SAHPI_FALSE;
         rpt->ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
         rpt->ResourceTag.Language = SAHPI_LANG_ENGLISH;
-        rpt->ResourceTag.DataLength = strlen(response->name) + 1;
+        oa_soap_trim_whitespace(response->name);
+        rpt->ResourceTag.DataLength = strlen(response->name);
         memset(rpt->ResourceTag.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
         snprintf((char *) (rpt->ResourceTag.Data),
-                 rpt->ResourceTag.DataLength, "%s", response->name);
+                 rpt->ResourceTag.DataLength + 1, "%s", response->name);
 
         /* set default hotswap capability */
         if (rpt->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP) {
@@ -2049,10 +2051,11 @@ SaErrorT build_interconnect_rpt(struct oh_handler_state *oh_handler,
         rpt.HotSwapCapabilities = SAHPI_HS_CAPABILITY_AUTOEXTRACT_READ_ONLY;
         rpt.ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
         rpt.ResourceTag.Language = SAHPI_LANG_ENGLISH;
-        rpt.ResourceTag.DataLength = strlen(name) + 1;
+        oa_soap_trim_whitespace(name);
+        rpt.ResourceTag.DataLength = strlen(name);
         memset(rpt.ResourceTag.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
         snprintf((char *) (rpt.ResourceTag.Data),
-                  rpt.ResourceTag.DataLength, "%s", name);
+                  rpt.ResourceTag.DataLength + 1, "%s", name);
 
         hotswap_state = (struct oa_soap_hotswap_state *)
                 g_malloc0(sizeof(struct oa_soap_hotswap_state));
@@ -2457,10 +2460,11 @@ SaErrorT build_power_subsystem_rpt(struct oh_handler_state *oh_handler,
         rpt.HotSwapCapabilities = 0x0;
         rpt.ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
         rpt.ResourceTag.Language = SAHPI_LANG_ENGLISH;
-        rpt.ResourceTag.DataLength = strlen(name) + 1;
+        oa_soap_trim_whitespace(name);
+        rpt.ResourceTag.DataLength = strlen(name);
         memset(rpt.ResourceTag.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
         snprintf((char *) (rpt.ResourceTag.Data),
-                 rpt.ResourceTag.DataLength, "%s", name);
+                 rpt.ResourceTag.DataLength + 1, "%s", name);
 
         /* Add the power subsystem rpt to the plugin RPTable */
         rv = oh_add_resource(oh_handler->rptcache, &rpt, NULL, 0);
@@ -2733,10 +2737,11 @@ SaErrorT build_power_supply_rpt(struct oh_handler_state *oh_handler,
         rpt.HotSwapCapabilities = 0x0;
         rpt.ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
         rpt.ResourceTag.Language = SAHPI_LANG_ENGLISH;
-        rpt.ResourceTag.DataLength = strlen(name) + 1;
+        oa_soap_trim_whitespace(name);
+        rpt.ResourceTag.DataLength = strlen(name);
         memset(rpt.ResourceTag.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
         snprintf((char *) (rpt.ResourceTag.Data),
-                 rpt.ResourceTag.DataLength, "%s", name);
+                 rpt.ResourceTag.DataLength + 1, "%s", name);
 
         /* Add the power supply rpt to the plugin RPTable */
         rv = oh_add_resource(oh_handler->rptcache, &rpt, NULL, 0);
