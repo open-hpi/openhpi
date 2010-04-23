@@ -44,6 +44,7 @@ extern "C" {
 #include "new_sim_file_util.h"
 #endif
 
+
 class NewSimulatorDomain;
 
 /**

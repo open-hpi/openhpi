@@ -893,7 +893,7 @@ bool NewSimulatorFileControl::process_state_text( SaHpiCtrlStateTextT *text ) {
                if (cur_token == G_TOKEN_LEFT_CURLY) {
                   success = process_textbuffer( text->Text );
                } else {
-                  err("Processing parse rpt entry: Couldn't parse ResourceTag");
+                  err("Processing parse control entry: Couldn't parse state text");
                }
          	          
             } else {

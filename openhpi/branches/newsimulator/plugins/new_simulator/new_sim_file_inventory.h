@@ -1,7 +1,7 @@
 /** 
  * @file    new_sim_file_inventory.h
  *
- * The file includes helper classes for parsing control data from the simulation file:\n
+ * The file includes helper class for parsing inventory data from the simulation file:\n
  * NewSimulatorFileInventory
  * 
  * @author  Lars Wetzel <larswetzel@users.sourceforge.net>

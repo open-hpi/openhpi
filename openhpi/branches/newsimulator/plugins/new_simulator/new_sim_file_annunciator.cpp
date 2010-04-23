@@ -114,7 +114,7 @@ NewSimulatorRdr * NewSimulatorFileAnnunciator::process_token( NewSimulatorResour
          	      m_ann_rec->ModeReadOnly = (SaHpiAnnunciatorTypeT) m_scanner->value.v_int;
          	   
          	} else if (!strcmp(field, "MaxConditions")) {
-         	   if (cur_token != G_TOKEN_INT) 
+         	   if (cur_token == G_TOKEN_INT) 
          	      m_ann_rec->MaxConditions = m_scanner->value.v_int;
          	         
          	} else if (!strcmp(field, "Oem")) {

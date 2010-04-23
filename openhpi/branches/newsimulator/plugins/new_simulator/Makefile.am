@@ -43,6 +43,8 @@ libnew_simulator_la_SOURCES= \
 		new_sim_domain.cpp \
 		new_sim_resource.h \
 		new_sim_resource.cpp \
+		new_sim_event_log.h \
+		new_sim_event_log.cpp \
         new_sim_file.h \
         new_sim_file.cpp \
         new_sim_file_util.h \
@@ -59,6 +61,10 @@ libnew_simulator_la_SOURCES= \
         new_sim_file_inventory.h \
         new_sim_file_watchdog.cpp \
         new_sim_file_watchdog.h \
+        new_sim_file_fumi.cpp \
+        new_sim_file_fumi.h \
+        new_sim_file_dimi.cpp \
+        new_sim_file_dimi.h \
 		new_sim_entity.h \
 		new_sim_entity.cpp \
 		new_sim_log.h \
@@ -95,6 +101,14 @@ libnew_simulator_la_SOURCES= \
         new_sim_inventory_data.h \
         new_sim_watchdog.cpp \
         new_sim_watchdog.h \
+        new_sim_fumi.cpp \
+        new_sim_fumi.h \
+        new_sim_fumi_data.cpp \
+        new_sim_fumi_data.h \
+        new_sim_dimi.cpp \
+        new_sim_dimi.h \
+        new_sim_dimi_data.cpp \
+        new_sim_dimi_data.h \
 		new_sim_text_buffer.h \
 		new_sim_text_buffer.cpp \
 		new_sim_utils.h \

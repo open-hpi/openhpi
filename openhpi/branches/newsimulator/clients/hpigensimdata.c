@@ -15,6 +15,8 @@
  * 
  * Changes:
  * 10/02/09 (klw) Release 0.9
+ * 20/04/10 (klw) Fix in fumi data structure FumiNum -> Num
+ *          (klw) Fix in fumi data structure spaces are printed correctly
  * 
  * Open:
  * - print all events of a system (not clear if necessary) 
@@ -35,7 +37,7 @@
 #include <oh_clients.h>
 
 #define OH_SVN_REV "$Revision: 6571 $"
-#define GEN_SIM_DATA_VERSION 0.9
+#define GEN_SIM_DATA_VERSION 0.901
 
 #define OFFSET_STEP 3
 #define OFFSET_FILLER ' '
@@ -601,7 +603,7 @@ static void print_common_rdr(FILE *out, int offset, SaHpiRdrT *rdrptr) {
 static void print_fumi_rdr(FILE *out, int offset, SaHpiFumiRecT *fumi) {
    int myoffset = offset; 
 
-   fprintf(out,"%sFumiNum=%d\n",offSet[myoffset], fumi->Num);
+   fprintf(out,"%sNum=%d\n",offSet[myoffset], fumi->Num);
    fprintf(out,"%sAccessProt=%d\n",offSet[myoffset], fumi->AccessProt);
    fprintf(out,"%sCapability=%d\n",offSet[myoffset], fumi->Capability);
    fprintf(out,"%sNumBanks=%d\n",offSet[myoffset], fumi->NumBanks);
@@ -649,10 +651,10 @@ static SaErrorT print_fumi_data(FILE *out, int offset, SaHpiSessionIdT sessionId
          fprintf(out,"%sOemDefined={\n",offSet[myoffset++]);
          fprintf(out,"%sMid=0x%08X\n", offSet[myoffset], fumispec.SpecInfoTypeUnion.OemDefined.Mid);
          fprintf(out,"%sBodyLength=%u\n",offSet[myoffset], fumispec.SpecInfoTypeUnion.OemDefined.BodyLength);
-         fprintf(out,"%sBody=",offSet[myoffset]);
+         fprintf(out,"%sBody=\"",offSet[myoffset]);
          for (i = 0; i < fumispec.SpecInfoTypeUnion.OemDefined.BodyLength; i++) 
-            fprintf(out," 0x%02X", fumispec.SpecInfoTypeUnion.OemDefined.Body[i]);
-         fprintf(out, "\n");
+            fprintf(out,"%02X", fumispec.SpecInfoTypeUnion.OemDefined.Body[i]);
+         fprintf(out,"\"\n");
          fprintf(out, "%s}\n", offSet[--myoffset]);
       }
       
@@ -682,8 +684,8 @@ static SaErrorT print_fumi_data(FILE *out, int offset, SaHpiSessionIdT sessionId
       
       // Fumi Source and Target Information
       for (i = 0; i <= fumi->NumBanks; i++) {
-         print_fumi_source_info(out, myoffset, sessionId, resId, fumi, i);
          print_fumi_target_info(out, myoffset, sessionId, resId, fumi, i);
+         print_fumi_source_info(out, myoffset, sessionId, resId, fumi, i);
       }
 
       // Fumi logical Target Information
@@ -706,8 +708,8 @@ static void print_fumi_logical_target_info(FILE *out, int offset, SaHpiSessionId
       printHeader = TRUE;
       fprintf(out,"%s%s={\n",offSet[myoffset++], FUMI_LOG_TARGET);
       
-      fprintf(out,"%sFirmwarePersistentLocationCount=%u\n",offSet[myoffset++], logbank.FirmwarePersistentLocationCount);
-      fprintf(out,"%sBankStateFlags=0x%08X\n",offSet[myoffset++], logbank.BankStateFlags);
+      fprintf(out,"%sFirmwarePersistentLocationCount=%u\n",offSet[myoffset], logbank.FirmwarePersistentLocationCount);
+      fprintf(out,"%sBankStateFlags=0x%08X\n",offSet[myoffset], logbank.BankStateFlags);
       fprintf(out,"%sPendingFwInstance={\n",offSet[myoffset++]);
       print_fumi_fw_info(out, myoffset, logbank.PendingFwInstance);
       fprintf(out, "%s}\n", offSet[--myoffset]);
@@ -803,6 +805,7 @@ static void print_fumi_source_info(FILE *out, int offset, SaHpiSessionIdT sessio
    if (rv == SA_OK) {
       printHeader = TRUE;
       fprintf(out,"%s%s={\n",offSet[myoffset++], FUMI_SOURCE);
+      fprintf(out,"%sForBank=%u\n", offSet[myoffset], bnum);
       fprintf(out,"%sSourceUri={\n",offSet[myoffset++]);
       print_textbuffer(out, myoffset, source.SourceUri);
       fprintf(out, "%s}\n", offSet[--myoffset]);
@@ -847,7 +850,6 @@ static void print_fumi_source_info(FILE *out, int offset, SaHpiSessionIdT sessio
 static void print_fumi_logical_component_info(FILE *out, int offset, SaHpiFumiLogicalComponentInfoT cinfo) {
    int myoffset = offset;
    
-   fprintf(out, "%sLogicalComponentInfo={\n",offSet[myoffset++]);
    fprintf(out, "%sEntryId=%u\n", offSet[myoffset], cinfo.EntryId);
    fprintf(out, "%sComponentId=%u\n", offSet[myoffset], cinfo.ComponentId);
    fprintf(out, "%sPendingFwInstance={\n",offSet[myoffset++]);
@@ -856,27 +858,24 @@ static void print_fumi_logical_component_info(FILE *out, int offset, SaHpiFumiLo
    fprintf(out, "%sRollbackFwInstance={\n",offSet[myoffset++]);
    print_fumi_fw_info(out, myoffset, cinfo.RollbackFwInstance);
    fprintf(out, "%s}\n", offSet[--myoffset]); // RollbackFwInstance
-   fprintf(out, "%sComponentFlags=%u\n",offSet[myoffset++], cinfo.ComponentFlags);
-   fprintf(out, "%s}\n", offSet[--myoffset]); // ComponentInfo
+   fprintf(out, "%sComponentFlags=%u\n",offSet[myoffset], cinfo.ComponentFlags);
 }
 
 static void print_fumi_component_info(FILE *out, int offset, SaHpiFumiComponentInfoT cinfo) {
    int myoffset = offset;
    
-   fprintf(out, "%sComponentInfo={\n",offSet[myoffset++]);
    fprintf(out, "%sEntryId=%u\n", offSet[myoffset], cinfo.EntryId);
    fprintf(out, "%sComponentId=%u\n", offSet[myoffset], cinfo.ComponentId);
    fprintf(out, "%sMainFwInstance={\n",offSet[myoffset++]);
    print_fumi_fw_info(out, myoffset, cinfo.MainFwInstance);
    fprintf(out, "%s}\n", offSet[--myoffset]); // MainFwInstance
-   fprintf(out, "%sComponentFlags=%u\n",offSet[myoffset++], cinfo.ComponentFlags);
-   fprintf(out, "%s}\n", offSet[--myoffset]); // ComponentInfo
+   fprintf(out, "%sComponentFlags=%u\n",offSet[myoffset], cinfo.ComponentFlags);
 }
 
 static void print_fumi_fw_info(FILE *out, int offset, SaHpiFumiFirmwareInstanceInfoT data) {
    int myoffset = offset;
    
-   fprintf(out,"%sInstancePresent=%d\n",offSet[myoffset++], data.InstancePresent);
+   fprintf(out,"%sInstancePresent=%d\n",offSet[myoffset], data.InstancePresent);
    fprintf(out,"%sIdentifier={\n",offSet[myoffset++]);
    print_textbuffer(out, myoffset, data.Identifier);
    fprintf(out, "%s}\n", offSet[--myoffset]);

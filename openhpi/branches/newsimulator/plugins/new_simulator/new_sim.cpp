@@ -22,20 +22,6 @@
  *     Pierre Sangouard  <psangouard@eso-tech.com>\n
  *     Andy Cress        <arcress@users.sourceforge.net>
  *  
- * @todo simulation of Sel 
- * simulation of Dimi
- * simulation of Fumi
- * simulation of hotswap states
- * 
- * @todo Interface functions for Dimi, 
- * Interface functions for Fumi, 
- * Interface functions for Sel, 
- * Interface functions for Hotswap
- *  
- * @todo alias definition for hotswap state and action  
- * alias definition for eventlog
- * alias definition for hotswap policy
- * 
  **/
 
 #include <netdb.h>
@@ -44,6 +30,8 @@
 #include "new_sim.h"
 #include "new_sim_utils.h"
 
+/// Definition of eventlog size
+#define NEWSIM_EVENTLOG_ENTRIES 256
 
 /**
  * @fn static NewSimulator *VerifyNewSimulator( void *hnd )
@@ -58,7 +46,6 @@ static NewSimulator *VerifyNewSimulator( void *hnd ) {
    if (!hnd)
       return 0;
       
-   stdlog << "DBG: Inside VerifyNewSimulator\n";
    oh_handler_state *handler = (oh_handler_state *)hnd;
    NewSimulator *newsim = (NewSimulator *)handler->data;
 
@@ -74,7 +61,6 @@ static NewSimulator *VerifyNewSimulator( void *hnd ) {
       return 0;
    }
 
-   stdlog << "DBG: return newsim\n";
    return newsim;
 }
 
@@ -171,7 +157,7 @@ static NewSimulatorControl *VerifyControlAndEnter( void *hnd,
  * 
  * @param hnd pointer on a oh_handler
  * @param rid resource id
- * @param num control id 
+ * @param num annunciator id 
  * @param newsim pointer on the address of a newsim object
  * @return pointer on NewSimulatorAnnunciator object equivalent to the input
  **/
@@ -246,7 +232,9 @@ static NewSimulatorResource *VerifyResourceAndEnter( void *hnd, SaHpiResourceIdT
  * 
  * @param hnd pointer on a oh_handler
  * @param rid resource id
+ * @param idrid inventory id
  * @param newsim pointer on the address of a newsim object
+ * 
  * @return pointer on NewSimulatorInventory object equivalent to the input
  **/
 static NewSimulatorInventory * VerifyInventoryAndEnter( void *hnd, SaHpiResourceIdT rid, 
@@ -280,6 +268,17 @@ static NewSimulatorInventory * VerifyInventoryAndEnter( void *hnd, SaHpiResource
   return inv;
 }
 
+/**
+ * Function for verification of handler and watchdog data in the cache.
+ * It returns a pointer on the equivalent NewSimulatorWatchdog object.\n
+ * 
+ * @param hnd pointer on a oh_handler
+ * @param rid resource id
+ * @param num watchdog number
+ * @param newsim pointer on the address of a newsim object
+ * 
+ * @return pointer on NewSimulatorWatchdog object equivalent to the input
+ **/
 static NewSimulatorWatchdog *VerifyWatchdogAndEnter( void *hnd, SaHpiResourceIdT rid, 
                                                       SaHpiWatchdogNumT num,
                                                       NewSimulator *&newsim ) {
@@ -313,36 +312,89 @@ static NewSimulatorWatchdog *VerifyWatchdogAndEnter( void *hnd, SaHpiResourceIdT
 
 
 /**
-static NewSimulatorSel *VerifySelAndEnter( void *hnd, SaHpiResourceIdT rid, 
-                                            NewSimulator *&newsim ) {
-   newsim = VerifyNewSimulator( hnd );
+ * Function for verification of handler and fumi data in the cache.
+ * It returns a pointer on the equivalent NewSimulatorFumi object.\n
+ * 
+ * @param hnd pointer on a oh_handler
+ * @param rid resource id
+ * @param num fumi number
+ * @param newsim pointer on the address of a newsim object
+ * 
+ * @return pointer on NewSimulatorFumi object equivalent to the input
+ **/
+static NewSimulatorFumi *VerifyFumiAndEnter( void *hnd, SaHpiResourceIdT rid, 
+                                              SaHpiFumiNumT num,
+                                              NewSimulator *&newsim ) {
+  newsim = VerifyNewSimulator( hnd );
 
-   if ( !newsim ) return 0;
+  if ( !newsim ) return 0;
 
-   newsim->IfEnter();
+  newsim->IfEnter();
 
-   NewSimulatorResource *res = (NewSimulatorResource *)oh_get_resource_data( newsim->GetHandler()->rptcache, rid );
+  SaHpiRdrT *rdr = oh_get_rdr_by_type( newsim->GetHandler()->rptcache,
+                                       rid, SAHPI_FUMI_RDR, num );
+  if ( !rdr ) {
+    newsim->IfLeave();
+    return 0;
+  }
 
-   if ( !res ) {
-      newsim->IfLeave();
-      return 0;
-   }
+  NewSimulatorFumi *fumi = (NewSimulatorFumi *)oh_get_rdr_data( newsim->GetHandler()->rptcache,
+                                                                rid, rdr->RecordId );
+  if ( !fumi ) {
+    newsim->IfLeave();
+    return 0;
+  }
 
-   if ( !newsim->VerifyResource( res ) ) {
-       newsim->IfLeave();
-       return 0;
-   }
+  if ( !newsim->VerifyFumi( fumi ) ) {
+    newsim->IfLeave();
+    return 0;
+  }
 
-   if ( res->FruId() || !res->Mc()->SelDeviceSupport() ) {
-       newsim->IfLeave();
-       return 0;
-   }
-
-   return res->Mc()->Sel();
+  return fumi;
 }
-*/
 
 
+/**
+ * Function for verification of handler and dimi data in the cache.
+ * It returns a pointer on the equivalent NewSimulatorDimi object.\n
+ * 
+ * @param hnd pointer on a oh_handler
+ * @param rid resource id
+ * @param num dimi number
+ * @param newsim pointer on the address of a newsim object
+ * 
+ * @return pointer on NewSimulatorDimi object equivalent to the input
+ **/
+static NewSimulatorDimi *VerifyDimiAndEnter( void *hnd, SaHpiResourceIdT rid, 
+                                              SaHpiDimiNumT num,
+                                              NewSimulator *&newsim ) {
+  newsim = VerifyNewSimulator( hnd );
+
+  if ( !newsim ) return 0;
+
+  newsim->IfEnter();
+
+  SaHpiRdrT *rdr = oh_get_rdr_by_type( newsim->GetHandler()->rptcache,
+                                       rid, SAHPI_DIMI_RDR, num );
+  if ( !rdr ) {
+    newsim->IfLeave();
+    return 0;
+  }
+
+  NewSimulatorDimi *dimi = (NewSimulatorDimi *)oh_get_rdr_data( newsim->GetHandler()->rptcache,
+                                                                rid, rdr->RecordId );
+  if ( !dimi ) {
+    newsim->IfLeave();
+    return 0;
+  }
+
+  if ( !newsim->VerifyDimi( dimi ) ) {
+    newsim->IfLeave();
+    return 0;
+  }
+
+  return dimi;
+}
 
 
 
@@ -359,14 +411,12 @@ static NewSimulatorSel *VerifySelAndEnter( void *hnd, SaHpiResourceIdT rid,
 extern "C" {
 
 /**
- * @fn alias("NewSimulatorOpen")
- * 
  * Alias for @ref öh_open(), implemented by @ref NewSimulatorOpen().
  **/
 static void * NewSimulatorOpen( GHashTable *, unsigned int, oh_evt_queue * ) __attribute__((used));
 
 /**
- * @fn static void * NewSimulatorOpen( GHashTable *handler_config, unsigned int hid, 
+ * @fn NewSimulatorOpen( GHashTable *handler_config, unsigned int hid, 
  *                                     oh_evt_queue *eventq )
  * 
  * First function which is called at start of the plugin. It opens the 
@@ -443,6 +493,18 @@ static void * NewSimulatorOpen( GHashTable *handler_config, unsigned int hid,
       return 0;
    }
 
+   /* initialize the event log */
+   handler->elcache = oh_el_create(NEWSIM_EVENTLOG_ENTRIES);
+   if (!handler->elcache) {
+      err("Event log creation failed");
+      g_free(handler->rptcache);
+      g_free(handler);
+      delete newsim;
+      stdlog.Close();
+      
+      return NULL;
+   }
+        
    handler->config   = handler_config;
    handler->hid = hid;
    handler->eventq = eventq;
@@ -464,14 +526,12 @@ static void * NewSimulatorOpen( GHashTable *handler_config, unsigned int hid,
 }
 
 /**
- * @fn alias("NewSimulatorClose")
- * 
  * Alias for @ref öh_close(), implemented by @ref NewSimulatorClose().
  **/
 static void NewSimulatorClose( void * ) __attribute__((used));
 
 /**
- * @relate alias("NewSimulatorClose")
+ * @relate NewSimulatorClose
  * Close the plugin and clean up the allocated memory. 
  *  
  * @param hnd pointer on handler
@@ -1630,7 +1690,16 @@ static SaErrorT NewSimulatorDelIdrField( void *hnd,
    return rv;
 }
 
-/* TODO: SEL
+/**
+ * Interface for GetSelInfo
+ * Inside the function the method NewSimulatorEventLog::IfELGetInfo is called.
+ *
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param info pointer on event log structure to be filled
+ * 
+ * @return HPI error code
+ **/ 
 static SaErrorT NewSimulatorGetSelInfo( void *,
                                          SaHpiResourceIdT,
                                          SaHpiEventLogInfoT * ) __attribute__((used));
@@ -1638,13 +1707,16 @@ static SaErrorT NewSimulatorGetSelInfo( void *,
 static SaErrorT NewSimulatorGetSelInfo( void *hnd,
                                          SaHpiResourceIdT id,
                                          SaHpiEventLogInfoT   *info ) {
-   NewSimulator *newsim = 0;
-   NewSimulatorSel *sel = VerifySelAndEnter( hnd, id, newsim );
 
-   if ( !sel )
-      return SA_ERR_HPI_NOT_PRESENT;
+   SaErrorT rv = SA_ERR_HPI_INTERNAL_ERROR;
+   
+   NewSimulator *newsim = VerifyNewSimulator( hnd );
 
-   SaErrorT rv = sel->GetSelInfo( *info );
+   if ( !newsim ) {
+      return SA_ERR_HPI_INTERNAL_ERROR;
+   }
+
+   rv = newsim->IfELGetInfo((struct oh_handler_state *)hnd, info);
 
    newsim->IfLeave();
 
@@ -1652,16 +1724,28 @@ static SaErrorT NewSimulatorGetSelInfo( void *hnd,
 }
 
 
+/**
+ * Interface for SetSelTime
+ * Inside the function the method NewSimulatorEventLog::IfELSetTime is called.
+ *
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param t time to be set
+ * 
+ * @return HPI error code
+ **/ 
 static SaErrorT NewSimulatorSetSelTime( void *, SaHpiResourceIdT, SaHpiTimeT ) __attribute__((used));
 
 static SaErrorT NewSimulatorSetSelTime( void *hnd, SaHpiResourceIdT id, SaHpiTimeT t ) {
-   NewSimulator *newsim = 0;
-   NewSimulatorSel *sel = VerifySelAndEnter( hnd, id, newsim );
+   SaErrorT rv = SA_ERR_HPI_INTERNAL_ERROR;
+   
+   NewSimulator *newsim = VerifyNewSimulator( hnd );
 
-   if ( !sel )
-      return SA_ERR_HPI_NOT_PRESENT;
+   if ( !newsim ) {
+      return SA_ERR_HPI_INTERNAL_ERROR;
+   }
 
-   SaErrorT rv = sel->SetSelTime( t );
+   rv = newsim->IfELSetTime((struct oh_handler_state *)hnd, t);
 
    newsim->IfLeave();
 
@@ -1669,44 +1753,54 @@ static SaErrorT NewSimulatorSetSelTime( void *hnd, SaHpiResourceIdT id, SaHpiTim
 }
 
 
+/**
+ * Interface for AddSelEntry
+ * Inside the function the method NewSimulatorEventLog::IfELAddEntry is called.
+ * A resource event log isn't supported at the moment.
+ *
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param Event pointer on event to be added
+ * 
+ * @return HPI error code
+ **/ 
 static SaErrorT NewSimulatorAddSelEntry( void *, SaHpiResourceIdT, const SaHpiEventT * ) __attribute__((used));
 
 static SaErrorT NewSimulatorAddSelEntry( void *hnd, SaHpiResourceIdT id,
                                           const SaHpiEventT *Event ) {
-   NewSimulator *newsim = 0;
-   NewSimulatorSel *sel = VerifySelAndEnter( hnd, id, newsim );
 
-   if ( !sel )
-      return SA_ERR_HPI_NOT_PRESENT;
+   SaErrorT rv = SA_ERR_HPI_INTERNAL_ERROR;
+   
+   NewSimulator *newsim = VerifyNewSimulator( hnd );
 
-   SaErrorT rv = sel->AddSelEntry( *Event );
+   if ( !newsim ) {
+      return SA_ERR_HPI_INTERNAL_ERROR;
+   }
 
-   newsim->IfLeave();
-
-   return rv;
-}
-
-#ifdef NOTUSED
-static SaErrorT NewSimulatorDelSelEntry( void *, SaHpiResourceIdT,
-                                          SaHpiEventLogEntryIdT ) __attribute__((used));
-
-static SaErrorT NewSimulatorDelSelEntry( void *hnd, SaHpiResourceIdT id,
-                                          SaHpiEventLogEntryIdT sid ) {
-   NewSimulator *newsim = 0;
-   NewSimulatorSel *sel = VerifySelAndEnter( hnd, id, newsim );
-
-   if ( !sel )
-      return SA_ERR_HPI_NOT_PRESENT;
-
-   SaErrorT rv = sel->DeleteSelEntry( sid );
+   rv = newsim->IfELAddEntry((struct oh_handler_state *)hnd, Event);
 
    newsim->IfLeave();
 
    return rv;
+   
 }
-#endif
 
 
+/**
+ * Interface for GetSelEntry
+ * Inside the function the method NewSimulatorEventLog::IfELGetEntry is called.
+ *
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param current Identifier of event log entry to retrieve
+ * @param prev Event Log entry identifier for the previous entry
+ * @param next Event Log entry identifier for the next entry
+ * @param entry Pointer to retrieved Event Log entry
+ * @param rdr Pointer to structure to receive resource data record
+ * @param rptentry Pointer to structure to receive RPT entry
+ * 
+ * @return HPI error code
+ **/ 
 static SaErrorT NewSimulatorGetSelEntry( void *hnd, SaHpiResourceIdT,
                                           SaHpiEventLogEntryIdT,
                                           SaHpiEventLogEntryIdT *, 
@@ -1722,13 +1816,16 @@ static SaErrorT NewSimulatorGetSelEntry( void *hnd, SaHpiResourceIdT id,
                                           SaHpiEventLogEntryT *entry,
                                           SaHpiRdrT *rdr,
                                           SaHpiRptEntryT *rptentry ) {
-   NewSimulator *newsim = 0;
-   NewSimulatorSel *sel = VerifySelAndEnter( hnd, id, newsim );
+   SaErrorT rv = SA_ERR_HPI_INTERNAL_ERROR;
+   
+   NewSimulator *newsim = VerifyNewSimulator( hnd );
 
-   if ( !sel )
-      return SA_ERR_HPI_NOT_PRESENT;
+   if ( !newsim ) {
+      return SA_ERR_HPI_INTERNAL_ERROR;
+   }
 
-   SaErrorT rv = sel->GetSelEntry( current, *prev, *next, *entry, *rdr, *rptentry );
+   rv = newsim->IfELGetEntry((struct oh_handler_state *)hnd,
+                                 current, prev, next, entry, rdr, rptentry);
 
    newsim->IfLeave();
 
@@ -1736,22 +1833,159 @@ static SaErrorT NewSimulatorGetSelEntry( void *hnd, SaHpiResourceIdT id,
 }
 
 
+/**
+ * Interface for ClearSel
+ * Inside the function the method NewSimulatorEventLog::IfELClear is called.
+ *
+ * @param hnd pointer on handler
+ * @param id resource id
+ * 
+ * @return HPI error code
+ **/ 
 static SaErrorT NewSimulatorClearSel( void *, SaHpiResourceIdT ) __attribute__((used));
 
 static SaErrorT NewSimulatorClearSel( void *hnd, SaHpiResourceIdT id ) {
-   NewSimulator *newsim = 0;
-   NewSimulatorSel *sel = VerifySelAndEnter( hnd, id, newsim );
+   SaErrorT rv = SA_ERR_HPI_INTERNAL_ERROR;
+   
+   NewSimulator *newsim = VerifyNewSimulator( hnd );
 
-   if ( !sel )
-      return SA_ERR_HPI_NOT_PRESENT;
+   if ( !newsim ) {
+      return SA_ERR_HPI_INTERNAL_ERROR;
+   }
 
-   SaErrorT rv = sel->ClearSel();
+   rv = newsim->IfELClear((struct oh_handler_state *)hnd);
 
    newsim->IfLeave();
 
    return rv;
 }
-*/
+
+
+/**
+ * Interface for SetSelState
+ * Inside the function the method NewSimulatorEventLog::IfELSetState is called.
+ * A resource event log isn't supported at the moment.
+ *
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param state Event Log state to be set
+ * 
+ * @return HPI error code
+ **/ 
+static SaErrorT NewSimulatorSetSelState(void *, SaHpiResourceIdT, 
+                                         SaHpiBoolT) __attribute__((used));
+
+static SaErrorT NewSimulatorSetSelState( void *hnd, SaHpiResourceIdT id,
+                                          SaHpiBoolT state ) {
+   SaErrorT rv = SA_ERR_HPI_INTERNAL_ERROR;
+   
+   NewSimulator *newsim = VerifyNewSimulator( hnd );
+
+   if ( !newsim ) {
+      return SA_ERR_HPI_INTERNAL_ERROR;
+   }
+
+   rv = newsim->IfELSetState((struct oh_handler_state *)hnd, state);
+
+   newsim->IfLeave();
+
+   return rv;
+}
+
+
+/**
+ * Interface for GetSelState
+ * Inside the function the method NewSimulatorEventLog::IfELGetState is called.
+ * A resource event log isn't supported at the moment.
+ *
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param state pointer to the current event log enable state
+ * 
+ * @return HPI error code
+ **/ 
+static SaErrorT NewSimulatorGetSelState(void *, SaHpiResourceIdT, 
+                                         SaHpiBoolT *) __attribute__((used));
+
+static SaErrorT NewSimulatorGetSelState( void *hnd, SaHpiResourceIdT id,
+                                          SaHpiBoolT *state ) {
+   SaErrorT rv = SA_ERR_HPI_INTERNAL_ERROR;
+   
+   NewSimulator *newsim = VerifyNewSimulator( hnd );
+
+   if ( !newsim ) {
+      return SA_ERR_HPI_INTERNAL_ERROR;
+   }
+
+   rv = newsim->IfELGetState((struct oh_handler_state *)hnd, state);
+
+   newsim->IfLeave();
+
+   return rv;
+}
+
+
+/**
+ * Interface for GetSelCapability
+ * Inside the function the method NewSimulatorEventLog::IfELGetCaps is called.
+ * A resource event log isn't supported at the moment.
+ *
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param caps pointer to the current event log enable state
+ * 
+ * @return HPI error code
+ **/ 
+static SaErrorT NewSimulatorGetSelCapability(void *, SaHpiResourceIdT, 
+                             SaHpiEventLogCapabilitiesT *) __attribute__((used));
+
+static SaErrorT NewSimulatorGetSelCapability( void *hnd, SaHpiResourceIdT id,
+                                          SaHpiEventLogCapabilitiesT *caps ) {
+   SaErrorT rv = SA_ERR_HPI_INTERNAL_ERROR;
+   
+   NewSimulator *newsim = VerifyNewSimulator( hnd );
+
+   if ( !newsim ) {
+      return SA_ERR_HPI_INTERNAL_ERROR;
+   }
+
+   rv = newsim->IfELGetCaps((struct oh_handler_state *)hnd, caps);
+
+   newsim->IfLeave();
+
+   return rv;
+}
+
+
+/**
+ * Interface for ResetSelOverflow
+ * Inside the function the method NewSimulatorEventLog::IfELOverflow is called.
+ * A resource event log isn't supported at the moment.
+ *
+ * @param hnd pointer on handler
+ * @param id resource id
+ * 
+ * @return HPI error code
+ **/ 
+static SaErrorT NewSimulatorResetSelOverflow(void *, SaHpiResourceIdT) 
+                                                           __attribute__((used));
+
+static SaErrorT NewSimulatorResetSelOverflow( void *hnd, SaHpiResourceIdT id ) {
+
+   SaErrorT rv = SA_ERR_HPI_INTERNAL_ERROR;
+   
+   NewSimulator *newsim = VerifyNewSimulator( hnd );
+
+   if ( !newsim ) {
+      return SA_ERR_HPI_INTERNAL_ERROR;
+   }
+
+   rv = newsim->IfELOverflow((struct oh_handler_state *)hnd);
+
+   newsim->IfLeave();
+
+   return rv;
+}
 
 
 /**
@@ -1979,6 +2213,1045 @@ static SaErrorT NewSimulatorResetWatchdog(void *hnd,
 
 
 /**
+ * Interface for FumiSpecInfoGet. 
+ * Inside the function the method NewSimulatorFumi::GetSpecInfo
+ * is called. 
+ *  
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param num number of fumi
+ * @param spec pointer to the location to store spec information
+ * 
+ * @return HPI error code
+ **/
+static SaErrorT NewSimulatorGetFumiSpec(void *, 
+                                         SaHpiResourceIdT, 
+                                         SaHpiFumiNumT, 
+                                         SaHpiFumiSpecInfoT *) __attribute__((used));
+
+static SaErrorT NewSimulatorGetFumiSpec(void *hnd, 
+                                         SaHpiResourceIdT    id, 
+                                         SaHpiFumiNumT       num, 
+                                         SaHpiFumiSpecInfoT *spec) {
+   NewSimulator *newsim = 0;
+   NewSimulatorFumi *fumi = VerifyFumiAndEnter( hnd, id, num, newsim );
+   if ( !fumi ) return SA_ERR_HPI_NOT_PRESENT;
+
+   SaErrorT rv = fumi->GetSpecInfo( *spec );
+   newsim->IfLeave();
+   return rv;
+}
+
+
+/**
+ * Interface for FumiServiceImpactGet. 
+ * Inside the function the method NewSimulatorFumi::GetImpact
+ * is called. 
+ *  
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param num number of fumi
+ * @param impact pointer to the location to store service impact information
+ * 
+ * @return HPI error code
+ **/
+static SaErrorT NewSimulatorGetFumiServImpact(void *, 
+                                               SaHpiResourceIdT, 
+                                               SaHpiFumiNumT, 
+                                               SaHpiFumiServiceImpactDataT *) __attribute__((used));
+
+static SaErrorT NewSimulatorGetFumiServImpact(void *hnd, 
+                                               SaHpiResourceIdT            id, 
+                                               SaHpiFumiNumT               num, 
+                                               SaHpiFumiServiceImpactDataT *impact) {
+
+   NewSimulator *newsim = 0;
+   NewSimulatorFumi *fumi = VerifyFumiAndEnter( hnd, id, num, newsim );
+   if ( !fumi ) return SA_ERR_HPI_NOT_PRESENT;
+
+   SaErrorT rv = fumi->GetImpact( *impact );
+   newsim->IfLeave();
+   return rv;
+}
+
+
+/**
+ * Interface for FumiSourceSet. 
+ * Inside the function the method NewSimulatorFumi::SetSource
+ * is called. 
+ *  
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param num fumi number
+ * @param bank bank number
+ * @param src Text buffer containing URI of the source
+ * 
+ * @return HPI error code
+ **/
+static SaErrorT NewSimulatorSetFumiSource(void *, 
+                                           SaHpiResourceIdT, 
+                                           SaHpiFumiNumT, 
+                                           SaHpiBankNumT, 
+                                           SaHpiTextBufferT *) __attribute__((used));
+                                           
+static SaErrorT NewSimulatorSetFumiSource(void             *hnd, 
+                                           SaHpiResourceIdT  id, 
+                                           SaHpiFumiNumT     num, 
+                                           SaHpiBankNumT     bank, 
+                                           SaHpiTextBufferT  *src) {
+
+   NewSimulator *newsim = 0;
+   NewSimulatorFumi *fumi = VerifyFumiAndEnter( hnd, id, num, newsim );
+   if ( !fumi ) return SA_ERR_HPI_NOT_PRESENT;
+
+   SaErrorT rv = fumi->SetSource( bank, *src );
+   newsim->IfLeave();
+   return rv;
+}
+
+
+/**
+ * Interface for FumiSourceInfoValidateStart. 
+ * Inside the function the method NewSimulatorFumi::ValidateSource
+ * is called. 
+ *  
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param num fumi number
+ * @param bank bank number
+ * 
+ * @return HPI error code
+ **/
+static SaErrorT NewSimulatorValidateFumiSource(void *, 
+                                                SaHpiResourceIdT, 
+                                                SaHpiFumiNumT, 
+                                                SaHpiBankNumT) __attribute__((used));
+
+static SaErrorT NewSimulatorValidateFumiSource(void            *hnd, 
+                                                SaHpiResourceIdT id, 
+                                                SaHpiFumiNumT    num, 
+                                                SaHpiBankNumT    bank) {
+
+   NewSimulator *newsim = 0;
+   NewSimulatorFumi *fumi = VerifyFumiAndEnter( hnd, id, num, newsim );
+   if ( !fumi ) return SA_ERR_HPI_NOT_PRESENT;
+
+   SaErrorT rv = fumi->ValidateSource( bank );
+   newsim->IfLeave();
+   return rv;                                                	
+}
+
+
+/**
+ * Interface for FumiSourceInfoGet. 
+ * Inside the function the method NewSimulatorFumi::GetSource
+ * is called. 
+ *  
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param num fumi number
+ * @param bank bank number
+ * @param src pointer to the location to store source information
+ * 
+ * @return HPI error code
+ **/           
+static SaErrorT NewSimulatorGetFumiSource(void *, 
+                                           SaHpiResourceIdT, 
+                                           SaHpiFumiNumT, 
+                                           SaHpiBankNumT, 
+                                           SaHpiFumiSourceInfoT *) __attribute__((used));
+                                           
+static SaErrorT NewSimulatorGetFumiSource(void                *hnd, 
+                                           SaHpiResourceIdT     id, 
+                                           SaHpiFumiNumT        num, 
+                                           SaHpiBankNumT        bank, 
+                                           SaHpiFumiSourceInfoT *src) {
+                                           	
+   NewSimulator *newsim = 0;
+   NewSimulatorFumi *fumi = VerifyFumiAndEnter( hnd, id, num, newsim );
+   if ( !fumi ) return SA_ERR_HPI_NOT_PRESENT;
+
+   SaErrorT rv = fumi->GetSource( bank, *src );
+   newsim->IfLeave();
+   return rv;  
+}
+                                           
+
+/**
+ * Interface for FumiSourceComponentInfoGet. 
+ * Inside the function the method NewSimulatorFumi::GetComponentSource
+ * is called. 
+ *  
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param num fumi number
+ * @param bank bank number
+ * @param comp identifier of the component
+ * @param next pointer to store the next component identifier
+ * @param inf pointer to the location to store component information
+ * 
+ * @return HPI error code
+ **/                                         
+static SaErrorT NewSimulatorGetFumiSourceComponent(void *, 
+                             SaHpiResourceIdT, 
+                             SaHpiFumiNumT, 
+                             SaHpiBankNumT, 
+                             SaHpiEntryIdT, 
+                             SaHpiEntryIdT *, 
+                             SaHpiFumiComponentInfoT *) __attribute__((used));
+
+static SaErrorT NewSimulatorGetFumiSourceComponent(void            *hnd, 
+                                                    SaHpiResourceIdT id, 
+                                                    SaHpiFumiNumT    num, 
+                                                    SaHpiBankNumT    bank, 
+                                                    SaHpiEntryIdT    comp, 
+                                                    SaHpiEntryIdT    *next, 
+                                            SaHpiFumiComponentInfoT  *inf) {
+
+   NewSimulator *newsim = 0;
+   NewSimulatorFumi *fumi = VerifyFumiAndEnter( hnd, id, num, newsim );
+   if ( !fumi ) return SA_ERR_HPI_NOT_PRESENT;
+
+   SaErrorT rv = fumi->GetComponentSource( bank, comp, *next, *inf );
+   newsim->IfLeave();
+   return rv;                                                    	
+}                                                 
+
+
+/**
+ * Interface for FumiTargetInfoGet. 
+ * Inside the function the method NewSimulatorFumi::GetTarget
+ * is called. 
+ *  
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param num fumi number
+ * @param bank bank number
+ * @param trg pointer to the location to store target information
+ * 
+ * @return HPI error code
+ **/                                               
+static SaErrorT NewSimulatorGetFumiTarget(void *, 
+                                           SaHpiResourceIdT, 
+                                           SaHpiFumiNumT, 
+                                           SaHpiBankNumT, 
+                                           SaHpiFumiBankInfoT *) __attribute__((used));
+
+static SaErrorT NewSimulatorGetFumiTarget(void              *hnd, 
+                                           SaHpiResourceIdT   id, 
+                                           SaHpiFumiNumT      num, 
+                                           SaHpiBankNumT      bank, 
+                                           SaHpiFumiBankInfoT *trg) {
+
+   NewSimulator *newsim = 0;
+   NewSimulatorFumi *fumi = VerifyFumiAndEnter( hnd, id, num, newsim );
+   if ( !fumi ) return SA_ERR_HPI_NOT_PRESENT;
+
+   SaErrorT rv = fumi->GetTarget( bank, *trg );
+   newsim->IfLeave();
+   return rv;                                            	
+}                                          
+
+
+/**
+ * Interface for FumiTargetComponentInfoGet. 
+ * Inside the function the method NewSimulatorFumi::GetComponentTarget
+ * is called. 
+ *  
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param num fumi number
+ * @param bank bank number
+ * @param comp identifier of the component
+ * @param next pointer to store the next component identifier
+ * @param inf pointer to the location to store component information
+ * 
+ * @return HPI error code
+ **/                                      
+static SaErrorT NewSimulatorGetFumiTargetComponent(void *, 
+                                                    SaHpiResourceIdT, 
+                                                    SaHpiFumiNumT, 
+                                                    SaHpiBankNumT, 
+                                                    SaHpiEntryIdT, 
+                                                    SaHpiEntryIdT *, 
+                                                    SaHpiFumiComponentInfoT *) __attribute__((used));
+                                                    
+ static SaErrorT NewSimulatorGetFumiTargetComponent(void                  *hnd, 
+                                                    SaHpiResourceIdT        id, 
+                                                    SaHpiFumiNumT           num, 
+                                                    SaHpiBankNumT           bank, 
+                                                    SaHpiEntryIdT           comp, 
+                                                    SaHpiEntryIdT           *next, 
+                                                    SaHpiFumiComponentInfoT *inf) {
+                                                    	
+   NewSimulator *newsim = 0;
+   NewSimulatorFumi *fumi = VerifyFumiAndEnter( hnd, id, num, newsim );
+   if ( !fumi ) return SA_ERR_HPI_NOT_PRESENT;
+
+   SaErrorT rv = fumi->GetComponentTarget( bank, comp, *next, *inf );
+   newsim->IfLeave();
+   return rv;  
+}
+                                                    
+
+/**
+ * Interface for FumiLogicalTargetInfoGet. 
+ * Inside the function the method NewSimulatorFumi::GetTargetLogical
+ * is called. 
+ *  
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param num fumi number
+ * @param trg pointer to the location to store target information
+ * 
+ * @return HPI error code
+ **/                                                                                                      
+static SaErrorT NewSimulatorGetFumiLogicalTarget(void *, 
+                                                  SaHpiResourceIdT, 
+                                                  SaHpiFumiNumT, 
+                                                  SaHpiFumiLogicalBankInfoT *) __attribute__((used));
+
+static SaErrorT NewSimulatorGetFumiLogicalTarget(void            *hnd, 
+                                                  SaHpiResourceIdT id,
+                                                  SaHpiFumiNumT    num, 
+                                         SaHpiFumiLogicalBankInfoT *trg) {
+                                                  	
+   NewSimulator *newsim = 0;
+   NewSimulatorFumi *fumi = VerifyFumiAndEnter( hnd, id, num, newsim );
+   if ( !fumi ) return SA_ERR_HPI_NOT_PRESENT;
+
+   SaErrorT rv = fumi->GetTargetLogical( *trg );
+   newsim->IfLeave();
+   return rv;  
+}
+
+
+/**
+ * Interface for FumiLogicalTargetComponentInfoGet. 
+ * Inside the function the method NewSimulatorFumi::GetComponentTargetLogical
+ * is called. 
+ *  
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param num fumi number
+ * @param comp identifier of the component
+ * @param next pointer to store the next component identifier
+ * @param inf pointer to the location to store logical component information
+ * 
+ * @return HPI error code
+ **/                                                                                                   
+static SaErrorT NewSimulatorGetFumiLogicalTargetComponent(void *, 
+                      SaHpiResourceIdT, 
+                      SaHpiFumiNumT, 
+                      SaHpiEntryIdT, 
+                      SaHpiEntryIdT *, 
+                      SaHpiFumiLogicalComponentInfoT *) __attribute__((used));
+                                                           
+static SaErrorT NewSimulatorGetFumiLogicalTargetComponent(void         *hnd, 
+                                                         SaHpiResourceIdT id, 
+                                                         SaHpiFumiNumT  num, 
+                                                         SaHpiEntryIdT  comp, 
+                                                         SaHpiEntryIdT  *next, 
+                                         SaHpiFumiLogicalComponentInfoT *inf) {
+
+   NewSimulator *newsim = 0;
+   NewSimulatorFumi *fumi = VerifyFumiAndEnter( hnd, id, num, newsim );
+   if ( !fumi ) return SA_ERR_HPI_NOT_PRESENT;
+
+   SaErrorT rv = fumi->GetComponentTargetLogical( comp, *next, *inf );
+   newsim->IfLeave();
+   return rv;                                          	
+}
+
+
+/**
+ * Interface for FumiBackupStart. 
+ * Inside the function the method NewSimulatorFumi::StartBackup
+ * is called. 
+ *  
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param num fumi number
+ * 
+ * @return HPI error code
+ **/                  
+static SaErrorT NewSimulatorStartFumiBackup(void *, 
+                                             SaHpiResourceIdT, 
+                                             SaHpiFumiNumT) __attribute__((used));
+                                             
+static SaErrorT NewSimulatorStartFumiBackup(void            *hnd, 
+                                             SaHpiResourceIdT id, 
+                                             SaHpiFumiNumT    num) {
+
+   NewSimulator *newsim = 0;
+   NewSimulatorFumi *fumi = VerifyFumiAndEnter( hnd, id, num, newsim );
+   if ( !fumi ) return SA_ERR_HPI_NOT_PRESENT;
+
+   SaErrorT rv = fumi->StartBackup();
+   newsim->IfLeave();
+   return rv;                                            	
+}
+                                             
+
+/**
+ * Interface for FumiBankBootOrderSet. 
+ * Inside the function the method NewSimulatorFumi::SetOrder
+ * is called. 
+ *  
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param num fumi number
+ * @param bank bank number
+ * @param pos new position
+ * 
+ * @return HPI error code
+ **/                                            
+static SaErrorT NewSimulatorSetFumiBankOrder(void *, 
+                                              SaHpiResourceIdT, 
+                                              SaHpiFumiNumT, 
+                                              SaHpiBankNumT, 
+                                              SaHpiUint32T) __attribute__((used));
+
+static SaErrorT NewSimulatorSetFumiBankOrder(void            *hnd, 
+                                              SaHpiResourceIdT id, 
+                                              SaHpiFumiNumT    num, 
+                                              SaHpiBankNumT    bank, 
+                                              SaHpiUint32T     pos) {
+
+   NewSimulator *newsim = 0;
+   NewSimulatorFumi *fumi = VerifyFumiAndEnter( hnd, id, num, newsim );
+   if ( !fumi ) return SA_ERR_HPI_NOT_PRESENT;
+
+   SaErrorT rv = fumi->SetOrder( bank, pos );
+   newsim->IfLeave();
+   return rv; 
+}
+  
+                                              
+/**
+ * Interface for FumiBankCopyStart. 
+ * Inside the function the method NewSimulatorFumi::CopyBank
+ * is called. 
+ *  
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param num fumi number
+ * @param bank bank number
+ * @param dest bank number of destination
+ * 
+ * @return HPI error code
+ **/                                              
+static SaErrorT NewSimulatorStartFumiBankCopy(void *, 
+                                               SaHpiResourceIdT, 
+                                               SaHpiFumiNumT, 
+                                               SaHpiBankNumT, 
+                                               SaHpiBankNumT) __attribute__((used));
+                                               
+static SaErrorT NewSimulatorStartFumiBankCopy(void             *hnd, 
+                                               SaHpiResourceIdT  id, 
+                                               SaHpiFumiNumT     num, 
+                                               SaHpiBankNumT     bank, 
+                                               SaHpiBankNumT     dest) {
+
+   NewSimulator *newsim = 0;
+   NewSimulatorFumi *fumi = VerifyFumiAndEnter( hnd, id, num, newsim );
+   if ( !fumi ) return SA_ERR_HPI_NOT_PRESENT;
+
+   SaErrorT rv = fumi->CopyBank( bank, dest );
+   newsim->IfLeave();
+   return rv;
+}
+ 
+                                              
+/**
+ * Interface for FumiInstallStart. 
+ * Inside the function the method NewSimulatorFumi::Install
+ * is called. 
+ *  
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param num fumi number
+ * @param bank bank number
+ * 
+ * @return HPI error code
+ **/                                                                                         
+static SaErrorT NewSimulatorStartFumiInstall(void *, 
+                                              SaHpiResourceIdT, 
+                                              SaHpiFumiNumT, 
+                                              SaHpiBankNumT) __attribute__((used));
+                                              
+static SaErrorT NewSimulatorStartFumiInstall(void             *hnd, 
+                                              SaHpiResourceIdT  id, 
+                                              SaHpiFumiNumT     num, 
+                                              SaHpiBankNumT     bank) {
+
+   NewSimulator *newsim = 0;
+   NewSimulatorFumi *fumi = VerifyFumiAndEnter( hnd, id, num, newsim );
+   if ( !fumi ) return SA_ERR_HPI_NOT_PRESENT;
+
+   SaErrorT rv = fumi->Install( bank );
+   newsim->IfLeave();
+   return rv;   
+}
+
+
+/**
+ * Interface for FumiUpgradeStatusGet. 
+ * Inside the function the method NewSimulatorFumi::GetStatus
+ * is called. 
+ *  
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param num fumi number
+ * @param bank bank number
+ * @param status pointer to location to store upgrade status
+ * 
+ * @return HPI error code
+ **/       
+static SaErrorT NewSimulatorGetFumiStatus(void *, 
+                                           SaHpiResourceIdT, 
+                                           SaHpiFumiNumT, 
+                                           SaHpiBankNumT, 
+                                           SaHpiFumiUpgradeStatusT *) __attribute__((used));
+                                           
+static SaErrorT NewSimulatorGetFumiStatus(void                   *hnd, 
+                                           SaHpiResourceIdT        id, 
+                                           SaHpiFumiNumT           num, 
+                                           SaHpiBankNumT           bank, 
+                                           SaHpiFumiUpgradeStatusT *status) {
+                                           	
+   NewSimulator *newsim = 0;
+   NewSimulatorFumi *fumi = VerifyFumiAndEnter( hnd, id, num, newsim );
+   if ( !fumi ) return SA_ERR_HPI_NOT_PRESENT;
+
+   SaErrorT rv = fumi->GetStatus( bank, *status );
+   newsim->IfLeave();
+   return rv;   
+}
+
+
+/**
+ * Interface for FumiTargetVerifyStart. 
+ * Inside the function the method NewSimulatorFumi::VerifyTarget
+ * is called. 
+ *  
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param num fumi number
+ * @param bank bank number
+ * 
+ * @return HPI error code
+ **/                                           
+static SaErrorT NewSimulatorStartFumiVerification(void *, 
+                                                   SaHpiResourceIdT, 
+                                                   SaHpiFumiNumT, 
+                                                   SaHpiBankNumT) __attribute__((used));
+                                                   
+static SaErrorT NewSimulatorStartFumiVerification(void            *hnd, 
+                                                   SaHpiResourceIdT id, 
+                                                   SaHpiFumiNumT    num, 
+                                                   SaHpiBankNumT    bank) {
+
+   NewSimulator *newsim = 0;
+   NewSimulatorFumi *fumi = VerifyFumiAndEnter( hnd, id, num, newsim );
+   if ( !fumi ) return SA_ERR_HPI_NOT_PRESENT;
+
+   SaErrorT rv = fumi->VerifyTarget( bank );
+   newsim->IfLeave();
+   return rv; 
+}
+
+/**
+ * Interface for TargetVerifyMainStart. 
+ * Inside the function the method NewSimulatorFumi::VerifyTargetMain
+ * is called. 
+ *  
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param num fumi number
+ * 
+ * @return HPI error code
+ **/                             
+static SaErrorT NewSimulatorStartFumiVerificationMain(void *, 
+                                                       SaHpiResourceIdT, 
+                                                       SaHpiFumiNumT) __attribute__((used));
+
+static SaErrorT NewSimulatorStartFumiVerificationMain(void            *hnd, 
+                                                       SaHpiResourceIdT id, 
+                                                       SaHpiFumiNumT    num) {
+
+   NewSimulator *newsim = 0;
+   NewSimulatorFumi *fumi = VerifyFumiAndEnter( hnd, id, num, newsim );
+   if ( !fumi ) return SA_ERR_HPI_NOT_PRESENT;
+
+   SaErrorT rv = fumi->VerifyTargetMain();
+   newsim->IfLeave();
+   return rv;
+}
+
+
+/**
+ * Interface for FumiUpgradeCancel. 
+ * Inside the function the method NewSimulatorFumi::CancelUpgrade
+ * is called. 
+ *  
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param num fumi number
+ * @param bank bank number
+ * 
+ * @return HPI error code
+ **/                                          
+static SaErrorT NewSimulatorCancelFumiUpgrade(void *, 
+                                               SaHpiResourceIdT, 
+                                               SaHpiFumiNumT, 
+                                               SaHpiBankNumT) __attribute__((used));
+                                               
+static SaErrorT NewSimulatorCancelFumiUpgrade(void            *hnd, 
+                                               SaHpiResourceIdT id, 
+                                               SaHpiFumiNumT    num, 
+                                               SaHpiBankNumT    bank) {
+
+   NewSimulator *newsim = 0;
+   NewSimulatorFumi *fumi = VerifyFumiAndEnter( hnd, id, num, newsim );
+   if ( !fumi ) return SA_ERR_HPI_NOT_PRESENT;
+
+   SaErrorT rv = fumi->CancelUpgrade( bank );
+   newsim->IfLeave();
+   return rv; 
+}
+
+/**
+ * Interface for FumiAutoRollbackDisableGet. 
+ * Inside the function the method NewSimulatorFumi::GetRollbackFlag
+ * is called. 
+ *  
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param num fumi number
+ * @param rollb pointer to location to store information about rollback status
+ * 
+ * @return HPI error code
+ **/  
+static SaErrorT NewSimulatorGetFumiRollback(void *, 
+                                             SaHpiResourceIdT, 
+                                             SaHpiFumiNumT, 
+                                             SaHpiBoolT *) __attribute__((used));
+                                             
+static SaErrorT NewSimulatorGetFumiRollback(void            *hnd, 
+                                             SaHpiResourceIdT id, 
+                                             SaHpiFumiNumT    num, 
+                                             SaHpiBoolT       *rollb) {
+
+   NewSimulator *newsim = 0;
+   NewSimulatorFumi *fumi = VerifyFumiAndEnter( hnd, id, num, newsim );
+   if ( !fumi ) return SA_ERR_HPI_NOT_PRESENT;
+
+   SaErrorT rv = fumi->GetRollbackFlag( *rollb );
+   newsim->IfLeave();
+   return rv;
+}
+
+
+/**
+ * Interface for FumiAutoRollbackDisableSet. 
+ * Inside the function the method NewSimulatorFumi::SetRollbackFlag
+ * is called. 
+ *  
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param num fumi number
+ * @param rollb information about rollback status
+ * 
+ * @return HPI error code
+ **/                                           
+static SaErrorT NewSimulatorSetFumiRollback(void *, 
+                                             SaHpiResourceIdT, 
+                                             SaHpiFumiNumT, 
+                                             SaHpiBoolT) __attribute__((used));
+
+static SaErrorT NewSimulatorSetFumiRollback(void            *hnd, 
+                                             SaHpiResourceIdT id, 
+                                             SaHpiFumiNumT    num, 
+                                             SaHpiBoolT       rollb) {
+
+   NewSimulator *newsim = 0;
+   NewSimulatorFumi *fumi = VerifyFumiAndEnter( hnd, id, num, newsim );
+   if ( !fumi ) return SA_ERR_HPI_NOT_PRESENT;
+
+   SaErrorT rv = fumi->SetRollbackFlag( rollb );
+   newsim->IfLeave();
+   return rv;
+}
+
+
+/**
+ * Interface for FumiRollbackStart. 
+ * Inside the function the method NewSimulatorFumi::Rollback
+ * is called. 
+ *  
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param num fumi number
+ * 
+ * @return HPI error code
+ **/                          
+static SaErrorT NewSimulatorStartFumiRollback(void *, 
+                                               SaHpiResourceIdT, 
+                                               SaHpiFumiNumT) __attribute__((used));
+
+static SaErrorT NewSimulatorStartFumiRollback(void            *hnd, 
+                                             SaHpiResourceIdT id, 
+                                             SaHpiFumiNumT    num) {
+
+   NewSimulator *newsim = 0;
+   NewSimulatorFumi *fumi = VerifyFumiAndEnter( hnd, id, num, newsim );
+   if ( !fumi ) return SA_ERR_HPI_NOT_PRESENT;
+
+   SaErrorT rv = fumi->Rollback();
+   newsim->IfLeave();
+   return rv;
+}
+
+
+/**
+ * Interface for FumiActivate. 
+ * Inside the function the method NewSimulatorFumi::ActivateOld
+ * is called. 
+ *  
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param num fumi number
+ * 
+ * @return HPI error code
+ **/                         
+static SaErrorT NewSimulatorActivateFumi(void *, 
+                                          SaHpiResourceIdT, 
+                                          SaHpiFumiNumT) __attribute__((used));
+
+static SaErrorT NewSimulatorActivateFumi(void            *hnd, 
+                                          SaHpiResourceIdT id, 
+                                          SaHpiFumiNumT    num) {
+
+   NewSimulator *newsim = 0;
+   NewSimulatorFumi *fumi = VerifyFumiAndEnter( hnd, id, num, newsim );
+   if ( !fumi ) return SA_ERR_HPI_NOT_PRESENT;
+
+   SaErrorT rv = fumi->Activate();
+   newsim->IfLeave();
+   return rv;
+}
+
+
+/**
+ * Interface for FumiActivateStart. 
+ * Inside the function the method NewSimulatorFumi::Activate
+ * is called. 
+ *  
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param num fumi number
+ * @param log indicates a logical bank or boot order activation
+ * 
+ * @return HPI error code
+ **/        
+static SaErrorT NewSimulatorStartFumiActivation(void *, 
+                                                 SaHpiResourceIdT, 
+                                                 SaHpiFumiNumT, 
+                                                 SaHpiBoolT) __attribute__((used));
+
+static SaErrorT NewSimulatorStartFumiActivation(void            *hnd, 
+                                                 SaHpiResourceIdT id, 
+                                                 SaHpiFumiNumT    num,
+                                                 SaHpiBoolT       log) {
+
+   NewSimulator *newsim = 0;
+   NewSimulatorFumi *fumi = VerifyFumiAndEnter( hnd, id, num, newsim );
+   if ( !fumi ) return SA_ERR_HPI_NOT_PRESENT;
+
+   SaErrorT rv = fumi->Activate( log );
+   newsim->IfLeave();
+   return rv;
+}
+
+
+/**
+ * Interface for FumiCleanup. 
+ * Inside the function the method NewSimulatorFumi::Cleanup
+ * is called. 
+ *  
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param num fumi number
+ * @param bank bank number
+ * 
+ * @return HPI error code
+ **/                    
+static SaErrorT NewSimulatorCleanupFumi(void *, 
+                                         SaHpiResourceIdT, 
+                                         SaHpiFumiNumT, 
+                                         SaHpiBankNumT) __attribute__((used));
+                                         
+static SaErrorT NewSimulatorCleanupFumi(void            *hnd, 
+                                         SaHpiResourceIdT id, 
+                                         SaHpiFumiNumT    num,
+                                         SaHpiBankNumT    bank) {
+
+   NewSimulator *newsim = 0;
+   NewSimulatorFumi *fumi = VerifyFumiAndEnter( hnd, id, num, newsim );
+   if ( !fumi ) return SA_ERR_HPI_NOT_PRESENT;
+
+   SaErrorT rv = fumi->Cleanup( bank );
+   newsim->IfLeave();
+   return rv;
+}
+
+
+/**
+ * Interface for DimiInfoGet. 
+ * Inside the function the method NewSimulatorDimi::GetInfo is called. 
+ * 
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param num dimi number
+ * @param info pointer on dimi info to be filled
+ * 
+ * @return HPI error code
+ **/
+static SaErrorT NewSimulatorGetDimiInfo( void *, 
+                                          SaHpiResourceIdT, 
+                                          SaHpiDimiNumT, 
+                                          SaHpiDimiInfoT *)  __attribute__((used));
+
+static SaErrorT NewSimulatorGetDimiInfo( void            *hnd, 
+                                          SaHpiResourceIdT id, 
+                                          SaHpiDimiNumT    num, 
+                                          SaHpiDimiInfoT   *info) {
+
+   NewSimulator *newsim = 0;
+   NewSimulatorDimi *dimi = VerifyDimiAndEnter( hnd, id, num, newsim );
+   if ( !dimi ) return SA_ERR_HPI_NOT_PRESENT;
+
+   SaErrorT rv = dimi->GetInfo( *info );
+   newsim->IfLeave();
+
+   return rv;
+}
+
+
+/**
+ * Interface for DimiTestInfoGet. 
+ * Inside the function the method NewSimulatorDimi::GetTestInfo is called. 
+ * 
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param num dimi number
+ * @param tnum dimi test number
+ * @param tinfo pointer on dimi test info to be filled
+ * 
+ * @return HPI error code
+ **/
+static SaErrorT NewSimulatorGetDimiTestInfo( void *, 
+                                      SaHpiResourceIdT, 
+                                      SaHpiDimiNumT,
+                                      SaHpiDimiTestNumT, 
+                                      SaHpiDimiTestT *)  __attribute__((used));
+                                      
+static SaErrorT NewSimulatorGetDimiTestInfo( void     *hnd, 
+                                      SaHpiResourceIdT  id, 
+                                      SaHpiDimiNumT     num,
+                                      SaHpiDimiTestNumT tnum, 
+                                      SaHpiDimiTestT    *tinfo) {
+
+   NewSimulator *newsim = 0;
+   NewSimulatorDimi *dimi = VerifyDimiAndEnter( hnd, id, num, newsim );
+   if ( !dimi ) return SA_ERR_HPI_NOT_PRESENT;
+
+   SaErrorT rv = dimi->GetTestInfo( tnum, *tinfo );
+   newsim->IfLeave();
+
+   return rv;
+}
+
+
+/**
+ * Interface for DimiTestReadinessGet. 
+ * Inside the function the method NewSimulatorDimi::GetReadiness is called. 
+ * 
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param num dimi number
+ * @param tnum dimi test number
+ * @param tready pointer on dimi test readiness info to be filled
+ * 
+ * @return HPI error code
+ **/
+static SaErrorT NewSimulatorGetDimiTestReadiness( void *, 
+                                     SaHpiResourceIdT, 
+                                     SaHpiDimiNumT,
+                                     SaHpiDimiTestNumT, 
+                                     SaHpiDimiReadyT *)  __attribute__((used));
+
+static SaErrorT NewSimulatorGetDimiTestReadiness( void *hnd, 
+                                     SaHpiResourceIdT    id, 
+                                     SaHpiDimiNumT       num,
+                                     SaHpiDimiTestNumT   tnum, 
+                                     SaHpiDimiReadyT     *tready) {
+
+   NewSimulator *newsim = 0;
+   NewSimulatorDimi *dimi = VerifyDimiAndEnter( hnd, id, num, newsim );
+   if ( !dimi ) return SA_ERR_HPI_NOT_PRESENT;
+
+   SaErrorT rv = dimi->GetReadiness( tnum, *tready );
+   newsim->IfLeave();
+
+   return rv;
+}
+
+
+/**
+ * Interface for DimiTestStart. 
+ * Inside the function the method NewSimulatorDimi::StartTest is called. 
+ * 
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param num dimi number
+ * @param tnum dimi test number
+ * @param tnump number of variable parameters
+ * @param params pointer to array containing variable parameters
+ * 
+ * @return HPI error code
+ **/
+static SaErrorT NewSimulatorStartDimiTest( void *, 
+                        SaHpiResourceIdT, 
+                        SaHpiDimiNumT, 
+                        SaHpiDimiTestNumT,
+                        SaHpiUint8T, 
+                        SaHpiDimiTestVariableParamsT *)  __attribute__((used));
+
+static SaErrorT NewSimulatorStartDimiTest( void    *hnd, 
+                        SaHpiResourceIdT             id, 
+                        SaHpiDimiNumT                num, 
+                        SaHpiDimiTestNumT            tnum,
+                        SaHpiUint8T                  tnump, 
+                        SaHpiDimiTestVariableParamsT *params) {
+
+   NewSimulator *newsim = 0;
+   NewSimulatorDimi *dimi = VerifyDimiAndEnter( hnd, id, num, newsim );
+   if ( !dimi ) return SA_ERR_HPI_NOT_PRESENT;
+
+   SaErrorT rv = dimi->StartTest( tnum, tnump, params );
+   newsim->IfLeave();
+
+   return rv;
+}
+
+
+/**
+ * Interface for DimiTestCancel. 
+ * Inside the function the method NewSimulatorDimi::CancelTest is called. 
+ * 
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param num dimi number
+ * @param tnum dimi test number
+ * 
+ * @return HPI error code
+ **/
+static SaErrorT NewSimulatorCancelDimiTest( void *, 
+                                      SaHpiResourceIdT, 
+                                      SaHpiDimiNumT, 
+                                      SaHpiDimiTestNumT) __attribute__((used));
+
+static SaErrorT NewSimulatorCancelDimiTest( void      *hnd, 
+                                      SaHpiResourceIdT  id, 
+                                      SaHpiDimiNumT     num, 
+                                      SaHpiDimiTestNumT tnum) {
+
+   NewSimulator *newsim = 0;
+   NewSimulatorDimi *dimi = VerifyDimiAndEnter( hnd, id, num, newsim );
+   if ( !dimi ) return SA_ERR_HPI_NOT_PRESENT;
+
+   SaErrorT rv = dimi->CancelTest( tnum );
+   newsim->IfLeave();
+
+   return rv;
+}
+
+
+/**
+ * Interface for DimiTestStatusGet. 
+ * Inside the function the method NewSimulatorDimi::GetStatus is called. 
+ * 
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param num dimi number
+ * @param tnum dimi test number
+ * @param tperc pointer to location to store percentage of test completed
+ * @param tstatus pointer to location to store the status
+ * 
+ * @return HPI error code
+ **/
+static SaErrorT NewSimulatorGetDimiTestStatus( void *, 
+                              SaHpiResourceIdT, 
+                              SaHpiDimiNumT, 
+                              SaHpiDimiTestNumT, 
+                              SaHpiDimiTestPercentCompletedT *,
+                              SaHpiDimiTestRunStatusT *) __attribute__((used));
+
+static SaErrorT NewSimulatorGetDimiTestStatus( void        *hnd, 
+                              SaHpiResourceIdT               id, 
+                              SaHpiDimiNumT                  num, 
+                              SaHpiDimiTestNumT              tnum, 
+                              SaHpiDimiTestPercentCompletedT *tperc,
+                              SaHpiDimiTestRunStatusT        *tstatus) {
+
+   NewSimulator *newsim = 0;
+   NewSimulatorDimi *dimi = VerifyDimiAndEnter( hnd, id, num, newsim );
+   if ( !dimi ) return SA_ERR_HPI_NOT_PRESENT;
+
+   SaErrorT rv = dimi->GetStatus( tnum, *tperc, *tstatus );
+   newsim->IfLeave();
+
+   return rv;
+}
+
+/**
+ * Interface for DimiTestResultsGet. 
+ * Inside the function the method NewSimulatorDimi::GetResults is called. 
+ * 
+ * @param hnd pointer on handler
+ * @param id resource id
+ * @param num dimi number
+ * @param tnum dimi test number
+ * @param tresults pointer to location to store results from last run
+ * 
+ * @return HPI error code
+ **/
+static SaErrorT NewSimulatorGetDimiTestResults( void *, 
+                                SaHpiResourceIdT, 
+                                SaHpiDimiNumT, 
+                                SaHpiDimiTestNumT, 
+                                SaHpiDimiTestResultsT *) __attribute__((used));
+
+static SaErrorT NewSimulatorGetDimiTestResults( void *hnd, 
+                                SaHpiResourceIdT       id, 
+                                SaHpiDimiNumT          num, 
+                                SaHpiDimiTestNumT      tnum, 
+                                SaHpiDimiTestResultsT  *tresults) {
+
+   NewSimulator *newsim = 0;
+   NewSimulatorDimi *dimi = VerifyDimiAndEnter( hnd, id, num, newsim );
+   if ( !dimi ) return SA_ERR_HPI_NOT_PRESENT;
+
+   SaErrorT rv = dimi->GetResults( tnum, *tresults );
+   newsim->IfLeave();
+
+   return rv;
+}
+
+
+/**
  * Interface for SetAutoInsertTimeout. 
  * Inside the function the method NewSimulator::IfSetAutoInsertTimeout is called. 
  *  
@@ -1987,7 +3260,8 @@ static SaErrorT NewSimulatorResetWatchdog(void *hnd,
  * 
  * @return HPI error code
  **/
-static SaErrorT NewSimulatorSetAutoInsertTimeout( void *, SaHpiTimeoutT ) __attribute__((used));
+static SaErrorT NewSimulatorSetAutoInsertTimeout( void *, 
+                                         SaHpiTimeoutT ) __attribute__((used));
 
 static SaErrorT NewSimulatorSetAutoInsertTimeout( void *hnd, SaHpiTimeoutT  timeout) {
    NewSimulator *newsim = VerifyNewSimulator( hnd );
@@ -2075,7 +3349,6 @@ static SaErrorT NewSimulatorSetAutoExtractTimeout( void *hnd, SaHpiResourceIdT i
  * 
  * @return HPI error code
  **/
-
 static SaErrorT NewSimulatorGetPowerState( void *, SaHpiResourceIdT,
                                             SaHpiPowerStateT * ) __attribute__((used));
 
@@ -2332,25 +3605,44 @@ void * oh_set_resource_tag (void *, SaHpiResourceIdT, SaHpiTextBufferT *)
 void * oh_set_resource_severity (void *, SaHpiResourceIdT, SaHpiSeverityT)
                 __attribute__ ((weak, alias("NewSimulatorSetResourceSeverity")));
 
-/*
+/// Alias definition
 void * oh_get_el_info (void *, SaHpiResourceIdT, SaHpiEventLogInfoT *)
                 __attribute__ ((weak, alias("NewSimulatorGetSelInfo")));
 
+/// Alias definition
 void * oh_set_el_time (void *, SaHpiResourceIdT, const SaHpiEventT *)
                 __attribute__ ((weak, alias("NewSimulatorSetSelTime")));
 
+/// Alias definition
 void * oh_add_el_entry (void *, SaHpiResourceIdT, const SaHpiEventT *)
                 __attribute__ ((weak, alias("NewSimulatorAddSelEntry")));
 
+/// Alias definition
 void * oh_get_el_entry (void *, SaHpiResourceIdT, SaHpiEventLogEntryIdT,
                        SaHpiEventLogEntryIdT *, SaHpiEventLogEntryIdT *,
-                       SaHpiEventLogIfDiscoverResourcesEntryT *, SaHpiRdrT *, SaHpiRptEntryT  *)
+                       SaHpiEventLogEntryT *, SaHpiRdrT *, SaHpiRptEntryT  *)
                 __attribute__ ((weak, alias("NewSimulatorGetSelEntry")));
 
+/// Alias definition
 void * oh_clear_el (void *, SaHpiResourceIdT)
                 __attribute__ ((weak, alias("NewSimulatorClearSel")));
-*/
 
+/// Alias definition
+void * oh_set_el_state (void *, SaHpiResourceIdT, SaHpiBoolT)
+		        __attribute__ ((weak, alias("NewSimulatorSetSelState")));
+
+/// Alias definition
+void * oh_get_el_state (void *, SaHpiResourceIdT, SaHpiBoolT *)
+		        __attribute__ ((weak, alias("NewSimulatorGetSelState")));
+
+/// Alias definition		        
+void * oh_get_el_caps (void *, SaHpiResourceIdT, SaHpiEventLogCapabilitiesT *)
+	            __attribute__ ((weak, alias("NewSimulatorGetSelCapability")));
+
+/// Alias definition
+void * oh_reset_el_overflow (void *, SaHpiResourceIdT)
+                __attribute__ ((weak, alias("NewSimulatorResetSelOverflow")));
+                
 /// Alias definition
 void * oh_get_sensor_reading (void *, SaHpiResourceIdT,
                              SaHpiSensorNumT,
@@ -2569,9 +3861,159 @@ void * oh_get_annunc_mode(void *, SaHpiResourceIdT, SaHpiAnnunciatorNumT,
 void * oh_set_annunc_mode(void *, SaHpiResourceIdT, SaHpiAnnunciatorNumT,
                           SaHpiAnnunciatorModeT)
                __attribute__ ((weak, alias("NewSimulatorSetAnnMode")));
+
+/// Alias definition               
+void * oh_get_fumi_spec(void *, SaHpiResourceIdT, SaHpiFumiNumT, 
+                         SaHpiFumiSpecInfoT *)
+               __attribute__ ((weak, alias("NewSimulatorGetFumiSpec")));
+
+/// Alias definition               
+void * oh_get_fumi_service_impact(void *, SaHpiResourceIdT, SaHpiFumiNumT, 
+                                  SaHpiFumiServiceImpactDataT *)
+               __attribute__ ((weak, alias("NewSimulatorGetFumiServImpact")));
+
+/// Alias definition               
+void * oh_set_fumi_source(void *, SaHpiResourceIdT, SaHpiFumiNumT, 
+                          SaHpiBankNumT, SaHpiTextBufferT *)
+               __attribute__ ((weak, alias("NewSimulatorSetFumiSource")));
+
+/// Alias definition               
+void * oh_validate_fumi_source(void *, SaHpiResourceIdT, SaHpiFumiNumT, SaHpiBankNumT)
+               __attribute__ ((weak, alias("NewSimulatorValidateFumiSource")));
+                              
+/// Alias definition               
+void * oh_get_fumi_source(void *, SaHpiResourceIdT, SaHpiFumiNumT, SaHpiBankNumT,
+                           SaHpiFumiSourceInfoT *)
+               __attribute__ ((weak, alias("NewSimulatorGetFumiSource")));
+
+/// Alias definition               
+void * oh_get_fumi_source_component(void *, SaHpiResourceIdT, SaHpiFumiNumT, 
+                                    SaHpiBankNumT, SaHpiEntryIdT,
+                                    SaHpiEntryIdT *, SaHpiFumiComponentInfoT *)
+               __attribute__ ((weak, alias("NewSimulatorGetFumiSourceComponent")));
+
+/// Alias definition               
+void * oh_get_fumi_target(void *, SaHpiResourceIdT, SaHpiFumiNumT, 
+                           SaHpiBankNumT, SaHpiFumiBankInfoT *)
+               __attribute__ ((weak, alias("NewSimulatorGetFumiTarget")));
                
-}
+/// Alias definition               
+void * oh_get_fumi_target_component(void *, SaHpiResourceIdT, SaHpiFumiNumT, 
+                                    SaHpiBankNumT, SaHpiEntryIdT,
+                                    SaHpiEntryIdT *, SaHpiFumiComponentInfoT *)
+               __attribute__ ((weak, alias("NewSimulatorGetFumiTargetComponent")));   
+
+/// Alias definition               
+void * oh_get_fumi_logical_target(void *, SaHpiResourceIdT, SaHpiFumiNumT, 
+                                   SaHpiFumiLogicalBankInfoT *)
+               __attribute__ ((weak, alias("NewSimulatorGetFumiLogicalTarget")));
+
+/// Alias definition               
+void * oh_get_fumi_logical_target_component(void *, SaHpiResourceIdT, SaHpiFumiNumT,
+                                             SaHpiEntryIdT, SaHpiEntryIdT *, 
+                                             SaHpiFumiLogicalComponentInfoT *)
+               __attribute__ ((weak, alias("NewSimulatorGetFumiLogicalTargetComponent")));
+
+/// Alias definition               
+void * oh_start_fumi_backup(void *, SaHpiResourceIdT, SaHpiFumiNumT)
+               __attribute__ ((weak, alias("NewSimulatorStartFumiBackup")));
+
+/// Alias definition               
+void * oh_set_fumi_bank_order(void *, SaHpiResourceIdT, SaHpiFumiNumT,
+                               SaHpiBankNumT, SaHpiUint32T)
+               __attribute__ ((weak, alias("NewSimulatorSetFumiBankOrder")));
+
+/// Alias definition               
+void * oh_start_fumi_bank_copy(void *, SaHpiResourceIdT, SaHpiFumiNumT,
+                                SaHpiBankNumT, SaHpiBankNumT)
+               __attribute__ ((weak, alias("NewSimulatorStartFumiBankCopy")));
+
+/// Alias definition               
+void * oh_start_fumi_install(void *, SaHpiResourceIdT, SaHpiFumiNumT, SaHpiBankNumT)
+               __attribute__ ((weak, alias("NewSimulatorStartFumiInstall")));
+
+/// Alias definition               
+void * oh_get_fumi_status(void *, SaHpiResourceIdT, SaHpiFumiNumT, SaHpiBankNumT,
+                           SaHpiFumiUpgradeStatusT *)
+               __attribute__ ((weak, alias("NewSimulatorGetFumiStatus")));
+
+/// Alias definition               
+void * oh_start_fumi_verify(void *, SaHpiResourceIdT, SaHpiFumiNumT, SaHpiBankNumT)
+               __attribute__ ((weak, alias("NewSimulatorStartFumiVerification")));
+
+/// Alias definition               
+void * oh_start_fumi_verify_main(void *, SaHpiResourceIdT, SaHpiFumiNumT)
+               __attribute__ ((weak, alias("NewSimulatorStartFumiVerificationMain")));
+
+/// Alias definition               
+void * oh_cancel_fumi_upgrade(void *, SaHpiResourceIdT, SaHpiFumiNumT, SaHpiBankNumT)
+               __attribute__ ((weak, alias("NewSimulatorCancelFumiUpgrade")));
+
+/// Alias definition
+void * oh_get_fumi_autorollback_disable(void *, SaHpiResourceIdT, SaHpiFumiNumT, 
+                                         SaHpiBoolT *)
+               __attribute__ ((weak, alias("NewSimulatorGetFumiRollback")));
+
+/// Alias definition
+void * oh_set_fumi_autorollback_disable(void *, SaHpiResourceIdT, SaHpiFumiNumT, 
+                                         SaHpiBoolT)
+               __attribute__ ((weak, alias("NewSimulatorSetFumiRollback")));
+
+/// Alias definition
+void * oh_start_fumi_rollback(void *, SaHpiResourceIdT, SaHpiFumiNumT)
+               __attribute__ ((weak, alias("NewSimulatorStartFumiRollback")));
+
+/// Alias definition
+void * oh_activate_fumi(void *, SaHpiResourceIdT, SaHpiFumiNumT)
+               __attribute__ ((weak, alias("NewSimulatorActivateFumi")));
+
+/// Alias definition
+void * oh_start_fumi_activate(void *, SaHpiResourceIdT, SaHpiFumiNumT, SaHpiBoolT)
+               __attribute__ ((weak, alias("NewSimulatorStartFumiActivation")));
+
+/// Alias definition
+void * oh_cleanup_fumi(void *, SaHpiResourceIdT, SaHpiFumiNumT, SaHpiBankNumT)
+               __attribute__ ((weak, alias("NewSimulatorCleanupFumi")));
+
+/// Alias definition
+void * oh_get_dimi_info(void *, SaHpiResourceIdT, SaHpiDimiNumT, SaHpiDimiInfoT *)
+               __attribute__ ((weak, alias("NewSimulatorGetDimiInfo")));
+
+/// Alias definition
+void * oh_get_dimi_test(void *, SaHpiResourceIdT, SaHpiDimiNumT,
+                         SaHpiDimiTestNumT, SaHpiDimiTestT *)
+               __attribute__ ((weak, alias("NewSimulatorGetDimiTestInfo")));
+
+/// Alias definition
+void * oh_get_dimi_test_ready(void *, SaHpiResourceIdT, SaHpiDimiNumT,
+                               SaHpiDimiTestNumT, SaHpiDimiReadyT *)
+               __attribute__ ((weak, alias("NewSimulatorGetDimiTestReadiness")));
+
+/// Alias definition
+void * oh_start_dimi_test(void *, SaHpiResourceIdT, SaHpiDimiNumT, SaHpiDimiTestNumT,
+                           SaHpiUint8T, SaHpiDimiTestVariableParamsT *)
+               __attribute__ ((weak, alias("NewSimulatorStartDimiTest")));
+
+/// Alias definition
+void * oh_cancel_dimi_test(void *, SaHpiResourceIdT, SaHpiDimiNumT, 
+                            SaHpiDimiTestNumT)
+               __attribute__ ((weak, alias("NewSimulatorCancelDimiTest")));
+
+/// Alias definition
+void * oh_get_dimi_test_status(void *, SaHpiResourceIdT, SaHpiDimiNumT, 
+                                SaHpiDimiTestNumT, 
+                                SaHpiDimiTestPercentCompletedT *,
+                                SaHpiDimiTestRunStatusT *)
+               __attribute__ ((weak, alias("NewSimulatorGetDimiTestStatus")));
+               
+/// Alias definition
+void * oh_get_dimi_test_results(void *, SaHpiResourceIdT, SaHpiDimiNumT, 
+                                 SaHpiDimiTestNumT, SaHpiDimiTestResultsT *)
+               __attribute__ ((weak, alias("NewSimulatorGetDimiTestResults")));
+
+}               
 //@}
+
 
 /*
  * Isn't needed at the moment
@@ -2796,8 +4238,6 @@ void NewSimulator::IfClose() {
 int NewSimulator::IfGetEvent( oh_event *event ) {
    int rv = 0;
    
-   stdlog << "DBG: Keep alive call NewSimulator::IfGetEvent.\n";
-
    m_event_lock.Lock();
    m_event_lock.Unlock();
 

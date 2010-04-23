@@ -2,7 +2,7 @@
  * @file    new_sim_hotswap.h
  *
  * The file includes a class for hotswap handling:\n
- * NewSimulatorWatchdog
+ * NewSimulatorHotswap
  * 
  * @author  Lars Wetzel <larswetzel@users.sourceforge.net>
  * @version 0.1
@@ -42,7 +42,7 @@ class NewSimulatorTimerThread;
 /**
  * @class NewSimulatorHotSwap
  * 
- * Provides functions for simulating a watchdog timer.
+ * Provides functions for simulating the hotswap behaviour.
  **/
 class NewSimulatorHotSwap : public NewSimulatorTimerThread {
 private:
