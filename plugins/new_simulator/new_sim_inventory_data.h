@@ -42,7 +42,7 @@ class  NewSimulatorDomain;
  **/
 class NewSimulatorInventoryField {
    private:
-   /// Reocord with the Inventory Field Information
+   /// Record with the Inventory Field Information
    SaHpiIdrFieldT  m_field;
    
    public:

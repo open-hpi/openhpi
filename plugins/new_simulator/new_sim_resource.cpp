@@ -289,17 +289,6 @@ bool NewSimulatorResource::Populate() {
 
       memcpy(&e->resource, &m_rpt_entry, sizeof (SaHpiRptEntryT));
 
-      // entry.ResourceEntity       = m_entity_path;
-      // entry.ResourceId           = oh_uid_from_entity_path( &entry.ResourceEntity );
-      // if ( Create( e->resource ) == false ) {
-      //    g_free( e );
-      //    return false;
-      // }
-
-      // assign the hpi resource id to ent, so we can find
-      // the resource for a given entity
-      // m_resource_id = e->resource.ResourceId;
-
       // add the resource to the resource cache
       int rv = oh_add_resource( Domain()->GetHandler()->rptcache,
                                  &(e->resource), this, 1 );
@@ -331,37 +320,6 @@ bool NewSimulatorResource::Populate() {
       if ( ResourceCapabilities() & SAHPI_CAPABILITY_MANAGED_HOTSWAP )
          if ( m_hotswap.ActionRequest( SAHPI_HS_ACTION_INSERTION ) != SA_OK )
             stdlog << "ERR: ActionRequest returns an error\n";
-
-/*      
-      // Update resource in event accordingly
-      memcpy(&e->resource, resource, sizeof (SaHpiRptEntryT));
-
-      if (e->resource.ResourceCapabilities & SAHPI_CAPABILITY_FRU) {
-         e->event.EventType = SAHPI_ET_HOTSWAP;
-
-         if (e->resource.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP) {
-         	SaHpiHsStateT hpi_state = SAHPI_HS_STATE_ACTIVE;
-//            SaHpiHsStateT hpi_state = HotSwapState();
-            e->event.EventDataUnion.HotSwapEvent.HotSwapState = hpi_state;
-            e->event.EventDataUnion.HotSwapEvent.PreviousHotSwapState = hpi_state;
-            stdlog << "NewSimulatorResource::Populate SAHPI_ET_HOTSWAP Managed FRU Event resource " << m_rpt_entry.ResourceId << " State " << hpi_state << "\n";
-         } else {
-            e->event.EventDataUnion.HotSwapEvent.HotSwapState = SAHPI_HS_STATE_ACTIVE;
-            e->event.EventDataUnion.HotSwapEvent.PreviousHotSwapState = SAHPI_HS_STATE_ACTIVE;
-            stdlog << "NewSimulatorResource::Populate SAHPI_ET_HOTSWAP FRU Event resource " << m_rpt_entry.ResourceId << "\n";
-         }
-      } else {
-         e->event.EventType = SAHPI_ET_RESOURCE;
-         e->event.EventDataUnion.ResourceEvent.ResourceEventType = SAHPI_RESE_RESOURCE_ADDED;
-         stdlog << "NewSimulatorResource::Populate SAHPI_ET_RESOURCE Event resource " << m_rpt_entry.ResourceId << "\n";
-      }
-
-      e->event.Source = e->resource.ResourceId;
-      e->event.Severity = e->resource.ResourceSeverity;
-      oh_gettimeofday(&e->event.Timestamp);
-
-      Domain()->AddHpiEvent( e );
-*/
   
       m_populate = true;
    }
@@ -370,92 +328,6 @@ bool NewSimulatorResource::Populate() {
 }
 
 
-/**
- * Activate the resource
- *
- * @todo enhance the method by using timer to allow interruption
- * (hotswap policy cancel)
- *  
- * @return success
- 
-bool NewSimulatorResource::Activate() {
-   //TODO: Fix the activation of a resource
-   // Change the state properly
-   // Allow to interrupt the activation by using a sleep time
-   
-   struct oh_event *e = (struct oh_event *)g_malloc0( sizeof( struct oh_event ) );
-
-   // TODO: Check when this method is called and what is expected 
-   if ( Create( e->resource ) == false ) {
-      g_free( e );
-      return false;
-   }
-
-   m_hotswap_state = SAHPI_HS_STATE_ACTIVE;
-   
-   if (e->resource.ResourceCapabilities & SAHPI_CAPABILITY_FRU) {
-      e->event.EventType = SAHPI_ET_HOTSWAP;
-      if (e->resource.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP) {
-         SaHpiHsStateT hpi_state = GetHpiState();
-         e->event.EventDataUnion.HotSwapEvent.HotSwapState = hpi_state;
-         e->event.EventDataUnion.HotSwapEvent.PreviousHotSwapState = hpi_state;
-         stdlog << "NewSimulatorResource::Populate SAHPI_ET_HOTSWAP Managed FRU Event resource " << m_rpt_entry.ResourceId << " State " << hpi_state << "\n";
-      } else {
-         e->event.EventDataUnion.HotSwapEvent.HotSwapState = SAHPI_HS_STATE_ACTIVE;
-         e->event.EventDataUnion.HotSwapEvent.PreviousHotSwapState = SAHPI_HS_STATE_ACTIVE;
-         stdlog << "NewSimulatorResource::Populate SAHPI_ET_HOTSWAP FRU Event resource " << m_rpt_entry.ResourceId << "\n";
-      }
-   } else {
-      e->event.EventType = SAHPI_ET_RESOURCE;
-      e->event.EventDataUnion.ResourceEvent.ResourceEventType = SAHPI_RESE_RESOURCE_ADDED;
-      stdlog << "NewSimulatorResource::Populate SAHPI_ET_RESOURCE Event resource " << m_rpt_entry.ResourceId << "\n";
-   }
-
-   e->event.Source = e->resource.ResourceId;
-   e->event.Severity = e->resource.ResourceSeverity;
-   oh_gettimeofday(&e->event.Timestamp);
-
-   Domain()->AddHpiEvent( e );
-   
-   return true;
-}
-**/
-
-/**
- * Deactivation of the resource
- *
- * @todo implement deactivation process
- *  
- * @return success
- 
-void NewSimulatorResource::Deactivate() {
-    // TODO: Do the same with the deactivation 
- 	// Send a first hpi event wait to receive such an event
- 	// Do the next step
- 	
- 	stdlog << "DBG: Resource.Deactivate is called but nothing is done --> TODO!\n";
- 
-}
-**/
-
-/**
- * Set HPI state of resource 
- *
- * @todo implement the proper generation of events
- * 
- * @param new_hs_state hotswap state to be set
- * @return success
- 
-SaHpiHsStateT NewSimulatorResource::SetHpiState( SaHpiHsStateT new_hs_state ) {
-   // TODO: Change it properly -- is new
-   // Send the correct events
-   
-   m_hotswap_state = new_hs_state;
-   stdlog << "DBG: Resource.SetHpiState is called with state " << new_hs_state << " \n";
-   
-   return m_hotswap_state;
-}
- **/
 
 /**
  * Dump the information of the resource 

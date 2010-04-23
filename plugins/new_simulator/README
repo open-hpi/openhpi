@@ -1,0 +1,65 @@
+/*!
+@file README
+@author Lars Wetzel <larswetzel@users.sourceforge.net>
+@version 0.1
+@date 23.04.2010
+
+@mainpage New Simulator plugin
+
+@section intro Introduction
+With the simulation plugins it is possible to run the openhpi daemon
+locally without having hardware for it in the background.\n
+Since the new simulation plugin gets its simulation data from a file instead
+of having it inside the code, the data can be changed without compiling the 
+plugin afterwards.\n
+In combination with the \c hpigensimdata client you can generate your own
+simulation data based on a running system e.g. for demonstration purposes 
+\- see also @ref data.\n
+The plugin is written in C++ and adapts the ipmidirect plugin for simulation 
+purposes. Therefore you will find many conformities between both plugins.\n
+Since it was tried not to introduce new libraries, the gnu lexical scanner was
+used for parsing the simulation data as it is used for the \e openhpid.conf 
+file. A documentation of this scanner can be found at:
+http://library.gnome.org/devel/glib/stable/glib-Lexical-Scanner.html\n
+Don't hit me, but the documention was not done by the \c openhpi recommended
+tool. Instead of this \c doxygen is used for this purpose. The doxygen
+configuration file \c Doxyfile can be found in the main directory of the 
+plugin. The documentation itself is in the file \c doc.html.tgz. A good 
+description of this tool can be found at:
+http://www.stack.nl/~dimitri/doxygen/index.html\n
+
+@section architecture Plugin architecture
+As already mentioned the new simulator plugin is adapted from the ipmidirect
+plugin. Therefore many conformities can be found. For example the usage of
+two C definitions blocks in \c new_sim.cpp and \c ipmi.cpp wasn't changed. 
+(Maybe I will change it in near future due to documentation purpose.).\n
+
+
+@section data Simulation data
+The NewSimulator plugin reads at start a simulation file which includes the 
+data to be simulated. The filename can be defined inside the plugin section 
+of \e openhpid.conf. The default filename is \e simulation.data. The file can be
+found in the directory of the \e openhpid.conf file.\n 
+The file itself is read only one time during the discovery phase. This means that
+the daemon has to be restarted if changes were made and should take effect.\n
+Small changes can be done easily in the file but if a whole system hardware
+should be simulated it is recommended to use the \c hpigensimdata client which
+is described in @ref datagen.
+
+@subsection datagen Generating own simulation data
+To generate a simulation file including the data of an own system, it is 
+recommended to use the client \c hpigensimdata \c -f \c \<filename\>.\n
+The content of \c \<filename\> is in ascii and can be modified using a text
+editor of chose. But at changing the file you should be aware to set the 
+parenthesis correctly and take the correct names of variables.\n
+With the exception of config section and the token marks, all variable
+names are equivalent to the variables defined inside \c SafHpi.h. The 
+values of the unions and defines are put as integer or hex values inside the 
+file to spare the decoding at startup of the daemon (and development efforts 
+;-)).\n 
+You can use this client also for dump a running system. But keep in mind that 
+for reading e.g. the capability fields it is much easier to transfers also
+the values properly to text, which is not done by this client.\n
+
+
+**/

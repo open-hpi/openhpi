@@ -41,7 +41,7 @@
 /**
  * @class NewSimulatorResource
  * 
- * Class for simualting resources
+ * Class for simulating resources
  * 
  **/
 class NewSimulatorResource : cArray<NewSimulatorRdr> {
@@ -49,10 +49,9 @@ class NewSimulatorResource : cArray<NewSimulatorRdr> {
 public:
    // find a specific rdr
    NewSimulatorRdr *FindRdr( SaHpiRdrTypeT type, unsigned int num );
-   // NewSimulatorRdr *FindRdr( NewSimulatorDomain *domain, SaHpiRdrTypeT type, NewSimulatorRdr *rdr );
-
    bool AddRdr( NewSimulatorRdr *rdr );
    bool RemRdr( NewSimulatorRdr *rdr );
+
    /// Find a rdr object
    int FindRdr( NewSimulatorRdr *rdr ) { return Find( rdr ); }
    /// Return the number of rdr entries
@@ -136,9 +135,6 @@ public:
    virtual bool Destroy();
    void          Dump( NewSimulatorLog &dump ) const;
 
-//   bool Activate();
-//   void Deactivate();
-   
    /// HPI Function implement in NewSimulatorHotSwap::SetExtractTimeout()
    SaErrorT SetAutoExtractTimeout( SaHpiTimeoutT timeout ) 
                                      { return m_hotswap.SetExtractTimeout( timeout ); }
@@ -165,7 +161,6 @@ public:
    SaErrorT HotswapPolicyCancel() { return m_hotswap.CancelPolicy(); }
                    
    void SetResourceInfo( SaHpiResourceInfoT resinfo );
-   // bool CreateResourceInfo( SaHpiResourceInfoT &resinfo );
 
 private:
    /// flag if resource is populated

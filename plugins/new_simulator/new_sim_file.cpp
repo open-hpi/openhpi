@@ -31,6 +31,8 @@
 #include "new_sim_file_annunciator.h"
 #include "new_sim_file_inventory.h"
 #include "new_sim_file_watchdog.h"
+#include "new_sim_file_fumi.h"
+#include "new_sim_file_dimi.h"
 #include "new_sim_domain.h"
 #include "new_sim_entity.h"
 #include "new_sim_utils.h"
@@ -39,8 +41,7 @@
 #include <oh_error.h>
 #include <oh_lock.h>
 
-// class NewSimulatorDomain;
-
+#define GEN_SIM_DATA_VERSION 0.901
 
 ///< Global skip characters for oh_scanner_config
 static gchar skip_characters[] = " \t\n";  
@@ -118,7 +119,7 @@ extern "C" {
  * @param filename Pointer with the simulation filename
  */
 NewSimulatorFile::NewSimulatorFile(const char *filename) 
-  : m_version ( 0.9 ) {
+  : m_version ( GEN_SIM_DATA_VERSION ) {
    
    stdlog << "DBG: NewSimulatorFile.constructor with " << filename << "\n";
    m_scanner = g_scanner_new(&oh_scanner_config);
@@ -597,11 +598,15 @@ bool NewSimulatorFile::process_rdr_token( NewSimulatorResource *res ) {
          case WATCHDOG_TOKEN_HANDLER:
             filerdr = new NewSimulatorFileWatchdog( m_scanner );
             break;
-            
-         case DIMI_TOKEN_HANDLER:
+         
          case FUMI_TOKEN_HANDLER:
-            emptyrun = true;
+            filerdr = new NewSimulatorFileFumi( m_scanner );
             break;
+              
+         case DIMI_TOKEN_HANDLER:
+            filerdr = new NewSimulatorFileDimi( m_scanner );
+            break;
+            
          default:
             err("Processing parse rdr entry: Unknown token");
             success = false;

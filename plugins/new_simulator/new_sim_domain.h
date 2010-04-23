@@ -45,6 +45,10 @@ extern "C" {
 #include "new_sim_resource.h"
 #endif
 
+#ifndef __NEW_SIM_EVENT_LOG_H__
+#include "new_sim_event_log.h"
+#endif
+
 #ifndef __NEW_SIM_SENSOR_H__
 #include "new_sim_sensor.h"
 #endif
@@ -73,12 +77,23 @@ extern "C" {
 #include "new_sim_watchdog.h"
 #endif
 
+#ifndef __NEW_SIM_FUMI_H__
+#include "new_sim_fumi.h"
+#endif
+
+#ifndef __NEW_SIM_DIMI_H__
+#include "new_sim_dimi.h"
+#endif
+
 /**
  * @class NewSimulatorDomain
  * 
- * Main class for handling the resources.
+ * The domain class includes funtions for the access of NewSimulatorResource objects 
+ * and the verification of the rdr classes.
+ * Inside the method NewSimulatorDomain:Init the preparation for reading the
+ * simulation data file is done.
  **/
-class NewSimulatorDomain {
+class NewSimulatorDomain : public NewSimulatorEventLog {
 
 protected:
    /// pointer on the Simulation file to be used
@@ -173,6 +188,8 @@ public:
   NewSimulatorControl   *VerifyControl( NewSimulatorControl *c );
   NewSimulatorAnnunciator *VerifyAnnunciator( NewSimulatorAnnunciator *a );
   NewSimulatorWatchdog  *VerifyWatchdog( NewSimulatorWatchdog *c );
+  NewSimulatorFumi      *VerifyFumi( NewSimulatorFumi *f );
+  NewSimulatorDimi      *VerifyDimi( NewSimulatorDimi *d );
   NewSimulatorInventory *VerifyInventory( NewSimulatorInventory *i );
 
   /// abstract method for adding a hpi event

@@ -1,7 +1,7 @@
 /** 
  * @file    new_sim_file_inventory.cpp
  *
- * The file includes the class for parsing the control data:\n
+ * The file includes the class for parsing inventory data:\n
  * NewSimulatorFileInventory
  * 
  * @author  Lars Wetzel <larswetzel@users.sourceforge.net>
@@ -53,11 +53,12 @@ NewSimulatorFileInventory::~NewSimulatorFileInventory() {
 /**
  * Parse inside the \c INVENTORY_TOKEN_HANDLER the \c RDR_DETAIL_TOKEN_HANDLER
  *
- * Depend on which control type is parsed several help methods are called. Startpoint is the
- * \c RDR_DETAIL_TOKEN_HANDLER. Endpoint is the last \c G_TOKEN_RIGHT_CURLY of the \c 
- * CONTROL_TOKEN_HANDLER.
+ * Startpoint is the \c RDR_DETAIL_TOKEN_HANDLER. Endpoint is the last 
+ * \c G_TOKEN_RIGHT_CURLY of the \c INVENTORY_TOKEN_HANDLER. For 
+ * \c INVENTORY_DATA_TOKEN_HANDLER the method 
+ * NewSimulatorFileInventory::process_idr_data is called.
  *  
- * @param res Pointer on the resource which includes the control
+ * @param res Pointer on the resource which includes the inventory data
  *
  * @return Pointer on a new Rdr entry
  **/
@@ -166,7 +167,7 @@ bool NewSimulatorFileInventory::process_idr_data( NewSimulatorInventory *idr ) {
    SaHpiIdrInfoT idrInfo;
    NewSimulatorInventoryArea *ida;
    
-   memset( &idrInfo, 0, sizeof( idrInfo ));
+   memset( &idrInfo, 0, sizeof( SaHpiIdrInfoT ));
    
    cur_token = g_scanner_get_next_token(m_scanner);
    if (cur_token != G_TOKEN_EQUAL_SIGN) {
@@ -176,7 +177,7 @@ bool NewSimulatorFileInventory::process_idr_data( NewSimulatorInventory *idr ) {
 
    cur_token = g_scanner_get_next_token(m_scanner);
    if (cur_token != G_TOKEN_LEFT_CURLY) {
-   	   err("Processing parse control rdr entry - Missing left curly in AnnunciatorData section");
+   	   err("Processing parse control rdr entry - Missing left curly in InventoryData section");
     	   success = false;
    }
 

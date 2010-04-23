@@ -1,6 +1,6 @@
 CONFIGURATION {
    MODE=INIT
-   VERSION=0.900000
+   VERSION=0.901000
 }
 RPT {
    EntryId=1
@@ -36,7 +36,7 @@ RPT {
          Entity={
             "{SYSTEM_CHASSIS,1}"
          }
-         IsFru=1
+         IsFru=0
          IdString={
             DataType=3
             Language=25
@@ -89,8 +89,8 @@ RPT {
             }
             ThresholdDefn={
                IsAccessible=1
-               ReadThold=0x76
-               WriteThold=0x76
+               ReadThold=0xFF
+               WriteThold=0xFF
                Nonlinear=0
             }
             Oem=0
@@ -156,7 +156,7 @@ RPT {
          Entity={
             "{SYSTEM_CHASSIS,1}"
          }
-         IsFru=1
+         IsFru=0
          IdString={
             DataType=3
             Language=25
@@ -406,7 +406,7 @@ RPT {
                Default={
                   MId=0x0000007B
                   BodyLength=2
-                  Body= "4F6B"
+                  Body="4F6B"
                }
             }
             DefaultMode={
@@ -440,7 +440,7 @@ RPT {
                Mode=2
                ANNOUNCEMENT={
                   EntryId=1
-                  Timestamp=1266843122000000000
+                  Timestamp=1272031133974843000
                   AddedByUser=1
                   Severity=1
                   Acknowledged=0
@@ -467,7 +467,7 @@ RPT {
                }
                ANNOUNCEMENT={
                   EntryId=2
-                  Timestamp=1266843122000000000
+                  Timestamp=1272031133975214000
                   AddedByUser=1
                   Severity=2
                   Acknowledged=0
@@ -494,7 +494,7 @@ RPT {
                }
                ANNOUNCEMENT={
                   EntryId=3
-                  Timestamp=1266843122000000000
+                  Timestamp=1272031133975577000
                   AddedByUser=1
                   Severity=3
                   Acknowledged=0
@@ -630,11 +630,183 @@ RPT {
             Data="Fumi 1 simulator"
          }
          RDR_DETAIL {
-            FumiNum=1
+            Num=1
             AccessProt=2
             Capability=2
-            NumBanks=1
+            NumBanks=2
             Oem=0
+            FUMI_DATA={
+               SpecInfoType=1
+               SafDefined={
+                  SpecID=0
+                  RevisionID=1
+               }
+               NumEntities=0
+               FUMI_TARGET_DATA={
+                  BankId=0
+                  BankSize=32
+                  Position=0
+                  BankState=0
+                  Identifier={
+                     DataType=3
+                     Language=25
+                     DataLength=15
+                     Data="simulation.data"
+                  }
+                  Description={
+                     DataType=3
+                     Language=25
+                     DataLength=24
+                     Data="Original simulation data"
+                  }
+                  DateTime={
+                     DataType=3
+                     Language=25
+                     DataLength=0
+                     Data="04/23/2010"
+                  }
+                  MajorVersion=0
+                  MinorVersion=9
+                  AuxVersion=1
+               }
+               FUMI_SOURCE_DATA={
+                  ForBank=0
+                  SourceUri={
+                     DataType=3
+                     Language=25
+                     DataLength=21
+                     Data="file:/simulation.data"
+                  }
+                  SourceStatus=3
+                  Identifier={
+                     DataType=3
+                     Language=25
+                     DataLength=15
+                     Data="simulation.data"
+                  }
+                  Description={
+                     DataType=3
+                     Language=25
+                     DataLength=24
+                     Data="Original simulation data"
+                  }
+                  DateTime={
+                     DataType=3
+                     Language=25
+                     DataLength=0
+                     Data="04/23/2010"
+                  }
+                  MajorVersion=0
+                  MinorVersion=9
+                  AuxVersion=1
+               }
+               FUMI_TARGET_DATA={
+                  BankId=1
+                  BankSize=32
+                  Position=2
+                  BankState=0
+                  Identifier={
+                     DataType=3
+                     Language=25
+                     DataLength=15
+                     Data="simulation.data"
+                  }
+                  Description={
+                     DataType=3
+                     Language=25
+                     DataLength=24
+                     Data="Original simulation data"
+                  }
+                  DateTime={
+                     DataType=3
+                     Language=25
+                     DataLength=0
+                     Data="04/23/2010"
+                  }
+                  MajorVersion=0
+                  MinorVersion=9
+                  AuxVersion=1
+               }
+               FUMI_TARGET_DATA={
+                  BankId=2
+                  BankSize=32
+                  Position=1
+                  BankState=0
+                  Identifier={
+                     DataType=3
+                     Language=25
+                     DataLength=21
+                     Data="simulation_bank2.data"
+                  }
+                  Description={
+                     DataType=3
+                     Language=25
+                     DataLength=24
+                     Data="Original simulation data"
+                  }
+                  DateTime={
+                     DataType=3
+                     Language=25
+                     DataLength=0
+                     Data="04/23/2010"
+                  }
+                  MajorVersion=0
+                  MinorVersion=9
+                  AuxVersion=1
+               }
+               FUMI_LOG_TARGET_DATA={
+                  FirmwarePersistentLocationCount=1
+                  BankStateFlags=0x00000001
+                  PendingFwInstance={
+                     InstancePresent=1
+                     Identifier={
+                        DataType=3
+                        Language=25
+                        DataLength=21
+                        Data="simulation_bank2.data"
+                     }
+                     Description={
+                        DataType=3
+                        Language=25
+                        DataLength=24
+                        Data="Original simulation data"
+                     }
+                     DateTime={
+                        DataType=3
+                        Language=25
+                        DataLength=0
+                        Data="04/23/2010"
+                     }
+                     MajorVersion=0
+                     MinorVersion=9
+                     AuxVersion=1
+                  }
+                  RollbackFwInstance={
+                     InstancePresent=0
+                     Identifier={
+                        DataType=0
+                        Language=0
+                        DataLength=0
+                        Data=""
+                     }
+                     Description={
+                        DataType=0
+                        Language=0
+                        DataLength=0
+                        Data=""
+                     }
+                     DateTime={
+                        DataType=0
+                        Language=0
+                        DataLength=0
+                        Data=""
+                     }
+                     MajorVersion=0
+                     MinorVersion=0
+                     AuxVersion=0
+                  }
+               }
+            }
          }
       }
    }
@@ -673,7 +845,7 @@ RPT {
          Entity={
             "{SYSTEM_CHASSIS,1}{PROCESSOR,1}"
          }
-         IsFru=1
+         IsFru=0
          IdString={
             DataType=3
             Language=25
@@ -807,7 +979,7 @@ RPT {
          Entity={
             "{SYSTEM_CHASSIS,1}{DISK_DRIVE,1}"
          }
-         IsFru=1
+         IsFru=0
          IdString={
             DataType=3
             Language=25
@@ -941,7 +1113,7 @@ RPT {
          Entity={
             "{SYSTEM_CHASSIS,1}{DISK_DRIVE,2}"
          }
-         IsFru=1
+         IsFru=0
          IdString={
             DataType=3
             Language=25
@@ -994,8 +1166,8 @@ RPT {
             }
             ThresholdDefn={
                IsAccessible=1
-               ReadThold=0x76
-               WriteThold=0x76
+               ReadThold=0xFF
+               WriteThold=0xFF
                Nonlinear=0
             }
             Oem=0
@@ -1061,7 +1233,7 @@ RPT {
          Entity={
             "{SYSTEM_CHASSIS,1}{DISK_DRIVE,2}"
          }
-         IsFru=1
+         IsFru=0
          IdString={
             DataType=3
             Language=25
@@ -1311,7 +1483,7 @@ RPT {
                Default={
                   MId=0x0000007B
                   BodyLength=2
-                  Body= "4F6B"
+                  Body="4F6B"
                }
             }
             DefaultMode={
@@ -1345,7 +1517,7 @@ RPT {
                Mode=2
                ANNOUNCEMENT={
                   EntryId=1
-                  Timestamp=1266843122000000000
+                  Timestamp=1272031133999943000
                   AddedByUser=1
                   Severity=1
                   Acknowledged=0
@@ -1372,7 +1544,7 @@ RPT {
                }
                ANNOUNCEMENT={
                   EntryId=2
-                  Timestamp=1266843122000000000
+                  Timestamp=1272031134000298000
                   AddedByUser=1
                   Severity=2
                   Acknowledged=0
@@ -1399,7 +1571,7 @@ RPT {
                }
                ANNOUNCEMENT={
                   EntryId=3
-                  Timestamp=1266843122000000000
+                  Timestamp=1272031134000646000
                   AddedByUser=1
                   Severity=3
                   Acknowledged=0
@@ -1476,18 +1648,18 @@ RPT {
             INVENTORY_DATA={
                IdrId=1
                UpdateCount=0
-               ReadOnly=1
+               ReadOnly=0
                NumAreas=1
                INV_AREA={
                   AreaId=1
                   Type=177
-                  ReadOnly=1
+                  ReadOnly=0
                   NumFields=1
                   INV_FIELD={
                      AreaId=1
                      FieldId=1
                      Type=2
-                     ReadOnly=1
+                     ReadOnly=0
                      Field={
                         DataType=3
                         Language=25
@@ -1535,7 +1707,7 @@ RPT {
          Entity={
             "{SYSTEM_CHASSIS,1}{FAN,1}"
          }
-         IsFru=1
+         IsFru=0
          IdString={
             DataType=3
             Language=25

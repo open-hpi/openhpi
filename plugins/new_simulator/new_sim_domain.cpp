@@ -211,6 +211,40 @@ NewSimulatorWatchdog *NewSimulatorDomain::VerifyWatchdog ( NewSimulatorWatchdog 
 
 
 /** 
+ * Verify Fumi
+ *
+ * @param f pointer on a NewSimulatorFumi object to be verified
+ * @return f pointer for successfull verification
+ **/
+NewSimulatorFumi *NewSimulatorDomain::VerifyFumi ( NewSimulatorFumi *f ) {
+
+   for( int i = 0; i < m_resources.Num(); i++ ) {
+      NewSimulatorResource *m_res = m_resources[i];
+      if ( m_res->FindRdr( f ) ) return f;
+   }
+
+   return 0;
+}
+
+
+/** 
+ * Verify Dimi
+ *
+ * @param d pointer on a NewSimulatorDimi object to be verified
+ * @return d pointer for successfull verification
+ **/
+NewSimulatorDimi *NewSimulatorDomain::VerifyDimi ( NewSimulatorDimi *d ) {
+
+   for( int i = 0; i < m_resources.Num(); i++ ) {
+      NewSimulatorResource *m_res = m_resources[i];
+      if ( m_res->FindRdr( d ) ) return d;
+   }
+
+   return 0;
+}
+
+
+/** 
  * Verify Inventory
  *
  * @param inv pointer on a NewSimulatorInventory object to be verified
