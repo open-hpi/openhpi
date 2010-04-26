@@ -56,7 +56,6 @@ class NewSimulatorFile : public NewSimulatorFileUtil {
    private:
    double                m_version;  //!< Version number
    int                   m_file;     //!< Holding the FILE pointer
-/**   GScanner               *m_scanner; //!< Holding the scanner pointer **/
    int                   m_mode;     //!< Switch if the class is running in UPDATE or INIT mode
    int                   m_depth;    //!< Deepth concerning LEFT and RIGHT_CURLY
    cArray<SimulatorToken> m_tokens;   //!< Array with additional TOKENS of type SimulatorToken

@@ -4163,7 +4163,7 @@ bool NewSimulator::GetParams( GHashTable *handler_config ) {
 /**
  * Interface Open. The parameters entity root and filename are read from 
  * the hash table and it is tried to open the file by generating a new 
- * NewSimulatorFile object.\n
+ * NewSimulatorFile object and calling NewSimulatorFile::Open().\n
  * The Initializiation itself is done inside NewSimulatorDomain::Init() which is 
  * called inside this method.
  * 

@@ -71,6 +71,16 @@ static SaErrorT show_wdog(SaHpiSessionIdT sessionid,
 			SaHpiRptEntryT *rptptr,	
 			SaHpiRdrT *rdrptr, 
 			SaHpiResourceIdT l_resourceid);
+			
+static SaErrorT show_fumi(SaHpiSessionIdT sessionid,
+			SaHpiRptEntryT *rptptr,	
+			SaHpiRdrT *rdrptr, 
+			SaHpiResourceIdT l_resourceid);
+
+static SaErrorT show_dimi(SaHpiSessionIdT sessionid,
+			SaHpiRptEntryT *rptptr,	
+			SaHpiRdrT *rdrptr, 
+			SaHpiResourceIdT l_resourceid);
 
 void same_system(oh_big_textbuffer *bigbuf);
 void show_trailer(char *system);
@@ -81,12 +91,14 @@ void show_trailer(char *system);
 /* 
  * Globals for this driver
  */
-int fdebug = 0;
-int f_rpt     = 0;
-int f_inv     = 0;
-int f_sensor     = 0;
+int fdebug     = 0;
+int f_rpt      = 0;
+int f_inv      = 0;
+int f_sensor   = 0;
 int f_wdog     = 0;
-int f_ann     = 0;
+int f_dimi     = 0;
+int f_fumi     = 0;
+int f_ann      = 0;
 int f_ctrl     = 0;
 int f_overview = 0;
 int f_allres   = 1;
@@ -114,6 +126,8 @@ main(int argc, char **argv)
 			case 'c': f_ctrl = 1; break;
 			case 'w': f_wdog = 1; break;
 			case 'a': f_ann = 1; break;
+			case 'f': f_fumi = 1; break;
+			case 'd': f_dimi = 1; break;
 			case 'n':
 				if (optarg) {
 					resourceid = atoi(optarg);
@@ -129,7 +143,9 @@ main(int argc, char **argv)
 				printf("\t           -c     Display only controls\n");
 				printf("\t           -w     Display only watchdogs\n");
 				printf("\t           -i     Display only inventories\n");
-				printf("\t           -a     Display only annunciators\n");												
+				printf("\t           -a     Display only annunciators\n");
+				printf("\t           -f     Display only fumis\n");
+				printf("\t           -d     Display only dimis\n");
 				printf("\t           -x     Display debug messages\n");
 				printf("\n\n\n\n");
 				exit(1);
@@ -230,7 +246,9 @@ SaErrorT list_resources(SaHpiSessionIdT sessionid,SaHpiResourceIdT resourceid)
 					if (f_inv) show_inv(sessionid, &rptentry, &rdr, l_resourceid); 
 					if (f_sensor) show_sens(sessionid, &rptentry, &rdr, l_resourceid); 
 					if (f_ctrl) show_ctrl(sessionid, &rptentry, &rdr, l_resourceid); 
-					if (f_wdog) show_wdog(sessionid, &rptentry, &rdr, l_resourceid); 
+					if (f_wdog) show_wdog(sessionid, &rptentry, &rdr, l_resourceid);
+					if (f_fumi) show_fumi(sessionid, &rptentry, &rdr, l_resourceid);
+					if (f_dimi) show_dimi(sessionid, &rptentry, &rdr, l_resourceid);
 					if (f_ann) show_ann(sessionid, &rptentry, &rdr, l_resourceid); 						
 				}
 				entryid = nextentryid;
@@ -379,7 +397,7 @@ SaErrorT show_inv(SaHpiSessionIdT sessionid,
 			show_rdr(&buffer);			
 		} else {
 
-			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Inventory Idr Num: %d, ", rdrptr->RdrTypeUnion.InventoryRec.IdrId);
+			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Inventory Num: %d, ", rdrptr->RdrTypeUnion.InventoryRec.IdrId);
 			oh_append_bigtext(&buffer, str);
 			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Num Areas: %d, ", idrInfo.NumAreas);
 			oh_append_bigtext(&buffer, str);
@@ -458,7 +476,9 @@ SaErrorT list_rdr(SaHpiSessionIdT sessionid,
 	show_sens(sessionid, rptptr, rdrptr, l_resourceid); 
 	show_ctrl(sessionid, rptptr, rdrptr,  l_resourceid); 
 	show_wdog(sessionid, rptptr, rdrptr,  l_resourceid); 
-	show_ann(sessionid, rptptr, rdrptr,  l_resourceid); 
+	show_ann(sessionid, rptptr, rdrptr,  l_resourceid);
+	show_dimi(sessionid, rptptr, rdrptr,  l_resourceid);
+	show_fumi(sessionid, rptptr, rdrptr,  l_resourceid);
 	return(rv);
 }
 
@@ -522,7 +542,60 @@ SaErrorT show_wdog(SaHpiSessionIdT sessionid,
 }
 
 
+/* 
+ *
+ */
+static  
+SaErrorT show_dimi(SaHpiSessionIdT sessionid,
+			SaHpiRptEntryT *rptptr,	
+			SaHpiRdrT *rdrptr, 
+			SaHpiResourceIdT l_resourceid)
+{
+	SaErrorT rv       = SA_OK;
+	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+	oh_big_textbuffer buffer;
+	rv = oh_init_bigtext(&buffer);						
+																
+	if (rdrptr->RdrType == SAHPI_DIMI_RDR) {
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Dimi Num: %d, ", 
+		                                 rdrptr->RdrTypeUnion.DimiRec.DimiNum);
+		oh_append_bigtext(&buffer, str);
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Tag: %s\n", 
+		 	rdrptr->IdString.Data);
+		oh_append_bigtext(&buffer, str);
+		show_rdr(&buffer);
+		
+	} 
+	return(rv);
+}
 
+
+/* 
+ *
+ */
+static  
+SaErrorT show_fumi(SaHpiSessionIdT sessionid,
+			SaHpiRptEntryT *rptptr,	
+			SaHpiRdrT *rdrptr, 
+			SaHpiResourceIdT l_resourceid)
+{
+	SaErrorT rv       = SA_OK;
+	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+	oh_big_textbuffer buffer;
+	rv = oh_init_bigtext(&buffer);						
+																
+	if (rdrptr->RdrType == SAHPI_FUMI_RDR) {
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Fumi Num: %d, ", 
+		                                     rdrptr->RdrTypeUnion.FumiRec.Num);
+		oh_append_bigtext(&buffer, str);
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Tag: %s\n", 
+		 	rdrptr->IdString.Data);
+		oh_append_bigtext(&buffer, str);
+		show_rdr(&buffer);
+		
+	} 
+	return(rv);
+}
 
 /* 
  *
