@@ -34,6 +34,9 @@
  */
 
 #include "hpi_test.h"
+#include "../../../include/SaHpiOaSoap.h"
+
+extern int powerSubsystemResId;
 
 int main(int argc, char **argv)
 {
@@ -46,6 +49,10 @@ int main(int argc, char **argv)
         SaHpiCtrlModeT controlMode;
         SaHpiCtrlStateT controlState;
         SaHpiCapabilitiesT capability = SAHPI_CAPABILITY_CONTROL;
+        SaHpiCtrlTypeT control_type = SAHPI_CTRL_TYPE_DIGITAL;
+        SaHpiRdrT rdr;
+        SaHpiCtrlRecT *ctrl;
+        SaHpiCtrlRecAnalogT *analog;
 
         printf("saHpiControlSet: Test for hpi control set function\n");
 
@@ -68,10 +75,40 @@ int main(int argc, char **argv)
         scanf("%d", &resourceid);
 
         printf("\nSupported controls on the resource are:");
-        printf("\nUID LED control(Press 0)");
-        printf("\nPower control(Press 1)");
+        if (resourceid == powerSubsystemResId) {
+          printf("\nPower mode control(Press 3)");
+          printf("\nDynamic power mode control(Press 4)");
+          printf("\nPower limit mode control(Press 5)");
+          printf("\nStatic power limit control(Press 6)");
+          printf("\nDynamic power cap control(Press 7)");
+          printf("\nDerated circuit cap control(Press 8)");
+          printf("\nRated circuit cap control(Press 9)");
+        }
+        else {
+          printf("\nUID LED control(Press 0)");
+          printf("\nPower control(Press 1)");
+        }
+
         printf("\nEnter your option:");
         scanf("%d", &controlNumber);
+
+        if (resourceid == powerSubsystemResId) {
+          switch (controlNumber) {
+            case OA_SOAP_DYNAMIC_PWR_CNTRL:
+              control_type = SAHPI_CTRL_TYPE_DIGITAL;
+              break;
+            case OA_SOAP_PWR_MODE_CNTRL:
+            case OA_SOAP_PWR_LIMIT_MODE_CNTRL:
+              control_type = SAHPI_CTRL_TYPE_DISCRETE;
+              break;
+            case OA_SOAP_STATIC_PWR_LIMIT_CNTRL:
+            case OA_SOAP_DYNAMIC_PWR_CAP_CNTRL:
+            case OA_SOAP_DERATED_CIRCUIT_CAP_CNTRL:
+            case OA_SOAP_RATED_CIRCUIT_CAP_CNTRL:
+              control_type = SAHPI_CTRL_TYPE_ANALOG;
+              break; 
+          }
+        }
 
         printf("Possible control mode options are: \n");
         printf("\tPress 1 for AUTO MODE \n");
@@ -88,24 +125,60 @@ int main(int argc, char **argv)
                 exit (-1);
         }
 
+        controlState.Type = control_type;
 
-        controlState.Type = SAHPI_CTRL_TYPE_DIGITAL;
+        switch (control_type) {
+          case SAHPI_CTRL_TYPE_DIGITAL:
+            printf("Possible control state options are: \n");
+            printf("\tPress 1 for ON \n");
+            printf("\tPress 2 for OFF \n");
+            printf("Please enter your option: ");
+            scanf("%d", &modeOption);
+            switch (modeOption) {
+                    case 1 :
+                            controlState.StateUnion.Digital =
+                              SAHPI_CTRL_STATE_ON;
+                            break;
+                    case 2 :
+                            controlState.StateUnion.Digital =
+                              SAHPI_CTRL_STATE_OFF;
+                            break;
+                    default :
+                            printf("Wrong option selected. Exiting");
+                            exit (-1);
+            }
 
-        printf("Possible control state options are: \n");
-        printf("\tPress 1 for ON \n");
-        printf("\tPress 2 for OFF \n");
-        printf("Please enter your option: ");
-        scanf("%d", &modeOption);
-        switch (modeOption) {
-                case 1 :
-                        controlState.StateUnion.Digital = SAHPI_CTRL_STATE_ON;
-                        break;
-                case 2 :
-                        controlState.StateUnion.Digital = SAHPI_CTRL_STATE_OFF;
-                        break;
-                default :
-                        printf("Wrong option selected. Exiting");
-                        exit (-1);
+            break;
+          case SAHPI_CTRL_TYPE_DISCRETE:
+            printf("Possible control state options are: \n");
+            if (controlNumber == OA_SOAP_PWR_MODE_CNTRL) {
+              printf("\tPress 1 for C7000_PWR_NON_REDUNDANT \n");
+              printf("\tPress 2 for C7000_PWR_AC_REDUNDANT \n");
+              printf("\tPress 3 for C7000_PWR_SUPPLY_REDUNDANT \n");
+            } else {
+              printf("\tPress 0 for C7000_PWR_LIMIT_NONE \n");
+              printf("\tPress 1 for C7000_PWR_LIMIT_STATIC \n");
+              printf("\tPress 2 for C7000_PWR_LIMIT_DYNAMIC_CAP \n");
+            }
+            printf("Please enter your option: ");
+            scanf("%d", &modeOption);
+            controlState.StateUnion.Discrete = modeOption;
+            break;
+          case SAHPI_CTRL_TYPE_ANALOG:
+            rv = saHpiRdrGetByInstrumentId(sessionid, resourceid,
+                                           SAHPI_CTRL_RDR,
+                                           controlNumber, &rdr);
+            if (rv != SA_OK) {
+              printf("Error: cannot get ctrl rdr by instrument id. Exiting");
+              exit (-1);
+            };
+            ctrl = &(rdr.RdrTypeUnion.CtrlRec);
+            analog = &(ctrl->TypeUnion.Analog);
+            printf("Choose an analog value for the control (range = %d - %d): \
+\n", analog->Min, analog->Max);
+            scanf("%d", &modeOption);
+            controlState.StateUnion.Analog = modeOption;
+            break; 
         }
 
         rv = saHpiControlSet(sessionid, resourceid, controlNumber,

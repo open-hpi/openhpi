@@ -35,6 +35,8 @@
 
 #include "hpi_test.h"
 
+extern int powerSubsystemResId;
+
 int main(int argc, char **argv)
 {
         int number_resources = 0;
@@ -64,13 +66,31 @@ int main(int argc, char **argv)
                 exit(-1);
         }
 
+        if (powerSubsystemResId < 0) {
+          printf("Error: could not find the C7000 Power Subsystem resource. \
+Exiting test...\n");
+          exit(-1);
+        }
+
         printf("\nPlease enter the resource id: ");
         scanf("%d", &resourceid);
 
 	printf("\nSupported controls on the resource are:");
-	printf("\nUID LED control(Press 0)");
-	printf("\nPower control(Press 1)");
+        if (resourceid == powerSubsystemResId) {
+	  printf("\nPower mode control(Press 3)");
+	  printf("\nDynamic power mode control(Press 4)");
+	  printf("\nPower limit mode control(Press 5)");
+	  printf("\nStatic power limit control(Press 6)");
+	  printf("\nDynamic power cap control(Press 7)");
+	  printf("\nDerated circuit cap control(Press 8)");
+	  printf("\nRated circuit cap control(Press 9)");
+        }
+        else {
+	  printf("\nUID LED control(Press 0)");
+	  printf("\nPower control(Press 1)");
+        }
 	printf("\nEnter your option:");
+
 	scanf("%d", &controlNumber);
 
         rv = saHpiControlGet(sessionid, resourceid, controlNumber,
