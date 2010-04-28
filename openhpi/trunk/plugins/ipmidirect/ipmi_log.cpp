@@ -294,7 +294,7 @@ cIpmiLog::Log( const char *fmt, ... )
 
   va_end( ap );
 
-  char buf[10230] = "";
+  char buf[10240] = "";
 
   char *p = b;
   char *q = buf;
