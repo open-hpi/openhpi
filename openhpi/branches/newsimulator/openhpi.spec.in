@@ -191,7 +191,7 @@ testing the core library.
 %endif
 
 %if 0%{?with_new_simulator}
-%description new simulator
+%description new_simulator
 OpenHPI plugin that reports fakes hardware used for
 testing the core library.
 %endif
@@ -330,7 +330,7 @@ make DESTDIR=%{buildroot} install
 %files new_simulator
 ###################################################
 %defattr(-,root,root)
-%{_libdir}/%{name}/libnewsim.*
+%{_libdir}/%{name}/libnew_simulator.*
 %endif
 
 ###################################################
