@@ -263,6 +263,7 @@ make DESTDIR=%{buildroot} install
 %endif
 %dir %{_sysconfdir}/%{name}/
 %config(noreplace) %attr(0640,root,root) %{_sysconfdir}/%{name}/%{name}.conf
+%config(noreplace) %attr(0640,root,root) %{_sysconfdir}/%{name}/simulation.data
 %dir %{_libdir}/%{name}
 %dir /var/lib/%{name}
 %{_libdir}/libopenhpi*.so.*
