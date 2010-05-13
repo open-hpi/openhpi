@@ -180,7 +180,11 @@ handler libsimulator {
 ## Section for new_simulator plugin
 #handler libnew_simulator {
 #        entity_root = "{SYSTEM_CHASSIS,9}"
-#        file = "etc/openhpi/simulation.data"
+## Location of the simulation data file 
+## Normally an example file is installed in the same directory as openhpi.conf.
+## Please change the following entry if you have configured another install
+## directory or will use your own simulation.data.
+#        file = "/etc/openhpi/simulation.data"
 #        # infos goes to logfile and stdout
 #        # the logfile are log00.log, log01.log ...
 #        logflags = "file stdout"
