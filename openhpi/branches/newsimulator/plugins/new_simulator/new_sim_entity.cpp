@@ -182,6 +182,33 @@ void NewSimulatorEntityPath::AppendRoot( int idx ) {
    m_entity_path.Entry[idx].EntityLocation = 0;
 }
 
+/**
+ * Replace the entity path root entry or append a root entry if 
+ * it is missing. 
+ * 
+ * @param root new root entry
+ **/
+void NewSimulatorEntityPath::ReplaceRoot( NewSimulatorEntityPath root ) {
+   int pos = 0;
+   bool notfound = true;
+
+   while ((pos < SAHPI_MAX_ENTITY_PATH) && (notfound)) {
+   	  if (m_entity_path.Entry[pos].EntityType == SAHPI_ENT_ROOT) {
+   	     notfound = false;
+   	     if (pos > 0) {
+   	        m_entity_path.Entry[pos-1].EntityLocation = root.GetEntryInstance( 0 );
+   	        m_entity_path.Entry[pos-1].EntityType == root.GetEntryType( 0 );
+   	     }
+   	  }
+      pos++;
+   }
+   
+   if ( notfound ) {
+      oh_concat_ep( &m_entity_path, &root.m_entity_path );  
+   }
+   stdlog << "DBG: Replace root - new path: " << m_entity_path << "\n";
+}
+
 
 /**
  * Operator for printing an entity path 
@@ -212,3 +239,5 @@ bool NewSimulatorEntityPath::FromString( const char *str ) {
    
    return oh_encode_entitypath( str, &m_entity_path ) ? false : true;
 }
+
+

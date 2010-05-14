@@ -51,7 +51,8 @@ SimulatorToken::~SimulatorToken() {
 /**
  * Constructor
  **/
-NewSimulatorFileUtil::NewSimulatorFileUtil() {
+NewSimulatorFileUtil::NewSimulatorFileUtil( NewSimulatorEntityPath root ):
+                       m_root_ep( root ) {
 }
 
 
@@ -59,7 +60,7 @@ NewSimulatorFileUtil::NewSimulatorFileUtil() {
  * Constructor with Scanner information
  **/
 NewSimulatorFileUtil::NewSimulatorFileUtil(GScanner *scanner) :
-                                           m_scanner( scanner ){
+                                           m_scanner( scanner ) {
 }
 
 
@@ -227,6 +228,7 @@ bool NewSimulatorFileUtil::process_entity( SaHpiEntityPathT &path ) {
       gchar *val_str;
       val_str = g_strdup(m_scanner->value.v_string);
       ep.FromString(val_str);
+      ep.ReplaceRoot( m_root_ep );
       path = ep;
 
    } else {

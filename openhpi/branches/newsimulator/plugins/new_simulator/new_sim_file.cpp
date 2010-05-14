@@ -118,8 +118,9 @@ extern "C" {
  * 
  * @param filename Pointer with the simulation filename
  */
-NewSimulatorFile::NewSimulatorFile(const char *filename) 
-  : m_version ( GEN_SIM_DATA_VERSION ) {
+NewSimulatorFile::NewSimulatorFile(const char *filename, NewSimulatorEntityPath root) 
+  : NewSimulatorFileUtil( root ),
+    m_version ( GEN_SIM_DATA_VERSION ) {
    
    stdlog << "DBG: NewSimulatorFile.constructor with " << filename << "\n";
    m_scanner = g_scanner_new(&oh_scanner_config);
@@ -202,6 +203,7 @@ bool NewSimulatorFile::Open() {
    m_tokens.Add(new SimulatorToken( "FUMI_LOG_TARGET_DATA", FUMI_LOG_TARGET_DATA_TOKEN_HANDLER ));
    
    stdlog << "DBG: NewSimulatorFile::Open()\n";
+   stdlog << "DBG: Working with entity path: " << m_root_ep << "\n";
  
    if (m_depth != 0) 
       return false;
@@ -456,6 +458,7 @@ bool NewSimulatorFile::process_rpt_token( NewSimulatorDomain *domain ) {
                   
                   val_str = g_strdup(m_scanner->value.v_string);
                   res->EntityPath().FromString(val_str);
+                  res->EntityPath().ReplaceRoot( m_root_ep );
                   stdlog << "DBG: rpt - Enitity " << res->EntityPath() << "\n";
                   
                } else {
@@ -616,6 +619,7 @@ bool NewSimulatorFile::process_rdr_token( NewSimulatorResource *res ) {
             
       // Process the token section
       if (filerdr != NULL) {
+         filerdr->setRoot( m_root_ep );
          success = filerdr->process_rdr_token();
          stdlog << "DBG: process_rdr_token returns " << success << "\n";
          if (success)
