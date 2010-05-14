@@ -60,6 +60,7 @@ public:
    void                SetEntryInstance( int idx, SaHpiEntityLocationT instance );
  
    void                AppendRoot( int idx );
+   void                ReplaceRoot( NewSimulatorEntityPath root );
    bool                FromString( const char *str );
                            
    NewSimulatorEntityPath &operator+=( const NewSimulatorEntityPath &epath );

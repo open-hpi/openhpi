@@ -27,6 +27,10 @@
 #include "new_sim_text_buffer.h"
 #endif
 
+#ifndef __NEW_SIM_ENTITY_H__
+#include "new_sim_entity.h"
+#endif
+
 extern "C" {
 #include "SaHpi.h"
 }
@@ -75,8 +79,8 @@ enum SimTokenType {
  **/
 class SimulatorToken {
 	private:
-	gchar *m_name;       	//!< Name of one token
-	guint m_token;          //!< Value of the token
+	gchar              *m_name;      //!< Name of one token
+	guint              m_token;      //!< Value of the token
 	
 	public:
 
@@ -95,12 +99,15 @@ class SimulatorToken {
  * Provides some helper functions for parsing.
  **/
 class NewSimulatorFileUtil {
+   
    protected:
    GScanner               *m_scanner; //!< Holding the scanner pointer
+   /// Root entity path comes from configuration file
+   NewSimulatorEntityPath m_root_ep;
    
    public:
-   NewSimulatorFileUtil();
-   NewSimulatorFileUtil(GScanner *scanner);
+   NewSimulatorFileUtil( NewSimulatorEntityPath root );
+   NewSimulatorFileUtil( GScanner *scanner );
    ~NewSimulatorFileUtil();
 
    bool process_textbuffer(NewSimulatorTextBuffer &buffer);

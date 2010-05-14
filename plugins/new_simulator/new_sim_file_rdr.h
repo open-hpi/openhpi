@@ -38,6 +38,10 @@ extern "C" {
 #include "new_sim_resource.h"
 #endif
 
+#ifndef __NEW_SIM_ENTITY_H__
+#include "new_sim_entity.h"
+#endif
+
 /**
  * @class NewSimulatorFileRdr
  * 
@@ -55,6 +59,8 @@ class NewSimulatorFileRdr : public NewSimulatorFileUtil {
    NewSimulatorFileRdr(GScanner *scanner);
    virtual ~NewSimulatorFileRdr();
    
+   /// Set Root entity path
+   void setRoot( NewSimulatorEntityPath root ) { m_root_ep = root; }
    bool process_rdr_token( void );
    /// abstract method in which the childs should parse the rdr type union information
    virtual NewSimulatorRdr * process_token( NewSimulatorResource *res ) = 0;

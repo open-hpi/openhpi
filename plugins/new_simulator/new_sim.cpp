@@ -4192,10 +4192,10 @@ bool NewSimulator::IfOpen( GHashTable *handler_config ) {
    	  return false;
    }
    
-   NewSimulatorFile *simfile = new NewSimulatorFile( filename );
-
+   NewSimulatorFile *simfile = new NewSimulatorFile( filename, m_entity_root );
+   
    if ( !simfile ) {
-      stdlog << "NewSimualtor cannot alloc File object !\n";
+      stdlog << "NewSimulator cannot alloc File object !\n";
       return false;
    }
 

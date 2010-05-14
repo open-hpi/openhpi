@@ -67,7 +67,7 @@ class NewSimulatorFile : public NewSimulatorFileUtil {
    bool process_empty();
    
    public:
-   NewSimulatorFile(const char *filename);
+   NewSimulatorFile(const char *filename, NewSimulatorEntityPath root);
    ~NewSimulatorFile();
    /** @enum mode in which the class can work **/
    enum mode {
