@@ -536,7 +536,7 @@ RPT {
             Data="Watchdog 1"
          }
          RDR_DETAIL {
-            WatchdogNum=1
+            WatchdogNum=0
             Oem=0
             WTD_GET={
                Log=1
@@ -1613,7 +1613,7 @@ RPT {
             Data="Watchdog 2"
          }
          RDR_DETAIL {
-            WatchdogNum=1
+            WatchdogNum=0
             Oem=0
             WTD_GET={
                Log=1
