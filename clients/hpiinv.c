@@ -532,15 +532,17 @@ main(int argc, char **argv)
     if (rv != SA_OK) printf("RptEntryGet: rid=%d rv = %d\n",rptentryid,rv);
     if (rv == SA_OK)
     {
+      /* obtain resource tag */
+      char tagstr[MAX_STRSIZE];
+      fixstr(&rptentry.ResourceTag,tagstr);
+
       /* walk the RDR list for this RPT entry */
       entryid = SAHPI_FIRST_ENTRY;
-      /* OpenHPI plugin sometimes has bad RPT Tag DataLength here. */
-      // rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0;
       resourceid = rptentry.ResourceId;
       if (fdebug) printf("rptentry[%d] resourceid=%d\n", rptentryid,resourceid);
       if (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)
       {
-        printf("Resource[%d] Tag: %s \thas inventory capability\n", rptentryid,rptentry.ResourceTag.Data);
+        printf("Resource[%d] Tag: %s \thas inventory capability\n", rptentryid,tagstr);
 	rv_rdr = SA_OK;
 	while ((rv_rdr == SA_OK) && (entryid != SAHPI_LAST_ENTRY))
 	{
@@ -610,8 +612,7 @@ main(int argc, char **argv)
           } /*end while rdr*/
         } /*endif rpt invent capab*/
         else 
-	  if (fdebug) printf("Resource[%d] Tag: %s\n", rptentryid,
-				rptentry.ResourceTag.Data);
+	  if (fdebug) printf("Resource[%d] Tag: %s\n", rptentryid,tagstr);
       }  /*endif rpt ok*/
       rptentryid = nextrptentryid;
   }  /*end rpt loop */
