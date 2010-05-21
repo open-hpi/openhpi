@@ -11,6 +11,7 @@
  *
  * Author(s):
  *      W. David Ashley <dashley@us.ibm.com>
+ *      Anton Pak <anton.pak@pigeonpoint.com>
  *
  */
 
@@ -28,7 +29,6 @@
 #include <glib.h>
 
 #include "strmsock.h"
-#include "marshal.h"
 
 
 // Local definitions
@@ -162,8 +162,9 @@ bool strmsock::ReadMsg(char *data)
 		return true;
 	}
 	memcpy(&header, data, sizeof(cMessageHeader));
+    remote_byte_order = ( ( header.m_flags & dMhEndianBit ) != 0 ) ? G_LITTLE_ENDIAN : G_BIG_ENDIAN;
         // swap id and len if nessesary in the reply header
-	if ((header.m_flags & dMhEndianBit) != MarshalByteOrder()) {
+	if (remote_byte_order != G_BYTE_ORDER) {
 		header.m_id  = GUINT32_SWAP_LE_BE(header.m_id);
 		header.m_len = GUINT32_SWAP_LE_BE(header.m_len);
 	}
@@ -192,9 +193,11 @@ void strmsock::MessageHeaderInit(tMessageType mtype, unsigned char flags,
 	header.m_flags &= 0x0f;
 	header.m_flags |= dMhVersion << 4;
 
-        // set endian
-	header.m_flags &= ~dMhEndianBit;
-	header.m_flags |= MarshalByteOrder();
+    // set byte order
+    header.m_flags &= ~dMhEndianBit;
+    if ( G_BYTE_ORDER == G_LITTLE_ENDIAN ) {
+        header.m_flags |= dMhEndianBit;
+    }
 
 	header.m_id = id;
 	header.m_len = len;

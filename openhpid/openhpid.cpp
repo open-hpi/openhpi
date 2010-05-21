@@ -471,13 +471,8 @@ static tResult HandleMsg(psstrmsock thrdinst,
         tResult result = eResultReply;
         char *pReq = data + sizeof(cMessageHeader);
         gpointer thrdid = g_thread_self();
-        unsigned char request_mFlags;
         
         hm = HpiMarshalFind(thrdinst->header.m_id);
-
-        // keep a local copy of the requests flags
-        // before it is overwritten in the MessageHeaderInit below.
-        request_mFlags = thrdinst->header.m_flags;
 
         // init reply header
         thrdinst->MessageHeaderInit((tMessageType) thrdinst->header.m_type, 0,
@@ -492,7 +487,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiSessionOpen.", thrdid);
                 
-                        if ( HpiDemarshalRequest1( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest1( thrdinst->remote_byte_order,
                                                         hm, pReq, &domain_id ) < 0 )
                                 return eResultError;
                 
@@ -510,7 +505,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiSessionClose.", thrdid);
                 
-                        if ( HpiDemarshalRequest1( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest1( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id ) < 0 )
                                 return eResultError;
                 
@@ -527,7 +522,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiDiscover.", thrdid);
                 
-                        if ( HpiDemarshalRequest1( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest1( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id ) < 0 )
                                 return eResultError;
                 
@@ -543,7 +538,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiDomainInfoGet.", thrdid);
                 
-                        if ( HpiDemarshalRequest1( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest1( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id ) < 0 )
                                 return eResultError;
                 
@@ -561,7 +556,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiDrtEntryGet.", thrdid);
                 
-                        if ( HpiDemarshalRequest2( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &entry_id ) < 0 )
                                 return eResultError;
                 
@@ -578,7 +573,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiDomainTagSet.", thrdid);
                 
-                        if ( HpiDemarshalRequest2( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &domain_tag ) < 0 )
                                 return eResultError;
                 
@@ -596,7 +591,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiRptEntryGet.", thrdid);
                 
-                        if ( HpiDemarshalRequest2( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &entry_id ) < 0 )
                                 return eResultError;
                 
@@ -613,7 +608,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiRptEntryGetByResourceId.", thrdid);
                 
-                        if ( HpiDemarshalRequest2( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id ) < 0 )
                                 return eResultError;
                 
@@ -630,7 +625,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiResourceSeveritySet.", thrdid);
                 
-                        if ( HpiDemarshalRequest3( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &severity ) < 0 )
                                 return eResultError;
@@ -650,7 +645,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiResourceTagSet.", thrdid);
                 
-                        if ( HpiDemarshalRequest3( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &resource_tag ) < 0 )
                                 return eResultError;
@@ -667,7 +662,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
 
                         PVERBOSE1("%p Processing saHpiMyEntityPathGet.", thrdid);
 
-                        if ( HpiDemarshalRequest1( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest1( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id ) < 0 )
                                 return eResultError;
 
@@ -683,7 +678,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiResourceIdGet.", thrdid);
                 
-                        if ( HpiDemarshalRequest1( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest1( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id ) < 0 )
                                 return eResultError;
                 
@@ -707,7 +702,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiGetIdByEntityPath.", thrdid);
                 
-                        if ( HpiDemarshalRequest4( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest4( thrdinst->remote_byte_order,
                                                    hm, pReq,
                                                    &session_id, &entity_path,
                                                    &instrument_type, &instance_id ) < 0 )
@@ -738,7 +733,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiGetChildEntityPath.", thrdid);
                 
-                        if ( HpiDemarshalRequest3( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
                                                    hm, pReq,
                                                    &session_id, &parent_ep,
                                                    &instance_id ) < 0 )
@@ -761,7 +756,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
 
                         PVERBOSE1("%p Processing saHpiResourceFailedRemove.", thrdid);
                 
-                        if ( HpiDemarshalRequest2( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
                                                    hm, pReq,
                                                    &session_id, &resource_id ) < 0 )
                                 return eResultError;
@@ -779,7 +774,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiEventLogInfoGet.", thrdid);
                 
-                        if ( HpiDemarshalRequest2( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id ) < 0 )
                                 return eResultError;
                 
@@ -796,7 +791,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiEventLogCapabilitiesGet.", thrdid);
                 
-                        if ( HpiDemarshalRequest2( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
                                                    hm, pReq, &session_id, &resource_id ) < 0 )
                                 return eResultError;
                 
@@ -822,7 +817,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                         memset( &rpt_entry, 0, sizeof( SaHpiRptEntryT ) );
                         memset( &event_log_entry, 0, sizeof( SaHpiEventLogEntryT ) );
                 
-                        if ( HpiDemarshalRequest3( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &entry_id ) < 0 )
                                 return eResultError;
@@ -843,7 +838,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiEventLogEntryAdd.", thrdid);
                 
-                        if ( HpiDemarshalRequest3( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &evt_entry ) < 0 )
                                 return eResultError;
@@ -861,7 +856,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiEventLogClear.", thrdid);
                 
-                        if ( HpiDemarshalRequest2( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id ) < 0 )
                                 return eResultError;
                 
@@ -878,7 +873,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiEventLogTimeGet.", thrdid);
                 
-                        if ( HpiDemarshalRequest2( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id ) < 0 )
                                 return eResultError;
                 
@@ -895,7 +890,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiEventLogTimeSet.", thrdid);
                 
-                        if ( HpiDemarshalRequest3( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &ti ) < 0 )
                                 return eResultError;
@@ -913,7 +908,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiEventLogStateGet.", thrdid);
                 
-                        if ( HpiDemarshalRequest2( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id ) < 0 )
                                 return eResultError;
                 
@@ -930,7 +925,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiEventLogStateSet.", thrdid);
                 
-                        if ( HpiDemarshalRequest3( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &enable ) < 0 )
                                 return eResultError;
@@ -947,7 +942,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiEventLogOverflowReset.", thrdid);
                 
-                        if ( HpiDemarshalRequest2( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id ) < 0 )
                                 return eResultError;
                 
@@ -962,7 +957,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiSubscribe.", thrdid);
                 
-                        if ( HpiDemarshalRequest1( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest1( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id ) < 0 )
                                 return eResultError;
                 
@@ -977,7 +972,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiUnsubscribe.", thrdid);
                 
-                        if ( HpiDemarshalRequest1( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest1( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id ) < 0 )
                                 return eResultError;
                 
@@ -997,7 +992,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiEventGet.", thrdid);
                 
-                        if ( HpiDemarshalRequest2( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &timeout ) < 0 )
                                 return eResultError;
                 
@@ -1014,7 +1009,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiEventAdd.", thrdid);
                 
-                        if ( HpiDemarshalRequest2( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &event ) < 0 )
                                 return eResultError;
                 
@@ -1032,7 +1027,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiAlarmGetNext.", thrdid);
                 
-                        if ( HpiDemarshalRequest4( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest4( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &severity,
                                                         &unack, &alarm ) < 0 )
                                 return eResultError;
@@ -1050,7 +1045,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiAlarmGet.", thrdid);
                 
-                        if ( HpiDemarshalRequest2( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &alarm_id ) < 0 )
                                 return eResultError;
                 
@@ -1067,7 +1062,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiAlarmAcknowledge.", thrdid);
                 
-                        if ( HpiDemarshalRequest3( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &alarm_id,
                                                         &severity ) < 0 )
                                 return eResultError;
@@ -1084,7 +1079,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiAlarmAdd.", thrdid);
                 
-                        if ( HpiDemarshalRequest2( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &alarm ) < 0 )
                                 return eResultError;
                 
@@ -1101,7 +1096,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiAlarmDelete.", thrdid);
                 
-                        if ( HpiDemarshalRequest3( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &alarm_id,
                                                         &severity ) < 0 )
                                 return eResultError;
@@ -1121,7 +1116,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiRdrGet.", thrdid);
                 
-                        if ( HpiDemarshalRequest3( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &entry_id ) < 0 )
                                 return eResultError;
@@ -1142,7 +1137,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiRdrGetByInstrumentId.", thrdid);
                 
-                        if ( HpiDemarshalRequest4( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest4( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &rdr_type, &inst_id ) < 0 )
                                 return eResultError;
@@ -1161,7 +1156,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
 
                         PVERBOSE1("%p Processing saHpiRdrUpdateCountGet.", thrdid);
 
-                        if ( HpiDemarshalRequest2( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
                                                    hm, pReq, &session_id, &resource_id ) < 0 )
                                 return eResultError;
 
@@ -1180,7 +1175,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiSensorReadingGet.", thrdid);
                 
-                        if ( HpiDemarshalRequest3( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &sensor_num ) < 0 )
                                 return eResultError;
@@ -1200,7 +1195,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiSensorThresholdsGet.", thrdid);
                 
-                        if ( HpiDemarshalRequest3( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &sensor_num ) < 0 )
                                 return eResultError;
@@ -1221,7 +1216,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiSensorThresholdsSet.", thrdid);
                 
-                        if ( HpiDemarshalRequest4( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest4( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &sensor_num, &sensor_thresholds ) < 0 )
                                 return eResultError;
@@ -1243,7 +1238,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiSensorTypeGet.", thrdid);
                 
-                        if ( HpiDemarshalRequest3( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &sensor_num ) < 0 )
                                 return eResultError;
@@ -1263,7 +1258,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiSensorEnableGet.", thrdid);
                 
-                        if ( HpiDemarshalRequest3( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &sensor_num ) < 0 )
                                 return eResultError;
@@ -1283,7 +1278,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiSensorEnableSet.", thrdid);
                 
-                        if ( HpiDemarshalRequest4( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest4( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &sensor_num, &enabled ) < 0 )
                                 return eResultError;
@@ -1303,7 +1298,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiSensorEventEnableGet.", thrdid);
                 
-                        if ( HpiDemarshalRequest3( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &sensor_num ) < 0 )
                                 return eResultError;
@@ -1323,7 +1318,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiSensorEventEnableSet.", thrdid);
                 
-                        if ( HpiDemarshalRequest4( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest4( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &sensor_num, &enables ) < 0 )
                                 return eResultError;
@@ -1344,7 +1339,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiSensorEventMasksGet.", thrdid);
                 
-                        if ( HpiDemarshalRequest5( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest5( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &sensor_num, &assert_mask,
                                                         &deassert_mask ) < 0 )
@@ -1367,7 +1362,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiSensorEventMasksSet.", thrdid);
                 
-                        if ( HpiDemarshalRequest6( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest6( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &sensor_num, &action, &assert_mask,
                                                         &deassert_mask ) < 0 )
@@ -1388,7 +1383,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiControlTypeGet.", thrdid);
                 
-                        if ( HpiDemarshalRequest3( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &ctrl_num ) < 0 )
                                 return eResultError;
@@ -1409,7 +1404,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiControlGet.", thrdid);
                 
-                        if ( HpiDemarshalRequest4( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest4( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &ctrl_num, &ctrl_state ) < 0 )
                                 return eResultError;
@@ -1430,7 +1425,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiControlSet.", thrdid);
                 
-                        if ( HpiDemarshalRequest5( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest5( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &ctrl_num, &ctrl_mode, &ctrl_state ) < 0 )
                                 return eResultError;
@@ -1450,7 +1445,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiIdrInfoGet.", thrdid);
                 
-                        if ( HpiDemarshalRequest3( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &idr_id ) < 0 )
                                 return eResultError;
@@ -1473,7 +1468,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiIdrAreaHeaderGet.", thrdid);
                 
-                        if ( HpiDemarshalRequest5( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest5( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &idr_id, &area, &area_id ) < 0 )
                                 return eResultError;
@@ -1494,7 +1489,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiIdrAreaAdd.", thrdid);
                 
-                        if ( HpiDemarshalRequest4( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest4( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &idr_id, &area ) < 0 )
                                 return eResultError;
@@ -1515,7 +1510,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiIdrAreaAddById.", thrdid);
                 
-                        if ( HpiDemarshalRequest5( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest5( thrdinst->remote_byte_order,
                                                    hm, pReq,
                                                    &session_id, &resource_id,
                                                    &idr_id, &area_type, &area_id ) < 0 )
@@ -1536,7 +1531,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiIdrAreaAdd.", thrdid);
                 
-                        if ( HpiDemarshalRequest4( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest4( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &idr_id, &area_id ) < 0 )
                                 return eResultError;
@@ -1560,7 +1555,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiIdrFieldGet.", thrdid);
                 
-                        if ( HpiDemarshalRequest6( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest6( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &idr_id, &area_id, &type, &field_id ) < 0 )
                                 return eResultError;
@@ -1580,7 +1575,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiIdrFieldAdd.", thrdid);
                 
-                        if ( HpiDemarshalRequest4( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest4( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &idr_id, &field ) < 0 )
                                 return eResultError;
@@ -1600,7 +1595,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiIdrFieldAddById.", thrdid);
                 
-                        if ( HpiDemarshalRequest4( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest4( thrdinst->remote_byte_order,
                                                    hm, pReq,
                                                    &session_id, &resource_id,
                                                    &idr_id, &field ) < 0 )
@@ -1621,7 +1616,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiIdrFieldSet.", thrdid);
                 
-                        if ( HpiDemarshalRequest4( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest4( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &idr_id, &field ) < 0 )
                                 return eResultError;
@@ -1642,7 +1637,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiIdrFieldSet.", thrdid);
                 
-                        if ( HpiDemarshalRequest5( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest5( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &idr_id, &area_id, &field_id ) < 0 )
                                 return eResultError;
@@ -1662,7 +1657,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiWatchdogTimerGet.", thrdid);
                 
-                        if ( HpiDemarshalRequest3( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &watchdog_num ) < 0 )
                                 return eResultError;
@@ -1682,7 +1677,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiWatchdogTimerSet.", thrdid);
                 
-                        if ( HpiDemarshalRequest4( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest4( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &watchdog_num, &watchdog ) < 0 )
                                 return eResultError;
@@ -1701,7 +1696,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiWatchdogTimerReset.", thrdid);
                 
-                        if ( HpiDemarshalRequest3( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &watchdog_num ) < 0 )
                                 return eResultError;
@@ -1723,7 +1718,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiAnnunciatorGetNext.", thrdid);
                 
-                        if ( HpiDemarshalRequest6( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest6( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &annun_num, &severity, &unack,
                                                         &announcement ) < 0 )
@@ -1745,7 +1740,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiAnnunciatorGet.", thrdid);
                 
-                        if ( HpiDemarshalRequest4( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest4( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &annun_num, &entry_id ) < 0 )
                                 return eResultError;
@@ -1766,7 +1761,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiAnnunciatorAcknowledge.", thrdid);
                 
-                        if ( HpiDemarshalRequest5( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest5( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &annun_num, &entry_id, &severity ) < 0 )
                                 return eResultError;
@@ -1786,7 +1781,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiAnnunciatorAdd.", thrdid);
                 
-                        if ( HpiDemarshalRequest4( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest4( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &annun_num, &announcement ) < 0 )
                                 return eResultError;
@@ -1807,7 +1802,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiAnnunciatorAdd.", thrdid);
                 
-                        if ( HpiDemarshalRequest5( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest5( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &annun_num, &entry_id, &severity ) < 0 )
                                 return eResultError;
@@ -1827,7 +1822,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiAnnunciatorModeGet.", thrdid);
                 
-                        if ( HpiDemarshalRequest3( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &annun_num ) < 0 )
                                 return eResultError;
@@ -1847,7 +1842,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiAnnunciatorModeSet.", thrdid);
                 
-                        if ( HpiDemarshalRequest4( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest4( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &annun_num, &mode ) < 0 )
                                 return eResultError;
@@ -1867,7 +1862,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiDimiInfoGet.", thrdid);
                 
-                        if ( HpiDemarshalRequest3( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &dimi_num ) < 0 )
                                 return eResultError;
@@ -1888,7 +1883,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiDimiTestInfoGet.", thrdid);
                 
-                        if (HpiDemarshalRequest4(request_mFlags & dMhEndianBit,
+                        if (HpiDemarshalRequest4(thrdinst->remote_byte_order,
                                                  hm, pReq,
                                                  &session_id, &resource_id,
                                                  &dimi_num, &test_num) < 0)
@@ -1912,7 +1907,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiDimiTestReadinessGet.", thrdid);
                 
-                        if (HpiDemarshalRequest4(request_mFlags & dMhEndianBit,
+                        if (HpiDemarshalRequest4(thrdinst->remote_byte_order,
                                                  hm, pReq,
                                                  &session_id, &resource_id,
                                                  &dimi_num, &test_num) < 0)
@@ -1936,7 +1931,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiDimiTestStart.", thrdid);
                 
-                        if (HpiDemarshalRequest5(request_mFlags & dMhEndianBit,
+                        if (HpiDemarshalRequest5(thrdinst->remote_byte_order,
                                                  hm, pReq,
                                                  &session_id, &resource_id,
                                                  &dimi_num, &test_num,
@@ -1962,7 +1957,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiDimiTestCancel.", thrdid);
                 
-                        if (HpiDemarshalRequest4(request_mFlags & dMhEndianBit,
+                        if (HpiDemarshalRequest4(thrdinst->remote_byte_order,
                                                  hm, pReq,
                                                  &session_id, &resource_id,
                                                  &dimi_num, &test_num) < 0)
@@ -1986,7 +1981,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiDimiTestStatusGet.", thrdid);
                 
-                        if (HpiDemarshalRequest4(request_mFlags & dMhEndianBit,
+                        if (HpiDemarshalRequest4(thrdinst->remote_byte_order,
                                                  hm, pReq,
                                                  &session_id, &resource_id,
                                                  &dimi_num, &test_num) < 0)
@@ -2011,7 +2006,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiDimiTestResultsGet.", thrdid);
                 
-                        if (HpiDemarshalRequest4(request_mFlags & dMhEndianBit,
+                        if (HpiDemarshalRequest4(thrdinst->remote_byte_order,
                                                  hm, pReq,
                                                  &session_id, &resource_id,
                                                  &dimi_num, &test_num) < 0)
@@ -2033,7 +2028,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                         SaHpiFumiSpecInfoT spec_info;
 
                         PVERBOSE1("%p Processing saHpiFumiSpecInfoGet.", thrdid);
-                        if (HpiDemarshalRequest3(request_mFlags & dMhEndianBit,
+                        if (HpiDemarshalRequest3(thrdinst->remote_byte_order,
                                         hm, pReq,
                                         &session_id, &resource_id, &fumi_num) < 0)
                                 return eResultError;
@@ -2052,7 +2047,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                         SaHpiFumiServiceImpactDataT service_impact;
 
                         PVERBOSE1("%p Processing saHpiFumiServiceImpactGet.", thrdid);
-                        if (HpiDemarshalRequest3(request_mFlags & dMhEndianBit,
+                        if (HpiDemarshalRequest3(thrdinst->remote_byte_order,
                                         hm, pReq,
                                         &session_id, &resource_id, &fumi_num) < 0)
                                 return eResultError;
@@ -2072,7 +2067,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
 			SaHpiTextBufferT source_uri;
 
                         PVERBOSE1("%p Processing saHpiFumiSourceSet.", thrdid);
-                        if (HpiDemarshalRequest5(request_mFlags & dMhEndianBit,
+                        if (HpiDemarshalRequest5(thrdinst->remote_byte_order,
                                         hm, pReq,
                                         &session_id, &resource_id,
                                         &fumi_num, &bank_num, &source_uri) < 0)
@@ -2092,7 +2087,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
 			SaHpiBankNumT bank_num;
 
                         PVERBOSE1("%p Processing saHpiFumiSourceInfoValidateStart.", thrdid);
-                        if (HpiDemarshalRequest4(request_mFlags & dMhEndianBit,
+                        if (HpiDemarshalRequest4(thrdinst->remote_byte_order,
                                         hm, pReq,
                                         &session_id, &resource_id,
                                         &fumi_num, &bank_num) < 0)
@@ -2113,7 +2108,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
 			SaHpiFumiSourceInfoT source_info;
 
                         PVERBOSE1("%p Processing saHpiFumiSourceInfoGet.", thrdid);
-                        if (HpiDemarshalRequest4(request_mFlags & dMhEndianBit,
+                        if (HpiDemarshalRequest4(thrdinst->remote_byte_order,
                                         hm, pReq,
                                         &session_id, &resource_id,
                                         &fumi_num, &bank_num) < 0)
@@ -2137,7 +2132,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                         SaHpiFumiComponentInfoT component_info;
 
                         PVERBOSE1("%p Processing saHpiFumiSourceComponentInfoGet.", thrdid);
-                        if (HpiDemarshalRequest5(request_mFlags & dMhEndianBit,
+                        if (HpiDemarshalRequest5(thrdinst->remote_byte_order,
                                         hm, pReq,
                                         &session_id, &resource_id,
                                         &fumi_num, &bank_num,
@@ -2161,7 +2156,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
 			SaHpiFumiBankInfoT bank_info;
 
                         PVERBOSE1("%p Processing saHpiFumiTargetInfoGet.", thrdid);
-                        if (HpiDemarshalRequest4(request_mFlags & dMhEndianBit,
+                        if (HpiDemarshalRequest4(thrdinst->remote_byte_order,
                                         hm, pReq,
                                         &session_id, &resource_id,
                                         &fumi_num, &bank_num) < 0)
@@ -2185,7 +2180,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                         SaHpiFumiComponentInfoT component_info;
 
                         PVERBOSE1("%p Processing saHpiFumiTargetComponentInfoGet.", thrdid);
-                        if (HpiDemarshalRequest5(request_mFlags & dMhEndianBit,
+                        if (HpiDemarshalRequest5(thrdinst->remote_byte_order,
                                         hm, pReq,
                                         &session_id, &resource_id,
                                         &fumi_num, &bank_num,
@@ -2208,7 +2203,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                         SaHpiFumiLogicalBankInfoT bank_info;
 
                         PVERBOSE1("%p Processing saHpiFumiLogicalTargetInfoGet.", thrdid);
-                        if (HpiDemarshalRequest3(request_mFlags & dMhEndianBit,
+                        if (HpiDemarshalRequest3(thrdinst->remote_byte_order,
                                         hm, pReq,
                                         &session_id, &resource_id,
                                         &fumi_num) < 0)
@@ -2231,7 +2226,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                         SaHpiFumiLogicalComponentInfoT component_info;
 
                         PVERBOSE1("%p Processing saHpiFumiLogicalTargetComponentInfoGet.", thrdid);
-                        if (HpiDemarshalRequest4(request_mFlags & dMhEndianBit,
+                        if (HpiDemarshalRequest4(thrdinst->remote_byte_order,
                                         hm, pReq,
                                         &session_id, &resource_id,
                                         &fumi_num, &entry_id ) < 0)
@@ -2252,7 +2247,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                         SaHpiFumiNumT fumi_num;
 
                         PVERBOSE1("%p Processing saHpiFumiBackupStart.", thrdid);
-                        if (HpiDemarshalRequest3(request_mFlags & dMhEndianBit,
+                        if (HpiDemarshalRequest3(thrdinst->remote_byte_order,
                                         hm, pReq,
                                         &session_id, &resource_id,
                                         &fumi_num) < 0)
@@ -2273,7 +2268,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
 			SaHpiUint32T position;
 
                         PVERBOSE1("%p Processing saHpiFumiBankBootOrderSet.", thrdid);
-                        if (HpiDemarshalRequest5(request_mFlags & dMhEndianBit,
+                        if (HpiDemarshalRequest5(thrdinst->remote_byte_order,
                                         hm, pReq,
                                         &session_id, &resource_id,
                                         &fumi_num, &bank_num, &position) < 0)
@@ -2294,7 +2289,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
 			SaHpiBankNumT target_bank;
 
                         PVERBOSE1("%p Processing saHpiFumiBankCopyStart.", thrdid);
-                        if (HpiDemarshalRequest5(request_mFlags & dMhEndianBit,
+                        if (HpiDemarshalRequest5(thrdinst->remote_byte_order,
                                         hm, pReq,
                                         &session_id, &resource_id,
                                         &fumi_num, &source_bank, &target_bank) < 0)
@@ -2314,7 +2309,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
 			SaHpiBankNumT bank_num;
 
                         PVERBOSE1("%p Processing saHpiFumiInstallStart.", thrdid);
-                        if (HpiDemarshalRequest4(request_mFlags & dMhEndianBit,
+                        if (HpiDemarshalRequest4(thrdinst->remote_byte_order,
                                         hm, pReq,
                                         &session_id, &resource_id,
                                         &fumi_num, &bank_num) < 0)
@@ -2335,7 +2330,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
 			SaHpiFumiUpgradeStatusT status;
 
                         PVERBOSE1("%p Processing saHpiFumiUpgradeStatusGet.", thrdid);
-                        if (HpiDemarshalRequest4(request_mFlags & dMhEndianBit,
+                        if (HpiDemarshalRequest4(thrdinst->remote_byte_order,
                                         hm, pReq,
                                         &session_id, &resource_id,
                                         &fumi_num, &bank_num) < 0)
@@ -2356,7 +2351,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
 			SaHpiBankNumT bank_num;
 
                         PVERBOSE1("%p Processing saHpiFumiTargetVerifyStart.", thrdid);
-                        if (HpiDemarshalRequest4(request_mFlags & dMhEndianBit,
+                        if (HpiDemarshalRequest4(thrdinst->remote_byte_order,
                                         hm, pReq,
                                         &session_id, &resource_id,
                                         &fumi_num, &bank_num) < 0)
@@ -2375,7 +2370,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                         SaHpiFumiNumT fumi_num;
 
                         PVERBOSE1("%p Processing saHpiFumiTargetVerifyMainStart.", thrdid);
-                        if (HpiDemarshalRequest3(request_mFlags & dMhEndianBit,
+                        if (HpiDemarshalRequest3(thrdinst->remote_byte_order,
                                         hm, pReq,
                                         &session_id, &resource_id,
                                         &fumi_num) < 0)
@@ -2395,7 +2390,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
 			SaHpiBankNumT bank_num;
 
                         PVERBOSE1("%p Processing saHpiFumiUpgradeCancel.", thrdid);
-                        if (HpiDemarshalRequest4(request_mFlags & dMhEndianBit,
+                        if (HpiDemarshalRequest4(thrdinst->remote_byte_order,
                                         hm, pReq,
                                         &session_id, &resource_id,
                                         &fumi_num, &bank_num) < 0)
@@ -2415,7 +2410,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                         SaHpiBoolT disable = SAHPI_FALSE;
 
                         PVERBOSE1("%p Processing saHpiFumiAutoRollbackDisableGet.", thrdid);
-                        if (HpiDemarshalRequest3(request_mFlags & dMhEndianBit,
+                        if (HpiDemarshalRequest3(thrdinst->remote_byte_order,
                                         hm, pReq,
                                         &session_id, &resource_id,
                                         &fumi_num) < 0)
@@ -2436,7 +2431,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                         SaHpiBoolT disable;
 
                         PVERBOSE1("%p Processing saHpiFumiAutoRollbackDisableSet.", thrdid);
-                        if (HpiDemarshalRequest4(request_mFlags & dMhEndianBit,
+                        if (HpiDemarshalRequest4(thrdinst->remote_byte_order,
                                         hm, pReq,
                                         &session_id, &resource_id,
                                         &fumi_num, &disable) < 0)
@@ -2455,7 +2450,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                         SaHpiFumiNumT fumi_num;
 
                         PVERBOSE1("%p Processing saHpiFumiRollbackStart.", thrdid);
-                        if (HpiDemarshalRequest3(request_mFlags & dMhEndianBit,
+                        if (HpiDemarshalRequest3(thrdinst->remote_byte_order,
                                         hm, pReq,
                                         &session_id, &resource_id,
                                         &fumi_num) < 0)
@@ -2474,7 +2469,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                         SaHpiFumiNumT fumi_num;
 
                         PVERBOSE1("%p Processing saHpiFumiActivate.", thrdid);
-                        if (HpiDemarshalRequest3(request_mFlags & dMhEndianBit,
+                        if (HpiDemarshalRequest3(thrdinst->remote_byte_order,
                                         hm, pReq,
                                         &session_id, &resource_id,
                                         &fumi_num) < 0)
@@ -2494,7 +2489,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                         SaHpiBoolT logical;
 
                         PVERBOSE1("%p Processing saHpiFumiActivateStart.", thrdid);
-                        if (HpiDemarshalRequest4(request_mFlags & dMhEndianBit,
+                        if (HpiDemarshalRequest4(thrdinst->remote_byte_order,
                                         hm, pReq,
                                         &session_id, &resource_id,
                                         &fumi_num, &logical) < 0)
@@ -2514,7 +2509,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                         SaHpiBankNumT bank_num;
 
                         PVERBOSE1("%p Processing saHpiFumiCleanup.", thrdid);
-                        if (HpiDemarshalRequest4(request_mFlags & dMhEndianBit,
+                        if (HpiDemarshalRequest4(thrdinst->remote_byte_order,
                                         hm, pReq,
                                         &session_id, &resource_id,
                                         &fumi_num, &bank_num) < 0)
@@ -2533,7 +2528,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiHotSwapPolicyCancel.", thrdid);
                 
-                        if ( HpiDemarshalRequest2( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id ) < 0 )
                                 return eResultError;
                 
@@ -2549,7 +2544,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiResourceActiveSet.", thrdid);
                 
-                        if ( HpiDemarshalRequest2( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id ) < 0 )
                                 return eResultError;
                 
@@ -2565,7 +2560,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiResourceInactiveSet.", thrdid);
                 
-                        if ( HpiDemarshalRequest2( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id ) < 0 )
                                 return eResultError;
                 
@@ -2581,7 +2576,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiAutoInsertTimeoutGet.", thrdid);
                 
-                        if ( HpiDemarshalRequest1( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest1( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id ) < 0 )
                                 return eResultError;
                 
@@ -2597,7 +2592,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiAutoInsertTimeoutSet.", thrdid);
                 
-                        if ( HpiDemarshalRequest2( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &timeout ) < 0 )
                                 return eResultError;
                 
@@ -2614,7 +2609,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiAutoExtractTimeoutGet.", thrdid);
                 
-                        if ( HpiDemarshalRequest2( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id ) < 0 )
                                 return eResultError;
                 
@@ -2631,7 +2626,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiAutoExtractTimeoutSet.", thrdid);
                 
-                        if ( HpiDemarshalRequest3( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &timeout ) < 0 )
                                 return eResultError;
@@ -2649,7 +2644,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiHotSwapStateGet.", thrdid);
                 
-                        if ( HpiDemarshalRequest2( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id ) < 0 )
                                 return eResultError;
                 
@@ -2666,7 +2661,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiHotSwapActionRequest.", thrdid);
                 
-                        if ( HpiDemarshalRequest3( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &action ) < 0 )
                                 return eResultError;
@@ -2684,7 +2679,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiHotSwapIndicatorStateGet.", thrdid);
                 
-                        if ( HpiDemarshalRequest2( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id ) < 0 )
                                 return eResultError;
                 
@@ -2701,7 +2696,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiHotSwapIndicatorStateSet.", thrdid);
                 
-                        if ( HpiDemarshalRequest3( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &state ) < 0 )
                                 return eResultError;
@@ -2719,7 +2714,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiParmControl.", thrdid);
                 
-                        if ( HpiDemarshalRequest3( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &action ) < 0 )
                                 return eResultError;
@@ -2737,7 +2732,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiResourceLoadIdGet.", thrdid);
                 
-                        if ( HpiDemarshalRequest2( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
                                                    hm, pReq, &session_id,
                                                    &resource_id ) < 0 )
                                 return eResultError;
@@ -2755,7 +2750,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiResourceLoadIdSet.", thrdid);
                 
-                        if ( HpiDemarshalRequest3( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
                                                    hm, pReq, &session_id,
                                                    &resource_id, &load_id ) < 0 )
                                 return eResultError;
@@ -2773,7 +2768,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiResourceResetStateGet.", thrdid);
                 
-                        if ( HpiDemarshalRequest2( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id ) < 0 )
                                 return eResultError;
                 
@@ -2790,7 +2785,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiResourceResetStateSet.", thrdid);
                 
-                        if ( HpiDemarshalRequest3( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &action ) < 0 )
                                 return eResultError;
@@ -2809,7 +2804,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiResourcePowerStateGet.", thrdid);
                 
-                        if ( HpiDemarshalRequest2( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id ) < 0 )
                                 return eResultError;
                 
@@ -2826,7 +2821,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing saHpiResourcePowerStateGet.", thrdid);
                 
-                        if ( HpiDemarshalRequest3( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
                                                         hm, pReq, &session_id, &resource_id,
                                                         &state  ) < 0 )
                                 return eResultError;
@@ -2847,7 +2842,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
 
                         PVERBOSE1("%p Processing oHpiHandlerCreate.", thrdid);
                 
-                        if ( HpiDemarshalRequest1( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest1( thrdinst->remote_byte_order,
                                                         hm, pReq, &config ) < 0 )
                                 return eResultError;
                 
@@ -2870,7 +2865,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing oHpiHandlerDestroy.", thrdid);
                 
-                        if ( HpiDemarshalRequest1( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest1( thrdinst->remote_byte_order,
                                                         hm, pReq, &id ) < 0 )
                                 return eResultError;
                 
@@ -2887,7 +2882,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing oHpiHandlerInfo.", thrdid);
                 
-                        if ( HpiDemarshalRequest1( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest1( thrdinst->remote_byte_order,
                                                         hm, pReq, &id ) < 0 )
                                 return eResultError;
                 
@@ -2903,7 +2898,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing oHpiHandlerGetNext.", thrdid);
                 
-                        if ( HpiDemarshalRequest1( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest1( thrdinst->remote_byte_order,
                                                         hm, pReq, &id ) < 0 )
                                 return eResultError;
                 
@@ -2921,7 +2916,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing oHpiHandlerFind.", thrdid);
                 
-                        if ( HpiDemarshalRequest2( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
 						   hm, pReq, &session_id, &rid ) < 0 )
                                 return eResultError;
                 
@@ -2937,7 +2932,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing oHpiHandlerRetry.", thrdid);
                 
-                        if ( HpiDemarshalRequest1( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest1( thrdinst->remote_byte_order,
 						   hm, pReq, &hid ) < 0 )
                                 return eResultError;
                 
@@ -2953,7 +2948,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing oHpiGlobalParamGet.", thrdid);
                 
-                        if ( HpiDemarshalRequest1( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest1( thrdinst->remote_byte_order,
                                                         hm, pReq, &param ) < 0 )
                                 return eResultError;
                 
@@ -2969,7 +2964,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing oHpiGlobalParamSet.", thrdid);
                 
-                        if ( HpiDemarshalRequest1( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest1( thrdinst->remote_byte_order,
                                                         hm, pReq, &param ) < 0 )
                                 return eResultError;
                 
@@ -2993,7 +2988,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing oHpiInjectEvent.\n", thrdid);
                 
-                        if ( HpiDemarshalRequest4( request_mFlags & dMhEndianBit,
+                        if ( HpiDemarshalRequest4( thrdinst->remote_byte_order,
                                                    hm, 
                                                    pReq, 
                                                    &id, 
