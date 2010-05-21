@@ -224,9 +224,6 @@ extern cMarshalType Marshal_Float32Type;
 extern cMarshalType Marshal_Float64Type;
 
 
-// marshal order used
-int MarshalByteOrder( void );
-
 // size in bytes
 int MarshalSize( const cMarshalType *type );
 int MarshalSizeArray( const cMarshalType **types );
