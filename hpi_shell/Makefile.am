@@ -11,7 +11,7 @@ INCLUDES		= -I$(top_srcdir)/include -I$(top_srcdir)/utils
 INCLUDES 		+= -I$(top_srcdir)/openhpid \
 			   -I$(top_srcdir)/marshal \
 			   -DCLIENT
-COMMONLIBS		= $(top_builddir)/marshal/libohtcpconnx.la \
+COMMONLIBS		= $(top_builddir)/transport/libopenhpitransport.la \
 			   $(top_builddir)/utils/libopenhpiutils.la \
 			   $(top_builddir)/baselib/libopenhpi.la
 

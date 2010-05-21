@@ -249,7 +249,6 @@ make DESTDIR=%{buildroot} install
 %dir %{_libdir}/%{name}
 %dir /var/lib/%{name}
 %{_libdir}/libopenhpi*.so.*
-%{_libdir}/liboh*connx*.so.*
 %{_mandir}/man7/%{name}.7*
 %{_mandir}/man8/%{name}d.8*
 %{_sbindir}/openhpid
@@ -265,8 +264,6 @@ make DESTDIR=%{buildroot} install
 %{_libdir}/libopenhpi*.so
 %{_libdir}/libopenhpi*.la
 %{_libdir}/*.a
-%{_libdir}/liboh*connx*.so
-%{_libdir}/liboh*connx*.la
 
 ###################################################
 %files clients
