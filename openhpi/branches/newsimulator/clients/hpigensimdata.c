@@ -148,9 +148,13 @@ static SaErrorT    print_sensor_data(FILE *out,
                                       SaHpiResourceIdT resId, 
                                       SaHpiSensorRecT *sens);
                                       
-static void       print_sensor_thresholds(FILE *out, 
+static int        print_sensor_thresholds(FILE *out, 
                                             int myoffset, 
-                                            SaHpiSensorThresholdsT thres);
+                                            SaHpiSensorThresholdsT thres,
+                                            SaHpiSensorDataFormatT format);
+                                            
+static int        check_sensor_reading(SaHpiSensorReadingT *read,
+                                        SaHpiSensorDataFormatT format);   
                                                                                   
 static void       print_sensor_data_format(FILE *out, 
                                              int offset, 
@@ -1521,6 +1525,7 @@ static SaErrorT print_sensor_data(FILE *out, int offset, SaHpiSessionIdT session
                                    SaHpiResourceIdT resId, SaHpiSensorRecT *sens) {
    int rv = SA_OK;
    int myoffset = offset;
+   int corflag = 0;
    
    SaHpiSensorReadingT read;
    SaHpiEventStateT    event;
@@ -1573,6 +1578,14 @@ static SaErrorT print_sensor_data(FILE *out, int offset, SaHpiSessionIdT session
    // SensorReading
    fprintf(out,"%sEventState=0x%04X\n", offSet[myoffset], event);
    fprintf(out,"%sSensorReading={\n",offSet[myoffset++]);
+   if ((sens->DataFormat.IsSupported == SAHPI_TRUE) && 
+        (read.IsSupported == SAHPI_FALSE)) {
+      read.IsSupported = SAHPI_TRUE;
+      read.Type = sens->DataFormat.ReadingType;
+      fprintf(stderr, 
+            "WARNING: SensorReading.IsSupported value must be changed for ResId %d sensNum %d\n",
+            resId, sens->Num);  
+   }
    print_sensor_reading(out, myoffset, read);
    fprintf(out, "%s}\n", offSet[--myoffset]);
    
@@ -1586,8 +1599,12 @@ static SaErrorT print_sensor_data(FILE *out, int offset, SaHpiSessionIdT session
                  oh_lookup_error(rv), resId, sens->Num);
       } else {
          fprintf(out,"%sSensorThresholds={\n",offSet[myoffset++]);
-         print_sensor_thresholds(out, myoffset, thres);
+         corflag = print_sensor_thresholds(out, myoffset, thres, sens->DataFormat);
          fprintf(out, "%s}\n", offSet[--myoffset]);
+         if (corflag)
+            fprintf(stderr, 
+            "WARNING: Reading for %d threshold value(s) must be changed for ResId %d sensNum %d\n",
+            corflag, resId, sens->Num);
       }
    }
    
@@ -1616,34 +1633,67 @@ static SaErrorT print_sensor_data(FILE *out, int offset, SaHpiSessionIdT session
    return rv;                                   	
 }
 
+static int check_sensor_reading(SaHpiSensorReadingT *read, 
+                                  SaHpiSensorDataFormatT format) {
 
-static void print_sensor_thresholds(FILE *out, int offset, SaHpiSensorThresholdsT thres) {
+   if (format.IsSupported) {
+     if (read->IsSupported == SAHPI_TRUE) {
+   	    if (read->Type != format.ReadingType) {
+   	    	  read->Type = format.ReadingType;
+          return 1;
+   	    }
+     }
+   }
+   
+   return 0;                 	
+}
+ 
+static int print_sensor_thresholds(FILE *out, int offset, SaHpiSensorThresholdsT thres,
+                                     SaHpiSensorDataFormatT format) {
    int myoffset = offset;
+   int check_val = 0;
    
    fprintf(out, "%sLowCritical={\n", offSet[myoffset++]);
+   if (check_sensor_reading(&thres.LowCritical, format)) check_val++;
    print_sensor_reading(out, myoffset, thres.LowCritical);
    fprintf(out, "%s}\n", offSet[--myoffset]);
+
    fprintf(out, "%sLowMajor={\n", offSet[myoffset++]);
+   if (check_sensor_reading(&thres.LowMajor, format)) check_val++;
    print_sensor_reading(out, myoffset, thres.LowMajor);
    fprintf(out, "%s}\n", offSet[--myoffset]);
+
    fprintf(out, "%sLowMinor={\n", offSet[myoffset++]);
+   if (check_sensor_reading(&thres.LowMinor, format)) check_val++;
    print_sensor_reading(out, myoffset, thres.LowMinor);
    fprintf(out, "%s}\n", offSet[--myoffset]);
+
    fprintf(out, "%sUpCritical={\n", offSet[myoffset++]);
+   if (check_sensor_reading(&thres.UpCritical, format)) check_val++;
    print_sensor_reading(out, myoffset, thres.UpCritical);
    fprintf(out, "%s}\n", offSet[--myoffset]);
+
    fprintf(out, "%sUpMajor={\n", offSet[myoffset++]);
+   if (check_sensor_reading(&thres.UpMajor, format)) check_val++;
    print_sensor_reading(out, myoffset, thres.UpMajor);
    fprintf(out, "%s}\n", offSet[--myoffset]);
+
    fprintf(out, "%sUpMinor={\n", offSet[myoffset++]);
+   if (check_sensor_reading(&thres.UpMinor, format)) check_val++;
    print_sensor_reading(out, myoffset, thres.UpMinor);
    fprintf(out, "%s}\n", offSet[--myoffset]);
+
    fprintf(out, "%sPosThdHysteresis={\n", offSet[myoffset++]);
+   if (check_sensor_reading(&thres.PosThdHysteresis, format)) check_val++;
    print_sensor_reading(out, myoffset, thres.PosThdHysteresis);
    fprintf(out, "%s}\n", offSet[--myoffset]);
+
    fprintf(out, "%sNegThdHysteresis={\n", offSet[myoffset++]);
+   if (check_sensor_reading(&thres.NegThdHysteresis, format)) check_val++;
    print_sensor_reading(out, myoffset, thres.NegThdHysteresis);
    fprintf(out, "%s}\n", offSet[--myoffset]);
+   
+   return check_val;
 }
 
 
