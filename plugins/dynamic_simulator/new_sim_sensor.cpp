@@ -501,7 +501,7 @@ SaErrorT NewSimulatorSensor::SetEventMasks( const SaHpiSensorEventMaskActionT &a
    }
 
    SaHpiEventStateT save_assert_mask = m_assert_mask;
-   SaHpiEventStateT save_deassert_mask = m_assert_mask;
+   SaHpiEventStateT save_deassert_mask = m_deassert_mask;
    
    if ( act == SAHPI_SENS_ADD_EVENTS_TO_MASKS ) {
       m_assert_mask   |= AssertEventMask;
