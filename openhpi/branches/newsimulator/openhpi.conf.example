@@ -178,7 +178,7 @@ handler libsimulator {
 #}
 
 ## Section for new_simulator plugin
-#handler libnew_simulator {
+#handler libdyn_simulator {
 #        entity_root = "{SYSTEM_CHASSIS,9}"
 ## Location of the simulation data file 
 ## Normally an example file is installed in the same directory as openhpi.conf.
@@ -188,7 +188,7 @@ handler libsimulator {
 #        # infos goes to logfile and stdout
 #        # the logfile are log00.log, log01.log ...
 ##        logflags = "file stdout"
-##        logfile = "newsim"
+##        logfile = "dynsim"
 #        # if #logfile_max reached replace the oldest one
 ##        logfile_max = "5"
 #}

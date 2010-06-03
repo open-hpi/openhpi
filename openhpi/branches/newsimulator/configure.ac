@@ -360,13 +360,13 @@ AC_ARG_ENABLE([simulator],
     fi],
     [AC_SUBST(SIMULATOR,simulator)])
 
-# configure argument for the new simulator plugin
-AC_ARG_ENABLE([new_simulator],
-    [  --enable-new_simulator      build new simulator plugin [[default=yes]]],
+# configure argument for the dynamic simulator plugin
+AC_ARG_ENABLE([dynamic_simulator],
+    [  --enable-dynamic_simulator      build dynamic simulator plugin [[default=yes]]],
     [if test "x$enableval" = "xyes"; then
-        AC_SUBST(NEW_SIMULATOR,new_simulator)
+        AC_SUBST(DYNAMIC_SIMULATOR,dynamic_simulator)
     fi],
-    [AC_SUBST(NEW_SIMULATOR,new_simulator)])
+    [AC_SUBST(DYNAMIC_SIMULATOR,dynamic_simulator)])
 
 # configure argument for the ilo2_ribcl plugin
 AC_ARG_ENABLE([ilo2_ribcl],
@@ -718,7 +718,7 @@ AC_CONFIG_FILES([openhpi.spec
         plugins/ipmidirect/t/Makefile
         plugins/simulator/Makefile
         plugins/simulator/t/Makefile
-        plugins/new_simulator/Makefile
+        plugins/dynamic_simulator/Makefile
         plugins/rtas/Makefile
         plugins/ilo2_ribcl/Makefile
         plugins/oa_soap/Makefile

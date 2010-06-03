@@ -20,8 +20,8 @@
 %define with_simulator 1
 %endif
 
-%if "x@NEW_SIMULATOR@" == "xnew_simulator"
-%define with_new_simulator 1
+%if "x@DYNAMIC_SIMULATOR@" == "xdynamic_simulator"
+%define with_dynamic_simulator 1
 %endif
 
 %define with_rtas @WITH_RTAS@
@@ -105,8 +105,8 @@ Group: System/Monitoring
 Requires: openhpi = %{version}
 %endif
 
-%if 0%{?with_new_simulator}
-%package new_simulator
+%if 0%{?with_dynamic_simulator}
+%package dynamic_simulator
 Summary: OpenHPI plugin for testing the core library
 Group: System/Monitoring
 Requires: openhpi = %{version}
@@ -190,10 +190,10 @@ OpenHPI plugin that reports fakes hardware used for
 testing the core library.
 %endif
 
-%if 0%{?with_new_simulator}
-%description new_simulator
-OpenHPI plugin that reports fakes hardware used for
-testing the core library.
+%if 0%{?with_dynamic_simulator}
+%description dynamic_simulator
+OpenHPI plugin that reports fakes hardware defined in the file
+simulation.data used for testing the core library.
 %endif
 
 %if 0%{?with_bladecenter}
@@ -327,11 +327,11 @@ make DESTDIR=%{buildroot} install
 %endif
 
 ###################################################
-%if 0%{?with_new_simulator}
-%files new_simulator
+%if 0%{?with_dynamic_simulator}
+%files dynamic_simulator
 ###################################################
 %defattr(-,root,root)
-%{_libdir}/%{name}/libnew_simulator.*
+%{_libdir}/%{name}/libdyn_simulator.*
 %endif
 
 ###################################################
