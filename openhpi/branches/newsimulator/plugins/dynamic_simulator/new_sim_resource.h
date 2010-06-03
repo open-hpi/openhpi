@@ -141,7 +141,7 @@ public:
 
    /// HPI Function implement in NewSimulatorHotSwap::GetExtractTimeout()
    SaErrorT GetAutoExtractTimeout( SaHpiTimeoutT &timeout ) 
-                                     { return m_hotswap.SetExtractTimeout( timeout ); }
+                                     { return m_hotswap.GetExtractTimeout( timeout ); }
 
    /// HPI Function implement in NewSimulatorHotSwap::ActionRequest()
    SaErrorT RequestHotswapAction( SaHpiHsActionT action )
