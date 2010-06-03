@@ -256,9 +256,9 @@ SaErrorT NewSimulatorInventory::GetAreaHeader( SaHpiIdrAreaTypeT type,
             found = true;
             memcpy( &header, &m_areas[i]->AreaHeader(), sizeof( SaHpiIdrAreaHeaderT ));
          }
-         foundId = false;
-         foundType = false;
       }
+      foundId = false;
+      foundType = false;
    }
    if (found) {
       nextId = SAHPI_LAST_ENTRY;
