@@ -187,9 +187,9 @@ handler libsimulator {
 #        file = "/etc/openhpi/simulation.data"
 #        # infos goes to logfile and stdout
 #        # the logfile are log00.log, log01.log ...
-#        logflags = "file stdout"
-#        logfile = "newsim"
+##        logflags = "file stdout"
+##        logfile = "newsim"
 #        # if #logfile_max reached replace the oldest one
-#        logfile_max = "5"
+##        logfile_max = "5"
 #}
 
