@@ -447,7 +447,7 @@ RPT {
                   StatusCond={
                      Type=0
                      Entity={
-                        "{SYSTEM_BOARD,1}"
+                        "{SYSTEM_CHASSIS,1}{SYSTEM_BOARD,1}"
                      }
                      DomainId=1
                      ResourceId=1
@@ -474,7 +474,7 @@ RPT {
                   StatusCond={
                      Type=0
                      Entity={
-                        "{SYSTEM_BOARD,1}"
+                        "{SYSTEM_CHASSIS,1}{SYSTEM_BOARD,1}"
                      }
                      DomainId=1
                      ResourceId=1
@@ -501,7 +501,7 @@ RPT {
                   StatusCond={
                      Type=0
                      Entity={
-                        "{SYSTEM_BOARD,1}"
+                        "{SYSTEM_CHASSIS,1}{SYSTEM_BOARD,1}"
                      }
                      DomainId=1
                      ResourceId=1
@@ -1524,7 +1524,7 @@ RPT {
                   StatusCond={
                      Type=0
                      Entity={
-                        "{DISK_DRIVE,2}"
+                        "{SYSTEM_CHASSIS,1}{DISK_DRIVE,2}"
                      }
                      DomainId=1
                      ResourceId=4
@@ -1551,7 +1551,7 @@ RPT {
                   StatusCond={
                      Type=0
                      Entity={
-                        "{DISK_DRIVE,2}"
+                        "{SYSTEM_CHASSIS,1}{DISK_DRIVE,2}"
                      }
                      DomainId=1
                      ResourceId=4
@@ -1578,7 +1578,7 @@ RPT {
                   StatusCond={
                      Type=0
                      Entity={
-                        "{DISK_DRIVE,2}"
+                        "{SYSTEM_CHASSIS,1}{DISK_DRIVE,2}"
                      }
                      DomainId=1
                      ResourceId=4
