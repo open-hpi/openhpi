@@ -207,7 +207,8 @@ SaErrorT NewSimulatorInventory::GetIdrInfo( SaHpiIdrInfoT &idrInfo ) {
    
    if ( &idrInfo == NULL)
       return SA_ERR_HPI_INVALID_PARAMS;
-   
+      
+   m_inv_info.NumAreas = m_areas.Num();
    memcpy( &idrInfo, &m_inv_info, sizeof( SaHpiIdrInfoT ));
 
    return SA_OK;
