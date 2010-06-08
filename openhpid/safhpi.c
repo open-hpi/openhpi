@@ -1851,8 +1851,9 @@ SaErrorT SAHPI_API saHpiRdrUpdateCountGet(
         SaHpiRptEntryT *res;
 
         /* Test pointer parameters for invalid pointers */
-        if (UpdateCount == NULL)
+        if (UpdateCount == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
+        }
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
@@ -1865,15 +1866,11 @@ SaErrorT SAHPI_API saHpiRdrUpdateCountGet(
                 return SA_ERR_HPI_CAPABILITY;
         }
 
-        // TODO implement
-        // Current implementation always return 0
-        // Shall we introduce new call in handler ABI or
-        // implement update counter in OpenHPI core?
-        *UpdateCount = 0;
+        SaErrorT rv = oh_get_rdr_update_count(&(d->rpt), ResourceId, UpdateCount);
 
         oh_release_domain(d); /* Unlock domain */
 
-        return SA_OK;
+        return rv;
 }
 
 
