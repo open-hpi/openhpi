@@ -62,6 +62,10 @@ SaHpiRptEntryT *oh_get_resource_by_id(RPTable *table, SaHpiResourceIdT rid);
 SaHpiRptEntryT *oh_get_resource_by_ep(RPTable *table, SaHpiEntityPathT *ep);
 SaHpiRptEntryT *oh_get_resource_next(RPTable *table, SaHpiResourceIdT rid_prev);
 
+SaErrorT oh_get_rdr_update_count(RPTable *table,
+                                 SaHpiResourceIdT rid,
+                                 SaHpiUint32T *update_count);
+
 /* RDR calls */
 SaErrorT oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT *rdr,
                     void *data, int owndata);

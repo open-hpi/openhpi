@@ -78,7 +78,8 @@ SaErrorT process_ps_insertion_event(struct oh_handler_state *oh_handler,
         }
 
         info.bayNumber = oa_event->eventData.powerSupplyStatus.bayNumber;
-        response = (struct powerSupplyInfo *)g_malloc0(sizeof(struct powerSupplyInfo));
+        response =
+          (struct powerSupplyInfo *)g_malloc0(sizeof(struct powerSupplyInfo));
         if( response == NULL){
                 return SA_ERR_HPI_OUT_OF_MEMORY;
         }
@@ -173,6 +174,321 @@ SaErrorT process_ps_extraction_event(struct oh_handler_state *oh_handler,
 }
 
 /**
+ * oa_soap_push_power_events
+ *      @oh_handler     : Pointer to openhpi handler structure
+ *      @info           : Pointer to power subsystem info structure
+ *      @resource_id    : Power subsystem resource id
+ *
+ * Purpose:
+ *      Pushes changes to oa_power controls upstream to HPI domain
+ *
+ * Detailed Description: NA
+ *
+ * Return values:
+ *      NONE
+ **/
+void oa_soap_push_power_events(struct oh_handler_state *oh_handler,
+                               struct powerSubsystemInfo *info,
+                               SaHpiResourceIdT resource_id)
+{
+        struct oa_soap_handler *oa_handler;
+        SaErrorT rv = SA_OK;
+        SaHpiRptEntryT *rpt = NULL;
+        SaHpiRdrT *rdr = NULL;
+        struct powerConfigInfo *power_config_info;
+        struct powerCapConfig *power_cap_config;
+        xmlNode *extra_data;
+        struct extraDataInfo extra_data_info;
+        struct oh_event event;
+        int oldMin = 0, oldMax = 0;
+        int oldMinDerated = 0, oldMaxDerated = 0;
+        int oldMinRated = 0, oldMaxRated = 0;
+        int newMin = 0, newMax = 0;
+        
+        oa_handler = (struct oa_soap_handler *) oh_handler->data;
+        power_config_info = &(oa_handler->power_config_info);
+        power_cap_config = &(oa_handler->power_cap_config);
+
+        extra_data = info->extraData;
+        while (extra_data) {
+                soap_getExtraData(extra_data, &extra_data_info);
+                if (!(strcmp(extra_data_info.name, "ACLimitLow"))) {
+                  newMin = atoi(extra_data_info.value);
+                }
+                if (!(strcmp(extra_data_info.name, "ACLimitHigh"))) {
+                  newMax = atoi(extra_data_info.value);
+                }
+                extra_data = soap_next_node(extra_data);
+        }
+
+        /* If we have a new ACLimitLow or a new ACLimitHigh, then we need to */
+        /* push an oh_event                                                  */
+        if ((power_config_info->ACLimitLow != newMin) ||
+            (power_config_info->ACLimitHigh != newMax)) {
+            /* Need to re-build static power limit control for enclosure */
+            dbg("Static power limits have changed\n");
+            dbg("New static power limit low: %d\n", newMin);
+            dbg("New static power limit high: %d\n", newMax);
+
+            rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+            rdr = oh_get_rdr_next(oh_handler->rptcache, rpt->ResourceId,
+                                  SAHPI_FIRST_ENTRY);
+
+            while (rdr) {
+                if (rdr->RdrType == SAHPI_CTRL_RDR) {
+                    /* Test to see if this is the static power limit  */
+                    /* control rdr                                    */
+                    if (rdr->RdrTypeUnion.CtrlRec.Num ==
+                        OA_SOAP_STATIC_PWR_LIMIT_CNTRL) {
+                        power_config_info->ACLimitLow = newMin;
+                        power_config_info->ACLimitHigh = newMax;
+                        rdr->RdrTypeUnion.CtrlRec.TypeUnion.Analog.Min = newMin;
+                        rdr->RdrTypeUnion.CtrlRec.TypeUnion.Analog.Max = newMax;
+
+                        /* We need to constuct/send an oh_event to update the */
+                        /* HPI domain                                         */
+                        memset(&event, 0, sizeof(struct oh_event));
+                        event.event.EventType = SAHPI_ET_RESOURCE;
+                        memcpy(&event.resource, rpt, sizeof(SaHpiRptEntryT));
+                        event.event.Severity = SAHPI_INFORMATIONAL;
+                        event.event.Source = event.resource.ResourceId;
+                        if (oh_gettimeofday(&(event.event.Timestamp))
+                            != SA_OK) {
+                            event.event.Timestamp = SAHPI_TIME_UNSPECIFIED;
+                        }
+                        event.event.EventDataUnion.ResourceEvent.
+                          ResourceEventType = SAHPI_RESE_RESOURCE_UPDATED;
+                        event.rdrs = g_slist_append(event.rdrs, g_memdup(rdr,
+                                                    sizeof(SaHpiRdrT)));
+                        event.hid = oh_handler->hid;
+
+                        oh_evt_queue_push(oh_handler->eventq,
+                                          copy_oa_soap_event(&event));
+                        break;
+                    }
+                }
+                rdr = oh_get_rdr_next(oh_handler->rptcache,
+                                  rpt->ResourceId,
+                                  rdr->RecordId);
+                if (rdr == NULL) {
+                        err("Did not find static power limit control rdr");
+                }
+            }
+        }
+
+        /* Since we do not get the EVENT_ENC_GRP_CAP event - which is  */
+        /* supposed to contain new dynamic power cap limits, we will   */
+        /* instead query for the latest powerCapConfig, and and        */
+        /* inspect the returned data to see if the dynamic power cap   */
+        /* limits have changed. We also inspect the derated and rated  */
+        /* circuit caps for OA firmware 3.00 and higher. If the limits */
+        /* have changed, then construct oh_event and push it to the    */
+        /* HPI domain.                                                 */
+
+        /* Save the old limit values for comparison later              */
+        oldMin = power_cap_config->enclosurePowerCapLowerBound;
+        oldMax = power_cap_config->enclosurePowerCapUpperBound;
+        oldMinDerated = power_cap_config->deratedCircuitCapLowerBound;
+        oldMaxDerated = power_cap_config->deratedCircuitCapUpperBound;
+        oldMinRated = power_cap_config->ratedCircuitCapLowerBound;
+        oldMaxRated = power_cap_config->ratedCircuitCapUpperBound;
+
+        /* Make a soap call to get the enclosure power cap config which */
+        /* may contain new dynamic power cap limits                     */
+
+        g_mutex_lock(oa_handler->mutex);
+        rv = soap_getPowerCapConfig(oa_handler->active_con,
+                                    power_cap_config,
+                                    &(oa_handler->desired_dynamic_pwr_cap),
+                                    &(oa_handler->desired_derated_circuit_cap),
+                                    &(oa_handler->desired_rated_circuit_cap));
+        g_mutex_unlock(oa_handler->mutex);
+
+        if (rv != SOAP_OK) {
+                err("Getting the power cap config failed");
+                return;
+        }
+
+        newMin = power_cap_config->enclosurePowerCapLowerBound;
+        newMax = power_cap_config->enclosurePowerCapUpperBound;
+
+        /* If we have a new enclosurePowerCapLowerBound or a new         */
+        /* enclosurePowerCapUpperBound then we need to push an oh_event. */
+        if ((newMin != oldMin) || (newMax != oldMax)) {
+            /* Need to re-build dynamic power cap control for enclosure */
+            dbg("Dynamic power cap has changed\n");
+            dbg("New dynamic power cap low: %d\n", newMin);
+            dbg("New dynamic power cap high: %d\n", newMax);
+
+            rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+            rdr = oh_get_rdr_next(oh_handler->rptcache, rpt->ResourceId,
+                  SAHPI_FIRST_ENTRY);
+
+            while (rdr) {
+                if (rdr->RdrType == SAHPI_CTRL_RDR) {
+                    /* Test to see if this is the dynamic power cap control  */
+                    /* rdr                                                   */
+                    if (rdr->RdrTypeUnion.CtrlRec.Num ==
+                        OA_SOAP_DYNAMIC_PWR_CAP_CNTRL) {
+                        rdr->RdrTypeUnion.CtrlRec.TypeUnion.Analog.Min = newMin;
+                        rdr->RdrTypeUnion.CtrlRec.TypeUnion.Analog.Max = newMax;
+
+                        /* We need to constuct/send an oh_event to update the */
+                        /* HPI domain                                         */
+                        memset(&event, 0, sizeof(struct oh_event));
+                        event.event.EventType = SAHPI_ET_RESOURCE;
+                        memcpy(&event.resource, rpt, sizeof(SaHpiRptEntryT));
+                        event.event.Severity = SAHPI_INFORMATIONAL;
+                        event.event.Source = event.resource.ResourceId;
+                        if (oh_gettimeofday(&(event.event.Timestamp))
+                            != SA_OK) {
+                            event.event.Timestamp = SAHPI_TIME_UNSPECIFIED;
+                        }
+                        event.event.EventDataUnion.ResourceEvent.
+                          ResourceEventType = SAHPI_RESE_RESOURCE_UPDATED;
+                        event.rdrs = g_slist_append(event.rdrs, g_memdup(rdr,
+                                                    sizeof(SaHpiRdrT)));
+                        event.hid = oh_handler->hid;
+
+                        oh_evt_queue_push(oh_handler->eventq,
+                                          copy_oa_soap_event(&event));
+                        break;
+                    }
+                }
+                rdr = oh_get_rdr_next(oh_handler->rptcache,
+                                      rpt->ResourceId,
+                                      rdr->RecordId);
+                if (rdr == NULL) {
+                        err("Did not find dynamic power cap control rdr");
+                }
+            }
+        }
+
+        /* Check the OA firmware version.  For OA firmware 3.00 and higher, */
+        /* we have to check if the limits for derated and rated circuit     */
+        /* caps have changed.                                               */
+        if (oa_handler->active_fm_ver >= 3.0) {
+            /* Check derated circuit cap limits for changes. */
+            newMin = power_cap_config->deratedCircuitCapLowerBound;
+            newMax = power_cap_config->deratedCircuitCapUpperBound;
+            if ((newMin != oldMinDerated) || (newMax != oldMaxDerated)) {
+                /* Need to re-build derated circuit cap control for enclosure */
+                dbg("Derated circuit cap has changed\n");
+                dbg("New derated circuit cap low: %d\n", newMin);
+                dbg("New derated circuit cap high: %d\n", newMax);
+
+                rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+                rdr = oh_get_rdr_next(oh_handler->rptcache, rpt->ResourceId,
+                                      SAHPI_FIRST_ENTRY);
+
+                while (rdr) {
+                    if (rdr->RdrType == SAHPI_CTRL_RDR) {
+                        /* Test to see if this is the derated circuit cap   */
+                        /* control rdr                                      */
+                        if (rdr->RdrTypeUnion.CtrlRec.Num ==
+                            OA_SOAP_DERATED_CIRCUIT_CAP_CNTRL) {
+                            rdr->RdrTypeUnion.CtrlRec.TypeUnion.Analog.Min =
+                              newMin;
+                            rdr->RdrTypeUnion.CtrlRec.TypeUnion.Analog.Max =
+                              newMax;
+
+                            /* We need to constuct/send an oh_event to update */
+                            /* the HPI domain                                 */
+                            memset(&event, 0, sizeof(struct oh_event));
+                            event.event.EventType = SAHPI_ET_RESOURCE;
+                            memcpy(&event.resource, rpt,
+                                   sizeof(SaHpiRptEntryT));
+                            event.event.Severity = SAHPI_INFORMATIONAL;
+                            event.event.Source = event.resource.ResourceId;
+                            if (oh_gettimeofday(&(event.event.Timestamp))
+                                != SA_OK) {
+                                    event.event.Timestamp =
+                                      SAHPI_TIME_UNSPECIFIED;
+                            }
+                            event.event.EventDataUnion.ResourceEvent.
+                              ResourceEventType = SAHPI_RESE_RESOURCE_UPDATED;
+                            event.rdrs = g_slist_append(event.rdrs,
+                                                        g_memdup(rdr,
+                                                        sizeof(SaHpiRdrT)));
+                            event.hid = oh_handler->hid;
+
+                            oh_evt_queue_push(oh_handler->eventq,
+                              copy_oa_soap_event(&event));
+                            break;
+                        }
+                    }
+                    rdr = oh_get_rdr_next(oh_handler->rptcache,
+                                          rpt->ResourceId,
+                                          rdr->RecordId);
+                    if (rdr == NULL) {
+                            err("Did not find derated circuit cap control rdr");
+                    }
+                }
+            }
+
+            /* Check rated circuit cap limits for changes. */
+            newMin = power_cap_config->ratedCircuitCapLowerBound;
+            newMax = power_cap_config->ratedCircuitCapUpperBound;
+            if ((newMin != oldMinRated) || (newMax != oldMaxRated)) {
+                /* Need to re-build rated circuit cap control for enclosure */
+                dbg("Rated circuit cap has changed\n");
+                dbg("New rated circuit cap low: %d\n", newMin);
+                dbg("New rated circuit cap high: %d\n", newMax);
+
+                rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+                rdr = oh_get_rdr_next(oh_handler->rptcache, rpt->ResourceId,
+                                      SAHPI_FIRST_ENTRY);
+
+                while (rdr) {
+                    if (rdr->RdrType == SAHPI_CTRL_RDR) {
+                        /* Test to see if this is the rated circuit cap   */
+                        /* control rdr                                    */
+                        if (rdr->RdrTypeUnion.CtrlRec.Num ==
+                            OA_SOAP_RATED_CIRCUIT_CAP_CNTRL) {
+                            rdr->RdrTypeUnion.CtrlRec.TypeUnion.Analog.Min =
+                              newMin;
+                            rdr->RdrTypeUnion.CtrlRec.TypeUnion.Analog.Max =
+                              newMax;
+
+                            /* We need to constuct/send an oh_event to    */
+                            /* update the HPI domain                      */
+                            memset(&event, 0, sizeof(struct oh_event));
+                            event.event.EventType = SAHPI_ET_RESOURCE;
+                            memcpy(&event.resource, rpt,
+                                   sizeof(SaHpiRptEntryT));
+                            event.event.Severity = SAHPI_INFORMATIONAL;
+                            event.event.Source = event.resource.ResourceId;
+                            if (oh_gettimeofday(&(event.event.Timestamp))
+                                != SA_OK) {
+                                    event.event.Timestamp =
+                                      SAHPI_TIME_UNSPECIFIED;
+                            }
+                            event.event.EventDataUnion.ResourceEvent.
+                              ResourceEventType = SAHPI_RESE_RESOURCE_UPDATED;
+                            event.rdrs = g_slist_append(event.rdrs,
+                                                        g_memdup(rdr,
+                                                        sizeof(SaHpiRdrT)));
+                            event.hid = oh_handler->hid;
+
+                            oh_evt_queue_push(oh_handler->eventq,
+                                              copy_oa_soap_event(&event));
+                            break;
+                        }
+                    }
+                    rdr = oh_get_rdr_next(oh_handler->rptcache,
+                                          rpt->ResourceId,
+                                          rdr->RecordId);
+                    if (rdr == NULL) {
+                            err("Did not find rated circuit cap control rdr");
+                    }
+                }
+            }
+        }
+
+        return;
+}
+
+/**
  * oa_soap_proc_ps_subsys_info
  *      @oh_handler	: Pointer to openhpi handler structure
  *      @info		: Pointer to power subsystem info structure
@@ -211,6 +527,9 @@ void oa_soap_proc_ps_subsys_info(struct oh_handler_state *oh_handler,
 	/* Process the redundancy sensor */
 	OA_SOAP_PROCESS_SENSOR_EVENT(OA_SOAP_SEN_REDUND,
 				     info->redundancy, 0, 0);
+
+        /* Push power events upstream to HPI domain if needed */
+        oa_soap_push_power_events(oh_handler, info, resource_id);
 
 	return;
 }

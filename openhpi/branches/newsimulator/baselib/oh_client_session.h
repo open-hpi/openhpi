@@ -18,7 +18,7 @@
 #ifndef __OH_CLIENT_SESSION_H
 #define __OH_CLIENT_SESSION_H
 
-#include "strmsock.h"
+#include <strmsock.h>
 
 extern "C"
 {

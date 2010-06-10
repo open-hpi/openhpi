@@ -79,15 +79,6 @@ cMarshalType Marshal_Float64Type =
 };
 
 
-int
-MarshalByteOrder()
-{
-  if ( G_BYTE_ORDER == G_LITTLE_ENDIAN )
-       return 1;
-
-  return 0;
-}
-
 
 int
 IsSimpleType( tMarshalType type )
@@ -610,7 +601,7 @@ DemarshalSimpleTypes( int byte_order, tMarshalType type,
               tUint16 v;
               memcpy( &v, buffer, sizeof( tUint16 ) );
 
-              if ( MarshalByteOrder() != byte_order )
+              if ( G_BYTE_ORDER != byte_order )
                    v = GUINT16_SWAP_LE_BE( v );
               
               *(tUint16 *)data = v;
@@ -624,7 +615,7 @@ DemarshalSimpleTypes( int byte_order, tMarshalType type,
               tUint32 v;
               memcpy( &v, buffer, sizeof( tUint32 ) );
 
-              if ( MarshalByteOrder() != byte_order )
+              if ( G_BYTE_ORDER != byte_order )
                    v = GUINT32_SWAP_LE_BE( v );
 
               *(tUint32 *)data = v;
@@ -638,7 +629,7 @@ DemarshalSimpleTypes( int byte_order, tMarshalType type,
               tUint64 v;
               memcpy( &v, buffer, sizeof( tUint64 ) );
 
-              if ( MarshalByteOrder() != byte_order )
+              if ( G_BYTE_ORDER != byte_order )
                    v = GUINT64_SWAP_LE_BE( v );
 
               *(tUint64 *)data = v;
@@ -652,7 +643,7 @@ DemarshalSimpleTypes( int byte_order, tMarshalType type,
               tFloat32Uint32 v;
               memcpy( &(v.m_f32), buffer, sizeof( tFloat32 ) );
 
-              if ( MarshalByteOrder() != byte_order )
+              if ( G_BYTE_ORDER != byte_order )
                    v.m_u32 = GUINT32_SWAP_LE_BE( v.m_u32 );
 
               *(tFloat32 *)data = v.m_f32;
@@ -666,7 +657,7 @@ DemarshalSimpleTypes( int byte_order, tMarshalType type,
               tFloat64Uint64 v;
               memcpy( &(v.m_f64), buffer, sizeof( tFloat64 ) );
 
-              if ( MarshalByteOrder() != byte_order )
+              if ( G_BYTE_ORDER != byte_order )
                    v.m_u64 = GUINT64_SWAP_LE_BE( v.m_u64 );
 
               *(tFloat64 *)data = v.m_f64;

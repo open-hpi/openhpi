@@ -222,6 +222,34 @@
 #define OA_SOAP_PWR_CNTRL			(SaHpiCtrlNumT)   0x001
 /* LCD Button Lock control */
 #define OA_SOAP_LCD_BUTN_LCK_CNTRL		(SaHpiCtrlNumT)   0x002
+/* Power Mode Control */
+#define OA_SOAP_PWR_MODE_CNTRL			(SaHpiCtrlNumT)   0x003
+/* Dynamic Power Control */
+#define OA_SOAP_DYNAMIC_PWR_CNTRL		(SaHpiCtrlNumT)   0x004
+/* Power Limit Mode Control */
+#define OA_SOAP_PWR_LIMIT_MODE_CNTRL		(SaHpiCtrlNumT)   0x005
+/* Static Power Limit Control */
+#define OA_SOAP_STATIC_PWR_LIMIT_CNTRL		(SaHpiCtrlNumT)   0x006
+/* Dynamic Power Cap Control */
+#define OA_SOAP_DYNAMIC_PWR_CAP_CNTRL		(SaHpiCtrlNumT)   0x007
+
+/* The following 2 controls are only available in OA Firmware */
+/* version 3.00 and higher.                                   */
+
+/* Derated Circuit Cap Control */
+#define OA_SOAP_DERATED_CIRCUIT_CAP_CNTRL	(SaHpiCtrlNumT)   0x008
+/* Rated Circuit Cap Control */
+#define OA_SOAP_RATED_CIRCUIT_CAP_CNTRL		(SaHpiCtrlNumT)   0x009
+
+/* HP c7000 Power Modes */
+#define C7000_PWR_NON_REDUNDANT			1
+#define C7000_PWR_AC_REDUNDANT			2
+#define C7000_PWR_SUPPLY_REDUNDANT		3
+
+/* HP c7000 Power Limit Modes */
+#define C7000_PWR_LIMIT_NONE			0
+#define C7000_PWR_LIMIT_STATIC			1
+#define C7000_PWR_LIMIT_DYNAMIC_CAP	        2
 
 /* Custom inventory Area and fields used in OA SOAP plugin 
  * On adding new inventory area or field, fan zone mapping rray in in

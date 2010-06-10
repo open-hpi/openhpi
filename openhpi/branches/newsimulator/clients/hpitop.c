@@ -338,7 +338,7 @@ static
 SaErrorT list_rpt(SaHpiRptEntryT *rptptr)
 {
 	SaErrorT rv = SA_OK, err = SA_OK;
-	oh_big_textbuffer bigbuf1, bigbuf2;
+	oh_big_textbuffer bigbuf1;
 	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
 	SaHpiTextBufferT  textbuffer;
 	
@@ -346,8 +346,6 @@ SaErrorT list_rpt(SaHpiRptEntryT *rptptr)
 	err = oh_init_textbuffer(&textbuffer);				
 	if (err) return(err);
 	err = oh_init_bigtext(&bigbuf1);
-	if (err) return(err);
-	err = oh_init_bigtext(&bigbuf2);
 	if (err) return(err);
 
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "    |    ResourceId:  %d\n", rptptr->ResourceId);
@@ -357,8 +355,12 @@ SaErrorT list_rpt(SaHpiRptEntryT *rptptr)
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "    |    Capability:  %s\n",(char *)textbuffer.Data);
 	oh_append_bigtext(&bigbuf1, str);
 
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "    |    Tag:  %s\n",rptptr->ResourceTag.Data);
-	oh_append_bigtext(&bigbuf1, str);
+	if ( rptptr->ResourceTag.DataType == SAHPI_TL_TYPE_TEXT ) {
+	   oh_append_bigtext(&bigbuf1, "    |    Tag:  ");
+	   snprintf(str,  rptptr->ResourceTag.DataLength+1, "%s", rptptr->ResourceTag.Data);
+	   oh_append_bigtext(&bigbuf1, str);
+	   oh_append_bigtext(&bigbuf1, "\n");
+	}
 	
 	printf("%s", bigbuf1.Data);
 
@@ -401,8 +403,12 @@ SaErrorT show_inv(SaHpiSessionIdT sessionid,
 			oh_append_bigtext(&buffer, str);
 			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Num Areas: %d, ", idrInfo.NumAreas);
 			oh_append_bigtext(&buffer, str);
-			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Tag: %s\n", rdrptr->IdString.Data);
-			oh_append_bigtext(&buffer, str);
+			if ( rdrptr->IdString.DataType == SAHPI_TL_TYPE_TEXT ) {
+			   oh_append_bigtext(&buffer, "Tag: ");
+			   snprintf(str,  rdrptr->IdString.DataLength+1, "%s", rdrptr->IdString.Data);
+			   oh_append_bigtext(&buffer, str);
+			   oh_append_bigtext(&buffer, "\n");
+			}
 			show_rdr(&buffer);
 		}
 	}
@@ -434,9 +440,13 @@ SaErrorT show_sens(SaHpiSessionIdT sessionid,
 		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Category: %s, ", 
 		 	oh_lookup_eventcategory(rdrptr->RdrTypeUnion.SensorRec.Category));
 		oh_append_bigtext(&buffer, str);
-		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Tag: %s\n", 
+		if ( rdrptr->IdString.DataType == SAHPI_TL_TYPE_TEXT ) {
+		   oh_append_bigtext(&buffer, "Tag: ");
+		   snprintf(str,  rdrptr->IdString.DataLength+1, "%s", 
 		 	rdrptr->IdString.Data);
-		oh_append_bigtext(&buffer, str);
+		   oh_append_bigtext(&buffer, str);
+		   oh_append_bigtext(&buffer, "\n");
+		}
 		show_rdr(&buffer);
 	} 
 	
@@ -506,9 +516,13 @@ SaErrorT show_ctrl(SaHpiSessionIdT sessionid,
 		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Output Type: %s, ", 
 			oh_lookup_ctrloutputtype(rdrptr->RdrTypeUnion.CtrlRec.OutputType));
 		oh_append_bigtext(&buffer, str);						
-		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Tag: %s\n", 
+		if ( rdrptr->IdString.DataType == SAHPI_TL_TYPE_TEXT ) {
+		   oh_append_bigtext(&buffer, "Tag: ");
+		   snprintf(str,  rdrptr->IdString.DataLength+1, "%s", 
 		 	rdrptr->IdString.Data);
-		oh_append_bigtext(&buffer, str);
+		   oh_append_bigtext(&buffer, str);
+		   oh_append_bigtext(&buffer, "\n");
+		}
 		show_rdr(&buffer);
 	} 
 	return(rv);
@@ -532,9 +546,13 @@ SaErrorT show_wdog(SaHpiSessionIdT sessionid,
 	if (rdrptr->RdrType == SAHPI_WATCHDOG_RDR) {
 		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Watchdog Num: %d, ", rdrptr->RdrTypeUnion.WatchdogRec.WatchdogNum);
 		oh_append_bigtext(&buffer, str);
-		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Tag: %s\n", 
+		if ( rdrptr->IdString.DataType == SAHPI_TL_TYPE_TEXT ) {
+		   oh_append_bigtext(&buffer, "Tag: ");
+		   snprintf(str,  rdrptr->IdString.DataLength+1, "%s", 
 		 	rdrptr->IdString.Data);
-		oh_append_bigtext(&buffer, str);
+		   oh_append_bigtext(&buffer, str);
+		   oh_append_bigtext(&buffer, "\n");
+		}
 		show_rdr(&buffer);
 		
 	} 
@@ -560,9 +578,13 @@ SaErrorT show_dimi(SaHpiSessionIdT sessionid,
 		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Dimi Num: %d, ", 
 		                                 rdrptr->RdrTypeUnion.DimiRec.DimiNum);
 		oh_append_bigtext(&buffer, str);
-		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Tag: %s\n", 
+		if ( rdrptr->IdString.DataType == SAHPI_TL_TYPE_TEXT ) {
+		   oh_append_bigtext(&buffer, "Tag: ");
+		   snprintf(str,  rdrptr->IdString.DataLength+1, "%s", 
 		 	rdrptr->IdString.Data);
-		oh_append_bigtext(&buffer, str);
+		   oh_append_bigtext(&buffer, str);
+		   oh_append_bigtext(&buffer, "\n");
+		}
 		show_rdr(&buffer);
 		
 	} 
@@ -588,9 +610,13 @@ SaErrorT show_fumi(SaHpiSessionIdT sessionid,
 		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Fumi Num: %d, ", 
 		                                     rdrptr->RdrTypeUnion.FumiRec.Num);
 		oh_append_bigtext(&buffer, str);
-		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Tag: %s\n", 
+		if ( rdrptr->IdString.DataType == SAHPI_TL_TYPE_TEXT ) {
+		   oh_append_bigtext(&buffer, "Tag: ");
+		   snprintf(str,  rdrptr->IdString.DataLength+1, "%s", 
 		 	rdrptr->IdString.Data);
-		oh_append_bigtext(&buffer, str);
+		   oh_append_bigtext(&buffer, str);
+		   oh_append_bigtext(&buffer, "\n");
+		}
 		show_rdr(&buffer);
 		
 	} 
@@ -619,9 +645,13 @@ SaErrorT show_ann (SaHpiSessionIdT sessionid,
 		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Type: %s, ",
 			oh_lookup_annunciatortype(rdrptr->RdrTypeUnion.AnnunciatorRec.AnnunciatorType));
 		oh_append_bigtext(&buffer, str);
-		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Tag: %s\n", 
+		if ( rdrptr->IdString.DataType == SAHPI_TL_TYPE_TEXT ) {
+		   oh_append_bigtext(&buffer, "Tag: ");
+		   snprintf(str,  rdrptr->IdString.DataLength+1, "%s", 
 		 	rdrptr->IdString.Data);
-		oh_append_bigtext(&buffer, str);
+		   oh_append_bigtext(&buffer, str);
+		   oh_append_bigtext(&buffer, "\n");
+		}
 		show_rdr(&buffer);
 		
 	} 

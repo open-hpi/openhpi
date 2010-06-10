@@ -34,6 +34,8 @@
 
 #include "hpi_test.h"
 
+int powerSubsystemResId = -1;
+
 /*
  * This function opens the HPI session, discovers the resources which matches
  * the requested capability and sends the list of resource ids and resource
@@ -76,6 +78,9 @@ SaErrorT discover_resources(SaHpiSessionIdT sessionid,
                         resourceid_list[count] = rptentry.ResourceId;
                         printf("\tResource-id = %d, Resource Name = %s\n",
                                rptentry.ResourceId, rptentry.ResourceTag.Data);
+                        if (strcmp(rptentry.ResourceTag.Data,
+                                   "Power Subsystem") == 0)
+                          powerSubsystemResId = rptentry.ResourceId;
                         count++;
                 }
                 rptentryid = nextrptentryid;

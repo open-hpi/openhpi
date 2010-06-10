@@ -18,7 +18,7 @@
 MAINTAINERCLEANFILES 	= Makefile.in *~
 
 INCLUDES 		= \
-	@OPENHPI_INCLUDES@  -I$(top_srcdir)/marshal @OH_SSL_INCLUDES@
+	@OPENHPI_INCLUDES@  -I$(top_srcdir)/transport -I$(top_srcdir)/marshal @OH_SSL_INCLUDES@
 
 SUBDIRS = t  
 DIST_SUBDIRS = t
@@ -49,7 +49,7 @@ openhpid_SOURCES        = config.c \
 openhpid_LDADD         = $(top_builddir)/baselib/libopenhpi.la \
 	                 $(top_builddir)/utils/libopenhpiutils.la \
 	                 $(top_builddir)/marshal/libopenhpimarshal.la \
-			 $(top_builddir)/marshal/libohtcpconnx.la
+			 $(top_builddir)/transport/libopenhpitransport.la
 if HAVE_OPENSSL
 openhpid_LDADD		+= $(top_builddir)/$(SSLDIR)/libopenhpi_ssl.la
 endif

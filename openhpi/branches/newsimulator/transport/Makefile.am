@@ -14,9 +14,6 @@
 
 .NOTPARALLEL:
 
-SUBDIRS			= t
-DIST_SUBDIRS 		= t
-
 MAINTAINERCLEANFILES 	= Makefile.in *~
 
 INCLUDES 		= @OPENHPI_INCLUDES@
@@ -24,17 +21,13 @@ INCLUDES 		= @OPENHPI_INCLUDES@
 LIBS			=
 
 # marshal and connection used by the daemon and client library
-lib_LTLIBRARIES = libopenhpimarshal.la
+lib_LTLIBRARIES = libopenhpitransport.la
 
-libopenhpimarshal_la_SOURCES    = \
-	marshal_hpi.h \
-	marshal_hpi.c \
-	marshal_hpi_types.h \
-	marshal_hpi_types.c \
-	marshal.h \
-        marshal.c
+libopenhpitransport_la_SOURCES    = \
+	strmsock.h \
+	strmsock.cpp
 
-libopenhpimarshal_la_LDFLAGS= -version-info @HPI_LIB_VERSION@
+libopenhpitransport_la_LDFLAGS= -version-info @HPI_LIB_VERSION@
 
 clean-local:
 	rm -f *~ core core.*
