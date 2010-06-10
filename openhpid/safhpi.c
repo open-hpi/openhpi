@@ -694,7 +694,7 @@ SaErrorT SAHPI_API saHpiResourceFailedRemove (
         
 	        error = get_hotswap_state(h->hnd, ResourceId, &hsstate);
         	oh_release_handler(h);
-	        if (error) return error;
+	        if (error != SA_OK) return error;
 	} else 
 		hsstate = SAHPI_HS_STATE_ACTIVE;
         
@@ -1284,7 +1284,7 @@ SaErrorT SAHPI_API saHpiSubscribe (
         OH_GET_DID(SessionId, did);
 
         error = oh_get_session_subscription(SessionId, &subscribed);
-        if (error) {
+        if (error != SA_OK) {
                 err("Error subscribing to SessionId: %d", SessionId);
                 return error;
         }
@@ -1310,7 +1310,7 @@ SaErrorT SAHPI_API saHpiUnsubscribe (
         OH_GET_DID(SessionId, did);
 
         error = oh_get_session_subscription(SessionId, &subscribed);
-        if (error) {
+        if (error != SA_OK) {
                 err("Error reading session subscription from SessionId: %d", SessionId);
                 return error;
         }
@@ -1321,7 +1321,7 @@ SaErrorT SAHPI_API saHpiUnsubscribe (
         }
 
         error = oh_set_session_subscription(SessionId, SAHPI_FALSE);
-        if (error) {
+        if (error != SA_OK) {
                 err("Error unsubscribing to SessionId: %d", SessionId);
                 return error;
         }
@@ -1357,7 +1357,7 @@ SaErrorT SAHPI_API saHpiEventGet (
         }
 
         error = oh_get_session_subscription(SessionId, &subscribed);
-        if (error) return error;
+        if (error != SA_OK) return error;
 
         if (!subscribed) {
                 err("session is not subscribed");
@@ -1370,18 +1370,21 @@ SaErrorT SAHPI_API saHpiEventGet (
                                          SAHPI_TIMEOUT_IMMEDIATE,
                                          &e, &qstatus1);
 
-        if (error) { /* If queue empty then fetch more events */
+        if (error != SA_OK) { /* If queue empty then fetch more events */
                 oh_wake_event_thread(SAHPI_TRUE);
                 /* Sent for more events. Ready to wait on queue. */
                 dbg("Trying getting event again from session %d queue.", SessionId);
                 error = oh_dequeue_session_event(SessionId, Timeout,
                                                  &e, &qstatus2);
-        }
-        /* If no events after trying to fetch them, return error */
-        if (error) {
-                err("No events in session's %d queue: %s",
-                    SessionId, oh_lookup_error(error));
-                return error;
+        
+                if (error != SA_OK) {
+                    /* If no events after trying to fetch them, return error */
+                    if (error != SA_ERR_HPI_TIMEOUT) {
+                            err("No events in session's %d queue: %s",
+                                SessionId, oh_lookup_error(error));
+                    }
+                    return error;
+                }
         }
 
         /* If there was overflow before or after getting events, return it */
@@ -1415,7 +1418,7 @@ SaErrorT SAHPI_API saHpiEventAdd (
         SaErrorT error = SA_OK;
 
         error = oh_valid_addevent(EvtEntry);
-        if (error) {
+        if (error != SA_OK) {
                 err("event is not valid");
                 return error;
         }
@@ -1424,7 +1427,7 @@ SaErrorT SAHPI_API saHpiEventAdd (
         OH_GET_DID(SessionId, did);
 
         error = saHpiEventLogInfoGet(SessionId, SAHPI_UNSPECIFIED_RESOURCE_ID, &info);
-        if (error) {
+        if (error != SA_OK) {
                 err("couldn't get loginfo");
                 return error;
         }
@@ -1848,8 +1851,9 @@ SaErrorT SAHPI_API saHpiRdrUpdateCountGet(
         SaHpiRptEntryT *res;
 
         /* Test pointer parameters for invalid pointers */
-        if (UpdateCount == NULL)
+        if (UpdateCount == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
+        }
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
@@ -1862,15 +1866,11 @@ SaErrorT SAHPI_API saHpiRdrUpdateCountGet(
                 return SA_ERR_HPI_CAPABILITY;
         }
 
-        // TODO implement
-        // Current implementation always return 0
-        // Shall we introduce new call in handler ABI or
-        // implement update counter in OpenHPI core?
-        *UpdateCount = 0;
+        SaErrorT rv = oh_get_rdr_update_count(&(d->rpt), ResourceId, UpdateCount);
 
         oh_release_domain(d); /* Unlock domain */
 
-        return SA_OK;
+        return rv;
 }
 
 
@@ -5204,7 +5204,7 @@ SaErrorT SAHPI_API saHpiFumiInstallStart (
 
         error = saHpiFumiSourceInfoGet(SessionId, ResourceId, FumiNum,
                                        BankNum, &sourceinfo);
-        if (error) {
+        if (error != SA_OK) {
                 oh_release_domain(d);
                 return error;
         } else if (sourceinfo.SourceStatus != SAHPI_FUMI_SRC_VALID &&
@@ -5324,7 +5324,7 @@ SaErrorT SAHPI_API saHpiFumiTargetVerifyStart (
 
         error = saHpiFumiSourceInfoGet(SessionId, ResourceId, FumiNum,
                                        BankNum, &sourceinfo);
-        if (error) {
+        if (error != SA_OK) {
                 oh_release_domain(d);
                 return error;
         } else if (sourceinfo.SourceStatus != SAHPI_FUMI_SRC_VALID &&
@@ -5391,7 +5391,7 @@ SaErrorT SAHPI_API saHpiFumiTargetVerifyMainStart(
 
         error = saHpiFumiSourceInfoGet(SessionId, ResourceId, FumiNum,
                                        0, &sourceinfo);
-        if (error) {
+        if (error != SA_OK) {
                 oh_release_domain(d);
                 return error;
         } else if (sourceinfo.SourceStatus != SAHPI_FUMI_SRC_VALID &&
@@ -6041,7 +6041,7 @@ SaErrorT SAHPI_API saHpiAutoInsertTimeoutSet(
                 }
                 oh_release_handler(h);
 
-                if (error) break;
+                if (error != SA_OK) break;
         }
         g_array_free(hids, TRUE);
 

@@ -6724,6 +6724,126 @@ const struct oa_soap_control oa_soap_cntrl_arr[] = {
 		},
 		.comment = "LCD button lock",
 	},
+	/* Power Mode Control */
+	{
+		.control = {
+			.Num = OA_SOAP_PWR_MODE_CNTRL,
+			.OutputType = SAHPI_CTRL_POWER_BUDGET,
+			.Type = SAHPI_CTRL_TYPE_DISCRETE,
+			.TypeUnion.Discrete.Default = AC_REDUNDANT,
+			.DefaultMode = {
+				.Mode = SAHPI_CTRL_MODE_MANUAL,
+				.ReadOnly = SAHPI_FALSE,
+			},
+			.WriteOnly = SAHPI_FALSE,
+			.Oem = 0,
+		},
+		.comment = "power mode control",
+	},
+	/* Dynamic Power Control */
+	{
+		.control = {
+			.Num = OA_SOAP_DYNAMIC_PWR_CNTRL,
+			.OutputType = SAHPI_CTRL_POWER_BUDGET,
+			.Type = SAHPI_CTRL_TYPE_DIGITAL,
+			.TypeUnion.Digital.Default = SAHPI_CTRL_STATE_ON,
+			.DefaultMode = {
+				.Mode = SAHPI_CTRL_MODE_MANUAL,
+				.ReadOnly = SAHPI_FALSE,
+			},
+			.WriteOnly = SAHPI_FALSE,
+			.Oem = 0,
+		},
+		.comment = "dynamic power control",
+	},
+	/* Power Limit Mode Control */
+	{
+		.control = {
+			.Num = OA_SOAP_PWR_LIMIT_MODE_CNTRL,
+			.OutputType = SAHPI_CTRL_POWER_BUDGET,
+			.Type = SAHPI_CTRL_TYPE_DISCRETE,
+			.TypeUnion.Discrete.Default = POWER_LIMIT_NONE,
+			.DefaultMode = {
+				.Mode = SAHPI_CTRL_MODE_MANUAL,
+				.ReadOnly = SAHPI_FALSE,
+			},
+			.WriteOnly = SAHPI_FALSE,
+			.Oem = 0,
+		},
+		.comment = "power limit mode control",
+	},
+	/* Static Power Limit Control */
+	{
+		.control = {
+			.Num = OA_SOAP_STATIC_PWR_LIMIT_CNTRL,
+			.OutputType = SAHPI_CTRL_POWER_BUDGET,
+			.Type = SAHPI_CTRL_TYPE_ANALOG,
+			.TypeUnion.Analog.Min = 0x00,
+			.TypeUnion.Analog.Max = 0x00,
+			.TypeUnion.Analog.Default = 0x00,
+			.DefaultMode = {
+				.Mode = SAHPI_CTRL_MODE_MANUAL,
+				.ReadOnly = SAHPI_FALSE,
+			},
+			.WriteOnly = SAHPI_FALSE,
+			.Oem = 0,
+		},
+		.comment = "static power limit control",
+	},
+	/* Dynamic Power Cap Control */
+	{
+		.control = {
+			.Num = OA_SOAP_DYNAMIC_PWR_CAP_CNTRL,
+			.OutputType = SAHPI_CTRL_POWER_BUDGET,
+			.Type = SAHPI_CTRL_TYPE_ANALOG,
+			.TypeUnion.Analog.Min = 0x00,
+			.TypeUnion.Analog.Max = 0x00,
+			.TypeUnion.Analog.Default = 0x00,
+			.DefaultMode = {
+				.Mode = SAHPI_CTRL_MODE_MANUAL,
+				.ReadOnly = SAHPI_FALSE,
+			},
+			.WriteOnly = SAHPI_FALSE,
+			.Oem = 0,
+		},
+		.comment = "dynamic power cap control",
+	},
+	/* Derated Circuit Cap Control */
+	{
+		.control = {
+			.Num = OA_SOAP_DERATED_CIRCUIT_CAP_CNTRL,
+			.OutputType = SAHPI_CTRL_POWER_BUDGET,
+			.Type = SAHPI_CTRL_TYPE_ANALOG,
+			.TypeUnion.Analog.Min = 0x00,
+			.TypeUnion.Analog.Max = 0x00,
+			.TypeUnion.Analog.Default = 0x00,
+			.DefaultMode = {
+				.Mode = SAHPI_CTRL_MODE_MANUAL,
+				.ReadOnly = SAHPI_FALSE,
+			},
+			.WriteOnly = SAHPI_FALSE,
+			.Oem = 0,
+		},
+		.comment = "derated circuit cap control",
+	},
+	/* Rated Circuit Cap Control */
+	{
+		.control = {
+			.Num = OA_SOAP_RATED_CIRCUIT_CAP_CNTRL,
+			.OutputType = SAHPI_CTRL_POWER_BUDGET,
+			.Type = SAHPI_CTRL_TYPE_ANALOG,
+			.TypeUnion.Analog.Min = 0x00,
+			.TypeUnion.Analog.Max = 0x00,
+			.TypeUnion.Analog.Default = 0x00,
+			.DefaultMode = {
+				.Mode = SAHPI_CTRL_MODE_MANUAL,
+				.ReadOnly = SAHPI_FALSE,
+			},
+			.WriteOnly = SAHPI_FALSE,
+			.Oem = 0,
+		},
+		.comment = "rated circuit cap control",
+	},
 	{} /* Terminate array with a null element */
 };
 

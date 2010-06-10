@@ -35,6 +35,8 @@
 
 #include "hpi_test.h"
 
+extern int powerSubsystemResId;
+
 int main(int argc, char **argv)
 {
         int number_resources=0;
@@ -43,6 +45,7 @@ int main(int argc, char **argv)
         SaHpiResourceIdT resourceid;
         SaHpiResourceIdT resourceid_list[RESOURCE_CAP_LENGTH] = {0};
         SaHpiCtrlNumT controlNumber = OA_SOAP_RES_CNTRL_NUM;
+        SaHpiCtrlNumT ps_controlNumber = 0;
         SaHpiCtrlTypeT controlType;
         SaHpiCapabilitiesT capability = SAHPI_CAPABILITY_CONTROL;
         char *type;
@@ -71,21 +74,36 @@ int main(int argc, char **argv)
         printf("\nPlease enter the resource id whose control has to be set: ");
         scanf("%d", &resourceid);
 
-        rv = saHpiControlTypeGet(sessionid, resourceid, controlNumber,
-                                 &controlType);
-        if (rv != SA_OK) {
-                printf("saHpiControlGet failed with error: %s\n",
-                       oh_lookup_error(rv));
-                printf("Test case - Fail\n");
+        if (resourceid == powerSubsystemResId) {
+          printf("\nPower mode control(Press 3)");
+          printf("\nDynamic power mode control(Press 4)");
+          printf("\nPower limit mode control(Press 5)");
+          printf("\nStatic power limit control(Press 6)");
+          printf("\nDynamic power cap control(Press 7)");
+          printf("\nDerated circuit cap control(Press 8)");
+          printf("\nRated circuit cap control(Press 9)\n");
+          scanf("%d", &ps_controlNumber);
+          rv = saHpiControlTypeGet(sessionid, resourceid, ps_controlNumber,
+                                   &controlType);
         }
         else {
-                type = oh_lookup_ctrltype(controlType);
-                if (type == NULL)
-                        printf("Test case - FAIL\n");
-                else {
-                        printf("\nControl Type = %s\n",type);
-                        printf("Test case - PASS\n");
-                }
+          rv = saHpiControlTypeGet(sessionid, resourceid, controlNumber,
+                                   &controlType);
+        }
+
+        if (rv != SA_OK) {
+               printf("saHpiControlGet failed with error: %s\n",
+                      oh_lookup_error(rv));
+               printf("Test case - Fail\n");
+        }
+        else {
+               type = oh_lookup_ctrltype(controlType);
+               if (type == NULL)
+                       printf("Test case - FAIL\n");
+               else {
+                       printf("\nControl Type = %s\n",type);
+                       printf("Test case - PASS\n");
+               }
         }
 
         rv = saHpiSessionClose(sessionid);

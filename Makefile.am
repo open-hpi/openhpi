@@ -54,8 +54,8 @@ MAINTAINERCLEANFILES    = Makefile.in aclocal.m4 configure config.guess config.s
 MOSTLYCLEANFILES        = tags
 
 
-SUBDIRS                 = utils scripts @SSLDIR@ @SNMPDIR@ @MARSHALDIR@ baselib plugins docs @ENABLED_DIRS@ hpi_shell
-DIST_SUBDIRS            = utils scripts snmp ssl marshal baselib plugins docs openhpid clients cpp hpi_shell
+SUBDIRS                 = utils scripts @SSLDIR@ @SNMPDIR@ transport marshal baselib plugins docs @ENABLED_DIRS@ hpi_shell
+DIST_SUBDIRS            = utils scripts snmp ssl transport marshal baselib plugins docs openhpid clients cpp hpi_shell
 
 
 DISTCHECK_CONFIGURE_FLAGS = --with-initdir=prefix
@@ -74,6 +74,8 @@ ALLSOURCES = \
         $(shell find $(top_srcdir)/snmp -name .svn -o -name CVS -prune -o \
         -name '*.[chS]' -print | grep -v '/t/') \
         $(shell find $(top_srcdir)/ssl -name .svn -o -name CVS -prune -o \
+        -name '*.[chS]' -print | grep -v '/t/') \
+        $(shell find $(top_srcdir)/transport -name .svn -o -name CVS -prune -o \
         -name '*.[chS]' -print | grep -v '/t/') \
         $(shell find $(top_srcdir)/marshal -name .svn -o -name CVS -prune -o \
         -name '*.[chS]' -print | grep -v '/t/') \

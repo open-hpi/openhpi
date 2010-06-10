@@ -834,7 +834,8 @@ SaErrorT build_enclosure_rpt(struct oh_handler_state *oh_handler,
         rpt.HotSwapCapabilities = 0x0;
         rpt.ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
         rpt.ResourceTag.Language = SAHPI_LANG_ENGLISH;
-        rpt.ResourceTag.DataLength = strlen(name) + 1;
+        oa_soap_trim_whitespace(name);
+        rpt.ResourceTag.DataLength = strlen(name);
         memset(rpt.ResourceTag.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
         snprintf((char *) (rpt.ResourceTag.Data),
                  strlen(name) + 1, "%s", name);
@@ -983,7 +984,7 @@ SaErrorT build_enclosure_rdr(struct oh_handler_state *oh_handler,
 				diag_ex_status[DIAG_EX_DEV_NOT_SUPPORT])
 
         /* Build UID control rdr for Enclosure */
-	OA_SOAP_BUILD_CONTROL_RDR(OA_SOAP_UID_CNTRL)
+        OA_SOAP_BUILD_CONTROL_RDR(OA_SOAP_UID_CNTRL, 0, 0)
 
         return SA_OK;
 }
@@ -1122,7 +1123,7 @@ SaErrorT build_oa_rpt(struct oh_handler_state *oh_handler,
         rpt.HotSwapCapabilities = 0x0;
         rpt.ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
         rpt.ResourceTag.Language = SAHPI_LANG_ENGLISH;
-        rpt.ResourceTag.DataLength = strlen(OA_NAME) + 1;
+        rpt.ResourceTag.DataLength = strlen(OA_NAME);
         memset(rpt.ResourceTag.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
         snprintf((char *) (rpt.ResourceTag.Data),
                  strlen(OA_NAME) + 1, OA_NAME);
@@ -1216,7 +1217,7 @@ SaErrorT build_oa_rdr(struct oh_handler_state *oh_handler,
 					thermal_response)
 
         /* Build UID control rdr for OA */
-	OA_SOAP_BUILD_CONTROL_RDR(OA_SOAP_UID_CNTRL)
+        OA_SOAP_BUILD_CONTROL_RDR(OA_SOAP_UID_CNTRL, 0, 0)
 
 	status_request.bayNumber = response->bayNumber;
 	rv = soap_getOaStatus(con, &status_request, &status_response);
@@ -1497,7 +1498,7 @@ SaErrorT build_discovered_server_rpt(struct oh_handler_state *oh_handler,
 				 * blade entry in oa_soap_bay_pwr_status array
 				 */
 				oa_soap_bay_pwr_status[response->bayNumber -1] =
-								 SAHPI_POWER_OFF;
+                                  SAHPI_POWER_OFF;
                                 break;
 
                         default:
@@ -1620,10 +1621,11 @@ SaErrorT build_server_rpt(struct oh_handler_state *oh_handler,
         rpt->ResourceFailed = SAHPI_FALSE;
         rpt->ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
         rpt->ResourceTag.Language = SAHPI_LANG_ENGLISH;
-        rpt->ResourceTag.DataLength = strlen(response->name) + 1;
+        oa_soap_trim_whitespace(response->name);
+        rpt->ResourceTag.DataLength = strlen(response->name);
         memset(rpt->ResourceTag.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
         snprintf((char *) (rpt->ResourceTag.Data),
-                 rpt->ResourceTag.DataLength, "%s", response->name);
+                 rpt->ResourceTag.DataLength + 1, "%s", response->name);
 
         /* set default hotswap capability */
         if (rpt->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP) {
@@ -1735,10 +1737,10 @@ SaErrorT build_server_rdr(struct oh_handler_state *oh_handler,
 	if (rpt->ResourceEntity.Entry[0].EntityType == 
 		SAHPI_ENT_SYSTEM_BLADE) {
             /* Build power control rdr for server */
-	    OA_SOAP_BUILD_CONTROL_RDR(OA_SOAP_PWR_CNTRL)
+            OA_SOAP_BUILD_CONTROL_RDR(OA_SOAP_PWR_CNTRL, 0, 0)
 	}
 	/* Build UID control rdr for server */
-	OA_SOAP_BUILD_CONTROL_RDR(OA_SOAP_UID_CNTRL)
+        OA_SOAP_BUILD_CONTROL_RDR(OA_SOAP_UID_CNTRL, 0, 0)
 
 	status_request.bayNumber = bay_number;
 	rv = soap_getBladeStatus(con, &status_request, &status_response);
@@ -2049,10 +2051,11 @@ SaErrorT build_interconnect_rpt(struct oh_handler_state *oh_handler,
         rpt.HotSwapCapabilities = SAHPI_HS_CAPABILITY_AUTOEXTRACT_READ_ONLY;
         rpt.ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
         rpt.ResourceTag.Language = SAHPI_LANG_ENGLISH;
-        rpt.ResourceTag.DataLength = strlen(name) + 1;
+        oa_soap_trim_whitespace(name);
+        rpt.ResourceTag.DataLength = strlen(name);
         memset(rpt.ResourceTag.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
         snprintf((char *) (rpt.ResourceTag.Data),
-                  rpt.ResourceTag.DataLength, "%s", name);
+                  rpt.ResourceTag.DataLength + 1, "%s", name);
 
         hotswap_state = (struct oa_soap_hotswap_state *)
                 g_malloc0(sizeof(struct oa_soap_hotswap_state));
@@ -2202,10 +2205,10 @@ SaErrorT build_interconnect_rdr(struct oh_handler_state *oh_handler,
 					   thermal_response)
 
         /* Build power control rdr for server */
-	OA_SOAP_BUILD_CONTROL_RDR(OA_SOAP_PWR_CNTRL)
+        OA_SOAP_BUILD_CONTROL_RDR(OA_SOAP_PWR_CNTRL, 0, 0)
 
         /* Build UID control rdr for server */
-	OA_SOAP_BUILD_CONTROL_RDR(OA_SOAP_UID_CNTRL)
+        OA_SOAP_BUILD_CONTROL_RDR(OA_SOAP_UID_CNTRL, 0, 0)
 
 	status_request.bayNumber = bay_number;
 	rv = soap_getInterconnectTrayStatus(con, &status_request,
@@ -2438,7 +2441,8 @@ SaErrorT build_power_subsystem_rpt(struct oh_handler_state *oh_handler,
         memset(&rpt, 0, sizeof(SaHpiRptEntryT));
         rpt.ResourceCapabilities = SAHPI_CAPABILITY_RDR |
                                    SAHPI_CAPABILITY_RESOURCE |
-                                   SAHPI_CAPABILITY_SENSOR;
+                                   SAHPI_CAPABILITY_SENSOR |
+                                   SAHPI_CAPABILITY_CONTROL;
         rpt.ResourceEntity.Entry[1].EntityType = SAHPI_ENT_ROOT;
         rpt.ResourceEntity.Entry[1].EntityLocation = 0;
         rpt.ResourceEntity.Entry[0].EntityType = SAHPI_ENT_POWER_MGMNT;
@@ -2456,10 +2460,11 @@ SaErrorT build_power_subsystem_rpt(struct oh_handler_state *oh_handler,
         rpt.HotSwapCapabilities = 0x0;
         rpt.ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
         rpt.ResourceTag.Language = SAHPI_LANG_ENGLISH;
-        rpt.ResourceTag.DataLength = strlen(name) + 1;
+        oa_soap_trim_whitespace(name);
+        rpt.ResourceTag.DataLength = strlen(name);
         memset(rpt.ResourceTag.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
         snprintf((char *) (rpt.ResourceTag.Data),
-                 rpt.ResourceTag.DataLength, "%s", name);
+                 rpt.ResourceTag.DataLength + 1, "%s", name);
 
         /* Add the power subsystem rpt to the plugin RPTable */
         rv = oh_add_resource(oh_handler->rptcache, &rpt, NULL, 0);
@@ -2500,12 +2505,23 @@ SaErrorT build_power_subsystem_rdr(struct oh_handler_state *oh_handler,
 	struct powerSubsystemInfo response;
 	SaHpiInt32T sensor_status;
 
+        struct powerConfigInfo *power_config_info;
+        struct powerCapConfig *power_cap_config;
+        xmlNode *extra_data;
+        struct extraDataInfo extra_data_info;
+
         if (oh_handler == NULL) {
                 err("Invalid parameter");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
 	oa_handler = (struct oa_soap_handler *) oh_handler->data;
+        power_config_info = &(oa_handler->power_config_info);
+        power_cap_config = &(oa_handler->power_cap_config);
+        /* Initialize user's desired static power limit - and dynamic */
+        /* power cap to zero to start with                            */
+        oa_handler->desired_static_pwr_limit = 0;
+        oa_handler->desired_dynamic_pwr_cap = 0;
 
         /* Build the input power sensor RDR */
 	OA_SOAP_BUILD_SENSOR_RDR(OA_SOAP_SEN_IN_PWR)
@@ -2519,11 +2535,54 @@ SaErrorT build_power_subsystem_rdr(struct oh_handler_state *oh_handler,
         /* Build the power capacity sensor RDR */
 	OA_SOAP_BUILD_SENSOR_RDR(OA_SOAP_SEN_PWR_CAPACITY)
 
+        /* Make a soap call to get the enclosure power config info */
+        rv = soap_getPowerConfigInfo(oa_handler->active_con,
+                                     power_config_info,
+                                     &(oa_handler->desired_static_pwr_limit));
+        if (rv != SOAP_OK) {
+                err("build_power_subsystem get power config info failed");
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+
+        /* Make a soap call to get the enclosure power cap config */
+        rv = soap_getPowerCapConfig(oa_handler->active_con,
+                                    power_cap_config,
+                                    &(oa_handler->desired_dynamic_pwr_cap),
+                                    &(oa_handler->desired_derated_circuit_cap),
+                                    &(oa_handler->desired_rated_circuit_cap));
+        if (rv != SOAP_OK) {
+                err("build_power_subsystem get power cap config failed");
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+
+        /* Build power mode control rdr for Enclosure */
+        OA_SOAP_BUILD_CONTROL_RDR(OA_SOAP_PWR_MODE_CNTRL, 0, 0)
+
+        /* Build dynamic power control rdr for Enclosure */
+        OA_SOAP_BUILD_CONTROL_RDR(OA_SOAP_DYNAMIC_PWR_CNTRL, 0, 0);
+
+        /* Build power limit mode control rdr for Enclosure */
+        OA_SOAP_BUILD_CONTROL_RDR(OA_SOAP_PWR_LIMIT_MODE_CNTRL, 0, 0)
+
 	rv = soap_getPowerSubsystemInfo(oa_handler->active_con, &response);
 	if (rv != SOAP_OK) {
 		err("Get power subsystem info SOAP call failed");
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
+
+        power_config_info->ACLimitLow = 0;
+        power_config_info->ACLimitHigh = 0;
+        extra_data = response.extraData;
+        while (extra_data) {
+                soap_getExtraData(extra_data, &extra_data_info);
+                if (!(strcmp(extra_data_info.name, "ACLimitLow"))) {
+                  power_config_info->ACLimitLow = atoi(extra_data_info.value);
+                }
+                if (!(strcmp(extra_data_info.name, "ACLimitHigh"))) {
+                  power_config_info->ACLimitHigh = atoi(extra_data_info.value);
+                }
+                extra_data = soap_next_node(extra_data);
+        }
 
 	/* Build operational status sensor rdr */
 	OA_SOAP_BUILD_ENABLE_SENSOR_RDR(OA_SOAP_SEN_OPER_STATUS,
@@ -2536,6 +2595,29 @@ SaErrorT build_power_subsystem_rdr(struct oh_handler_state *oh_handler,
 	/* Build redundancy sensor rdr */
 	OA_SOAP_BUILD_ENABLE_SENSOR_RDR(OA_SOAP_SEN_REDUND,
 					response.redundancy)
+
+        /* Build static power limit control for Enclosure */
+        OA_SOAP_BUILD_CONTROL_RDR(OA_SOAP_STATIC_PWR_LIMIT_CNTRL,
+                                  power_config_info->ACLimitLow,
+                                  power_config_info->ACLimitHigh)
+
+        /* Build dynamic power cap config control rdr for Enclosure */
+        OA_SOAP_BUILD_CONTROL_RDR(OA_SOAP_DYNAMIC_PWR_CAP_CNTRL,
+                              power_cap_config->enclosurePowerCapLowerBound,
+                              power_cap_config->enclosurePowerCapUpperBound);
+
+        /* These controls are only available on OA firmware 3.00 and higher */
+        if (oa_handler->active_fm_ver >= 3.0) {
+                /* Build derated circuit cap control rdr for Enclosure */
+                OA_SOAP_BUILD_CONTROL_RDR(OA_SOAP_DERATED_CIRCUIT_CAP_CNTRL,
+                              power_cap_config->deratedCircuitCapLowerBound,
+                              power_cap_config->deratedCircuitCapUpperBound);
+
+                /* Build rated circuit cap control rdr for Enclosure */
+                OA_SOAP_BUILD_CONTROL_RDR(OA_SOAP_RATED_CIRCUIT_CAP_CNTRL,
+                              power_cap_config->ratedCircuitCapLowerBound,
+                              power_cap_config->ratedCircuitCapUpperBound);
+        }
 
         return SA_OK;
 }
@@ -2655,10 +2737,11 @@ SaErrorT build_power_supply_rpt(struct oh_handler_state *oh_handler,
         rpt.HotSwapCapabilities = 0x0;
         rpt.ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
         rpt.ResourceTag.Language = SAHPI_LANG_ENGLISH;
-        rpt.ResourceTag.DataLength = strlen(name) + 1;
+        oa_soap_trim_whitespace(name);
+        rpt.ResourceTag.DataLength = strlen(name);
         memset(rpt.ResourceTag.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
         snprintf((char *) (rpt.ResourceTag.Data),
-                 rpt.ResourceTag.DataLength, "%s", name);
+                 rpt.ResourceTag.DataLength + 1, "%s", name);
 
         /* Add the power supply rpt to the plugin RPTable */
         rv = oh_add_resource(oh_handler->rptcache, &rpt, NULL, 0);
@@ -3608,7 +3691,7 @@ static SaErrorT oa_soap_build_lcd_rdr(struct oh_handler_state *oh_handler,
 	}
 
 	/* Build LCD button lock control rdr */
-	OA_SOAP_BUILD_CONTROL_RDR(OA_SOAP_LCD_BUTN_LCK_CNTRL)
+        OA_SOAP_BUILD_CONTROL_RDR(OA_SOAP_LCD_BUTN_LCK_CNTRL, 0, 0)
 
 	/* Build operational status sensor rdr */
 	rv = soap_getLcdStatus(oa_handler->active_con, &status);
@@ -4061,8 +4144,8 @@ SaErrorT oa_soap_build_blade_thermal_rdr(struct oh_handler_state *oh_handler,
 					 * caution threshold value provided by
 					 * OA
 					 */
-					sensor->DataFormat.Range.NormalMax.Value.
-								SensorFloat64 =
+					sensor->DataFormat.Range.NormalMax.
+							Value.SensorFloat64 =
 					sensor_info->threshold.UpMajor.Value.
 								SensorFloat64 =
 					bld_thrm_info.cautionThreshold;

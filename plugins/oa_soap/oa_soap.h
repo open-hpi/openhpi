@@ -88,11 +88,6 @@
 #define OA_SOAP_ENC_C7000       0
 #define OA_SOAP_ENC_C3000       1
 
-/* Max Blade in HP BladeSystem c7000 c-Class enclosure*/
-#define OA_SOAP_C7000_MAX_BLADE 16
-/* Max Blade in HP BladeSystem c3000 c-Class enclosure*/
-#define OA_SOAP_C3000_MAX_BLADE 8
-
 /* Maximum Fan Zones present in different HP BladeSystem c-Class enclosures */
 #define OA_SOAP_C7000_MAX_FZ 4
 #define OA_SOAP_C3000_MAX_FZ 1
@@ -110,7 +105,7 @@
 #define OA_SOAP_RES_CNTRL_NUM              (SaHpiCtrlNumT)   0x001
 
 /* SOAP XML calls timeout values for event thread and hpi calls */
-#define HPI_CALL_TIMEOUT 10
+#define HPI_CALL_TIMEOUT 20
 #define EVENT_CALL_TIMEOUT 40
 
 /* Error code for SOAP XML calls */
@@ -205,6 +200,16 @@ struct oa_soap_handler
 	SaHpiBoolT shutdown_event_thread;
         SaHpiInt32T oa_switching; 
         GMutex *mutex;
+        
+        /* This is local state for holding data for the */
+        /* enclosure power management controls.         */
+        double active_fm_ver;
+        struct powerConfigInfo power_config_info;
+        struct powerCapConfig power_cap_config;
+        uint desired_static_pwr_limit;
+        uint desired_dynamic_pwr_cap;
+        uint desired_derated_circuit_cap;
+        uint desired_rated_circuit_cap;
 };
 
 /* Structure for storing the current hotswap state of the resource */

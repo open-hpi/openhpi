@@ -131,12 +131,15 @@
 	} \
 }
 
-/* Builds the control rdr */
-#define OA_SOAP_BUILD_CONTROL_RDR(control_num) \
+/* Builds the control rdr.                                  */
+/* Set analog limits to 0 if building a non-analog control. */
+#define OA_SOAP_BUILD_CONTROL_RDR(control_num, analogLimitLow, \
+                                  analogLimitHigh) \
 { \
 	memset(&rdr, 0, sizeof(SaHpiRdrT)); \
 	rv = oa_soap_build_control_rdr(oh_handler, &rdr, resource_id, \
-				      control_num); \
+                                       control_num, analogLimitLow, \
+                                       analogLimitHigh); \
 	if (rv != SA_OK) { \
 		err("Failed to create rdr for control %x", control_num);\
 		return rv; \

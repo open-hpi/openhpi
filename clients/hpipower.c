@@ -15,6 +15,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <glib.h>
 #include <getopt.h>
 #include <SaHpi.h>
@@ -34,6 +35,17 @@ typedef struct COMPUTER_DATA_
         SaHpiRdrT            ResDataRec;
         char                 NameStr[80];//Text Name for the computer or plade
 } COMPUTER_DATA;
+
+
+/* Utility function to work with SaHpiTextBufferT */
+static void HpiTextBuffer2CString( const SaHpiTextBufferT * tb, char * cstr )
+{
+    if ( (!tb) || (!cstr) ) {
+        return;
+    }
+    memcpy( cstr, &tb->Data[0], tb->DataLength );
+    cstr[tb->DataLength] = '\0';
+}
 
 
 /* Prototypes */
@@ -196,6 +208,8 @@ int main(int argc, char **argv)
                 HPI_POWER_DEBUG_PRINT(".");
                 if (Report.ResourceCapabilities & SAHPI_CAPABILITY_POWER)
                 {
+                        char tagbuf[SAHPI_MAX_TEXT_BUFFER_LENGTH + 1];
+
                         HPI_POWER_DEBUG_PRINT("#");
                         // We have found a Blade
                         ComputerPtr->ResID = Report.ResourceId;
@@ -205,9 +219,10 @@ int main(int argc, char **argv)
                         ComputerPtr->Instance =
                                 Report.ResourceEntity.Entry[EntityElement].EntityLocation;
                         // find a Name string for this blade
+                        HpiTextBuffer2CString( &Report.ResourceTag, tagbuf );
                         snprintf(ComputerPtr->NameStr, sizeof(ComputerPtr->NameStr),
                                 "%s %d",
-                                (char*)Report.ResourceTag.Data,
+                                tagbuf,
                                 (int) ComputerPtr->Instance);
 
                         // Create a new allocation for another system

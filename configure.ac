@@ -418,9 +418,6 @@ AC_ARG_ENABLE([oa_soap],
      fi
     ])
 
-dnl enable marshal library
-AC_SUBST(MARSHALDIR,marshal)
-
 dnl
 dnl create static plugin config
 dnl
@@ -705,6 +702,7 @@ AC_CONFIG_FILES([openhpi.spec
         utils/t/el/Makefile
         utils/t/uid/Makefile
         utils/t/ann/Makefile
+        transport/Makefile
         marshal/Makefile
         marshal/t/Makefile
         plugins/Makefile

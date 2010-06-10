@@ -11,6 +11,7 @@
  *
  * Author(s):
  *      W. David Ashley <dashley@us.ibm.com>
+ *      Anton Pak <anton.pak@pigeonpoint.com>
  *
  */
 
@@ -23,16 +24,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <SaHpi.h>
-	
-#ifdef __cplusplus 
-}
-#endif
-		
 
 	
 #ifndef TRUE
@@ -48,6 +40,7 @@ extern "C" {
 #define dMhGetVersion(flags) (((flags)>>4) & 0x7)
 
 // message flags
+// if bit is set the byte order is Little Endian
 #define dMhEndianBit	1
 
 #define dMhRequest   0
@@ -104,6 +97,7 @@ class strmsock
 	virtual bool	ReadMsg		        (char *);
         cMessageHeader	header;	        // message header
 	int		errcode;       	// errno contents
+    int remote_byte_order;
 };
 typedef strmsock *pstrmsock;
 

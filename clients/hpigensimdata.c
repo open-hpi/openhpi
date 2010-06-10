@@ -282,26 +282,31 @@ static SaErrorT    print_ep(FILE *out,
  */
 int main(int argc, char **argv) {
 	SaErrorT 	     rv = SA_OK;
+	SaHpiDomainIdT domainid = SAHPI_UNSPECIFIED_DOMAIN_ID;
 	SaHpiSessionIdT  sessionid;
 	SaHpiResourceIdT resourceid = 0;
 	char filename[MAX_CHAR+1];
 	FILE             *outfile = stdout;
 	int              c;
 	ConfigurationDataT confdata;
-
+	SaHpiBoolT printusage = FALSE;
 	
 	confdata.mode = MODE_INIT;
 	oh_prog_version(argv[0], OH_SVN_REV);
 	
-	while ( (c = getopt( argc, argv,"xr:f:m:?")) != EOF ) {
+	while ( (c = getopt( argc, argv,"xD:r:f:m:?")) != EOF ) {
 		switch(c) {
+			case 'D':
+				if (optarg) domainid = atoi(optarg);
+				else printusage = TRUE;
+				break;
 			case 'r':
 				if (optarg) {
 					resourceid = atoi(optarg);
 					g_resource = TRUE;
 				} else {
 					fprintf(stderr, "\nResourceid is missing\n");
-					exit(1);
+					printusage = TRUE;
 				}
 				break;
 			case 'm':
@@ -319,7 +324,7 @@ int main(int argc, char **argv) {
 						confdata.mode = MODE_INIT;
 					} else {
 						fprintf(stderr, "\nUnknown mode %s.\n", tmpmode);
-						exit(1);
+						printusage = TRUE;
 					}
 				}
 				break;
@@ -335,20 +340,24 @@ int main(int argc, char **argv) {
 					}
 					break;
 				}
-			default:
-			    printf("\n %s - Version %.3f\n", argv[0], GEN_SIM_DATA_VERSION);
-			    printf("\nThe client will print all HPI information. This information can be parsed by NewSimulator plugin.");
-			    printf("\nTo spare some encoding/decoding function, values of enums are printed as int values instead of"
-			           "encode them to ASCII values and decode them afterwards."); 
-			    printf("\nSince this client is primarily for the NewSimulator, the output functions don't depend on the"
-			             "oh_.. - output function. Therefore they can be easily changed without influence on other clients.");    
-				printf("\n\tUsage: %s [-option]\n\n", argv[0]);
-				printf("\t           -r res_id     Select particular resource id for an update file\n");
-				printf("\t           -f filename   Name of the file to be generated\n");
-				printf("\t           -m (UPD|INIT) Write update or initial file\n");
-				printf("\n\n\n\n");
-				exit(1);
+			default: printusage = TRUE;
 		}
+	}
+	if (printusage == TRUE)
+	{
+		printf("\n %s - Version %.3f\n", argv[0], GEN_SIM_DATA_VERSION);
+		printf("\nThe client will print all HPI information. This information can be parsed by NewSimulator plugin.");
+		printf("\nTo spare some encoding/decoding function, values of enums are printed as int values instead of"
+			           "encode them to ASCII values and decode them afterwards."); 
+		printf("\nSince this client is primarily for the NewSimulator, the output functions don't depend on the"
+		                   "oh_.. - output function. Therefore they can be easily changed without influence on other clients.");    
+		printf("\n\tUsage: %s [-option]\n\n", argv[0]);
+		printf("\t           -D domain_id  Select particular Domain\n");
+		printf("\t           -r res_id     Select particular resource id for an update file\n");
+		printf("\t           -f filename   Name of the file to be generated\n");
+		printf("\t           -m (UPD|INIT) Write update or initial file\n");
+		printf("\n\n\n\n");
+		exit(1);
 	}
  
 	/**
@@ -363,8 +372,8 @@ int main(int argc, char **argv) {
 	}
 
 	print_header(outfile, 0, confdata);
-		
-    rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sessionid, NULL);
+	
+        rv = saHpiSessionOpen(domainid,&sessionid,NULL);	
 	if (rv != SA_OK) {
 		printf("saHpiSessionOpen returns %s\n",oh_lookup_error(rv));
 		exit(-1);

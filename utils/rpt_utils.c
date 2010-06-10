@@ -23,6 +23,7 @@ typedef struct {
         SaHpiRptEntryT rpt_entry;
         int owndata;
         void *data; /* private data for the owner of the RPTable */
+        SaHpiUint32T update_count; /* RDR Update counter */
         GSList *rdrlist; /* Contains RDRecords for sequence lookups */
         GHashTable *rdrtable; /* Contains RDRecords for fast RecordId lookups */
 } RPTEntry;
@@ -636,6 +637,37 @@ SaHpiRptEntryT *oh_get_resource_next(RPTable *table, SaHpiResourceIdT rid_prev)
 }
 
 /**
+ * oh_get_rdr_update_count
+ * @table: Pointer to the RPT for looking up the RPT entry.
+ * @rid: Resource id of the RPT entry to be looked up.
+ * @update_count: pointer of where to place the rdr update count
+ *
+ * Get a RDR Repository Update Counter for the resource using the resource id.
+ *
+ * Returns:
+ * Returns: SA_OK on success.
+ * Will return SA_ERR_HPI_INVALID_PARAMS if update_count is NULL.
+ * Will return SA_ERR_HPI_NOT_PRESENT if there is no resource
+ * with specified rid in RPT.
+ **/
+SaErrorT oh_get_rdr_update_count(RPTable *table,
+                                 SaHpiResourceIdT rid,
+                                 SaHpiUint32T *update_count)
+{
+    RPTEntry *rptentry = get_rptentry_by_rid(table, rid);
+    if ( !rptentry ) {
+        err("Failed to get RPT entry. No Resource found by that id.");
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
+    if ( !update_count ) {
+        err("Failed to get rdr update counter. Output data pointer is NULL.");
+        return SA_ERR_HPI_INVALID_PARAMS;
+    }
+    *update_count = rptentry->update_count;
+    return SA_OK;
+}
+
+/**
  * RDR interface functions
  */
 
@@ -715,6 +747,8 @@ SaErrorT oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT *rdr, void *
         rdrecord->owndata = owndata;
         rdrecord->rdr = *rdr;
 
+        ++rptentry->update_count;
+
         return SA_OK;
 }
 
@@ -760,6 +794,7 @@ SaErrorT oh_remove_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid
                         g_hash_table_destroy(rptentry->rdrtable);
                         rptentry->rdrtable = NULL;
                 }
+                ++rptentry->update_count;
         }
 
         return SA_OK;
