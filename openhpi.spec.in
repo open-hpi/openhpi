@@ -20,6 +20,10 @@
 %define with_simulator 1
 %endif
 
+%if "x@DYNAMIC_SIMULATOR@" == "xdynamic_simulator"
+%define with_dynamic_simulator 1
+%endif
+
 %define with_rtas @WITH_RTAS@
 %define with_sysfs @WITH_SYSFS@
 
@@ -96,6 +100,13 @@ Requires: openhpi = %{version} librtas
 
 %if 0%{?with_simulator}
 %package simulator
+Summary: OpenHPI plugin for testing the core library
+Group: System/Monitoring
+Requires: openhpi = %{version}
+%endif
+
+%if 0%{?with_dynamic_simulator}
+%package dynamic_simulator
 Summary: OpenHPI plugin for testing the core library
 Group: System/Monitoring
 Requires: openhpi = %{version}
@@ -179,6 +190,12 @@ OpenHPI plugin that reports fakes hardware used for
 testing the core library.
 %endif
 
+%if 0%{?with_dynamic_simulator}
+%description dynamic_simulator
+OpenHPI plugin that reports fakes hardware defined in the file
+simulation.data used for testing the core library.
+%endif
+
 %if 0%{?with_bladecenter}
 %description bladecenter
 OpenHPI plugin supporting the IBM BladeCenter. It also supports
@@ -246,6 +263,7 @@ make DESTDIR=%{buildroot} install
 %endif
 %dir %{_sysconfdir}/%{name}/
 %config(noreplace) %attr(0640,root,root) %{_sysconfdir}/%{name}/%{name}.conf
+%config(noreplace) %attr(0640,root,root) %{_sysconfdir}/%{name}/simulation.data
 %dir %{_libdir}/%{name}
 %dir /var/lib/%{name}
 %{_libdir}/libopenhpi*.so.*
@@ -303,6 +321,14 @@ make DESTDIR=%{buildroot} install
 ###################################################
 %defattr(-,root,root)
 %{_libdir}/%{name}/libsimulator.*
+%endif
+
+###################################################
+%if 0%{?with_dynamic_simulator}
+%files dynamic_simulator
+###################################################
+%defattr(-,root,root)
+%{_libdir}/%{name}/libdyn_simulator.*
 %endif
 
 ###################################################
