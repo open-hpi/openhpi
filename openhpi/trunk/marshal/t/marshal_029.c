@@ -12,6 +12,7 @@
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
  */
 
+#include <glib.h>
 #include "marshal.h"
 #include <string.h>
 
@@ -121,7 +122,7 @@ main( int argc, char *argv[] )
   };
 
   unsigned int s1 = MarshalArray( type_array, value_array, buffer );
-  unsigned int s2 = DemarshalArray( MarshalByteOrder(), type_array, result_array, buffer );
+  unsigned int s2 = DemarshalArray( G_BYTE_ORDER, type_array, result_array, buffer );
 
   if ( s1 != s2 )
        return 1;

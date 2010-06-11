@@ -12,6 +12,7 @@
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
  */
 
+#include <glib.h>
 #include "marshal.h"
 #include <glib.h>
 
@@ -23,7 +24,7 @@ main( int argc, char *argv[] )
   tInt16 swap = GUINT16_SWAP_LE_BE( value );
   tInt16  result;
 
-  unsigned int s = Demarshal( MarshalByteOrder() ? 0 : 1,
+  unsigned int s = Demarshal( G_BYTE_ORDER == G_LITTLE_ENDIAN ? G_BIG_ENDIAN : G_LITTLE_ENDIAN,
                               &Marshal_Int16Type, &result, &swap );
 
   if ( s != sizeof( tInt16 ) )

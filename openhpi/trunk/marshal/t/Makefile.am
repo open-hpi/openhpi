@@ -14,7 +14,7 @@
 
 MARSHAL_SRCDIR = $(top_srcdir)/marshal
 
-REMOTE_SOURCES		= connection.c marshal.c
+REMOTE_SOURCES		= marshal.c
 MARSHAL_SOURCES         = marshal_hpi_types.c
 
 MOSTLYCLEANFILES 	= $(REMOTE_SOURCES) $(MARSHAL_SOURCES) @TEST_CLEAN@

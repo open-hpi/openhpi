@@ -12,6 +12,7 @@
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
  */
 
+#include <glib.h>
 #include "marshal.h"
 #include <string.h>
 
@@ -91,7 +92,7 @@ CheckValue( cTest *v, cTest *r )
 {
   unsigned char buffer[256];
   unsigned int s1 = Marshal( &TestType, v, buffer );
-  unsigned int s2 = Demarshal( MarshalByteOrder(), &TestType, r, buffer );
+  unsigned int s2 = Demarshal( G_BYTE_ORDER, &TestType, r, buffer );
 
   if ( s1 != s2 )
        return 1;
