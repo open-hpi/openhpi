@@ -14,6 +14,7 @@ REMOTE_SOURCES		= uid_utils.c \
 			  epath_utils.c \
 			  sahpi_enum_utils.c \
 			  sahpiatca_enum_utils.c \
+			  sahpixtca_enum_utils.c \
 			  sahpi_event_encode.c \
 			  sahpi_event_utils.c \
 			  sahpi_struct_utils.c \
