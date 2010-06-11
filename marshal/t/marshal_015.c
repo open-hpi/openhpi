@@ -12,6 +12,7 @@
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
  */
 
+#include <glib.h>
 #include "marshal.h"
 
 
@@ -21,7 +22,7 @@ main( int argc, char *argv[] )
   tInt8 value = 0xfa;
   tInt8  result;
 
-  unsigned int s = Demarshal( MarshalByteOrder() ? 0 : 1,
+  unsigned int s = Demarshal( G_BYTE_ORDER == G_LITTLE_ENDIAN ? G_BIG_ENDIAN : G_LITTLE_ENDIAN,
                               &Marshal_Int8Type, &result, &value );
 
   if ( s != sizeof( tInt8 ) )

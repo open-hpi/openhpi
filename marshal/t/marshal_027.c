@@ -12,6 +12,7 @@
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
  */
 
+#include <glib.h>
 #include "marshal.h"
 #include <stdlib.h>
 
@@ -90,7 +91,7 @@ main( int argc, char *argv[] )
   if ( s1 != 3 )
        return 1;
 
-  unsigned int s2 = Demarshal( MarshalByteOrder(),
+  unsigned int s2 = Demarshal( G_BYTE_ORDER,
                                &UserDefinedType, result, buffer );
 
   if ( s2 != 3 )

@@ -12,6 +12,7 @@
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
  */
 
+#include <glib.h>
 #include "marshal.h"
 
 
@@ -27,7 +28,7 @@ main( int argc, char *argv[] )
   if ( s1 != sizeof( tFloat64 ) )
        return 1;
 
-  unsigned int s2 = Demarshal( MarshalByteOrder(), &Marshal_Float64Type, &result, buffer );
+  unsigned int s2 = Demarshal( G_BYTE_ORDER, &Marshal_Float64Type, &result, buffer );
 
   if ( s2 != sizeof( tFloat64 ) )
        return 1;

@@ -12,6 +12,7 @@
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
  */
 
+#include <glib.h>
 #include "marshal.h"
 #include <string.h>
 
@@ -93,7 +94,7 @@ main( int argc, char *argv[] )
   cTest1         result;
 
   unsigned int s1 = Marshal( &Test1Type, &value, buffer );
-  unsigned int s2 = Demarshal( MarshalByteOrder(), &Test1Type, &result, buffer );
+  unsigned int s2 = Demarshal( G_BYTE_ORDER, &Test1Type, &result, buffer );
 
   if ( s1 != s2 )
        return 1;
