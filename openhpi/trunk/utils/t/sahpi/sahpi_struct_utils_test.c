@@ -1606,7 +1606,7 @@ int main(int argc, char **argv)
 			return -1;
 		}
 
-		/* oh_valid_thresholds: Bad order threshold testcase */
+		/* oh_valid_ordering: Bad order threshold testcase */
 		test_rdr = default_rdr;
 		test_rdr.RdrTypeUnion.SensorRec.DataFormat = default_format_int64;		
 		test_thresholds_int64 = default_thresholds_int64;
@@ -1614,7 +1614,7 @@ int main(int argc, char **argv)
 		expected_err = SA_ERR_HPI_INVALID_DATA;
 		test_thresholds_int64.LowCritical.Value.SensorInt64 = 20;
 		
-		err = oh_valid_thresholds(&test_thresholds_int64, &test_rdr);
+		err = oh_valid_ordering(&test_thresholds_int64, &test_rdr);
 		if (err != expected_err) {	
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%s\n", oh_lookup_error(err));
