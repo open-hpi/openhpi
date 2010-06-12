@@ -12,6 +12,7 @@
  * Authors:
  *     Sean Dague <http://dague.net/sean>
  *     Renier Morales <renier@openhpi.org>
+ *     Bryan Sutula <sutula@users.sourceforge.net>
  */
 
 #ifndef __OH_CONFIG_H
@@ -43,7 +44,8 @@ typedef enum {
         OPENHPI_PATH,
         OPENHPI_VARPATH,
         OPENHPI_CONF, 
-	OPENHPICLIENT_CONF
+	OPENHPICLIENT_CONF,
+	OPENHPI_UNCONFIGURED
 } oh_global_param_type;
 
 typedef union {
@@ -58,6 +60,7 @@ typedef union {
         char path[OH_MAX_TEXT_BUFFER_LENGTH];
         char varpath[OH_MAX_TEXT_BUFFER_LENGTH];
         char conf[OH_MAX_TEXT_BUFFER_LENGTH];
+	SaHpiBoolT unconfigured;
 } oh_global_param_union;
 
 struct oh_global_param {

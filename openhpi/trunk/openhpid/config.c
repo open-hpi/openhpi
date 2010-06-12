@@ -16,6 +16,7 @@
  *     David Judkovics <djudkovi@us.ibm.com>
  *     Thomas Kangieser <Thomas.Kanngieser@fci.com>
  *     Renier Morales <renier@openhpi.org>
+ *     Bryan Sutula <sutula@users.sourceforge.net>
  */
 
 #include <string.h>
@@ -43,6 +44,7 @@ static const char *known_globals[] = {
         "OPENHPI_VARPATH",
         "OPENHPI_CONF",
 	"OPENHPICLIENT_CONF",
+        "OPENHPI_UNCONFIGURED",
         NULL
 };
 
@@ -59,6 +61,7 @@ static struct {
         char varpath[OH_MAX_TEXT_BUFFER_LENGTH];
         char conf[OH_MAX_TEXT_BUFFER_LENGTH];
         char client_conf[OH_MAX_TEXT_BUFFER_LENGTH];	
+        SaHpiBoolT unconfigured;
         unsigned char read_env;
         GStaticRecMutex lock;
 } global_params = { /* Defaults for global params are set here */
@@ -74,6 +77,7 @@ static struct {
         .varpath = VARPATH,
         .conf = OH_DEFAULT_CONF,
 	.client_conf = OH_CLIENT_DEFAULT_CONF,
+        .unconfigured = SAHPI_FALSE,
         .read_env = 0,
         .lock = G_STATIC_REC_MUTEX_INIT
 };
@@ -209,6 +213,12 @@ static void process_global_param(const char *name, char *value)
                 memset(global_params.client_conf, 0, OH_MAX_TEXT_BUFFER_LENGTH);
                 strncpy(global_params.client_conf, value, OH_MAX_TEXT_BUFFER_LENGTH-1);
                 g_static_rec_mutex_unlock(&global_params.lock);
+        } else if (!strcmp("OPENHPI_UNCONFIGURED", name)) {
+                if (!strcmp("YES", value)) {
+                        global_params.unconfigured = SAHPI_TRUE;
+                } else {
+                        global_params.unconfigured = SAHPI_FALSE;
+                }
 	} else {
                 err("ERROR. Invalid global parameter %s in config file", name);
         }
@@ -668,6 +678,9 @@ int oh_get_global_param(struct oh_global_param *param)
                                 OH_MAX_TEXT_BUFFER_LENGTH);
                         g_static_rec_mutex_unlock(&global_params.lock);
                         break;
+                case OPENHPI_UNCONFIGURED:
+                        param->u.unconfigured = global_params.unconfigured;
+                        break;
                default:
                         err("ERROR. Invalid global parameter %d!", param->type);
                         return -2;
@@ -750,6 +763,9 @@ int oh_set_global_param(struct oh_global_param *param)
                                 OH_MAX_TEXT_BUFFER_LENGTH-1);
                         g_static_rec_mutex_unlock(&global_params.lock);
                         break;			
+                case OPENHPI_UNCONFIGURED:
+                        global_params.unconfigured = param->u.unconfigured;
+                        break;
                 default:
                         err("ERROR. Invalid global parameter %d!", param->type);
                         return -2;
