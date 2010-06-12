@@ -1,6 +1,12 @@
 ### OpenHPI configuration example file ###
 
 #######
+## OpenHPI will not be useful unless it is configured for your system.  Once
+## you have modified this file, remove or comment the following line to allow
+## the OpenHPI daemon to run.  This line causes the daemon to exit immediately.
+OPENHPI_UNCONFIGURED = "YES"
+
+#######
 ## FIRST section: declaration of global parameters like the following.
 
 #OPENHPI_LOG_ON_SEV = "MINOR"

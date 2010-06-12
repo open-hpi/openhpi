@@ -11,6 +11,7 @@
  *
  * Author(s):
  *      Renier Morales <renier@openhpi.org>
+ *      Bryan Sutula <sutula@users.sourceforge.net>
  *
  */
 
@@ -37,6 +38,7 @@ int oh_init(void)
         static int initialized = 0;
         struct oh_parsed_config config = { NULL, 0, 0 };
         struct oh_global_param config_param = { .type = OPENHPI_CONF };
+        struct oh_global_param unconf_param = { .type = OPENHPI_UNCONFIGURED };
         SaErrorT rval;
 
         data_access_lock();
@@ -65,6 +67,16 @@ int oh_init(void)
                 data_access_unlock();
                 return SA_ERR_HPI_NOT_PRESENT;
         }
+
+	/* One particular variable, OPENHPI_UNCONFIGURED, can cause us to exit
+	 * immediately, without trying to run the daemon any further.
+	 */
+	oh_get_global_param(&unconf_param);
+	if (unconf_param.u.unconfigured) {
+                err("OpenHPI is not configured.  See openhpi.conf file.");
+                data_access_unlock();
+                return SA_ERR_HPI_ERROR;
+	}
 
         /* Initialize uid_utils */
         rval = oh_uid_initialize();
