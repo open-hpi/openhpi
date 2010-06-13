@@ -509,7 +509,7 @@ bool NewSimulatorFileDimi::process_dimi_testdata( NewSimulatorDimiTest *dt ) {
 bool NewSimulatorFileDimi::process_dimi_entities( 
                              SaHpiDimiTestAffectedEntityT &tae ) {
    bool success = true;
-   char *field;
+   char *field = NULL;
    guint cur_token = g_scanner_get_next_token(m_scanner);
    
    if (cur_token == G_TOKEN_STRING) { 
@@ -523,6 +523,7 @@ bool NewSimulatorFileDimi::process_dimi_entities(
       
    } else if (cur_token == G_TOKEN_RIGHT_CURLY) {
    	  err("Processing dimi entities: Empty entities field");
+   	  success = false;
 
    } else {
       err("Processing dimi entitier: Unknown token");
@@ -579,7 +580,7 @@ bool NewSimulatorFileDimi::process_dimi_testparameters(
    bool success = true;
    char *datafield = NULL;
    int dlen;
-   char *field;
+   char *field = NULL;
    guint cur_token = g_scanner_get_next_token(m_scanner);
    
    if (cur_token == G_TOKEN_STRING) { 
@@ -593,6 +594,7 @@ bool NewSimulatorFileDimi::process_dimi_testparameters(
       
    } else if (cur_token == G_TOKEN_RIGHT_CURLY) {
    	  err("Processing dimi entities: Empty entities field");
+   	  success = false;
 
    } else {
       err("Processing dimi entitier: Unknown token");

@@ -256,7 +256,7 @@ SaErrorT NewSimulatorDimi::StartTest( SaHpiDimiTestNumT id,
 
    NewSimulatorDimiTest *t;
    
-   if ( (number != 0) && (&param == NULL) )
+   if ( (number != 0) && (param == NULL) )
       return SA_ERR_HPI_INVALID_PARAMS;
    
    t = GetTest( id );

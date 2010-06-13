@@ -669,9 +669,10 @@ bool NewSimulatorFile::process_rdr_token( NewSimulatorResource *res ) {
  **/ 
 bool NewSimulatorFile::process_rpt_info(SaHpiResourceInfoT *rptinfo) {
    bool success = true;
-   char *field;
+   char *field = NULL;
    guint cur_token = g_scanner_get_next_token(m_scanner);
-
+   
+   
    if (cur_token == G_TOKEN_STRING) { 
       field = g_strdup(m_scanner->value.v_string);
       cur_token = g_scanner_get_next_token(m_scanner);
@@ -683,6 +684,7 @@ bool NewSimulatorFile::process_rpt_info(SaHpiResourceInfoT *rptinfo) {
       
    } else if (cur_token == G_TOKEN_RIGHT_CURLY) {
    	  err("Processing parse rpt info: Empty Info field");
+   	  success = false;
 
    } else {
       err("Processing parse rpt info: Unknown token");
