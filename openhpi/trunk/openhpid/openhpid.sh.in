@@ -29,8 +29,11 @@
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
 prog="openhpid"
 
+# If the openhpid executable is not available, we can't do any of this
+test -f @prefix@/sbin/openhpid || exit 0
+
 # Determine whether the lsb package is installed
-# If it is, determine which lsb in installed:
+# If it is, determine which lsb is installed:
 # redhat, suse, or standard lsb
 
 if test -f /etc/init.d/functions
@@ -97,17 +100,17 @@ start() {
 	case "${lsbtype}" in
 		
 		rh) 
-			echo -n $"Starting $prog: "
+			echo -n "Starting $prog: "
 			daemon @prefix@/sbin/openhpid -c @CONFPATH@/@HPI_PKG@.conf
 			RETVAL=$?
 			;;
 		suse)
-			echo -n $"Starting $prog: "
+			echo -n "Starting $prog: "
 			startproc @prefix@/sbin/openhpid -c @CONFPATH@/@HPI_PKG@.conf
 			RETVAL=$?
 			;;
 		lsb)
-			echo -n $"Starting $prog: "
+			echo -n "Starting $prog: "
 			start_daemon @prefix@/sbin/openhpid -c @CONFPATH@/@HPI_PKG@.conf
 			RETVAL=$?
 			;;
@@ -117,7 +120,7 @@ start() {
 			RETVAL=$?
 			;;
 		nolsb)
-			echo -n $"Starting $prog: "
+			echo -n "Starting $prog: "
 			@prefix@/sbin/openhpid -c @CONFPATH@/@HPI_PKG@.conf
 			RETVAL=$?
 			;;
@@ -132,7 +135,7 @@ stop() {
 	case "${lsbtype}" in
 		
 		rh | lsb | suse)
-			echo -n $"Stopping $prog: "
+			echo -n "Stopping $prog: "
 			killproc @prefix@/sbin/openhpid
 			RETVAL=$?
 			;;
@@ -144,7 +147,7 @@ stop() {
 			;;
 		
 		nolsb)
-			echo -n $"Stopping $prog: "
+			echo -n "Stopping $prog: "
 			if test -f /var/run/openhpid.pid && test "`cat /var/run/openhpid.pid`" != ""
          		then
             			kill "`cat /var/run/openhpid.pid`"
@@ -167,7 +170,7 @@ stop() {
 }	
 
 dstatus() {
-	echo $"Checking for $prog daemon: "
+	echo "Checking for $prog daemon: "
 	
 	case "${lsbtype}" in
 		
@@ -190,7 +193,7 @@ dstatus() {
 		gentoo | nolsb)
 			if test -f /var/run/openhpid.pid && 
 				test "`cat /var/run/openhpid.pid`" != "" && 
-				kill -0 "`cat /var/run/openhpid.pid`"
+				kill -s 0 "`cat /var/run/openhpid.pid`"
 			then
 				echo "$prog is running"
 			else
@@ -211,9 +214,9 @@ restart() {
 }	
 
 force_reload() {
-	echo -n $"Force-reload not supported."
-	echo
-	return 0
+	# We don't currently support a reload, but can do a restart
+	stop
+	start
 }	
 
 # See how we were called.
@@ -235,6 +238,6 @@ case "$1" in
   	force_reload
 	;;
   *)
-	echo $"Usage: $0 {start|stop|restart|status|force-reload}"
+	echo "Usage: $0 {start|stop|restart|status|force-reload}"
 	exit 1
 esac
