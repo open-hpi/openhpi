@@ -32,7 +32,7 @@ static const char *entity_id_types[] =
 {
   "Unspecified",
   "Other",
-  "Unkown",
+  "Unknown",
   "Processor",
   "Disk",
   "Peripheral",

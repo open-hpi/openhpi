@@ -117,15 +117,15 @@ SaErrorT process_oa_extraction_event(struct oh_handler_state *oh_handler,
  *
  * Purpose:
  *      Gets the OA Failover event.
- *      Waits till the OA Transition Complete event is recieved from OA
+ *      Waits till the OA Transition Complete event is received from OA
  *      Gets the OA status of the other OA and updates the other OA data
  *      structure
  *
  * Detailed Description:
- *      - If the OA failover event is recieved just after the discovery on
+ *      - If the OA failover event is received just after the discovery on
  *        active OA, then the OA failoer event will be ignored
  *      - The active_con field of oa_handler is pointed to current active OA
- *      - Till OA_TRANSITION_COMPLETE event is recieved or maximum 90 seconds,
+ *      - Till OA_TRANSITION_COMPLETE event is received or maximum 90 seconds,
  *        all the events are ignored
  *      - OA needs some time to stabilize, after getting the OA failover event,
  *        plug-in starts checking for events after 90 seconds
@@ -164,7 +164,7 @@ SaErrorT process_oa_failover_event(struct oh_handler_state *oh_handler,
          * Hence, ignore the failover event
          */
         if (oa->oa_status == ACTIVE) {
-                dbg("OA failover event is recieved in active OA");
+                dbg("OA failover event is received in active OA");
                 dbg("Ignoring the OA failover event");
                 return SA_OK;
         }
@@ -204,7 +204,7 @@ SaErrorT process_oa_failover_event(struct oh_handler_state *oh_handler,
 
         /* Start the timer */
         timer = g_timer_new();
-        /* Loop through till the TRANSITION_COMPLETE event is recieved
+        /* Loop through till the TRANSITION_COMPLETE event is received
          * Or OA stabilization (90 seconds) time has reached
          */
         while (is_transition_complete != SAHPI_TRUE &&
@@ -344,7 +344,7 @@ SaErrorT process_oa_failover_event(struct oh_handler_state *oh_handler,
  *        then it is processed, else it is ignored
  *      - The OA_INFO event (after the OA insertion event) indicates
  *        the stabilization of OA.
- *      - When OA insertion event recieved, OA will not be stabilized
+ *      - When OA insertion event received, OA will not be stabilized
  *        On recieving this event, ACTIVE hot swap event will be generated
  *
  * Return values:

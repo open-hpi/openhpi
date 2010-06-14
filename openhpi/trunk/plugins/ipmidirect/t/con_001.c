@@ -304,7 +304,7 @@ main( int argc, char *argv[] )
                  break;
 
             case IPMI_CMD_RECV_TYPE:
-                 printf( "read incomming message: %02x, %02x\n", recv.msg.netfn, recv.msg.cmd );
+                 printf( "read incoming message: %02x, %02x\n", recv.msg.netfn, recv.msg.cmd );
                  break;
 
             default:

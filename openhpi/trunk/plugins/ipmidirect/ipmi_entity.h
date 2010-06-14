@@ -38,7 +38,7 @@ enum tIpmiEntityId
 {
   eIpmiEntityInvalid                        =  0,
   eIpmiEntityIdOther                        =  1,
-  eIpmiEntityIdUnkown                       =  2,
+  eIpmiEntityIdUnknown                      =  2,
   eIpmiEntityIdProcessor                    =  3,
   eIpmiEntityIdDisk                         =  4,
   eIpmiEntityIdPeripheral                   =  5,

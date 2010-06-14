@@ -552,7 +552,7 @@ int ir_xml_parse_host_power_status(char *ribcl_outbuf, int *power_status,
 	else {
 		xmlFree( status);
 		xmlFreeDoc( doc);
-		err("ir_xml_parse_host_power_status(): Unkown power status."); 
+		err("ir_xml_parse_host_power_status(): Unknown power status."); 
 		return(-1);
 	}
 
@@ -706,7 +706,7 @@ int ir_xml_parse_power_saver_status(char *ribcl_outbuf, int *ps_status,
 	else {
 		xmlFree( status);
 		xmlFreeDoc( doc);
-		err("ir_xml_parse_power_saver_status(): Unkown Power Saver status."); 
+		err("ir_xml_parse_power_saver_status(): Unknown Power Saver status."); 
 		return(-1);
 	}
 
@@ -795,7 +795,7 @@ int ir_xml_parse_auto_power_status(char *ribcl_outbuf, int *ps_status,
 	else {
 		xmlFree( status);
 		xmlFreeDoc( doc);
-		err("ir_xml_parse_auto_power_status(): Unkown Power Saver status."); 
+		err("ir_xml_parse_auto_power_status(): Unknown Power Saver status."); 
 		return(-1);
 	}
 

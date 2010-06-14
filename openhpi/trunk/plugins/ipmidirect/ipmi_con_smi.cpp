@@ -412,8 +412,8 @@ cIpmiConSmi::IfReadResponse()
 	    break;
 
        case IPMI_CMD_RECV_TYPE:
-            // incomming command
-            stdlog << "SMI: incomming ipmi command " 
+            // incoming command
+            stdlog << "SMI: incoming ipmi command " 
                    << IpmiCmdToString( rsp.m_netfn, rsp.m_cmd ) << ".\n";
 
 	    break;
