@@ -146,8 +146,8 @@ SaErrorT SAHPI_API saHpiInitialize(
         SAHPI_OUT   SaHpiUint32T     *FailedOption,
         SAHPI_OUT   SaErrorT         *OptionError)
 {
-        if ( RequestedVersion < OH_SAHPI_INTERFACE_VERSION_MIN_SUPPORTED ) ||
-           ( RequestedVersion > OH_SAHPI_INTERFACE_VERSION_MAX_SUPPORTED ) {
+        if ( RequestedVersion < OH_SAHPI_INTERFACE_VERSION_MIN_SUPPORTED   ||
+             RequestedVersion > OH_SAHPI_INTERFACE_VERSION_MAX_SUPPORTED ) {
             return SA_ERR_HPI_UNSUPPORTED_API;
         }
         if ( ( NumOptions != 0 ) && ( Options == NULL ) ) {
