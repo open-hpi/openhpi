@@ -155,7 +155,7 @@ SaErrorT oa_soap_get_sensor_reading(void *oh_handler,
         SaHpiRdrT *rdr = NULL;
 
         if (oh_handler == NULL || state == NULL || data == NULL) {
-                err("Invalid paramters");
+                err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
@@ -264,7 +264,7 @@ SaErrorT oa_soap_get_sensor_thresholds(void *oh_handler,
         struct oa_soap_sensor_info *sensor_info=NULL;
 
         if (oh_handler == NULL || threshold == NULL) {
-                err("Invalid paramters");
+                err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
@@ -381,7 +381,7 @@ SaErrorT oa_soap_get_sensor_enable(void *oh_handler,
         struct oa_soap_sensor_info *sensor_info=NULL;
 
         if (oh_handler == NULL || enable == NULL) {
-                err("Invalid paramters");
+                err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
@@ -465,7 +465,7 @@ SaErrorT oa_soap_set_sensor_enable(void *oh_handler,
         struct oa_soap_sensor_info *sensor_info=NULL;
 
         if (oh_handler == NULL) {
-                err("Invalid paramters");
+                err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
@@ -588,7 +588,7 @@ SaErrorT oa_soap_get_sensor_event_enable(void *oh_handler,
         struct oa_soap_sensor_info *sensor_info=NULL;
 
         if (oh_handler == NULL || enable == NULL) {
-                err("Invalid paramters");
+                err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
@@ -669,7 +669,7 @@ SaErrorT oa_soap_set_sensor_event_enable(void *oh_handler,
         struct oa_soap_sensor_info *sensor_info=NULL;
 
         if (oh_handler == NULL) {
-                err("Invalid paramters");
+                err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
@@ -762,7 +762,7 @@ SaErrorT oa_soap_get_sensor_event_masks(void *oh_handler,
         struct oa_soap_sensor_info *sensor_info=NULL;
 
         if (oh_handler == NULL || assert == NULL || deassert == NULL) {
-                err("Invalid paramters");
+                err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
@@ -855,7 +855,7 @@ SaErrorT oa_soap_set_sensor_event_masks(void *oh_handler,
 	SaHpiEventStateT check_mask;
 
         if (oh_handler == NULL) {
-                err("Invalid paramters");
+                err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
