@@ -156,7 +156,7 @@ extern const struct oa_soap_fz_map oa_soap_fz_map_arr[][OA_SOAP_MAX_FAN];
 static void oa_soap_inv_set_field(struct oa_soap_area *area_list,
 				  SaHpiIdrAreaTypeT area_type,
 				  SaHpiIdrFieldTypeT field_type,
-				  const char *data);
+				  char *data);
 static void oa_soap_add_inv_fields(struct oa_soap_area *area,
 				   const struct oa_soap_field *field_list);
 static void oa_soap_add_inv_areas(struct oa_soap_inventory *inventory,
@@ -3815,7 +3815,7 @@ SaErrorT free_inventory_info(struct oh_handler_state *handler,
 static void oa_soap_inv_set_field(struct oa_soap_area *area_list,
 				  SaHpiIdrAreaTypeT area_type,
 				  SaHpiIdrFieldTypeT field_type,
-				  const char *data)
+				  char *data)
 {
 	struct oa_soap_area *area;
 	struct oa_soap_field *field;

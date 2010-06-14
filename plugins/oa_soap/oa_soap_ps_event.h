@@ -51,4 +51,8 @@ void oa_soap_proc_ps_subsys_info(struct oh_handler_state *oh_handler,
 void oa_soap_proc_ps_status(struct oh_handler_state *oh_handler,
 			    struct powerSupplyStatus *status);
 
+void oa_soap_push_power_events(struct oh_handler_state *oh_handler,
+                               struct powerSubsystemInfo *info,
+                               SaHpiResourceIdT resource_id);
+
 #endif
