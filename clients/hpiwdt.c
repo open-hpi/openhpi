@@ -151,7 +151,7 @@ main(int argc, char **argv)
      if (rv == SA_OK) {
 	/* handle WDT for this RPT entry */
 	resourceid = rptentry.ResourceId;
-	// rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0;
+	rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0;
 	if (fdebug)
 	   printf("rptentry[%d] resourceid=%d capab=%x tag: %s\n",
 		rptentryid, resourceid, rptentry.ResourceCapabilities, 
