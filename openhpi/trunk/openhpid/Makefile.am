@@ -26,30 +26,39 @@ DIST_SUBDIRS = t
 EXTRA_DIST		= \
 	openhpid.sh.in
 
+# daemon library
+noinst_LTLIBRARIES      = libopenhpidaemon.la
+libopenhpidaemon_la_SOURCES        = config.c \
+                                     domain.c \
+                                     event.c \
+                                     threaded.c \
+                                     alarm.c \
+                                     hotswap.c \
+                                     lock.c \
+                                     plugin.c \
+									 plugin_static.c \
+                                     init.c \
+                                     safhpi.c \
+                                     session.c \
+                                     ohpi.c
+
+libopenhpidaemon_la_LIBADD         = $(top_builddir)/utils/libopenhpiutils.la \
+	                                 $(top_builddir)/marshal/libopenhpimarshal.la \
+	                                 $(top_builddir)/transport/libopenhpitransport.la
+if HAVE_OPENSSL
+libopenhpidaemon_la_LIBADD += $(top_builddir)/$(SSLDIR)/libopenhpi_ssl.la
+endif
+libopenhpidaemon_la_LDFLAGS   = -version-info @HPI_LIB_VERSION@
+
 # daemon
 sbin_PROGRAMS           = openhpid
 
-openhpid_SOURCES        = config.c \
-                          domain.c \
-                          event.c \
-                          threaded.c \
-                          alarm.c \
-                          hotswap.c \
-                          lock.c \
-                          plugin.c \
-                          plugin_static.c \
-                          init.c \
-                          safhpi.c \
-                          session.c \
-                          ohpi.c \
-                          openhpid.cpp
+openhpid_SOURCES        = openhpid.cpp
 
-
-
-openhpid_LDADD         = $(top_builddir)/baselib/libopenhpi.la \
-	                 $(top_builddir)/utils/libopenhpiutils.la \
-	                 $(top_builddir)/marshal/libopenhpimarshal.la \
-			 $(top_builddir)/transport/libopenhpitransport.la
+openhpid_LDADD         = libopenhpidaemon.la \
+		                 $(top_builddir)/utils/libopenhpiutils.la \
+		                 $(top_builddir)/marshal/libopenhpimarshal.la \
+						 $(top_builddir)/transport/libopenhpitransport.la
 if HAVE_OPENSSL
 openhpid_LDADD		+= $(top_builddir)/$(SSLDIR)/libopenhpi_ssl.la
 endif
