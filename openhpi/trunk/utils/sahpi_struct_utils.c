@@ -267,7 +267,7 @@ SaErrorT oh_decode_manufacturerid(SaHpiManufacturerIdT value, SaHpiTextBufferT *
                 if (err) { return(err); }
                 break;
         case 26609:
-                err = oh_append_textbuffer(&working, "Pentair Electronic Packaging");
+                err = oh_append_textbuffer(&working, "Pentair Technical Products");
                 if (err) { return(err); }
                 break;
         case 24893:
