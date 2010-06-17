@@ -1,6 +1,7 @@
 /*      -*- linux-c -*-
  *
  * Copyright (c) 2004 by Intel Corp.
+ * (C) Copyright Nokia Siemens Networks 2010
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -11,11 +12,13 @@
  *
  * Filename: hpiwdt.c
  * Authors:  Andy Cress <arcress@users.sourceforge.net>
+ *      Ulrich Kleber <ulikleber@users.sourceforge.net>
  * 
  * Changes:
  * 03/15/04 Andy Cress - v1.0 added strings for use & actions in show_wdt
  * 10/13/04  kouzmich  - porting to HPI B
  * 12/02/04 Andy Cress - v1.1 fixed domain/RPT loop, added some decoding
+ * 09/06/2010 ulikleber New option -D to select domain
  */
 /* 
  * This tool reads and enables the watchdog timer via HPI.
@@ -33,6 +36,7 @@
 #include <getopt.h>
 #include <SaHpi.h>
 #include <oh_clients.h>
+#include <oHpi.h>
 
 #define  uchar  unsigned char
 #define OH_SVN_REV "$Revision$"
@@ -89,6 +93,7 @@ main(int argc, char **argv)
 {
   int c;
   SaErrorT rv;
+  SaHpiDomainIdT domainid = SAHPI_UNSPECIFIED_DOMAIN_ID;
   SaHpiSessionIdT sessionid;
   SaHpiDomainInfoT domainInfo;
   SaHpiRptEntryT rptentry;
@@ -101,10 +106,15 @@ main(int argc, char **argv)
   char freset = 0;
   char fenable = 0;
   char fdisable = 0;
+  SaHpiBoolT printusage = FALSE;
 
   oh_prog_version(argv[0], OH_SVN_REV);
-  while ( (c = getopt( argc, argv,"dert:x?")) != EOF )
+  while ( (c = getopt( argc, argv,"D:dert:x?")) != EOF )
      switch(c) {
+	case 'D':
+		if (optarg) domainid = atoi(optarg);
+		else printusage = TRUE;
+		break;
 	case 'r':       /* reset wdt */
 		freset = 1;
                 break;
@@ -115,22 +125,32 @@ main(int argc, char **argv)
 		fdisable = 1;
                 break;
 	case 't':       /* timeout (enable implied) */
-		t = atoi(optarg);
-		fenable = 1;
+		if (optarg) {
+			t = atoi(optarg);
+			fenable = 1;
+		}
+		else printusage = TRUE;
                 break;
 	case 'x': fdebug = 1;     break;  /* debug messages */
-	default:
+	default: printusage = TRUE;
+	}
+	if (printusage) {
                 printf("Usage: %s [-derx -t sec]\n", argv[0]);
-                printf(" where -e     enables the watchdog timer\n");
-                printf("       -d     disables the watchdog timer\n");
-                printf("       -r     resets the watchdog timer\n");
-                printf("       -t N   sets timeout to N seconds\n");
-                printf("       -x     show eXtra debug messages\n");
+                printf(" where -D domainid   Selects the domain\n");
+                printf("       -e            enables the watchdog timer\n");
+                printf("       -d            disables the watchdog timer\n");
+                printf("       -r            resets the watchdog timer\n");
+                printf("       -t N          sets timeout to N seconds\n");
+                printf("       -x            show eXtra debug messages\n");
 		exit(1);
-     }
+	}
   if (t == 0) t = 120;
-
-  rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sessionid, NULL);
+  
+  if (fdebug) {
+	if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) printf("saHpiSessionOpen\n");
+	else printf("saHpiSessionOpen to domain %d\n",domainid);
+  }
+  rv = saHpiSessionOpen(domainid,&sessionid,NULL);
   if (rv != SA_OK) {
         printf("saHpiSessionOpen error %d\n",rv);
 	exit(-1);

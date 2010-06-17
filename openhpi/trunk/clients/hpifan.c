@@ -2,6 +2,7 @@
  * hpifan.cpp
  *
  * Copyright (c) 2003,2004 by FORCE Computers
+ * (C) Copyright Nokia Siemens Networks 2010
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12,8 +13,12 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
+ *     Ulrich Kleber <ulikleber@users.sourceforge.net>
  *
+ * Changes:
  *     10/13/2004  kouzmich   porting to HPI B
+ *     09/06/2010  ulikleber  New option -D to select domain
+ *
  */
 
 #include <stdio.h>
@@ -29,14 +34,16 @@
 #define OH_SVN_REV "$Revision$"
 
 static int fan_speed = -1;
+SaHpiDomainIdT domainid = SAHPI_UNSPECIFIED_DOMAIN_ID;
 
 
 static int
 usage( char *progname )
 {
-        fprintf( stderr, "usage: %s [-h] [-s fan_speed_level]\n", progname );
-        fprintf( stderr, "\t\t -h        help\n" );
-        fprintf( stderr, "\t\t -s speed  set fan speed for ALL fans\n" );
+        fprintf( stderr, "usage: %s [-D domainid] [-h] [-s fan_speed_level]\n", progname );
+        fprintf( stderr, "\t\t -D domainid  select the domain to work on\n" );
+        fprintf( stderr, "\t\t -h           help\n" );
+        fprintf( stderr, "\t\t -s speed     set fan speed for ALL fans in domain\n" );
 
         return 1;
 }
@@ -256,14 +263,25 @@ main( int argc, char *argv[] )
 
         oh_prog_version(argv[0], OH_SVN_REV);
 
-        while( (c = getopt( argc, argv,"hs:") ) != -1 )
+        while( (c = getopt( argc, argv,"D:hs:") ) != -1 )
                 switch( c ) {
+                case 'D':
+                        if (optarg) domainid = atoi(optarg);
+                        else {
+                                printf("hpifan: option requires an argument -- D");
+                                help = 1;
+                        }
+                        break;
                 case 'h': 
                         help = 1;
                         break;
 
                 case 's':
-                        fan_speed = atoi( optarg );
+                        if (optarg) fan_speed = atoi( optarg );
+                        else {
+                                printf("hpifan: option requires an argument -- s");
+                                help = 1;
+                        }
                         break;
                  
                 default:
@@ -276,12 +294,14 @@ main( int argc, char *argv[] )
                 return usage(argv[0]);
 
         SaHpiSessionIdT sessionid;
-        rv = saHpiSessionOpen( SAHPI_UNSPECIFIED_DOMAIN_ID, &sessionid, 0 );
-
+	rv = saHpiSessionOpen(domainid, &sessionid, NULL);
         if ( rv != SA_OK ) {
                 printf( "saHpiSessionOpen: %s\n", oh_lookup_error( rv ) );
                 return 1;
         }
+	if (domainid!=SAHPI_UNSPECIFIED_DOMAIN_ID) 
+	     printf("HPI Session to domain %d\n",domainid);
+
 
         rv = saHpiDiscover( sessionid );
 

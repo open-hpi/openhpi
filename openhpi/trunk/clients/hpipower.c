@@ -1,6 +1,7 @@
 /*      -*- linux-c -*-
  *
  * (C) Copyright IBM Corp. 2004-2006
+ * (C) Copyright Nokia Siemens Networks 2010
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -11,6 +12,10 @@
  *
  * Author(s):
  *      Carl McAdams <carlmc@us.ibm.com>
+ *      Ulrich Kleber <ulikleber@users.sourceforge.net>
+ *
+ * Changes:
+ *      09/06/2010  ulikleber  New option -D to select domain
  */
 
 #include <stdio.h>
@@ -85,6 +90,7 @@ int main(int argc, char **argv)
         GSList*             Computer;
         GSList*             ComputerListHead;
         int                 option;
+	SaHpiDomainIdT domainid = SAHPI_UNSPECIFIED_DOMAIN_ID;
         SaHpiSessionIdT     SessionId;
         SaErrorT            Status, Clean_Up_Status;
         SaHpiEntryIdT       RptEntry, RptNextEntry;
@@ -112,7 +118,7 @@ int main(int argc, char **argv)
         /* Parse out option instructions */
         while (1)
         {
-                option = getopt(argc, argv, "dpruxb:");
+                option = getopt(argc, argv, "D:dpruxb:");
                 if ((option == EOF) || (PrintUsage == TRUE))
                 {
                         break;  //break out of the while loop
@@ -120,6 +126,13 @@ int main(int argc, char **argv)
 
                 switch (option)
                 {
+                case 'D':
+                        if (optarg) domainid = atoi(optarg);
+                        else {
+                                 printf("hpipower: option requires an argument -- D");
+                                 PrintUsage = TRUE;
+                        }
+                        break;
                 case 'd':
                         Action = SAHPI_POWER_OFF;
                         ActionSelected = TRUE;
@@ -142,6 +155,7 @@ int main(int argc, char **argv)
                 case 'b':
                         if (*optarg == 0)
                         {
+                                printf("hpipower: option requires an argument -- b");
                                 PrintUsage = TRUE;
                                 break;  //no argument
                         }
@@ -171,6 +185,7 @@ int main(int argc, char **argv)
         HPI_POWER_DEBUG_PRINT("1.0 Initializing the List Structure for the computers\n");
         Computer = g_slist_alloc();
         ComputerListHead = Computer;
+
         HPI_POWER_DEBUG_PRINT("1.1 Allocating space for the information on each computer\n");
         ComputerPtr = (COMPUTER_DATA*)malloc(sizeof(COMPUTER_DATA));
 
@@ -178,12 +193,13 @@ int main(int argc, char **argv)
 
         /* Initialize HPI domain and session */
         HPI_POWER_DEBUG_PRINT("2.1 Initalizing HPI Session\n");
-        Status = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID,
+        Status = saHpiSessionOpen(domainid,
                                   &SessionId,
                                   NULL);
 
         if (Status == SA_OK)
         {
+                if (domainid!=SAHPI_UNSPECIFIED_DOMAIN_ID) printf("Session opened to HPI domain %d\n",domainid);
                 /* Find all of the individual systems */
                 // regenerate the Resource Presence Table(RPT)
                 HPI_POWER_DEBUG_PRINT("2.2 Hpi Discovery\n");
@@ -386,7 +402,8 @@ int main(int argc, char **argv)
 void UsageMessage(char *ProgramName)
 {
         printf("%s usage: \n\r",ProgramName);
-        printf("\n %s [dprubx]\n\r",ProgramName);
+        printf("\n %s [Ddprubx]\n\r",ProgramName);
+        printf("     -D <n>  Specify domain \n\r");
         printf("     -d  power down target object \n\r");
         printf("     -p  power on target object \n\r");
         printf("     -r  reset target object \n\r");

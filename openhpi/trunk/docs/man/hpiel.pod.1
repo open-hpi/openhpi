@@ -4,17 +4,23 @@ hpiel - An openhpi sample application that displays HPI event log entries.
 
 =head1 SYNOPSIS 
 
-hpiel [ -d -e -c -p -r -x -v -h ]
+hpiel [-D domain] [-d] [-e entitypath] [-c -p -r -x -v -h ]
+
+hpiel [--Domain="domainid"] [--del] [-entitypath="entitypath"] [--clear --resource --rdr --xml --verbose --help]
 
 =head1 DESCRIPTION
 
 hpiel searches the RPT (Resource Present Table) for resources with SAHPI_CAPABILITY_EVENT_LOG and displays event log entries for resources found.
 
+If no domain is selected, hpiel uses a session with the default domain. The selected domain id must be configured via the openhpidclient.conf file specified in the environment.
+
+
 =head1 OPTIONS
 
 =over 2
 
- --del, -d				display domain event log entries 
+ --Domain="<arg>", -D "<arg>"           select domain id
+ --del, -d	display domain event log entries 
  --entitypath="<arg>", -e "<arg>"	display resource event log entries
                                         (e.g. -e "{SYSTEM_CHASSIS,2}{SBC_BLADE,5}")
  --clear, -c	clear log before reading event log entries
@@ -59,9 +65,13 @@ SaErrorT SAHPI_API saHpiEventLogClear (
 
 =head1 SEE ALSO
 
+hpialarms, hpievents, hpifan, hpiinv, hpionIBMblade, hpipower, hpireset, hpisensor, hpisettime, hpithres, hpitop, hpitree, hpiwdt
+
+
 =head1 AUTHORS
 
 Authors of this man page:
 
  Peter D Phan (pdphan@users.sourceforge.net)
+ Ulrich Kleber (ulikleber@users.sourceforge.net)
 

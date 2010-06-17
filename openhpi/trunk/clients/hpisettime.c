@@ -2,8 +2,11 @@
  *
  *
  * (C) Copyright IBM Corp 2003,2004
+ * (C) Copyright Nokia Siemens Networks 2010
+ *
  * Authors:  
  *     Peter D.Phan pdphan@users.sourceforge.net
+ *     Ulrich Kleber <ulikleber@users.sourceforge.net>
  *  
  *     01/13/2004 pdphan  module created
  *			  Change clock for event log on IBM Blade Center E.
@@ -11,6 +14,7 @@
  *     10/12/2004 kouzmich  porting to HPI B.
  *			    check month, day, year, hours, minutes and seconds
  *			    for correctness
+ *     07/06/2010 ulikleber  New option -D to select domain
  */
 /*
 Redistribution and use in source and binary forms, with or without 
@@ -56,9 +60,10 @@ int fintime = 0;
 static void usage(char **argv)
 {
 	printf("Usage\n\t%s -d mm/dd/yyyy -t HH:MM:SS [-x]\n",argv[0]);
-	printf("\twhere -d date in mm/dd/yyyy format\n");
+	printf("\twhere -D domainid    selects the domain\n");
+	printf("\t      -d date        in mm/dd/yyyy format\n");
 	printf("\t      -t time of day in 24-hr format\n");
-	printf("\t      -x displays eXtra debug messages\n");
+	printf("\t      -x             displays eXtra debug messages\n");
 
 	return;
 }
@@ -71,6 +76,7 @@ int main(int argc, char **argv)
 	int day_array[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 	struct tm  new_tm_time;
 	SaErrorT rv;
+	SaHpiDomainIdT domainid = SAHPI_UNSPECIFIED_DOMAIN_ID;
 	SaHpiSessionIdT sessionid;
 	SaHpiDomainInfoT domainInfo;
 	SaHpiRptEntryT rptentry;
@@ -85,16 +91,35 @@ int main(int argc, char **argv)
 
 	oh_prog_version(argv[0], OH_SVN_REV);
         
-	while ( (c = getopt( argc, argv,"d:t:x")) != EOF )
+	while ( (c = getopt( argc, argv,"D:d:t:x")) != EOF )
 	{
 		switch(c) {
+			case 'D':
+                                if (optarg) domainid = atoi(optarg);
+				else {
+					usage(argv);
+					exit(1);
+				}
+                                break;
 			case 'd': 
-				findate = 1;
-				strcpy(i_newdate, optarg);
+				if (optarg) {
+					findate = 1;
+					strcpy(i_newdate, optarg);
+				}
+				else {
+					usage(argv);
+					exit(1);
+				}
 				break;
 			case 't': 
-				fintime = 1;
-				strcpy(i_newtime, optarg);
+				if (optarg) {
+					fintime = 1;
+					strcpy(i_newtime, optarg);
+				}
+				else {
+					usage(argv);
+					exit(1);
+				}
 				break;
 			case 'x':
 				fdebug = 1;
@@ -112,8 +137,10 @@ int main(int argc, char **argv)
 
 	if (findate) {
 		if (fdebug) printf("New date to be set: %s\n",i_newdate);
-	        if (sscanf(i_newdate,"%2d/%2d/%4d", &month, &day, &year) < 8) {
+	        if (sscanf(i_newdate,"%2d/%2d/%4d", &month, &day, &year) != 3) {
 			printf("%s: Invalid date\n", argv[0]);
+			usage(argv);
+			exit(1);
 		}
 		/* check month, day and year for correctness */
 		if ((month < 1) || (month > 12)) {
@@ -146,8 +173,10 @@ int main(int argc, char **argv)
 	if (fintime) {
 		if (fdebug)  printf("New time to be set:  %s\n",i_newtime);
 	        if (sscanf(i_newtime,"%2d:%2d:%2d",
-                  &new_tm_time.tm_hour, &new_tm_time.tm_min, &new_tm_time.tm_sec) < 6) {
+                  &new_tm_time.tm_hour, &new_tm_time.tm_min, &new_tm_time.tm_sec) != 3) {
 			printf("%s: Invalid time\n", argv[0]);
+			usage(argv);
+			exit(1);
 		}
 		/* check hours, minutes and seconds for correctness */
 		if ((new_tm_time.tm_hour < 0) || (new_tm_time.tm_hour > 24)) {
@@ -172,9 +201,13 @@ int main(int argc, char **argv)
 			new_tm_time.tm_hour, new_tm_time.tm_min, new_tm_time.tm_sec);
 
 	newtime = (SaHpiTimeT) mktime(&new_tm_time) * 1000000000;
-	if (fdebug) printf("New date and time in SaHpiTimeT %lli\n", (long long int)newtime);
 
-	rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sessionid,NULL);
+	if (fdebug) {
+		printf("New date and time in SaHpiTimeT %lli\n\n", (long long int)newtime);
+		if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) printf("saHpiSessionOpen\n");
+		else printf("saHpiSessionOpen to domain %d\n",domainid);
+	}
+	rv = saHpiSessionOpen(domainid,&sessionid,NULL);
 	if (rv != SA_OK) {
 		if (rv == SA_ERR_HPI_ERROR) 
 			printf("saHpiSessionOpen: error %d, SpiLibd not running\n",rv);

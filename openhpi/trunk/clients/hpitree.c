@@ -2,6 +2,7 @@
  *
  * Copyright (c) 2003 by Intel Corp.
  * (C) Copyright IBM Corp. 2004
+ * (C) Copyright Nokia Siemens Networks 2010
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -13,6 +14,7 @@
  * Authors:
  *     Peter D. Phan <pdphan@users.sourceforge.net>
  *     Tariq Shureih <tariq.shureih@intel.com>
+ *     Ulrich Kleber <ulikleber@users.sourceforge.net>
  *
  * Log: 
  *     Copied from hpifru.c and modified for general use
@@ -20,6 +22,7 @@
  * Changes:
  *     11/03/2004  kouzmich   Fixed Bug #1057934
  *     09/02/2010  lwetzel    Fixed Bug ResourceId 255 (0xFF) is a valid ResourceId 
+ *     07/06/2010  ulikleber  New option -D to select domain
  *
  */
 
@@ -109,12 +112,21 @@ main(int argc, char **argv)
 	
 	SaHpiSessionIdT sessionid;
 	SaHpiResourceIdT resourceid = 0;
+	SaHpiDomainIdT domainid = SAHPI_UNSPECIFIED_DOMAIN_ID;
+	SaHpiBoolT printusage = FALSE;
 
 	int c;
 	    
 	oh_prog_version(argv[0], OH_SVN_REV);
-	while ( (c = getopt( argc, argv,"adrsoiwcn:x?")) != EOF ) {
+	while ( (c = getopt( argc, argv,"D:acdirswon:x?")) != EOF ) {
 		switch(c) {
+			case 'D':
+                                if (optarg) {
+                                        domainid = atoi(optarg);
+                                }
+				else printusage = TRUE;
+                                break;
+
 			case 'a': f_listall = 1; break;
 			case 'c': f_ctrl    = 1; break;
 			case 'd': f_rdr     = 1; break;
@@ -128,31 +140,40 @@ main(int argc, char **argv)
 					resourceid = atoi(optarg);
 					f_allres = 0;
 				}
+				else printusage = TRUE;
 				break;
 			case 'x': fdebug = 1; break;
-			default:
-				printf("\n\tUsage: %s [-option]\n\n", argv[0]);
-				printf("\t      (No Option) Display all rpts and rdrs\n");
-				printf("\t           -a     Display all rpts and rdrs\n");
-				printf("\t           -c     Display only controls\n");
-				printf("\t           -d     Display rdr records\n");
-				printf("\t           -i     Display only inventories\n");
-				printf("\t           -o     Display system overview: rpt & rdr headers\n");				
-				printf("\t           -r     Display only rpts\n");
-				printf("\t           -s     Display only sensors\n");
-				printf("\t           -w     Display only watchdog\n");				
-				printf("\t           -n     Select particular resource id to display\n");
-				printf("\t                  (Used with [-cdirs] options)\n");
-				printf("\t           -x     Display debug messages\n");
-				printf("\n\n\n\n");
-				exit(1);
+			default: printusage = TRUE; break;
 		}
 	}
+	if (printusage == TRUE)
+	{
+		printf("\n\tUsage: %s [-option]\n\n", argv[0]);
+		printf("\t      (No Option) Display all rpts and rdrs via default domain\n");
+		printf("\t           -D nn  Select domain id nn\n");
+		printf("\t           -a     Display all rpts and rdrs\n");
+		printf("\t           -c     Display only controls\n");
+		printf("\t           -d     Display rdr records\n");
+		printf("\t           -i     Display only inventories\n");
+		printf("\t           -o     Display system overview: rpt & rdr headers\n");				
+		printf("\t           -r     Display only rpts\n");
+		printf("\t           -s     Display only sensors\n");
+		printf("\t           -w     Display only watchdog\n");				
+		printf("\t           -n nn  Select particular resource id to display\n");
+		printf("\t                  (Used with [-cdirs] options)\n");
+		printf("\t           -x     Display debug messages\n");
+		printf("\n\n\n\n");
+		exit(1);
+	}
  
-	if (argc == 1) f_listall = 1;
+	if (f_rpt+f_sensor+f_inv+f_ctrl+f_rdr+f_wdog == 0) f_listall = 1;
 
-	if (fdebug) printf("saHpiSessionOpen\n");
-        rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID,&sessionid,NULL);
+	if (fdebug) {
+		if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) printf("saHpiSessionOpen\n");
+		else printf("saHpiSessionOpen to domain %d\n",domainid);
+	}
+        rv = saHpiSessionOpen(domainid,&sessionid,NULL);
+
 	if (rv != SA_OK) {
 		printf("saHpiSessionOpen returns %s\n",oh_lookup_error(rv));
 		exit(-1);

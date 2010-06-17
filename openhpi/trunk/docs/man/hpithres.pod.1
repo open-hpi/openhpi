@@ -4,25 +4,33 @@ hpithres -  This sample openhpi application interactively displays sensors and s
 
 =head1 SYNOPSIS 
 
-hpithres [-x]
+hpithres [-D domain] [-x]
 
 =head1 DESCRIPTION
 
 hpithres interactively displays sensor info for resources with Sensor Capability. Resources, sensors,and sensor info can be individually selected.
 
+If no domain is selected, hpiel uses a session with the default domain. The selected domain id must be configured via the openhpidclient.conf file specified in the environment.
+
 =head1 OPTIONS
 
 =over 2
 
--x  Display debug messages
+-D domainid  Select domain
+-x           Display debug messages
 
 =back
 
 =head1 SEE ALSO
+
+
+
+hpialarms, hpiel, hpievents, hpifan, hpiinv, hpionIBMblade, hpipower, hpireset, hpisensor, hpisettime, hpitop, hpitree, hpiwdt
 
 =head1 AUTHORS
 
 Authors of this man page:
 
  Peter D Phan (pdphan@users.sourceforge.net)
+ Ulrich Kleber (ulikleber@users.sourceforge.net)
 

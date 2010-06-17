@@ -1,6 +1,7 @@
 /*      -*- linux-c -*-
  *
  * Copyright (c) 2003 by Intel Corp.
+ * (C) Copyright Nokia Siemens Networks 2010
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -11,8 +12,11 @@
  *
  * Authors:
  *     Andy Cress <arcress@users.sourceforge.net>
+ *     Ulrich Kleber <ulikleber@users.sourceforge.net>
+ *
  * Changes:
  *     10/13/2004  kouzmich   porting to HPI B
+ *     09/06/2010  ulikleber  New option -D to select domain
  */
 
 #include <stdio.h>
@@ -28,10 +32,12 @@ char fdebug = 0;
 
 static void Usage(char *pname)
 {
-                printf("Usage: %s [-r -d -x]\n", pname);
-                printf(" where -r  hard Resets the system\n");
+                printf("Usage: %s [-D <n> ] [ -r -d -w -c -n -o -s -x]\n", pname);
+                printf(" where -D <n> Select domain\n");
+                printf("       -r  hard resets the system\n");
                 printf("       -d  powers Down the system\n");
-                printf("       -c  power Cycles the system\n");
+                printf("       -w  warm resets the system\n");
+                printf("       -c  power cycles the system\n");
                 printf("       -n  sends NMI to the system\n");
                 printf("       -o  soft-shutdown OS\n");
                 printf("       -s  reboots to Service Partition\n");
@@ -44,6 +50,7 @@ main(int argc, char **argv)
   int c;
   int is_reset = 0;
   SaErrorT rv;
+  SaHpiDomainIdT domainid = SAHPI_UNSPECIFIED_DOMAIN_ID;
   SaHpiSessionIdT sessionid;
   SaHpiDomainInfoT domainInfo;
   SaHpiRptEntryT rptentry;
@@ -59,8 +66,15 @@ main(int argc, char **argv)
   oh_prog_version(argv[0], OH_SVN_REV);
   breset = 3; /* hard reset as default */
   bopt = 0;    /* Boot Options default */
-  while ( (c = getopt( argc, argv,"rdwconsx?")) != EOF )
+  while ( (c = getopt( argc, argv,"D:rdwconsxq?")) != EOF )
      switch(c) {
+          case 'D':
+                if (optarg) domainid = atoi(optarg);
+                else {
+                     printf("hpipower: option requires an argument -- D");
+		     Usage(argv[0]);
+                }
+                break;
           case 'd': breset = 0;     break;  /* power down */
           case 'r':
 		breset = 3;
@@ -70,6 +84,7 @@ main(int argc, char **argv)
 		action = SAHPI_WARM_RESET;
 		break;
           case 'x': fdebug = 1;     break;  /* debug messages */
+          case 'q': fdebug = 42;    break;  /* just for testing, will exit before any reset */
           case 'c': breset = 2;     break;  /* power cycle */
           case 'o': fshutdown = 1;  break;  /* shutdown OS */
           case 'n': breset = 4;     break;  /* interrupt (NMI) */
@@ -80,7 +95,11 @@ main(int argc, char **argv)
   }
   if (fshutdown) breset = 5;     /* soft shutdown option */
 
-  rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sessionid, NULL);
+  if (fdebug) {
+	if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) printf("saHpiSessionOpen\n");
+	else printf("saHpiSessionOpen to domain %d\n",domainid);
+  }
+  rv = saHpiSessionOpen(domainid, &sessionid, NULL);
   if (rv != SA_OK) {
         if (rv == SA_ERR_HPI_ERROR)
            printf("saHpiSessionOpen: error %d, SpiLibd not running\n",rv);
@@ -112,6 +131,10 @@ main(int argc, char **argv)
 		entryid,resourceid, rptentry.ResourceTag.Data);
         if (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_RESET) {
 		is_reset = 1;
+
+		/* Allow debugging the beginning of program without reset */
+		if (fdebug == 42) exit (42);
+
 		rv1 = saHpiResourceResetStateSet(sessionid, 
 	     		resourceid, action);
 	     		//resourceid, SAHPI_POWER_OFF);

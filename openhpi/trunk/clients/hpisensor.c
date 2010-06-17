@@ -2,6 +2,7 @@
  *
  * Copyright (c) 2003 by Intel Corp.
  * (C) Copyright IBM Corp. 2004 
+ * (C) Copyright Nokia Siemens Networks 2010
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -13,10 +14,12 @@
  * Author(s):
  *     Andy Cress <arcress@users.sourceforge.net>
  *     Renier Morales <renier@openhpi.org>
+ *     Ulrich Kleber <ulikleber@users.sourceforge.net>
  *	
  * ChangeLog:
  *	09/08/04 pdphan@users.sf.net Add sensor number to the display.
  *      01/06/05 arcress  reduce number of display lines per sensor
+ *      09/06/10 ulikleber New option -D to select domain
  */
 
 #include <stdio.h>
@@ -199,6 +202,7 @@ int main(int argc, char **argv)
         int c;
         char *ep_string = NULL;
         SaErrorT rv;
+        SaHpiDomainIdT domainid = SAHPI_UNSPECIFIED_DOMAIN_ID;
         SaHpiDomainInfoT dinfo;
         SaHpiSessionIdT sessionid;
         SaHpiRptEntryT rptentry;
@@ -209,11 +213,15 @@ int main(int argc, char **argv)
         SaHpiResourceIdT resourceid;
         SaHpiRdrT rdr;
         SaHpiEntityPathT ep_target;
+        SaHpiBoolT printusage = FALSE;
                 
 	oh_prog_version(argv[0], OH_SVN_REV);
         
-        while ( (c = getopt( argc, argv,"rtse:x?")) != EOF )
+        while ( (c = getopt( argc, argv,"D:rtse:x?")) != EOF )
                 switch(c) {
+		case 'D': if (optarg) domainid = atoi(optarg);
+			  else printusage = TRUE;
+                          break;
                 case 't': fshowthr = 1; break;
                 case 'r': fshowrange = 1; break;
                 case 's': fshowstate = 1; break;		
@@ -222,21 +230,30 @@ int main(int argc, char **argv)
                         if (optarg) {
 				ep_string = (char *)strdup(optarg);
                         }
+		        else printusage = TRUE;
 			oh_encode_entitypath(ep_string, &ep_target);
                         break;
-                default:
-                        printf("Usage %s [-t -r -x -e]\n", argv[0]);
-                        printf("where -t = show Thresholds also\n");
+                default: printusage = TRUE;
+		}
+
+	if (printusage) {
+                        printf("Usage %s [-D -t -r -s -x -e]\n", argv[0]);
+                        printf("where -D id = select domain\n");
+                        printf("      -t = show Thresholds also\n");
                         printf("      -r = show Range values also\n");
                         printf("      -s = show EventState also\n");			
                         printf("      -e entity path = limit to a single entity\n");
                         printf("      -x = show eXtra debug messages\n");
                         exit(1);
-                }
+        }
                 
-        rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID,&sessionid,NULL);
+  	if (fdebug) {
+ 		if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) printf("saHpiSessionOpen\n");
+ 		else printf("saHpiSessionOpen to domain %d\n",domainid);
+ 	}
+        rv = saHpiSessionOpen(domainid,&sessionid,NULL);
         if (rv != SA_OK) {
-                printf("saHpiSessionOpen: %s", oh_lookup_error(rv));
+                printf("saHpiSessionOpen: %s\n", oh_lookup_error(rv));
                 exit(-1);
         }
         

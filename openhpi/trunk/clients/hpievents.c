@@ -1,6 +1,7 @@
 /*      -*- linux-c -*-
  *
  * (C) Copyright IBM Corp. 2003, 2004, 2007
+ * (C) Copyright Nokia Siemens Networks 2010
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -13,10 +14,12 @@
  *      Peter D Phan <pdphan@us.ibm.com>
  *      Steve Sherman <stevees@us.ibm.com>
  *	Renier Morales <renier@openhpi.org>
+ *      Ulrich Kleber <ulikleber@users.sourceforge.net>
  *
  *     10/13/2004 kouzmich  changed -t option for infinite wait
  *			    added -d option for call saHpiDiscover after saHpiSubscribe
  *     11/17/2004 kouzmich  linux style and checking timeout error
+ *     09/06/2010 ulikleber New option -D to select domain
  */
 
 #include <stdio.h>
@@ -35,11 +38,13 @@
 #define HPI_NSEC_PER_SEC 1000000000LL
 
 int fdebug = 0;
+SaHpiDomainIdT domainid = SAHPI_UNSPECIFIED_DOMAIN_ID;
 
 static void Usage(char **argv)
 {
-	printf("Usage %s [-t <value> | SAHPI_TIMEOUT_BLOCK | BLOCK] [-d] [-x]\n",argv[0]);
-	printf("	where:	-t <value> - wait <value> seconds for event;\n");
+	printf("Usage %s [-D <value>] [-t <value> | SAHPI_TIMEOUT_BLOCK | BLOCK] [-d] [-x]\n",argv[0]);
+	printf("	where:	-D <value> - select domain id\n");
+	printf("                -t <value> - wait <value> seconds for event;\n");
 	printf("		-t SAHPI_TIMEOUT_BLOCK or BLOCK - infinite wait\n");
 	printf("		-d - call saHpiDiscover() after saHpiSubscribe()\n");
 	printf("		-x - displays eXtra debug messages\n");
@@ -66,10 +71,23 @@ int main(int argc, char **argv)
 
 	oh_prog_version(argv[0], OH_SVN_REV);
 
-	while ( (c = getopt( argc, argv,"t:xd?")) != EOF ) {
+	while ( (c = getopt( argc, argv,"D:t:xd?")) != EOF ) {
 		switch(c) {
+                        case 'D':
+                                if (optarg) domainid = atoi(optarg);
+                                else {
+                                        printf("hpievents: option requires an argument -- D");
+					Usage(argv);
+					exit(1);
+                                }
+                                break;
 			case 't':
-				timeout_str = optarg;
+				if (optarg) timeout_str = optarg;
+                                else {
+                                        printf("hpievents: option requires an argument -- t");
+					Usage(argv);
+					exit(1);
+                                }
 				break;
 			case 'd': 
 				do_discover_after_subscribe = 1; 
@@ -96,7 +114,12 @@ int main(int argc, char **argv)
 
 	printf("************** timeout:[%lld] ****************\n", timeout);    
 
-	rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sessionid, NULL);
+	if (fdebug) {
+		if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) printf("saHpiSessionOpen\n");
+		else printf("saHpiSessionOpen to domain %d\n",domainid);
+	}
+
+	rv = saHpiSessionOpen(domainid, &sessionid, NULL);
 	if (rv != SA_OK) {
 		if (rv == SA_ERR_HPI_ERROR) 
 			printf("saHpiSessionOpen: error %d, SpiLibd not running\n", rv);
