@@ -1,12 +1,24 @@
 /* -*- linux-c -*-
  *
  * (C) Copyright IBM Corp 2006
+ * (C) Copyright Nokia Siemens Networks 2010
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
+ * file and program are licensed under a BSD style license.  See
+ * the Copying file included with the OpenHPI distribution for
+ * full licensing terms.
  *
  * Author(s):
  *     Renier Morales <renier@openhpi.org>
+ *     Ulrich Kleber <ulikleber@users.sourceforge.net>
  *
  * hpiel - Displays HPI event log entries.
  *
+ *
+ * Changes:
+ *    09/06/2010  ulikleber  New option -D to select domain
  */
 
 #include <stdlib.h>
@@ -47,6 +59,8 @@ static struct hpiel_opts {
         int  dbg;        /* Display debug messages. */
 } opts = { 0, NULL, 0, 0, 0, 0 };
 
+SaHpiDomainIdT domainid = SAHPI_UNSPECIFIED_DOMAIN_ID;
+
 /* Prototypes */
 SaErrorT parse_options(int argc, char ***argv, struct hpiel_opts *opts);
 SaErrorT harvest_sels(SaHpiSessionIdT sid, SaHpiDomainInfoT *dinfo, char *ep);
@@ -68,7 +82,7 @@ int main(int argc, char **argv)
         }
 
         /* Program really begins here - all options parsed at this point */
-        error = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sid, NULL);
+        error = saHpiSessionOpen(domainid, &sid, NULL);
         show_error_quit("saHpiSessionOpen() returned %s. Exiting.\n");
 
         error = saHpiDiscover(sid);
@@ -77,8 +91,11 @@ int main(int argc, char **argv)
         error = saHpiDomainInfoGet(sid, &dinfo);
         show_error_quit("saHpiDomainInfoGet() returned %s. Exiting.\n");
 
-        printf("Domain Info: UpdateCount = %d, UpdateTime = %lx\n",
-               dinfo.RptUpdateCount, (unsigned long)dinfo.RptUpdateTimestamp);
+        if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID)
+		printf("Domain Info: UpdateCount = %d, UpdateTime = %lx\n",
+        	       dinfo.RptUpdateCount, (unsigned long)dinfo.RptUpdateTimestamp);
+	else	printf("Domain Info: DomainId = %d, UpdateCount = %d, UpdateTime = %lx\n",
+                       domainid, dinfo.RptUpdateCount, (unsigned long)dinfo.RptUpdateTimestamp);
 
         if (opts.ep) { /* Entity path specified */
                 error = harvest_sels(sid, &dinfo, opts.ep);
@@ -102,6 +119,7 @@ int main(int argc, char **argv)
         do { \
                 printf("\nUsage:\n" \
                        "  hpiel - Displays HPI event log entries.\n\n" \
+                       "    --Domain=\"<arg>\", -D \"<arg>\"         select domain id\n" \
                        "    --del, -d                        display domain event log entries\n" \
                        "    --entitypath=\"<arg>\", -e \"<arg>\"     display resource event log entries\n" \
                        "            (e.g. -e \"{SYSTEM_CHASSIS,2}{SBC_BLADE,5}\")\n" \
@@ -119,6 +137,7 @@ int main(int argc, char **argv)
 SaErrorT parse_options(int argc, char ***argv, struct hpiel_opts *opts)
 {
         static struct option long_options[] = {
+                {"Domain",     required_argument, 0, 'D'},
                 {"del",        no_argument,       0, 'd'},
                 {"entitypath", required_argument, 0, 'e'},
                 {"clear",      no_argument,       0, 'c'},
@@ -130,13 +149,25 @@ SaErrorT parse_options(int argc, char ***argv, struct hpiel_opts *opts)
         };
         int c, option_index = 0;
 
-        while ((c = getopt_long(argc, *argv, "de:cprvh", long_options, &option_index)) != -1) {
+        while ((c = getopt_long(argc, *argv, "D:de:cprvh", long_options, &option_index)) != -1) {
                 switch(c) {
+                        case 'D':
+                                if (optarg) domainid = atoi(optarg);
+                                else {
+                                        printf("hpiel: option requires an argument -- D");
+                                        print_usage_quit();
+                                }
+                                break;
+
                         case 'd':
                                 opts->del = 1;
                                 break;
                         case 'e':
-                                opts->ep = strdup(optarg);
+                                if (optarg) opts->ep = strdup(optarg);
+                                else {
+                                        printf("hpiel: option requires an argument -- e");
+                                        print_usage_quit();
+                                }
                                 break;
                         case 'c':
                                 opts->clear = 1;
@@ -155,10 +186,12 @@ SaErrorT parse_options(int argc, char ***argv, struct hpiel_opts *opts)
                                 break;
                         case '?':
                                 printf("extraneous option found, %d\n", optopt);
+                                print_usage_quit();
                                 break;
                         default:
                                 printf("Found bad option %d.\n", c);
-                                return -1;
+                                print_usage_quit();
+                                break;
                 }
         }
 

@@ -4,29 +4,33 @@ hpifan - An openhpi sample application that shows "Fan Control" management instr
 
 =head1 SYNOPSIS 
 
-hpifan [-h] [-s fan_speed_level]
+hpifan [-D domainid] [-h] [-s fan_speed_level]
 
 =head1 DESCRIPTION
 
 hpifan walks the RPT (Resource Present Table) for resouces that have 
 "Fan Control" management instruments (SAHPI_CTRL_FAN_SPEED).
 
+If no domain is selected, hpifan uses a session to the default domain. The selected domain id must be configured via the openhpidclient.conf file specified in the environment.
 
 =head1 OPTIONS
 
 =over 2
 
- -h          help
- -s <speed>  set fan speed for ALL fans
+ -D <domainid> select domain id
+ -s <speed>    set fan speed for ALL fans
+ -h            help
 
 =back
 
 =head1 SEE ALSO
 
+hpialarms, hpiel, hpievents, hpiinv, hpionIBMblade, hpipower, hpireset, hpisensor, hpisettime, hpithres, hpitop, hpitree, hpiwdt
  
 =head1 AUTHORS
 
 Authors of this man page:
 
  Peter D Phan (pdphan@users.sourceforge.net)
+ Ulrich Kleber (ulikleber@users.sourceforge.net)
 

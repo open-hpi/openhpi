@@ -4,6 +4,7 @@
  *
  * Copyright (c) 2003-2005 by Intel Corp.
  * (C) Copyright IBM Corp. 2004
+ * (C) Copyright Nokia Siemens Networks 2010
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,12 +19,14 @@
  *     Renier Morales <renier@openhpi.org>
  *     Tariq Shureih <tariq.shureih@intel.com>
  *     Racing Guo <racing.guo@intel.com>
+ *     Ulrich Kleber <ulikleber@users.sourceforge.net>
  *
  * Log: 
  *   6/29/04  Copied from hpifru.c and modified for general use
  *  11/30/04  ver 0.2 for openhpi-2.0.0
  *   2/09/05  ARCress re-merged with hpifru.c, adding IdrFieldSet,
  *            generalized for other HPI libraris also.
+ *  09/06/10  ulikleber  New option -D to select domain
  */
 #define OPENHPI_USED  1
 
@@ -456,6 +459,7 @@ main(int argc, char **argv)
 {
   int c;
   SaErrorT rv,rv_rdr;
+  SaHpiDomainIdT domainid = SAHPI_UNSPECIFIED_DOMAIN_ID;
   SaHpiSessionIdT sessionid;
   SaHpiDomainInfoT rptinfo;
   SaHpiRptEntryT rptentry;
@@ -469,12 +473,17 @@ main(int argc, char **argv)
   SaHpiIdrIdT 	idrid;
   int invfound = 0;
   int nloops = 0;
+  SaHpiBoolT printusage = FALSE;
 
   oh_prog_version(argv[0], OH_SVN_REV);
   atag.tlen = 0;
 
-  while ( (c = getopt( argc, argv,"a:vxz?")) != EOF )
+  while ( (c = getopt( argc, argv,"D:a:vxz?")) != EOF )
   switch(c) {
+    case 'D':
+          if (optarg) domainid = atoi(optarg);
+          else printusage = TRUE;
+          break;  
     case 'z': fzdebug = 1; /* fall thru to include next setting */
     case 'x': fdebug = 1; break;
     case 'v': fverbose = 1; break;
@@ -484,19 +493,29 @@ main(int argc, char **argv)
 	    atag.tag  = (char *)strdup(optarg);
 	    atag.tlen = strlen(optarg);
 	  }
+          else printusage = TRUE;
           break;
-    default:
+    default: printusage = TRUE;
+  }
+  if (printusage) {
           printf("Usage: %s [-x] [-a asset_tag]\n", argv[0]);
-          printf("   -a  Sets the asset tag\n");
-          printf("   -x  Display debug messages\n");
-          printf("   -z  Display extra debug messages\n");
+          printf("   -D domainid   Selects the domain\n");
+          printf("   -a tag        Sets the asset tag\n");
+          printf("   -v            Use verbose output mode\n");
+          printf("   -x            Display debug messages\n");
+          printf("   -z            Display extra debug messages\n");
           exit(1);
   }
 
 	/* compile error */
 //  inv = (SaHpiIdrAreaHeaderT *)&inbuff[0];
   inv = (SaHpiIdrAreaHeaderT *)(void *)&inbuff[0];
-  rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID,&sessionid,NULL);
+
+  if (fdebug) {
+     if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) printf("saHpiSessionOpen\n");
+     else printf("saHpiSessionOpen to domain %d\n",domainid);
+  }
+  rv = saHpiSessionOpen(domainid,&sessionid,NULL);
   if (fdebug) printf("saHpiSessionOpen rv = %d sessionid = %x\n",rv,sessionid);
   if (rv != SA_OK) {
     printf("saHpiSessionOpen error %d\n",rv);

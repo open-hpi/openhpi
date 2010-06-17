@@ -5,17 +5,21 @@ and resources' manamegement instruments (rdr's) data structures of the managed o
 
 =head1 SYNOPSIS 
 
-hpitree [ -a -c -d -i -o -r -s -w -n -x ]
+hpitree [-D id] [-acdiorsw -n resource -x]
 
 =head1 DESCRIPTION
 
 hpitree walks the Resource Presence Table (RPT) of the managed openHPI complex, and displays in details the resources (rpt's) and resources' management instruments (rdr's) data structures.
+
+If no domain is selected, hpitop displays information using a session with the default domain. The selected domain id must be configured via the openhpidclient.conf file specified in the environment.
+
 
 =head1 OPTIONS
 
 =over 2
 
  (No Option) Display all rpts and rdrs
+ -D nn  Select domain id nn
  -a     Display all rpts and rdrs
  -c     Display only controls
  -d     Display rdr records
@@ -24,7 +28,7 @@ hpitree walks the Resource Presence Table (RPT) of the managed openHPI complex, 
  -r     Display only rpts
  -s     Display only sensors
  -w     Display only watchdog
- -n     Select particular resource id to display
+ -n nn  Select particular resource id to display
         (Used with [-cdirs] options)
  -x     Display debug messages
 
@@ -32,10 +36,13 @@ hpitree walks the Resource Presence Table (RPT) of the managed openHPI complex, 
 
 =head1 SEE ALSO
   
+hpialarms, hpiel, hpievents, hpifan, hpiinv, hpionIBMblade, hpipower, hpireset, hpisensor, hpisettime, hpithres, hpitop, hpiwdt
+
 
 =head1 AUTHORS
 
 Authors of this man page:
 
  Peter D Phan (pdphan@users.sourceforge.net)
+ Ulrich Kleber (ulikleber@users.sourceforge.net)
 

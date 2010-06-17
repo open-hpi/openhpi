@@ -4,31 +4,40 @@ hpireset - This sample openhpi application excercises HPI Reset Management APIs.
 
 =head1 SYNOPSIS 
 
-hpireset [-r -d -x]
+hpireset [-D id] [-r -d -w -c -n -o -s -x]
 
 =head1 DESCRIPTION
 
 hpireset searches the Resource Presence Table (RPT) for resources with Reset Capability. It sends the requested reset action to all resources with SAHPI_CAPABILITY_RESET.
 
+If no domain is selected, hpireset uses a session with the default domain. The selected domain id must be configured via the openhpidclient.conf file specified in the environment.
+
+
 =head1 OPTIONS
 
 =over 2
 
- -r  hard Resets the system
- -d  powers Down the system
- -c  power Cycles the system
- -n  sends NMI to the system
- -o  soft-shutdown OS
- -s  reboots to Service Partition
- -x  show eXtra debug messages
+ -D <id> select the domain id
+ -r      hard resets the system
+ -d      powers down the system
+ -w      warm resets the system 
+ -c      power cycles the system
+ -n      sends NMI to the system
+ -o      soft-shutdown OS
+ -s      reboots to Service Partition
+ -x      show eXtra debug messages
 
 =back
 
 =head1 SEE ALSO
+
+hpialarms, hpiel, hpievents, hpifan, hpiinv, hpionIBMblade, hpipower, hpisensor, hpisettime, hpithres, hpitop, hpitree, hpiwdt
+ 
 
 =head1 AUTHORS
 
 Authors of this man page:
 
  Peter D Phan (pdphan@users.sourceforge.net)
+ Ulrich Kleber (ulikleber@users.sourceforge.net)
 

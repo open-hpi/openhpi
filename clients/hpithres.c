@@ -1,6 +1,7 @@
 /*      -*- linux-c -*-
  *
  * Copyright (c) 2003 by Intel Corp.
+ * (C) Copyright Nokia Siemens Networks 2010
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12,11 +13,14 @@
  * Authors:
  *     Bill Barkely 
  *     Andy Cress <arcress@users.sourceforge.net>
+ *     Ulrich Kleber <ulikleber@users.sourceforge.net>
+ *
  * Changes:
  * 02/26/04 ARCress - added general search for any Fan sensor.
  * 03/17/04 ARCress - changed to Temp sensor (always has Lower Major)
  * 11/03/2004  kouzmich   porting to HPI B
  * 11/25/2004  kouzmich   changed as new threshold client (first release)
+ * 09/06/2010  ulikleber  New option -D to select domain
  */
 
 #include <stdio.h>
@@ -95,6 +99,7 @@ int	nrpts = 0;
 
 int	fdebug = 0;
 
+SaHpiDomainIdT 		domainid = SAHPI_UNSPECIFIED_DOMAIN_ID;	
 SaHpiSessionIdT		sessionid;
 
 static void *resize_array(void *Ar, int item_size, int *last_num, int add_num)
@@ -642,20 +647,32 @@ int main(int argc, char **argv)
 	SaErrorT	rv;
 	char		buf[READ_BUF_SIZE];
 	char		*S;
+	SaHpiBoolT 	printusage = FALSE;
 
 	oh_prog_version(argv[0], OH_SVN_REV);
-	while ( (c = getopt( argc, argv,"x?")) != EOF )
+	while ( (c = getopt( argc, argv,"D:x?")) != EOF )
 		switch(c)  {
+			case 'D':
+                                if (optarg) domainid = atoi(optarg);
+				else printusage = TRUE;
+                                break;
 			case 'x':
 				fdebug = 1;
 				break;
-			default:
-				printf("Usage: %s [-x]\n", argv[0]);
-				printf("   -x  Display debug messages\n");
-				return(1);
-		}
-
-	rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sessionid, NULL);
+			default: printusage = TRUE;
+	}
+	if (printusage) {
+		printf("Usage: %s [-D domain] [-x]\n", argv[0]);
+		printf("   -D domainid  Select domain\n");
+		printf("   -x           Display debug messages\n");
+		return(1);
+	}
+	
+	if (fdebug) {
+		if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) printf("saHpiSessionOpen\n");
+		else printf("saHpiSessionOpen to domain %d\n",domainid);
+	}
+        rv = saHpiSessionOpen(domainid,&sessionid,NULL);
 
 	if (rv != SA_OK) {
 		printf("saHpiSessionOpen: %s\n", oh_lookup_error(rv));

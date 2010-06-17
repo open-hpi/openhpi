@@ -2,6 +2,7 @@
  *
  * Copyright (c) 2003 by Intel Corp.
  * (C) Copyright IBM Corp. 2004, 2005
+ * (C) Copyright Nokia Siemens Networks 2010
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12,6 +13,7 @@
  *
  * Authors:
  *     Peter D. Phan <pdphan@users.sourceforge.net>
+ *     Ulrich Kleber <ulikleber@users.sourceforge.net>
  *
  * Log: 
  *	Start from hpitree.c 
@@ -19,6 +21,7 @@
  *
  * Changes:
  *    09/02/2010  lwetzel    Fixed Bug: ResourceId 255 (0xFF) is a valid ResourceId 
+ *    07/06/2010  ulikleber  New option -D to select domain
  *
  */
 
@@ -112,14 +115,22 @@ main(int argc, char **argv)
 {
 	SaErrorT 	rv = SA_OK;
 	
+	SaHpiDomainIdT domainid = SAHPI_UNSPECIFIED_DOMAIN_ID;
 	SaHpiSessionIdT sessionid;
 	SaHpiResourceIdT resourceid = 0;
-
+	SaHpiBoolT printusage = FALSE;
 	int c;
 	    
 	oh_prog_version(argv[0], OH_SVN_REV);
-	while ( (c = getopt( argc, argv,"rsicawn:x?")) != EOF ) {
+	while ( (c = getopt( argc, argv,"rsicwadfD:n:x?")) != EOF ) {
 		switch(c) {
+			case 'D':
+                                if (optarg) {
+                                        domainid = atoi(optarg);
+                                }
+				else printusage = TRUE;
+                                break;
+
 			case 'r': f_rpt     = 1; break;
 			case 's': f_sensor = 1; break;
 			case 'i': f_inv = 1; break;
@@ -133,30 +144,40 @@ main(int argc, char **argv)
 					resourceid = atoi(optarg);
 					f_allres = 0;
 				}
+				else printusage = TRUE;
 				break;
+
 			case 'x': fdebug = 1; break;
-			default:
-				printf("\n\tUsage: %s [-option]\n\n", argv[0]);
-				printf("\t      (No Option) Display system topology: rpt & rdr headers\n");	
-				printf("\t           -r     Display only rpts\n");
-				printf("\t           -s     Display only sensors\n");
-				printf("\t           -c     Display only controls\n");
-				printf("\t           -w     Display only watchdogs\n");
-				printf("\t           -i     Display only inventories\n");
-				printf("\t           -a     Display only annunciators\n");
-				printf("\t           -f     Display only fumis\n");
-				printf("\t           -d     Display only dimis\n");
-				printf("\t           -x     Display debug messages\n");
-				printf("\n\n\n\n");
-				exit(1);
+			default: printusage = TRUE; break;
 		}
+	}
+	if (printusage == TRUE)
+	{
+		printf("\n\tUsage: %s [-option]\n\n", argv[0]);
+		printf("\t      (No Option) Display system topology via default domain: rpt & rdr headers\n");	
+		printf("\t           -D nn  Select domain id nn\n");
+		printf("\t           -r     Display only rpts\n");
+		printf("\t           -s     Display only sensors\n");
+		printf("\t           -c     Display only controls\n");
+		printf("\t           -w     Display only watchdogs\n");
+		printf("\t           -i     Display only inventories\n");
+		printf("\t           -a     Display only annunciators\n");
+		printf("\t           -f     Display only fumis\n");
+		printf("\t           -d     Display only dimis\n");
+		printf("\t           -n nn  Display only resource nn and its topology\n");
+		printf("\t           -x     Display debug messages\n");
+		printf("\n\n\n\n");
+		exit(1);
 	}
  
 	if (argc == 1)  f_overview = 1;
 	memset (previous_system, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
 
-	if (fdebug) printf("saHpiSessionOpen\n");
-        rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID,&sessionid,NULL);
+	if (fdebug) {
+		if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) printf("saHpiSessionOpen\n");
+		else printf("saHpiSessionOpen to domain %d\n",domainid);
+	}
+        rv = saHpiSessionOpen(domainid,&sessionid,NULL);
 	if (rv != SA_OK) {
 		printf("saHpiSessionOpen returns %s\n",oh_lookup_error(rv));
 		exit(-1);

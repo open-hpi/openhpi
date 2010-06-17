@@ -4,30 +4,38 @@ hpipower - This sample openhpi application excercises HPI Power Management APIs.
 
 =head1 SYNOPSIS 
 
-hpipower [ -d -p -r -u -b -x ]
+hpipower [ -D <value> ] [ -d -p -r -b -x ] [ -u <value> ]
 
 =head1 DESCRIPTION
 
 hpipower searches the Resource Presence Table (RPT) for resources with Power Capability. It sends the requested power action to the selected target.
 
+If no domain is selected, hpievents polls for events in the default domain. The selected domain id must be configured via the openhpidclient.conf file specified in the environment.
+
+
 =head1 OPTIONS
 
 =over 2
 
- -d  power down target object
- -p  power on target object
- -r  reset target object
- -u  unattended
- -b <n>  Specify blade <n> (1...n)
- -x  debug messages
+ -D <value>  Specify domain id
+ -d          power down target object
+ -p          power on target object
+ -r          reset target object
+ -u          unattended
+ -b <n>      Specify blade <n> (1...n)
+ -x          debug messages
 
 =back
 
 =head1 SEE ALSO
+
+hpialarms, hpiel, hpievents, hpifan, hpiinv, hpionIBMblade, hpireset, hpisensor, hpisettime, hpithres, hpitop, hpitree, hpiwdt
+
 
 =head1 AUTHORS
 
 Authors of this man page:
 
  Peter D Phan (pdphan@users.sourceforge.net)
+ Ulrich Kleber (ulikleber@users.sourceforge.net)
 

@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2003 Intel Corporation.
  * (C) Copyright IBM Corp 2007
+ * (C) Copyright Nokia Siemens Networks 2010
  *
  * 04/15/03 Andy Cress - created
  * 04/17/03 Andy Cress - mods for resourceid, first good run
@@ -11,10 +12,12 @@
  * 02/23/04 Andy Cress - v1.1 add checking/setting disk LEDs
  * 10/13/04 Andy Cress - v1.2 add ifdefs for HPI_A & HPI_B, added -d/raw
  * < ...for more changes look at svn logs... >
+ * 09/06/2010  ulikleber  New option -D to select domain
  *
  * Author(s):
  * 	Andy Cress <andrew.r.cress@intel.com>
  * 	Renier Morales <renier@openhpi.org>
+ *      Ulrich Kleber <ulikleber@users.sourceforge.net>
  */
 /*M*
 Copyright (c) 2003, Intel Corporation
@@ -48,6 +51,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdlib.h>
 #include <getopt.h>
 #include <SaHpi.h>
+#include <oHpi.h>
 #include <oh_clients.h>
 
 #define OH_SVN_REV "$Revision$"
@@ -78,6 +82,7 @@ main(int argc, char **argv)
 {
   int c;
   SaErrorT rv;
+  SaHpiDomainIdT domainid = SAHPI_UNSPECIFIED_DOMAIN_ID;
   SaHpiSessionIdT sessionid;
   SaHpiRptEntryT rptentry;
   SaHpiEntryIdT rptentryid;
@@ -92,11 +97,15 @@ main(int argc, char **argv)
   int raw_val = 0;
   int j;
   uchar b = 0;
+  SaHpiBoolT printusage = FALSE;
 
   oh_prog_version(argv[0], OH_SVN_REV);
-  while ( (c = getopt( argc, argv,"rxa:b:c:m:n:p:i:d:o?")) != EOF )
+  while ( (c = getopt( argc, argv,"D:rxa:b:c:m:n:p:i:d:o?")) != EOF )
      switch(c) {
-          
+        case 'D':
+                  if (optarg) domainid = atoi(optarg);
+		  else printusage = TRUE;
+                  break;  
 	case 'c': b = atoi(optarg);      /* set crit alarm value */
 		  leds[1].fset = 1; 
 		  leds[1].val = b;
@@ -133,9 +142,12 @@ main(int argc, char **argv)
 		  }
                   break;
 	case 'x': fdebug = 1;     break;  /* debug messages */
-	default:
+	default:  printusage = TRUE;
+     }
+     if (printusage) {
                 printf("Usage: %s [-a -b -c -i -m -n -p -o -x]\n", argv[0]);
-                printf(" where -c1  sets Critical Alarm on\n");
+                printf(" where -D domain id Selects the domain\n");
+                printf("       -c1  sets Critical Alarm on\n");
                 printf("       -c0  sets Critical Alarm off\n");
                 printf("       -m1  sets Major Alarm on\n");
                 printf("       -m0  sets Major Alarm off\n");
@@ -154,8 +166,11 @@ main(int argc, char **argv)
                 printf("       -x   show eXtra debug messages\n");
 		exit(1);
      }
-
-  rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID,&sessionid,NULL);
+  if (fdebug) {
+	if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) printf("saHpiSessionOpen\n");
+		else printf("saHpiSessionOpen to domain %d\n",domainid);
+	}
+  rv = saHpiSessionOpen(domainid,&sessionid,NULL);
   if (rv != SA_OK) {
 	printf("saHpiSessionOpen error %d\n",rv);
 	exit(-1);
