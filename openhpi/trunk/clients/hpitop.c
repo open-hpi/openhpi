@@ -596,7 +596,7 @@ SaErrorT show_dimi(SaHpiSessionIdT sessionid,
 	rv = oh_init_bigtext(&buffer);						
 																
 	if (rdrptr->RdrType == SAHPI_DIMI_RDR) {
-		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Dimi Num: %d, ", 
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "DIMI Num: %d, ", 
 		                                 rdrptr->RdrTypeUnion.DimiRec.DimiNum);
 		oh_append_bigtext(&buffer, str);
 		if ( rdrptr->IdString.DataType == SAHPI_TL_TYPE_TEXT ) {
@@ -628,7 +628,7 @@ SaErrorT show_fumi(SaHpiSessionIdT sessionid,
 	rv = oh_init_bigtext(&buffer);						
 																
 	if (rdrptr->RdrType == SAHPI_FUMI_RDR) {
-		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Fumi Num: %d, ", 
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "FUMI Num: %d, ", 
 		                                     rdrptr->RdrTypeUnion.FumiRec.Num);
 		oh_append_bigtext(&buffer, str);
 		if ( rdrptr->IdString.DataType == SAHPI_TL_TYPE_TEXT ) {
