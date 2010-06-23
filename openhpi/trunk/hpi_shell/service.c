@@ -40,6 +40,8 @@
 
 #define EPATH_PROC	1
 #define GUID_PROC 2
+#define CONFIGDATA_PROC 3
+#define OEMCTRLSTATEBODY_PROC 4
 
 //	function numbers for decode1_proc
 
@@ -162,6 +164,24 @@ static void decode_guid(const SaHpiGuidT * guid, oh_big_textbuffer * buf)
     append_char_to_big_text(buf,'\0');
 }
 
+static void decode_configdata(const SaHpiUint8T * configdata, oh_big_textbuffer * buf)
+{
+    unsigned int i;
+    for ( i = 0; i < SAHPI_CTRL_OEM_CONFIG_LENGTH; ++i ) {
+        append_hex_to_big_text(buf, configdata[i]);
+        append_char_to_big_text(buf, ' ');
+    }
+}
+
+static void decode_oemctrlstatebody(const SaHpiCtrlStateOemT * oem_state, oh_big_textbuffer * buf)
+{
+    unsigned int i;
+    for ( i = 0; i < oem_state->BodyLength; ++i ) {
+        append_hex_to_big_text(buf, oem_state->Body[i]);
+        append_char_to_big_text(buf, ' ');
+    }
+}
+
 SaErrorT decode_proc(int num, void *val, char *buf, int bufsize)
 {
 	oh_big_textbuffer	tmpbuf;
@@ -176,6 +196,12 @@ SaErrorT decode_proc(int num, void *val, char *buf, int bufsize)
 			break;
         case GUID_PROC:
             decode_guid((const SaHpiGuidT*)val, &tmpbuf);
+            break;
+        case CONFIGDATA_PROC:
+            decode_configdata((const SaHpiUint8T*)val, &tmpbuf);
+            break;
+        case OEMCTRLSTATEBODY_PROC:
+            decode_oemctrlstatebody((const SaHpiCtrlStateOemT*)val, &tmpbuf);
             break;
 	};
 	strncpy(buf, (char *)(tmpbuf.Data), bufsize);
@@ -613,7 +639,7 @@ attr_t	Def_ctrl_text[] = {
 	{ "MaxLines",		INT_TYPE,	0, { .d = 0} },	//  1
 	{ "Language",		LOOKUP_TYPE,	LANG_PROC, { .d = 0} },	//  2
 	{ "DataType",		LOOKUP_TYPE,	TAGTYPE_PROC, { .d = 0} },	//  3
-	{ "Default",		STR_TYPE,	0, { .d = 0} }  //  4
+	{ "Default",		STRUCT_TYPE,	0, { .d = 0} }  //  4
 };
 
 #define ATTRS_CTRL_TEXT_DEFAULT	2
@@ -621,6 +647,22 @@ attr_t	Def_ctrl_text[] = {
 attr_t	Def_ctrl_text_def[] = {
 	{ "Line",		INT_TYPE,	0, { .d = 0} },	//  0
 	{ "Text",		TEXT_BUFF_TYPE,	0, { .d = 0} }  //  4
+};
+
+#define ATTRS_CTRL_OEM		3
+
+attr_t	Def_ctrl_oem[] = {
+	{ "ManufacturerId",	DECODE1_TYPE,   MANUFACTURERID_PROC, { .d = 0} },	//  0
+	{ "ConfigData",		DECODE_TYPE,    CONFIGDATA_PROC, { .d = 0} },	//  1
+	{ "Default",		STRUCT_TYPE,	0, { .d = 0} }  //  2
+};
+
+#define ATTRS_CTRL_OEM_DEFAULT	3
+
+attr_t	Def_ctrl_oem_def[] = {
+	{ "ManufacturerId",	DECODE1_TYPE,   MANUFACTURERID_PROC, { .d = 0} },	//  0
+	{ "BodyLength",		INT_TYPE,    0, { .d = 0} },	//  1
+	{ "Body",		    DECODE_TYPE,	OEMCTRLSTATEBODY_PROC, { .d = 0} }  //  2
 };
 
 static Attributes_t *make_attrs_ctrl(SaHpiCtrlRecT *ctrl)
@@ -632,6 +674,7 @@ static Attributes_t *make_attrs_ctrl(SaHpiCtrlRecT *ctrl)
 	SaHpiCtrlRecAnalogT	*analog;
 	SaHpiCtrlRecStreamT	*stream;
 	SaHpiCtrlRecTextT	*text;
+    SaHpiCtrlRecOemT * oem;
 
 	at = (Attributes_t *)malloc(sizeof(Attributes_t));
 	at->n_attrs = RDR_ATTRS_CTRL_NUM;
@@ -716,6 +759,29 @@ static Attributes_t *make_attrs_ctrl(SaHpiCtrlRecT *ctrl)
 			att3[0].value.i = text->Default.Line;
 			att3[1].value.a = &(text->Default.Text);
 			att2[4].value.a = at3;
+			att1[3].value.a = at2;
+			break;
+		case SAHPI_CTRL_TYPE_OEM:
+            oem = &(ctrl->TypeUnion.Oem);
+			att1[3].name = "OEM";
+			at2 = (Attributes_t *)malloc(sizeof(Attributes_t));
+			at2->n_attrs = ATTRS_CTRL_OEM;
+			att2 = (attr_t *)malloc(sizeof(attr_t) * ATTRS_CTRL_OEM);
+			memcpy(att2, Def_ctrl_oem,
+				sizeof(attr_t) * ATTRS_CTRL_OEM);
+			at2->Attrs = att2;
+			att2[0].value.i = oem->MId;
+			att2[1].value.a = &oem->ConfigData[0];
+			at3 = (Attributes_t *)malloc(sizeof(Attributes_t));
+			at3->n_attrs = ATTRS_CTRL_OEM_DEFAULT;
+			att3 = (attr_t *)malloc(sizeof(attr_t) * ATTRS_CTRL_OEM_DEFAULT);
+			memcpy(att3, Def_ctrl_oem_def,
+				sizeof(attr_t) * ATTRS_CTRL_OEM_DEFAULT);
+			at3->Attrs = att3;
+			att3[0].value.i = oem->Default.MId;
+			att3[1].value.i = oem->Default.BodyLength;
+			att3[2].value.a = &(oem->Default);
+			att2[2].value.a = at3;
 			att1[3].value.a = at2;
 			break;
 		default:
