@@ -1,0 +1,40 @@
+=head1 NAME
+
+ hpisensor -  This sample openhpi application displays sensor info for all resources with Sensor Capability
+
+=head1 SYNOPSIS 
+
+hpisensor [-D domain] [-t -r -x] [-e entitypath]
+
+=head1 DESCRIPTION
+
+hpisensor displays sensor info for all resources with Sensor Capability .
+
+If no domain is selected, hpisensor uses a session with the default domain. The selected domain id must be configured via the openhpidclient.conf file specified in the environment.
+
+
+=head1 OPTIONS
+
+=over 2
+
+ -D domain id    select Domain id
+ -t              show Thresholds also
+ -r              show Range values also
+ -s              show EventState also
+ -e entity path  limit to a single entity
+ -x              show eXtra debug messages
+
+=back
+
+=head1 SEE ALSO
+
+hpialarms, hpiel, hpievents, hpifan, hpiinv, hpionIBMblade, hpipower, hpireset, hpisettime, hpithres, hpitop, hpitree, hpiwdt
+ 
+
+=head1 AUTHORS
+
+Authors of this man page:
+
+ Peter D Phan (pdphan@users.sourceforge.net)
+ Ulrich Kleber (ulikleber@users.sourceforge.net)
+
