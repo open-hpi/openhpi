@@ -1,0 +1,67 @@
+Unit tests we should have for el_utils
+
+The positive tests:
+   - Create a new EL via oh_el_create (001)
+      - examine EL struct
+   - Create a new EL, add 1 entry (002)
+      - examine total number of entries in struct. Should be 1.
+      - Compare entry in EL with entry used for adding to EL.
+   - Create a new EL, add 5 entries (003)
+      - examine total number of entries in struct. Should be 5.
+      - Compare entries in EL with entries used for adding to EL.
+   - Create a new EL, add 5 entries. Save EL to file (004)
+      - Restore saved EL to another new EL struct.
+      - Compare number of entries between the two logs.
+   - Create a new EL, add 10 entries. Save EL to file (005)
+      - Restore saved EL to another new EL struct.
+      - Compare entries between the two logs.
+   - Create a new EL, add 5 entries. Save EL to file (006)
+      - Restore saved EL to another new EL struct.
+      - Add 5 entries to first and second EL.
+      - Check number of entries (Should be 10)
+      - Compare entries with original ones.
+   - Create a new El with a modified timestamp offset (007)
+      - add 1 new entry, examine timestamp.
+   - Create a new EL, add 5 entries. Clear the EL (008)
+      - Examine EL to make sure that there are no entries.
+
+
+The negative tests:
+   oh_el_close (009)
+      -  el == NULL
+   oh_el_append (010)
+      - el == NULL
+      - event == NULL
+      - el->enabled == SAHPI_FALSE &&
+        event->EventType == SAHPI_ET_USER
+   oh_el_prepend (011)
+      - el == NULL
+      - event == NULL
+      - el->enabled == SAHPI_FALSE
+   oh_el_clear (012)
+      -  el == NULL
+   oh_el_get (013)
+      - el == NULL
+      - entryId == bogus entryId
+      - prev == NULL
+      - next == NULL
+      - empty EL
+   oh_el_info (014)
+      - el == NULL
+      - info == NULL
+   oh_el_overflowreset (015)
+      - el == NULL
+   oh_el_map_to_file (016)
+      - el == NULL
+      - filename == NULL
+   oh_el_map_from_file (017)
+      - el == NULL
+      - el->enabled == SAHPI_FALSE
+      - filename == NULL
+      - filename does not exist
+   oh_el_timeset (018)
+      - el == NULL
+      - timestamp == SAHPI_TIME_UNSPECIFIED
+   oh_el_setgentimestampflag (019)
+      - el == NULL
+
