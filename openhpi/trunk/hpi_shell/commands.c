@@ -1443,7 +1443,7 @@ const char exechelp[] = "exec: execute external program\n"
                         "Usage: exec <filename> [parameters]";
 const char fumiblockhelp[] = "fumi: FUMI command block\n"
                         "Usage: fumi [<FumiId>]\n"
-                        "       DimiId:: <resourceId> <FumiNum>\n";
+                        "       FumiId:: <resourceId> <FumiNum>\n";
 const char helphelp[] = "help: help information for OpenHPI commands\n"
                         "Usage: help [optional commands]";
 const char historyhelp[] = "history: show input commands history\n"
