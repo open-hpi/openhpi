@@ -8895,7 +8895,7 @@ SaErrorT SAHPI_API saHpiFumiSourceInfoGet (
 **   returned is SAHPI_LAST_ENTRY.
 **
 *******************************************************************************/
-SaErrorT saHpiFumiSourceComponentInfoGet (
+SaErrorT SAHPI_API saHpiFumiSourceComponentInfoGet (
     SAHPI_IN    SaHpiSessionIdT           SessionId,
     SAHPI_IN    SaHpiResourceIdT          ResourceId,
     SAHPI_IN    SaHpiFumiNumT            FumiNum,
@@ -9017,7 +9017,7 @@ SaErrorT SAHPI_API saHpiFumiTargetInfoGet (
 **   SAHPI_LAST_ENTRY.
 **
 *******************************************************************************/
-SaErrorT saHpiFumiTargetComponentInfoGet (
+SaErrorT SAHPI_API saHpiFumiTargetComponentInfoGet (
     SAHPI_IN    SaHpiSessionIdT           SessionId,
     SAHPI_IN    SaHpiResourceIdT          ResourceId,
     SAHPI_IN    SaHpiFumiNumT            FumiNum,
@@ -9128,7 +9128,7 @@ SaErrorT SAHPI_API saHpiFumiLogicalTargetInfoGet (
 **   SAHPI_LAST_ENTRY.
 **
 *******************************************************************************/
-SaErrorT saHpiFumiLogicalTargetComponentInfoGet (
+SaErrorT SAHPI_API saHpiFumiLogicalTargetComponentInfoGet (
     SAHPI_IN    SaHpiSessionIdT               SessionId,
     SAHPI_IN    SaHpiResourceIdT              ResourceId,
     SAHPI_IN    SaHpiFumiNumT                FumiNum,
