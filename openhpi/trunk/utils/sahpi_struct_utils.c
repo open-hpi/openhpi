@@ -839,7 +839,7 @@ SaErrorT oh_copy_bigtext(oh_big_textbuffer *dest, const oh_big_textbuffer *from)
 SaErrorT oh_append_textbuffer(SaHpiTextBufferT *buffer, const char *from)
 {
         char *p;
-        uint size;
+        size_t size;
 
         if (!buffer || !from) {
                 err("Invalid parameter.");
@@ -864,7 +864,7 @@ SaErrorT oh_append_textbuffer(SaHpiTextBufferT *buffer, const char *from)
 SaErrorT oh_append_bigtext(oh_big_textbuffer *big_buffer, const char *from)
 {
         char *p;
-        uint size;
+        size_t size;
 
         if (!big_buffer || !from) {
                 err("Invalid parameters");
