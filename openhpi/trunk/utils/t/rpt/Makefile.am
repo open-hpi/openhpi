@@ -27,8 +27,6 @@ INCLUDES		= @OPENHPI_INCLUDES@
 
 EXTRA_DIST              = rpt_resources.h
 
-LIBS += -luuid
-
 $(REMOTE_SOURCES):
 	if test ! -f $@ -a ! -L $@; then \
 		$(LN_S) $(top_srcdir)/utils/$@; \
