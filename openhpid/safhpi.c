@@ -959,6 +959,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
         }
 
         rv = saHpiEventLogCapabilitiesGet(SessionId, ResourceId, &caps);
+#if 0
         if (rv != SA_OK) {
                 err("couldn't get log caps");
                 return rv;
@@ -966,6 +967,14 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
         if ((caps & SAHPI_EVTLOG_CAPABILITY_ENTRY_ADD) == 0) {
                 return SA_ERR_HPI_INVALID_CMD;
         }
+#endif
+        // This is a workaround
+        // TODO use the variant above instead
+        // when all plug-ins will support oh_get_el_caps
+        if ((rv == SA_OK) && ((caps & SAHPI_EVTLOG_CAPABILITY_ENTRY_ADD) == 0)) {
+                return SA_ERR_HPI_INVALID_CMD;
+        }
+
 
         if (EvtEntry->EventDataUnion.UserEvent.UserEventData.DataLength >
             info.UserEventMaxSize) {
@@ -1055,6 +1064,7 @@ SaErrorT SAHPI_API saHpiEventLogClear (
         }
 
         rv = saHpiEventLogCapabilitiesGet(SessionId, ResourceId, &caps);
+#if 0
         if (rv != SA_OK) {
                 err("couldn't get log caps");
                 oh_release_domain(d); /* Unlock domain */
@@ -1064,6 +1074,15 @@ SaErrorT SAHPI_API saHpiEventLogClear (
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_INVALID_CMD;
         }
+#endif
+        // This is a workaround
+        // TODO use the variant above instead
+        // when all plug-ins will support oh_get_el_caps
+        if ((rv == SA_OK) && ((caps & SAHPI_EVTLOG_CAPABILITY_CLEAR) == 0)) {
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_INVALID_CMD;
+        }
+
 
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
@@ -1141,12 +1160,21 @@ SaErrorT SAHPI_API saHpiEventLogTimeSet (
         }
 
         rv = saHpiEventLogCapabilitiesGet(SessionId, ResourceId, &caps);
+#if 0
         if (rv != SA_OK) {
                 oh_release_domain(d); /* Unlock domain */
                 err("couldn't get log caps");
                 return rv;
         }
         if ((caps & SAHPI_EVTLOG_CAPABILITY_TIME_SET) == 0) {
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_INVALID_CMD;
+        }
+#endif
+        // This is a workaround
+        // TODO use the variant above instead
+        // when all plug-ins will support oh_get_el_caps
+        if ((rv == SA_OK) && ((caps & SAHPI_EVTLOG_CAPABILITY_TIME_SET) == 0)) {
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_INVALID_CMD;
         }
@@ -1234,6 +1262,7 @@ SaErrorT SAHPI_API saHpiEventLogStateSet (
         }
 
         rv = saHpiEventLogCapabilitiesGet(SessionId, ResourceId, &caps);
+#if 0
         if (rv != SA_OK) {
                 oh_release_domain(d); /* Unlock domain */
                 err("couldn't get log caps");
@@ -1243,6 +1272,15 @@ SaErrorT SAHPI_API saHpiEventLogStateSet (
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_INVALID_CMD;
         }
+#endif
+        // This is a workaround
+        // TODO use the variant above instead
+        // when all plug-ins will support oh_get_el_caps
+        if ((rv == SA_OK) && ((caps & SAHPI_EVTLOG_CAPABILITY_STATE_SET) == 0)) {
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_INVALID_CMD;
+        }
+
 
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
@@ -1296,12 +1334,21 @@ SaErrorT SAHPI_API saHpiEventLogOverflowReset (
         }
 
         rv = saHpiEventLogCapabilitiesGet(SessionId, ResourceId, &caps);
+#if 0
         if (rv != SA_OK) {
                 oh_release_domain(d); /* Unlock domain */
                 err("couldn't get log caps");
                 return rv;
         }
         if ((caps & SAHPI_EVTLOG_CAPABILITY_OVERFLOW_RESET) == 0) {
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_INVALID_CMD;
+        }
+#endif
+        // This is a workaround
+        // TODO use the variant above instead
+        // when all plug-ins will support oh_get_el_caps
+        if ((rv == SA_OK ) && ((caps & SAHPI_EVTLOG_CAPABILITY_OVERFLOW_RESET) == 0)) {
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_INVALID_CMD;
         }
