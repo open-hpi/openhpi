@@ -89,6 +89,8 @@ SaErrorT oh_decode_fumiprotocols(SaHpiFumiProtocolT protocols,
 SaErrorT oh_decode_fumicapabilities(SaHpiFumiCapabilityT capabilities,
                                   SaHpiTextBufferT *buffer);
 
+SaErrorT oh_decode_guid(const SaHpiGuidT *guid, oh_big_textbuffer *buffer);
+
 /*************************
  * Validate HPI structures
  *************************/
@@ -117,6 +119,10 @@ int oh_compare_sensorreading(SaHpiSensorReadingTypeT type,
 #define OH_PRINT_OFFSET "  "  /* Offset string */
 
 SaErrorT oh_append_offset(oh_big_textbuffer *buffer, int offsets);
+
+SaErrorT oh_append_char_bigtext(oh_big_textbuffer * big_buffer, unsigned char c);
+
+SaErrorT oh_append_hex_bigtext(oh_big_textbuffer * buf, unsigned char c);
 
 #define oh_print_event(event_ptr, ep, offsets) oh_fprint_event(stdout, event_ptr, ep, offsets)
 SaErrorT oh_fprint_event(FILE *stream,
