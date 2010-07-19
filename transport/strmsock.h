@@ -24,9 +24,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-#include <SaHpi.h>
 
-	
 #ifndef TRUE
 #define TRUE 1
 #endif
@@ -105,7 +103,6 @@ typedef strmsock *pstrmsock;
 class cstrmsock : public strmsock
 {
 	public:
-	SaHpiSessionIdT		sid;
 	cstrmsock		*next;
 	cstrmsock		();
 	~cstrmsock		();
