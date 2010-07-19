@@ -18,14 +18,14 @@
 #ifndef __OH_CONFIG_H
 #define __OH_CONFIG_H
 
+#include <glib.h>
+#include <SaHpi.h>
+#include <oh_utils.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <glib.h>
-#include <SaHpi.h>
-#include <oh_utils.h>
-	
 struct oh_parsed_config {
         GSList *handler_configs;
         guint handlers_defined;
