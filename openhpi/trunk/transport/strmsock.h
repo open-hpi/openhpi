@@ -106,7 +106,7 @@ class cstrmsock : public strmsock
 	cstrmsock		*next;
 	cstrmsock		();
 	~cstrmsock		();
-	bool Open		(const char *, int);
+	bool Open		(const char *, unsigned short);
 };
 typedef cstrmsock *pcstrmsock;
 
