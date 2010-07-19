@@ -20,11 +20,12 @@
 
 #include <strmsock.h>
 
-extern "C"
-{
 #include <glib.h>
 #include <SaHpi.h>
-}
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct oh_client_session {
         SaHpiDomainIdT did; /* Domain Id */
@@ -44,5 +45,9 @@ SaErrorT oh_get_connx(SaHpiSessionIdT, SaHpiSessionIdT *, pcstrmsock *, SaHpiDom
 
 SaHpiSessionIdT oh_open_session(SaHpiDomainIdT, SaHpiSessionIdT, pcstrmsock);
 SaErrorT oh_close_session(SaHpiSessionIdT);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* __OH_CLIENT_SESSION_H */

@@ -26,6 +26,10 @@
 #define OH_SAHPI_INTERFACE_VERSION_MIN_SUPPORTED (SaHpiVersionT)0x020101 /* B.01.01 */
 #define OH_SAHPI_INTERFACE_VERSION_MAX_SUPPORTED SAHPI_INTERFACE_VERSION
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef SaHpiUint32T oHpiHandlerIdT;
 
 typedef struct {
@@ -112,5 +116,9 @@ SaErrorT oHpiInjectEvent(oHpiHandlerIdT id,
         start = end; \
         v += (strtoull(start, &end, 10) << 16); \
 }
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /*__OHPI_H*/

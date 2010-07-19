@@ -16,8 +16,6 @@
  *
  */
 
-extern "C"
-{
 #include <string.h>
 #include <glib.h>
 #include <SaHpi.h>
@@ -25,7 +23,6 @@ extern "C"
 #include <oh_error.h>
 #include <oh_domain.h>
 #include <config.h>
-}
 
 #include <marshal_hpi.h>
 

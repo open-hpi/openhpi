@@ -14,8 +14,15 @@
  *
  */
 
+#ifndef __OH_CLIENT_CONF_H
+#define __OH_CLIENT_CONF_H
+
 #include <glib.h>
 #include <SaHpi.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct oh_domain_conf {
         SaHpiDomainIdT did;
@@ -23,4 +30,12 @@ struct oh_domain_conf {
         unsigned int port;
 };
 
+
 int oh_load_client_config(const char *filename, GHashTable *domains);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
+
+#endif /* __OH_CLIENT_CONF_H */
+

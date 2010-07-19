@@ -21,6 +21,10 @@
 #include <oh_domain.h>
 #include <oh_event.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define OH_MAX_DAT_SIZE_LIMIT 0
 #define OH_MAX_DAT_USER_LIMIT 0
 
@@ -69,6 +73,10 @@ SaErrorT oh_detect_sensor_mask_alarm(SaHpiDomainIdT did,
 /* Persistency */
 SaErrorT oh_alarms_to_file(struct oh_dat *at, char *filename);
 SaErrorT oh_alarms_from_file(struct oh_domain *d, char *filename);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* __OH_ALARM_H */
 

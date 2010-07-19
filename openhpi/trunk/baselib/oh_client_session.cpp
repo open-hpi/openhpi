@@ -16,15 +16,13 @@
  */
 
 #include "oh_client_session.h"
-extern "C"
-{
+
 #include <pthread.h>
 #include <oHpi.h>
 #include <oh_error.h>
 #include <config.h>
 #include <oh_domain.h>
 #include "oh_client_conf.h"
-}
 
 GHashTable *ohd_domains = NULL;
 GHashTable *ohd_sessions = NULL;
