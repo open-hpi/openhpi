@@ -229,7 +229,7 @@ cstrmsock::~cstrmsock()
 
 bool cstrmsock::Open(
 		const char * pszHost,		// the remote host
-		const int lPort)		    // the remote port
+		unsigned short lPort)		// the remote port
 {
 	struct sockaddr_in  addr;		// address structure
 	struct hostent     *phe;		// pointer to a host entry
