@@ -55,7 +55,7 @@ SaErrorT oh_decode_time(SaHpiTimeT time, SaHpiTextBufferT *buffer)
 
         if (time > SAHPI_TIME_MAX_RELATIVE) { /*absolute time*/
                 tt = time / 1000000000;
-                count = strftime((char *)working.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH, "%F %T", localtime(&tt));
+                count = strftime((char *)working.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH, "%Y-%m-%d %H:%M:%S", localtime(&tt));
         } else if (time ==  SAHPI_TIME_UNSPECIFIED) {
                 strcpy((char *)working.Data,"SAHPI_TIME_UNSPECIFIED     ");
 		count = sizeof("SAHPI_TIME_UNSPECIFIED     ");
