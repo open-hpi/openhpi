@@ -80,28 +80,28 @@ typedef struct {
 } oHpiGlobalParamT;
 
 /* Version function */
-SaHpiUint64T oHpiVersionGet(void);
+SaHpiUint64T SAHPI_API oHpiVersionGet(void);
 
 /* Exported OpenHPI handler (plugin instance) calls */
-SaErrorT oHpiHandlerCreate(GHashTable *config,
-                           oHpiHandlerIdT *id);
-SaErrorT oHpiHandlerDestroy(oHpiHandlerIdT id);
-SaErrorT oHpiHandlerInfo(oHpiHandlerIdT id, oHpiHandlerInfoT *info);
-SaErrorT oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id);
-SaErrorT oHpiHandlerFind(SaHpiSessionIdT sid,
-			 SaHpiResourceIdT rid,
-			 oHpiHandlerIdT *id);
-SaErrorT oHpiHandlerRetry(oHpiHandlerIdT id);
+SaErrorT SAHPI_API oHpiHandlerCreate(GHashTable *config,
+                                    oHpiHandlerIdT *id);
+SaErrorT SAHPI_API oHpiHandlerDestroy(oHpiHandlerIdT id);
+SaErrorT SAHPI_API oHpiHandlerInfo(oHpiHandlerIdT id, oHpiHandlerInfoT *info);
+SaErrorT SAHPI_API oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id);
+SaErrorT SAHPI_API oHpiHandlerFind(SaHpiSessionIdT sid,
+                                   SaHpiResourceIdT rid,
+                                   oHpiHandlerIdT *id);
+SaErrorT SAHPI_API oHpiHandlerRetry(oHpiHandlerIdT id);
 
 /* Global parameters */
-SaErrorT oHpiGlobalParamGet(oHpiGlobalParamT *param);
-SaErrorT oHpiGlobalParamSet(oHpiGlobalParamT *param);
+SaErrorT SAHPI_API oHpiGlobalParamGet(oHpiGlobalParamT *param);
+SaErrorT SAHPI_API oHpiGlobalParamSet(oHpiGlobalParamT *param);
 
 /* Injector */
-SaErrorT oHpiInjectEvent(oHpiHandlerIdT id,
-                         SaHpiEventT    *event,
-                         SaHpiRptEntryT *rpte,
-                         SaHpiRdrT *rdr);
+SaErrorT SAHPI_API oHpiInjectEvent(oHpiHandlerIdT id,
+                                   SaHpiEventT    *event,
+                                   SaHpiRptEntryT *rpte,
+                                   SaHpiRdrT *rdr);
 
 #define OHPI_VERSION_GET(v, VER) \
 { \
