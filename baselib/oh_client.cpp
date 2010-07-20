@@ -5799,7 +5799,7 @@ SaErrorT SAHPI_API saHpiResourcePowerStateSet(
 /* oHpiVersionGet                                                             */
 /*----------------------------------------------------------------------------*/
 
-SaHpiUint64T oHpiVersionGet(void)
+SaHpiUint64T SAHPI_API oHpiVersionGet(void)
 {
         SaHpiUint64T v = 0;
 
@@ -5812,8 +5812,8 @@ SaHpiUint64T oHpiVersionGet(void)
 /* oHpiHandlerCreate                                                          */
 /*----------------------------------------------------------------------------*/
 
-SaErrorT oHpiHandlerCreate(GHashTable *config,
-                           oHpiHandlerIdT *id)
+SaErrorT SAHPI_API oHpiHandlerCreate(GHashTable *config,
+                                     oHpiHandlerIdT *id)
 {
         SaErrorT err = SA_OK;
         void *request;
@@ -5860,7 +5860,7 @@ SaErrorT oHpiHandlerCreate(GHashTable *config,
 /* oHpiHandlerDestroy                                                         */
 /*----------------------------------------------------------------------------*/
 
-SaErrorT oHpiHandlerDestroy(oHpiHandlerIdT id)
+SaErrorT SAHPI_API oHpiHandlerDestroy(oHpiHandlerIdT id)
 {
         void *request;
 	char reply[dMaxMessageLength];
@@ -5896,7 +5896,7 @@ SaErrorT oHpiHandlerDestroy(oHpiHandlerIdT id)
 /* oHpiHandlerInfo                                                            */
 /*----------------------------------------------------------------------------*/
 
-SaErrorT oHpiHandlerInfo(oHpiHandlerIdT id, oHpiHandlerInfoT *info)
+SaErrorT SAHPI_API oHpiHandlerInfo(oHpiHandlerIdT id, oHpiHandlerInfoT *info)
 {
         void *request;
 	char reply[dMaxMessageLength];
@@ -5932,7 +5932,7 @@ SaErrorT oHpiHandlerInfo(oHpiHandlerIdT id, oHpiHandlerInfoT *info)
 /* oHpiHandlerGetNext                                                         */
 /*----------------------------------------------------------------------------*/
 
-SaErrorT oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id)
+SaErrorT SAHPI_API oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id)
 {
         void *request;
 	char reply[dMaxMessageLength];
@@ -5966,9 +5966,9 @@ SaErrorT oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id)
 /*----------------------------------------------------------------------------*/
 /* oHpiHandlerFind                                                            */
 /*----------------------------------------------------------------------------*/
-SaErrorT oHpiHandlerFind(SaHpiSessionIdT sid,
-			 SaHpiResourceIdT rid,
-			 oHpiHandlerIdT *id)
+SaErrorT SAHPI_API oHpiHandlerFind(SaHpiSessionIdT sid,
+                                   SaHpiResourceIdT rid,
+                                   oHpiHandlerIdT *id)
 {
         void *request;
         char reply[dMaxMessageLength];
@@ -6011,7 +6011,7 @@ SaErrorT oHpiHandlerFind(SaHpiSessionIdT sid,
 /*----------------------------------------------------------------------------*/
 /* oHpiHandlerRetry                                                           */
 /*----------------------------------------------------------------------------*/
-SaErrorT oHpiHandlerRetry(oHpiHandlerIdT id)
+SaErrorT SAHPI_API oHpiHandlerRetry(oHpiHandlerIdT id)
 {
         void *request;
         char reply[dMaxMessageLength];
@@ -6055,7 +6055,7 @@ SaErrorT oHpiHandlerRetry(oHpiHandlerIdT id)
 /* oHpiGlobalParamGet                                                         */
 /*----------------------------------------------------------------------------*/
 
-SaErrorT oHpiGlobalParamGet(oHpiGlobalParamT *param)
+SaErrorT SAHPI_API oHpiGlobalParamGet(oHpiGlobalParamT *param)
 {
         void *request;
 	char reply[dMaxMessageLength];
@@ -6091,7 +6091,7 @@ SaErrorT oHpiGlobalParamGet(oHpiGlobalParamT *param)
 /* oHpiGlobalParamSet                                                         */
 /*----------------------------------------------------------------------------*/
 
-SaErrorT oHpiGlobalParamSet(oHpiGlobalParamT *param)
+SaErrorT SAHPI_API oHpiGlobalParamSet(oHpiGlobalParamT *param)
 {
         void *request;
 	char reply[dMaxMessageLength];
@@ -6126,10 +6126,10 @@ SaErrorT oHpiGlobalParamSet(oHpiGlobalParamT *param)
 /*----------------------------------------------------------------------------*/
 /* oHpiInjectEvent                                                            */
 /*----------------------------------------------------------------------------*/
-SaErrorT oHpiInjectEvent(oHpiHandlerIdT id,
-                         SaHpiEventT *event,
-                         SaHpiRptEntryT *rpte,
-                         SaHpiRdrT *rdr)
+SaErrorT SAHPI_API oHpiInjectEvent(oHpiHandlerIdT id,
+                                   SaHpiEventT *event,
+                                   SaHpiRptEntryT *rpte,
+                                   SaHpiRdrT *rdr)
 {
         void *request;
         char reply[dMaxMessageLength];
