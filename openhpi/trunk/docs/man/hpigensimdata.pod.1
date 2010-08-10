@@ -1,0 +1,44 @@
+=head1 NAME
+
+hpigensimdata - A openhpi client application supplementing the dynamic simulator plugin.
+
+=head1 SYNOPSIS 
+
+hpidomain [-D domain_id] [-r res_id] [-f filename] [-m UPD|INIT]
+
+=head1 DESCRIPTION
+
+hpigensimdata generates data for the dynamic simulator plugin by reading the current 
+configuration. 
+Please refer to README and detailed documentation with the plugin.
+If no domain is selected, hpidomain works with the default domain.
+If no file name is specified, the data is displayed on console.
+
+=over 2
+
+        Usage: hpigensimdata [-option]
+
+                   -D domain_id  Select particular Domain
+                   -r res_id     Select particular resource id for an update file
+                   -f filename   Name of the file to be generated
+                   -m (UPD|INIT) Write update or initial file
+
+
+=back
+
+=head1 SEE ALSO
+  
+         hpi_shell
+         hpialarms      hpifan         hpireset       hpitop
+         hpidomain      hpiinv         hpisensor      hpitree
+         hpiel          hpionIBMblade  hpisettime     hpiwdt
+         hpievents      hpipower       hpithres
+
+
+=head1 AUTHORS
+
+Authors of this man page:
+
+ Ulrich Kleber (ulikleber@users.sourceforge.net)
+ Lars Wetzel (larswetzel@users.sourceforge.net)
+

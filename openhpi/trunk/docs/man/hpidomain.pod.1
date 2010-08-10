@@ -1,0 +1,41 @@
+=head1 NAME
+
+hpidomain - A openhpi sample application that shows information about domains.
+It can also set the domain tag.
+
+=head1 SYNOPSIS 
+
+hpidomain [-D id] [-t tag] [-v -x]
+
+=head1 DESCRIPTION
+
+hpidomain displays the domain info for the specified domain.
+If no domain is selected, hpidomain works with the default domain.
+In verbose mode, it walks the DRT and displays domaininfo for all directly related domains
+Option -t allows to change the domain tag.
+
+=over 2
+
+ (No Option) Display domain info
+ -D nn   Select domain id nn
+ -v      Verbose: Display domain info for all domains found in DRT
+ -t tag  Set domain tag to the specified string
+ -x      Display debug messages
+
+=back
+
+=head1 SEE ALSO
+  
+         hpi_shell
+         hpialarms      hpigensimdata  hpireset       hpitop
+         hpiel          hpiinv         hpisensor      hpitree
+         hpievents      hpionIBMblade  hpisettime     hpiwdt
+         hpifan         hpipower       hpithres
+
+
+=head1 AUTHORS
+
+Authors of this man page:
+
+ Ulrich Kleber (ulikleber@users.sourceforge.net)
+
