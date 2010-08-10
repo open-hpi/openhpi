@@ -12,6 +12,7 @@ COMMONLIBS	     += $(top_builddir)/baselib/libopenhpi.la
 CLIENTS_SRC 	     = clients.c
 
 bin_PROGRAMS = \
+	hpidomain \
 	hpievents \
 	hpifan \
         hpiinv \
@@ -32,6 +33,9 @@ include_HEADERS         =
 
 hpialarms_SOURCES   = hpialarms.c $(CLIENTS_SRC)
 hpialarms_LDADD     = $(COMMONLIBS) 
+
+hpidomain_SOURCES   	= hpidomain.c $(CLIENTS_SRC)
+hpidomain_LDADD     	= $(COMMONLIBS) 
 
 hpithres_SOURCES        = hpithres.c $(CLIENTS_SRC)
 hpithres_LDADD          = $(COMMONLIBS)
