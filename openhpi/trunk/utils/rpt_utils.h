@@ -87,6 +87,7 @@ SaHpiRdrT *oh_get_rdr_by_type_next(RPTable *table, SaHpiResourceIdT rid,
                                    SaHpiRdrTypeT type, SaHpiInstrumentIdT num);
 SaHpiUint32T oh_get_rdr_uid(SaHpiRdrTypeT type, SaHpiInstrumentIdT num);
 SaHpiInstrumentIdT oh_get_rdr_num(SaHpiEntryIdT rdrid);
+SaHpiInstrumentIdT oh_get_instrument_id(const SaHpiRdrT *rdr);
 
 
 #ifdef __cplusplus

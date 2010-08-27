@@ -1560,6 +1560,7 @@ SaErrorT SAHPI_API saHpiEventAdd (
         e.event = *EvtEntry;
         /* indicate there is no rdr or resource */
         e.rdrs = NULL;
+        e.rdrs_to_remove = NULL;
         e.resource.ResourceId = did;
         e.resource.ResourceCapabilities = 0;
         /* indicate this is a user-added event */

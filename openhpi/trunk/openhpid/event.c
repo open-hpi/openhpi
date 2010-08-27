@@ -71,6 +71,13 @@ void oh_event_free(struct oh_event *e, int only_rdrs)
 			}
 			g_slist_free(e->rdrs);
 		}
+		if (e->rdrs_to_remove) {
+			GSList *node = NULL;
+			for (node = e->rdrs_to_remove; node; node = node->next) {
+				g_free(node->data);
+			}
+			g_slist_free(e->rdrs_to_remove);
+		}
 		if (!only_rdrs) g_free(e);
 	}
 }
@@ -87,6 +94,11 @@ struct oh_event *oh_dup_event(struct oh_event *old_event)
 	e->rdrs = NULL;
 	for (node = old_event->rdrs; node; node = node->next) {
 		e->rdrs = g_slist_append(e->rdrs, g_memdup(node->data,
+							   sizeof(SaHpiRdrT)));
+	}
+    e->rdrs_to_remove = NULL;
+	for (node = old_event->rdrs_to_remove; node; node = node->next) {
+		e->rdrs_to_remove = g_slist_append(e->rdrs_to_remove, g_memdup(node->data,
 							   sizeof(SaHpiRdrT)));
 	}
 
@@ -312,6 +324,12 @@ static int process_resource_event(struct oh_domain *d, struct oh_event *e)
                 for (node = e->rdrs; node; node = node->next) {
                     SaHpiRdrT *rdr = (SaHpiRdrT *)node->data;
                     oh_add_rdr(rpt, e->resource.ResourceId, rdr, NULL, 0);
+                }
+                for (node = e->rdrs_to_remove; node; node = node->next) {
+                    SaHpiRdrT *rdr = (SaHpiRdrT *)node->data;
+                    SaHpiInstrumentIdT instr_id = oh_get_instrument_id(rdr);
+                    SaHpiEntryIdT rdrid = oh_get_rdr_uid(rdr->RdrType, instr_id);
+                    oh_remove_rdr(rpt, e->resource.ResourceId, rdrid);
                 }
             }
         }
