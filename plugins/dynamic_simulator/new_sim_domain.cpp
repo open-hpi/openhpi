@@ -136,7 +136,7 @@ NewSimulatorRdr *NewSimulatorDomain::VerifyRdr( NewSimulatorRdr *rdr ) {
    stdlog << "DBG: VerifyRdr \n";
    for( int i = 0; i < m_resources.Num(); i++ ) {
       NewSimulatorResource *m_res = m_resources[i];
-      if ( m_res->FindRdr( rdr ) ) return rdr;
+      if ( m_res->FindRdr( rdr ) >= 0 ) return rdr;
    }
 
    return 0;
@@ -153,7 +153,7 @@ NewSimulatorSensor *NewSimulatorDomain::VerifySensor( NewSimulatorSensor *s ) {
    stdlog << "DBG: VerifySensor \n";
    for( int i = 0; i < m_resources.Num(); i++ ) {
        NewSimulatorResource *m_res = m_resources[i];
-       if ( m_res->FindRdr( s ) ) return s;
+       if ( m_res->FindRdr( s ) >= 0 ) return s;
    }
 
    return 0;
@@ -169,7 +169,7 @@ NewSimulatorControl *NewSimulatorDomain::VerifyControl( NewSimulatorControl *c )
   
    for( int i = 0; i < m_resources.Num(); i++ ) {
       NewSimulatorResource *m_res = m_resources[i];
-      if ( m_res->FindRdr( c ) ) return c;
+      if ( m_res->FindRdr( c ) >= 0 ) return c;
    }
 
    return 0;
@@ -186,7 +186,7 @@ NewSimulatorAnnunciator *NewSimulatorDomain::VerifyAnnunciator( NewSimulatorAnnu
    stdlog << "DBG: VerifyAnnunciator \n";
    for( int i = 0; i < m_resources.Num(); i++ ) {
        NewSimulatorResource *m_res = m_resources[i];
-       if ( m_res->FindRdr( a ) ) return a;
+       if ( m_res->FindRdr( a ) >= 0 ) return a;
    }
 
    return 0;
@@ -203,7 +203,7 @@ NewSimulatorWatchdog *NewSimulatorDomain::VerifyWatchdog ( NewSimulatorWatchdog 
 
    for( int i = 0; i < m_resources.Num(); i++ ) {
       NewSimulatorResource *m_res = m_resources[i];
-      if ( m_res->FindRdr( c ) ) return c;
+      if ( m_res->FindRdr( c ) >= 0 ) return c;
    }
 
    return 0;
@@ -220,7 +220,7 @@ NewSimulatorFumi *NewSimulatorDomain::VerifyFumi ( NewSimulatorFumi *f ) {
 
    for( int i = 0; i < m_resources.Num(); i++ ) {
       NewSimulatorResource *m_res = m_resources[i];
-      if ( m_res->FindRdr( f ) ) return f;
+      if ( m_res->FindRdr( f ) >= 0 ) return f;
    }
 
    return 0;
@@ -237,7 +237,7 @@ NewSimulatorDimi *NewSimulatorDomain::VerifyDimi ( NewSimulatorDimi *d ) {
 
    for( int i = 0; i < m_resources.Num(); i++ ) {
       NewSimulatorResource *m_res = m_resources[i];
-      if ( m_res->FindRdr( d ) ) return d;
+      if ( m_res->FindRdr( d ) >= 0 ) return d;
    }
 
    return 0;
@@ -254,7 +254,7 @@ NewSimulatorInventory *NewSimulatorDomain::VerifyInventory( NewSimulatorInventor
 
    for( int i = 0; i < m_resources.Num(); i++ ) {
       NewSimulatorResource *m_res = m_resources[i];
-      if ( m_res->FindRdr( inv ) ) return inv;
+      if ( m_res->FindRdr( inv ) >= 0 ) return inv;
    }
 
    return 0;
