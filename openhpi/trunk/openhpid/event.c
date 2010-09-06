@@ -321,15 +321,15 @@ static int process_resource_event(struct oh_domain *d, struct oh_event *e)
             }
             if ( update ) {
                 GSList *node = NULL;
-                for (node = e->rdrs; node; node = node->next) {
-                    SaHpiRdrT *rdr = (SaHpiRdrT *)node->data;
-                    oh_add_rdr(rpt, e->resource.ResourceId, rdr, NULL, 0);
-                }
                 for (node = e->rdrs_to_remove; node; node = node->next) {
                     SaHpiRdrT *rdr = (SaHpiRdrT *)node->data;
                     SaHpiInstrumentIdT instr_id = oh_get_instrument_id(rdr);
                     SaHpiEntryIdT rdrid = oh_get_rdr_uid(rdr->RdrType, instr_id);
                     oh_remove_rdr(rpt, e->resource.ResourceId, rdrid);
+                }
+                for (node = e->rdrs; node; node = node->next) {
+                    SaHpiRdrT *rdr = (SaHpiRdrT *)node->data;
+                    oh_add_rdr(rpt, e->resource.ResourceId, rdr, NULL, 0);
                 }
             }
         }
