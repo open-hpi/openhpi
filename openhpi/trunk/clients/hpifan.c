@@ -33,7 +33,9 @@
 
 #define OH_SVN_REV "$Revision$"
 
-static int fan_speed = -1;
+static SaHpiBoolT set_new = SAHPI_FALSE;
+static SaHpiCtrlModeT new_mode = SAHPI_CTRL_MODE_MANUAL;
+static int new_speed = -1;
 SaHpiDomainIdT domainid = SAHPI_UNSPECIFIED_DOMAIN_ID;
 
 
@@ -158,21 +160,25 @@ do_fan( SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id,
         if ( rv != SA_OK )
                 return 0;
 
+        printf( "\t\tmode      %s\n", ctrl_mode == SAHPI_CTRL_MODE_AUTO ? "auto" : "manual" );
         printf( "\t\tcurrent   %d\n", speed );
 
-        if ( fan_speed == -1 )
+        if ( set_new == SAHPI_FALSE ) {
                 return 0;
+        }
+        if ( new_mode == SAHPI_CTRL_MODE_AUTO ) {
+                new_speed = speed;
+        }
   
-        if (    fan_speed < ctrl_rec->TypeUnion.Analog.Min 
-                || fan_speed > ctrl_rec->TypeUnion.Analog.Max ) {
+        if (   new_speed < ctrl_rec->TypeUnion.Analog.Min 
+                || new_speed > ctrl_rec->TypeUnion.Analog.Max ) {
                 fprintf( stderr, "fan speed %d out of range [%d,%d] !\n",
-                         fan_speed, ctrl_rec->TypeUnion.Analog.Min,
+                        new_speed, ctrl_rec->TypeUnion.Analog.Min,
                          ctrl_rec->TypeUnion.Analog.Max );
                 return 0;
         }
 
-        speed = fan_speed;
-        rv = set_fan_speed( session_id, resource_id, ctrl_rec->Num, speed, ctrl_mode);
+        rv = set_fan_speed( session_id, resource_id, ctrl_rec->Num, new_speed, new_mode);
 
         if ( rv != SA_OK )
                 return 0;
@@ -182,6 +188,7 @@ do_fan( SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id,
         if ( rv != SA_OK )
                 return 0;
   
+        printf( "\t\tnew mode  %s\n", ctrl_mode == SAHPI_CTRL_MODE_AUTO ? "auto" : "manual" );
         printf( "\t\tnew speed %d\n", speed );
 
         return 0;
@@ -277,8 +284,14 @@ main( int argc, char *argv[] )
                         break;
 
                 case 's':
-                        if (optarg) fan_speed = atoi( optarg );
-                        else {
+                        if (optarg) {
+                                set_new = SAHPI_TRUE;
+                                if ( strcmp( optarg, "auto" ) == 0 ) {
+                                       new_mode = SAHPI_CTRL_MODE_AUTO;
+                                } else {
+                                       new_speed = atoi( optarg );
+                                }
+                        } else {
                                 printf("hpifan: option requires an argument -- s");
                                 help = 1;
                         }
