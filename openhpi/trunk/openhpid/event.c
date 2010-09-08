@@ -2,6 +2,7 @@
  *
  * Copyright (c) 2003 by Intel Corp.
  * (C) Copyright IBM Corp. 2003-2006
+ * (C) Copyright Pigeon Point Systems. 2010
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,6 +17,7 @@
  *     Sean Dague <http://dague.net/sean>
  *     Renier Morales <renier@openhpi.org>
  *     Racing Guo <racing.guo@intel.com>
+ *     Anton Pak <anton.pak@pigeonpoint.com>
  */
 
 #include <string.h>
@@ -382,6 +384,7 @@ static int process_event(SaHpiDomainIdT did,
                          struct oh_event *e)
 {
         struct oh_domain *d = NULL;
+        RPTable *rpt = NULL;
 
         if (!e) {
 		err("Got NULL event");
@@ -390,6 +393,7 @@ static int process_event(SaHpiDomainIdT did,
 
         d = oh_get_domain(did);
         if (!d) return -2;
+        rpt = &(d->rpt);
 
         dbg("Processing event for domain %u", d->id);
 
@@ -398,8 +402,15 @@ static int process_event(SaHpiDomainIdT did,
                 if (!e->hid) {
                         err("Resource event with invalid handler id! Dropping.");
                         break;
-                } else if (!(e->resource.ResourceCapabilities &
-                             SAHPI_CAPABILITY_RESOURCE)) {
+                }
+                if ( e->resource.ResourceCapabilities == 0 ) {
+                        SaHpiRptEntryT * restored;
+                        restored = oh_get_resource_by_id(rpt, e->event.Source);
+                        if ( restored ) {
+                                e->resource = *restored;
+                        }
+                }
+                if (!(e->resource.ResourceCapabilities & SAHPI_CAPABILITY_RESOURCE)) {
                         err("Resource event with invalid capabilities. Dropping.");
                         break;
                 } else if ((e->resource.ResourceCapabilities & SAHPI_CAPABILITY_FRU) &&
@@ -414,8 +425,15 @@ static int process_event(SaHpiDomainIdT did,
                 if (!e->hid) {
                         err("Hotswap event with invalid handler id! Dropping.");
                         break;
-                } else if (!(e->resource.ResourceCapabilities &
-                             SAHPI_CAPABILITY_RESOURCE)) {
+                }
+                if ( e->resource.ResourceCapabilities == 0 ) {
+                        SaHpiRptEntryT * restored;
+                        restored = oh_get_resource_by_id(rpt, e->event.Source);
+                        if ( restored ) {
+                                e->resource = *restored;
+                        }
+                }
+                if (!(e->resource.ResourceCapabilities & SAHPI_CAPABILITY_RESOURCE)) {
                         err("Hotswap event with invalid capabilities. Dropping.");
                         break;
                 } else if (!(e->resource.ResourceCapabilities
