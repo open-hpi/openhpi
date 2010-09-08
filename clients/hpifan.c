@@ -46,6 +46,7 @@ usage( char *progname )
         fprintf( stderr, "\t\t -D domainid  select the domain to work on\n" );
         fprintf( stderr, "\t\t -h           help\n" );
         fprintf( stderr, "\t\t -s speed     set fan speed for ALL fans in domain\n" );
+        fprintf( stderr, "\t\t speed is a number or \"auto\" for setting fan in auto mode\n" );
 
         return 1;
 }
