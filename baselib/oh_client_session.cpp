@@ -1,6 +1,7 @@
 /*      -*- linux-c -*-
  *
  * (C) Copyright IBM Corp. 2004-2008
+ * (C) Copyright Pigeon Point Systems. 2010
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12,22 +13,32 @@
  * Author(s):
  *      W. David Ashley <dashley@us.ibm.com>
  *      Renier Morales <renier@openhpi.org>
+ *      Anton Pak <anton.pak@pigeonpoint.com>
  *
  */
 
-#include "oh_client_session.h"
-
 #include <pthread.h>
+
 #include <oHpi.h>
-#include <oh_error.h>
 #include <config.h>
 #include <oh_domain.h>
-#include "oh_client_conf.h"
+#include <oh_error.h>
 
-GHashTable *ohd_domains = NULL;
-GHashTable *ohd_sessions = NULL;
-GStaticRecMutex ohd_sessions_sem = G_STATIC_REC_MUTEX_INIT;
+#include "oh_client.h"
+#include "oh_client_conf.h"
+#include "oh_client_session.h"
+
+
+struct oh_client_session {
+        SaHpiDomainIdT did; /* Domain Id */
+        SaHpiSessionIdT csid; /* Client Session Id */
+        SaHpiSessionIdT dsid; /* Domain Session Id */
+        GHashTable *connxs; /* Connections for this session (per thread) */
+};
+
+static GHashTable *ohc_sessions = NULL;
 static SaHpiSessionIdT next_client_sid = 1;
+
 
 static void __destroy_client_connx(gpointer data)
 {
@@ -37,78 +48,24 @@ static void __destroy_client_connx(gpointer data)
         g_free(client_session);
 }
 
-int oh_client_init(void)
+void oh_client_session_init(void)
 {
-	char *tmp_env_str = NULL;
-        // Initialize GLIB thread engine
-	if (!g_thread_supported()) {
-        	g_thread_init(NULL);
-        }
-        
-        g_static_rec_mutex_lock(&ohd_sessions_sem);
-        // Create session table.
-	if (!ohd_sessions) {
-		ohd_sessions = g_hash_table_new_full(
-			g_int_hash, 
-                        g_int_equal,
-                        NULL, 
-                        __destroy_client_connx
-                );
-	}
+    g_static_rec_mutex_lock(&ohc_lock);
 
-        if (!ohd_domains) { // Create domain table
-                struct oh_domain_conf *domain_conf = NULL;
-                //  SaHpiDomainIdT default_did = SAHPI_UNSPECIFIED_DOMAIN_ID;
-                SaHpiDomainIdT default_did = OH_DEFAULT_DOMAIN_ID;
+    // Create session table.
+    if (!ohc_sessions) {
+        ohc_sessions = g_hash_table_new_full( g_int_hash, 
+                                              g_int_equal,
+                                              NULL, 
+                                              __destroy_client_connx);
+    }
 
-
-
-                ohd_domains = g_hash_table_new_full(
-                        g_int_hash, g_int_equal,
-                        NULL, g_free
-                );                
-                /* TODO: Have a default openhpiclient.conf file in /etc */
-                if ((tmp_env_str = getenv("OPENHPICLIENT_CONF")) != NULL) {
-			oh_load_client_config(tmp_env_str, ohd_domains);
-                } else {
-			oh_load_client_config(OH_CLIENT_DEFAULT_CONF, ohd_domains);	
-		}
-		
-                
-                
-                /* Check to see if a default domain exists, if not, add it */
-                domain_conf =
-                  (struct oh_domain_conf *)g_hash_table_lookup(ohd_domains,
-                                                               &default_did);
-                if (!domain_conf) {
-                        const char *host, *portstr;
-                        int port;
-                        
-                        /* TODO: change these envs to have DEFAULT in the name*/
-                        host = getenv("OPENHPI_DAEMON_HOST");
-                        if (!host) host = "localhost";
-                        
-                        portstr = getenv("OPENHPI_DAEMON_PORT");
-                        if (!portstr) port = OPENHPI_DEFAULT_DAEMON_PORT;
-                        else port = atoi(portstr);
-                        
-                        domain_conf = g_new0(struct oh_domain_conf, 1);
-                        domain_conf->did = default_did;
-                        strncpy(domain_conf->host, host,
-                                SAHPI_MAX_TEXT_BUFFER_LENGTH);
-                        domain_conf->port = port;
-                        g_hash_table_insert(ohd_domains,
-                                            &domain_conf->did, domain_conf);
-                }
-        }
-
-        g_static_rec_mutex_unlock(&ohd_sessions_sem);
-        return 0;
+    g_static_rec_mutex_unlock(&ohc_lock);
 }
 
 SaErrorT oh_create_connx(SaHpiDomainIdT did, pcstrmsock *pinst)
 {
-        struct oh_domain_conf *domain_conf = NULL;
+        const struct oh_domain_conf *domain_conf = NULL;
         pcstrmsock connx = NULL;
         
         if (!pinst) {
@@ -117,21 +74,21 @@ SaErrorT oh_create_connx(SaHpiDomainIdT did, pcstrmsock *pinst)
         
         oh_client_init(); /* Initialize library - Will run only once */
 
-        g_static_rec_mutex_lock(&ohd_sessions_sem);
+        g_static_rec_mutex_lock(&ohc_lock);
 	connx = new cstrmsock;
         if (!connx) {
-                g_static_rec_mutex_unlock(&ohd_sessions_sem);
+                g_static_rec_mutex_unlock(&ohc_lock);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        domain_conf = (struct oh_domain_conf *)g_hash_table_lookup(ohd_domains, &did);
+        domain_conf = oh_get_domain_conf(did);
         if (!domain_conf) {
                 delete connx;
-                g_static_rec_mutex_unlock(&ohd_sessions_sem);
+                g_static_rec_mutex_unlock(&ohc_lock);
                 err("Client configuration for domain %u was not found.", did);
                 return SA_ERR_HPI_INVALID_DOMAIN;
         }
-        g_static_rec_mutex_unlock(&ohd_sessions_sem);
+        g_static_rec_mutex_unlock(&ohc_lock);
         
 	if (connx->Open(domain_conf->host, domain_conf->port)) {
 		err("Could not open client socket"
@@ -162,17 +119,17 @@ SaErrorT oh_close_connx(SaHpiSessionIdT SessionId)
         if (SessionId == 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
-        g_static_rec_mutex_lock(&ohd_sessions_sem);
-        client_session = (struct oh_client_session *)g_hash_table_lookup(ohd_sessions, &SessionId);
+        g_static_rec_mutex_lock(&ohc_lock);
+        client_session = (struct oh_client_session *)g_hash_table_lookup(ohc_sessions, &SessionId);
         if (!client_session) {
-                g_static_rec_mutex_unlock(&ohd_sessions_sem);
+                g_static_rec_mutex_unlock(&ohc_lock);
                 err("Did not find connx for sid %d", SessionId);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
         
         g_hash_table_remove(client_session->connxs, &thread_id);
 
-        g_static_rec_mutex_unlock(&ohd_sessions_sem);
+        g_static_rec_mutex_unlock(&ohc_lock);
 
         return SA_OK;
 }
@@ -191,9 +148,9 @@ SaErrorT oh_get_connx(SaHpiSessionIdT csid, SaHpiSessionIdT *dsid, pcstrmsock *p
 
         // Look up connection table. If it exists, look up connection.
         // if there is not connection, create one on-the-fly.
-        g_static_rec_mutex_lock(&ohd_sessions_sem);
+        g_static_rec_mutex_lock(&ohc_lock);
         client_session =
-          (struct oh_client_session *)g_hash_table_lookup(ohd_sessions, &csid);
+          (struct oh_client_session *)g_hash_table_lookup(ohc_sessions, &csid);
         
         if (client_session) {
                 connx = (pcstrmsock)g_hash_table_lookup(client_session->connxs,
@@ -214,7 +171,7 @@ SaErrorT oh_get_connx(SaHpiSessionIdT csid, SaHpiSessionIdT *dsid, pcstrmsock *p
 				*did  = client_session->did;
                 *pinst = connx;
         }
-        g_static_rec_mutex_unlock(&ohd_sessions_sem);        
+        g_static_rec_mutex_unlock(&ohc_lock);        
 
 	if (client_session) {
                 if (connx)
@@ -246,7 +203,7 @@ SaHpiSessionIdT oh_open_session(SaHpiDomainIdT did,
 	
         client_session = g_new0(struct oh_client_session, 1);
         
-        g_static_rec_mutex_lock(&ohd_sessions_sem);
+        g_static_rec_mutex_lock(&ohc_lock);
         // Create connections table for new session.
         connxs = g_hash_table_new_full(g_int_hash, g_int_equal,
                                        g_free, __delete_connx);
@@ -259,8 +216,8 @@ SaHpiSessionIdT oh_open_session(SaHpiDomainIdT did,
         client_session->dsid = sid;
         client_session->csid = next_client_sid++;
         client_session->connxs = connxs;
-        g_hash_table_insert(ohd_sessions, &client_session->csid, client_session);
-        g_static_rec_mutex_unlock(&ohd_sessions_sem);
+        g_hash_table_insert(ohc_sessions, &client_session->csid, client_session);
+        g_static_rec_mutex_unlock(&ohc_lock);
 
         return client_session->csid;
 }
@@ -270,11 +227,11 @@ SaErrorT oh_close_session(SaHpiSessionIdT SessionId)
         if (SessionId == 0)
 		return SA_ERR_HPI_INVALID_PARAMS;
 
-        g_static_rec_mutex_lock(&ohd_sessions_sem);
+        g_static_rec_mutex_lock(&ohc_lock);
         // Since we used g_hash_table_new_full to create the tables,
         // this will remove the connection hash table and all of its entries also.
-        g_hash_table_remove(ohd_sessions, &SessionId);
+        g_hash_table_remove(ohc_sessions, &SessionId);
         
-        g_static_rec_mutex_unlock(&ohd_sessions_sem);
+        g_static_rec_mutex_unlock(&ohc_lock);
         return SA_OK;
 }
