@@ -775,7 +775,7 @@ int show_rpt_list(Domain_t *domain, int as, SaHpiResourceIdT rptid,
                 if (cap & SAHPI_CAPABILITY_ANNUNCIATOR) strcat(buf, "AN|");
                 if (cap & SAHPI_CAPABILITY_FRU) strcat(buf, "FRU|");
                 if (cap & SAHPI_CAPABILITY_CONTROL) strcat(buf, "CNT|");
-                if (cap & SAHPI_CAPABILITY_WATCHDOG) strcat(buf, "WTD|");
+                if (cap & SAHPI_CAPABILITY_WATCHDOG) strcat(buf, "WDT|");
                 if (cap & SAHPI_CAPABILITY_MANAGED_HOTSWAP) strcat(buf, "HS|");
                 if (cap & SAHPI_CAPABILITY_CONFIGURATION) strcat(buf, "CF |");
                 if (cap & SAHPI_CAPABILITY_AGGREGATE_STATUS) strcat(buf, "AG|");
