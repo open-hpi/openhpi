@@ -844,10 +844,10 @@ static ret_code_t show_ver(void)
    return(HPI_SHELL_OK);
 }
 
-static ret_code_t wtd_get(void)
+static ret_code_t wdt_get(void)
 {
         SaHpiResourceIdT        rptid;
-        SaHpiWatchdogNumT       wtdnum;
+        SaHpiWatchdogNumT       wdtnum;
         SaHpiWatchdogT          watchdog;
         SaHpiWatchdogExpFlagsT  flags;
         SaErrorT                rv;
@@ -857,20 +857,20 @@ static ret_code_t wtd_get(void)
 
         ret = ask_rpt(&rptid);
         if (ret != HPI_SHELL_OK) return(ret);
-        ret = ask_rdr(rptid, SAHPI_WATCHDOG_RDR, &wtdnum);
+        ret = ask_rdr(rptid, SAHPI_WATCHDOG_RDR, &wdtnum);
         if (ret != HPI_SHELL_OK) return(ret);
 
         rv = saHpiWatchdogTimerGet(Domain->sessionId,
-                rptid, wtdnum, &watchdog);
+                rptid, wdtnum, &watchdog);
         if (rv != SA_OK) {
                 printf("ERROR!!! Get Watchdog: ResourceId=%d "
                         "WatchdogNum=%d: %s\n",
-                        rptid, wtdnum, oh_lookup_error(rv));
+                        rptid, wdtnum, oh_lookup_error(rv));
                 return(HPI_SHELL_CMD_ERROR);
         };
         if (watchdog.Log) str = "TRUE";
         else str = "FALSE";
-        printf("  Watchdogtimer (%d/%d): Log=%s", rptid, wtdnum, str);
+        printf("  Watchdogtimer (%d/%d): Log=%s", rptid, wdtnum, str);
         if (watchdog.Running) str = "Running";
         else str = "Stopped";
         printf("  %s\n", str);
@@ -943,10 +943,10 @@ static ret_code_t wtd_get(void)
         return HPI_SHELL_OK;
 }
 
-static ret_code_t wtd_set(void)
+static ret_code_t wdt_set(void)
 {
         SaHpiResourceIdT        rptid;
-        SaHpiWatchdogNumT       wtdnum;
+        SaHpiWatchdogNumT       wdtnum;
         SaHpiWatchdogT          watchdog;
         SaHpiWatchdogExpFlagsT  flags;
         SaErrorT                rv;
@@ -957,7 +957,7 @@ static ret_code_t wtd_set(void)
 
         ret = ask_rpt(&rptid);
         if (ret != HPI_SHELL_OK) return(ret);
-        ret = ask_rdr(rptid, SAHPI_WATCHDOG_RDR, &wtdnum);
+        ret = ask_rdr(rptid, SAHPI_WATCHDOG_RDR, &wdtnum);
         if (ret != HPI_SHELL_OK) return(ret);
 
         i = get_string_param("Log(0 | 1): ", tmp, 255);
@@ -1082,31 +1082,31 @@ static ret_code_t wtd_set(void)
         };
         watchdog.InitialCount = res;
 
-        rv = saHpiWatchdogTimerSet(Domain->sessionId, rptid, wtdnum, &watchdog);
+        rv = saHpiWatchdogTimerSet(Domain->sessionId, rptid, wdtnum, &watchdog);
         if (rv != SA_OK) {
                 printf("ERROR!!! Set Watchdog: ResourceId=%d WatchdogNum=%d: %s\n",
-                        rptid, wtdnum, oh_lookup_error(rv));
+                        rptid, wdtnum, oh_lookup_error(rv));
                 return(HPI_SHELL_CMD_ERROR);
         };
         return HPI_SHELL_OK;
 }
 
-static ret_code_t wtd_reset(void)
+static ret_code_t wdt_reset(void)
 {
         SaHpiResourceIdT        rptid;
-        SaHpiWatchdogNumT       wtdnum;
+        SaHpiWatchdogNumT       wdtnum;
         SaErrorT                rv;
         ret_code_t              ret;
 
         ret = ask_rpt(&rptid);
         if (ret != HPI_SHELL_OK) return(ret);
-        ret = ask_rdr(rptid, SAHPI_WATCHDOG_RDR, &wtdnum);
+        ret = ask_rdr(rptid, SAHPI_WATCHDOG_RDR, &wdtnum);
         if (ret != HPI_SHELL_OK) return(ret);
 
-        rv = saHpiWatchdogTimerReset(Domain->sessionId, rptid, wtdnum);
+        rv = saHpiWatchdogTimerReset(Domain->sessionId, rptid, wdtnum);
         if (rv != SA_OK) {
                 printf("ERROR!!! Reset Watchdog: ResourceId=%d WatchdogNum=%d: %s\n",
-                        rptid, wtdnum, oh_lookup_error(rv));
+                        rptid, wdtnum, oh_lookup_error(rv));
                 return(HPI_SHELL_CMD_ERROR);
         };
         return HPI_SHELL_OK;
@@ -1508,12 +1508,12 @@ const char showrpthelp[] = "showrpt: show resource information\n"
                         "   or  rpt [<resource id>]";
 const char versionhelp[] = "ver: show HPI specification, package versions\n"
                         "Usage: ver";
-const char wtdgethelp[] = "wtdget: show watchdog timer\n"
-                        "Usage: wtdget <resource id> <watchdogNum>";
-const char wtdresethelp[] = "wtdreset: reset watchdog timer\n"
-                        "Usage: wtdreset <resource id>";
-const char wtdsethelp[] = "wtdset: set watchdog timer\n"
-                        "Usage: wtdset <resource id> <watchdogNum> <values>";
+const char wdtgethelp[] = "wdtget: show watchdog timer\n"
+                        "Usage: wdtget <resource id> <watchdogNum>";
+const char wdtresethelp[] = "wdtreset: reset watchdog timer\n"
+                        "Usage: wdtreset <resource id>";
+const char wdtsethelp[] = "wdtset: set watchdog timer\n"
+                        "Usage: wdtset <resource id> <watchdogNum> <values>";
 //  sensor command block
 const char sen_dishelp[] = "disable: set sensor disable\n"
                         "Usage: disable";
@@ -1692,9 +1692,9 @@ command_def_t commands[] = {
     { "showrdr",        show_rdr,       showrdrhelp,    MAIN_COM },
     { "showrpt",        show_rpt,       showrpthelp,    MAIN_COM },
     { "ver",            show_ver,       versionhelp,    UNDEF_COM },
-    { "wtdget",         wtd_get,        wtdgethelp,     MAIN_COM },
-    { "wtdreset",       wtd_reset,      wtdresethelp,   MAIN_COM },
-    { "wtdset",         wtd_set,        wtdsethelp,     MAIN_COM },
+    { "wdtget",         wdt_get,        wdtgethelp,     MAIN_COM },
+    { "wdtreset",       wdt_reset,      wdtresethelp,   MAIN_COM },
+    { "wdtset",         wdt_set,        wdtsethelp,     MAIN_COM },
     { "?",              help_cmd,       helphelp,       UNDEF_COM },
 #ifdef KUZ_DEBUG
     { "test",           test_cmd,       helphelp,       UNDEF_COM },

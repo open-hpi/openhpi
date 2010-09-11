@@ -210,10 +210,10 @@ Commands:
 	showrpt <resourceId>
 		Show resource information.
 
-	wtdget <resourceId> <watchdogNum>
+	wdtget <resourceId> <watchdogNum>
 		Show current watchdog timer settings and configuration.
 
-	wtdset <resourceId> <watchdogNum> <values>
+	wdtset <resourceId> <watchdogNum> <values>
 		Set watchdog timer configuration.
 	    <values> = <Log> <Running> <TimerUse> <TimerAction> <PretimerInterrupt>
 	    	       <TimeOut> <Flags> <InitialCount>
@@ -240,7 +240,7 @@ Commands:
 	    
 	    <InitialCount> = integer (milliseconds);
 
-	wtdreset <resourceId> <watchdogNum>
+	wdtreset <resourceId> <watchdogNum>
 		Reset watchdog timer.
 
 
