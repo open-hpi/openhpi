@@ -1,6 +1,7 @@
 /*      -*- linux-c -*-
  *
  * (C) Copyright IBM Corp. 2008
+ * (C) Copyright Pigeon Point Systems. 2010
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -11,8 +12,10 @@
  *
  * Authors:
  *     Renier Morales <renier@openhpi.org>
+ *     Anton Pak <anton.pak@pigeonpoint.com>
  */
 
+#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -20,10 +23,79 @@
 #include <string.h>
 
 #include <oHpi.h>
-#include <oh_error.h>
-#include <oh_domain.h>
-#include <oh_client_conf.h>
 #include <config.h>
+#include <oh_domain.h>
+#include <oh_error.h>
+
+#include "oh_client.h"
+#include "oh_client_conf.h"
+
+
+static GHashTable *ohc_domains = NULL;
+
+static int load_client_config(const char *filename);
+static void add_domain_conf(SaHpiDomainIdT did,
+                            const char *host,
+                            unsigned short port);
+
+void oh_client_conf_init(void)
+{
+
+    g_static_rec_mutex_lock(&ohc_lock);
+
+    // Create domain table
+    if (!ohc_domains) { // Create domain table
+        char * config_file;
+        const struct oh_domain_conf *default_conf;
+
+        ohc_domains = g_hash_table_new_full(g_int_hash,
+                                            g_int_equal,
+                                            NULL,
+                                            g_free);
+
+        /* TODO: Have a default openhpiclient.conf file in /etc */
+        config_file = getenv("OPENHPICLIENT_CONF");
+        if (config_file != NULL) {
+            load_client_config(config_file);
+        } else {
+            load_client_config(OH_CLIENT_DEFAULT_CONF);
+        }
+
+        /* Check to see if a default domain exists, if not, add it */
+        default_conf = oh_get_domain_conf(OH_DEFAULT_DOMAIN_ID);
+        if (default_conf == NULL) {
+            const char *host, *portstr;
+            unsigned short port;
+
+            /* TODO: change these envs to have DEFAULT in the name*/
+            host = getenv("OPENHPI_DAEMON_HOST");
+            if (host == NULL) {
+                host = "localhost";
+            }
+            portstr = getenv("OPENHPI_DAEMON_PORT");
+            if (portstr == NULL) {
+                port = OPENHPI_DEFAULT_DAEMON_PORT;
+            } else {
+                port = atoi(portstr);
+            }
+
+            add_domain_conf(OH_DEFAULT_DOMAIN_ID, host, port);
+        }
+    }
+
+    g_static_rec_mutex_unlock(&ohc_lock);
+}
+
+const struct oh_domain_conf * oh_get_domain_conf(SaHpiDomainIdT did)
+{
+    struct oh_domain_conf *dc;
+    g_static_rec_mutex_lock(&ohc_lock);
+    dc = (struct oh_domain_conf *)g_hash_table_lookup(ohc_domains, &did);
+    g_static_rec_mutex_unlock(&ohc_lock);
+
+    return dc;
+}
+
 
 /*******************************************************************************
  *  In order to use the glib lexical parser we need to define token
@@ -127,10 +199,29 @@ static GTokenType get_next_good_token(GScanner *oh_scanner) {
         return next_token;
 }
 
-static int process_domain_token (GScanner *oh_scanner, GHashTable *domains)
+static void add_domain_conf(SaHpiDomainIdT did,
+                            const char *host,
+                            unsigned short port)
 {
-        struct oh_domain_conf *domain_conf = NULL;
+    struct oh_domain_conf *domain_conf;
+
+    domain_conf = g_malloc0(sizeof(struct oh_domain_conf));
+    domain_conf->did = did;
+    strncpy(domain_conf->host, host, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+    domain_conf->port = port;
+    g_hash_table_insert(ohc_domains, &domain_conf->did, domain_conf);
+}
+
+static int process_domain_token (GScanner *oh_scanner)
+{
+        SaHpiDomainIdT did;
+        char host[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+        unsigned int port;
+
         GTokenType next_token;
+
+        host[0] = '\0';
+        port = OPENHPI_DEFAULT_DAEMON_PORT;
 
         if (g_scanner_get_next_token(oh_scanner) != HPI_CLIENT_CONF_TOKEN_DOMAIN) {
                 err("Processing domain: Expected a domain token");
@@ -140,18 +231,14 @@ static int process_domain_token (GScanner *oh_scanner, GHashTable *domains)
         /* Get the domain id and store in Hash Table */
         next_token = g_scanner_get_next_token(oh_scanner);
         if (next_token == HPI_CLIENT_CONF_TOKEN_DEFAULT) {
-                // Default domain
-                domain_conf = g_malloc0(sizeof(struct oh_domain_conf));
-                // domain_conf->did = SAHPI_UNSPECIFIED_DOMAIN_ID;
-                domain_conf->did = OH_DEFAULT_DOMAIN_ID;
+                did = OH_DEFAULT_DOMAIN_ID;
                 dbg("Processing domain: Found default domain definition");
         } else if (next_token == G_TOKEN_INT) {
                 if (oh_scanner->value.v_int == 0) { // Domain Id of 0 is invalid
                         err("Processing domain: A domain id of 0 is invalid");
                         return -2;
                 }
-                domain_conf = g_malloc0(sizeof(struct oh_domain_conf));
-                domain_conf->did = (SaHpiDomainIdT)oh_scanner->value.v_int;
+                did = (SaHpiDomainIdT)oh_scanner->value.v_int;
                 dbg("Processing domain: Found domain definition");
         } else {
                 err("Processing domain: Expected int or string ('default') token");
@@ -161,7 +248,7 @@ static int process_domain_token (GScanner *oh_scanner, GHashTable *domains)
         /* Check for Left Brace token type. If we have it, then continue parsing. */
         if (g_scanner_get_next_token(oh_scanner) != G_TOKEN_LEFT_CURLY) {
                 err("Processing domain: Expected left curly token.");
-                goto free_and_exit;
+                return -10;
         }
 
         next_token = get_next_good_token(oh_scanner);
@@ -170,58 +257,46 @@ static int process_domain_token (GScanner *oh_scanner, GHashTable *domains)
                         next_token = g_scanner_get_next_token(oh_scanner);
                         if (next_token != G_TOKEN_EQUAL_SIGN) {
                                 err("Processing domain: Expected equal sign");
-                                goto free_and_exit;
+                                return -10;
                         }
                         next_token = g_scanner_get_next_token(oh_scanner);
                         if (next_token != G_TOKEN_STRING) {
                                 err("Processing domain: Expected a string");
-                                goto free_and_exit;
+                                return -10;
                         }
-                        if (domain_conf->host[0] == '\0') {
-                                strncpy(domain_conf->host, oh_scanner->value.v_string, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+                        if (host[0] == '\0') {
+                                strncpy(host, oh_scanner->value.v_string, SAHPI_MAX_TEXT_BUFFER_LENGTH);
                         }
                 } else if (next_token == HPI_CLIENT_CONF_TOKEN_PORT) {
                         next_token = g_scanner_get_next_token(oh_scanner);
                         if (next_token != G_TOKEN_EQUAL_SIGN) {
                                 err("Processing domain: Expected equal sign");
-                                goto free_and_exit;
+                                return -10;
                         }
                         next_token = g_scanner_get_next_token(oh_scanner);
                         if (next_token != G_TOKEN_INT) {
                                 err("Processing domain: Expected an integer");
-                                goto free_and_exit;
+                                return -10;
                         }
-                        domain_conf->port = oh_scanner->value.v_int;
+                        port = oh_scanner->value.v_int;
                 } else {
                         err("Processing domain: Should not get here!");
-                        goto free_and_exit;
+                        return -10;
                 }
                 next_token = g_scanner_get_next_token(oh_scanner);
         }
 
         if (next_token == G_TOKEN_EOF) {
                 err("Processing domain: Expected a right curly");
-                goto free_and_exit;
-        } else if (domain_conf->host[0] == '\0') {
+                return -10;
+        } else if (host[0] == '\0') {
                 err("Processing domain: Did not find the host parameter");
-                goto free_and_exit;
-        } else if (domain_conf->port == 0) {
-                domain_conf->port = OPENHPI_DEFAULT_DAEMON_PORT;
+                return -10;
         }
 
-        g_hash_table_insert(domains, &domain_conf->did, domain_conf);
-        //printf("domain %d: %s:%d\n", domain_conf->did, domain_conf->host, domain_conf->port);
+        add_domain_conf(did, host, port);
 
         return 0;
-
-free_and_exit:
-        /**
-        There was an error reading a token so we need to error out,
-        but not before cleaning up.
-        */
-        g_free(domain_conf);
-
-        return -10;
 }
 
 static void scanner_msg_handler (GScanner *scanner, gchar *message, gboolean is_error)
@@ -233,13 +308,13 @@ static void scanner_msg_handler (GScanner *scanner, gchar *message, gboolean is_
             scanner->line, is_error ? "error: " : "", message );
 }
 
-int oh_load_client_config(const char *filename, GHashTable *domains)
+static int load_client_config(const char *filename)
 {
         int oh_client_conf_file, i, done = 0;
         GScanner *oh_scanner;
         int num_tokens = sizeof(oh_client_conf_tokens) / sizeof(oh_client_conf_tokens[0]);
 
-        if (!filename || !domains) {
+        if (!filename) {
                 err("Error. Invalid parameters");
                 return -1;
         }
@@ -279,7 +354,7 @@ int oh_load_client_config(const char *filename, GHashTable *domains)
                         done = 1;
                         break;
                 case HPI_CLIENT_CONF_TOKEN_DOMAIN:
-                        process_domain_token(oh_scanner, domains);
+                        process_domain_token(oh_scanner);
                         break;
                 default:
                         /* need to advance it */

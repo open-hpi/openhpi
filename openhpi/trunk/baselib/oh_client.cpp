@@ -1,6 +1,7 @@
 /*      -*- linux-c -*-
- *
+ * 
  * (C) Copyright IBM Corp. 2004-2008
+ * (C) Copyright Pigeon Point Systems. 2010
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,19 +19,54 @@
 
 #include <string.h>
 #include <glib.h>
+
 #include <SaHpi.h>
 #include <oHpi.h>
-#include <oh_error.h>
-#include <oh_domain.h>
 #include <config.h>
-
+#include <oh_domain.h>
+#include <oh_error.h>
 #include <marshal_hpi.h>
 
 #include "oh_client.h"
+#include "oh_client_conf.h"
 #include "oh_client_session.h"
+
+
+/*----------------------------------------------------------------------------*/
+/* Global variables                                                           */
+/*----------------------------------------------------------------------------*/
+
+GStaticRecMutex ohc_lock = G_STATIC_REC_MUTEX_INIT;
+
+
+/*----------------------------------------------------------------------------*/
+/* Macros                                                                     */
+/*----------------------------------------------------------------------------*/
 
 #define client_dbg(cmd, str) dbg("%s: %s\n", cmd, str)
 #define client_err(cmd, str) err("%s: %s\n", cmd, str)
+
+#define SendRecv(sid, cmd) \
+    if (pinst->WriteMsg(request)) { \
+        client_err(cmd, "WriteMsg failed\n"); \
+        g_free(request); \
+        if (sid) { \
+            oh_close_connx(sid); \
+        } else { \
+            oh_delete_connx(pinst); \
+        } \
+        return SA_ERR_HPI_NO_RESPONSE; \
+    } \
+    if (pinst->ReadMsg(reply)) { \
+        client_err(cmd, "Read failed\n"); \
+        g_free(request); \
+        if (sid) { \
+            oh_close_connx(sid); \
+        } else { \
+            oh_delete_connx(pinst); \
+        } \
+        return SA_ERR_HPI_NO_RESPONSE; \
+    }
 
 /*----------------------------------------------------------------------------*/
 /* Utility functions                                                          */
@@ -119,6 +155,28 @@ static void __dehash_config(gpointer key, gpointer value, gpointer data)
 	return;
 }
 
+/*----------------------------------------------------------------------------*/
+/* Initialization function                                                    */
+/*----------------------------------------------------------------------------*/
+void oh_client_init(void)
+{
+    static SaHpiBoolT initialized = SAHPI_FALSE;
+
+    if ( initialized != SAHPI_FALSE ) {
+        return;
+    }
+    initialized = SAHPI_TRUE;
+
+    // Initialize GLIB thread engine
+    if ( g_thread_supported() == FALSE ) {
+        g_thread_init(0);
+    }
+
+    oh_client_conf_init();
+    oh_client_session_init();
+}
+
+
 /******************************************************************************/
 /* HPI Client Layer                                                           */
 /******************************************************************************/
@@ -156,7 +214,9 @@ SaErrorT SAHPI_API saHpiInitialize(
 
         // TODO implement any library initialization code here
         // Current implementation does not utilize this function
-        // 
+        //
+
+        oh_client_init();
 
         return SA_OK;
 }
