@@ -28,6 +28,8 @@
 #include <errno.h>
 #include <glib.h>
 
+#include <oh_error.h>
+
 #include "strmsock.h"
 
 
@@ -101,15 +103,15 @@ bool strmsock::WriteMsg(const void *request)
 	unsigned char data[dMaxMessageLength];
 	unsigned int l = sizeof(cMessageHeader) + header.m_len;
 
-//      printf("Message body length = %d.\n", header.m_len);
+      dbg("Message body length = %d.\n", header.m_len);
         errcode = 0;
 	if (!fOpen) {
-                printf("Socket not open.\n");
+                err("Socket not open.\n");
 		return true;
 	}
 
 	if (l > dMaxMessageLength) {
-                printf("Message too large.\n");
+                err("Message too large.\n");
 		return true;
 	}
 
@@ -117,19 +119,19 @@ bool strmsock::WriteMsg(const void *request)
         if (request != NULL) {
                 memcpy(&data[sizeof(cMessageHeader)], request, header.m_len);
         }
-//      printf("Size of message header is %d\n", sizeof(cMessageHeader));
-//      printf("Buffer header address is %p\n", &data[0]);
-//      printf("Buffer request address is %p\n", &data[sizeof(cMessageHeader)]);
-//      printf("Write request buffer (%d bytes) is\n", header.m_len);
+//      dbg("Size of message header is %d\n", sizeof(cMessageHeader));
+//      dbg("Buffer header address is %p\n", &data[0]);
+//      dbg("Buffer request address is %p\n", &data[sizeof(cMessageHeader)]);
+//      dbg("Write request buffer (%d bytes) is\n", header.m_len);
 //      for (unsigned int i = 0; i < header.m_len; i++) {
-//              printf("%02x ", *((unsigned char *)request + i));
+//              dbg("%02x ", *((unsigned char *)request + i));
 //      }
-//      printf("\n");
-//      printf("Write buffer (%d bytes) is\n", l);
+//      dbg("\n");
+//      dbg("Write buffer (%d bytes) is\n", l);
 //      for (int i = 0; i < l; i++) {
-//              printf("%02x ", (unsigned char)data[i]);
+//              dbg("%02x ", (unsigned char)data[i]);
 //      }
-//      printf("\n");
+//      dbg("\n");
 
 	int rv = write(s, data, l);
 
@@ -151,14 +153,14 @@ bool strmsock::ReadMsg(char *data)
 
 	if (len < 0) {
                 errcode = errno;
-                printf("Reading from socket returned and error: %d\n", errcode); // Debug
+                err("Reading from socket returned and error: %d\n", errcode); // Debug
 		return true;
 	} else if (len == 0) {	//connection has been aborted by the peer
 		Close();
-		printf("Connection has been aborted\n"); // Debug
+		err("Connection has been aborted\n"); // Debug
 		return true;
 	} else if (len < (int)sizeof(cMessageHeader)) {
-		printf("Got corrupted header?\n"); // Debug
+		err("Got corrupted header?\n"); // Debug
 		return true;
 	}
 	memcpy(&header, data, sizeof(cMessageHeader));
@@ -168,17 +170,17 @@ bool strmsock::ReadMsg(char *data)
 		header.m_id  = GUINT32_SWAP_LE_BE(header.m_id);
 		header.m_len = GUINT32_SWAP_LE_BE(header.m_len);
 	}
-	//printf("header.m_flags: 0x%x\n", header.m_flags);
+	//dbg("header.m_flags: 0x%x\n", header.m_flags);
 
 	if ( (header.m_flags >> 4) != dMhVersion ) {
-		printf("Wrong version? 0x%x != 0x%x\n", header.m_flags, dMhVersion); // Debug
+		err("Wrong version? 0x%x != 0x%x\n", header.m_flags, dMhVersion); // Debug
 		return true;
 	}
-//      printf("Read buffer (%d bytes) is\n", len);
+//      dbg("Read buffer (%d bytes) is\n", len);
 //      for (int i = 0; i < len; i++) {
-//              printf("%02x ", (unsigned char)data[i]);
+//              dbg("%02x ", (unsigned char)data[i]);
 //      }
-//      printf("\n");
+//      dbg("\n");
 
 	return false;
 }
