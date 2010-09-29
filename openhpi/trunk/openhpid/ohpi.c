@@ -1,6 +1,8 @@
 /*      -*- linux-c -*-
  *
  * (C) Copright IBM Corp 2004,2006
+ * (C) Copyright Pigeon Point Systems. 2010
+ * (C) Copyright Nokia Siemens Networks 2010
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -11,6 +13,8 @@
  *
  * Authors:
  *     Renier Morales <renier@openhpi.org>
+ *     Anton Pak <anton.pak@pigeonpoint.com>
+ *     Ulrich Kleber <ulikleber@users.sourceforge.net>
  */
 
 #include <oHpi.h>
@@ -355,4 +359,40 @@ SaErrorT oHpiInjectEvent(oHpiHandlerIdT id,
         oh_release_handler(h);
         return error;
 }
+
+/**
+ * oHpiDomainAdd
+ * @host: host name of domain config item
+ * @port: port for domain config item
+ * @domain_id: domain_id for newly created domain config item
+ *
+ * Returns: SA_OK on success and fills domain_id.
+ *
+ * Currently only available in client library, but not in daemon
+ **/
+SaErrorT SAHPI_API oHpiDomainAdd(const SaHpiTextBufferT *host,
+                                 SaHpiUint16T port,
+                                 SaHpiDomainIdT *domain_id)
+{
+    return SA_ERR_HPI_UNSUPPORTED_API;
+}
+
+
+/**
+ * oHpiDomainAddById
+ * @host: host name of domain config item
+ * @port: port for domain config item
+ * @domain_id: domain_id for newly created domain config item
+ *
+ * Returns: SA_OK on success and fills domain_id.
+ *
+ * Currently only available in client library, but not in daemon
+ **/
+SaErrorT SAHPI_API oHpiDomainAddById(SaHpiDomainIdT domain_id,
+                                     const SaHpiTextBufferT *host,
+                                     SaHpiUint16T port)
+{
+    return SA_ERR_HPI_UNSUPPORTED_API;
+}
+
 

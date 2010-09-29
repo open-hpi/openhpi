@@ -2,6 +2,7 @@
  *
  * (C) Copyright IBM Corp. 2008
  * (C) Copyright Pigeon Point Systems. 2010
+ * (C) Copyright Nokia Siemens Networks 2010
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -13,6 +14,7 @@
  * Author(s):
  *      Renier Morales <renier@openhpi.org>
  *      Anton Pak <anton.pak@pigeonpoint.com>
+ *      Ulrich Kleber <ulikleber@users.sourceforge.net>
  *
  */
 
@@ -35,6 +37,14 @@ struct oh_domain_conf {
 
 void oh_client_conf_init(void);
 const struct oh_domain_conf * oh_get_domain_conf(SaHpiDomainIdT did);
+
+SaErrorT oh_add_domain_conf(const char *host,
+                            unsigned short port,
+                            SaHpiDomainIdT *did);
+SaErrorT oh_add_domain_conf_by_id(SaHpiDomainIdT did,
+                                  const char *host,
+                                  unsigned short port);
+
 
 #ifdef __cplusplus
 } /* extern "C" */

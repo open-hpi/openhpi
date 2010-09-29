@@ -1,6 +1,8 @@
 /*      -*- linux-c -*-
  *
  * (C) Copright IBM Corp 2004-2006
+ * (C) Copyright Pigeon Point Systems. 2010
+ * (C) Copyright Nokia Siemens Networks 2010
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -11,6 +13,8 @@
  *
  * Authors:
  *     Renier Morales <renier@openhpi.org>
+ *     Anton Pak <anton.pak@pigeonpoint.com>
+ *     Ulrich Kleber <ulikleber@users.sourceforge.net>
  */
 
 #ifndef __OHPI_H
@@ -102,6 +106,14 @@ SaErrorT SAHPI_API oHpiInjectEvent(oHpiHandlerIdT id,
                                    SaHpiEventT    *event,
                                    SaHpiRptEntryT *rpte,
                                    SaHpiRdrT *rdr);
+
+/* Domain configuration */
+SaErrorT SAHPI_API oHpiDomainAdd(const SaHpiTextBufferT *host,
+                                 SaHpiUint16T port,
+                                 SaHpiDomainIdT *domain_id);
+SaErrorT SAHPI_API oHpiDomainAddById(SaHpiDomainIdT domain_id,
+                                     const SaHpiTextBufferT *host,
+                                     SaHpiUint16T port);
 
 #define OHPI_VERSION_GET(v, VER) \
 { \

@@ -2,6 +2,7 @@
  * 
  * (C) Copyright IBM Corp. 2004-2008
  * (C) Copyright Pigeon Point Systems. 2010
+ * (C) Copyright Nokia Siemens Networks 2010
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -14,6 +15,7 @@
  *      W. David Ashley <dashley@us.ibm.com>
  *      Renier Morales <renier@openhpi.org>
  *      Anton Pak <anton.pak@pigeonpoint.com>
+ *      Ulrich Kleber <ulikleber@users.sourceforge.net>
  *
  */
 
@@ -5956,7 +5958,7 @@ SaErrorT SAHPI_API oHpiHandlerDestroy(oHpiHandlerIdT id)
 /* oHpiHandlerInfo                                                            */
 /*----------------------------------------------------------------------------*/
 
-SaErrorT SAHPI_API oHpiHandlerInfo(oHpiHandlerIdT id, oHpiHandlerInfoT *info)
+SaErrorT SAHPI_API oHpiHandlerInfo( oHpiHandlerIdT id, oHpiHandlerInfoT *info)
 {
         void *request;
 	char reply[dMaxMessageLength];
@@ -6228,3 +6230,60 @@ SaErrorT SAHPI_API oHpiInjectEvent(oHpiHandlerIdT id,
 
         return err;
 }
+
+
+
+/*----------------------------------------------------------------------------*/
+/* oHpiDomainAdd                                                              */
+/*----------------------------------------------------------------------------*/
+SaErrorT SAHPI_API oHpiDomainAdd(const SaHpiTextBufferT *host,
+                                 SaHpiUint16T port,
+                                 SaHpiDomainIdT *domain_id)
+{
+    if (!host) {
+        return SA_ERR_HPI_INVALID_PARAMS;
+    }
+    if (!domain_id) {
+        return SA_ERR_HPI_INVALID_PARAMS;
+    }
+    if ( (host->DataType != SAHPI_TL_TYPE_BCDPLUS) &&
+         (host->DataType != SAHPI_TL_TYPE_ASCII6) &&
+         (host->DataType != SAHPI_TL_TYPE_TEXT) )
+    {
+        return SA_ERR_HPI_INVALID_DATA;
+    }
+
+    char buf[SAHPI_MAX_TEXT_BUFFER_LENGTH+1];
+    memcpy(&buf[0], &host->Data[0], host->DataLength);
+    buf[host->DataLength] = '\0';
+
+    return oh_add_domain_conf(buf, port, domain_id);
+}
+
+
+
+/*----------------------------------------------------------------------------*/
+/* oHpiDomainAddById                                                          */
+/*----------------------------------------------------------------------------*/
+SaErrorT SAHPI_API oHpiDomainAddById(SaHpiDomainIdT domain_id,
+                                     const SaHpiTextBufferT *host,
+                                     SaHpiUint16T port)
+{
+    if (!host) {
+        return SA_ERR_HPI_INVALID_PARAMS;
+    }
+    if ( (host->DataType != SAHPI_TL_TYPE_BCDPLUS) &&
+         (host->DataType != SAHPI_TL_TYPE_ASCII6) &&
+         (host->DataType != SAHPI_TL_TYPE_TEXT) )
+    {
+        return SA_ERR_HPI_INVALID_DATA;
+    }
+
+    char buf[SAHPI_MAX_TEXT_BUFFER_LENGTH+1];
+    memcpy(&buf[0], &host->Data[0], host->DataLength);
+    buf[host->DataLength] = '\0';
+
+    return oh_add_domain_conf_by_id(domain_id, buf, port);
+}
+
+
