@@ -2,6 +2,7 @@
  *
  * (C) Copyright IBM Corp. 2008
  * (C) Copyright Pigeon Point Systems. 2010
+ * (C) Copyright Nokia Siemens Networks 2010
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -13,6 +14,7 @@
  * Authors:
  *     Renier Morales <renier@openhpi.org>
  *     Anton Pak <anton.pak@pigeonpoint.com>
+ *     Ulrich Kleber <ulikleber@users.sourceforge.net>
  */
 
 #include <stdlib.h>
@@ -37,6 +39,9 @@ static int load_client_config(const char *filename);
 static void add_domain_conf(SaHpiDomainIdT did,
                             const char *host,
                             unsigned short port);
+static void extract_keys(gpointer key, gpointer val, gpointer user_data);
+static gint compare_keys(const gint *a, const gint *b);
+
 
 void oh_client_conf_init(void)
 {
@@ -94,6 +99,86 @@ const struct oh_domain_conf * oh_get_domain_conf(SaHpiDomainIdT did)
     g_static_rec_mutex_unlock(&ohc_lock);
 
     return dc;
+}
+
+SaErrorT oh_add_domain_conf(const char *host,
+                            unsigned short port,
+                            SaHpiDomainIdT *did)
+{
+    g_static_rec_mutex_lock(&ohc_lock);
+
+    // get all known domain ids and sort them
+    GList *keys = 0;
+    g_hash_table_foreach(ohc_domains, extract_keys, &keys);
+    keys = g_list_sort(keys, (GCompareFunc)compare_keys);
+
+    // found prev = a gap in domain ids list or max domain id
+    // so that new did will be prev + 1
+    SaHpiDomainIdT prev_did = 0;
+    GList *item;
+    for (item = keys; item != NULL; item = item->next) {
+        SaHpiDomainIdT item_did = *(const SaHpiDomainIdT *)(item->data);
+        if ((prev_did + 1) < item_did) {
+            break;
+        }
+        prev_did = item_did;
+    }
+
+    g_list_free(keys);
+
+    if (prev_did == SAHPI_UNSPECIFIED_DOMAIN_ID) {
+        g_static_rec_mutex_unlock(&ohc_lock);
+        return SA_ERR_HPI_OUT_OF_SPACE;
+    }
+    if ((prev_did + 1) == SAHPI_UNSPECIFIED_DOMAIN_ID) {
+        g_static_rec_mutex_unlock(&ohc_lock);
+        return SA_ERR_HPI_OUT_OF_SPACE;
+    }
+
+    *did = prev_did + 1;
+    add_domain_conf(*did, host, port);
+
+    g_static_rec_mutex_unlock(&ohc_lock);
+
+    return SA_OK;
+}
+
+SaErrorT oh_add_domain_conf_by_id(SaHpiDomainIdT did,
+                                  const char *host,
+                                  unsigned short port)
+{
+    if (did==SAHPI_UNSPECIFIED_DOMAIN_ID || 
+        did==OH_DEFAULT_DOMAIN_ID)
+       return SA_ERR_HPI_INVALID_PARAMS;
+
+    g_static_rec_mutex_lock(&ohc_lock);
+
+    // check new did against all known domain ids 
+    if (oh_get_domain_conf(did) != NULL) {
+        g_static_rec_mutex_unlock(&ohc_lock);
+        return SA_ERR_HPI_DUPLICATE;
+    }
+    
+    add_domain_conf(did, host, port);
+    g_static_rec_mutex_unlock(&ohc_lock);
+    return SA_OK;
+}
+
+static void extract_keys(gpointer key, gpointer val, gpointer user_data)
+{
+    GList ** key_list = (GList **)(user_data);
+    *key_list = g_list_append(*key_list, key);
+}
+
+static gint compare_keys(const gint *a, const gint *b)
+{
+    if ( *a < *b ) {
+        return -1;
+    } else if ( *a > *b ) {
+        return 1;
+    } else {
+        return 0;
+    }
 }
 
 
@@ -294,7 +379,7 @@ static int process_domain_token (GScanner *oh_scanner)
                 return -10;
         }
 
-        add_domain_conf(did, host, port);
+        add_domain_conf(did, host, port); 
 
         return 0;
 }
