@@ -219,6 +219,72 @@ static ret_code_t moreset(void)
         return HPI_SHELL_OK;
 }
 
+static ret_code_t newdomain(void)
+{
+    int i;
+    char buf[SAHPI_MAX_TEXT_BUFFER_LENGTH + 1];
+    char * p;
+
+    SaHpiUint16T port;
+    SaHpiTextBufferT host;
+    SaHpiDomainIdT did;
+
+    SaErrorT rv;
+
+    i = get_string_param("Host[:Port]: ", buf, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+    if (i != 0) {
+        return HPI_SHELL_PARM_ERROR;
+    }
+    if (buf[0] == ':') {
+        return HPI_SHELL_PARM_ERROR;
+    }
+
+    p = strchr(buf, ':');
+    if (p != 0) {
+        *p = '\0';
+        ++p;
+        if (isdigit(*p) == 0) {
+            return HPI_SHELL_PARM_ERROR;
+        }
+        port = (SaHpiUint16T)atoi(p);
+    } else {
+        port = OPENHPI_DEFAULT_DAEMON_PORT;
+    }
+
+    host.DataType = SAHPI_TL_TYPE_TEXT;
+    host.Language = SAHPI_LANG_ENGLISH;
+    host.DataLength = strlen(buf);
+    memcpy(&host.Data[0], &buf[0], host.DataLength );
+    host.Data[host.DataLength] = '\0';
+
+    i = get_string_param("Domain Id: ", buf, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+    if (i == 0) {
+        p = &buf[0];
+        if (isdigit(*p) == 0) {
+            return HPI_SHELL_PARM_ERROR;
+        }
+        did = (SaHpiDomainIdT)atoi(p);
+        rv = oHpiDomainAddById(did, &host, port);
+        if (rv != SA_OK) {
+            printf("oHpiDomainAddById error %s\n", oh_lookup_error(rv));
+            return HPI_SHELL_CMD_ERROR;
+        }
+    } else {
+        rv = oHpiDomainAdd(&host, port, &did);
+        if (rv != SA_OK) {
+            printf("oHpiDomainAdd error %s\n", oh_lookup_error(rv));
+            return HPI_SHELL_CMD_ERROR;
+        }
+    }
+
+    printf("Created new domain %u (%s:%u)\n",
+           did,
+           (const char*)(&host.Data[0]),
+           port);
+
+    return HPI_SHELL_OK;
+}
+
 static ret_code_t power(void)
 {
         SaErrorT                rv;
@@ -1465,6 +1531,8 @@ const char lsorhelp[] = "lsensor: list sensors\n"
                         "Usage: lsensor";
 const char morehelp[] = "more: set or unset more enable\n"
                         "Usage: more [ on | off ]";
+const char newdomainhelp[] = "newdomain: create new domain\n"
+                        "Usage: newdomain <host>[:<port>] [<domain_id>]";
 const char parmctrlhelp[] = "parmctrl: save and restore parameters for a resource\n"
                         "Usage: parmctrl <resource id> <action>\n"
                         "    action - default | save | restore";
@@ -1673,6 +1741,7 @@ command_def_t commands[] = {
     { "lsres",          listres,        lreshelp,       UNDEF_COM },
     { "lsensor",        list_sensor,    lsorhelp,       MAIN_COM },
     { "more",           moreset,        morehelp,       UNDEF_COM },
+    { "newdomain",      newdomain,      newdomainhelp,  MAIN_COM },
     { "parmctrl",       parmctrl,       parmctrlhelp,   MAIN_COM },
     { "power",          power,          powerhelp,      MAIN_COM },
     { "quit",           quit,           quithelp,       UNDEF_COM },
