@@ -29,6 +29,7 @@ int main(int argc, char **argv)
         GHashTable *config = g_hash_table_new(g_str_hash, g_str_equal);
         oHpiHandlerIdT hid = 0;
         oHpiHandlerInfoT hinfo;
+        GHashTable *configinfo = 0;
         
         setenv("OPENHPI_CONF","./noconfig", 1);
         
@@ -44,7 +45,7 @@ int main(int argc, char **argv)
         if (oHpiHandlerCreate(config, &hid))
                 return -1;
                 
-        if (!oHpiHandlerInfo(555, &hinfo))
+        if (!oHpiHandlerInfo(555, &hinfo, &configinfo))
                 return -1;
                         
         

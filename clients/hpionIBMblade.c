@@ -223,6 +223,7 @@ static int select_ep(Rpt_t *Rpt)
 	unsigned int i;
 	oHpiHandlerIdT this_handler_id;
 	oHpiHandlerInfoT handler_info;
+        GHashTable *config = 0;
 
 	rv = oHpiHandlerFind(sessionid,
 			     Rpt->Rpt.ResourceId,
@@ -232,7 +233,7 @@ static int select_ep(Rpt_t *Rpt)
 		return(0);
 	}
 	
-	rv = oHpiHandlerInfo(this_handler_id, &handler_info);
+	rv = oHpiHandlerInfo(this_handler_id, &handler_info, &config);
 	if (rv) {
 		if (fdebug) printf("oHpiHandlerInfo returns %s\n", oh_lookup_error(rv));
 		return(0);

@@ -90,7 +90,9 @@ SaHpiUint64T SAHPI_API oHpiVersionGet(void);
 SaErrorT SAHPI_API oHpiHandlerCreate(GHashTable *config,
                                     oHpiHandlerIdT *id);
 SaErrorT SAHPI_API oHpiHandlerDestroy(oHpiHandlerIdT id);
-SaErrorT SAHPI_API oHpiHandlerInfo(oHpiHandlerIdT id, oHpiHandlerInfoT *info);
+SaErrorT SAHPI_API oHpiHandlerInfo(oHpiHandlerIdT id, 
+                                   oHpiHandlerInfoT *info,
+                                   GHashTable **conf_params);
 SaErrorT SAHPI_API oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id);
 SaErrorT SAHPI_API oHpiHandlerFind(SaHpiSessionIdT sid,
                                    SaHpiResourceIdT rid,

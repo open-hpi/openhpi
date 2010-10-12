@@ -43,7 +43,7 @@ int main(int argc, char **argv)
         if (oHpiHandlerCreate(config, &hid))
                 return -1;
                 
-        if (!oHpiHandlerInfo(0, NULL))
+        if (!oHpiHandlerInfo(0, NULL, NULL))
                 return -1;
                                
         
