@@ -63,8 +63,9 @@ SaHpiUint64T oHpiVersionGet()
  * created, but failed to open. oHpiHandlerRetry can be used to retry
  * opening the handler.
  **/
-SaErrorT oHpiHandlerCreate(GHashTable *config,
-                           oHpiHandlerIdT *id)
+SaErrorT SAHPI_API oHpiHandlerCreate (
+     SAHPI_IN    GHashTable *config,
+     SAHPI_OUT   oHpiHandlerIdT *id )
 {
 	SaErrorT error = SA_OK;
 
@@ -88,7 +89,8 @@ SaErrorT oHpiHandlerCreate(GHashTable *config,
  *
  * Returns: SA_OK on success. Minus SA_OK on error.
  **/
-SaErrorT oHpiHandlerDestroy(oHpiHandlerIdT id)
+SaErrorT SAHPI_API oHpiHandlerDestroy (
+     SAHPI_IN    oHpiHandlerIdT id )
 {
         if (!id)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -115,9 +117,10 @@ static void copy_hashed_config_info (gpointer key, gpointer value, gpointer newh
 {
    g_hash_table_insert ( newhash, g_strdup(key), g_strdup(value) );
 }  
-SaErrorT oHpiHandlerInfo( oHpiHandlerIdT id, 
-                          oHpiHandlerInfoT *info,
-                          GHashTable **conf_params )   //will be allocated
+SaErrorT SAHPI_API oHpiHandlerInfo (
+     SAHPI_IN    oHpiHandlerIdT id,
+     SAHPI_OUT   oHpiHandlerInfoT *info,
+     SAHPI_OUT   GHashTable **conf_params ) //hash table will be allocated
 {
         struct oh_handler *h = NULL;
 
@@ -168,7 +171,9 @@ SaErrorT oHpiHandlerInfo( oHpiHandlerIdT id,
  *
  * Returns: SA_OK on success. Minus SA_OK on error.
  **/
-SaErrorT oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id)
+SaErrorT SAHPI_API oHpiHandlerGetNext (
+     SAHPI_IN    oHpiHandlerIdT id,
+     SAHPI_OUT   oHpiHandlerIdT *next_id )
 {
         if (!next_id) {
                 err("Invalid parameters.");
@@ -195,9 +200,10 @@ SaErrorT oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id)
  *
  * Returns: SA_OK if handler was found.
  **/
-SaErrorT oHpiHandlerFind(SaHpiSessionIdT sid,
-			 SaHpiResourceIdT rid,
-			 oHpiHandlerIdT *id)
+SaErrorT SAHPI_API oHpiHandlerFind (
+     SAHPI_IN    SaHpiSessionIdT sid,
+     SAHPI_IN    SaHpiResourceIdT rid,
+     SAHPI_OUT   oHpiHandlerIdT *id )
 {
 	SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
@@ -234,7 +240,8 @@ SaErrorT oHpiHandlerFind(SaHpiSessionIdT sid,
  *
  * Returns: SA_OK if handler opens successfully.
  **/
-SaErrorT oHpiHandlerRetry(oHpiHandlerIdT id)
+SaErrorT SAHPI_API oHpiHandlerRetry (
+     SAHPI_IN    oHpiHandlerIdT id )
 {
 	struct oh_handler *h = NULL;
 	SaErrorT error = SA_OK;
@@ -270,7 +277,8 @@ SaErrorT oHpiHandlerRetry(oHpiHandlerIdT id)
  *
  * Returns: SA_OK on success. Minus SA_OK on error.
  **/
-SaErrorT oHpiGlobalParamGet(oHpiGlobalParamT *param)
+SaErrorT SAHPI_API oHpiGlobalParamGet (
+     SAHPI_OUT   oHpiGlobalParamT *param )
 {
         struct oh_global_param p;
 
@@ -300,7 +308,8 @@ SaErrorT oHpiGlobalParamGet(oHpiGlobalParamT *param)
  *
  * Returns: SA_OK on success. Minus SA_OK on error.
  **/
-SaErrorT oHpiGlobalParamSet(oHpiGlobalParamT *param)
+SaErrorT SAHPI_API oHpiGlobalParamSet (
+     SAHPI_IN    oHpiGlobalParamT *param )
 {
         struct oh_global_param p;
 
@@ -339,10 +348,11 @@ SaErrorT oHpiGlobalParamSet(oHpiGlobalParamT *param)
  * and Entity will be assigned. This will also be reflected in the passed @rdrs
  * list so that the caller can know what the assigned values were.
  **/
-SaErrorT oHpiInjectEvent(oHpiHandlerIdT id,
-                         SaHpiEventT *event,
-                         SaHpiRptEntryT *rpte,
-                         SaHpiRdrT *rdr)
+SaErrorT SAHPI_API oHpiInjectEvent (
+     SAHPI_IN    oHpiHandlerIdT id,
+     SAHPI_IN    SaHpiEventT    *event,
+     SAHPI_IN    SaHpiRptEntryT *rpte,
+     SAHPI_IN    SaHpiRdrT *rdr)
 {
 	SaErrorT (*inject_event)(void *hnd,
                             	 SaHpiEventT *evt,
@@ -388,9 +398,10 @@ SaErrorT oHpiInjectEvent(oHpiHandlerIdT id,
  *
  * Currently only available in client library, but not in daemon
  **/
-SaErrorT SAHPI_API oHpiDomainAdd(const SaHpiTextBufferT *host,
-                                 SaHpiUint16T port,
-                                 SaHpiDomainIdT *domain_id)
+SaErrorT SAHPI_API oHpiDomainAdd (
+     SAHPI_IN    const SaHpiTextBufferT *host,
+     SAHPI_IN    SaHpiUint16T port,
+     SAHPI_OUT   SaHpiDomainIdT *domain_id )
 {
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
@@ -406,9 +417,10 @@ SaErrorT SAHPI_API oHpiDomainAdd(const SaHpiTextBufferT *host,
  *
  * Currently only available in client library, but not in daemon
  **/
-SaErrorT SAHPI_API oHpiDomainAddById(SaHpiDomainIdT domain_id,
-                                     const SaHpiTextBufferT *host,
-                                     SaHpiUint16T port)
+SaErrorT SAHPI_API oHpiDomainAddById (
+     SAHPI_IN    SaHpiDomainIdT domain_id,
+     SAHPI_IN    const SaHpiTextBufferT *host,
+     SAHPI_IN    SaHpiUint16T port )
 {
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
