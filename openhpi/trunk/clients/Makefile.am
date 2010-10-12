@@ -27,7 +27,9 @@ bin_PROGRAMS = \
 	hpithres \
 	hpitop   \
 	hpisettime \
-	hpionIBMblade
+	hpionIBMblade \
+        ohhandler \
+        ohparam
 
 include_HEADERS         =
 
@@ -78,6 +80,12 @@ hpitree_LDADD        = $(COMMONLIBS)
 
 hpionIBMblade_SOURCES      = hpionIBMblade.c $(CLIENTS_SRC)
 hpionIBMblade_LDADD        = $(COMMONLIBS)
+
+ohhandler_SOURCES      = ohhandler.c $(CLIENTS_SRC)
+ohhandler_LDADD        = $(COMMONLIBS)
+
+ohparam_SOURCES      = ohparam.c $(CLIENTS_SRC)
+ohparam_LDADD        = $(COMMONLIBS)
 
 clean-local:
 	rm -f *~ *.o
