@@ -1,0 +1,63 @@
+=head1 NAME
+
+ohhandler - An openhpi sample application that uses the openhpi additional interfaces to control openhpi configuration. That is plugins can be loaded, plugin instances (handlers) created, unloaded or their configuration displayed.
+
+=head1 SYNOPSIS 
+
+ ohhandler [-D domain] [-x] list
+ ohhandler [-D domain] [-x] info    <handler-id>
+ ohhandler [-D domain] [-x] destroy <handler-id>
+ ohhandler [-D domain] [-x] getnext <handler-id>
+ ohhandler [-D domain] [-x] find    <resource-id>
+ ohhandler [-D domain] [-x] retry   <handler-id>
+ ohhandler [-D domain] [-x] create  plugin <plugin-name> <configuration-parameters>
+
+=head1 DESCRIPTION
+
+ohhandler list will display a list of all plugin instances (handlers) currently defined in the openhpi daemon for the specified domain. Part of the output is the handler-id that can be used in subsequent commands.
+
+ohhandler info will display specific info for the handler with the specified id. This information includes all configuration parameters of the handler as specified in the openhpi.conf file or as dynamically defined during a "ohhandler create" call.
+
+ohhandler destroy will unload the specified handler and delete all its configuration information.
+
+ohhandler getnext will allows to walk through all hanlers currently defined in the openhpi daemon for the specified domain.
+
+ohhandler find will find the handler that is managing the specified resource.
+
+ohhandler retry allows to try again to load and initialize the specified handler.
+
+ohhandler create allows to dynamically create a new handler with configuration parameters like they are specified in the openhpi.conf file. 
+ - The type of plugin is specified with the keyword plugin
+ - Configuration parameters should follow as name value pairs
+ - Complex strings like entity paths must be enclosed with ""
+ Example:
+ ohhandler create plugin libsimulator entity_root "{SYSTEM_CHASSIS,1}" name sim
+
+If no domain is selected, ohhandler uses the default domain. The selected domain id must be configured via the openhpidclient.conf file specified in the environment.
+
+=head1 OPTIONS
+
+=over 2
+
+ -D <domainid> select domain id
+ -x            display debug messages.
+ -h            help
+
+=back
+
+=head1 SEE ALSO
+
+         hpi_shell
+         hpialarms      hpigensimdata  hpireset       hpitop
+         hpidomain      hpiinv         hpisensor      hpitree
+         hpiel          hpionIBMblade  hpisettime     hpiwdt
+         hpievents      hpipower       hpithres
+         ohparam
+
+ 
+=head1 AUTHORS
+
+Authors of this man page:
+
+ Ulrich Kleber (ulikleber@users.sourceforge.net)
+
