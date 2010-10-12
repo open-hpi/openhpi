@@ -110,7 +110,14 @@ SaErrorT oHpiHandlerDestroy(oHpiHandlerIdT id)
  *
  * Returns: SA_OK on success. Minus SA_OK on error.
  **/
-SaErrorT oHpiHandlerInfo(oHpiHandlerIdT id, oHpiHandlerInfoT *info)
+// function to copy hash table
+static void copy_hashed_config_info (gpointer key, gpointer value, gpointer newhash)
+{
+   g_hash_table_insert ( newhash, g_strdup(key), g_strdup(value) );
+}  
+SaErrorT oHpiHandlerInfo( oHpiHandlerIdT id, 
+                          oHpiHandlerInfoT *info,
+                          GHashTable **conf_params )   //will be allocated
 {
         struct oh_handler *h = NULL;
 
@@ -132,6 +139,17 @@ SaErrorT oHpiHandlerInfo(oHpiHandlerIdT id, oHpiHandlerInfoT *info)
 	
 	if (!h->hnd) info->load_failed = 1;
 	else info->load_failed = 0;
+
+        // create a new hash table, so the original config table is not
+        // transferred and deleted.
+        *conf_params =  g_hash_table_new_full (
+                                        g_str_hash, g_str_equal, g_free, g_free);
+        // copy h->config to the output hash table
+        g_hash_table_foreach(h->config,copy_hashed_config_info,*conf_params);
+
+        //Don't transmit passwords in case the handler has a password in its config
+        if (g_hash_table_lookup(*conf_params,"password"))
+           g_hash_table_replace(*conf_params,"password","********");
 
         oh_release_handler(h);
 

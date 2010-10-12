@@ -2,6 +2,8 @@
  * marshaling/demarshaling of hpi functions
  *
  * Copyright (c) 2004 by FORCE Computers.
+ * (C) Copyright Pigeon Point Systems. 2010
+ * (C) Copyright Nokia Siemens Networks 2010
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,6 +17,7 @@
  *     W. David Ashley <dashley@us.ibm.com.com>
  *     Renier Morales <renier@openhpi.org>
  *     Anton Pak <anton.pak@pigeonpoint.com>
+ *     Ulrich Kleber <ulikleber@users.sourceforge.net>
  */
 
 #include "marshal_hpi.h"
@@ -1914,6 +1917,7 @@ static const cMarshalType *oHpiHandlerInfoOut[] =
 {
   &SaErrorType, // result (SaErrorT)
   &oHpiHandlerInfoType, // handler info
+  &oHpiHandlerConfigType, // handler config params
   0
 };
 

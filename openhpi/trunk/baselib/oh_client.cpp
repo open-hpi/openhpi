@@ -5958,13 +5958,19 @@ SaErrorT SAHPI_API oHpiHandlerDestroy(oHpiHandlerIdT id)
 /* oHpiHandlerInfo                                                            */
 /*----------------------------------------------------------------------------*/
 
-SaErrorT SAHPI_API oHpiHandlerInfo( oHpiHandlerIdT id, oHpiHandlerInfoT *info)
+SaErrorT SAHPI_API oHpiHandlerInfo( oHpiHandlerIdT id, 
+                                    oHpiHandlerInfoT *info,
+                                    GHashTable **conf_params )
 {
         void *request;
 	char reply[dMaxMessageLength];
         SaErrorT err = SA_OK;
 	char cmd[] = "oHpiHandlerInfo";
         pcstrmsock pinst = NULL;
+        oHpiHandlerConfigT config;
+        GHashTable *config_table = g_hash_table_new_full(
+                                g_str_hash, g_str_equal,
+                                g_free, g_free );
 
         err = oh_create_connx(OH_DEFAULT_DOMAIN_ID, &pinst);
         if (err) return err;
@@ -5977,7 +5983,17 @@ SaErrorT SAHPI_API oHpiHandlerInfo( oHpiHandlerIdT id, oHpiHandlerInfoT *info)
 
         SendRecv(0, cmd);
 
-        int mr = HpiDemarshalReply1(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err, info);
+        int mr = HpiDemarshalReply2(pinst->remote_byte_order, hm, 
+                                    reply + sizeof(cMessageHeader), 
+                                    &err, info, &config);
+
+        for (int n = 0; n < config.NumberOfParams; n++) {
+            g_hash_table_insert(config_table,
+                          g_strdup((const gchar *)config.Params[n].Name),
+                          g_strdup((const gchar *)config.Params[n].Value));
+        }
+        free(config.Params);
+        *conf_params = config_table;
 
         oh_delete_connx(pinst);
         if (request)

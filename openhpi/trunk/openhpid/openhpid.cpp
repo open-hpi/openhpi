@@ -1,6 +1,8 @@
 /*      -*- linux-c -*-
  *
  * (C) Copyright IBM Corp. 2004-2008
+ * (C) Copyright Pigeon Point Systems. 2010
+ * (C) Copyright Nokia Siemens Networks 2010
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -14,6 +16,7 @@
  *      David Judkoivcs <djudkovi@us.ibm.com>
  * 	Renier Morales <renier@openhpi.org>
  *      Anton Pak <anton.pak@pigeonpoint.com>
+ *      Ulrich Kleber <ulikleber@users.sourceforge.net>
  *
  */
 
@@ -96,6 +99,25 @@ static struct option long_options[] = {
 #define PVERBOSE1(msg, ...) if (verbose_flag) dbg(msg, ## __VA_ARGS__)
 #define PVERBOSE2(msg, ...) if (verbose_flag) err(msg, ## __VA_ARGS__)
 #define PVERBOSE3(msg, ...) if (verbose_flag) printf("CRITICAL: "msg, ## __VA_ARGS__)
+
+/*--------------------------------------------------------------------*/
+/* Function to dehash handler config for oHpiHandlerInfo              */
+/*--------------------------------------------------------------------*/
+static void __dehash_handler_config(gpointer key, gpointer value, gpointer data)
+{
+        oHpiHandlerConfigT *handler_config = (oHpiHandlerConfigT *)data;
+
+        strncpy((char *)handler_config->Params[handler_config->NumberOfParams].Name,
+                (const char *)key,
+                SAHPI_MAX_TEXT_BUFFER_LENGTH);
+        strncpy((char *)handler_config->Params[handler_config->NumberOfParams].Value,
+                (const char *)value,
+                SAHPI_MAX_TEXT_BUFFER_LENGTH);
+
+        handler_config->NumberOfParams = handler_config->NumberOfParams + 1;
+
+        return;
+}
 
 /*--------------------------------------------------------------------*/
 /* Function: display_help                                             */
@@ -2879,6 +2901,10 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 case eFoHpiHandlerInfo: {
                         oHpiHandlerIdT id;
                         oHpiHandlerInfoT info;
+                        oHpiHandlerConfigT config;
+                        GHashTable *config_table = g_hash_table_new_full(
+                               g_str_hash, g_str_equal,
+                               g_free, g_free );
                 
                         PVERBOSE1("%p Processing oHpiHandlerInfo.", thrdid);
                 
@@ -2886,9 +2912,18 @@ static tResult HandleMsg(psstrmsock thrdinst,
                                                         hm, pReq, &id ) < 0 )
                                 return eResultError;
                 
-                        ret = oHpiHandlerInfo(id, &info);
-                
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &info );
+                        ret = oHpiHandlerInfo(id, &info, &config_table);
+               
+                        config.NumberOfParams = 0;
+                        config.Params = (oHpiHandlerConfigParamT *)
+                                        g_malloc0(sizeof(oHpiHandlerConfigParamT)
+                                        *g_hash_table_size(config_table));
+                        // add each hash table entry to the marshable handler_config
+                        g_hash_table_foreach(config_table, __dehash_handler_config, &config);
+
+                        thrdinst->header.m_len = HpiMarshalReply2( hm, pReq, 
+                                                                   &ret, &info, &config );
+
                         result = eResultClose;
                 }
                 break;
