@@ -107,6 +107,8 @@ SaErrorT SAHPI_API oHpiHandlerDestroy (
  * oHpiHandlerInfo
  * @id: IN. The id of the handler to query
  * @info: IN/OUT. Pointer to struct for holding handler information
+ * @conf_params: IN/OUT Pointer to pre-allocated hash-table, for holding the
+ *               handler's configuration parameters
  *
  * Queries a handler for the information associated with it.
  *
@@ -120,14 +122,16 @@ static void copy_hashed_config_info (gpointer key, gpointer value, gpointer newh
 SaErrorT SAHPI_API oHpiHandlerInfo (
      SAHPI_IN    oHpiHandlerIdT id,
      SAHPI_OUT   oHpiHandlerInfoT *info,
-     SAHPI_OUT   GHashTable **conf_params ) //hash table will be allocated
+     SAHPI_IN    GHashTable *conf_params )
 {
         struct oh_handler *h = NULL;
 
-        if (!id || !info)
+        if (!id || !info || !conf_params)
+               return SA_ERR_HPI_INVALID_PARAMS;
+        if (g_hash_table_size(conf_params)!=0)
                return SA_ERR_HPI_INVALID_PARAMS;
 
-	if (oh_init()) return SA_ERR_HPI_INTERNAL_ERROR;
+        if (oh_init()) return SA_ERR_HPI_INTERNAL_ERROR;
 
         h = oh_get_handler(id);
         if (!h) {
@@ -143,16 +147,12 @@ SaErrorT SAHPI_API oHpiHandlerInfo (
 	if (!h->hnd) info->load_failed = 1;
 	else info->load_failed = 0;
 
-        // create a new hash table, so the original config table is not
-        // transferred and deleted.
-        *conf_params =  g_hash_table_new_full (
-                                        g_str_hash, g_str_equal, g_free, g_free);
         // copy h->config to the output hash table
-        g_hash_table_foreach(h->config,copy_hashed_config_info,*conf_params);
+        g_hash_table_foreach(h->config,copy_hashed_config_info,conf_params);
 
         //Don't transmit passwords in case the handler has a password in its config
-        if (g_hash_table_lookup(*conf_params,"password"))
-           g_hash_table_replace(*conf_params,"password","********");
+        if (g_hash_table_lookup(conf_params,"password"))
+           g_hash_table_replace(conf_params,"password","********");
 
         oh_release_handler(h);
 

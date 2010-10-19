@@ -341,7 +341,7 @@ SaErrorT exechandlerinfo(oHpiHandlerIdT handlerid)
 
    if (fdebug) printf("Go and display handler info for %d\n", handlerid);
    
-   rv = oHpiHandlerInfo ( /* sessionid,*/ handlerid, &handlerinfo, &handlerconfig );
+   rv = oHpiHandlerInfo ( handlerid, &handlerinfo, handlerconfig );
 
    if (rv==SA_ERR_HPI_NOT_PRESENT) {
       if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) 
@@ -488,7 +488,10 @@ static SaErrorT exechandlerlist()
 
       if (rv==SA_OK) {
          //display info for that handler
-         rv = oHpiHandlerInfo ( /* sessionid, */ nexthandlerid, &handlerinfo, &config );
+         config = g_hash_table_new_full(
+                        g_str_hash, g_str_equal,
+                        g_free, g_free );
+         rv = oHpiHandlerInfo ( nexthandlerid, &handlerinfo, config );
          if (rv!=SA_OK) {
             printf("oHpiHandlerInfo for handler %d returned %d (%s)\n", 
                    nexthandlerid, rv, oh_lookup_error(rv));
@@ -498,8 +501,8 @@ static SaErrorT exechandlerlist()
             printf("Handler %d: %s, ",
                nexthandlerid, handlerinfo.plugin_name);
             oh_print_ep (&(handlerinfo.entity_root),0);
-            // g_hash_table_destroy(config);
          }
+         g_hash_table_destroy(config);
       }
       else if (rv!=SA_ERR_HPI_NOT_PRESENT) {
          printf("Error: oHpiHandlerGetNext (%d) returned %d (%s)\n",

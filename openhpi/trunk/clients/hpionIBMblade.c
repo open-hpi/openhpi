@@ -223,7 +223,9 @@ static int select_ep(Rpt_t *Rpt)
 	unsigned int i;
 	oHpiHandlerIdT this_handler_id;
 	oHpiHandlerInfoT handler_info;
-        GHashTable *config = 0;
+        GHashTable *config = g_hash_table_new_full(
+                                     g_str_hash, g_str_equal,
+                                     g_free, g_free );
 
 	rv = oHpiHandlerFind(sessionid,
 			     Rpt->Rpt.ResourceId,

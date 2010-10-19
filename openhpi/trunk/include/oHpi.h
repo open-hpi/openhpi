@@ -95,7 +95,7 @@ SaErrorT SAHPI_API oHpiHandlerDestroy (
 SaErrorT SAHPI_API oHpiHandlerInfo ( 
      SAHPI_IN    oHpiHandlerIdT id, 
      SAHPI_OUT   oHpiHandlerInfoT *info,
-     SAHPI_OUT   GHashTable **conf_params ); //hash table will be allocated
+     SAHPI_IN    GHashTable *conf_params );
 SaErrorT SAHPI_API oHpiHandlerGetNext (
      SAHPI_IN    oHpiHandlerIdT id, 
      SAHPI_OUT   oHpiHandlerIdT *next_id );
