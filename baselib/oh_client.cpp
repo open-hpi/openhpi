@@ -5963,7 +5963,7 @@ SaErrorT SAHPI_API oHpiHandlerDestroy (
 SaErrorT SAHPI_API oHpiHandlerInfo (
      SAHPI_IN    oHpiHandlerIdT id,
      SAHPI_OUT   oHpiHandlerInfoT *info,
-     SAHPI_OUT   GHashTable **conf_params ) //hash table will be allocated
+     SAHPI_IN    GHashTable *conf_params ) 
 {
         void *request;
 	char reply[dMaxMessageLength];
@@ -5971,9 +5971,6 @@ SaErrorT SAHPI_API oHpiHandlerInfo (
 	char cmd[] = "oHpiHandlerInfo";
         pcstrmsock pinst = NULL;
         oHpiHandlerConfigT config;
-        GHashTable *config_table = g_hash_table_new_full(
-                                g_str_hash, g_str_equal,
-                                g_free, g_free );
 
         err = oh_create_connx(OH_DEFAULT_DOMAIN_ID, &pinst);
         if (err) return err;
@@ -5991,12 +5988,11 @@ SaErrorT SAHPI_API oHpiHandlerInfo (
                                     &err, info, &config);
 
         for (int n = 0; n < config.NumberOfParams; n++) {
-            g_hash_table_insert(config_table,
+            g_hash_table_insert(conf_params,
                           g_strdup((const gchar *)config.Params[n].Name),
                           g_strdup((const gchar *)config.Params[n].Value));
         }
         free(config.Params);
-        *conf_params = config_table;
 
         oh_delete_connx(pinst);
         if (request)

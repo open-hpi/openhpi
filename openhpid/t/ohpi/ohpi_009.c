@@ -30,7 +30,9 @@ int main(int argc, char **argv)
         GHashTable *config = g_hash_table_new(g_str_hash, g_str_equal);
         oHpiHandlerIdT hid = 0;
         oHpiHandlerInfoT hinfo;
-        GHashTable *configinfo = 0;
+        GHashTable *configinfo = g_hash_table_new_full(
+                        g_str_hash, g_str_equal,
+                        g_free, g_free );;
         
         setenv("OPENHPI_CONF","./noconfig", 1);
         
@@ -46,7 +48,7 @@ int main(int argc, char **argv)
         if (oHpiHandlerCreate(config, &hid))
                 return -1;
                 
-        if (oHpiHandlerInfo(hid, &hinfo, &configinfo))
+        if (oHpiHandlerInfo(hid, &hinfo, configinfo))
                 return -1;
                 
         if (strcmp("libsimulator",hinfo.plugin_name))

@@ -2902,17 +2902,19 @@ static tResult HandleMsg(psstrmsock thrdinst,
                         oHpiHandlerIdT id;
                         oHpiHandlerInfoT info;
                         oHpiHandlerConfigT config;
-                        GHashTable *config_table = g_hash_table_new_full(
-                               g_str_hash, g_str_equal,
-                               g_free, g_free );
-                
+                        GHashTable *config_table = 0;
+
                         PVERBOSE1("%p Processing oHpiHandlerInfo.", thrdid);
                 
                         if ( HpiDemarshalRequest1( thrdinst->remote_byte_order,
                                                         hm, pReq, &id ) < 0 )
                                 return eResultError;
                 
-                        ret = oHpiHandlerInfo(id, &info, &config_table);
+                        config_table = g_hash_table_new_full(
+                               g_str_hash, g_str_equal,
+                               g_free, g_free );
+                
+                        ret = oHpiHandlerInfo(id, &info, config_table);
                
                         config.NumberOfParams = 0;
                         config.Params = (oHpiHandlerConfigParamT *)
@@ -2920,6 +2922,10 @@ static tResult HandleMsg(psstrmsock thrdinst,
                                         *g_hash_table_size(config_table));
                         // add each hash table entry to the marshable handler_config
                         g_hash_table_foreach(config_table, __dehash_handler_config, &config);
+
+                        //It should be possible to free the hash table here,
+                        //but it crashes the daemon.
+                        //g_hash_table_destroy(config_table);
 
                         thrdinst->header.m_len = HpiMarshalReply2( hm, pReq, 
                                                                    &ret, &info, &config );
