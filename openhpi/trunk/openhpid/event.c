@@ -447,6 +447,7 @@ static int process_event(SaHpiDomainIdT did,
         case SAHPI_ET_SENSOR:
         case SAHPI_ET_SENSOR_ENABLE_CHANGE:
         case SAHPI_ET_WATCHDOG:
+        case SAHPI_ET_HPI_SW:
         case SAHPI_ET_OEM:
 	case SAHPI_ET_DOMAIN:
 	case SAHPI_ET_USER:
