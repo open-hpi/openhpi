@@ -422,6 +422,13 @@ AC_ARG_ENABLE([oa_soap],
      fi
     ])
 
+# configure argument for the slave plugin
+AC_ARG_ENABLE([slave],
+    [  --enable-slave      build slave plugin [[default=no]]],
+    [if test "x$enableval" = "xyes"; then
+        AC_SUBST(SLAVE,slave)
+    fi])
+
 dnl
 dnl create static plugin config
 dnl
@@ -724,6 +731,7 @@ AC_CONFIG_FILES([openhpi.spec
         plugins/rtas/Makefile
         plugins/ilo2_ribcl/Makefile
         plugins/oa_soap/Makefile
+        plugins/slave/Makefile
         scripts/Makefile
         scripts/test/Makefile
         snmp/Makefile
