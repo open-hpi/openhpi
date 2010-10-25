@@ -35,6 +35,10 @@
 %define with_oa_soap @WITH_OA_SOAP@
 %define with_docbook2html @WITH_DOCBOOK2HTML@
 
+%if "x@SLAVE@" == "xslave"
+%define with_slave 1
+%endif
+
 Name: @HPI_PKG@
 Version: @VERSION@
 Release: 1
@@ -150,6 +154,13 @@ BuildRequires: libxml2-devel
 Requires: openhpi = %{version} libxml2 openssl
 %endif
 
+%if 0%{?with_slave}
+%package slave
+Summary: OpenHPI plugin for a slave OpenHPI daemon
+Group: System/Monitoring
+Requires: openhpi = %{version}
+%endif
+
 %description 
 An open implementation of the Service Availability Forum (SAF)
 Hardware Platform Interface (HPI). It includes support for multiple types of
@@ -226,6 +237,12 @@ information via Remote Insight Board Command Language (RIBCL).
 OpenHPI plug-in supporting HP BladeSystems c-Class. This plug-in connects
 to the OA of a c-Class chassis using an SSL connection and manages the system
 using an XML-encoded SOAP interface.
+%endif
+
+%if 0%{?with_slave}
+%description slave
+OpenHPI plug-in that connects to a specified OpenHPI daemon and
+represents the remote daemon resources at its owns.
 %endif
 
 ###################################################
@@ -369,5 +386,13 @@ make DESTDIR=%{buildroot} install
 ###################################################
 %defattr(-,root,root)
 %{_libdir}/%{name}/liboa_soap.*
+%endif
+
+###################################################
+%if 0%{?with_slave}
+%files slave
+###################################################
+%defattr(-,root,root)
+%{_libdir}/%{name}/libslave.*
 %endif
 
