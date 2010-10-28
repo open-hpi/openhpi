@@ -32,7 +32,7 @@ int main(int argc, char **argv)
 	while ( (c = getopt( argc, argv,"c:ef:xn:?")) != EOF )
 		switch(c)  {
 			case 'c':
-				setenv("OPENHPI_CONF", optarg, 1);
+				setenv("OPENHPICLIENT_CONF", optarg, 1);
 				break;
 			case 'e':
 				eflag = 1;
@@ -48,7 +48,7 @@ int main(int argc, char **argv)
                 break;
 			default:
 				printf("Usage: %s [-c <cfgfile>][-e][-f <file>][-n <hostname>]\n", argv[0]);
-				printf("   -c <cfgfile> - use passed file as configuration file\n");
+				printf("   -c <cfgfile> - use passed file as client configuration file\n");
 				printf("   -e - show short events, discover after subscribe\n");
 				printf("   -f <file> - execute command file\n");
                 printf("   -n <hostname>  use passed hostname as OpenHPI daemon host\n");
