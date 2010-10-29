@@ -5,7 +5,7 @@ hpi_shell - An openhpi sample application that allows a user to interactively pe
 
 =head1 SYNOPSIS 
 
-hpi_shell [-c <cfgfile>] [-e] [-f <file>] [-n <hostname>]
+hpi_shell [-D id] [-c <cfgfile>] [-e] [-f <file>] [-n <hostname>]
 
 =head1 DESCRIPTION
 
@@ -20,6 +20,7 @@ Once in hpi_shell, use the "help" command for a list of commands, or
 
 =over 2
 
+ -D nn  Select domain id nn
  -c     Use the specified openhpi client config file
  -e     Show short events, discover after subscribe
  -f     Read commands from "file" rather than standard input
