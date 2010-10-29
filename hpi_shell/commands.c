@@ -1213,7 +1213,7 @@ static ret_code_t reopen_session(void)
         if (rv != SA_OK) {
                 printf("saHpiSessionClose error %s\n", oh_lookup_error(rv));
         }
-        if (open_session(eflag) != 0) {
+        if (open_session(Domain->domainId, eflag) != 0) {
                 printf("Can not open session\n");
                 return(HPI_SHELL_CMD_ERROR);
         }
