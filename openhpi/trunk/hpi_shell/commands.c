@@ -1384,41 +1384,7 @@ ret_code_t domain_proc(void)
 
         term = get_next_term();
         if (term == NULL) {
-                printf("Domain list:\n");
-                printf("    ID: %d   SessionId: %d", Domain->domainId,
-                        Domain->sessionId);
-                rv = saHpiDomainInfoGet(Domain->sessionId, &info);
-                if (rv == SA_OK) {
-                        print_text_buffer_text("    Tag: ",
-                                &(info.DomainTag), NULL, ui_print);
-                };
-                printf("\n");
-                entryid = SAHPI_FIRST_ENTRY;
-                first = 1;
-                while (entryid != SAHPI_LAST_ENTRY) {
-                        rv = saHpiDrtEntryGet(Domain->sessionId, entryid,
-                                &nextentryid, &drtentry);
-                        if (rv != SA_OK) break;
-                        if (first) {
-                                first = 0;
-                                printf("        Domain Reference Table:\n");
-                        };
-                        printf("            ID: %d", drtentry.DomainId);
-                        entryid = nextentryid;
-                        rv = saHpiSessionOpen(drtentry.DomainId,
-                                                &sessionId, NULL);
-                        if (rv != SA_OK) {
-                                printf("\n");
-                                continue;
-                        };
-                        rv = saHpiDomainInfoGet(sessionId, &info);
-                        if (rv == SA_OK) {
-                                print_text_buffer_text("    Tag: ",  &(info.DomainTag), NULL, ui_print);
-                        };
-                        saHpiSessionClose(sessionId);
-                        printf("\n");
-                }
-                return(HPI_SHELL_OK);
+                return(HPI_SHELL_PARM_ERROR);
         };
 
         if (isdigit(term->term[0]))
@@ -1448,6 +1414,56 @@ ret_code_t domain_proc(void)
         add_domain(Domain);
         return(HPI_SHELL_OK);
 }
+
+
+static ret_code_t show_drt(void)
+{
+    SaErrorT rv;
+    SaHpiDomainInfoT dinfo;
+    SaHpiEntryIdT id, nextid;
+
+    rv = saHpiDomainInfoGet(Domain->sessionId, &dinfo);
+    if (rv != SA_OK) {
+        printf("ERROR!!! saHpiDomainInfoGet: %s\n", oh_lookup_error(rv));
+        return(HPI_SHELL_CMD_ERROR);
+    }
+    printf("DRT for Domain %u, Session %u,", Domain->domainId, Domain->sessionId);
+    print_text_buffer_text(" Tag: ", &(dinfo.DomainTag), NULL, ui_print);
+    printf("\n");
+
+    id = SAHPI_FIRST_ENTRY;
+    while (id != SAHPI_LAST_ENTRY) {
+        SaHpiDrtEntryT drte;
+        SaHpiSessionIdT sessionId;
+
+        rv = saHpiDrtEntryGet(Domain->sessionId, id, &nextid, &drte);
+        if (rv == SA_ERR_HPI_NOT_PRESENT) {
+            break;
+        } else if (rv != SA_OK) {
+            printf("ERROR!!! saHpiDrtEntryGet: %s\n", oh_lookup_error(rv));
+            return HPI_SHELL_CMD_ERROR;
+        }
+        printf("   Domain %u", drte.DomainId);
+        if (drte.IsPeer != SAHPI_FALSE ) {
+            printf(", Peer");
+        }
+        rv = saHpiSessionOpen(drte.DomainId, &sessionId, 0);
+        if (rv == SA_OK) {
+            rv = saHpiDomainInfoGet(sessionId, &dinfo);
+            if (rv == SA_OK) {
+                print_text_buffer_text(", Accessible, Tag: ",  &(dinfo.DomainTag), NULL, ui_print);
+            };
+            rv = saHpiSessionClose(sessionId);
+        };
+        printf( "\n" );
+
+        id = nextid;
+    }
+
+    return HPI_SHELL_OK;
+}
+
+
 #ifdef KUZ_DEBUG
 static ret_code_t test_cmd(void)
 {
@@ -1482,10 +1498,12 @@ const char dimiblockhelp[] = "dimi: DIMI command block\n"
                         "       DimiId:: <resourceId> <DimiNum>\n";
 const char debughelp[] = "debug: set or unset OPENHPI_ERROR environment\n"
                         "Usage: debug [ on | off ]";
-const char domainhelp[] = "domain: show domain list and set current domain\n"
+const char domainhelp[] = "domain: set current domain\n"
                         "Usage: domain [<domain id>]";
 const char domaininfohelp[] = "domaininfo: show current domain info\n"
                         "Usage: domaininfo";
+const char drthelp[] = "drt: show DRT for the current domain\n"
+                        "Usage: drt";
 const char dscvhelp[] = "dscv: discovery resources\n"
                         "Usage: dscv ";
 const char echohelp[] = "echo: pass string to the stdout\n"
@@ -1723,6 +1741,7 @@ command_def_t commands[] = {
     { "dimi",           dimi_block,     dimiblockhelp,  MAIN_COM },
     { "domain",         domain_proc,    domainhelp,     MAIN_COM },
     { "domaininfo",     domain_info,    domaininfohelp, MAIN_COM },
+    { "drt",            show_drt,       drthelp,        MAIN_COM },
     { "dscv",           discovery,      dscvhelp,       MAIN_COM },
     { "echo",           echo,           echohelp,       UNDEF_COM },
     { "entinstr",       entity_instruments, entinstrhelp,   UNDEF_COM },
