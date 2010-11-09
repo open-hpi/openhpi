@@ -251,7 +251,7 @@ if PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig pkg-config --atleas
 fi
 
 AC_ARG_ENABLE([ipmi],
-    [  --enable-ipmi           build openipmi plugin [[default=yes if OpenIPMI exists]]],
+    [  --enable-ipmi           build openipmi plugin [[default=no]]],
     [if test "x$enableval" = "xyes"; then
         if test "x$have_openipmi" = "xyes"; then
             AC_SUBST(IPMI,ipmi)
@@ -273,13 +273,7 @@ AC_ARG_ENABLE([ipmi],
     else
 	    AC_SUBST(WITH_IPMI,0)
     fi],
-    [if test "x$have_openipmi" = "xyes"; then
-            AC_SUBST(IPMI,ipmi)
-	    AC_SUBST(WITH_IPMI,1)
-     else
-	    AC_SUBST(WITH_IPMI,0) 
-     fi
-    ])
+    [AC_SUBST(WITH_IPMI,0)])
 
 AC_ARG_ENABLE([sysfs],
     [  --enable-sysfs          build sysfs plugin [[default=yes if libsysfs exists]]],
