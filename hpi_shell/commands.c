@@ -1370,13 +1370,8 @@ static ret_code_t domain_info(void)
 
 ret_code_t domain_proc(void)
 {
-        SaHpiDomainInfoT        info;
-        SaHpiEntryIdT           entryid, nextentryid;
-        SaHpiDrtEntryT          drtentry;
-        SaErrorT                rv;
         SaHpiDomainIdT          id;
-        SaHpiSessionIdT         sessionId;
-        int                     i, n, first;
+        int                     i, n;
         gpointer                ptr;
         Domain_t                *domain = (Domain_t *)NULL;
         Domain_t                *new_domain;
