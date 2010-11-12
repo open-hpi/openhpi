@@ -96,6 +96,10 @@ SaErrorT oh_create_connx(SaHpiDomainIdT did, pcstrmsock *pinst)
                 delete connx;
 		return SA_ERR_HPI_NO_RESPONSE;
 	}
+    // TODO configuration file, env vars?
+    connx->EnableKeepAliveProbes(/* keepalive_time*/ 1,
+                                 /* keepalive_intvl */ 1,
+                                 /* keepalive_probes */ 3 );
         
         *pinst = connx;
 	dbg("Client instance created");
