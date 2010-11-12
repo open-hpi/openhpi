@@ -22,6 +22,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <arpa/inet.h>
 #include <sys/ioctl.h>
 #include <netdb.h>
@@ -266,6 +267,50 @@ bool cstrmsock::Open(
 	errcode = 0;
 	fOpen = TRUE;
 	return(FALSE);
+}
+
+bool cstrmsock::EnableKeepAliveProbes( int keepalive_time,
+                                       int keepalive_intvl,
+                                       int keepalive_probes )
+{
+#ifdef __linux__
+    int rc;
+    int optval;
+
+    optval = 1;
+    rc = setsockopt(s, SOL_SOCKET, SO_KEEPALIVE, &optval, sizeof(optval));
+    if ( rc != 0 ) {
+        err( "failed to set SO_KEEPALIVE option, errno = %d\n", errno );
+        return true;
+    }
+    optval = keepalive_time;
+    rc = setsockopt(s, SOL_TCP, TCP_KEEPIDLE, &optval, sizeof(optval));
+    if ( rc != 0 ) {
+        err( "failed to set TCP_KEEPIDLE option, errno = %d\n", errno );
+        return true;
+    }
+    optval = keepalive_intvl;
+    rc = setsockopt(s, SOL_TCP, TCP_KEEPINTVL, &optval, sizeof(optval));
+    if ( rc != 0 ) {
+        err( "failed to set TCP_KEEPINTVL option, errno = %d\n", errno );
+        return true;
+    }
+    optval = keepalive_probes;
+    rc = setsockopt(s, SOL_TCP, TCP_KEEPCNT, &optval, sizeof(optval));
+    if ( rc != 0 ) {
+        err( "failed to set TCP_KEEPCNT option, errno = %d\n", errno );
+        return true;
+    }
+
+    return false;
+
+#else
+
+    err( "TCP Keep-Alive Probes are not supported\n" );
+
+    return true;
+
+#endif /* __linux__ */
 }
 
 
