@@ -267,7 +267,7 @@ SaErrorT SAHPI_API saHpiSessionOpen(
 	cHpiMarshal *hm = HpiMarshalFind(eFsaHpiSessionOpen);
 	pinst->MessageHeaderInit(
                 eMhMsg, 0, eFsaHpiSessionOpen, hm->m_request_len);
-	request = malloc(hm->m_request_len);
+	request = g_malloc(hm->m_request_len);
         /* TODO: Does daemon need domain id param in this call*/
 	pinst->header.m_len = HpiMarshalRequest1(hm, request, &default_did);
         SendRecv(0, cmd);
@@ -277,7 +277,7 @@ SaErrorT SAHPI_API saHpiSessionOpen(
                                     &err, &domain_sid);
 
 	if (request)
-		free(request);
+		g_free(request);
 	if (err != SA_OK) {
 		oh_delete_connx(pinst);
                 return err;
@@ -316,7 +316,7 @@ SaErrorT SAHPI_API saHpiSessionClose(
 	cHpiMarshal *hm = HpiMarshalFind(eFsaHpiSessionClose);
 	pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiSessionClose,
 				 hm->m_request_len);
-	request = malloc(hm->m_request_len);
+	request = g_malloc(hm->m_request_len);
 
 	pinst->header.m_len = HpiMarshalRequest1(hm, request, &dsid);
 
@@ -326,7 +326,7 @@ SaErrorT SAHPI_API saHpiSessionClose(
 				    hm, reply + sizeof(cMessageHeader), &err);
 
 	if (request)
-		free(request);
+		g_free(request);
                 
         oh_close_session(SessionId);
         
@@ -362,7 +362,7 @@ SaErrorT SAHPI_API saHpiDiscover(
 	cHpiMarshal *hm = HpiMarshalFind(eFsaHpiDiscover);
 	pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiDiscover,
 				 hm->m_request_len);
-	request = malloc(hm->m_request_len);
+	request = g_malloc(hm->m_request_len);
 
 	pinst->header.m_len = HpiMarshalRequest1(hm, request, &dsid);
 
@@ -372,7 +372,7 @@ SaErrorT SAHPI_API saHpiDiscover(
 				    hm, reply + sizeof(cMessageHeader), &err);
 
 	if (request)
-		free(request);
+		g_free(request);
 
         if (pinst->header.m_type == eMhError)
 		return SA_ERR_HPI_INVALID_PARAMS;
@@ -411,7 +411,7 @@ SaErrorT SAHPI_API saHpiDomainInfoGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiDomainInfoGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiDomainInfoGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest1(hm, request, &dsid);
 
@@ -422,7 +422,7 @@ SaErrorT SAHPI_API saHpiDomainInfoGet(
 	/* Set Domain Id to real Domain Id */
 	DomainInfo->DomainId = did;
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -464,7 +464,7 @@ SaErrorT SAHPI_API saHpiDrtEntryGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiDrtEntryGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiDrtEntryGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &EntryId);
 
@@ -476,7 +476,7 @@ SaErrorT SAHPI_API saHpiDrtEntryGet(
 	DrtEntry->DomainId = did;
 	
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -513,7 +513,7 @@ SaErrorT SAHPI_API saHpiDomainTagSet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiDomainTagSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiDomainTagSet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, DomainTag);
 
@@ -522,7 +522,7 @@ SaErrorT SAHPI_API saHpiDomainTagSet(
         int mr = HpiDemarshalReply0(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -563,7 +563,7 @@ SaErrorT SAHPI_API saHpiRptEntryGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiRptEntryGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiRptEntryGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &EntryId);
 
@@ -572,7 +572,7 @@ SaErrorT SAHPI_API saHpiRptEntryGet(
         int mr = HpiDemarshalReply2(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err, NextEntryId, RptEntry);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -610,7 +610,7 @@ SaErrorT SAHPI_API saHpiRptEntryGetByResourceId(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiRptEntryGetByResourceId);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiRptEntryGetByResourceId, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &ResourceId);
 
@@ -619,7 +619,7 @@ SaErrorT SAHPI_API saHpiRptEntryGetByResourceId(
         int mr = HpiDemarshalReply1(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err, RptEntry);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -657,7 +657,7 @@ SaErrorT SAHPI_API saHpiResourceSeveritySet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiResourceSeveritySet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiResourceSeveritySet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &Severity);
 
@@ -666,7 +666,7 @@ SaErrorT SAHPI_API saHpiResourceSeveritySet(
         int mr = HpiDemarshalReply0(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -702,7 +702,7 @@ SaErrorT SAHPI_API saHpiResourceTagSet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiResourceTagSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiResourceTagSet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, ResourceTag);
 
@@ -711,7 +711,7 @@ SaErrorT SAHPI_API saHpiResourceTagSet(
         int mr = HpiDemarshalReply0(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -746,7 +746,7 @@ SaErrorT SAHPI_API saHpiMyEntityPathGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiMyEntityPathGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiMyEntityPathGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest1(hm, request, &dsid);
 
@@ -755,7 +755,7 @@ SaErrorT SAHPI_API saHpiMyEntityPathGet(
         int mr = HpiDemarshalReply1(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err, EntityPath);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -790,7 +790,7 @@ SaErrorT SAHPI_API saHpiResourceIdGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiResourceIdGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiResourceIdGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest1(hm, request, &dsid);
 
@@ -799,7 +799,7 @@ SaErrorT SAHPI_API saHpiResourceIdGet(
         int mr = HpiDemarshalReply1(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err, ResourceId);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -844,7 +844,7 @@ SaErrorT SAHPI_API saHpiGetIdByEntityPath(
         
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiGetIdByEntityPath);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiGetIdByEntityPath, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request, &dsid,
                                                  &EntityPath, &InstrumentType,
@@ -857,7 +857,7 @@ SaErrorT SAHPI_API saHpiGetIdByEntityPath(
                                     InstanceId, ResourceId, InstrumentId, RptUpdateCount);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -896,7 +896,7 @@ SaErrorT SAHPI_API saHpiGetChildEntityPath(
         
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiGetChildEntityPath);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiGetChildEntityPath, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid,
                                                  &ParentEntityPath,
@@ -909,7 +909,7 @@ SaErrorT SAHPI_API saHpiGetChildEntityPath(
                                     InstanceId, ChildEntityPath, RptUpdateCount);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -942,7 +942,7 @@ SaErrorT SAHPI_API saHpiResourceFailedRemove(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiResourceFailedRemove);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiResourceFailedRemove, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &ResourceId);
 
@@ -951,7 +951,7 @@ SaErrorT SAHPI_API saHpiResourceFailedRemove(
         int mr = HpiDemarshalReply0(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -986,7 +986,7 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiEventLogInfoGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiEventLogInfoGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &ResourceId);
 
@@ -995,7 +995,7 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet(
         int mr = HpiDemarshalReply1(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err, Info);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -1030,7 +1030,7 @@ SaErrorT SAHPI_API saHpiEventLogCapabilitiesGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiEventLogCapabilitiesGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiEventLogCapabilitiesGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &ResourceId);
 
@@ -1040,7 +1040,7 @@ SaErrorT SAHPI_API saHpiEventLogCapabilitiesGet(
                                     &err, EventLogCapabilities);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -1084,7 +1084,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiEventLogEntryGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiEventLogEntryGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &EntryId);
 
@@ -1106,7 +1106,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet(
 	}
 	
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -1149,7 +1149,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiEventLogEntryAdd);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiEventLogEntryAdd, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, EvtEntry);
 
@@ -1158,7 +1158,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd(
         int mr = HpiDemarshalReply0(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -1191,7 +1191,7 @@ SaErrorT SAHPI_API saHpiEventLogClear(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiEventLogClear);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiEventLogClear, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &ResourceId);
 
@@ -1200,7 +1200,7 @@ SaErrorT SAHPI_API saHpiEventLogClear(
         int mr = HpiDemarshalReply0(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -1236,7 +1236,7 @@ SaErrorT SAHPI_API saHpiEventLogTimeGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiEventLogTimeGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiEventLogTimeGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &ResourceId);
 
@@ -1245,7 +1245,7 @@ SaErrorT SAHPI_API saHpiEventLogTimeGet(
         int mr = HpiDemarshalReply1(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err, Time);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -1279,7 +1279,7 @@ SaErrorT SAHPI_API saHpiEventLogTimeSet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiEventLogTimeSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiEventLogTimeSet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &Time);
 
@@ -1288,7 +1288,7 @@ SaErrorT SAHPI_API saHpiEventLogTimeSet(
         int mr = HpiDemarshalReply0(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -1324,7 +1324,7 @@ SaErrorT SAHPI_API saHpiEventLogStateGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiEventLogStateGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiEventLogStateGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &ResourceId);
 
@@ -1333,7 +1333,7 @@ SaErrorT SAHPI_API saHpiEventLogStateGet(
         int mr = HpiDemarshalReply1(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err, EnableState);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -1367,7 +1367,7 @@ SaErrorT SAHPI_API saHpiEventLogStateSet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiEventLogStateSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiEventLogStateSet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &EnableState);
 
@@ -1376,7 +1376,7 @@ SaErrorT SAHPI_API saHpiEventLogStateSet(
         int mr = HpiDemarshalReply0(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -1409,7 +1409,7 @@ SaErrorT SAHPI_API saHpiEventLogOverflowReset(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiEventLogOverflowReset);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiEventLogOverflowReset, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &ResourceId);
 
@@ -1418,7 +1418,7 @@ SaErrorT SAHPI_API saHpiEventLogOverflowReset(
         int mr = HpiDemarshalReply0(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -1450,7 +1450,7 @@ SaErrorT SAHPI_API saHpiSubscribe(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiSubscribe);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiSubscribe, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest1(hm, request, &dsid);
 
@@ -1459,7 +1459,7 @@ SaErrorT SAHPI_API saHpiSubscribe(
         int mr = HpiDemarshalReply0(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -1491,7 +1491,7 @@ SaErrorT SAHPI_API saHpiUnsubscribe(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiUnsubscribe);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiUnsubscribe, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest1(hm, request, &dsid);
 
@@ -1500,7 +1500,7 @@ SaErrorT SAHPI_API saHpiUnsubscribe(
         int mr = HpiDemarshalReply0(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -1542,7 +1542,7 @@ SaErrorT SAHPI_API saHpiEventGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiEventGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiEventGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &Timeout);
 
@@ -1561,7 +1561,7 @@ SaErrorT SAHPI_API saHpiEventGet(
         }
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -1597,7 +1597,7 @@ SaErrorT SAHPI_API saHpiEventAdd(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiEventAdd);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiEventAdd, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, Event);
 
@@ -1606,7 +1606,7 @@ SaErrorT SAHPI_API saHpiEventAdd(
         int mr = HpiDemarshalReply0(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -1647,7 +1647,7 @@ SaErrorT SAHPI_API saHpiAlarmGetNext(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiAlarmGetNext);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiAlarmGetNext, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request, &dsid, &Severity, &Unack, Alarm);
 
@@ -1658,7 +1658,7 @@ SaErrorT SAHPI_API saHpiAlarmGetNext(
         /* Set Alarm DomainId to actual DomainID since openhpi core lib has DEFAULT_DOMAIN_ID */
         Alarm->AlarmCond.DomainId = did;
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -1694,7 +1694,7 @@ SaErrorT SAHPI_API saHpiAlarmGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiAlarmGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiAlarmGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &AlarmId);
 
@@ -1705,7 +1705,7 @@ SaErrorT SAHPI_API saHpiAlarmGet(
         /* Set Alarm DomainId to actual DomainID since openhpi core lib has DEFAULT_DOMAIN_ID */
         Alarm->AlarmCond.DomainId = did;
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -1742,7 +1742,7 @@ SaErrorT SAHPI_API saHpiAlarmAcknowledge(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiAlarmAcknowledge);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiAlarmAcknowledge, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &AlarmId, &Severity);
 
@@ -1751,7 +1751,7 @@ SaErrorT SAHPI_API saHpiAlarmAcknowledge(
         int mr = HpiDemarshalReply0(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -1788,7 +1788,7 @@ SaErrorT SAHPI_API saHpiAlarmAdd(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiAlarmAdd);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiAlarmAdd, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, Alarm);
 
@@ -1799,7 +1799,7 @@ SaErrorT SAHPI_API saHpiAlarmAdd(
         /* Set Alarm DomainId to actual DomainID since openhpi core lib has DEFAULT_DOMAIN_ID */
 		Alarm->AlarmCond.DomainId = did;
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -1836,7 +1836,7 @@ SaErrorT SAHPI_API saHpiAlarmDelete(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiAlarmDelete);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiAlarmDelete, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &AlarmId, &Severity);
 
@@ -1845,7 +1845,7 @@ SaErrorT SAHPI_API saHpiAlarmDelete(
         int mr = HpiDemarshalReply0(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -1883,7 +1883,7 @@ SaErrorT SAHPI_API saHpiRdrGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiRdrGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiRdrGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &EntryId);
 
@@ -1892,7 +1892,7 @@ SaErrorT SAHPI_API saHpiRdrGet(
         int mr = HpiDemarshalReply2(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err, NextEntryId, Rdr);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -1931,7 +1931,7 @@ SaErrorT SAHPI_API saHpiRdrGetByInstrumentId(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiRdrGetByInstrumentId);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiRdrGetByInstrumentId, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request, &dsid, &ResourceId, &RdrType, &InstrumentId);
 
@@ -1940,7 +1940,7 @@ SaErrorT SAHPI_API saHpiRdrGetByInstrumentId(
         int mr = HpiDemarshalReply1(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err, Rdr);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -1976,7 +1976,7 @@ SaErrorT SAHPI_API saHpiRdrUpdateCountGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiRdrUpdateCountGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiRdrUpdateCountGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &ResourceId);
 
@@ -1985,7 +1985,7 @@ SaErrorT SAHPI_API saHpiRdrUpdateCountGet(
         int mr = HpiDemarshalReply1(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err, UpdateCount);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -2023,7 +2023,7 @@ SaErrorT SAHPI_API saHpiSensorReadingGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiSensorReadingGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiSensorReadingGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &SensorNum);
 
@@ -2039,7 +2039,7 @@ SaErrorT SAHPI_API saHpiSensorReadingGet(
         }
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -2076,7 +2076,7 @@ SaErrorT SAHPI_API saHpiSensorThresholdsGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiSensorThresholdsGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiSensorThresholdsGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &SensorNum);
 
@@ -2085,7 +2085,7 @@ SaErrorT SAHPI_API saHpiSensorThresholdsGet(
         int mr = HpiDemarshalReply1(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err, Thresholds);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -2126,7 +2126,7 @@ SaErrorT SAHPI_API saHpiSensorThresholdsSet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiSensorThresholdsSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiSensorThresholdsSet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request, &dsid, &ResourceId, &SensorNum, &tmpthrds);
 
@@ -2135,7 +2135,7 @@ SaErrorT SAHPI_API saHpiSensorThresholdsSet(
         int mr = HpiDemarshalReply0(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -2173,7 +2173,7 @@ SaErrorT SAHPI_API saHpiSensorTypeGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiSensorTypeGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiSensorTypeGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &SensorNum);
 
@@ -2182,7 +2182,7 @@ SaErrorT SAHPI_API saHpiSensorTypeGet(
         int mr = HpiDemarshalReply2(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err, Type, Category);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -2219,7 +2219,7 @@ SaErrorT SAHPI_API saHpiSensorEnableGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiSensorEnableGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiSensorEnableGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &SensorNum);
 
@@ -2228,7 +2228,7 @@ SaErrorT SAHPI_API saHpiSensorEnableGet(
         int mr = HpiDemarshalReply1(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err, Enabled);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -2263,7 +2263,7 @@ SaErrorT SAHPI_API saHpiSensorEnableSet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiSensorEnableSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiSensorEnableSet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request, &dsid, &ResourceId, &SensorNum, &Enabled);
 
@@ -2272,7 +2272,7 @@ SaErrorT SAHPI_API saHpiSensorEnableSet(
         int mr = HpiDemarshalReply0(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -2309,7 +2309,7 @@ SaErrorT SAHPI_API saHpiSensorEventEnableGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiSensorEventEnableGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiSensorEventEnableGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &SensorNum);
 
@@ -2318,7 +2318,7 @@ SaErrorT SAHPI_API saHpiSensorEventEnableGet(
         int mr = HpiDemarshalReply1(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err, Enabled);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -2353,7 +2353,7 @@ SaErrorT SAHPI_API saHpiSensorEventEnableSet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiSensorEventEnableSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiSensorEventEnableSet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request, &dsid, &ResourceId, &SensorNum, &Enabled);
 
@@ -2362,7 +2362,7 @@ SaErrorT SAHPI_API saHpiSensorEventEnableSet(
         int mr = HpiDemarshalReply0(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -2403,7 +2403,7 @@ SaErrorT SAHPI_API saHpiSensorEventMasksGet(
         
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiSensorEventMasksGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiSensorEventMasksGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest5(hm, request, &dsid, &ResourceId, &SensorNum, Assert, Deassert);
 
@@ -2412,7 +2412,7 @@ SaErrorT SAHPI_API saHpiSensorEventMasksGet(
         int mr = HpiDemarshalReply2(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err, Assert, Deassert);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -2449,7 +2449,7 @@ SaErrorT SAHPI_API saHpiSensorEventMasksSet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiSensorEventMasksSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiSensorEventMasksSet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest6(hm, request,
               &dsid, &ResourceId, &SensorNum, &Action, &Assert, &Deassert);
@@ -2459,7 +2459,7 @@ SaErrorT SAHPI_API saHpiSensorEventMasksSet(
         int mr = HpiDemarshalReply0(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -2497,7 +2497,7 @@ SaErrorT SAHPI_API saHpiControlTypeGet(
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiControlTypeGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiControlTypeGet,
                                  hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid,
                                                  &ResourceId, &CtrlNum);
@@ -2508,7 +2508,7 @@ SaErrorT SAHPI_API saHpiControlTypeGet(
                                     reply + sizeof(cMessageHeader), &err, Type);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -2558,7 +2558,7 @@ SaErrorT SAHPI_API saHpiControlGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiControlGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiControlGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request, &dsid,
                                                  &ResourceId, &CtrlNum,
@@ -2578,7 +2578,7 @@ SaErrorT SAHPI_API saHpiControlGet(
         }
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -2631,7 +2631,7 @@ SaErrorT SAHPI_API saHpiControlSet(
         
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiControlSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiControlSet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest5(hm, request, &dsid, &ResourceId, &CtrlNum, &Mode, pmystate);
 
@@ -2640,7 +2640,7 @@ SaErrorT SAHPI_API saHpiControlSet(
         int mr = HpiDemarshalReply0(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -2677,7 +2677,7 @@ SaErrorT SAHPI_API saHpiIdrInfoGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiIdrInfoGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiIdrInfoGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &Idrid);
 
@@ -2686,7 +2686,7 @@ SaErrorT SAHPI_API saHpiIdrInfoGet(
         int mr = HpiDemarshalReply1(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err, Info);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -2732,7 +2732,7 @@ SaErrorT SAHPI_API saHpiIdrAreaHeaderGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiIdrAreaHeaderGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiIdrAreaHeaderGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest5(hm, request, &dsid, &ResourceId, &Idrid, &AreaType, &AreaId);
 
@@ -2741,7 +2741,7 @@ SaErrorT SAHPI_API saHpiIdrAreaHeaderGet(
         int mr = HpiDemarshalReply2(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err, NextAreaId, Header);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -2784,7 +2784,7 @@ SaErrorT SAHPI_API saHpiIdrAreaAdd(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiIdrAreaAdd);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiIdrAreaAdd, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request, &dsid, &ResourceId, &Idrid, &AreaType);
 
@@ -2793,7 +2793,7 @@ SaErrorT SAHPI_API saHpiIdrAreaAdd(
         int mr = HpiDemarshalReply1(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err, AreaId);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -2835,7 +2835,7 @@ SaErrorT SAHPI_API saHpiIdrAreaAddById(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiIdrAreaAddById);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiIdrAreaAddById, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest5(hm, request, &dsid, &ResourceId, &Idrid, &AreaType, &AreaId);
 
@@ -2844,7 +2844,7 @@ SaErrorT SAHPI_API saHpiIdrAreaAddById(
         int mr = HpiDemarshalReply0(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -2881,7 +2881,7 @@ SaErrorT SAHPI_API saHpiIdrAreaDelete(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiIdrAreaDelete);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiIdrAreaDelete, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request, &dsid, &ResourceId, &Idrid, &AreaId);
 
@@ -2890,7 +2890,7 @@ SaErrorT SAHPI_API saHpiIdrAreaDelete(
         int mr = HpiDemarshalReply0(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -2938,7 +2938,7 @@ SaErrorT SAHPI_API saHpiIdrFieldGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiIdrFieldGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiIdrFieldGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest6(hm, request, &dsid, &ResourceId, &Idrid, &AreaId, &FieldType, &FieldId);
 
@@ -2947,7 +2947,7 @@ SaErrorT SAHPI_API saHpiIdrFieldGet(
         int mr = HpiDemarshalReply2(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err, NextId, Field);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -2996,7 +2996,7 @@ SaErrorT SAHPI_API saHpiIdrFieldAdd(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiIdrFieldAdd);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiIdrFieldAdd, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request, &dsid, &ResourceId, &Idrid, Field);
 
@@ -3005,7 +3005,7 @@ SaErrorT SAHPI_API saHpiIdrFieldAdd(
         int mr = HpiDemarshalReply1(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err, Field);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -3054,7 +3054,7 @@ SaErrorT SAHPI_API saHpiIdrFieldAddById(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiIdrFieldAddById);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiIdrFieldAddById, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request, &dsid, &ResourceId, &Idrid, Field);
 
@@ -3063,7 +3063,7 @@ SaErrorT SAHPI_API saHpiIdrFieldAddById(
         int mr = HpiDemarshalReply1(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err, Field);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -3102,7 +3102,7 @@ SaErrorT SAHPI_API saHpiIdrFieldSet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiIdrFieldSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiIdrFieldSet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request, &dsid, &ResourceId, &Idrid, Field);
 
@@ -3111,7 +3111,7 @@ SaErrorT SAHPI_API saHpiIdrFieldSet(
         int mr = HpiDemarshalReply0(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -3149,7 +3149,7 @@ SaErrorT SAHPI_API saHpiIdrFieldDelete(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiIdrFieldDelete);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiIdrFieldDelete, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest5(hm, request, &dsid, &ResourceId, &Idrid, &AreaId, &FieldId);
 
@@ -3158,7 +3158,7 @@ SaErrorT SAHPI_API saHpiIdrFieldDelete(
         int mr = HpiDemarshalReply0(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -3195,7 +3195,7 @@ SaErrorT SAHPI_API saHpiWatchdogTimerGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiWatchdogTimerGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiWatchdogTimerGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &WatchdogNum);
 
@@ -3204,7 +3204,7 @@ SaErrorT SAHPI_API saHpiWatchdogTimerGet(
         int mr = HpiDemarshalReply1(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err, Watchdog);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -3250,7 +3250,7 @@ SaErrorT SAHPI_API saHpiWatchdogTimerSet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiWatchdogTimerSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiWatchdogTimerSet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request, &dsid, &ResourceId, &WatchdogNum, Watchdog);
 
@@ -3259,7 +3259,7 @@ SaErrorT SAHPI_API saHpiWatchdogTimerSet(
         int mr = HpiDemarshalReply0(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -3293,7 +3293,7 @@ SaErrorT SAHPI_API saHpiWatchdogTimerReset(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiWatchdogTimerReset);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiWatchdogTimerReset, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &WatchdogNum);
 
@@ -3302,7 +3302,7 @@ SaErrorT SAHPI_API saHpiWatchdogTimerReset(
         int mr = HpiDemarshalReply0(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -3343,7 +3343,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorGetNext(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiAnnunciatorGetNext);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiAnnunciatorGetNext, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest6(hm, request, &dsid, &ResourceId, &AnnNum, &Severity, &Unack, Announcement);
 
@@ -3352,7 +3352,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorGetNext(
         int mr = HpiDemarshalReply1(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err, Announcement);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -3392,7 +3392,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiAnnunciatorGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiAnnunciatorGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request, &dsid, &ResourceId, &AnnNum, &EntryId);
 
@@ -3401,7 +3401,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorGet(
         int mr = HpiDemarshalReply1(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err, Announcement);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -3447,7 +3447,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorAcknowledge(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiAnnunciatorAcknowledge);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiAnnunciatorAcknowledge, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest5(hm, request, &dsid, &ResourceId, &AnnNum, &EntryId, &mysev);
 
@@ -3456,7 +3456,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorAcknowledge(
         int mr = HpiDemarshalReply0(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -3501,7 +3501,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorAdd(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiAnnunciatorAdd);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiAnnunciatorAdd, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request, &dsid, &ResourceId, &AnnNum, Announcement);
 
@@ -3510,7 +3510,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorAdd(
         int mr = HpiDemarshalReply1(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err, Announcement);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -3557,7 +3557,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorDelete(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiAnnunciatorDelete);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiAnnunciatorDelete, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest5(hm, request, &dsid, &ResourceId, &AnnNum, &EntryId, &mysev);
 
@@ -3566,7 +3566,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorDelete(
         int mr = HpiDemarshalReply0(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -3603,7 +3603,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorModeGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiAnnunciatorModeGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiAnnunciatorModeGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &AnnNum);
 
@@ -3612,7 +3612,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorModeGet(
         int mr = HpiDemarshalReply1(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err, Mode);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -3649,7 +3649,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorModeSet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiAnnunciatorModeSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiAnnunciatorModeSet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request, &dsid, &ResourceId, &AnnNum, &Mode);
 
@@ -3658,7 +3658,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorModeSet(
         int mr = HpiDemarshalReply0(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -3695,7 +3695,7 @@ SaErrorT SAHPI_API saHpiDimiInfoGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiDimiInfoGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiDimiInfoGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &DimiNum);
 
@@ -3704,7 +3704,7 @@ SaErrorT SAHPI_API saHpiDimiInfoGet(
         int mr = HpiDemarshalReply1(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err, DimiInfo);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -3737,7 +3737,7 @@ SaErrorT SAHPI_API saHpiDimiTestInfoGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiDimiTestInfoGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiDimiTestInfoGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request,
                                 &dsid, &ResourceId, &DimiNum, &TestNum);
@@ -3749,7 +3749,7 @@ SaErrorT SAHPI_API saHpiDimiTestInfoGet(
                                     &err, DimiTest);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -3782,7 +3782,7 @@ SaErrorT SAHPI_API saHpiDimiTestReadinessGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiDimiTestReadinessGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiDimiTestReadinessGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request,
                                 &dsid, &ResourceId, &DimiNum, &TestNum);
@@ -3794,7 +3794,7 @@ SaErrorT SAHPI_API saHpiDimiTestReadinessGet(
                                     &err, DimiReady);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -3832,7 +3832,7 @@ SaErrorT SAHPI_API saHpiDimiTestStart(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiDimiTestStart);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiDimiTestStart, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest5(hm, request,
                                 &dsid, &ResourceId, &DimiNum, &TestNum,
@@ -3845,7 +3845,7 @@ SaErrorT SAHPI_API saHpiDimiTestStart(
                                     &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -3875,7 +3875,7 @@ SaErrorT SAHPI_API saHpiDimiTestCancel(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiDimiTestCancel);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiDimiTestCancel, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request,
                                 &dsid, &ResourceId, &DimiNum, &TestNum);
@@ -3887,7 +3887,7 @@ SaErrorT SAHPI_API saHpiDimiTestCancel(
                                     &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -3925,7 +3925,7 @@ SaErrorT SAHPI_API saHpiDimiTestStatusGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiDimiTestStatusGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiDimiTestStatusGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request,
                                 &dsid, &ResourceId, &DimiNum, &TestNum);
@@ -3937,7 +3937,7 @@ SaErrorT SAHPI_API saHpiDimiTestStatusGet(
                                     &err, ppercent, RunStatus);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -3970,7 +3970,7 @@ SaErrorT SAHPI_API saHpiDimiTestResultsGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiDimiTestResultsGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiDimiTestResultsGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request,
                                 &dsid, &ResourceId, &DimiNum, &TestNum);
@@ -3982,7 +3982,7 @@ SaErrorT SAHPI_API saHpiDimiTestResultsGet(
                                     &err, TestResults);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -4020,7 +4020,7 @@ SaErrorT SAHPI_API saHpiFumiSpecInfoGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiFumiSpecInfoGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiFumiSpecInfoGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request,
                                 &dsid, &ResourceId, &FumiNum);
@@ -4032,7 +4032,7 @@ SaErrorT SAHPI_API saHpiFumiSpecInfoGet(
                                     &err, SpecInfo);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -4064,7 +4064,7 @@ SaErrorT SAHPI_API saHpiFumiServiceImpactGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiFumiServiceImpactGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiFumiServiceImpactGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request,
                                 &dsid, &ResourceId, &FumiNum);
@@ -4076,7 +4076,7 @@ SaErrorT SAHPI_API saHpiFumiServiceImpactGet(
                                     &err, ServiceImpact);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -4111,7 +4111,7 @@ SaErrorT SAHPI_API saHpiFumiSourceSet (
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiFumiSourceSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiFumiSourceSet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest5(hm, request,
                                 &dsid, &ResourceId, &FumiNum, &BankNum,
@@ -4124,7 +4124,7 @@ SaErrorT SAHPI_API saHpiFumiSourceSet (
                                     &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -4154,7 +4154,7 @@ SaErrorT SAHPI_API saHpiFumiSourceInfoValidateStart (
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiFumiSourceInfoValidateStart);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiFumiSourceInfoValidateStart, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request,
                                 &dsid, &ResourceId, &FumiNum, &BankNum);
@@ -4166,7 +4166,7 @@ SaErrorT SAHPI_API saHpiFumiSourceInfoValidateStart (
                                     &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -4199,7 +4199,7 @@ SaErrorT SAHPI_API saHpiFumiSourceInfoGet (
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiFumiSourceInfoGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiFumiSourceInfoGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request,
                                 &dsid, &ResourceId, &FumiNum, &BankNum);
@@ -4211,7 +4211,7 @@ SaErrorT SAHPI_API saHpiFumiSourceInfoGet (
                                     &err, SourceInfo);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -4248,7 +4248,7 @@ SaErrorT SAHPI_API saHpiFumiSourceComponentInfoGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiFumiSourceComponentInfoGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiFumiSourceComponentInfoGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest5(hm, request,
                                 &dsid, &ResourceId, &FumiNum, &BankNum, &ComponentEntryId);
@@ -4260,7 +4260,7 @@ SaErrorT SAHPI_API saHpiFumiSourceComponentInfoGet(
                                     &err, NextComponentEntryId, ComponentInfo);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -4293,7 +4293,7 @@ SaErrorT SAHPI_API saHpiFumiTargetInfoGet (
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiFumiTargetInfoGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiFumiTargetInfoGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request,
                                 &dsid, &ResourceId, &FumiNum, &BankNum);
@@ -4305,7 +4305,7 @@ SaErrorT SAHPI_API saHpiFumiTargetInfoGet (
                                     &err, BankInfo);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -4342,7 +4342,7 @@ SaErrorT SAHPI_API saHpiFumiTargetComponentInfoGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiFumiTargetComponentInfoGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiFumiTargetComponentInfoGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest5(hm, request,
                                 &dsid, &ResourceId, &FumiNum, &BankNum, &ComponentEntryId);
@@ -4354,7 +4354,7 @@ SaErrorT SAHPI_API saHpiFumiTargetComponentInfoGet(
                                     &err, NextComponentEntryId, ComponentInfo);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -4386,7 +4386,7 @@ SaErrorT SAHPI_API saHpiFumiLogicalTargetInfoGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiFumiLogicalTargetInfoGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiFumiLogicalTargetInfoGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request,
                                 &dsid, &ResourceId, &FumiNum);
@@ -4398,7 +4398,7 @@ SaErrorT SAHPI_API saHpiFumiLogicalTargetInfoGet(
                                     &err, BankInfo);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -4434,7 +4434,7 @@ SaErrorT SAHPI_API saHpiFumiLogicalTargetComponentInfoGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiFumiLogicalTargetComponentInfoGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiFumiLogicalTargetComponentInfoGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request,
                                 &dsid, &ResourceId, &FumiNum, &ComponentEntryId);
@@ -4446,7 +4446,7 @@ SaErrorT SAHPI_API saHpiFumiLogicalTargetComponentInfoGet(
                                     &err, NextComponentEntryId, ComponentInfo);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -4475,7 +4475,7 @@ SaErrorT SAHPI_API saHpiFumiBackupStart(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiFumiBackupStart);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiFumiBackupStart, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request,
                                 &dsid, &ResourceId, &FumiNum);
@@ -4487,7 +4487,7 @@ SaErrorT SAHPI_API saHpiFumiBackupStart(
                                     &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -4518,7 +4518,7 @@ SaErrorT SAHPI_API saHpiFumiBankBootOrderSet (
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiFumiBankBootOrderSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiFumiBankBootOrderSet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest5(hm, request,
                                 &dsid, &ResourceId, &FumiNum,
@@ -4531,7 +4531,7 @@ SaErrorT SAHPI_API saHpiFumiBankBootOrderSet (
                                     &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -4562,7 +4562,7 @@ SaErrorT SAHPI_API saHpiFumiBankCopyStart(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiFumiBankCopyStart);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiFumiBankCopyStart, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest5(hm, request,
                                 &dsid, &ResourceId, &FumiNum,
@@ -4575,7 +4575,7 @@ SaErrorT SAHPI_API saHpiFumiBankCopyStart(
                                     &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -4605,7 +4605,7 @@ SaErrorT SAHPI_API saHpiFumiInstallStart (
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiFumiInstallStart);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiFumiInstallStart, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request,
                                 &dsid, &ResourceId, &FumiNum,
@@ -4618,7 +4618,7 @@ SaErrorT SAHPI_API saHpiFumiInstallStart (
                                     &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -4651,7 +4651,7 @@ SaErrorT SAHPI_API saHpiFumiUpgradeStatusGet (
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiFumiUpgradeStatusGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiFumiUpgradeStatusGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request,
                                 &dsid, &ResourceId, &FumiNum,
@@ -4664,7 +4664,7 @@ SaErrorT SAHPI_API saHpiFumiUpgradeStatusGet (
                                     &err, UpgradeStatus);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -4694,7 +4694,7 @@ SaErrorT SAHPI_API saHpiFumiTargetVerifyStart (
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiFumiTargetVerifyStart);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiFumiTargetVerifyStart, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request,
                                 &dsid, &ResourceId, &FumiNum,
@@ -4707,7 +4707,7 @@ SaErrorT SAHPI_API saHpiFumiTargetVerifyStart (
                                     &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -4736,7 +4736,7 @@ SaErrorT SAHPI_API saHpiFumiTargetVerifyMainStart(
         
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiFumiTargetVerifyMainStart);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiFumiTargetVerifyMainStart, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request,
                                 &dsid, &ResourceId, &FumiNum );
@@ -4748,7 +4748,7 @@ SaErrorT SAHPI_API saHpiFumiTargetVerifyMainStart(
                                     &err);
 
         if (request) 
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -4778,7 +4778,7 @@ SaErrorT SAHPI_API saHpiFumiUpgradeCancel (
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiFumiUpgradeCancel);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiFumiUpgradeCancel, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request,
                                 &dsid, &ResourceId, &FumiNum,
@@ -4791,7 +4791,7 @@ SaErrorT SAHPI_API saHpiFumiUpgradeCancel (
                                     &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -4823,7 +4823,7 @@ SaErrorT SAHPI_API saHpiFumiAutoRollbackDisableGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiFumiAutoRollbackDisableGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiFumiAutoRollbackDisableGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request,
                                 &dsid, &ResourceId, &FumiNum );
@@ -4835,7 +4835,7 @@ SaErrorT SAHPI_API saHpiFumiAutoRollbackDisableGet(
                                     &err, Disable);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -4865,7 +4865,7 @@ SaErrorT SAHPI_API saHpiFumiAutoRollbackDisableSet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiFumiAutoRollbackDisableSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiFumiAutoRollbackDisableSet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request,
                                 &dsid, &ResourceId, &FumiNum, &Disable );
@@ -4877,7 +4877,7 @@ SaErrorT SAHPI_API saHpiFumiAutoRollbackDisableSet(
                                     &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -4906,7 +4906,7 @@ SaErrorT SAHPI_API saHpiFumiRollbackStart (
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiFumiRollbackStart);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiFumiRollbackStart, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request,
                                 &dsid, &ResourceId, &FumiNum);
@@ -4918,7 +4918,7 @@ SaErrorT SAHPI_API saHpiFumiRollbackStart (
                                     &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -4947,7 +4947,7 @@ SaErrorT SAHPI_API saHpiFumiActivate (
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiFumiActivate);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiFumiActivate, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request,
                                 &dsid, &ResourceId, &FumiNum);
@@ -4959,7 +4959,7 @@ SaErrorT SAHPI_API saHpiFumiActivate (
                                     &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -4989,7 +4989,7 @@ SaErrorT SAHPI_API saHpiFumiActivateStart(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiFumiActivateStart);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiFumiActivateStart, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request,
                                 &dsid, &ResourceId, &FumiNum, &Logical);
@@ -5001,7 +5001,7 @@ SaErrorT SAHPI_API saHpiFumiActivateStart(
                                     &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -5031,7 +5031,7 @@ SaErrorT SAHPI_API saHpiFumiCleanup(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiFumiCleanup);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiFumiCleanup, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request,
                                 &dsid, &ResourceId, &FumiNum,
@@ -5044,7 +5044,7 @@ SaErrorT SAHPI_API saHpiFumiCleanup(
                                     &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -5077,7 +5077,7 @@ SaErrorT SAHPI_API saHpiHotSwapPolicyCancel(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiHotSwapPolicyCancel);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiHotSwapPolicyCancel, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &ResourceId);
 
@@ -5086,7 +5086,7 @@ SaErrorT SAHPI_API saHpiHotSwapPolicyCancel(
         int mr = HpiDemarshalReply0(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -5118,7 +5118,7 @@ SaErrorT SAHPI_API saHpiResourceActiveSet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiResourceActiveSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiResourceActiveSet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &ResourceId);
 
@@ -5127,7 +5127,7 @@ SaErrorT SAHPI_API saHpiResourceActiveSet(
         int mr = HpiDemarshalReply0(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -5160,7 +5160,7 @@ SaErrorT SAHPI_API saHpiResourceInactiveSet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiResourceInactiveSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiResourceInactiveSet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &ResourceId);
 
@@ -5169,7 +5169,7 @@ SaErrorT SAHPI_API saHpiResourceInactiveSet(
         int mr = HpiDemarshalReply0(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -5204,7 +5204,7 @@ SaErrorT SAHPI_API saHpiAutoInsertTimeoutGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiAutoInsertTimeoutGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiAutoInsertTimeoutGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest1(hm, request, &dsid);
 
@@ -5213,7 +5213,7 @@ SaErrorT SAHPI_API saHpiAutoInsertTimeoutGet(
         int mr = HpiDemarshalReply1(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err, Timeout);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -5250,7 +5250,7 @@ SaErrorT SAHPI_API saHpiAutoInsertTimeoutSet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiAutoInsertTimeoutSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiAutoInsertTimeoutSet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &Timeout);
 
@@ -5259,7 +5259,7 @@ SaErrorT SAHPI_API saHpiAutoInsertTimeoutSet(
         int mr = HpiDemarshalReply0(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -5295,7 +5295,7 @@ SaErrorT SAHPI_API saHpiAutoExtractTimeoutGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiAutoExtractTimeoutGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiAutoExtractTimeoutGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &ResourceId);
 
@@ -5304,7 +5304,7 @@ SaErrorT SAHPI_API saHpiAutoExtractTimeoutGet(
         int mr = HpiDemarshalReply1(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err, Timeout);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -5342,7 +5342,7 @@ SaErrorT SAHPI_API saHpiAutoExtractTimeoutSet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiAutoExtractTimeoutSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiAutoExtractTimeoutSet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &Timeout);
 
@@ -5351,7 +5351,7 @@ SaErrorT SAHPI_API saHpiAutoExtractTimeoutSet(
         int mr = HpiDemarshalReply0(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -5387,7 +5387,7 @@ SaErrorT SAHPI_API saHpiHotSwapStateGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiHotSwapStateGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiHotSwapStateGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &ResourceId);
 
@@ -5396,7 +5396,7 @@ SaErrorT SAHPI_API saHpiHotSwapStateGet(
         int mr = HpiDemarshalReply1(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err, State);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -5432,7 +5432,7 @@ SaErrorT SAHPI_API saHpiHotSwapActionRequest(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiHotSwapActionRequest);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiHotSwapActionRequest, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &Action);
 
@@ -5441,7 +5441,7 @@ SaErrorT SAHPI_API saHpiHotSwapActionRequest(
         int mr = HpiDemarshalReply0(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -5477,7 +5477,7 @@ SaErrorT SAHPI_API saHpiHotSwapIndicatorStateGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiHotSwapIndicatorStateGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiHotSwapIndicatorStateGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &ResourceId);
 
@@ -5486,7 +5486,7 @@ SaErrorT SAHPI_API saHpiHotSwapIndicatorStateGet(
         int mr = HpiDemarshalReply1(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err, State);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -5522,7 +5522,7 @@ SaErrorT SAHPI_API saHpiHotSwapIndicatorStateSet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiHotSwapIndicatorStateSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiHotSwapIndicatorStateSet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &State);
 
@@ -5531,7 +5531,7 @@ SaErrorT SAHPI_API saHpiHotSwapIndicatorStateSet(
         int mr = HpiDemarshalReply0(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -5567,7 +5567,7 @@ SaErrorT SAHPI_API saHpiParmControl(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiParmControl);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiParmControl, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &Action);
 
@@ -5576,7 +5576,7 @@ SaErrorT SAHPI_API saHpiParmControl(
         int mr = HpiDemarshalReply0(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -5610,7 +5610,7 @@ SaErrorT SAHPI_API saHpiResourceLoadIdGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiResourceLoadIdGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiResourceLoadIdGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &ResourceId);
 
@@ -5621,7 +5621,7 @@ SaErrorT SAHPI_API saHpiResourceLoadIdGet(
                                     &err, LoadId);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -5657,7 +5657,7 @@ SaErrorT SAHPI_API saHpiResourceLoadIdSet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiResourceLoadIdSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiResourceLoadIdSet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, LoadId);
 
@@ -5668,7 +5668,7 @@ SaErrorT SAHPI_API saHpiResourceLoadIdSet(
                                     &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -5704,7 +5704,7 @@ SaErrorT SAHPI_API saHpiResourceResetStateGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiResourceResetStateGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiResourceResetStateGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &ResourceId);
 
@@ -5713,7 +5713,7 @@ SaErrorT SAHPI_API saHpiResourceResetStateGet(
         int mr = HpiDemarshalReply1(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err, Action);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -5749,7 +5749,7 @@ SaErrorT SAHPI_API saHpiResourceResetStateSet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiResourceResetStateSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiResourceResetStateSet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &Action);
 
@@ -5758,7 +5758,7 @@ SaErrorT SAHPI_API saHpiResourceResetStateSet(
         int mr = HpiDemarshalReply0(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -5794,7 +5794,7 @@ SaErrorT SAHPI_API saHpiResourcePowerStateGet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiResourcePowerStateGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiResourcePowerStateGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &dsid, &ResourceId);
 
@@ -5803,7 +5803,7 @@ SaErrorT SAHPI_API saHpiResourcePowerStateGet(
         int mr = HpiDemarshalReply1(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err, State);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -5839,7 +5839,7 @@ SaErrorT SAHPI_API saHpiResourcePowerStateSet(
 
         cHpiMarshal *hm = HpiMarshalFind(eFsaHpiResourcePowerStateSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiResourcePowerStateSet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest3(hm, request, &dsid, &ResourceId, &State);
 
@@ -5848,7 +5848,7 @@ SaErrorT SAHPI_API saHpiResourcePowerStateSet(
         int mr = HpiDemarshalReply0(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err);
 
         if (request)
-                free(request);
+                g_free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (mr < 0)
@@ -5900,7 +5900,7 @@ SaErrorT SAHPI_API oHpiHandlerCreate (
         // now create the handler
         cHpiMarshal *hm = HpiMarshalFind(eFoHpiHandlerCreate);
         pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerCreate, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest1(hm, request, &handler_config);
 
@@ -5910,7 +5910,7 @@ SaErrorT SAHPI_API oHpiHandlerCreate (
 
         oh_delete_connx(pinst);
         if (request)
-                free(request);
+                g_free(request);
 
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -5937,7 +5937,7 @@ SaErrorT SAHPI_API oHpiHandlerDestroy (
 
         cHpiMarshal *hm = HpiMarshalFind(eFoHpiHandlerDestroy);
         pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerDestroy, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest1(hm, request, &id);
 
@@ -5947,7 +5947,7 @@ SaErrorT SAHPI_API oHpiHandlerDestroy (
 
         oh_delete_connx(pinst);
         if (request)
-                free(request);
+                g_free(request);
 
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -5977,7 +5977,7 @@ SaErrorT SAHPI_API oHpiHandlerInfo (
 
         cHpiMarshal *hm = HpiMarshalFind(eFoHpiHandlerInfo);
         pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerInfo, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest1(hm, request, &id);
 
@@ -5992,11 +5992,11 @@ SaErrorT SAHPI_API oHpiHandlerInfo (
                           g_strdup((const gchar *)config.Params[n].Name),
                           g_strdup((const gchar *)config.Params[n].Value));
         }
-        free(config.Params);
+        g_free(config.Params);
 
         oh_delete_connx(pinst);
         if (request)
-                free(request);
+                g_free(request);
 
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -6024,7 +6024,7 @@ SaErrorT SAHPI_API oHpiHandlerGetNext (
 
         cHpiMarshal *hm = HpiMarshalFind(eFoHpiHandlerGetNext);
         pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerGetNext, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest1(hm, request, &id);
 
@@ -6034,7 +6034,7 @@ SaErrorT SAHPI_API oHpiHandlerGetNext (
 
         oh_delete_connx(pinst);
         if (request)
-                free(request);
+                g_free(request);
 
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -6066,7 +6066,7 @@ SaErrorT SAHPI_API oHpiHandlerFind (
 	
         cHpiMarshal *hm = HpiMarshalFind(eFoHpiHandlerFind);
         pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerFind, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
         pinst->header.m_len = HpiMarshalRequest2(hm, request, &sid, &rid);
 
         SendRecv(0, cmd);
@@ -6080,7 +6080,7 @@ SaErrorT SAHPI_API oHpiHandlerFind (
         oh_delete_connx(pinst);
 
         if (request)
-                free(request);
+                g_free(request);
 
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -6109,7 +6109,7 @@ SaErrorT SAHPI_API oHpiHandlerRetry (
 
         cHpiMarshal *hm = HpiMarshalFind(eFoHpiHandlerRetry);
         pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerRetry, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest1(hm, request, &id);
 
@@ -6123,7 +6123,7 @@ SaErrorT SAHPI_API oHpiHandlerRetry (
         oh_delete_connx(pinst);
 
         if (request)
-                free(request);
+                g_free(request);
 
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -6150,7 +6150,7 @@ SaErrorT SAHPI_API oHpiGlobalParamGet (
 
         cHpiMarshal *hm = HpiMarshalFind(eFoHpiGlobalParamGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiGlobalParamGet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest1(hm, request, param);
 
@@ -6160,7 +6160,7 @@ SaErrorT SAHPI_API oHpiGlobalParamGet (
 
         oh_delete_connx(pinst);
         if (request)
-                free(request);
+                g_free(request);
 
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -6187,7 +6187,7 @@ SaErrorT SAHPI_API oHpiGlobalParamSet (
 
         cHpiMarshal *hm = HpiMarshalFind(eFoHpiGlobalParamSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiGlobalParamSet, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest1(hm, request, param);
 
@@ -6197,7 +6197,7 @@ SaErrorT SAHPI_API oHpiGlobalParamSet (
 
         oh_delete_connx(pinst);
         if (request)
-                free(request);
+                g_free(request);
 
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -6232,7 +6232,7 @@ SaErrorT SAHPI_API oHpiInjectEvent (
 
         cHpiMarshal *hm = HpiMarshalFind(eFoHpiInjectEvent);
         pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiInjectEvent, hm->m_request_len);
-        request = malloc(hm->m_request_len);
+        request = g_malloc(hm->m_request_len);
 
         pinst->header.m_len = HpiMarshalRequest4(hm, request, &id, event, rpte, rdr);
 
@@ -6245,7 +6245,7 @@ SaErrorT SAHPI_API oHpiInjectEvent (
         oh_delete_connx(pinst);
 
         if (request)
-                free(request);
+                g_free(request);
 
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
