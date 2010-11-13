@@ -184,7 +184,7 @@ int main (int argc, char *argv[])
                         verbose_flag = 1;
                         break;
                 case 'f':
-                        pid_file = (char *)malloc(strlen(optarg) + 1);
+                        pid_file = (char *)g_malloc(strlen(optarg) + 1);
                         strcpy(pid_file, optarg);
                         break;
                 case 's':
@@ -213,7 +213,7 @@ int main (int argc, char *argv[])
         }
 
         if (pid_file == NULL) {
-                pid_file = (char *)malloc(strlen(PID_FILE) + 1);
+                pid_file = (char *)g_malloc(strlen(PID_FILE) + 1);
                 strcpy(pid_file, PID_FILE);
         }
 
@@ -267,7 +267,7 @@ int main (int argc, char *argv[])
 		display_help();
                 exit(-1);
         }
-        configfile = (char *) malloc(strlen(cfgfile) + 1);
+        configfile = (char *)g_malloc(strlen(cfgfile) + 1);
         strcpy(configfile, cfgfile);
 
         // get our listening port
@@ -1965,7 +1965,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                                                  params_list.NumberOfParams,
                                                  params_list.ParamsList);
                 
-                        free(params_list.ParamsList);
+                        g_free(params_list.ParamsList);
                         thrdinst->header.m_len = HpiMarshalReply0(hm, pReq,
                                                                   &ret);
                 }
@@ -2873,7 +2873,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                         			    g_strdup((const gchar *)config.Params[n].Name),
                         			    g_strdup((const gchar *)config.Params[n].Value));
                         }
-                        free(config.Params);
+                        g_free(config.Params);
                         ret = oHpiHandlerCreate(config_table, &id);
                         g_hash_table_destroy(config_table);
                 
