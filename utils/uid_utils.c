@@ -394,7 +394,11 @@ SaErrorT oh_uid_map_to_file(void)
 
         uid_lock(&oh_uid_lock);
 
+#ifdef __MINGW32__
+        file = open(uid_map_file, O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR);
+#else
         file = open(uid_map_file, O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRGRP);
+#endif /* __MINGW32__ */
         if(file < 0) {
                 err("Configuration file '%s' could not be opened", uid_map_file);
                 uid_unlock(&oh_uid_lock);
@@ -459,9 +463,11 @@ static gint uid_map_from_file()
          if(file < 0) {
                  /* create map file with resource id initial value */
                  err("Configuration file '%s' does not exist, initializing", uid_map_file);
-                 file = open(uid_map_file,
-                             O_RDWR | O_CREAT | O_TRUNC,
-                             S_IRUSR | S_IWUSR | S_IRGRP);
+#ifdef __MINGW32__
+                 file = open(uid_map_file, O_RDWR|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR);
+#else
+                 file = open(uid_map_file, O_RDWR|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRGRP);
+#endif /* __MINGW32__ */
                  if(file < 0) {
                          err("Could not initialize uid map file, %s", uid_map_file );
                                          return -1;
