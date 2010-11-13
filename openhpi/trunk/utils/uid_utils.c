@@ -297,7 +297,7 @@ SaErrorT oh_uid_remove(SaHpiUint32T uid)
         g_hash_table_remove(oh_resource_id_table, &ep_xref->resource_id);
         g_hash_table_remove(oh_ep_table, &ep_xref->entity_path);
 
-        free(ep_xref);
+        g_free(ep_xref);
 
         uid_unlock(&oh_uid_lock);
 
