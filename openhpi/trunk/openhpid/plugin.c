@@ -438,7 +438,8 @@ static void __delete_handler(struct oh_handler *h)
         }
 
         /* Free the oh_handler members first, then the handler. */
-        /* FIXME: Where/When should the handler config table be freed? */
+        g_hash_table_destroy(h->config);
+
         g_static_rec_mutex_free(&h->lock);
         g_static_rec_mutex_free(&h->refcount_lock);
         g_free(h);
