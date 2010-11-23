@@ -931,7 +931,7 @@ cIpmiMcVendor::CreateWatchdogs( cIpmiDomain *domain, cIpmiMc *mc )
           /* Everything is valid, create the Watchdog RDR */
           stdlog << "CreateWatchdogs Resource type " << res->EntityPath().GetEntryType(0) << " instance " << res->EntityPath().GetEntryInstance(0) << "\n";
         
-          cIpmiRdr *wd = new cIpmiWatchdog::cIpmiWatchdog( mc, SAHPI_DEFAULT_WATCHDOG_NUM, 0 );
+          cIpmiRdr *wd = new cIpmiWatchdog( mc, SAHPI_DEFAULT_WATCHDOG_NUM, 0 );
         
           wd->EntityPath() = res->EntityPath();
         
