@@ -20,6 +20,8 @@
 #include "ipmi_utils.h"
 #include <string.h>
 #include <oh_utils.h>
+#include <errno.h>
+#include "ipmi.h"
 
 unsigned char
 IpmiChecksum( const unsigned char *data, int size )
@@ -864,6 +866,10 @@ cIpmiInventoryParser::AddIdrField( SaHpiIdrIdT &idrid, SaHpiIdrFieldT &field )
 SaErrorT
 cIpmiInventoryParser::SetIdrField( SaHpiIdrIdT &idrid, SaHpiIdrFieldT &field )
 {
+SaErrorT rv=SA_OK;
+SaHpiEntryIdT nextfield;
+SaHpiIdrFieldT oldfield;
+
     if ( m_idr_info.IdrId != idrid )
         return SA_ERR_HPI_NOT_PRESENT;
 
@@ -872,6 +878,21 @@ cIpmiInventoryParser::SetIdrField( SaHpiIdrIdT &idrid, SaHpiIdrFieldT &field )
     if ( ia == NULL )
         return SA_ERR_HPI_NOT_PRESENT;
 
+//stdlog << "Uli: cIpmiInventoryParser::SetIdrField found AreaId\n";
+    // Todo: May be check some more parameters before!
+    //rv = ia->GetIdrField ( idrid, field.AreaId, field.Type, field.FieldId, nextfield, oldfield);
+    rv = ia->GetIdrField ( field.Type, field.FieldId, nextfield, oldfield);
+
+stdlog << "Uli: ia->GetIdrField returned " <<rv<<"\n";
+
+    if (rv != SA_OK) return rv;
+    if (oldfield.ReadOnly) {
+        stdlog << "Uli: Field really is read only\n";
+        return SA_ERR_HPI_READ_ONLY;
+    }
+stdlog << "Uli: Go and change field\n";
+
+    return SA_OK;
     // Read only support for the moment
     return SA_ERR_HPI_READ_ONLY;
 }
