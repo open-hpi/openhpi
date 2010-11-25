@@ -39,6 +39,7 @@ EXTRA_DIST		= openhpi.pod.7   openhpid.pod.8      \
                           hpisensor.pod.1 hpitop.pod.1 \
 			  hpidomain.pod.1 hpigensimdata.pod.1 \
 			  ohhandler.pod.1 ohparam.pod.1 \
+                          ohdomainlist.pod.1 \
 			  hpi_shell.pod.1
 
 

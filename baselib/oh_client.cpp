@@ -5888,6 +5888,8 @@ SaErrorT SAHPI_API oHpiHandlerCreate (
 
         if (!config || !id)
         	return SA_ERR_HPI_INVALID_PARAMS;
+        if (g_hash_table_size(config)==0)
+                return SA_ERR_HPI_INVALID_PARAMS;
         
         err = oh_create_connx(OH_DEFAULT_DOMAIN_ID, &pinst);
         if (err) return err;
@@ -5932,6 +5934,9 @@ SaErrorT SAHPI_API oHpiHandlerDestroy (
 	char cmd[] = "oHpiHandlerDestroy";
         pcstrmsock pinst = NULL;
 
+        if (id == 0)
+               return SA_ERR_HPI_INVALID_PARAMS;
+
         err = oh_create_connx(OH_DEFAULT_DOMAIN_ID, &pinst);
         if (err) return err;
 
@@ -5971,6 +5976,11 @@ SaErrorT SAHPI_API oHpiHandlerInfo (
 	char cmd[] = "oHpiHandlerInfo";
         pcstrmsock pinst = NULL;
         oHpiHandlerConfigT config;
+
+        if (id == 0 || !info || !conf_params)
+               return SA_ERR_HPI_INVALID_PARAMS;
+        if (g_hash_table_size(conf_params)!=0)
+               return SA_ERR_HPI_INVALID_PARAMS;
 
         err = oh_create_connx(OH_DEFAULT_DOMAIN_ID, &pinst);
         if (err) return err;
@@ -6019,6 +6029,9 @@ SaErrorT SAHPI_API oHpiHandlerGetNext (
 	char cmd[] = "oHpiHandlerGetNext";
         pcstrmsock pinst = NULL;
 
+        if (!next_id)
+               return SA_ERR_HPI_INVALID_PARAMS;
+
         err = oh_create_connx(OH_DEFAULT_DOMAIN_ID, &pinst);
         if (err) return err;
 
@@ -6056,12 +6069,14 @@ SaErrorT SAHPI_API oHpiHandlerFind (
         char cmd[] = "oHpiHandlerFind";  
         pcstrmsock pinst = NULL;
 
+        if (sid == 0)
+                return SA_ERR_HPI_INVALID_SESSION;
+        if (!id || !rid)
+               return SA_ERR_HPI_INVALID_PARAMS;
+
         err = oh_create_connx(OH_DEFAULT_DOMAIN_ID, &pinst);
         if (err) return err;
 
-        if (!id || !sid || !rid) {
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
 	*id = 0; //Initialize output var
 	
         cHpiMarshal *hm = HpiMarshalFind(eFoHpiHandlerFind);
@@ -6103,9 +6118,8 @@ SaErrorT SAHPI_API oHpiHandlerRetry (
         err = oh_create_connx(OH_DEFAULT_DOMAIN_ID, &pinst);
         if (err) return err;
 
-        if (!id) {
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
+        if (id == 0)
+               return SA_ERR_HPI_INVALID_PARAMS;
 
         cHpiMarshal *hm = HpiMarshalFind(eFoHpiHandlerRetry);
         pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerRetry, hm->m_request_len);
@@ -6145,6 +6159,9 @@ SaErrorT SAHPI_API oHpiGlobalParamGet (
 	char cmd[] = "oHpiGlobalParamGet";
         pcstrmsock pinst = NULL;
 
+        if (!param)
+               return SA_ERR_HPI_INVALID_PARAMS;
+
         err = oh_create_connx(OH_DEFAULT_DOMAIN_ID, &pinst);
         if (err) return err;
 
@@ -6181,6 +6198,9 @@ SaErrorT SAHPI_API oHpiGlobalParamSet (
         SaErrorT err = SA_OK;
 	char cmd[] = "oHpiGlobalParamSet";
         pcstrmsock pinst = NULL;
+
+        if (!param)
+               return SA_ERR_HPI_INVALID_PARAMS;
 
         err = oh_create_connx(OH_DEFAULT_DOMAIN_ID, &pinst);
         if (err) return err;
@@ -6224,11 +6244,8 @@ SaErrorT SAHPI_API oHpiInjectEvent (
         err = oh_create_connx(OH_DEFAULT_DOMAIN_ID, &pinst);
         if (err) return err;
 
-        if (!id) {
-                return SA_ERR_HPI_INVALID_PARAMS;
-        } else if (!event) {
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
+        if (id == 0 || !event || !rpte || !rdr)
+               return SA_ERR_HPI_INVALID_PARAMS;
 
         cHpiMarshal *hm = HpiMarshalFind(eFoHpiInjectEvent);
         pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiInjectEvent, hm->m_request_len);
