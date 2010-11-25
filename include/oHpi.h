@@ -43,6 +43,14 @@ typedef struct {
         int load_failed;
 } oHpiHandlerInfoT;
 
+typedef struct {
+        SaHpiDomainIdT   id;
+        SaHpiTextBufferT daemonhost;
+        SaHpiUint16T     port;
+} oHpiDomainEntryT;
+
+
+
 typedef enum {
         OHPI_ON_EP = 1,
         OHPI_LOG_ON_SEV,
@@ -128,6 +136,12 @@ SaErrorT SAHPI_API oHpiDomainAddById (
      SAHPI_IN    SaHpiDomainIdT domain_id,
      SAHPI_IN    const SaHpiTextBufferT *host,
      SAHPI_IN    SaHpiUint16T port );
+SaErrorT SAHPI_API oHpiDomainEntryGet (
+     SAHPI_IN    SaHpiEntryIdT    EntryId,
+     SAHPI_OUT   SaHpiEntryIdT    *NextEntryId,
+     SAHPI_OUT   oHpiDomainEntryT *DomainEntry );
+
+
 
 #define OHPI_VERSION_GET(v, VER) \
 { \

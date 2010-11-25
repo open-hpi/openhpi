@@ -307,6 +307,7 @@ make DESTDIR=%{buildroot} install
 %{_bindir}/hpi*
 %{_bindir}/ohhandler
 %{_bindir}/ohparam
+%{_bindir}/ohdomainlist
 %{_mandir}/man1/*.1*
 %{_sysconfdir}/openhpi/openhpiclient.conf
 

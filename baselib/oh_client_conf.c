@@ -164,6 +164,33 @@ SaErrorT oh_add_domain_conf_by_id(SaHpiDomainIdT did,
     return SA_OK;
 }
 
+SaHpiDomainIdT oh_getnext_domainid (SaHpiDomainIdT did)
+{
+    int nextdid = SAHPI_UNSPECIFIED_DOMAIN_ID;
+    int startdid = did;
+    oh_client_conf_init(); //TODO: if this is correct here, the other functions need it, too!
+
+    g_static_rec_mutex_lock(&ohc_lock);
+
+    // get all known domain ids and sort them
+    GList *keys = 0;
+    g_hash_table_foreach(ohc_domains, extract_keys, &keys);
+    keys = g_list_sort(keys, (GCompareFunc)compare_keys);
+
+    // search first domain id > did
+    GList *item;
+    item = keys;
+    while (item != NULL && nextdid <= startdid) {
+        nextdid = *(const SaHpiDomainIdT *)(item->data);
+        item = item->next;
+    }
+
+    g_list_free(keys);
+    g_static_rec_mutex_unlock(&ohc_lock);
+    if (startdid==nextdid) return SAHPI_UNSPECIFIED_DOMAIN_ID;
+    return nextdid;
+}
+
 static void extract_keys(gpointer key, gpointer val, gpointer user_data)
 {
     GList ** key_list = (GList **)(user_data);

@@ -6310,4 +6310,44 @@ SaErrorT SAHPI_API oHpiDomainAddById (
     return oh_add_domain_conf_by_id(domain_id, buf, port);
 }
 
+/*----------------------------------------------------------------------------*/
+/* oHpiDomainEntryGet                                                          */
+/*----------------------------------------------------------------------------*/
+SaErrorT SAHPI_API oHpiDomainEntryGet (
+     SAHPI_IN    SaHpiEntryIdT    EntryId,
+     SAHPI_OUT   SaHpiEntryIdT    *NextEntryId,
+     SAHPI_OUT   oHpiDomainEntryT *DomainEntry )
+
+{
+    SaHpiDomainIdT did;
+
+    if (!NextEntryId || !DomainEntry) {
+        return SA_ERR_HPI_INVALID_PARAMS;
+    }
+    /* Function may be called outside sessions, so we may need to initialize */
+    oh_client_init();
+
+    if (EntryId == SAHPI_FIRST_ENTRY) // get first valid domain id
+       did = oh_getnext_domainid (SAHPI_UNSPECIFIED_DOMAIN_ID);
+    else // EntryId already must be a valid domain id
+       did = (SaHpiDomainIdT) EntryId;
+
+    const oh_domain_conf *entry = oh_get_domain_conf ( did );
+    if (entry == NULL) { // no config for did found 
+       return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    DomainEntry->id = did;
+    if (oh_init_textbuffer(&DomainEntry->daemonhost) != SA_OK) return SA_ERR_HPI_INVALID_PARAMS;
+    if (oh_append_textbuffer(&DomainEntry->daemonhost, entry->host)!= SA_OK) 
+                                                               return SA_ERR_HPI_INVALID_PARAMS;
+    DomainEntry->port = entry->port;  
+
+    *NextEntryId = (SaHpiEntryIdT) oh_getnext_domainid (did); // will return SAHPI_LAST_ENTRY 
+                                                              // if no other domain is found.
+
+    return SA_OK;
+
+}
+
 
