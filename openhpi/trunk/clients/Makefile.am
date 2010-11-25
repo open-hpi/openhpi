@@ -28,6 +28,7 @@ bin_PROGRAMS = \
 	hpitop   \
 	hpisettime \
 	hpionIBMblade \
+        ohdomainlist \
         ohhandler \
         ohparam
 
@@ -80,6 +81,9 @@ hpitree_LDADD        = $(COMMONLIBS)
 
 hpionIBMblade_SOURCES      = hpionIBMblade.c $(CLIENTS_SRC)
 hpionIBMblade_LDADD        = $(COMMONLIBS)
+
+ohdomainlist_SOURCES      = ohdomainlist.c $(CLIENTS_SRC)
+ohdomainlist_LDADD        = $(COMMONLIBS)
 
 ohhandler_SOURCES      = ohhandler.c $(CLIENTS_SRC)
 ohhandler_LDADD        = $(COMMONLIBS)

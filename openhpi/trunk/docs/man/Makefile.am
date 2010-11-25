@@ -73,6 +73,7 @@ man_MANS = openhpi.7   openhpid.8      \
            hpisensor.1 hpitop.1        \
 	   hpidomain.1 hpigensimdata.1 \
            ohhandler.1 ohparam.1       \
+           ohdomainlist.1 \
            hpi_shell.1
 
 clean-local: am_config_clean-local

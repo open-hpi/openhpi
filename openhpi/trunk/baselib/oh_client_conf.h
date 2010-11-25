@@ -45,6 +45,7 @@ SaErrorT oh_add_domain_conf_by_id(SaHpiDomainIdT did,
                                   const char *host,
                                   unsigned short port);
 
+SaHpiDomainIdT oh_getnext_domainid (SaHpiDomainIdT did);
 
 #ifdef __cplusplus
 } /* extern "C" */

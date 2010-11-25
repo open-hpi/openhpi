@@ -426,3 +426,25 @@ SaErrorT SAHPI_API oHpiDomainAddById (
 }
 
 
+/**
+ * oHpiDomainEntryGet
+ * @EntryId:     id of an entry of the library's domain table
+ *               or SAHPI_FIRST_ENTRY
+ * @NextEntryId: id of the next entry of the library's domain table
+ *               or SAHPI_LAST_ENTRY
+ * @DomainEntry: configuration info of the domain listed in
+ *               the entry identified by NextEntryId
+ *
+ * Returns: SA_OK on success and fills DomainEntry
+ *
+ * Currently only available in client library, but not in daemon
+ **/
+SaErrorT SAHPI_API oHpiDomainEntryGet (
+     SAHPI_IN    SaHpiEntryIdT    EntryId,
+     SAHPI_OUT   SaHpiEntryIdT    *NextEntryId,
+     SAHPI_OUT   oHpiDomainEntryT *DomainEntry )
+{
+    return SA_ERR_HPI_UNSUPPORTED_API;
+}
+
+
