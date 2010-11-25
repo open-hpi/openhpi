@@ -69,10 +69,10 @@ SaErrorT SAHPI_API oHpiHandlerCreate (
 {
 	SaErrorT error = SA_OK;
 
-        if (!config || !id) {
-                err("Invalid parameters.");
+        if (!config || !id) 
                 return SA_ERR_HPI_INVALID_PARAMS;
-        }
+        if (g_hash_table_size(config)==0)
+                return SA_ERR_HPI_INVALID_PARAMS;
         
         if (oh_init()) return SA_ERR_HPI_ERROR;
 
@@ -92,7 +92,7 @@ SaErrorT SAHPI_API oHpiHandlerCreate (
 SaErrorT SAHPI_API oHpiHandlerDestroy (
      SAHPI_IN    oHpiHandlerIdT id )
 {
-        if (!id)
+        if (id == 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
                 
         if (oh_init()) return SA_ERR_HPI_INTERNAL_ERROR;
@@ -126,7 +126,7 @@ SaErrorT SAHPI_API oHpiHandlerInfo (
 {
         struct oh_handler *h = NULL;
 
-        if (!id || !info || !conf_params)
+        if (id == 0 || !info || !conf_params)
                return SA_ERR_HPI_INVALID_PARAMS;
         if (g_hash_table_size(conf_params)!=0)
                return SA_ERR_HPI_INVALID_PARAMS;
@@ -152,7 +152,8 @@ SaErrorT SAHPI_API oHpiHandlerInfo (
 
         //Don't transmit passwords in case the handler has a password in its config
         if (g_hash_table_lookup(conf_params,"password"))
-           g_hash_table_replace(conf_params,"password","********");
+           g_hash_table_replace(conf_params,
+                                g_strdup("password"), g_strdup("********"));
 
         oh_release_handler(h);
 
@@ -176,7 +177,6 @@ SaErrorT SAHPI_API oHpiHandlerGetNext (
      SAHPI_OUT   oHpiHandlerIdT *next_id )
 {
         if (!next_id) {
-                err("Invalid parameters.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
         
@@ -190,9 +190,9 @@ SaErrorT SAHPI_API oHpiHandlerGetNext (
 
 /**
  * oHpiHandlerFind
- * @sid: a valid session id
- * @rid: resource id
- * @id: pointer where handler id found will be placed.
+ * @sid:    IN.     a valid session id
+ * @rid:    IN.     resource id
+ * @id:     OUT     pointer where handler id found will be placed.
  *
  * Inputs are the @sid and @rid. @rid corresponds to some resource available
  * in that session. The function then will return the handler that served such
@@ -209,16 +209,19 @@ SaErrorT SAHPI_API oHpiHandlerFind (
         struct oh_domain *d = NULL;
         unsigned int *hid = NULL;
 
+        if (sid == 0)
+		return SA_ERR_HPI_INVALID_SESSION;
+        if (!id || !rid)
+                return SA_ERR_HPI_INVALID_PARAMS;
+
         OH_CHECK_INIT_STATE(sid);
         OH_GET_DID(sid, did);
-
-        if (sid == 0 || rid == 0 || !id) {
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
-
-        if (oh_init()) return SA_ERR_HPI_INTERNAL_ERROR;
-
         OH_GET_DOMAIN(did, d); /* Lock domain */
+
+        if (oh_init()) {
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
 
         hid = (unsigned int *)oh_get_resource_data(&d->rpt, rid);
 
@@ -362,11 +365,20 @@ SaErrorT SAHPI_API oHpiInjectEvent (
 	struct oh_handler *h = NULL;
 	SaErrorT error = SA_OK;
 
-	if (!id) {
+	if (id == 0) {
 		err("Invalid handler id %d passed",id);
 		return SA_ERR_HPI_INVALID_PARAMS;
-	} else if (!event) {
+	} 
+        if (!event) {
 		err("Invalid NULL event passed");
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
+        if (!rpte) {
+		err("Invalid NULL rpte passed");
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
+        if (!rdr) {
+		err("Invalid NULL rdr passed");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
