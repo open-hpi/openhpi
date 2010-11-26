@@ -336,11 +336,11 @@ SaErrorT oh_el_map_to_file(oh_el *el, char *filename)
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-#ifdef __MINGW32__
+#ifdef _WIN32
         file = open(filename, O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR);
 #else
         file = open(filename, O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRGRP);
-#endif /* __MINGW32__ */
+#endif /* _WIN32 */
         if (file < 0) {
                 err("EL file '%s' could not be opened", filename);
                 return SA_ERR_HPI_ERROR;
