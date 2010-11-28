@@ -14,7 +14,6 @@
  *
  */
 
-#include <sys/time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -28,14 +27,10 @@
 
 static void __update_dat(struct oh_domain *d)
 {
-        struct timeval tv;
-
         if (!d) return;
 
-        gettimeofday(&tv, NULL);
-
         d->dat.update_count++;
-        d->dat.update_timestamp = (SaHpiTimeT) tv.tv_sec * 1000000000 + tv.tv_usec * 1000;
+        oh_gettimeofday(&d->dat.update_timestamp);
 }
 
 static GSList *__get_alarm_node(struct oh_domain *d,
@@ -123,7 +118,6 @@ static SaHpiUint32T __count_alarms(struct oh_domain *d,
  **/
 SaHpiAlarmT *oh_add_alarm(struct oh_domain *d, SaHpiAlarmT *alarm, int fromfile)
 {
-        struct timeval tv1;
         SaHpiAlarmT *a = NULL;
         struct oh_global_param param = { .type = OPENHPI_DAT_SIZE_LIMIT };
 
@@ -165,9 +159,7 @@ SaHpiAlarmT *oh_add_alarm(struct oh_domain *d, SaHpiAlarmT *alarm, int fromfile)
                 }
         } else {
                 a->AlarmId = ++(d->dat.next_id);
-                gettimeofday(&tv1, NULL);
-                a->Timestamp =
-                        (SaHpiTimeT) tv1.tv_sec * 1000000000 + tv1.tv_usec * 1000;
+                oh_gettimeofday(&a->Timestamp);
                 a->Acknowledged = SAHPI_FALSE;
         }
         a->AlarmCond.DomainId = d->id;

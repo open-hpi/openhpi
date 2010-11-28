@@ -22,7 +22,6 @@
 #include <oh_event.h>
 #include <oh_utils.h>
 #include <string.h>
-#include <sys/time.h>
 
 #define domains_lock() g_static_rec_mutex_lock(&oh_domains.lock)
 #define domains_unlock() g_static_rec_mutex_unlock(&oh_domains.lock)
@@ -122,7 +121,6 @@ static void gen_domain_event(SaHpiDomainIdT target_id,
                              SaHpiBoolT addition)
 {
         struct oh_event *e = NULL;
-        struct timeval tv1;
         SaHpiDomainEventTypeT type =
                 (addition) ? SAHPI_DOMAIN_REF_ADDED : SAHPI_DOMAIN_REF_REMOVED;
 
@@ -133,9 +131,7 @@ static void gen_domain_event(SaHpiDomainIdT target_id,
         e->event.Severity = SAHPI_INFORMATIONAL;
         e->event.EventDataUnion.DomainEvent.Type = type;
         e->event.EventDataUnion.DomainEvent.DomainId = subject_id;
-        gettimeofday(&tv1, NULL);
-        e->event.Timestamp = (SaHpiTimeT) tv1.tv_sec *
-                        1000000000 + tv1.tv_usec * 1000;
+        oh_gettimeofday(&e->event.Timestamp);
         dbg("domain %d %s domain %d", subject_id,
             type == SAHPI_DOMAIN_REF_ADDED ? "added to" : "removed from",
             target_id);
@@ -149,7 +145,6 @@ static void update_drt(SaHpiDomainIdT target_id,
 {
         struct oh_domain *domain = NULL;
         SaHpiDrtEntryT *drtentry = NULL;
-        struct timeval tv1;
         int found = 0;
 
         domain = oh_get_domain(target_id);
@@ -195,9 +190,7 @@ static void update_drt(SaHpiDomainIdT target_id,
         }
 
         if (addition || found) {
-                gettimeofday(&tv1, NULL);
-                domain->drt.update_timestamp = (SaHpiTimeT) tv1.tv_sec *
-                                1000000000 + tv1.tv_usec * 1000;
+                oh_gettimeofday(&domain->drt.update_timestamp);
                 domain->drt.update_count++;
         }
         oh_release_domain(domain);

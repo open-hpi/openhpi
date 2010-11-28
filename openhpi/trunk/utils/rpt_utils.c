@@ -14,7 +14,6 @@
  */
 
 #include <string.h>
-#include <sys/time.h>
 
 #include <oh_utils.h>
 #include <oh_error.h>
@@ -160,18 +159,11 @@ static int check_instrument_id(SaHpiRptEntryT *rptentry, SaHpiRdrT *rdr)
 }
 
 static void update_rptable(RPTable *table) {
-        struct timeval tv;
-        SaHpiTimeT time;
-
         if (!table) {
                 err("ERROR: Cannot work on a null table pointer.");
                 return;
         }
-
-        gettimeofday(&tv, NULL);
-        time = (SaHpiTimeT) tv.tv_sec * 1000000000 + tv.tv_usec * 1000;
-
-        table->update_timestamp = time;
+        oh_gettimeofday(&table->update_timestamp);
         table->update_count++;
 }
 

@@ -20,7 +20,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
-#include <sys/time.h>
 
 #include <SaHpi.h>
 #include <oh_utils.h>
@@ -73,7 +72,6 @@ SaErrorT oh_el_append(oh_el *el,
 		       const SaHpiRptEntryT *res)
 {
         oh_el_entry *entry;
-        struct timeval tv;
 	SaHpiTimeT cursystime;
 
         /* check for valid el params and state */
@@ -105,8 +103,7 @@ SaErrorT oh_el_append(oh_el *el,
         /* Set the event log entry id and timestamp */
         entry->event.EntryId = el->nextid++;
 	if (el->gentimestamp) {
-        	gettimeofday(&tv, NULL);
-		cursystime = (SaHpiTimeT) tv.tv_sec * 1000000000 + tv.tv_usec * 1000;
+		oh_gettimeofday(&cursystime);
         	el->info.UpdateTimestamp =
 			el->basetime + (cursystime - el->sysbasetime);
 	} else {
@@ -134,7 +131,6 @@ SaErrorT oh_el_prepend(oh_el *el,
 {
         GList *node = NULL;
 	oh_el_entry *entry;        
-        struct timeval tv;
 	SaHpiTimeT cursystime;
 
         /* check for valid el params and state */
@@ -173,8 +169,7 @@ SaErrorT oh_el_prepend(oh_el *el,
         /* prepare & prepend the new entry */
         entry->event.EntryId = SAHPI_OLDEST_ENTRY + 1;
 	if (el->gentimestamp) {
-        	gettimeofday(&tv, NULL);
-		cursystime = (SaHpiTimeT) tv.tv_sec * 1000000000 + tv.tv_usec * 1000;
+		oh_gettimeofday(&cursystime);
         	el->info.UpdateTimestamp =
 			el->basetime + (cursystime - el->sysbasetime);
 	} else {
@@ -286,7 +281,6 @@ SaErrorT oh_el_get(oh_el *el,
 /* get EL info */
 SaErrorT oh_el_info(oh_el *el, SaHpiEventLogInfoT *info)
 {
-        struct timeval tv;
 	SaHpiTimeT cursystime;
 
         if (el == NULL || info == NULL) {
@@ -295,8 +289,7 @@ SaErrorT oh_el_info(oh_el *el, SaHpiEventLogInfoT *info)
         
         *info = el->info;
 	info->Entries = g_list_length(el->list);
-        gettimeofday(&tv, NULL);
-	cursystime = (SaHpiTimeT) tv.tv_sec * 1000000000 + tv.tv_usec * 1000;	
+	oh_gettimeofday(&cursystime);	
         info->CurrentTime = el->basetime + (cursystime - el->sysbasetime);
         
         return SA_OK;
@@ -403,14 +396,11 @@ SaErrorT oh_el_map_from_file(oh_el *el, char *filename)
 /* set the EL timestamp offset */
 SaErrorT oh_el_timeset(oh_el *el, SaHpiTimeT timestamp)
 {
-        struct timeval tv;
-	
 	if (el == NULL || timestamp == SAHPI_TIME_UNSPECIFIED) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 	
-	gettimeofday(&tv, NULL);
-	el->sysbasetime = (SaHpiTimeT) tv.tv_sec * 1000000000 + tv.tv_usec * 1000;
+	oh_gettimeofday(&el->sysbasetime);
 	el->basetime = timestamp;
 
         return SA_OK;

@@ -20,9 +20,13 @@
 #warning *** Include oh_utils.h instead of individual utility header files ***
 #endif
 
+#include <time.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif 
+
+SaErrorT oh_localtime(const SaHpiTimeT time, struct tm *tm);
 
 SaErrorT oh_decode_time(SaHpiTimeT time,
 			SaHpiTextBufferT *buffer);

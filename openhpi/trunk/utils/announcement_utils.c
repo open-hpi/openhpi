@@ -15,17 +15,14 @@
  *      Renier Morales <renier@openhpi.org>
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <glib.h>
-#include <fcntl.h>
 #include <string.h>
-#include <unistd.h>
-#include <time.h>
+
+#include <glib.h>
 
 #include <SaHpi.h>
 #include <oh_utils.h>
 #include <oh_error.h>
+
 
 /* allocate and initialize an announcement list */
 oh_announcement *oh_announcement_create(void)
@@ -59,7 +56,6 @@ SaErrorT oh_announcement_close(oh_announcement *ann)
 SaErrorT oh_announcement_append(oh_announcement *ann, SaHpiAnnouncementT *myann)
 {
         oh_ann_entry *entry;
-        time_t tt1;
 
         /* check for valid el params and state */
         if (ann == NULL || myann == NULL) {
@@ -75,8 +71,7 @@ SaErrorT oh_announcement_append(oh_announcement *ann, SaHpiAnnouncementT *myann)
 
         /* initialize the struct and append the new entry */
         entry->annentry.EntryId = ann->nextId++;
-        time(&tt1);
-        entry->annentry.Timestamp = ((SaHpiTimeT) tt1) * 1000000000;
+        oh_gettimeofday(&entry->annentry.Timestamp);
         entry->annentry.AddedByUser = TRUE;
         ann->annentries = g_list_append(ann->annentries, entry);
 
