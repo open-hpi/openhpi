@@ -27,6 +27,7 @@
 #include <SaHpi.h>
 #include <openhpi.h>
 #include <oh_threaded.h>
+#include <oh_utils.h>
 #include <sahpimacros.h>
 
 /*********************************************************************
@@ -1550,11 +1551,7 @@ SaErrorT SAHPI_API saHpiEventAdd (
         /* Timestamp the incoming user event
          * only if it is SAHPI_TIME_UNSPECIFIED */
         if (EvtEntry->Timestamp == SAHPI_TIME_UNSPECIFIED) {
-                struct timeval tv1;
-                gettimeofday(&tv1, NULL);
-                EvtEntry->Timestamp =
-                        (SaHpiTimeT) tv1.tv_sec * 1000000000 +
-                        tv1.tv_usec * 1000;
+                oh_gettimeofday(&EvtEntry->Timestamp);
         }
         /* Copy SaHpiEventT into oh_event struct */
         e.event = *EvtEntry;

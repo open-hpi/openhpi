@@ -1,6 +1,7 @@
 /*      -*- linux-c -*-
  *
  * (C) Copyright IBM Corp. 2004
+ * (C) Copyright Pigeon Point Systems. 2010
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -11,17 +12,61 @@
  *
  * Author(s):
  *      Steve Sherman <stevees@us.ibm.com>
+ *      Anton Pak <anton.pak@pigeonpoint.com>
  */
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
-#include <sys/time.h>
+
+#include <glib.h>
 
 #include <SaHpi.h>
 #include <oh_utils.h>
 #include <oh_error.h>
+
+
+/**
+ * oh_localtime:
+ * @time: SaHpiTimeT time to be converted.                    
+ * @tm: Location to store the converted broken-down time.
+ *
+ * Converts an SaHpiTimeT time value to broken-down
+ * time representation.
+ * 
+ * Returns:
+ * SA_OK - normal operation. 
+ * SA_ERR_HPI_INVALID_PARAMS - @buffer is NULL.
+ * SA_ERR_HPI_INTERNAL_ERROR - conversion failed
+ **/
+SaErrorT oh_localtime(const SaHpiTimeT time, struct tm *tm)
+{
+        time_t t;
+        struct tm *tm2;
+
+        if (!tm) {
+                return(SA_ERR_HPI_INVALID_PARAMS);
+        }
+
+        t = (time_t)(time / 1000000000);
+
+#ifndef _WIN32
+        tm2 = localtime_r(&t, tm);
+#else /* _WIN32 */
+        // Windows version of localtime is thread-safe
+        tm2 = localtime(&t);
+        if (tm2) {
+                *tm = *tm2;
+        }
+#endif /* _WIN32 */
+
+        if (!tm2) {
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+
+        return(SA_OK);
+}
 
 /**
  * oh_decode_time:
@@ -36,13 +81,12 @@
  * SA_OK - normal operation. 
  * SA_ERR_HPI_INVALID_PARAMS - @buffer is NULL.
  * SA_ERR_HPI_INTERNAL_ERROR - @buffer not big enough to accomodate
- *                             date/time representation string.
+ *                             date/time representation string or
+ *                             conversion failed.
  **/
 SaErrorT oh_decode_time(SaHpiTimeT time, SaHpiTextBufferT *buffer)
 {
 	int count;
-	struct tm t;
-	time_t tt;
 	SaErrorT err;
 	SaHpiTextBufferT working;
 
@@ -54,8 +98,12 @@ SaErrorT oh_decode_time(SaHpiTimeT time, SaHpiTextBufferT *buffer)
 	if (err != SA_OK) { return(err); }
 
         if (time > SAHPI_TIME_MAX_RELATIVE) { /*absolute time*/
-                tt = time / 1000000000;
-                count = strftime((char *)working.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH, "%Y-%m-%d %H:%M:%S", localtime(&tt));
+                struct tm tm;
+                err = oh_localtime(time, &tm);
+                if (err != SA_OK) {
+                        return(err);
+                }
+                count = strftime((char *)working.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH, "%Y-%m-%d %H:%M:%S", &tm);
         } else if (time ==  SAHPI_TIME_UNSPECIFIED) {
                 strcpy((char *)working.Data,"SAHPI_TIME_UNSPECIFIED     ");
 		count = sizeof("SAHPI_TIME_UNSPECIFIED     ");
@@ -63,10 +111,13 @@ SaErrorT oh_decode_time(SaHpiTimeT time, SaHpiTextBufferT *buffer)
                 strcpy((char *)working.Data,"Invalid time     ");
 		count = sizeof("Invalid time     ");
         } else {   /*relative time*/
-                tt = time / 1000000000;
-                localtime_r(&tt, &t);
+                struct tm tm;
+                err = oh_localtime(time, &tm);
+                if (err != SA_OK) {
+                        return(err);
+                }
                 /* count = strftime(str, size, "%b %d, %Y - %H:%M:%S", &t); */
-                count = strftime((char *)working.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH, "%c", &t);
+                count = strftime((char *)working.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH, "%c", &tm);
         }
 
         if (count == 0) { return(SA_ERR_HPI_INTERNAL_ERROR); }
@@ -90,18 +141,13 @@ SaErrorT oh_decode_time(SaHpiTimeT time, SaHpiTextBufferT *buffer)
  **/
 SaErrorT oh_gettimeofday(SaHpiTimeT *time)
 {
-	int err;
-        struct timeval now;
+        GTimeVal now;
 
 	if (!time) {
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-        err = gettimeofday(&now, NULL);
-	if (err) {
-		err("gettimeofday failed");
-		return(SA_ERR_HPI_INTERNAL_ERROR);
-	}
+        g_get_current_time(&now);
 
         *time = (SaHpiTimeT)now.tv_sec * 1000000000 + now.tv_usec * 1000;
 
