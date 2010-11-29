@@ -14,6 +14,7 @@
  */
 
 #include <dlfcn.h>
+#include <string.h>
 
 #include <string>
 
