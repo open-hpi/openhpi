@@ -20,8 +20,10 @@
  *     Ulrich Kleber <ulikleber@users.sourceforge.net>
  */
 
-#include "marshal_hpi.h"
+#include <stddef.h>
 #include <stdio.h>
+
+#include "marshal_hpi.h"
 
 
 static const cMarshalType *saHpiSessionOpenIn[] =
@@ -2141,7 +2143,7 @@ static cHpiMarshal hpi_marshal[] =
 };
 
 
-static int hpi_marshal_num = sizeof( hpi_marshal ) / sizeof( cHpiMarshal );
+static size_t hpi_marshal_num = sizeof( hpi_marshal ) / sizeof( cHpiMarshal );
 
 static int hpi_marshal_init = 0;
 
@@ -2151,8 +2153,7 @@ HpiMarshalFind( int id )
 {
   if ( !hpi_marshal_init )
      {
-       int i;
-
+       size_t i;
        for( i = 0; i < hpi_marshal_num; i++ )
 	  {
 //          printf("Entry %d\n", i);

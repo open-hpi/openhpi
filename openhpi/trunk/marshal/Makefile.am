@@ -34,7 +34,8 @@ libopenhpimarshal_la_SOURCES    = \
 	marshal.h \
         marshal.c
 
-libopenhpimarshal_la_LDFLAGS= -version-info @HPI_LIB_VERSION@
+# we need glib-2.0 for gmalloc
+libopenhpimarshal_la_LDFLAGS= -version-info @HPI_LIB_VERSION@ @GLIB_ONLY_LIBS@
 
 clean-local:
 	rm -f *~ core core.*

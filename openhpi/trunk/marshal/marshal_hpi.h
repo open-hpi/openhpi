@@ -19,6 +19,7 @@
 #ifndef dMarshalHpi_h
 #define dMarshalHpi_h
 
+#include <stddef.h>
 
 #ifndef dMarshalHpiTypes_h
 #include "marshal_hpi_types.h"
@@ -28,9 +29,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-
-#define dDefaultDaemonPort 4743
 
 
 typedef enum
@@ -176,8 +174,8 @@ typedef struct
   int                  m_id;
   const cMarshalType **m_request;
   const cMarshalType **m_reply; // the first param is the result
-  unsigned int         m_request_len;
-  unsigned int         m_reply_len;
+  size_t               m_request_len;
+  size_t               m_reply_len;
 } cHpiMarshal;
 
 

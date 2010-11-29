@@ -110,6 +110,8 @@ fi
 exact_version=`pkg-config --modversion $GLIB`;
 GLIB_CFLAGS=`pkg-config --cflags $GLIB gthread-2.0`
 GLIB_LIBS=`pkg-config --libs $GLIB gthread-2.0`
+GLIB_ONLY_CFLAGS=`pkg-config --cflags $GLIB`
+GLIB_ONLY_LIBS=`pkg-config --libs $GLIB`
 
 # On some versions of Solaris the pkg-config file for gthread-2.0 contains a
 # compiler option, '-mt', that is incompatible with gcc
@@ -138,6 +140,9 @@ OH_CHECK_FAIL(glib,glib-devel)
 
 CFLAGS=$old_cflags
 LIBS=$old_libs
+
+AC_SUBST(GLIB_ONLY_CFLAGS)
+AC_SUBST(GLIB_ONLY_LIBS)
 
 
 AC_CHECK_LIB([ltdl], [lt_dlopen], [], [
