@@ -13,6 +13,9 @@
  *        Anton Pak <anton.pak@pigeonpoint.com>
  */
 
+#include <stdlib.h>
+#include <string.h>
+
 #include <string>
 
 #include <glib.h>
