@@ -455,7 +455,7 @@ static SaErrorT print_resources(FILE *out, int offset, SaHpiSessionIdT sessionid
             do {
             	   rv = saHpiRdrGet(sessionid,rptentry.ResourceId, entryid, &nextentryid, &rdr);
             	   if (rv != SA_OK) {
-            	      fprintf(stderr, "saHpiRdrGet[%d, %d] rv = %s\n", rptentry.ResourceId, entryid,
+            	      fprintf(stderr, "saHpiRdrGet[%u, %u] rv = %s\n", rptentry.ResourceId, entryid,
             	                                                       oh_lookup_error(rv));
             	   }
 
@@ -483,8 +483,8 @@ static SaErrorT print_rpt(FILE *out, int offset, SaHpiRptEntryT *rptptr) {
    SaErrorT rv = SA_OK;
    int myoffset = offset;
 
-   fprintf(out, "%sEntryId=%d\n",offSet[myoffset],rptptr->EntryId);
-   fprintf(out, "%sResourceId=%d\n",offSet[myoffset],rptptr->ResourceId);
+   fprintf(out, "%sEntryId=%u\n",offSet[myoffset],rptptr->EntryId);
+   fprintf(out, "%sResourceId=%u\n",offSet[myoffset],rptptr->ResourceId);
    print_resourceInfo(out, myoffset, rptptr->ResourceInfo);
    
    fprintf(out, "%sResourceEntity={\n",offSet[myoffset]);
@@ -495,8 +495,8 @@ static SaErrorT print_rpt(FILE *out, int offset, SaHpiRptEntryT *rptptr) {
    
    fprintf(out, "%sResourceCapabilities=0x%08X\n",offSet[myoffset],rptptr->ResourceCapabilities);
    fprintf(out, "%sHotSwapCapabilities=0x%08X\n",offSet[myoffset],rptptr->HotSwapCapabilities);
-   fprintf(out, "%sResourceSeverity=%d\n",offSet[myoffset],rptptr->ResourceSeverity);
-   fprintf(out, "%sResourceFailed=%d\n",offSet[myoffset],rptptr->ResourceFailed);
+   fprintf(out, "%sResourceSeverity=%u\n",offSet[myoffset],rptptr->ResourceSeverity);
+   fprintf(out, "%sResourceFailed=%u\n",offSet[myoffset],rptptr->ResourceFailed);
 
    fprintf(out, "%sResourceTag={\n",offSet[myoffset]);
    myoffset++;
@@ -597,12 +597,12 @@ static SaErrorT print_rdr(FILE *out, int offset, SaHpiSessionIdT sessionid,
 static void print_common_rdr(FILE *out, int offset, SaHpiRdrT *rdrptr) {
    int myoffset = offset;
    
-   fprintf(out,"%sRecordId=%d\n",offSet[myoffset], rdrptr->RecordId);
-   fprintf(out,"%sRdrType=%d\n",offSet[myoffset], rdrptr->RdrType);
+   fprintf(out,"%sRecordId=%u\n",offSet[myoffset], rdrptr->RecordId);
+   fprintf(out,"%sRdrType=%u\n",offSet[myoffset], rdrptr->RdrType);
    fprintf(out,"%sEntity={\n",offSet[myoffset++]);
    print_ep(out, myoffset, &rdrptr->Entity);
    fprintf(out, "%s}\n", offSet[--myoffset]);
-   fprintf(out,"%sIsFru=%d\n",offSet[myoffset], rdrptr->IsFru);
+   fprintf(out,"%sIsFru=%u\n",offSet[myoffset], rdrptr->IsFru);
    fprintf(out,"%sIdString={\n",offSet[myoffset]);
    myoffset++;
    print_textbuffer(out, myoffset, rdrptr->IdString);
@@ -616,10 +616,10 @@ static void print_common_rdr(FILE *out, int offset, SaHpiRdrT *rdrptr) {
 static void print_fumi_rdr(FILE *out, int offset, SaHpiFumiRecT *fumi) {
    int myoffset = offset; 
 
-   fprintf(out,"%sNum=%d\n",offSet[myoffset], fumi->Num);
-   fprintf(out,"%sAccessProt=%d\n",offSet[myoffset], fumi->AccessProt);
-   fprintf(out,"%sCapability=%d\n",offSet[myoffset], fumi->Capability);
-   fprintf(out,"%sNumBanks=%d\n",offSet[myoffset], fumi->NumBanks);
+   fprintf(out,"%sNum=%u\n",offSet[myoffset], fumi->Num);
+   fprintf(out,"%sAccessProt=%u\n",offSet[myoffset], fumi->AccessProt);
+   fprintf(out,"%sCapability=%u\n",offSet[myoffset], fumi->Capability);
+   fprintf(out,"%sNumBanks=%u\n",offSet[myoffset], fumi->NumBanks);
    fprintf(out,"%sOem=%u\n", offSet[myoffset], fumi->Oem);
 }
 
@@ -634,7 +634,7 @@ static SaErrorT print_fumi_data(FILE *out, int offset, SaHpiSessionIdT sessionId
    SaHpiFumiSpecInfoT fumispec;
    rv = saHpiFumiSpecInfoGet(sessionId, resId, fumi->Num, &fumispec);
    if (rv != SA_OK) {
-      fprintf(stderr, "saHpiFumiSpecInfoGet returns %s for ResId %d Num %d -"
+      fprintf(stderr, "saHpiFumiSpecInfoGet returns %s for ResId %u Num %u -"
                       " no fumi data will be printed\n",
                       oh_lookup_error(rv), resId, fumi->Num);
       printData = FALSE;
@@ -643,7 +643,7 @@ static SaErrorT print_fumi_data(FILE *out, int offset, SaHpiSessionIdT sessionId
    SaHpiFumiServiceImpactDataT fumiimpact;
    rv = saHpiFumiServiceImpactGet(sessionId, resId, fumi->Num, &fumiimpact);
    if (rv != SA_OK) {
-      fprintf(stderr, "saHpiFumiServiceImpactGet returns %s for ResId %d Num %d -" 
+      fprintf(stderr, "saHpiFumiServiceImpactGet returns %s for ResId %u Num %u -" 
                       " no fumi data will be printed\n",
                       oh_lookup_error(rv), resId, fumi->Num);
       printData = FALSE;
@@ -676,11 +676,11 @@ static SaErrorT print_fumi_data(FILE *out, int offset, SaHpiSessionIdT sessionId
          SaHpiBoolT disabled;
          rv = saHpiFumiAutoRollbackDisableGet(sessionId, resId, fumi->Num, &disabled);
          if (rv != SA_OK) {
-            fprintf(stderr, " saHpiFumiAutoRollbackDisableGet returns %s for ResId %d Num %d -" 
+            fprintf(stderr, " saHpiFumiAutoRollbackDisableGet returns %s for ResId %u Num %u -" 
                             " no data is printed\n",
                             oh_lookup_error(rv), resId, fumi->Num);
          } else {
-            fprintf(out,"%sAutoRollbackDisable=%d\n", offSet[myoffset], disabled);
+            fprintf(out,"%sAutoRollbackDisable=%u\n", offSet[myoffset], disabled);
          }
       }
       
@@ -888,7 +888,7 @@ static void print_fumi_component_info(FILE *out, int offset, SaHpiFumiComponentI
 static void print_fumi_fw_info(FILE *out, int offset, SaHpiFumiFirmwareInstanceInfoT data) {
    int myoffset = offset;
    
-   fprintf(out,"%sInstancePresent=%d\n",offSet[myoffset], data.InstancePresent);
+   fprintf(out,"%sInstancePresent=%u\n",offSet[myoffset], data.InstancePresent);
    fprintf(out,"%sIdentifier={\n",offSet[myoffset++]);
    print_textbuffer(out, myoffset, data.Identifier);
    fprintf(out, "%s}\n", offSet[--myoffset]);
@@ -910,7 +910,7 @@ static void print_fumi_fw_info(FILE *out, int offset, SaHpiFumiFirmwareInstanceI
 static void print_dimi_rdr(FILE *out, int offset, SaHpiDimiRecT *dimi) {
    int myoffset = offset;
    
-   fprintf(out,"%sDimiNum=%d\n",offSet[myoffset], dimi->DimiNum);                               	
+   fprintf(out,"%sDimiNum=%u\n",offSet[myoffset], dimi->DimiNum);                               	
    fprintf(out,"%sOem=%u\n", offSet[myoffset], dimi->Oem);
 }
                                
@@ -923,7 +923,7 @@ static SaErrorT print_dimi_data(FILE *out, int offset, SaHpiSessionIdT sessionId
    
    rv = saHpiDimiInfoGet(sessionId, resId, dimi->DimiNum, &testinfo);
    if (rv != SA_OK) {
-      fprintf(stderr, "saHpiDimiInfoGet returns %s for ResId %d Num %d - will be Ignored, all is set to 0\n",
+      fprintf(stderr, "saHpiDimiInfoGet returns %s for ResId %u Num %u - will be Ignored, all is set to 0\n",
               oh_lookup_error(rv), resId, dimi->DimiNum);
       testinfo.NumberOfTests = 0;
       testinfo.TestNumUpdateCounter = 0;
@@ -937,7 +937,7 @@ static SaErrorT print_dimi_data(FILE *out, int offset, SaHpiSessionIdT sessionId
       SaHpiDimiTestT testcase;
       rv = saHpiDimiTestInfoGet(sessionId, resId, dimi->DimiNum, i, &testcase);
       if (rv != SA_OK) {
-         fprintf(stderr, "saHpiDimiTestInfoGet returns %s for ResId %d DimiNum %d Test %d-" 
+         fprintf(stderr, "saHpiDimiTestInfoGet returns %s for ResId %u DimiNum %u Test %u-" 
                           "will be Ignored, no data is printed\n",
                  oh_lookup_error(rv), resId, dimi->DimiNum, i);
          rv = SA_OK;
@@ -959,7 +959,7 @@ static SaErrorT print_dimi_data(FILE *out, int offset, SaHpiSessionIdT sessionId
             fprintf(out, "%s}\n", offSet[--myoffset]);
          }
          
-         fprintf(out,"%sNeedServiceOS=%d\n",offSet[myoffset], testcase.NeedServiceOS);
+         fprintf(out,"%sNeedServiceOS=%u\n",offSet[myoffset], testcase.NeedServiceOS);
          fprintf(out,"%sServiceOS={\n", offSet[myoffset++]);
          print_textbuffer(out, myoffset, testcase.ServiceOS);
          fprintf(out, "%s}\n", offSet[--myoffset]);
@@ -976,7 +976,7 @@ static SaErrorT print_dimi_data(FILE *out, int offset, SaHpiSessionIdT sessionId
          SaHpiDimiReadyT testready;
          rv_testdata = saHpiDimiTestReadinessGet(sessionId, resId, dimi->DimiNum, i, &testready);
          if (rv_testdata != SA_OK) {
-            fprintf(stderr, "saHpiDimiTestReadinessGet returns %s for ResId %d DimiNum %d Test %d-" 
+            fprintf(stderr, "saHpiDimiTestReadinessGet returns %s for ResId %u DimiNum %u Test %u-" 
                             "SAHPI_DIMI_WRONG_STATE is used instead\n",
                     oh_lookup_error(rv), resId, dimi->DimiNum, i);
             testready = SAHPI_DIMI_WRONG_STATE;
@@ -987,7 +987,7 @@ static SaErrorT print_dimi_data(FILE *out, int offset, SaHpiSessionIdT sessionId
          SaHpiDimiTestResultsT testresult;
          rv_testdata = saHpiDimiTestResultsGet(sessionId, resId, dimi->DimiNum, i, &testresult);
          if (rv_testdata != SA_OK) {
-            fprintf(stderr, "saHpiDimiTestResultsGet returns %s for ResId %d DimiNum %d Test %d -" 
+            fprintf(stderr, "saHpiDimiTestResultsGet returns %s for ResId %u DimiNum %u Test %u -" 
                             "will be Ignored, no data is printed\n",
                     oh_lookup_error(rv), resId, dimi->DimiNum, i);
          } else {
@@ -1013,7 +1013,7 @@ static void print_dimi_testparameter(FILE *out, int offset, SaHpiDimiTestParamsD
    fprintf(out,"%sParamType=%u\n", offSet[myoffset],param.ParamType);
    switch (param.ParamType) {
       case SAHPI_DIMITEST_PARAM_TYPE_BOOLEAN:
-         fprintf(out,"%sDefaultParam=%d\n", offSet[myoffset], param.DefaultParam.parambool);
+         fprintf(out,"%sDefaultParam=%u\n", offSet[myoffset], param.DefaultParam.parambool);
          break;
       case SAHPI_DIMITEST_PARAM_TYPE_INT32:
          fprintf(out,"%sMinValue=%d\n", offSet[myoffset], param.MinValue.IntValue);
@@ -1053,7 +1053,7 @@ static void print_dimi_test_data(FILE *out, int offset, SaHpiDimiTestResultsT te
 static void print_annunciator_rdr(FILE *out, int offset, SaHpiAnnunciatorRecT *ann) {
    int myoffset = offset;
    
-   fprintf(out,"%sAnnunciatorNum=%d\n",offSet[myoffset], ann->AnnunciatorNum);
+   fprintf(out,"%sAnnunciatorNum=%u\n",offSet[myoffset], ann->AnnunciatorNum);
    fprintf(out,"%sAnnunciatorType=0x%02X\n",offSet[myoffset], ann->AnnunciatorType);
    fprintf(out,"%sModeReadOnly=%d\n",offSet[myoffset], ann->ModeReadOnly);
    fprintf(out,"%sMaxConditions=%u\n", offSet[myoffset], ann->MaxConditions);
@@ -1071,7 +1071,7 @@ static SaErrorT print_annunciator_data(FILE *out, int offset, SaHpiSessionIdT se
    // An error in the following function will not stop the processing
    rv = saHpiAnnunciatorModeGet(sessionId, resId, ann->AnnunciatorNum, &annMode);
    if (rv != SA_OK) {
-       fprintf(stderr, "AnnunciatorModeGet returns %s for ResId %d Num %d - will be Ignored\n",
+       fprintf(stderr, "AnnunciatorModeGet returns %s for ResId %u Num %u - will be Ignored\n",
                oh_lookup_error(rv), resId, ann->AnnunciatorNum);
        annMode = SAHPI_ANNUNCIATOR_MODE_AUTO;
        rv = SA_OK;
@@ -1088,7 +1088,7 @@ static SaErrorT print_annunciator_data(FILE *out, int offset, SaHpiSessionIdT se
                                         SAHPI_FALSE, &announcement);
       if (rv_loop == SA_OK) {
          fprintf(out,"%s%s={\n", offSet[myoffset++], ANNOUNCEMENT);
-         fprintf(out,"%sEntryId=%d\n", offSet[myoffset], announcement.EntryId);
+         fprintf(out,"%sEntryId=%u\n", offSet[myoffset], announcement.EntryId);
          fprintf(out,"%sTimestamp=%ld\n", offSet[myoffset], (long int) announcement.Timestamp);
          fprintf(out,"%sAddedByUser=%d\n", offSet[myoffset], announcement.AddedByUser);
          fprintf(out,"%sSeverity=%u\n", offSet[myoffset], announcement.Severity);
@@ -1119,7 +1119,7 @@ static void print_annunciator_cond(FILE *out, int offset, SaHpiConditionT cond) 
       fprintf(out, "%sEventState=0x%04X\n", offSet[myoffset], cond.EventState);
    }
    fprintf(out,"%sName={\n",offSet[myoffset++]);
-   fprintf(out, "%sLength=%d\n",offSet[myoffset], cond.Name.Length);
+   fprintf(out, "%sLength=%u\n",offSet[myoffset], cond.Name.Length);
    fprintf(out, "%sValue=\"",offSet[myoffset]);
    for (i = 0; i < cond.Name.Length; i++)
       fprintf(out, "%c", cond.Name.Value[i]);
@@ -1142,13 +1142,13 @@ static SaErrorT print_watchdog_rdr(FILE *out, int offset, SaHpiSessionIdT sessio
    int myoffset = offset;
    SaErrorT rv  = SA_OK;
    
-   fprintf(out,"%sWatchdogNum=%d\n", offSet[myoffset], wtd->WatchdogNum);
+   fprintf(out,"%sWatchdogNum=%u\n", offSet[myoffset], wtd->WatchdogNum);
    fprintf(out,"%sOem=%u\n", offSet[myoffset], wtd->Oem);
  
    SaHpiWatchdogT wtdTimer;
    rv = saHpiWatchdogTimerGet(sessionId, resId, wtd->WatchdogNum, &wtdTimer);
    if (rv != SA_OK) {
-      fprintf(stderr, "WatchdogTimerGet returns %s for ResId %d Num %d\n",
+      fprintf(stderr, "WatchdogTimerGet returns %s for ResId %u Num %u\n",
               oh_lookup_error(rv), resId, wtd->WatchdogNum);
       return rv;
    }
@@ -1176,7 +1176,7 @@ static SaErrorT print_watchdog_rdr(FILE *out, int offset, SaHpiSessionIdT sessio
 static void print_inventory_rdr(FILE *out, int offset, SaHpiInventoryRecT *inv) {
    int myoffset = offset;
    
-   fprintf(out,"%sIdrId=%d\n", offSet[myoffset], inv->IdrId);
+   fprintf(out,"%sIdrId=%u\n", offSet[myoffset], inv->IdrId);
    fprintf(out,"%sPersistent=%d\n", offSet[myoffset], inv->Persistent);
    fprintf(out,"%sOem=%u\n", offSet[myoffset], inv->Oem);
 }
@@ -1189,7 +1189,7 @@ static SaErrorT print_inventory_data(FILE *out, int offset, SaHpiSessionIdT sess
    
    rv = saHpiIdrInfoGet(sessionId, resId, inv->IdrId, &idrInfo);
    if (rv != SA_OK) {
-      fprintf(stderr, "IdrInfoGet returns %s for ResId %d IdrId %d\n",
+      fprintf(stderr, "IdrInfoGet returns %s for ResId %u IdrId %u\n",
               oh_lookup_error(rv), resId, inv->IdrId);
       return rv;
    }
@@ -1198,7 +1198,7 @@ static SaErrorT print_inventory_data(FILE *out, int offset, SaHpiSessionIdT sess
    fprintf(out,"%sIdrId=%u\n", offSet[myoffset], idrInfo.IdrId);
    fprintf(out,"%sUpdateCount=%u\n", offSet[myoffset], idrInfo.UpdateCount);
    fprintf(out,"%sReadOnly=%d\n", offSet[myoffset], idrInfo.ReadOnly);
-   fprintf(out,"%sNumAreas=%d\n", offSet[myoffset], idrInfo.NumAreas);
+   fprintf(out,"%sNumAreas=%u\n", offSet[myoffset], idrInfo.NumAreas);
    
    SaHpiEntryIdT areaId = SAHPI_FIRST_ENTRY;
    SaHpiEntryIdT nextId;
@@ -1212,7 +1212,7 @@ static SaErrorT print_inventory_data(FILE *out, int offset, SaHpiSessionIdT sess
       rv = saHpiIdrAreaHeaderGet(sessionId, resId, inv->IdrId, SAHPI_IDR_AREATYPE_UNSPECIFIED,
                                  areaId, &nextId, &header);
       if (rv != SA_OK) {
-         fprintf(stderr, "IdrAreaHeaderGet returns %s for ResId %d IdrId %d areaId %d\n",
+         fprintf(stderr, "IdrAreaHeaderGet returns %s for ResId %u IdrId %u areaId %u\n",
                  oh_lookup_error(rv), resId, inv->IdrId, areaId);
          break;
       }
@@ -1236,7 +1236,7 @@ static SaErrorT print_inventory_area_data(FILE *out, int offset, SaHpiSessionIdT
    fprintf(out,"%sAreaId=%u\n", offSet[myoffset], area->AreaId);
    fprintf(out,"%sType=%u\n", offSet[myoffset], area->Type);
    fprintf(out,"%sReadOnly=%d\n", offSet[myoffset], area->ReadOnly);
-   fprintf(out,"%sNumFields=%d\n", offSet[myoffset], area->NumFields);
+   fprintf(out,"%sNumFields=%u\n", offSet[myoffset], area->NumFields);
 
    SaHpiEntryIdT  fieldId = SAHPI_FIRST_ENTRY;
    SaHpiEntryIdT  nextId;
@@ -1250,7 +1250,7 @@ static SaErrorT print_inventory_area_data(FILE *out, int offset, SaHpiSessionIdT
       rv = saHpiIdrFieldGet(sessionId, resId, inv->IdrId, area->AreaId, 
                             SAHPI_IDR_FIELDTYPE_UNSPECIFIED, fieldId, &nextId, &field);
       if (rv != SA_OK) {
-         fprintf(stderr, "IdrFieldGet returns %s for ResId %d IdrId %d areaId %d fieldId %d\n",
+         fprintf(stderr, "IdrFieldGet returns %s for ResId %u IdrId %u areaId %u fieldId %u\n",
                  oh_lookup_error(rv), resId, inv->IdrId, area->AreaId, fieldId);
          break;
       }
@@ -1294,22 +1294,22 @@ static SaErrorT print_control_rdr(FILE *out, int offset, SaHpiSessionIdT session
    if (allowGet)
       rv = saHpiControlGet(sessionId, resId, ctrl->Num, &modeGet, &stateGet);
    if (rv != SA_OK) {
-      fprintf(stderr, "ControlGet returns %s for ResId %d ControlNum %d\n",
+      fprintf(stderr, "ControlGet returns %s for ResId %u ControlNum %u\n",
               oh_lookup_error(rv), resId, ctrl->Num);
    }
     
    fprintf(out, "%sNum=%u\n", offSet[myoffset], ctrl->Num);
-   fprintf(out, "%sOutputType=%d\n", offSet[myoffset], ctrl->OutputType);
-   fprintf(out, "%sType=%d\n", offSet[myoffset], ctrl->Type);
+   fprintf(out, "%sOutputType=%u\n", offSet[myoffset], ctrl->OutputType);
+   fprintf(out, "%sType=%u\n", offSet[myoffset], ctrl->Type);
    
    switch (ctrl->Type) {
       case SAHPI_CTRL_TYPE_DIGITAL:
          fprintf(out, "%sTypeUnion.Digital={\n", offSet[myoffset]);
          myoffset++;
-         fprintf(out,"%sDefault=%d\n", offSet[myoffset], ctrl->TypeUnion.Digital.Default);
+         fprintf(out,"%sDefault=%u\n", offSet[myoffset], ctrl->TypeUnion.Digital.Default);
          if (allowGet)
             if (stateGet.StateUnion.Digital != ctrl->TypeUnion.Digital.Default)
-               fprintf(out,"%s%s=%d\n", offSet[myoffset], CONTROL_GET, stateGet.StateUnion.Digital);
+               fprintf(out,"%s%s=%u\n", offSet[myoffset], CONTROL_GET, stateGet.StateUnion.Digital);
          break;
       
       case SAHPI_CTRL_TYPE_DISCRETE:
@@ -1371,7 +1371,7 @@ static SaErrorT print_control_rdr(FILE *out, int offset, SaHpiSessionIdT session
             stateGet.StateUnion.Text.Line = SAHPI_TLN_ALL_LINES;
             rv = saHpiControlGet(sessionId, resId, ctrl->Num, &modeGet, &stateGet);
             if (rv != SA_OK) {
-               fprintf(stderr, "ControlGet returns %s for ResId %d ControlNum %d\n",
+               fprintf(stderr, "ControlGet returns %s for ResId %u ControlNum %u\n",
                                oh_lookup_error(rv), resId, ctrl->Num);
             }
          
@@ -1412,7 +1412,7 @@ static SaErrorT print_control_rdr(FILE *out, int offset, SaHpiSessionIdT session
    }
    fprintf(out, "%s}\n", offSet[--myoffset]);
    fprintf(out, "%sDefaultMode={\n", offSet[myoffset++]);
-   fprintf(out, "%sMode=%d\n", offSet[myoffset], ctrl->DefaultMode.Mode);
+   fprintf(out, "%sMode=%u\n", offSet[myoffset], ctrl->DefaultMode.Mode);
    fprintf(out, "%sReadOnly=%d\n", offSet[myoffset], ctrl->DefaultMode.ReadOnly);
    fprintf(out, "%s}\n", offSet[--myoffset]);
 
@@ -1420,7 +1420,7 @@ static SaErrorT print_control_rdr(FILE *out, int offset, SaHpiSessionIdT session
       // Check whether the mode was changed 
       if ( ctrl->DefaultMode.Mode != modeGet ) {
          fprintf(out, "%s%s={\n",offSet[myoffset++], CONTROL_GET);
-         fprintf(out, "%sMode=%d\n", offSet[myoffset], modeGet);
+         fprintf(out, "%sMode=%u\n", offSet[myoffset], modeGet);
          fprintf(out, "%s}\n", offSet[--myoffset]);
       }
    } 
@@ -1436,7 +1436,7 @@ static void print_control_state_stream(FILE *out, int offset, SaHpiCtrlStateStre
    int i;
 
    fprintf(out,"%sRepeat=%d\n", offSet[offset], data.Repeat);
-   fprintf(out,"%sStreamLength=%d\n", offSet[offset], data.StreamLength);
+   fprintf(out,"%sStreamLength=%u\n", offSet[offset], data.StreamLength);
    fprintf(out,"%sStream=\"", offSet[offset]);
    for (i = 0; i < data.StreamLength; i++)
       fprintf(out,"%02X", data.Stream[i]);
@@ -1542,7 +1542,7 @@ static SaErrorT print_sensor_data(FILE *out, int offset, SaHpiSessionIdT session
    
    rv = saHpiSensorEnableGet(sessionId, resId, sens->Num, &sensEnabled);
    if (rv != SA_OK) {
-      fprintf(stderr, "saHpiSensorEnableGet returns %s for ResId %d sensNum %d\n",
+      fprintf(stderr, "saHpiSensorEnableGet returns %s for ResId %u sensNum %u\n",
               oh_lookup_error(rv), resId, sens->Num);
       return rv;
    }
@@ -1552,7 +1552,7 @@ static SaErrorT print_sensor_data(FILE *out, int offset, SaHpiSessionIdT session
    	  if (sens->EnableCtrl) {
    	     rv = saHpiSensorEnableSet(sessionId, resId, sens->Num, SAHPI_TRUE);
          if (rv != SA_OK) {
-            fprintf(stderr, "saHpiSensorEnableSet returns %s for ResId %d sensNum %d\n",
+            fprintf(stderr, "saHpiSensorEnableSet returns %s for ResId %u sensNum %u\n",
                     oh_lookup_error(rv), resId, sens->Num);
             return rv;
          }
@@ -1564,7 +1564,7 @@ static SaErrorT print_sensor_data(FILE *out, int offset, SaHpiSessionIdT session
    
    rv = saHpiSensorReadingGet(sessionId, resId, sens->Num, &read, &event);
    if (rv != SA_OK) {
-      fprintf(stderr, "SensorReadingGet returns %s for ResId %d sensNum %d\n",
+      fprintf(stderr, "SensorReadingGet returns %s for ResId %u sensNum %u\n",
               oh_lookup_error(rv), resId, sens->Num);
       return rv;
    }
@@ -1578,7 +1578,7 @@ static SaErrorT print_sensor_data(FILE *out, int offset, SaHpiSessionIdT session
    SaHpiBoolT evtenb;
    rv = saHpiSensorEventEnableGet(sessionId, resId, sens->Num, &evtenb);
    if (rv != SA_OK) {
-      fprintf(stderr, "SensorEventEnableGet returns %s for ResId %d sensNum %d\n",
+      fprintf(stderr, "SensorEventEnableGet returns %s for ResId %u sensNum %u\n",
               oh_lookup_error(rv), resId, sens->Num);
    } else {
       fprintf(out,"%sSensorEventEnable=%d\n",offSet[myoffset], evtenb);
@@ -1592,7 +1592,7 @@ static SaErrorT print_sensor_data(FILE *out, int offset, SaHpiSessionIdT session
       read.IsSupported = SAHPI_TRUE;
       read.Type = sens->DataFormat.ReadingType;
       fprintf(stderr, 
-            "WARNING: SensorReading.IsSupported value must be changed for ResId %d sensNum %d\n",
+            "WARNING: SensorReading.IsSupported value must be changed for ResId %u sensNum %u\n",
             resId, sens->Num);  
    }
    print_sensor_reading(out, myoffset, read);
@@ -1604,7 +1604,7 @@ static SaErrorT print_sensor_data(FILE *out, int offset, SaHpiSessionIdT session
    	  
       rv = saHpiSensorThresholdsGet(sessionId, resId, sens->Num, &thres);
       if (rv != SA_OK) {
-         fprintf(stderr, "saHpiSensorThresholdsGet returns %s for ResId %d sensNum %d\n",
+         fprintf(stderr, "saHpiSensorThresholdsGet returns %s for ResId %u sensNum %u\n",
                  oh_lookup_error(rv), resId, sens->Num);
       } else {
          fprintf(out,"%sSensorThresholds={\n",offSet[myoffset++]);
@@ -1612,7 +1612,7 @@ static SaErrorT print_sensor_data(FILE *out, int offset, SaHpiSessionIdT session
          fprintf(out, "%s}\n", offSet[--myoffset]);
          if (corflag)
             fprintf(stderr, 
-            "WARNING: Reading for %d threshold value(s) must be changed for ResId %d sensNum %d\n",
+            "WARNING: Reading for %d threshold value(s) must be changed for ResId %u sensNum %u\n",
             corflag, resId, sens->Num);
       }
    }
@@ -1621,7 +1621,7 @@ static SaErrorT print_sensor_data(FILE *out, int offset, SaHpiSessionIdT session
    SaHpiEventStateT assert, deassert;
    rv = saHpiSensorEventMasksGet(sessionId, resId, sens->Num, &assert, &deassert);
    if (rv != SA_OK) {
-      fprintf(stderr, "saHpiSensorEventMasksGet returns %s for ResId %d sensNum %d\n",
+      fprintf(stderr, "saHpiSensorEventMasksGet returns %s for ResId %u sensNum %u\n",
               oh_lookup_error(rv), resId, sens->Num);
    } else {
       fprintf(out,"%sAssertEventMask=0x%04X\n",offSet[myoffset], assert);
@@ -1633,7 +1633,7 @@ static SaErrorT print_sensor_data(FILE *out, int offset, SaHpiSessionIdT session
       // The enabled status was changed, set it back
       rv = saHpiSensorEnableSet(sessionId, resId, sens->Num, sensEnabled);
       if (rv != SA_OK) {
-         fprintf(stderr, "saHpiSensorEnableSet returns %s for ResId %d sensNum %d\n",
+         fprintf(stderr, "saHpiSensorEnableSet returns %s for ResId %u sensNum %u\n",
                  oh_lookup_error(rv), resId, sens->Num);
          return rv;
       }
@@ -1741,9 +1741,9 @@ static void print_sensor_reading(FILE *out, int offset, SaHpiSensorReadingT val)
  **/
  
 static void print_textbuffer(FILE *out, int offset, SaHpiTextBufferT data) {
-	fprintf(out,"%sDataType=%d\n",offSet[offset], data.DataType);
-	fprintf(out,"%sLanguage=%d\n",offSet[offset], data.Language);
-	fprintf(out,"%sDataLength=%d\n",offSet[offset], data.DataLength);
+	fprintf(out,"%sDataType=%u\n",offSet[offset], data.DataType);
+	fprintf(out,"%sLanguage=%u\n",offSet[offset], data.Language);
+	fprintf(out,"%sDataLength=%u\n",offSet[offset], data.DataLength);
 	fprintf(out,"%sData=\"%s\"\n",offSet[offset], data.Data);
 }
 /**

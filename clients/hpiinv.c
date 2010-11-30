@@ -176,7 +176,7 @@ fixstr(SaHpiTextBufferT *strptr, char *outstr)
 		strncpy ((char *)outstr, (char *)strptr->Data, datalen);
 		outstr[datalen] = 0;
 		if (fdebug) { 
-		  printf("TextBuffer len=%d, dtype=%x lang=%d: %s\n",
+		  printf("TextBuffer len=%u, dtype=%x lang=%u: %s\n",
 			strptr->DataLength,strptr->DataType,strptr->Language,
 			strptr->Data );
 		}
@@ -308,7 +308,7 @@ static void print_epath(SaHpiEntityPathT *epath, int len)
 		}
 	   }
            if (j == NEPTYPES) j--;
-	   printf("{%s:%d} ",pstr, epath->Entry[i].EntityLocation);
+	   printf("{%s:%u} ",pstr, epath->Entry[i].EntityLocation);
 	   if (t == SAHPI_ENT_ROOT) break;
 	}
 	printf("\n");
@@ -342,7 +342,7 @@ static void print_idrareaheader(SaHpiIdrAreaHeaderT *areaHeader, int len)
 		if (map_areatype[i].type == areaHeader->Type) break;
 	}
 	if (i == NAREATYP) i--;
-	printf("AreaId[%d] %s\n",areaHeader->AreaId,map_areatype[i].str);
+	printf("AreaId[%u] %s\n",areaHeader->AreaId,map_areatype[i].str);
    }
 }
 
@@ -365,7 +365,7 @@ static void print_idrfield(SaHpiIdrFieldT *field, int len)
 	if (i == NFIELDTYP) i--;
 	strptr = &(field->Field);  
 	fixstr(strptr,fieldstr);  /*stringify if needed*/
-	printf("    FieldId[%d] %s : %s\n",
+	printf("    FieldId[%u] %s : %s\n",
 		field->FieldId,map_fieldtype[i].str ,fieldstr);
    }
 }
@@ -419,7 +419,7 @@ int walkInventory(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 						fieldId, &nextFieldId,
 						&thisField);
 			if (fdebug) 
-				printf("saHpiIdrFieldGet[%x] rv = %d type=%d\n",
+				printf("saHpiIdrFieldGet[%x] rv = %d type=%u\n",
 					idrInfo->IdrId,rvField,
 					thisField.Type);
 			if (rvField == SA_OK) {
@@ -437,7 +437,7 @@ int walkInventory(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 		}  /*while fields*/
 			
 		if ( countFields != areaHeader.NumFields) 
-			printf("Area Header error: areaHeader.NumFields %d, countFields %d\n",
+			printf("Area Header error: areaHeader.NumFields %u, countFields %u\n",
 				areaHeader.NumFields, countFields);
 	} else {
 		printf("saHpiIdrAreaHeaderGet error %d\n",rv);
@@ -447,7 +447,7 @@ int walkInventory(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
    }   /*while areas*/
 
    if ((rv == SA_OK) && (countAreas != numAreas)) 
-	printf("idrInfo error! idrInfo.NumAreas = %d; countAreas = %d\n", 
+	printf("idrInfo error! idrInfo.NumAreas = %u; countAreas = %u\n", 
 			numAreas, countAreas);
 
    if (countFields > 0) rv = 0;
@@ -513,10 +513,10 @@ main(int argc, char **argv)
 
   if (fdebug) {
      if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) printf("saHpiSessionOpen\n");
-     else printf("saHpiSessionOpen to domain %d\n",domainid);
+     else printf("saHpiSessionOpen to domain %u\n",domainid);
   }
   rv = saHpiSessionOpen(domainid,&sessionid,NULL);
-  if (fdebug) printf("saHpiSessionOpen rv = %d sessionid = %x\n",rv,sessionid);
+  if (fdebug) printf("saHpiSessionOpen rv = %d sessionid = %u\n",rv,sessionid);
   if (rv != SA_OK) {
     printf("saHpiSessionOpen error %d\n",rv);
     exit(-1);
@@ -535,7 +535,7 @@ main(int argc, char **argv)
      * This should not apply to other well-behaved plugins.
      */
     nloops++;
-    if (fdebug) printf("Starting Discovery, pass %d ...\n",nloops);
+    if (fdebug) printf("Starting Discovery, pass %u ...\n",nloops);
     rv = saHpiDiscover(sessionid);
     if (fdebug) printf("saHpiDiscover rv = %d\n",rv);
     if (rv != SA_OK) {
@@ -548,7 +548,7 @@ main(int argc, char **argv)
   while ((rv == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY))
   {
     rv = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
-    if (rv != SA_OK) printf("RptEntryGet: rid=%d rv = %d\n",rptentryid,rv);
+    if (rv != SA_OK) printf("RptEntryGet: rid=%u rv = %d\n",rptentryid,rv);
     if (rv == SA_OK)
     {
       /* obtain resource tag */
@@ -558,18 +558,18 @@ main(int argc, char **argv)
       /* walk the RDR list for this RPT entry */
       entryid = SAHPI_FIRST_ENTRY;
       resourceid = rptentry.ResourceId;
-      if (fdebug) printf("rptentry[%d] resourceid=%d\n", rptentryid,resourceid);
+      if (fdebug) printf("rptentry[%u] resourceid=%d\n", rptentryid,resourceid);
       if (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)
       {
-        printf("Resource[%d] Tag: %s \thas inventory capability\n", rptentryid,tagstr);
+        printf("Resource[%u] Tag: %s \thas inventory capability\n", rptentryid,tagstr);
 	rv_rdr = SA_OK;
 	while ((rv_rdr == SA_OK) && (entryid != SAHPI_LAST_ENTRY))
 	{
           rv_rdr = saHpiRdrGet(sessionid,resourceid, entryid,&nextentryid, &rdr);
-  	  if (fdebug) printf("saHpiRdrGet[%x] rv = %d\n",entryid,rv_rdr);
+  	  if (fdebug) printf("saHpiRdrGet[%u] rv = %d\n",entryid,rv_rdr);
 	  if (rv_rdr == SA_OK)
 	  {
-  	    if (fdebug) printf("Rdr[%x] type = %d tag = %s\n",entryid,
+  	    if (fdebug) printf("Rdr[%u] type = %u tag = %s\n",entryid,
 				rdr.RdrType,rdr.IdString.Data);
 	    if (rdr.RdrType == SAHPI_INVENTORY_RDR)
 	    { 
@@ -580,7 +580,7 @@ main(int argc, char **argv)
 	      buffersize = sizeof(inbuff);
 	      if (fdebug) {
 		 printf("Rdr[%x] is inventory, IdrId=%x\n",rdr.RecordId,idrid);
-		 printf("Inv BufferSize=%d\n", buffersize);
+		 printf("Inv BufferSize=%u\n", buffersize);
 	      }
 	      if ( IsTagBmc((char *)rdr.IdString.Data, rdr.IdString.DataLength) )
 	      {
@@ -625,17 +625,17 @@ main(int argc, char **argv)
 		   }  /*endif fasset*/
   		}  /*endif RDR tag ok*/
 	      } /* Inventory Data Records - Type 3 */ 
-	      else if (fdebug) printf("rdr type = %d\n", rdr.RdrType);
+	      else if (fdebug) printf("rdr type = %u\n", rdr.RdrType);
 	    }  /*endif RdrGet ok*/
 	    entryid = nextentryid;
           } /*end while rdr*/
         } /*endif rpt invent capab*/
         else 
-	  if (fdebug) printf("Resource[%d] Tag: %s\n", rptentryid,tagstr);
+	  if (fdebug) printf("Resource[%u] Tag: %s\n", rptentryid,tagstr);
       }  /*endif rpt ok*/
       rptentryid = nextrptentryid;
   }  /*end rpt loop */
-    if (fdebug) printf("loop %d inventory found = %d\n",nloops,invfound);
+    if (fdebug) printf("loop %u inventory found = %d\n",nloops,invfound);
   }  /*end while no inv */
   rv = saHpiSessionClose(sessionid);
   exit(0);

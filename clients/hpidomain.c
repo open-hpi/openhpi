@@ -100,7 +100,7 @@ main(int argc, char **argv)
 	if (fdebug) {
 		if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) 
 			printf("saHpiSessionOpen\n");
-		else printf("saHpiSessionOpen to domain %d\n",domainid);
+		else printf("saHpiSessionOpen to domain %u\n",domainid);
 	}
         rv = saHpiSessionOpen(domainid,&sessionid,NULL);
 	if (rv != SA_OK) {
@@ -108,7 +108,7 @@ main(int argc, char **argv)
 		exit(-1);
 	}
 	if (fdebug)
-	       	printf("saHpiSessionOpen returns with SessionId %d\n", 
+	       	printf("saHpiSessionOpen returns with SessionId %u\n", 
 			sessionid);
 
 	/*
@@ -179,26 +179,26 @@ SaErrorT show_domain(SaHpiSessionIdT sessionid)
         	    rv = saHpiSessionOpen(relateddomainid,
 					  &relatedsessionid,NULL);
 		    if (rv != SA_OK) {
-			printf("Related domain found: %d   IsPeer: %d\n",
+			printf("Related domain found: %u   IsPeer: %u\n",
 				drtentry.DomainId,drtentry.IsPeer);
-			printf("saHpiSessionOpen to related domain %d "
+			printf("saHpiSessionOpen to related domain %u "
 				"returns %s\n",
 				relateddomainid,oh_lookup_error(rv));
 			continue;
 		    }
 		    if (fdebug) {
-			printf("saHpiSessionOpen returns with SessionId %d\n", 
+			printf("saHpiSessionOpen returns with SessionId %u\n", 
 				relatedsessionid);
-			printf("saHpiDomainInfoGet for related domain %d\n",
+			printf("saHpiDomainInfoGet for related domain %u\n",
 				relateddomainid);
 		    }
 		    rv = saHpiDomainInfoGet(relatedsessionid,
 					    &relateddomaininfo);
 		    if (rv!=SA_OK) {
-			printf("\nRelated domain found: %d   IsPeer: %d\n",
+			printf("\nRelated domain found: %u   IsPeer: %u\n",
 				drtentry.DomainId,drtentry.IsPeer);
 			printf("saHpiDomainInfoGet  for related domain "
-				"%d failed with returncode %s\n",
+				"%u failed with returncode %s\n",
 				relateddomainid,oh_lookup_error(rv));
 		    }
 		    else {
@@ -214,7 +214,7 @@ SaErrorT show_domain(SaHpiSessionIdT sessionid)
 
 		}
 		else {
-		    printf("Related domain found: %d   IsPeer: %d\n",
+		    printf("Related domain found: %u   IsPeer: %u\n",
 			drtentry.DomainId,drtentry.IsPeer);
 		}
 	   }
@@ -241,7 +241,7 @@ static SaErrorT print_domaininfo(SaHpiDomainInfoT info, int shift)
 	int			i;
 
 	for (i=0;i<shift;i++)printf("    ");
-        printf("Domain: %d   Capabil: 0x%x   IsPeer: %d   Tag: ",
+        printf("Domain: %u   Capabil: 0x%x   IsPeer: %u   Tag: ",
                 info.DomainId, info.DomainCapabilities,
                 info.IsPeer);
 	rv = oh_print_text(&(info.DomainTag));
@@ -257,32 +257,32 @@ static SaErrorT print_domaininfo(SaHpiDomainInfoT info, int shift)
         printf("\n");
 	rv = oh_decode_time(info.DrtUpdateTimestamp, &buf);
 	for (i=0;i<shift;i++)printf("    ");
-        printf("            DRT update count: %d   DRT Timestamp : ",
+        printf("            DRT update count: %u   DRT Timestamp : ",
                 info.DrtUpdateCount);
 	oh_print_text(&buf);
         printf("\n");
 
 	rv = oh_decode_time(info.RptUpdateTimestamp, &buf);
 	for (i=0;i<shift;i++)printf("    ");
-        printf("            RPT update count: %d   RPT Timestamp : ",
+        printf("            RPT update count: %u   RPT Timestamp : ",
                 info.RptUpdateCount);
 	oh_print_text(&buf);
         printf("\n");
 
 	rv = oh_decode_time(info.DatUpdateTimestamp, &buf);
 	for (i=0;i<shift;i++)printf("    ");
-        printf("            DAT update count: %d   DAT Timestamp : ",
+        printf("            DAT update count: %u   DAT Timestamp : ",
                 info.DatUpdateCount);
 	oh_print_text(&buf);
         printf("\n");
 
 	for (i=0;i<shift;i++)printf("    ");
-        printf("                ActiveAlarms: %d   CriticalAlarms: %d   "
-		"Major: %d Minor: %d\n",
+        printf("                ActiveAlarms: %u   CriticalAlarms: %u   "
+		"Major: %u Minor: %u\n",
                 info.ActiveAlarms, info.CriticalAlarms, info.MajorAlarms,
                 info.MinorAlarms);
 	for (i=0;i<shift;i++)printf("    ");
-        printf("                Limit: %d   DatOverflow : %d\n",
+        printf("                Limit: %u   DatOverflow : %u\n",
 		info.DatUserAlarmLimit, info.DatOverflow);
 	
 	return rv;
