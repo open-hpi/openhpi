@@ -117,7 +117,7 @@ IsSimpleType( tMarshalType type )
 }
 
 
-static size_t
+size_t
 MarshalSize( const cMarshalType *type )
 {
   switch( type->m_type )

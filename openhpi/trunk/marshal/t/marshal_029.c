@@ -33,7 +33,7 @@ typedef struct
   tInt8    m_array[dArraySize];
 } cTest1;
 
-cMarshalType ArrayType = dArray( Marshal_Int8Type, dArraySize );
+cMarshalType ArrayType = dArray( dArraySize, tInt8, Marshal_Int8Type );
 
 cMarshalType Test1Elements[] =
 {
@@ -51,7 +51,7 @@ cMarshalType Test1Elements[] =
   dStructElementEnd()
 };
 
-cMarshalType Test1Type = dStruct( cTest1, Test1Elements );
+cMarshalType Test1Type = dStruct( Test1Elements );
 
 
 typedef struct
@@ -71,7 +71,7 @@ cMarshalType Test2Elements[] =
   dStructElementEnd()
 };
 
-cMarshalType Test2Type = dStruct( cTest2, Test2Elements );
+cMarshalType Test2Type = dStruct( Test2Elements );
 
 
 int

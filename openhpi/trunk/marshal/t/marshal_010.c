@@ -48,7 +48,7 @@ cMarshalType Elements[] =
 };
 
 
-cMarshalType TestType = dStruct( cTest, Elements );
+cMarshalType TestType = dStruct( Elements );
 
 
 int

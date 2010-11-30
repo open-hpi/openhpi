@@ -72,7 +72,7 @@ cMarshalType StructElements[] =
   dStructElementEnd()
 };
 
-cMarshalType TestType = dStruct( cTest, StructElements );
+cMarshalType TestType = dStruct( StructElements );
 
 
 int

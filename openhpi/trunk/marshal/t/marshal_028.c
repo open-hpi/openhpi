@@ -27,7 +27,7 @@ typedef struct
   tUint8 m_pad3;
 } cTest;
 
-cMarshalType TestVarArrayType = dVarArray( SaHpiDimiTestVariableParamsType, 1 );
+cMarshalType TestVarArrayType = dVarArray( 1, SaHpiDimiTestVariableParamsT, SaHpiDimiTestVariableParamsType );
 cMarshalType StructElements[] =
 {
   dStructElement( cTest, m_pad1 , Marshal_Uint8Type ),
@@ -37,7 +37,7 @@ cMarshalType StructElements[] =
   dStructElement( cTest, m_pad3 , Marshal_Uint8Type ),
   dStructElementEnd()
 };
-cMarshalType TestType = dStruct( cTest, StructElements );
+cMarshalType TestType = dStruct( StructElements );
 SaHpiDimiTestVariableParamsT params_list[] = {
 	{
 		.ParamName = "Test Param",
