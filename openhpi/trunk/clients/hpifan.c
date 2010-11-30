@@ -78,7 +78,7 @@ display_textbuffer( SaHpiTextBufferT string )
                         printf( "%c", string.Data[i] );
                 break;
         default:
-                printf("Invalid string data type=%d", string.DataType );
+                printf("Invalid string data type=%u", string.DataType );
         }
 }
 
@@ -141,7 +141,7 @@ do_fan( SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id,
         SaHpiCtrlRecT *ctrl_rec = &rdr->RdrTypeUnion.CtrlRec;
 	SaHpiCtrlModeT ctrl_mode;
 
-        printf( "\tfan: num %d, id ", ctrl_rec->Num );
+        printf( "\tfan: num %u, id ", ctrl_rec->Num );
         display_textbuffer( rdr->IdString );
         printf( "\n" );
 
@@ -314,7 +314,7 @@ main( int argc, char *argv[] )
                 return 1;
         }
 	if (domainid!=SAHPI_UNSPECIFIED_DOMAIN_ID) 
-	     printf("HPI Session to domain %d\n",domainid);
+	     printf("HPI Session to domain %u\n",domainid);
 
 
         rv = saHpiDiscover( sessionid );

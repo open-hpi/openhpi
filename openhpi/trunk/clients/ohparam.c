@@ -142,7 +142,7 @@ main(int argc, char **argv)
    if (fdebug) {
       if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) 
          printf("saHpiSessionOpen\n");
-      else printf("saHpiSessionOpen to domain %d\n",domainid);
+      else printf("saHpiSessionOpen to domain %u\n",domainid);
    }
         rv = saHpiSessionOpen(domainid,&sessionid,NULL);
    if (rv != SA_OK) {
@@ -151,7 +151,7 @@ main(int argc, char **argv)
       exit(-1);
    }
    if (fdebug)
-      printf("saHpiSessionOpen returns with SessionId %d\n", 
+      printf("saHpiSessionOpen returns with SessionId %u\n", 
               sessionid);
 
    switch (cmd){
@@ -184,7 +184,7 @@ static SaErrorT execglobalparamget ()
    SaErrorT rv = SA_OK;
    oHpiGlobalParamT param;
 
-   if (fdebug) printf("Go and read global parameters in domain %d\n", domainid);
+   if (fdebug) printf("Go and read global parameters in domain %u\n", domainid);
 
    param.Type = OHPI_ON_EP;
    rv = oHpiGlobalParamGet (&param);
@@ -212,7 +212,7 @@ static SaErrorT execglobalparamget ()
              rv, oh_lookup_error(rv));
       return rv;
    }
-   printf("OPENHPI_EVT_QUEUE_LIMIT = %d\n", param.u.EvtQueueLimit);
+   printf("OPENHPI_EVT_QUEUE_LIMIT = %u\n", param.u.EvtQueueLimit);
 
    param.Type =OHPI_DEL_SIZE_LIMIT;
    rv = oHpiGlobalParamGet (&param);
@@ -221,7 +221,7 @@ static SaErrorT execglobalparamget ()
              rv, oh_lookup_error(rv));
       return rv;
    }
-   printf("OPENHPI_DEL_SIZE_LIMIT = %d\n", param.u.DelSizeLimit);
+   printf("OPENHPI_DEL_SIZE_LIMIT = %u\n", param.u.DelSizeLimit);
 
    param.Type =OHPI_DEL_SAVE;
    rv = oHpiGlobalParamGet (&param);
@@ -241,7 +241,7 @@ static SaErrorT execglobalparamget ()
              rv, oh_lookup_error(rv));
       return rv;
    }
-   printf("OPENHPI_DAT_SIZE_LIMIT = %d\n", param.u.DatSizeLimit);
+   printf("OPENHPI_DAT_SIZE_LIMIT = %u\n", param.u.DatSizeLimit);
 
    param.Type =OHPI_DAT_USER_LIMIT;
    rv = oHpiGlobalParamGet (&param);
@@ -250,7 +250,7 @@ static SaErrorT execglobalparamget ()
              rv, oh_lookup_error(rv));
       return rv;
    }
-   printf("OPENHPI_DAT_USER_LIMIT = %d\n", param.u.DatUserLimit);
+   printf("OPENHPI_DAT_USER_LIMIT = %u\n", param.u.DatUserLimit);
 
    param.Type =OHPI_DAT_SAVE;
    rv = oHpiGlobalParamGet (&param);
@@ -302,7 +302,7 @@ static SaErrorT execglobalparamset (oHpiGlobalParamTypeT ptype, char *setparam)
    oHpiGlobalParamT param;
    SaHpiTextBufferT buffer;
 
-   if (fdebug) printf("Go and set global parameter %d in domain %d to %s\n", ptype, domainid, setparam);
+   if (fdebug) printf("Go and set global parameter %u in domain %u to %s\n", ptype, domainid, setparam);
 
    param.Type = ptype;
    switch (ptype){
@@ -353,20 +353,20 @@ static SaErrorT execglobalparamset (oHpiGlobalParamTypeT ptype, char *setparam)
       case OHPI_LOG_ON_SEV: printf("OPENHPI_LOG_ON_SEV = %s\n",
          oh_lookup_severity (param.u.LogOnSev));
          break;
-      case OHPI_EVT_QUEUE_LIMIT: printf("OPENHPI_EVT_QUEUE_LIMIT = %d\n",
+      case OHPI_EVT_QUEUE_LIMIT: printf("OPENHPI_EVT_QUEUE_LIMIT = %u\n",
          param.u.EvtQueueLimit);
          break;
-      case OHPI_DEL_SIZE_LIMIT: printf("OPENHPI_DEL_SIZE_LIMIT = %d\n",
+      case OHPI_DEL_SIZE_LIMIT: printf("OPENHPI_DEL_SIZE_LIMIT = %u\n",
                                        param.u.DelSizeLimit);
          break;
       case OHPI_DEL_SAVE: printf("OPENHPI_DEL_SAVE = ");
          if (param.u.DelSave) printf("TRUE\n");
          else printf("FALSE\n");
          break;
-      case OHPI_DAT_SIZE_LIMIT: printf("OPENHPI_DAT_SIZE_LIMIT = %d\n",
+      case OHPI_DAT_SIZE_LIMIT: printf("OPENHPI_DAT_SIZE_LIMIT = %u\n",
                                        param.u.DatSizeLimit);
          break;
-      case OHPI_DAT_USER_LIMIT: printf("OPENHPI_DAT_USER_LIMIT = %d\n",
+      case OHPI_DAT_USER_LIMIT: printf("OPENHPI_DAT_USER_LIMIT = %u\n",
                                        param.u.DatUserLimit);
          break;
       case OHPI_DAT_SAVE: printf("OPENHPI_DAT_SAVE = ");

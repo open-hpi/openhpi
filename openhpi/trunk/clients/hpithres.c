@@ -670,7 +670,7 @@ int main(int argc, char **argv)
 	
 	if (fdebug) {
 		if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) printf("saHpiSessionOpen\n");
-		else printf("saHpiSessionOpen to domain %d\n",domainid);
+		else printf("saHpiSessionOpen to domain %u\n",domainid);
 	}
         rv = saHpiSessionOpen(domainid,&sessionid,NULL);
 

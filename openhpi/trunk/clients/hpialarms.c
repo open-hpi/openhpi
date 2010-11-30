@@ -168,7 +168,7 @@ main(int argc, char **argv)
      }
   if (fdebug) {
 	if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) printf("saHpiSessionOpen\n");
-		else printf("saHpiSessionOpen to domain %d\n",domainid);
+		else printf("saHpiSessionOpen to domain %u\n",domainid);
 	}
   rv = saHpiSessionOpen(domainid,&sessionid,NULL);
   if (rv != SA_OK) {
@@ -194,32 +194,32 @@ main(int argc, char **argv)
 	 * rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0;
 	 */
 	//if (fdebug) 
-	   printf("rptentry[%d] resourceid=%d tlen=%d tag: %s\n",
+	   printf("rptentry[%u] resourceid=%u tlen=%u tag: %s\n",
 		entryid, resourceid, rptentry.ResourceTag.DataLength, 
 		rptentry.ResourceTag.Data);
 	while ((rv == SA_OK) && (entryid != SAHPI_LAST_ENTRY))
 	{
 		rv = saHpiRdrGet(sessionid,resourceid,
 				entryid,&nextentryid, &rdr);
-  		if (fdebug) printf("saHpiRdrGet[%d] rv = %d\n",entryid,rv);
+  		if (fdebug) printf("saHpiRdrGet[%u] rv = %d\n",entryid,rv);
 		if (rv == SA_OK) {
 		   if (rdr.RdrType == SAHPI_CTRL_RDR) { 
 			/*type 1 includes alarm LEDs*/
 			ctlnum = rdr.RdrTypeUnion.CtrlRec.Num;
 			rdr.IdString.Data[rdr.IdString.DataLength] = 0;
-			if (fdebug) printf("Ctl[%d]: %d %d %s\n",
+			if (fdebug) printf("Ctl[%u]: %u %u %s\n",
 				ctlnum, rdr.RdrTypeUnion.CtrlRec.Type,
 				rdr.RdrTypeUnion.CtrlRec.OutputType,
 				rdr.IdString.Data);
 			rv = saHpiControlTypeGet(sessionid,resourceid,
 					ctlnum,&ctltype);
-  			if (fdebug) printf("saHpiControlTypeGet[%d] rv = %d, type = %d\n",ctlnum,rv,ctltype);
+  			if (fdebug) printf("saHpiControlTypeGet[%u] rv = %d, type = %u\n",ctlnum,rv,ctltype);
 			rv = saHpiControlGet(sessionid, resourceid, ctlnum,
 					NULL, &ctlstate);
   			if (fdebug) 
-			   printf("saHpiControlStateGet[%d] rv = %d v = %x\n",
+			   printf("saHpiControlStateGet[%u] rv = %d v = %x\n",
 				ctlnum,rv,ctlstate.StateUnion.Digital);
-			printf("RDR[%d]: ctltype=%d:%d oem=%02x %s  \t",
+			printf("RDR[%u]: ctltype=%u:%u oem=%02x %s  \t",
 				rdr.RecordId, 
 				rdr.RdrTypeUnion.CtrlRec.Type,
 				rdr.RdrTypeUnion.CtrlRec.OutputType,
@@ -238,13 +238,13 @@ main(int argc, char **argv)
 			    rdr.RdrTypeUnion.CtrlRec.OutputType == SAHPI_CTRL_LED) {
 			    /* This is a Chassis Identify */
 			    if (fsetid) {
-				printf("Setting ID led to %d sec\n", fid);
+				printf("Setting ID led to %u sec\n", fid);
 				ctlstate.Type = SAHPI_CTRL_TYPE_ANALOG;
 				ctlstate.StateUnion.Analog = fid;
 				rv = saHpiControlSet(sessionid, resourceid,
 						ctlnum, SAHPI_CTRL_MODE_MANUAL,
 						&ctlstate);
-				printf("saHpiControlStateSet[%d] rv = %d\n",ctlnum,rv);
+				printf("saHpiControlStateSet[%u] rv = %d\n",ctlnum,rv);
 			    }
 			} else 
 			if (rdr.RdrTypeUnion.CtrlRec.Type == SAHPI_CTRL_TYPE_DIGITAL &&
@@ -253,7 +253,7 @@ main(int argc, char **argv)
 				/* this is an alarm LED */
 				b = (uchar)rdr.RdrTypeUnion.CtrlRec.Oem & 0x0f;
 				if ((b < NLEDS) && leds[b].fset) {
-				   printf("Setting alarm led %d to %d\n",b,leds[b].val);
+				   printf("Setting alarm led %u to %u\n",b,leds[b].val);
 				   if (leds[b].val == 0) 
 					ctlstate.StateUnion.Digital = SAHPI_CTRL_STATE_OFF;
 				   else 
@@ -262,7 +262,7 @@ main(int argc, char **argv)
 						ctlnum, SAHPI_CTRL_MODE_MANUAL,
 						&ctlstate);
   				   /* if (fdebug)  */
-					printf("saHpiControlStateSet[%d] rv = %d\n",ctlnum,rv);
+					printf("saHpiControlStateSet[%u] rv = %d\n",ctlnum,rv);
 				}
 			}
 			else if (rdr.RdrTypeUnion.CtrlRec.Type == SAHPI_CTRL_TYPE_DIGITAL &&
@@ -271,7 +271,7 @@ main(int argc, char **argv)
 				/* this is a disk LED */
 				b = (uchar)rdr.RdrTypeUnion.CtrlRec.Oem & 0x0f;
 				if ((b < NLEDS) && leds[b].fset) {
-				   printf("Setting disk led %d to %d\n",b,leds[b].val);
+				   printf("Setting disk led %u to %u\n",b,leds[b].val);
 				   if (leds[b].val == 0) 
 					ctlstate.StateUnion.Digital = SAHPI_CTRL_STATE_OFF;
 				   else 
@@ -279,7 +279,7 @@ main(int argc, char **argv)
 				   rv = saHpiControlSet(sessionid, resourceid,
 						ctlnum, SAHPI_CTRL_MODE_MANUAL,
 						&ctlstate);
-				   printf("saHpiControlStateSet[%d] rv = %d\n",ctlnum,rv);
+				   printf("saHpiControlStateSet[%u] rv = %d\n",ctlnum,rv);
 				}
 			}
 

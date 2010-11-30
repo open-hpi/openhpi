@@ -195,32 +195,32 @@ static SaErrorT print_domaininfo(SaHpiDomainInfoT info, int shift)
         printf("\n");
 	rv = oh_decode_time(info.DrtUpdateTimestamp, &buf);
 	for (i=0;i<shift;i++)printf("    ");
-        printf("            DRT update count: %d   DRT Timestamp : ",
+        printf("            DRT update count: %u   DRT Timestamp : ",
                 info.DrtUpdateCount);
 	oh_print_text(&buf);
         printf("\n");
 
 	rv = oh_decode_time(info.RptUpdateTimestamp, &buf);
 	for (i=0;i<shift;i++)printf("    ");
-        printf("            RPT update count: %d   RPT Timestamp : ",
+        printf("            RPT update count: %u   RPT Timestamp : ",
                 info.RptUpdateCount);
 	oh_print_text(&buf);
         printf("\n");
 
 	rv = oh_decode_time(info.DatUpdateTimestamp, &buf);
 	for (i=0;i<shift;i++)printf("    ");
-        printf("            DAT update count: %d   DAT Timestamp : ",
+        printf("            DAT update count: %u   DAT Timestamp : ",
                 info.DatUpdateCount);
 	oh_print_text(&buf);
         printf("\n");
 
 	for (i=0;i<shift;i++)printf("    ");
-        printf("                ActiveAlarms: %d   CriticalAlarms: %d   "
-		"Major: %d Minor: %d\n",
+        printf("                ActiveAlarms: %u   CriticalAlarms: %u   "
+		"Major: %u Minor: %u\n",
                 info.ActiveAlarms, info.CriticalAlarms, info.MajorAlarms,
                 info.MinorAlarms);
 	for (i=0;i<shift;i++)printf("    ");
-        printf("                Limit: %d   DatOverflow : %d\n",
+        printf("                Limit: %u   DatOverflow : %d\n",
 		info.DatUserAlarmLimit, info.DatOverflow);
 	
 	return rv;

@@ -205,7 +205,7 @@ int main(int argc, char **argv)
 	if (fdebug) {
 		printf("New date and time in SaHpiTimeT %lli\n\n", (long long int)newtime);
 		if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) printf("saHpiSessionOpen\n");
-		else printf("saHpiSessionOpen to domain %d\n",domainid);
+		else printf("saHpiSessionOpen to domain %u\n",domainid);
 	}
 	rv = saHpiSessionOpen(domainid,&sessionid,NULL);
 	if (rv != SA_OK) {
@@ -220,7 +220,7 @@ int main(int argc, char **argv)
 	if (fdebug) printf("saHpiDiscover %s\n", oh_lookup_error(rv));
 	rv = saHpiDomainInfoGet(sessionid, &domainInfo);
 	if (fdebug) printf("saHpiDomainInfoGet %s\n", oh_lookup_error(rv));
-	printf("DomainInfo: RptUpdateCount = %d, RptUpdateTimestamp = %lx\n",
+	printf("DomainInfo: RptUpdateCount = %u, RptUpdateTimestamp = %lx\n",
 		domainInfo.RptUpdateCount, (unsigned long)domainInfo.RptUpdateTimestamp);
         
 	/* walk the RPT list */

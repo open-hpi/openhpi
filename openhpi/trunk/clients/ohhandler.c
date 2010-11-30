@@ -180,7 +180,7 @@ main(int argc, char **argv)
    if (fdebug) {
       if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) 
          printf("saHpiSessionOpen\n");
-      else printf("saHpiSessionOpen to domain %d\n",domainid);
+      else printf("saHpiSessionOpen to domain %u\n",domainid);
    }
         rv = saHpiSessionOpen(domainid,&sessionid,NULL);
    if (rv != SA_OK) {
@@ -189,34 +189,44 @@ main(int argc, char **argv)
       exit(-1);
    }
    if (fdebug)
-             printf("saHpiSessionOpen returns with SessionId %d\n", 
+             printf("saHpiSessionOpen returns with SessionId %u\n", 
          sessionid);
 
    switch (cmd){
                 case eHandlerCreate: break; //already done
                 case eHandlerDestroy:
-                                   exechandlerdestroy ( handlerid );
+                                   rv = exechandlerdestroy ( handlerid );
                                    break;
                 case eHandlerInfo:
-                                   exechandlerinfo ( handlerid );
+                                   rv = exechandlerinfo ( handlerid );
                                    break;
                 case eHandlerGetNext:
-                                   exechandlergetnext ( handlerid );
+                                   rv = exechandlergetnext ( handlerid );
                                    break;
                 case eHandlerFind:
-                                   exechandlerfind ( resid );
+                                   rv = exechandlerfind ( resid );
                                    break;
                 case eHandlerRetry:
-                                   exechandlerretry ( handlerid );
+                                   rv = exechandlerretry ( handlerid );
                                    break;
                 case eHandlerList:
-                                   exechandlerlist ( );
+                                   rv = exechandlerlist ( );
                                    break;
                 case eUndefined:   break; //already done
    }
 
+   if (fdebug) {
+      printf("Internal processing returns %d (%s)\n",
+         rv, oh_lookup_error(rv));
+      printf("Calling saHpiSessionClose for session %u\n",sessionid);
+   }
+
    rv = saHpiSessionClose(sessionid);
-        
+   if (fdebug) {
+       printf("saHpiSessionClose returns %d (%s)\n",
+          rv, oh_lookup_error(rv));
+   }     
+       
    exit(0);
 }
 
@@ -260,7 +270,7 @@ static SaErrorT exechandlercreate (int argc, char **argv, int i)
    if (fdebug) {
       if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID)
          printf("saHpiSessionOpen\n");
-      else printf("saHpiSessionOpen to domain %d\n",domainid);
+      else printf("saHpiSessionOpen to domain %u\n",domainid);
    }
    rv = saHpiSessionOpen(domainid,&sessionid,NULL);
    if (rv != SA_OK) {
@@ -269,7 +279,7 @@ static SaErrorT exechandlercreate (int argc, char **argv, int i)
       return (SA_ERR_HPI_INVALID_PARAMS);
    }
    if (fdebug)
-      printf("saHpiSessionOpen returns with SessionId %d\n",
+      printf("saHpiSessionOpen returns with SessionId %u\n",
              sessionid);
 
    if (fdebug) printf ("Calling oHpiHandlerCreate!\n");
@@ -281,7 +291,7 @@ static SaErrorT exechandlercreate (int argc, char **argv, int i)
       return(rv);
    }
    
-   printf("Handler %d successfully created!\n", handlerid);
+   printf("Handler %u successfully created!\n", handlerid);
 
    rv = saHpiSessionClose(sessionid);
         
@@ -295,7 +305,7 @@ static SaErrorT exechandlercreate (int argc, char **argv, int i)
 static SaErrorT exechandlerdestroy(oHpiHandlerIdT handlerid)
 {
    SaErrorT rv = SA_OK;
-   if (fdebug) printf("Go and unload handler %d in domain %d\n", 
+   if (fdebug) printf("Go and unload handler %u in domain %u\n", 
             handlerid, domainid);
    
    rv = oHpiHandlerDestroy ( handlerid );
@@ -304,18 +314,18 @@ static SaErrorT exechandlerdestroy(oHpiHandlerIdT handlerid)
          rv, oh_lookup_error(rv));
 
    if (rv==SA_OK) {
-      printf("Handler %d successfully unloaded.\n\n", handlerid);
+      printf("Handler %u successfully unloaded.\n\n", handlerid);
       return rv;
    }
    else if (rv==SA_ERR_HPI_NOT_PRESENT) {
       if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) 
-         printf("Handler %d is not existing in default domain.\n",
+         printf("Handler %u is not existing in default domain.\n",
                 handlerid);
-      else printf("Handler %d is not existing in domain %d.\n",
+      else printf("Handler %u is not existing in domain %u.\n",
                 handlerid, domainid);
       return rv;
    }
-   else printf("\nHandler %d couldn't be unloaded, Returncode %d (%s)\n", 
+   else printf("\nHandler %u couldn't be unloaded, Returncode %d (%s)\n", 
          handlerid, rv, oh_lookup_error(rv));
    return rv;
 }
@@ -326,7 +336,10 @@ static SaErrorT exechandlerdestroy(oHpiHandlerIdT handlerid)
 // function to print from hash table
 static void print_pair (gpointer key, gpointer value, gpointer user_data)
 {
-   printf ("   %s %s\n ", (gchar *)key, (gchar *)value);
+   // we already printed the pluginname and entity-root
+   if (strcmp((gchar *)key, "plugin")==0) return;
+   if (strcmp((gchar *)key, "entity_root")==0) return;
+   printf ("   %s %s\n", (gchar *)key, (gchar *)value);
 }
 
 static 
@@ -338,16 +351,15 @@ SaErrorT exechandlerinfo(oHpiHandlerIdT handlerid)
                         g_str_hash, g_str_equal,
                         g_free, g_free );
 
-
-   if (fdebug) printf("Go and display handler info for %d\n", handlerid);
+   if (fdebug) printf("Go and display handler info for %u\n", handlerid);
    
    rv = oHpiHandlerInfo ( handlerid, &handlerinfo, handlerconfig );
 
    if (rv==SA_ERR_HPI_NOT_PRESENT) {
       if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) 
-         printf("Handler %d is not existing in default domain.\n",
+         printf("Handler %u is not existing in default domain.\n",
                 handlerid);
-      else printf("Handler %d is not existing in domain %d.\n",
+      else printf("Handler %u is not existing in domain %u.\n",
                 handlerid, domainid);
       g_hash_table_destroy(handlerconfig);
       return SA_OK;
@@ -359,18 +371,20 @@ SaErrorT exechandlerinfo(oHpiHandlerIdT handlerid)
       return rv;
    }
    if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) 
-      printf("\n\nInfo for handler %d in default domain:\n\n",handlerid);
-   else printf("\n\nInfo for handler %d in domain %d:\n\n",handlerid, domainid);
+      printf("\n\nInfo for handler %u in default domain:\n\n",handlerid);
+   else printf("\n\nInfo for handler %u in domain %u:\n\n",handlerid, domainid);
    printf("Plugin name: %s\n",handlerinfo.plugin_name);
 
-   printf("Root Entity Path: ");
+   printf("Root ");
    oh_print_ep (&(handlerinfo.entity_root),0);
 
-   printf("Failed attempts to load handler: %d\n",handlerinfo.load_failed);
+   printf("Failed attempts to load handler: %u\n",handlerinfo.load_failed);
 
-   printf("Handler configuration:\n");
+   printf("\nHandler configuration:\n");
+   printf ("   plugin %s\n", handlerinfo.plugin_name);
+   printf ("   entity_root \"%s\"\n",(const char *) g_hash_table_lookup(handlerconfig, "entity_root")); 
    g_hash_table_foreach(handlerconfig, print_pair, NULL);
-   printf("\n");
+   printf("\n\n");
 
    g_hash_table_destroy(handlerconfig);
    return rv;
@@ -384,7 +398,7 @@ static SaErrorT exechandlergetnext(oHpiHandlerIdT handlerid)
    SaErrorT rv = SA_OK;
    oHpiHandlerIdT nexthandlerid;
 
-   if (fdebug) printf("Go and get next handler from %d in domain %d\n",
+   if (fdebug) printf("Go and get next handler from %u in domain %u\n",
                       handlerid, domainid);
 
    rv = oHpiHandlerGetNext ( handlerid, &nexthandlerid );
@@ -393,14 +407,14 @@ static SaErrorT exechandlergetnext(oHpiHandlerIdT handlerid)
                       rv, oh_lookup_error(rv));
 
    if (rv==SA_OK) {
-      printf("Next Handler found from %d is %d.\n\n",
+      printf("Next Handler found from %u is %u.\n\n",
              handlerid, nexthandlerid);
    }
    else if (rv==SA_ERR_HPI_NOT_PRESENT) {
       if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) 
-         printf("No next Handler found from %d in default domain.\n",
+         printf("No next Handler found from %u in default domain.\n",
                         handlerid);
-      else printf("No next Handler found from %d in domain %d.\n",
+      else printf("No next Handler found from %u in domain %u.\n",
                         handlerid, domainid);
    }
    else printf("\noHpiHandlerGetNext returned %d (%s)\n",
@@ -416,8 +430,8 @@ static SaErrorT exechandlerfind(SaHpiResourceIdT resid)
    SaErrorT rv = SA_OK;
    oHpiHandlerIdT handlerid;
 
-   if (fdebug) printf("Go and find handler for resource %d in domain "
-                      "%d using session %d\n",
+   if (fdebug) printf("Go and find handler for resource %u in domain "
+                      "%u using session %u\n",
                       resid, domainid, sessionid);
 
    rv = oHpiHandlerFind ( sessionid, resid, &handlerid );
@@ -426,14 +440,14 @@ static SaErrorT exechandlerfind(SaHpiResourceIdT resid)
                       rv, oh_lookup_error(rv));
 
    if (rv==SA_OK) {
-      printf("Handler found for resource %d:   Handler-id %d.\n\n",
+      printf("Handler found for resource %u:   Handler-id %u.\n\n",
              resid, handlerid);
    }
    else if (rv==SA_ERR_HPI_NOT_PRESENT) {
       if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) 
-         printf("No Handler found for resource %d in default domain.\n",
+         printf("No Handler found for resource %u in default domain.\n",
                       resid);
-      else printf("No Handler found for resource %d in domain %d.\n",
+      else printf("No Handler found for resource %u in domain %u.\n",
                       resid, domainid);
    }
    else printf("\noHpiHandlerFind returned %d (%s)\n",
@@ -448,7 +462,7 @@ static SaErrorT exechandlerretry(oHpiHandlerIdT handlerid)
 {
    SaErrorT rv = SA_OK;
 
-   if (fdebug) printf("Go and retry loading handler %d in domain %d\n", 
+   if (fdebug) printf("Go and retry loading handler %u in domain %u\n", 
                       handlerid, domainid);
 
    rv = oHpiHandlerRetry ( handlerid );
@@ -459,9 +473,9 @@ static SaErrorT exechandlerretry(oHpiHandlerIdT handlerid)
       return rv;
    }
    if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) 
-      printf("\nHandler %d in default domain successfully re-loaded.\n",
+      printf("\nHandler %u in default domain successfully re-loaded.\n",
                         handlerid);
-   else printf("\nHandler %d in domain %d successfully re-loaded.\n",
+   else printf("\nHandler %u in domain %u successfully re-loaded.\n",
                         handlerid, domainid);
    return rv;
 }
@@ -479,11 +493,11 @@ static SaErrorT exechandlerlist()
 
    if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) 
       printf("Handlers defined in default domain:\n");
-   else printf("Handlers defined in Domain %d:\n",domainid);
+   else printf("Handlers defined in Domain %u:\n",domainid);
    while (rv==SA_OK) {
       rv = oHpiHandlerGetNext ( handlerid, &nexthandlerid );
 
-      if (fdebug) printf("oHpiHandlerGetNext (%d) returned %d (%s)\n",
+      if (fdebug) printf("oHpiHandlerGetNext (%u) returned %d (%s)\n",
                       handlerid, rv, oh_lookup_error(rv));
 
       if (rv==SA_OK) {
@@ -493,19 +507,19 @@ static SaErrorT exechandlerlist()
                         g_free, g_free );
          rv = oHpiHandlerInfo ( nexthandlerid, &handlerinfo, config );
          if (rv!=SA_OK) {
-            printf("oHpiHandlerInfo for handler %d returned %d (%s)\n", 
+            printf("oHpiHandlerInfo for handler %u returned %d (%s)\n", 
                    nexthandlerid, rv, oh_lookup_error(rv));
             rv = SA_OK;
          }
          else {
-            printf("Handler %d: %s, ",
+            printf("Handler %u: %s, ",
                nexthandlerid, handlerinfo.plugin_name);
             oh_print_ep (&(handlerinfo.entity_root),0);
          }
          g_hash_table_destroy(config);
       }
       else if (rv!=SA_ERR_HPI_NOT_PRESENT) {
-         printf("Error: oHpiHandlerGetNext (%d) returned %d (%s)\n",
+         printf("Error: oHpiHandlerGetNext (%u) returned %d (%s)\n",
                         handlerid, rv, oh_lookup_error(rv));
       }
       handlerid = nexthandlerid;
