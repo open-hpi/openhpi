@@ -241,6 +241,7 @@ extern cMarshalType Marshal_Float64Type;
 
 
 // size in bytes
+size_t MarshalSize( const cMarshalType *type );
 size_t MarshalSizeArray( const cMarshalType **types );
 
 // marshal data into buffer

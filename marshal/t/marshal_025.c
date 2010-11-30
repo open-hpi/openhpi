@@ -70,7 +70,7 @@ cMarshalType UnionElements[] =
 };
 
 
-cMarshalType TestUnionType = dUnion( 1, cUnion, UnionElements );
+cMarshalType TestUnionType = dUnion( 1, UnionElements );
 
 
 cMarshalType StructElements[] =
@@ -84,7 +84,7 @@ cMarshalType StructElements[] =
 };
 
 
-cMarshalType TestType = dStruct( cTest, StructElements );
+cMarshalType TestType = dStruct( StructElements );
 
 
 static int
