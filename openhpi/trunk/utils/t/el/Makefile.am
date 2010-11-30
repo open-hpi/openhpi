@@ -10,7 +10,19 @@
 
 MAINTAINERCLEANFILES = Makefile.in
 
-REMOTE_SOURCES       = el_utils.c
+REMOTE_SOURCES       = announcement_utils.c \
+                       el_utils.c \
+                       epath_utils.c \
+                       rpt_utils.c \
+                       sahpi_enum_utils.c \
+                       sahpi_event_encode.c \
+                       sahpi_event_utils.c \
+                       sahpi_struct_utils.c \
+                       sahpi_time_utils.c \
+                       sahpiatca_enum_utils.c \
+                       sahpixtca_enum_utils.c \
+                       uid_utils.c
+
 
 MOSTLYCLEANFILES     = $(shell ls *data) $(REMOTE_SOURCES) @TEST_CLEAN@
 
