@@ -17,6 +17,8 @@
  *     Ulrich Kleber <ulikleber@users.sourceforge.net>
  */
 
+#include <string.h>
+
 #include <oHpi.h>
 #include <oh_config.h>
 #include <oh_init.h>

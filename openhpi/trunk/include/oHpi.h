@@ -20,6 +20,8 @@
 #ifndef __OHPI_H
 #define __OHPI_H
 
+#include <stdlib.h>
+
 #include <SaHpi.h>
 #include <glib.h>
 #include <oh_utils.h>
