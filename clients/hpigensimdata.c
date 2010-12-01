@@ -1744,8 +1744,29 @@ static void print_textbuffer(FILE *out, int offset, SaHpiTextBufferT data) {
 	fprintf(out,"%sDataType=%u\n",offSet[offset], data.DataType);
 	fprintf(out,"%sLanguage=%u\n",offSet[offset], data.Language);
 	fprintf(out,"%sDataLength=%u\n",offSet[offset], data.DataLength);
-	fprintf(out,"%sData=\"%s\"\n",offSet[offset], data.Data);
+	fprintf(out,"%sData=\"",offSet[offset]);
+	switch(data.DataType) {
+		case SAHPI_TL_TYPE_UNICODE:
+			// TODO
+			fprintf(out, "UNICODE DATA TYPE NOT SUPPORTED");
+			break;
+		case SAHPI_TL_TYPE_BCDPLUS:
+		case SAHPI_TL_TYPE_ASCII6:
+		case SAHPI_TL_TYPE_TEXT:
+			fwrite(data.Data, data.DataLength, 1, out);
+			break;
+		case SAHPI_TL_TYPE_BINARY:
+			// TODO
+			fprintf(out, "BINARY DATA TYPE NOT SUPPORTED");
+			break;
+		default:
+			fprintf(out, "UNSUPPORTED DATA TYPE");
+			break;
+	}
+	fprintf(out,"\"\n");
+
 }
+
 /**
  * print_ep:
  * @ep: Pointer to entity path stucture.
