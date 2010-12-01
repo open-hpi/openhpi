@@ -51,12 +51,12 @@ int main(int argc, char **argv)
         g_hash_table_insert(h2, "name", "test");
         g_hash_table_insert(h2, "addr", "0");
         
-        if (oHpiHandlerCreate(h0, &hid0) ||
-            oHpiHandlerCreate(h1, &hid1) ||
-            oHpiHandlerCreate(h2, &hid2))
+        if (oHpiHandlerCreate(sid, h0, &hid0) ||
+            oHpiHandlerCreate(sid, h1, &hid1) ||
+            oHpiHandlerCreate(sid, h2, &hid2))
                 return -1;
                 
-        if (!oHpiHandlerGetNext(0, NULL))
+        if (!oHpiHandlerGetNext(sid, 0, NULL))
                 return -1;
                         
         

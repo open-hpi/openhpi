@@ -1884,7 +1884,8 @@ static const cMarshalType *saHpiResourcePowerStateSetOut[] =
 
 static const cMarshalType *oHpiHandlerCreateIn[] =
 {
-  &oHpiHandlerConfigType, // dummy entry
+  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
+  &oHpiHandlerConfigType, // handler config params
   0
 };
 
@@ -1898,6 +1899,7 @@ static const cMarshalType *oHpiHandlerCreateOut[] =
 
 static const cMarshalType *oHpiHandlerDestroyIn[] =
 {
+  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &oHpiHandlerIdType, // handler id
   0
 };
@@ -1911,6 +1913,7 @@ static const cMarshalType *oHpiHandlerDestroyOut[] =
 
 static const cMarshalType *oHpiHandlerInfoIn[] =
 {
+  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &oHpiHandlerIdType, // handler id
   0
 };
@@ -1926,6 +1929,7 @@ static const cMarshalType *oHpiHandlerInfoOut[] =
 
 static const cMarshalType *oHpiHandlerGetNextIn[] =
 {
+  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &oHpiHandlerIdType, // handler id
   0
 };
@@ -1939,33 +1943,35 @@ static const cMarshalType *oHpiHandlerGetNextOut[] =
 
 static const cMarshalType *oHpiHandlerFindIn[] =
 {
-	&SaHpiSessionIdType, // session id
-	&SaHpiResourceIdType, // resource id
-	0
+  &SaHpiSessionIdType, // session id
+  &SaHpiResourceIdType, // resource id
+  0
 };
 
 static const cMarshalType *oHpiHandlerFindOut[] =
 {
-	&SaErrorType, // result (SaErrorT)
-	&oHpiHandlerIdType, // handler id
-	0
+  &SaErrorType, // result (SaErrorT)
+  &oHpiHandlerIdType, // handler id
+  0
 };
 
 static const cMarshalType *oHpiHandlerRetryIn[] =
 {
-	&oHpiHandlerIdType, // handler id
-	0
+  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
+  &oHpiHandlerIdType, // handler id
+  0
 };
 
 static const cMarshalType *oHpiHandlerRetryOut[] =
 {
-	&SaErrorType, // result (SaErrorT)
-	0
+  &SaErrorType, // result (SaErrorT)
+  0
 };
 
 
 static const cMarshalType *oHpiGlobalParamGetIn[] =
 {
+  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &oHpiGlobalParamType, // global param
   0
 };
@@ -1980,6 +1986,7 @@ static const cMarshalType *oHpiGlobalParamGetOut[] =
 
 static const cMarshalType *oHpiGlobalParamSetIn[] =
 {
+  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &oHpiGlobalParamType, // global param
   0
 };
@@ -1993,6 +2000,7 @@ static const cMarshalType *oHpiGlobalParamSetOut[] =
 
 static const cMarshalType *oHpiInjectEventIn[] =
 {
+  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &oHpiHandlerIdType,   // global param
   &SaHpiEventType,
   &SaHpiRptEntryType,

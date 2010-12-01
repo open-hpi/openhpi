@@ -59,10 +59,12 @@ int main(int argc, char **argv)
         g_hash_table_insert(h3, "entity_root", "{SYSTEM_CHASSIS,4}");
         g_hash_table_insert(h3, "addr", "1");
         
-        if (oHpiHandlerCreate(h0,&hid0) || oHpiHandlerCreate(h1,&hid1))
+        if (oHpiHandlerCreate(sid, h0,&hid0) 
+                || oHpiHandlerCreate(sid, h1,&hid1))
                 return -1;
                 
-        if (oHpiHandlerCreate(h2,&hid2) || oHpiHandlerCreate(h3,&hid3))
+        if (oHpiHandlerCreate(sid, h2,&hid2) 
+                || oHpiHandlerCreate(sid, h3,&hid3))
                 return -1;
                 
         

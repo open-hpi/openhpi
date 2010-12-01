@@ -98,15 +98,19 @@ SaHpiUint64T SAHPI_API oHpiVersionGet(void);
 
 /* Exported OpenHPI handler (plugin instance) calls */
 SaErrorT SAHPI_API oHpiHandlerCreate ( 
+     SAHPI_IN    SaHpiSessionIdT sid,
      SAHPI_IN    GHashTable *config,
      SAHPI_OUT   oHpiHandlerIdT *id );
 SaErrorT SAHPI_API oHpiHandlerDestroy (
+     SAHPI_IN    SaHpiSessionIdT sid,
      SAHPI_IN    oHpiHandlerIdT id );
 SaErrorT SAHPI_API oHpiHandlerInfo ( 
+     SAHPI_IN    SaHpiSessionIdT sid,
      SAHPI_IN    oHpiHandlerIdT id, 
      SAHPI_OUT   oHpiHandlerInfoT *info,
      SAHPI_IN    GHashTable *conf_params );
 SaErrorT SAHPI_API oHpiHandlerGetNext (
+     SAHPI_IN    SaHpiSessionIdT sid,
      SAHPI_IN    oHpiHandlerIdT id, 
      SAHPI_OUT   oHpiHandlerIdT *next_id );
 SaErrorT SAHPI_API oHpiHandlerFind ( 
@@ -114,16 +118,20 @@ SaErrorT SAHPI_API oHpiHandlerFind (
      SAHPI_IN    SaHpiResourceIdT rid,
      SAHPI_OUT   oHpiHandlerIdT *id );
 SaErrorT SAHPI_API oHpiHandlerRetry (
+     SAHPI_IN    SaHpiSessionIdT sid,
      SAHPI_IN    oHpiHandlerIdT id );
 
 /* Global parameters */
 SaErrorT SAHPI_API oHpiGlobalParamGet ( 
+     SAHPI_IN    SaHpiSessionIdT sid,
      SAHPI_OUT   oHpiGlobalParamT *param );
 SaErrorT SAHPI_API oHpiGlobalParamSet ( 
+     SAHPI_IN    SaHpiSessionIdT sid,
      SAHPI_IN    oHpiGlobalParamT *param );
 
 /* Injector */
 SaErrorT SAHPI_API oHpiInjectEvent ( 
+     SAHPI_IN    SaHpiSessionIdT sid,
      SAHPI_IN    oHpiHandlerIdT id,
      SAHPI_IN    SaHpiEventT    *event,
      SAHPI_IN    SaHpiRptEntryT *rpte,

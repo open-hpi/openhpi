@@ -34,7 +34,7 @@ int main(int argc, char **argv)
                 return -1;
 	}
                 
-        if (oHpiGlobalParamGet(&onep_param)) {
+        if (oHpiGlobalParamGet(sid, &onep_param)) {
 		printf("Could not get parameter\n");
                 return -1;
 	}

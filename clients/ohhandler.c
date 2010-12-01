@@ -283,7 +283,7 @@ static SaErrorT exechandlercreate (int argc, char **argv, int i)
              sessionid);
 
    if (fdebug) printf ("Calling oHpiHandlerCreate!\n");
-   rv = oHpiHandlerCreate(createparams, &handlerid );
+   rv = oHpiHandlerCreate(sessionid, createparams, &handlerid );
 
    if ( rv != SA_OK ) {
       printf("oHpiHandlerCreate returned %d (%s)\n",
@@ -308,7 +308,7 @@ static SaErrorT exechandlerdestroy(oHpiHandlerIdT handlerid)
    if (fdebug) printf("Go and unload handler %u in domain %u\n", 
             handlerid, domainid);
    
-   rv = oHpiHandlerDestroy ( handlerid );
+   rv = oHpiHandlerDestroy ( sessionid, handlerid );
 
    if (fdebug) printf("oHpiHandlerDestroy returned %d (%s)\n", 
          rv, oh_lookup_error(rv));
@@ -353,7 +353,7 @@ SaErrorT exechandlerinfo(oHpiHandlerIdT handlerid)
 
    if (fdebug) printf("Go and display handler info for %u\n", handlerid);
    
-   rv = oHpiHandlerInfo ( handlerid, &handlerinfo, handlerconfig );
+   rv = oHpiHandlerInfo ( sessionid, handlerid, &handlerinfo, handlerconfig );
 
    if (rv==SA_ERR_HPI_NOT_PRESENT) {
       if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) 
@@ -401,7 +401,7 @@ static SaErrorT exechandlergetnext(oHpiHandlerIdT handlerid)
    if (fdebug) printf("Go and get next handler from %u in domain %u\n",
                       handlerid, domainid);
 
-   rv = oHpiHandlerGetNext ( handlerid, &nexthandlerid );
+   rv = oHpiHandlerGetNext ( sessionid, handlerid, &nexthandlerid );
 
    if (fdebug) printf("oHpiHandlerGetNext returned %d (%s)\n",
                       rv, oh_lookup_error(rv));
@@ -465,7 +465,7 @@ static SaErrorT exechandlerretry(oHpiHandlerIdT handlerid)
    if (fdebug) printf("Go and retry loading handler %u in domain %u\n", 
                       handlerid, domainid);
 
-   rv = oHpiHandlerRetry ( handlerid );
+   rv = oHpiHandlerRetry ( sessionid, handlerid );
 
    if (rv!=SA_OK) {
       printf("oHpiHandlerRetry returned %d (%s)\n",
@@ -495,7 +495,7 @@ static SaErrorT exechandlerlist()
       printf("Handlers defined in default domain:\n");
    else printf("Handlers defined in Domain %u:\n",domainid);
    while (rv==SA_OK) {
-      rv = oHpiHandlerGetNext ( handlerid, &nexthandlerid );
+      rv = oHpiHandlerGetNext ( sessionid, handlerid, &nexthandlerid );
 
       if (fdebug) printf("oHpiHandlerGetNext (%u) returned %d (%s)\n",
                       handlerid, rv, oh_lookup_error(rv));
@@ -505,7 +505,7 @@ static SaErrorT exechandlerlist()
          config = g_hash_table_new_full(
                         g_str_hash, g_str_equal,
                         g_free, g_free );
-         rv = oHpiHandlerInfo ( nexthandlerid, &handlerinfo, config );
+         rv = oHpiHandlerInfo ( sessionid, nexthandlerid, &handlerinfo, config );
          if (rv!=SA_OK) {
             printf("oHpiHandlerInfo for handler %u returned %d (%s)\n", 
                    nexthandlerid, rv, oh_lookup_error(rv));

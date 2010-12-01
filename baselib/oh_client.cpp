@@ -5875,6 +5875,7 @@ SaHpiUint64T SAHPI_API oHpiVersionGet(void)
 /*----------------------------------------------------------------------------*/
 
 SaErrorT SAHPI_API oHpiHandlerCreate (
+     SAHPI_IN    SaHpiSessionIdT sid,
      SAHPI_IN    GHashTable *config,
      SAHPI_OUT   oHpiHandlerIdT *id )
 {
@@ -5882,16 +5883,19 @@ SaErrorT SAHPI_API oHpiHandlerCreate (
         void *request;
 	char reply[dMaxMessageLength];
 	char cmd[] = "oHpiHandlerCreate";
-        /* TODO: Change oHpi apis to send a domain id */
         pcstrmsock pinst = NULL;
         oHpiHandlerConfigT handler_config;
+        SaHpiSessionIdT dsid = 0;
+        SaHpiDomainIdT did = 0;
 
+        if (sid == 0)
+                return SA_ERR_HPI_INVALID_SESSION;
         if (!config || !id)
         	return SA_ERR_HPI_INVALID_PARAMS;
         if (g_hash_table_size(config)==0)
                 return SA_ERR_HPI_INVALID_PARAMS;
         
-        err = oh_create_connx(OH_DEFAULT_DOMAIN_ID, &pinst);
+        err = oh_get_connx(sid, &dsid, &pinst, &did);
         if (err) return err;
 
         handler_config.NumberOfParams = 0;
@@ -5901,16 +5905,18 @@ SaErrorT SAHPI_API oHpiHandlerCreate (
 
         // now create the handler
         cHpiMarshal *hm = HpiMarshalFind(eFoHpiHandlerCreate);
-        pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerCreate, hm->m_request_len);
+        pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerCreate, 
+                                            hm->m_request_len);
         request = g_malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest1(hm, request, &handler_config);
+        pinst->header.m_len = HpiMarshalRequest2(hm, request, 
+                                   &dsid, &handler_config);
+ 
+        SendRecv(sid, cmd);
 
-        SendRecv(0, cmd);
-
-        int mr = HpiDemarshalReply1(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err, id);
-
-        oh_delete_connx(pinst);
+        int mr = HpiDemarshalReply1(pinst->remote_byte_order, 
+                              hm, reply + sizeof(cMessageHeader), &err, id);
+ 
         if (request)
                 g_free(request);
 
@@ -5926,6 +5932,7 @@ SaErrorT SAHPI_API oHpiHandlerCreate (
 /*----------------------------------------------------------------------------*/
 
 SaErrorT SAHPI_API oHpiHandlerDestroy (
+     SAHPI_IN    SaHpiSessionIdT sid,
      SAHPI_IN    oHpiHandlerIdT id )
 {
         void *request;
@@ -5933,24 +5940,30 @@ SaErrorT SAHPI_API oHpiHandlerDestroy (
         SaErrorT err = SA_OK;
 	char cmd[] = "oHpiHandlerDestroy";
         pcstrmsock pinst = NULL;
+        SaHpiSessionIdT dsid = 0;
+        SaHpiDomainIdT did = 0;
 
+        if (sid == 0)
+                return SA_ERR_HPI_INVALID_SESSION;
         if (id == 0)
-               return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
 
-        err = oh_create_connx(OH_DEFAULT_DOMAIN_ID, &pinst);
+        err = oh_get_connx(sid, &dsid, &pinst, &did);
         if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFoHpiHandlerDestroy);
-        pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerDestroy, hm->m_request_len);
+        pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerDestroy, 
+                                            hm->m_request_len);
         request = g_malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest1(hm, request, &id);
+        pinst->header.m_len = HpiMarshalRequest2(hm, request, 
+                                                 &dsid, &id);
+ 
+        SendRecv(sid, cmd);
 
-        SendRecv(0, cmd);
+        int mr = HpiDemarshalReply0(pinst->remote_byte_order, 
+                                hm, reply + sizeof(cMessageHeader), &err);
 
-        int mr = HpiDemarshalReply0(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err);
-
-        oh_delete_connx(pinst);
         if (request)
                 g_free(request);
 
@@ -5966,6 +5979,7 @@ SaErrorT SAHPI_API oHpiHandlerDestroy (
 /*----------------------------------------------------------------------------*/
 
 SaErrorT SAHPI_API oHpiHandlerInfo (
+     SAHPI_IN    SaHpiSessionIdT sid,
      SAHPI_IN    oHpiHandlerIdT id,
      SAHPI_OUT   oHpiHandlerInfoT *info,
      SAHPI_IN    GHashTable *conf_params ) 
@@ -5976,22 +5990,28 @@ SaErrorT SAHPI_API oHpiHandlerInfo (
 	char cmd[] = "oHpiHandlerInfo";
         pcstrmsock pinst = NULL;
         oHpiHandlerConfigT config;
+        SaHpiSessionIdT dsid = 0;
+        SaHpiDomainIdT did = 0;
 
+        if (sid == 0)
+                return SA_ERR_HPI_INVALID_SESSION;
         if (id == 0 || !info || !conf_params)
                return SA_ERR_HPI_INVALID_PARAMS;
         if (g_hash_table_size(conf_params)!=0)
                return SA_ERR_HPI_INVALID_PARAMS;
 
-        err = oh_create_connx(OH_DEFAULT_DOMAIN_ID, &pinst);
+        err = oh_get_connx(sid, &dsid, &pinst, &did);
         if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFoHpiHandlerInfo);
-        pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerInfo, hm->m_request_len);
+        pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerInfo, 
+                                            hm->m_request_len);
         request = g_malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest1(hm, request, &id);
-
-        SendRecv(0, cmd);
+        pinst->header.m_len = HpiMarshalRequest2(hm, request, 
+                                                 &dsid, &id);
+ 
+        SendRecv(sid, cmd);
 
         int mr = HpiDemarshalReply2(pinst->remote_byte_order, hm, 
                                     reply + sizeof(cMessageHeader), 
@@ -6004,7 +6024,6 @@ SaErrorT SAHPI_API oHpiHandlerInfo (
         }
         g_free(config.Params);
 
-        oh_delete_connx(pinst);
         if (request)
                 g_free(request);
 
@@ -6020,6 +6039,7 @@ SaErrorT SAHPI_API oHpiHandlerInfo (
 /*----------------------------------------------------------------------------*/
 
 SaErrorT SAHPI_API oHpiHandlerGetNext (
+     SAHPI_IN    SaHpiSessionIdT sid,
      SAHPI_IN    oHpiHandlerIdT id,
      SAHPI_OUT   oHpiHandlerIdT *next_id )
 {
@@ -6028,24 +6048,30 @@ SaErrorT SAHPI_API oHpiHandlerGetNext (
         SaErrorT err = SA_OK;
 	char cmd[] = "oHpiHandlerGetNext";
         pcstrmsock pinst = NULL;
+        SaHpiSessionIdT dsid = 0;
+        SaHpiDomainIdT did = 0;
 
+        if (sid == 0)
+                return SA_ERR_HPI_INVALID_SESSION;
         if (!next_id)
                return SA_ERR_HPI_INVALID_PARAMS;
 
-        err = oh_create_connx(OH_DEFAULT_DOMAIN_ID, &pinst);
+        err = oh_get_connx(sid, &dsid, &pinst, &did);
         if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFoHpiHandlerGetNext);
-        pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerGetNext, hm->m_request_len);
+        pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerGetNext, 
+                                            hm->m_request_len);
         request = g_malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest1(hm, request, &id);
+        pinst->header.m_len = HpiMarshalRequest2(hm, request, 
+                                                 &dsid, &id);
+ 
+        SendRecv(sid, cmd);
 
-        SendRecv(0, cmd);
+        int mr = HpiDemarshalReply1(pinst->remote_byte_order, 
+                    hm, reply + sizeof(cMessageHeader), &err, next_id);
 
-        int mr = HpiDemarshalReply1(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err, next_id);
-
-        oh_delete_connx(pinst);
         if (request)
                 g_free(request);
 
@@ -6068,31 +6094,33 @@ SaErrorT SAHPI_API oHpiHandlerFind (
         SaErrorT err = SA_OK;
         char cmd[] = "oHpiHandlerFind";  
         pcstrmsock pinst = NULL;
-
+        SaHpiSessionIdT dsid = 0;
+        SaHpiDomainIdT did = 0;
+ 
         if (sid == 0)
                 return SA_ERR_HPI_INVALID_SESSION;
         if (!id || !rid)
                return SA_ERR_HPI_INVALID_PARAMS;
 
-        err = oh_create_connx(OH_DEFAULT_DOMAIN_ID, &pinst);
+        err = oh_get_connx(sid, &dsid, &pinst, &did);
         if (err) return err;
 
 	*id = 0; //Initialize output var
 	
         cHpiMarshal *hm = HpiMarshalFind(eFoHpiHandlerFind);
-        pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerFind, hm->m_request_len);
+        pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerFind, 
+                                 hm->m_request_len);
         request = g_malloc(hm->m_request_len);
-        pinst->header.m_len = HpiMarshalRequest2(hm, request, &sid, &rid);
+        pinst->header.m_len = HpiMarshalRequest3(hm, request, 
+                                       &dsid, &sid, &rid);
 
-        SendRecv(0, cmd);
+        SendRecv(sid, cmd);
 
         int mr = HpiDemarshalReply1(pinst->remote_byte_order,
                                     hm, 
                                     reply + sizeof(cMessageHeader),
                                     &err, 
                                     id);
-
-        oh_delete_connx(pinst);
 
         if (request)
                 g_free(request);
@@ -6107,6 +6135,7 @@ SaErrorT SAHPI_API oHpiHandlerFind (
 /* oHpiHandlerRetry                                                           */
 /*----------------------------------------------------------------------------*/
 SaErrorT SAHPI_API oHpiHandlerRetry (
+     SAHPI_IN    SaHpiSessionIdT sid,
      SAHPI_IN    oHpiHandlerIdT id )
 {
         void *request;
@@ -6114,27 +6143,31 @@ SaErrorT SAHPI_API oHpiHandlerRetry (
         SaErrorT err = SA_OK;
         char cmd[] = "oHpiHandlerRetry";  
         pcstrmsock pinst = NULL;
-
-        err = oh_create_connx(OH_DEFAULT_DOMAIN_ID, &pinst);
+        SaHpiSessionIdT dsid = 0;
+        SaHpiDomainIdT did = 0;
+ 
+        if (sid == 0)
+                return SA_ERR_HPI_INVALID_SESSION;
+        if (id == 0)
+                return SA_ERR_HPI_INVALID_PARAMS;
+ 
+        err = oh_get_connx(sid, &dsid, &pinst, &did);
         if (err) return err;
 
-        if (id == 0)
-               return SA_ERR_HPI_INVALID_PARAMS;
-
         cHpiMarshal *hm = HpiMarshalFind(eFoHpiHandlerRetry);
-        pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerRetry, hm->m_request_len);
+        pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiHandlerRetry, 
+                                    hm->m_request_len);
         request = g_malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest1(hm, request, &id);
+        pinst->header.m_len = HpiMarshalRequest2(hm, request, 
+                                                 &dsid, &id);
 
-        SendRecv(0, cmd);
+        SendRecv(sid, cmd);
 
         int mr = HpiDemarshalReply0(pinst->remote_byte_order,
                                     hm, 
                                     reply + sizeof(cMessageHeader),
                                     &err);
-
-        oh_delete_connx(pinst);
 
         if (request)
                 g_free(request);
@@ -6151,6 +6184,7 @@ SaErrorT SAHPI_API oHpiHandlerRetry (
 /*----------------------------------------------------------------------------*/
 
 SaErrorT SAHPI_API oHpiGlobalParamGet (
+     SAHPI_IN    SaHpiSessionIdT sid,
      SAHPI_OUT   oHpiGlobalParamT *param )
 {
         void *request;
@@ -6158,24 +6192,30 @@ SaErrorT SAHPI_API oHpiGlobalParamGet (
         SaErrorT err = SA_OK;
 	char cmd[] = "oHpiGlobalParamGet";
         pcstrmsock pinst = NULL;
+        SaHpiSessionIdT dsid = 0;
+        SaHpiDomainIdT did = 0;
 
+        if (sid == 0)
+                return SA_ERR_HPI_INVALID_SESSION;
         if (!param)
                return SA_ERR_HPI_INVALID_PARAMS;
-
-        err = oh_create_connx(OH_DEFAULT_DOMAIN_ID, &pinst);
+ 
+        err = oh_get_connx(sid, &dsid, &pinst, &did);
         if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFoHpiGlobalParamGet);
-        pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiGlobalParamGet, hm->m_request_len);
+        pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiGlobalParamGet, 
+                                            hm->m_request_len);
         request = g_malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest1(hm, request, param);
+        pinst->header.m_len = HpiMarshalRequest2(hm, request, 
+                                                 &dsid, param);
 
-        SendRecv(0, cmd);
+        SendRecv(sid, cmd);
 
-        int mr = HpiDemarshalReply1(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err, param);
+        int mr = HpiDemarshalReply1(pinst->remote_byte_order, 
+                     hm, reply + sizeof(cMessageHeader), &err, param);
 
-        oh_delete_connx(pinst);
         if (request)
                 g_free(request);
 
@@ -6191,6 +6231,7 @@ SaErrorT SAHPI_API oHpiGlobalParamGet (
 /*----------------------------------------------------------------------------*/
 
 SaErrorT SAHPI_API oHpiGlobalParamSet (
+     SAHPI_IN    SaHpiSessionIdT sid,
      SAHPI_IN    oHpiGlobalParamT *param )
 {
         void *request;
@@ -6198,24 +6239,30 @@ SaErrorT SAHPI_API oHpiGlobalParamSet (
         SaErrorT err = SA_OK;
 	char cmd[] = "oHpiGlobalParamSet";
         pcstrmsock pinst = NULL;
+        SaHpiSessionIdT dsid = 0;
+        SaHpiDomainIdT did = 0;
 
+        if (sid == 0)
+                return SA_ERR_HPI_INVALID_SESSION;
         if (!param)
-               return SA_ERR_HPI_INVALID_PARAMS;
-
-        err = oh_create_connx(OH_DEFAULT_DOMAIN_ID, &pinst);
+                return SA_ERR_HPI_INVALID_PARAMS;
+ 
+        err = oh_get_connx(sid, &dsid, &pinst, &did);
         if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFoHpiGlobalParamSet);
-        pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiGlobalParamSet, hm->m_request_len);
+        pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiGlobalParamSet, 
+                                 hm->m_request_len);
         request = g_malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest1(hm, request, param);
+        pinst->header.m_len = HpiMarshalRequest2(hm, request, 
+                                                 &dsid, param);
 
-        SendRecv(0, cmd);
+        SendRecv(sid, cmd);
 
-        int mr = HpiDemarshalReply1(pinst->remote_byte_order, hm, reply + sizeof(cMessageHeader), &err, param);
+        int mr = HpiDemarshalReply1(pinst->remote_byte_order, hm, 
+                          reply + sizeof(cMessageHeader), &err, param);
 
-        oh_delete_connx(pinst);
         if (request)
                 g_free(request);
 
@@ -6230,6 +6277,7 @@ SaErrorT SAHPI_API oHpiGlobalParamSet (
 /* oHpiInjectEvent                                                            */
 /*----------------------------------------------------------------------------*/
 SaErrorT SAHPI_API oHpiInjectEvent (
+     SAHPI_IN    SaHpiSessionIdT sid,
      SAHPI_IN    oHpiHandlerIdT id,
      SAHPI_IN    SaHpiEventT    *event,
      SAHPI_IN    SaHpiRptEntryT *rpte,
@@ -6240,26 +6288,30 @@ SaErrorT SAHPI_API oHpiInjectEvent (
         SaErrorT err = SA_OK;
         char cmd[] = "oHpiInjectEvent";  
         pcstrmsock pinst = NULL;
+        SaHpiSessionIdT dsid = 0;
+        SaHpiDomainIdT did = 0;
 
-        err = oh_create_connx(OH_DEFAULT_DOMAIN_ID, &pinst);
-        if (err) return err;
-
+        if (sid == 0)
+                return SA_ERR_HPI_INVALID_SESSION;
         if (id == 0 || !event || !rpte || !rdr)
                return SA_ERR_HPI_INVALID_PARAMS;
+ 
+        err = oh_get_connx(sid, &dsid, &pinst, &did);
+        if (err) return err;
 
         cHpiMarshal *hm = HpiMarshalFind(eFoHpiInjectEvent);
-        pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiInjectEvent, hm->m_request_len);
+        pinst->MessageHeaderInit(eMhMsg, 0, eFoHpiInjectEvent, 
+                                 hm->m_request_len);
         request = g_malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest4(hm, request, &id, event, rpte, rdr);
+        pinst->header.m_len = HpiMarshalRequest5(hm, request, 
+                                &dsid, &id, event, rpte, rdr);
 
-        SendRecv(0, cmd);
+        SendRecv(sid, cmd);
 
         int mr = HpiDemarshalReply4(pinst->remote_byte_order, 
                                     hm, reply + sizeof(cMessageHeader),
                                     &err, &id, event, rpte, rdr);
-
-        oh_delete_connx(pinst);
 
         if (request)
                 g_free(request);
