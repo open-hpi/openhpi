@@ -117,7 +117,7 @@ NewSimulatorRdr * NewSimulatorFileWatchdog::process_token( NewSimulatorResource 
             
             break;
             
-         case WTD_GET_TOKEN_HANDLER:
+         case WDT_GET_TOKEN_HANDLER:
             stdlog << "DBG: Start parsing watchdog data.\n";
             success = process_watchdog_data();
             stdlog << "DBG: Parsing returns success = " << success << "\n";
@@ -147,7 +147,7 @@ NewSimulatorRdr * NewSimulatorFileWatchdog::process_token( NewSimulatorResource 
 /**
  * Parse the Watchdog Get section
  *
- * Startpoint is the \c WTD_GET_TOKEN_HANDLER. Endpoint is the last \c G_TOKEN_RIGHT_CURLY.
+ * Startpoint is the \c WDT_GET_TOKEN_HANDLER. Endpoint is the last \c G_TOKEN_RIGHT_CURLY.
  *  
  * @return bool value success
  * 
@@ -166,7 +166,7 @@ bool NewSimulatorFileWatchdog::process_watchdog_data() {
 
    cur_token = g_scanner_get_next_token(m_scanner);
    if (cur_token != G_TOKEN_LEFT_CURLY) {
-   	   err("Processing parse control rdr entry - Missing left curly in WTD_GET section");
+   	   err("Processing parse control rdr entry - Missing left curly in WDT_GET section");
     	   success = false;
    }
 

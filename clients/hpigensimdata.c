@@ -65,7 +65,7 @@
 #define INVENTORY_DATA  "INVENTORY_DATA"
 #define INV_AREA_DATA   "INV_AREA"
 #define INV_FIELD_DATA  "INV_FIELD"
-#define WTD_GET         "WTD_GET"
+#define WDT_GET         "WDT_GET"
 #define ANN_DATA        "ANNUNCIATOR_DATA"
 #define ANNOUNCEMENT    "ANNOUNCEMENT"
 #define DIMI_DATA       "DIMI_DATA"
@@ -193,7 +193,7 @@ static SaErrorT    print_watchdog_rdr(FILE *out,
                                        int offset,
                                        SaHpiSessionIdT sessionId, 
                                        SaHpiResourceIdT resId,
-                                       SaHpiWatchdogRecT *wtd);
+                                       SaHpiWatchdogRecT *wdt);
 
 static void       print_annunciator_rdr(FILE *out, 
                                           int offset, 
@@ -1138,32 +1138,32 @@ static void print_annunciator_cond(FILE *out, int offset, SaHpiConditionT cond) 
  * Watchdog functions
  **/
 static SaErrorT print_watchdog_rdr(FILE *out, int offset, SaHpiSessionIdT sessionId, 
-                                 SaHpiResourceIdT resId, SaHpiWatchdogRecT *wtd) {
+                                 SaHpiResourceIdT resId, SaHpiWatchdogRecT *wdt) {
    int myoffset = offset;
    SaErrorT rv  = SA_OK;
    
-   fprintf(out,"%sWatchdogNum=%u\n", offSet[myoffset], wtd->WatchdogNum);
-   fprintf(out,"%sOem=%u\n", offSet[myoffset], wtd->Oem);
+   fprintf(out,"%sWatchdogNum=%u\n", offSet[myoffset], wdt->WatchdogNum);
+   fprintf(out,"%sOem=%u\n", offSet[myoffset], wdt->Oem);
  
-   SaHpiWatchdogT wtdTimer;
-   rv = saHpiWatchdogTimerGet(sessionId, resId, wtd->WatchdogNum, &wtdTimer);
+   SaHpiWatchdogT wdtTimer;
+   rv = saHpiWatchdogTimerGet(sessionId, resId, wdt->WatchdogNum, &wdtTimer);
    if (rv != SA_OK) {
       fprintf(stderr, "WatchdogTimerGet returns %s for ResId %u Num %u\n",
-              oh_lookup_error(rv), resId, wtd->WatchdogNum);
+              oh_lookup_error(rv), resId, wdt->WatchdogNum);
       return rv;
    }
    
-   fprintf(out,"%s%s={\n",offSet[myoffset++],WTD_GET);
-   fprintf(out,"%sLog=%d\n", offSet[myoffset], wtdTimer.Log);
-   fprintf(out,"%sRunning=%d\n", offSet[myoffset], wtdTimer.Running);
-   fprintf(out,"%sTimerUse=0x%02X\n", offSet[myoffset], wtdTimer.TimerUse);
-   fprintf(out,"%sTimerAction=0x%02X\n", offSet[myoffset], wtdTimer.TimerAction);
-   fprintf(out,"%sPretimerInterrupt=0x%02X\n", offSet[myoffset], wtdTimer.PretimerInterrupt);
-   fprintf(out,"%sPreTimeoutInterval=%u\n", offSet[myoffset], wtdTimer.PreTimeoutInterval);
-   fprintf(out,"%sTimerUseExpFlags=0x%02X\n", offSet[myoffset], wtdTimer.TimerUseExpFlags);
-   fprintf(out,"%sInitialCount=%u\n", offSet[myoffset], wtdTimer.InitialCount);
-   fprintf(out,"%sPresentCount=%u\n", offSet[myoffset], wtdTimer.PresentCount);
-   fprintf(out, "%s}\n", offSet[--myoffset]); // WTD_GET
+   fprintf(out,"%s%s={\n",offSet[myoffset++],WDT_GET);
+   fprintf(out,"%sLog=%d\n", offSet[myoffset], wdtTimer.Log);
+   fprintf(out,"%sRunning=%d\n", offSet[myoffset], wdtTimer.Running);
+   fprintf(out,"%sTimerUse=0x%02X\n", offSet[myoffset], wdtTimer.TimerUse);
+   fprintf(out,"%sTimerAction=0x%02X\n", offSet[myoffset], wdtTimer.TimerAction);
+   fprintf(out,"%sPretimerInterrupt=0x%02X\n", offSet[myoffset], wdtTimer.PretimerInterrupt);
+   fprintf(out,"%sPreTimeoutInterval=%u\n", offSet[myoffset], wdtTimer.PreTimeoutInterval);
+   fprintf(out,"%sTimerUseExpFlags=0x%02X\n", offSet[myoffset], wdtTimer.TimerUseExpFlags);
+   fprintf(out,"%sInitialCount=%u\n", offSet[myoffset], wdtTimer.InitialCount);
+   fprintf(out,"%sPresentCount=%u\n", offSet[myoffset], wdtTimer.PresentCount);
+   fprintf(out, "%s}\n", offSet[--myoffset]); // WDT_GET
    
    return rv;
 }
