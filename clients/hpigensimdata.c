@@ -1289,7 +1289,7 @@ static SaErrorT print_control_rdr(FILE *out, int offset, SaHpiSessionIdT session
    SaErrorT        rv  = SA_OK;
    SaHpiCtrlModeT  modeGet;
    SaHpiCtrlStateT stateGet;
-   SaHpiBoolT allowGet = ctrl->WriteOnly;
+   SaHpiBoolT allowGet = ( ctrl->WriteOnly != SAHPI_FALSE ) ? SAHPI_FALSE : SAHPI_TRUE;
    
    if (allowGet)
       rv = saHpiControlGet(sessionId, resId, ctrl->Num, &modeGet, &stateGet);
