@@ -646,6 +646,9 @@ CXXFLAGS="$CXXFLAGS -D_GNU_SOURCE -D_REENTRANT -fexceptions"
 if test "x$have_openssl" = "xyes"; then
 	SSLDIR=ssl
 	AC_DEFINE([HAVE_OPENSSL],[1],[openssl library was found])
+	AC_SUBST(WITH_OPENSSL, 1)
+else
+	AC_SUBST(WITH_OPENSSL, 0)
 fi
 AM_CONDITIONAL(HAVE_OPENSSL, test x$have_openssl = xyes)
 OH_SSL_INCLUDES="-I\$(top_srcdir)/ssl"

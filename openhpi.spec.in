@@ -8,6 +8,13 @@
 %define _srcrpmdir %{_rpmtopdir}/SRPMS
 %define _docdir %{_datadir}/doc/%{name}-%{version}
 
+# For systems where libuuid is provided in e2fsprogs rpm 
+#%define uuid_provider e2fsprogs
+# For systems where libuuid is provided in libuuid rpm 
+%define uuid_provider libuuid
+
+%define with_openssl @WITH_OPENSSL@
+
 %define with_ipmi @WITH_IPMI@
 
 %if "x@IPMIDIRECT@" == "xipmidirect"
@@ -55,7 +62,10 @@ URL: http://www.openhpi.org
 Source: http://prdownloads.sourceforge.net/openhpi/%{name}-%{version}.tar.gz
 #
 Buildroot: %{_rpmtopdir}/INSTALL
-BuildRequires: pkgconfig glib2-devel automake autoconf libtool gcc-c++
+BuildRequires: pkgconfig automake autoconf libtool gcc-c++ glib2-devel libstdc++-devel %{uuid_provider}-devel
+%if 0%{?with_openssl}
+BuildRequires: openssl-devel
+%endif
 %if 0%{?suse_version}
 BuildRequires: tcpd-devel
 %else
@@ -64,7 +74,10 @@ BuildRequires: tcp_wrappers
 %if 0%{?with_docbook2html}
 BuildRequires: docbook-utils
 %endif
-Requires: e2fsprogs-devel openssl-devel libstdc++-devel glib2-devel
+Requires: glib2 libstdc++ %{uuid_provider}
+%if 0%{?with_openssl}
+Requires: openssl
+%endif
 
 %package devel
 Summary: OpenHPI and SAF header files 
