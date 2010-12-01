@@ -191,7 +191,7 @@ bool NewSimulatorFile::Open() {
    m_tokens.Add(new SimulatorToken( "INVENTORY_DATA",  INVENTORY_DATA_TOKEN_HANDLER ));
    m_tokens.Add(new SimulatorToken( "INV_AREA",  INV_AREA_TOKEN_HANDLER ));
    m_tokens.Add(new SimulatorToken( "INV_FIELD",  INV_FIELD_TOKEN_HANDLER ));
-   m_tokens.Add(new SimulatorToken( "WTD_GET",  WTD_GET_TOKEN_HANDLER ));
+   m_tokens.Add(new SimulatorToken( "WDT_GET",  WDT_GET_TOKEN_HANDLER ));
    m_tokens.Add(new SimulatorToken( "ANNUNCIATOR_DATA",  ANNUNCIATOR_DATA_TOKEN_HANDLER ));
    m_tokens.Add(new SimulatorToken( "ANNOUNCEMENT",  ANNOUNCEMENT_TOKEN_HANDLER ));
    m_tokens.Add(new SimulatorToken( "DIMI_DATA",  DIMI_DATA_TOKEN_HANDLER ));
