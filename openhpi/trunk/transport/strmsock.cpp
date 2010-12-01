@@ -16,6 +16,7 @@
  */
 
 #include <stdlib.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
@@ -150,33 +151,41 @@ bool strmsock::ReadMsg(char *data)
 		return true;
 	}
 
-	int len = read( s, data, dMaxMessageLength);
+        size_t got  = 0;
+        size_t need = sizeof(cMessageHeader);
+        bool got_hdr = false;
+        while ( got < need ) {
+        	int len = read( s, data + got, need - got );
 
-	if (len < 0) {
-                errcode = errno;
-                err("Reading from socket returned and error: %d\n", errcode); // Debug
-		return true;
-	} else if (len == 0) {	//connection has been aborted by the peer
-		Close();
-		err("Connection has been aborted\n"); // Debug
-		return true;
-	} else if (len < (int)sizeof(cMessageHeader)) {
-		err("Got corrupted header?\n"); // Debug
-		return true;
-	}
-	memcpy(&header, data, sizeof(cMessageHeader));
-    remote_byte_order = ( ( header.m_flags & dMhEndianBit ) != 0 ) ? G_LITTLE_ENDIAN : G_BIG_ENDIAN;
-        // swap id and len if nessesary in the reply header
-	if (remote_byte_order != G_BYTE_ORDER) {
-		header.m_id  = GUINT32_SWAP_LE_BE(header.m_id);
-		header.m_len = GUINT32_SWAP_LE_BE(header.m_len);
-	}
-	//dbg("header.m_flags: 0x%x\n", header.m_flags);
+        	if (len < 0) {
+                        errcode = errno;
+                        err("Reading from socket returned and error: %d\n", errcode); // Debug
+        		return true;
+        	} else if (len == 0) {	//connection has been aborted by the peer
+        		Close();
+        		err("Connection has been aborted\n"); // Debug
+        		return true;
+                }
 
-	if ( (header.m_flags >> 4) != dMhVersion ) {
-		err("Wrong version? 0x%x != 0x%x\n", header.m_flags, dMhVersion); // Debug
-		return true;
-	}
+                got += len;
+                if ( ( !got_hdr ) && ( got >= sizeof(cMessageHeader) ) ) {
+	                memcpy(&header, data, sizeof(cMessageHeader));
+                        remote_byte_order = ( ( header.m_flags & dMhEndianBit ) != 0 ) ?
+                                            G_LITTLE_ENDIAN : G_BIG_ENDIAN;
+                        // swap id and len if nessesary in the reply header
+                	if (remote_byte_order != G_BYTE_ORDER) {
+                		header.m_id  = GUINT32_SWAP_LE_BE(header.m_id);
+                		header.m_len = GUINT32_SWAP_LE_BE(header.m_len);
+                	}
+	                if ( (header.m_flags >> 4) != dMhVersion ) {
+                		err("Wrong version? 0x%x != 0x%x\n", header.m_flags, dMhVersion);
+        	        	return true;
+                	}
+                        need += header.m_len;
+                        got_hdr = true;
+                }
+        }
+
 //      dbg("Read buffer (%d bytes) is\n", len);
 //      for (int i = 0; i < len; i++) {
 //              dbg("%02x ", (unsigned char)data[i]);
