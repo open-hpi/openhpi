@@ -39,7 +39,7 @@ int main(int argc, char **argv)
         g_hash_table_insert(config, "name", "test");
         g_hash_table_insert(config, "addr", "0");
         
-        if (!oHpiHandlerCreate(config, &hid))
+        if (!oHpiHandlerCreate(sid, config, &hid))
                 return -1;
                                
         

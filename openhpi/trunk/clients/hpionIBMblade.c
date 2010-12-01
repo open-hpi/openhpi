@@ -235,7 +235,7 @@ static int select_ep(Rpt_t *Rpt)
 		return(0);
 	}
 	
-	rv = oHpiHandlerInfo(this_handler_id, &handler_info, &config);
+	rv = oHpiHandlerInfo(sessionid, this_handler_id, &handler_info, &config);
 	if (rv) {
 		if (fdebug) printf("oHpiHandlerInfo returns %s\n", oh_lookup_error(rv));
 		return(0);

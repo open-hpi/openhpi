@@ -187,7 +187,7 @@ static SaErrorT execglobalparamget ()
    if (fdebug) printf("Go and read global parameters in domain %u\n", domainid);
 
    param.Type = OHPI_ON_EP;
-   rv = oHpiGlobalParamGet (&param);
+   rv = oHpiGlobalParamGet (sessionid, &param);
    if (rv!=SA_OK) {
       printf("oHpiGlobalParamGet(OHPI_ON_EP) returned %d (%s)\n",
              rv, oh_lookup_error(rv));
@@ -197,7 +197,7 @@ static SaErrorT execglobalparamget ()
    oh_print_ep (&(param.u.OnEP),0);
    
    param.Type = OHPI_LOG_ON_SEV;
-   rv = oHpiGlobalParamGet (&param);
+   rv = oHpiGlobalParamGet (sessionid, &param);
    if (rv!=SA_OK) {
       printf("oHpiGlobalParamGet(OHPI_LOG_ON_SEV) returned %d (%s)\n",
              rv, oh_lookup_error(rv));
@@ -206,7 +206,7 @@ static SaErrorT execglobalparamget ()
    printf("OPENHPI_LOG_ON_SEV = %s\n", oh_lookup_severity (param.u.LogOnSev));
    
    param.Type =OHPI_EVT_QUEUE_LIMIT; 
-   rv = oHpiGlobalParamGet (&param);
+   rv = oHpiGlobalParamGet (sessionid, &param);
    if (rv!=SA_OK) {
       printf("oHpiGlobalParamGet(OHPI_EVT_QUEUE_LIMIT) returned %d (%s)\n",
              rv, oh_lookup_error(rv));
@@ -215,7 +215,7 @@ static SaErrorT execglobalparamget ()
    printf("OPENHPI_EVT_QUEUE_LIMIT = %u\n", param.u.EvtQueueLimit);
 
    param.Type =OHPI_DEL_SIZE_LIMIT;
-   rv = oHpiGlobalParamGet (&param);
+   rv = oHpiGlobalParamGet (sessionid, &param);
    if (rv!=SA_OK) {
       printf("oHpiGlobalParamGet(OHPI_DEL_SIZE_LIMIT) returned %d (%s)\n",
              rv, oh_lookup_error(rv));
@@ -224,7 +224,7 @@ static SaErrorT execglobalparamget ()
    printf("OPENHPI_DEL_SIZE_LIMIT = %u\n", param.u.DelSizeLimit);
 
    param.Type =OHPI_DEL_SAVE;
-   rv = oHpiGlobalParamGet (&param);
+   rv = oHpiGlobalParamGet (sessionid, &param);
    if (rv!=SA_OK) {
       printf("oHpiGlobalParamGet(OHPI_DEL_SAVE) returned %d (%s)\n",
              rv, oh_lookup_error(rv));
@@ -235,7 +235,7 @@ static SaErrorT execglobalparamget ()
    else printf("FALSE\n");
    
    param.Type =OHPI_DAT_SIZE_LIMIT;
-   rv = oHpiGlobalParamGet (&param);
+   rv = oHpiGlobalParamGet (sessionid, &param);
    if (rv!=SA_OK) {
       printf("oHpiGlobalParamGet(OHPI_DAT_SIZE_LIMIT) returned %d (%s)\n",
              rv, oh_lookup_error(rv));
@@ -244,7 +244,7 @@ static SaErrorT execglobalparamget ()
    printf("OPENHPI_DAT_SIZE_LIMIT = %u\n", param.u.DatSizeLimit);
 
    param.Type =OHPI_DAT_USER_LIMIT;
-   rv = oHpiGlobalParamGet (&param);
+   rv = oHpiGlobalParamGet (sessionid, &param);
    if (rv!=SA_OK) {
       printf("oHpiGlobalParamGet(OHPI_DAT_USER_LIMIT) returned %d (%s)\n",
              rv, oh_lookup_error(rv));
@@ -253,7 +253,7 @@ static SaErrorT execglobalparamget ()
    printf("OPENHPI_DAT_USER_LIMIT = %u\n", param.u.DatUserLimit);
 
    param.Type =OHPI_DAT_SAVE;
-   rv = oHpiGlobalParamGet (&param);
+   rv = oHpiGlobalParamGet (sessionid, &param);
    if (rv!=SA_OK) {
       printf("oHpiGlobalParamGet(OHPI_DAT_SAVE) returned %d (%s)\n",
              rv, oh_lookup_error(rv));
@@ -264,7 +264,7 @@ static SaErrorT execglobalparamget ()
    else printf("FALSE\n");
         
    param.Type =OHPI_PATH;
-   rv = oHpiGlobalParamGet (&param);
+   rv = oHpiGlobalParamGet (sessionid, &param);
    if (rv!=SA_OK) {
       printf("oHpiGlobalParamGet(OHPI_PATH) returned %d (%s)\n",
              rv, oh_lookup_error(rv));
@@ -273,7 +273,7 @@ static SaErrorT execglobalparamget ()
    printf("OPENHPI_PATH = %s\n",param.u.Path);
 
    param.Type =OHPI_VARPATH;
-   rv = oHpiGlobalParamGet (&param);
+   rv = oHpiGlobalParamGet (sessionid, &param);
    if (rv!=SA_OK) {
       printf("oHpiGlobalParamGet(OHPI_VARPATH) returned %d (%s)\n",
              rv, oh_lookup_error(rv));
@@ -282,7 +282,7 @@ static SaErrorT execglobalparamget ()
    printf("OPENHPI_VARPATH = %s\n",param.u.VarPath);
 
    param.Type =OHPI_CONF;
-   rv = oHpiGlobalParamGet (&param);
+   rv = oHpiGlobalParamGet (sessionid, &param);
    if (rv!=SA_OK) {
       printf("oHpiGlobalParamGet(OHPI_CONF) returned %d (%s)\n",
              rv, oh_lookup_error(rv));
@@ -338,7 +338,7 @@ static SaErrorT execglobalparamset (oHpiGlobalParamTypeT ptype, char *setparam)
          else return SA_ERR_HPI_INVALID_PARAMS;
          break;
    }
-   rv = oHpiGlobalParamSet (&param);
+   rv = oHpiGlobalParamSet (sessionid, &param);
 
    if (rv!=SA_OK) {
       printf("oHpiGlobalParamSet returned %d (%s)\n",

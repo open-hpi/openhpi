@@ -53,8 +53,9 @@ SaHpiUint64T oHpiVersionGet()
 
 /**
  * oHpiHandlerCreate
- * @config: IN. Hash table. Holds configuration information used by handler.
- * @id: IN/OUT. The id of the newly created handler is returned here.
+ * @sid:    IN.     a valid session id
+ * @config: IN.     Hash table. Holds configuration information used by handler.
+ * @id:     IN/OUT. The id of the newly created handler is returned here.
  *
  * Creates a new handler (instance of a plugin). Plugin handlers are what
  * respond to most API calls.
@@ -66,49 +67,75 @@ SaHpiUint64T oHpiVersionGet()
  * opening the handler.
  **/
 SaErrorT SAHPI_API oHpiHandlerCreate (
+     SAHPI_IN    SaHpiSessionIdT sid,
      SAHPI_IN    GHashTable *config,
      SAHPI_OUT   oHpiHandlerIdT *id )
 {
 	SaErrorT error = SA_OK;
-
+        SaHpiDomainIdT did;
+        struct oh_domain *d = NULL;
+ 
+        if (sid == 0)
+		return SA_ERR_HPI_INVALID_SESSION;
         if (!config || !id) 
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (g_hash_table_size(config)==0)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        
-        if (oh_init()) return SA_ERR_HPI_ERROR;
 
-	error = oh_create_handler(config, id);
+        OH_CHECK_INIT_STATE(sid);
+        OH_GET_DID(sid, did);
+        OH_GET_DOMAIN(did, d); /* Lock domain */        
+        
+        if (oh_init()) error = SA_ERR_HPI_INTERNAL_ERROR;
+
+ 	if (error == SA_OK)
+            error = oh_create_handler(config, id);
+ 
+        oh_release_domain(d); /* Unlock domain */
 
 	return error;
 }
 
 /**
  * oHpiHandlerDestroy
- * @id: IN. The id of the handler to destroy
+ * @sid:    IN.     a valid session id
+ * @id:     IN.     The id of the handler to destroy
  *
  * Destroys a handler. Calls the plugin's abi close function.
  *
  * Returns: SA_OK on success. Minus SA_OK on error.
  **/
 SaErrorT SAHPI_API oHpiHandlerDestroy (
+     SAHPI_IN    SaHpiSessionIdT sid,
      SAHPI_IN    oHpiHandlerIdT id )
 {
+        SaHpiDomainIdT did;
+        struct oh_domain *d = NULL;
+	SaErrorT error = SA_OK;
+
+        if (sid == 0)
+		return SA_ERR_HPI_INVALID_SESSION;
         if (id == 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
                 
-        if (oh_init()) return SA_ERR_HPI_INTERNAL_ERROR;
+        OH_CHECK_INIT_STATE(sid);
+        OH_GET_DID(sid, did);
+        OH_GET_DOMAIN(did, d); /* Lock domain */
+                
+        if (oh_init()) error = SA_ERR_HPI_INTERNAL_ERROR;
 
-        if (oh_destroy_handler(id))
-                return SA_ERR_HPI_ERROR;
-
-        return SA_OK;
+        if (error == SA_OK)
+           if (oh_destroy_handler(id)) error = SA_ERR_HPI_ERROR;
+   
+        oh_release_domain(d); /* Unlock domain */
+        return error;
 }
 
 /**
  * oHpiHandlerInfo
- * @id: IN. The id of the handler to query
- * @info: IN/OUT. Pointer to struct for holding handler information
+ * @sid:    IN.     a valid session id
+ * @id:     IN.     The id of the handler to query
+ * @info:   IN/OUT. Pointer to struct for holding handler information
  * @conf_params: IN/OUT Pointer to pre-allocated hash-table, for holding the
  *               handler's configuration parameters
  *
@@ -122,22 +149,35 @@ static void copy_hashed_config_info (gpointer key, gpointer value, gpointer newh
    g_hash_table_insert ( newhash, g_strdup(key), g_strdup(value) );
 }  
 SaErrorT SAHPI_API oHpiHandlerInfo (
+     SAHPI_IN    SaHpiSessionIdT sid,
      SAHPI_IN    oHpiHandlerIdT id,
      SAHPI_OUT   oHpiHandlerInfoT *info,
-     SAHPI_IN    GHashTable *conf_params )
+     SAHPI_INOUT GHashTable *conf_params )
 {
+        SaHpiDomainIdT did;
+        struct oh_domain *d = NULL;
         struct oh_handler *h = NULL;
 
+        if (sid == 0)
+               return SA_ERR_HPI_INVALID_SESSION;
         if (id == 0 || !info || !conf_params)
                return SA_ERR_HPI_INVALID_PARAMS;
         if (g_hash_table_size(conf_params)!=0)
                return SA_ERR_HPI_INVALID_PARAMS;
 
-        if (oh_init()) return SA_ERR_HPI_INTERNAL_ERROR;
+        OH_CHECK_INIT_STATE(sid);
+        OH_GET_DID(sid, did);
+        OH_GET_DOMAIN(did, d); /* Lock domain */
+
+        if (oh_init()) {
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
 
         h = oh_get_handler(id);
         if (!h) {
                 err("Handler %d not found.", id);
+                oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_NOT_PRESENT;
         }
 
@@ -158,15 +198,17 @@ SaErrorT SAHPI_API oHpiHandlerInfo (
                                 g_strdup("password"), g_strdup("********"));
 
         oh_release_handler(h);
+        oh_release_domain(d); /* Unlock domain */
 
         return SA_OK;
 }
 
 /**
  * oHpiHandlerGetNext
- * @id: IN. Id of handler to search for.
- * @next_id: IN/OUT. The id of the handler next to the handler being searched for
- * will be returned here.
+ * @sid:     IN.     a valid session id
+ * @id:      IN.     Id of handler to search for.
+ * @next_id: OUT.    The id of the handler next to the handler being searched for
+ *                   will be returned here.
  *
  * Used for iterating through all loaded handlers. If you pass
  * 0 (SAHPI_FIRST_ENTRY), you will get the id of the first handler returned
@@ -175,19 +217,31 @@ SaErrorT SAHPI_API oHpiHandlerInfo (
  * Returns: SA_OK on success. Minus SA_OK on error.
  **/
 SaErrorT SAHPI_API oHpiHandlerGetNext (
+     SAHPI_IN    SaHpiSessionIdT sid,
      SAHPI_IN    oHpiHandlerIdT id,
      SAHPI_OUT   oHpiHandlerIdT *next_id )
 {
-        if (!next_id) {
+        SaHpiDomainIdT did;
+        struct oh_domain *d = NULL;
+        SaErrorT error = SA_OK;
+
+        if (sid == 0)
+                return SA_ERR_HPI_INVALID_SESSION;
+        if (!next_id) 
                 return SA_ERR_HPI_INVALID_PARAMS;
-        }
         
-        if (oh_init()) return SA_ERR_HPI_INTERNAL_ERROR;
+        OH_CHECK_INIT_STATE(sid);
+        OH_GET_DID(sid, did);
+        OH_GET_DOMAIN(did, d); /* Lock domain */
+ 
+        if (oh_init()) error = SA_ERR_HPI_INTERNAL_ERROR;
 
-        if (oh_getnext_handler_id(id, next_id))
-                return SA_ERR_HPI_NOT_PRESENT;
+        if (error == SA_OK)
+           if (oh_getnext_handler_id(id, next_id)) 
+               error = SA_ERR_HPI_NOT_PRESENT;
 
-        return SA_OK;
+        oh_release_domain(d); /* Unlock domain */
+        return error;
 }
 
 /**
@@ -241,25 +295,43 @@ SaErrorT SAHPI_API oHpiHandlerFind (
 
 /**
  * oHpiHandlerRetry
- * @id: handler id
+ * @sid:    IN.     a valid session id
+ * @id:     IN      handler id
  *
  * Returns: SA_OK if handler opens successfully.
  **/
 SaErrorT SAHPI_API oHpiHandlerRetry (
+     SAHPI_IN    SaHpiSessionIdT sid,
      SAHPI_IN    oHpiHandlerIdT id )
 {
+        SaHpiDomainIdT did;
+        struct oh_domain *d = NULL;
 	struct oh_handler *h = NULL;
 	SaErrorT error = SA_OK;
 
+        if (sid == 0)
+		return SA_ERR_HPI_INVALID_SESSION;
 	if (id == 0) return SA_ERR_HPI_INVALID_PARAMS;
 
-        if (oh_init()) return SA_ERR_HPI_INTERNAL_ERROR;
+        OH_CHECK_INIT_STATE(sid);
+        OH_GET_DID(sid, did);
+        OH_GET_DOMAIN(did, d); /* Lock domain */
+
+        if (oh_init()) {
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
 
 	h = oh_get_handler(id);
-	if (!h) return SA_ERR_HPI_NOT_PRESENT;
+        if (!h) {
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
 
 	if (h->hnd != NULL) {
-		oh_release_handler(h);
+                // handler already running
+ 		oh_release_handler(h);
+                oh_release_domain(d); /* Unlock domain */
 		return SA_OK;
 	}
 
@@ -268,6 +340,7 @@ SaErrorT SAHPI_API oHpiHandlerRetry (
 	else error = SA_OK;
 
 	oh_release_handler(h);
+        oh_release_domain(d); /* Unlock domain */
 
 	return error;
 }
@@ -276,70 +349,103 @@ SaErrorT SAHPI_API oHpiHandlerRetry (
 
 /**
  * oHpiGlobalParamGet
- * @param: param->type needs to be set to know what parameter to fetch.
+ * @sid:    IN.     a valid session id
+ * @param:  IN/OUT  param->type needs to be set to know what parameter to fetch.
  *
  * Gets the value of the specified global parameter.
  *
  * Returns: SA_OK on success. Minus SA_OK on error.
  **/
 SaErrorT SAHPI_API oHpiGlobalParamGet (
-     SAHPI_OUT   oHpiGlobalParamT *param )
+     SAHPI_IN    SaHpiSessionIdT sid,
+     SAHPI_INOUT oHpiGlobalParamT *param )
 {
+        SaHpiDomainIdT did;
+        struct oh_domain *d = NULL;
         struct oh_global_param p;
 
+        if (sid == 0)
+		return SA_ERR_HPI_INVALID_SESSION;
         if (!param || !param->Type) {
                 err("Invalid parameters. oHpiGlobalParamGet()");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
         
-        if (oh_init()) return SA_ERR_HPI_INTERNAL_ERROR;
+        OH_CHECK_INIT_STATE(sid);
+        OH_GET_DID(sid, did);
+        OH_GET_DOMAIN(did, d); /* Lock domain */
+
+        if (oh_init()) {
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
 
         p.type = param->Type;
 
-        if (oh_get_global_param(&p))
+        if (oh_get_global_param(&p)) {
+                oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_UNKNOWN;
+        }
 
         memcpy(&param->u, &p.u, sizeof(oh_global_param_union));
 
+        oh_release_domain(d); /* Unlock domain */
         return SA_OK;
 }
 
 /**
  * oHpiGlobalParamSet
- * @param: param->type needs to be set to know what parameter to set.
- * Also, the appropiate value in param->u needs to be filled in.
+ * @sid:    IN.     a valid session id
+ * @param:  IN.     param->type needs to be set to know what parameter to set.
+ *                  Also, the appropiate value in param->u needs to be filled in.
  *
  * Sets a global parameter.
  *
  * Returns: SA_OK on success. Minus SA_OK on error.
  **/
 SaErrorT SAHPI_API oHpiGlobalParamSet (
+     SAHPI_IN    SaHpiSessionIdT sid,
      SAHPI_IN    oHpiGlobalParamT *param )
 {
+        SaHpiDomainIdT did;
+        struct oh_domain *d = NULL;
         struct oh_global_param p;
 
+        if (sid == 0)
+		return SA_ERR_HPI_INVALID_SESSION;
         if (!param || !param->Type) {
                 err("Invalid parameters. oHpiGlobalParamSet()");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
         
-        if (oh_init()) return SA_ERR_HPI_INTERNAL_ERROR;
+        OH_CHECK_INIT_STATE(sid);
+        OH_GET_DID(sid, did);
+        OH_GET_DOMAIN(did, d); /* Lock domain */
+
+        if (oh_init()) {
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
 
         p.type = param->Type;
         memcpy(&p.u, &param->u, sizeof(oh_global_param_union));
 
-        if (oh_set_global_param(&p))
+        if (oh_set_global_param(&p)){
+                oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_ERROR;
-
+        }
+ 
+        oh_release_domain(d); /* Unlock domain */
         return SA_OK;
 }
 
 /**
  * oHpiInjectEvent
- * @id: id of handler into which the event will be injected.
- * @event: pointer to the event to be injected.
- * @rpte: pointer to the resource to be injected.
- * @rdrs: pointer to the list of RDRs to be injected along with @resoruce
+ * @sid:    IN.     a valid session id
+ * @id:     IN.     id of handler into which the event will be injected.
+ * @event:  IN.     pointer to the event to be injected.
+ * @rpte:   IN.     pointer to the resource to be injected.
+ * @rdrs:   IN.     pointer to the list of RDRs to be injected along with @resoruce
  *
  * @id and @event are required parameters. @rpte is only required if the event
  * is of RESOURCE type or HOTSWAP type. @rdrs is an optional argument in all
@@ -354,11 +460,14 @@ SaErrorT SAHPI_API oHpiGlobalParamSet (
  * list so that the caller can know what the assigned values were.
  **/
 SaErrorT SAHPI_API oHpiInjectEvent (
+     SAHPI_IN    SaHpiSessionIdT sid,
      SAHPI_IN    oHpiHandlerIdT id,
      SAHPI_IN    SaHpiEventT    *event,
      SAHPI_IN    SaHpiRptEntryT *rpte,
      SAHPI_IN    SaHpiRdrT *rdr)
 {
+        SaHpiDomainIdT did;
+        struct oh_domain *d = NULL;
 	SaErrorT (*inject_event)(void *hnd,
                             	 SaHpiEventT *evt,
                             	 SaHpiRptEntryT *rpte,
@@ -367,6 +476,10 @@ SaErrorT SAHPI_API oHpiInjectEvent (
 	struct oh_handler *h = NULL;
 	SaErrorT error = SA_OK;
 
+        if (sid == 0){
+		err("Invalid session id %d passed",sid);
+		return SA_ERR_HPI_INVALID_SESSION;
+        }
 	if (id == 0) {
 		err("Invalid handler id %d passed",id);
 		return SA_ERR_HPI_INVALID_PARAMS;
@@ -384,12 +497,20 @@ SaErrorT SAHPI_API oHpiInjectEvent (
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
-	if (oh_init()) return SA_ERR_HPI_INTERNAL_ERROR;
+        OH_CHECK_INIT_STATE(sid);
+        OH_GET_DID(sid, did);
+        OH_GET_DOMAIN(did, d); /* Lock domain */
+
+	if (oh_init()) {
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
 
 	h = oh_get_handler(id);
 	inject_event = h ? h->abi->inject_event : NULL;
         if (!inject_event) {
                 oh_release_handler(h);
+                oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
@@ -399,6 +520,7 @@ SaErrorT SAHPI_API oHpiInjectEvent (
         }
 
         oh_release_handler(h);
+        oh_release_domain(d); /* Unlock domain */
         return error;
 }
 

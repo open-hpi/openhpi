@@ -61,11 +61,12 @@ main(int argc, char **argv)
 	
 	SaHpiVersionT	hpiVer;
 	SaHpiSessionIdT sessionid;
+        oHpiHandlerIdT  handlerid = 1;  //TODO: Use oHpiHandlerFind to find right handler
 	SaHpiResourceIdT resourceid = all_resources;
 
 	int c;
 	    
-	while ( (c = getopt( argc, argv,"adrsoiwcn:x?")) != EOF ) {
+	while ( (c = getopt( argc, argv,"adrsoiwcn:x?")) != EOF ) { //TODO: Domains
 		switch(c) {
 			case 'a': f_listall = 1; break;
 			case 'c': f_ctrl    = 1; break;
@@ -176,6 +177,7 @@ main(int argc, char **argv)
     event.EventDataUnion.HotSwapEvent.PreviousHotSwapState=SAHPI_HS_STATE_ACTIVE;
 
     rv = oHpiInjectEvent(sessionid,
+                         handlerid,
                          &event,
                          &rpte,
                          &rdr);
