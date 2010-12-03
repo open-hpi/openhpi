@@ -6345,6 +6345,10 @@ SaErrorT SAHPI_API oHpiDomainAdd (
         return SA_ERR_HPI_INVALID_DATA;
     }
 
+    // Function may be called before first session was opened, 
+    // so we may need to initialize 
+    oh_client_init();
+
     char buf[SAHPI_MAX_TEXT_BUFFER_LENGTH+1];
     memcpy(&buf[0], &host->Data[0], host->DataLength);
     buf[host->DataLength] = '\0';
@@ -6372,6 +6376,10 @@ SaErrorT SAHPI_API oHpiDomainAddById (
         return SA_ERR_HPI_INVALID_DATA;
     }
 
+    // Function may be called before first session was opened, 
+    // so we may need to initialize 
+    oh_client_init();
+
     char buf[SAHPI_MAX_TEXT_BUFFER_LENGTH+1];
     memcpy(&buf[0], &host->Data[0], host->DataLength);
     buf[host->DataLength] = '\0';
@@ -6380,7 +6388,7 @@ SaErrorT SAHPI_API oHpiDomainAddById (
 }
 
 /*----------------------------------------------------------------------------*/
-/* oHpiDomainEntryGet                                                          */
+/* oHpiDomainEntryGet                                                         */
 /*----------------------------------------------------------------------------*/
 SaErrorT SAHPI_API oHpiDomainEntryGet (
      SAHPI_IN    SaHpiEntryIdT    EntryId,
@@ -6393,7 +6401,8 @@ SaErrorT SAHPI_API oHpiDomainEntryGet (
     if (!NextEntryId || !DomainEntry) {
         return SA_ERR_HPI_INVALID_PARAMS;
     }
-    /* Function may be called outside sessions, so we may need to initialize */
+    // Function may be called before first session was opened, 
+    // so we may need to initialize 
     oh_client_init();
 
     if (EntryId == SAHPI_FIRST_ENTRY) // get first valid domain id
@@ -6417,6 +6426,38 @@ SaErrorT SAHPI_API oHpiDomainEntryGet (
 
     return SA_OK;
 
+}
+
+
+/*----------------------------------------------------------------------------*/
+/* oHpiDomainEntryGetByDomainId                                               */
+/*----------------------------------------------------------------------------*/
+SaErrorT SAHPI_API oHpiDomainEntryGetByDomainId (
+     SAHPI_IN    SaHpiDomainIdT    DomainId,
+     SAHPI_OUT   oHpiDomainEntryT *DomainEntry )
+
+{
+    SaHpiDomainIdT did;
+
+    if (!DomainEntry) {
+        return SA_ERR_HPI_INVALID_PARAMS;
+    }
+    // Function may be called before first session was opened, 
+    // so we may need to initialize 
+    oh_client_init();
+
+    const oh_domain_conf *entry = oh_get_domain_conf ( DomainId );
+    if (entry == NULL) { // no config for did found 
+       return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    DomainEntry->id = did;
+    if (oh_init_textbuffer(&DomainEntry->daemonhost) != SA_OK) return SA_ERR_HPI_INVALID_PARAMS;
+    if (oh_append_textbuffer(&DomainEntry->daemonhost, entry->host)!= SA_OK) 
+                                                               return SA_ERR_HPI_INVALID_PARAMS;
+    DomainEntry->port = entry->port;  
+
+    return SA_OK;
 }
 
 

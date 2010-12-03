@@ -150,6 +150,9 @@ SaErrorT SAHPI_API oHpiDomainEntryGet (
      SAHPI_IN    SaHpiEntryIdT    EntryId,
      SAHPI_OUT   SaHpiEntryIdT    *NextEntryId,
      SAHPI_OUT   oHpiDomainEntryT *DomainEntry );
+SaErrorT SAHPI_API oHpiDomainEntryGetByDomainId (
+     SAHPI_IN    SaHpiDomainIdT    DomainId,
+     SAHPI_OUT   oHpiDomainEntryT *DomainEntry );
 
 
 
