@@ -37,6 +37,8 @@ struct oh_domain_conf {
 
 void oh_client_conf_init(void);
 const struct oh_domain_conf * oh_get_domain_conf(SaHpiDomainIdT did);
+const struct oh_domain_conf * oh_get_next_domain_conf(SaHpiEntryIdT entry_id,
+                                                      SaHpiEntryIdT *next_entry_id);
 
 SaErrorT oh_add_domain_conf(const char *host,
                             unsigned short port,
@@ -44,8 +46,6 @@ SaErrorT oh_add_domain_conf(const char *host,
 SaErrorT oh_add_domain_conf_by_id(SaHpiDomainIdT did,
                                   const char *host,
                                   unsigned short port);
-
-SaHpiDomainIdT oh_getnext_domainid (SaHpiDomainIdT did);
 
 #ifdef __cplusplus
 } /* extern "C" */

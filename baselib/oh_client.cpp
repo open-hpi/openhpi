@@ -6405,27 +6405,18 @@ SaErrorT SAHPI_API oHpiDomainEntryGet (
     // so we may need to initialize 
     oh_client_init();
 
-    if (EntryId == SAHPI_FIRST_ENTRY) // get first valid domain id
-       did = oh_getnext_domainid (SAHPI_UNSPECIFIED_DOMAIN_ID);
-    else // EntryId already must be a valid domain id
-       did = (SaHpiDomainIdT) EntryId;
-
-    const oh_domain_conf *entry = oh_get_domain_conf ( did );
+    const oh_domain_conf *entry = oh_get_next_domain_conf ( EntryId, NextEntryId );
     if (entry == NULL) { // no config for did found 
        return SA_ERR_HPI_NOT_PRESENT;
     }
 
-    DomainEntry->id = did;
+    DomainEntry->id = (SaHpiDomainIdT) EntryId;
     if (oh_init_textbuffer(&DomainEntry->daemonhost) != SA_OK) return SA_ERR_HPI_INVALID_PARAMS;
     if (oh_append_textbuffer(&DomainEntry->daemonhost, entry->host)!= SA_OK) 
                                                                return SA_ERR_HPI_INVALID_PARAMS;
     DomainEntry->port = entry->port;  
 
-    *NextEntryId = (SaHpiEntryIdT) oh_getnext_domainid (did); // will return SAHPI_LAST_ENTRY 
-                                                              // if no other domain is found.
-
     return SA_OK;
-
 }
 
 
@@ -6437,8 +6428,6 @@ SaErrorT SAHPI_API oHpiDomainEntryGetByDomainId (
      SAHPI_OUT   oHpiDomainEntryT *DomainEntry )
 
 {
-    SaHpiDomainIdT did;
-
     if (!DomainEntry) {
         return SA_ERR_HPI_INVALID_PARAMS;
     }
@@ -6451,7 +6440,7 @@ SaErrorT SAHPI_API oHpiDomainEntryGetByDomainId (
        return SA_ERR_HPI_NOT_PRESENT;
     }
 
-    DomainEntry->id = did;
+    DomainEntry->id = DomainId;
     if (oh_init_textbuffer(&DomainEntry->daemonhost) != SA_OK) return SA_ERR_HPI_INVALID_PARAMS;
     if (oh_append_textbuffer(&DomainEntry->daemonhost, entry->host)!= SA_OK) 
                                                                return SA_ERR_HPI_INVALID_PARAMS;
