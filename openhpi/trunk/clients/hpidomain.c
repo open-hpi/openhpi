@@ -30,6 +30,7 @@
 #include <SaHpi.h> 
 #include <oh_utils.h>
 #include <oh_clients.h>
+#include <oHpi.h>
 
 #define OH_SVN_REV "$Revision: 7112 $"
 
@@ -169,7 +170,7 @@ SaErrorT show_domain(SaHpiSessionIdT sessionid)
 	   if (fdebug) printf("saHpiDrtEntryGet\n");
 	   rv = saHpiDrtEntryGet(sessionid,
 			drtentryid,&nextdrtentryid,&drtentry);
-	   if ((rv != SA_OK) || fdebug) 
+	   if ((rv != SA_OK && rv != SA_ERR_HPI_NOT_PRESENT) || fdebug) 
 		       	printf("DrtEntryGet returns %s\n",oh_lookup_error(rv));
 		
 	   if (rv == SA_OK ) {
@@ -220,7 +221,7 @@ SaErrorT show_domain(SaHpiSessionIdT sessionid)
 	   }
 	   else if (rv == SA_ERR_HPI_NOT_PRESENT) {
 			if (drtentryid == SAHPI_FIRST_ENTRY)
-				printf("DRT is empty. \n");
+				printf("            DRT is empty. \n");
 			else printf("Internal error while walking the DRT\n");
 		}
 		else printf("Internal error while walking the DRT\n");
@@ -239,6 +240,7 @@ static SaErrorT print_domaininfo(SaHpiDomainInfoT info, int shift)
         SaHpiTextBufferT        buf;
         SaErrorT                rv;
 	int			i;
+        oHpiDomainEntryT        ohdomainentry;
 
 	for (i=0;i<shift;i++)printf("    ");
         printf("Domain: %u   Capabil: 0x%x   IsPeer: %u   Tag: ",
@@ -284,7 +286,16 @@ static SaErrorT print_domaininfo(SaHpiDomainInfoT info, int shift)
 	for (i=0;i<shift;i++)printf("    ");
         printf("                Limit: %u   DatOverflow : %u\n",
 		info.DatUserAlarmLimit, info.DatOverflow);
-	
+
+        // Now print also OpenHPI specific info for the domain
+        rv = oHpiDomainEntryGetByDomainId ( info.DomainId, &ohdomainentry );
+        if (rv==SA_OK) {
+                for (i=0;i<shift;i++)printf("    ");
+                printf("            Serving Daemon on Host: %s:%u\n",
+                                          (char *)ohdomainentry.daemonhost.Data,
+                                          ohdomainentry.port );
+        }
+
 	return rv;
 }
 
