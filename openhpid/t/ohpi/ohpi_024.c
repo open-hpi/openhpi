@@ -31,7 +31,7 @@ int main(int argc, char **argv)
         if (saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sid, NULL))
                 return -1;
         
-        if (!oHpiHandlerCreate(NULL, NULL))
+        if (!oHpiHandlerCreate(sid, NULL, NULL))
                 return -1;
                 
         

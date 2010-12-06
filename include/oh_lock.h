@@ -20,6 +20,10 @@
 
 #include <config.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern int oh_will_block;
 
 int data_access_block_times(void);
@@ -76,5 +80,9 @@ extern int lockcount;
                 g_static_rec_mutex_unlock(&oh_main_lock); \
                 dbg_lock("%p - released the lock",  g_thread_self());      \
         } while(0)
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* __OH_LOCK_H */

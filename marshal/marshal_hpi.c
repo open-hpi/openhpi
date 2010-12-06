@@ -2,6 +2,8 @@
  * marshaling/demarshaling of hpi functions
  *
  * Copyright (c) 2004 by FORCE Computers.
+ * (C) Copyright Pigeon Point Systems. 2010
+ * (C) Copyright Nokia Siemens Networks 2010
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,10 +17,13 @@
  *     W. David Ashley <dashley@us.ibm.com.com>
  *     Renier Morales <renier@openhpi.org>
  *     Anton Pak <anton.pak@pigeonpoint.com>
+ *     Ulrich Kleber <ulikleber@users.sourceforge.net>
  */
 
-#include "marshal_hpi.h"
+#include <stddef.h>
 #include <stdio.h>
+
+#include "marshal_hpi.h"
 
 
 static const cMarshalType *saHpiSessionOpenIn[] =
@@ -1879,7 +1884,8 @@ static const cMarshalType *saHpiResourcePowerStateSetOut[] =
 
 static const cMarshalType *oHpiHandlerCreateIn[] =
 {
-  &oHpiHandlerConfigType, // dummy entry
+  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
+  &oHpiHandlerConfigType, // handler config params
   0
 };
 
@@ -1893,6 +1899,7 @@ static const cMarshalType *oHpiHandlerCreateOut[] =
 
 static const cMarshalType *oHpiHandlerDestroyIn[] =
 {
+  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &oHpiHandlerIdType, // handler id
   0
 };
@@ -1906,6 +1913,7 @@ static const cMarshalType *oHpiHandlerDestroyOut[] =
 
 static const cMarshalType *oHpiHandlerInfoIn[] =
 {
+  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &oHpiHandlerIdType, // handler id
   0
 };
@@ -1914,12 +1922,14 @@ static const cMarshalType *oHpiHandlerInfoOut[] =
 {
   &SaErrorType, // result (SaErrorT)
   &oHpiHandlerInfoType, // handler info
+  &oHpiHandlerConfigType, // handler config params
   0
 };
 
 
 static const cMarshalType *oHpiHandlerGetNextIn[] =
 {
+  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &oHpiHandlerIdType, // handler id
   0
 };
@@ -1933,33 +1943,35 @@ static const cMarshalType *oHpiHandlerGetNextOut[] =
 
 static const cMarshalType *oHpiHandlerFindIn[] =
 {
-	&SaHpiSessionIdType, // session id
-	&SaHpiResourceIdType, // resource id
-	0
+  &SaHpiSessionIdType, // session id
+  &SaHpiResourceIdType, // resource id
+  0
 };
 
 static const cMarshalType *oHpiHandlerFindOut[] =
 {
-	&SaErrorType, // result (SaErrorT)
-	&oHpiHandlerIdType, // handler id
-	0
+  &SaErrorType, // result (SaErrorT)
+  &oHpiHandlerIdType, // handler id
+  0
 };
 
 static const cMarshalType *oHpiHandlerRetryIn[] =
 {
-	&oHpiHandlerIdType, // handler id
-	0
+  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
+  &oHpiHandlerIdType, // handler id
+  0
 };
 
 static const cMarshalType *oHpiHandlerRetryOut[] =
 {
-	&SaErrorType, // result (SaErrorT)
-	0
+  &SaErrorType, // result (SaErrorT)
+  0
 };
 
 
 static const cMarshalType *oHpiGlobalParamGetIn[] =
 {
+  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &oHpiGlobalParamType, // global param
   0
 };
@@ -1974,6 +1986,7 @@ static const cMarshalType *oHpiGlobalParamGetOut[] =
 
 static const cMarshalType *oHpiGlobalParamSetIn[] =
 {
+  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &oHpiGlobalParamType, // global param
   0
 };
@@ -1987,6 +2000,7 @@ static const cMarshalType *oHpiGlobalParamSetOut[] =
 
 static const cMarshalType *oHpiInjectEventIn[] =
 {
+  &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &oHpiHandlerIdType,   // global param
   &SaHpiEventType,
   &SaHpiRptEntryType,
@@ -2137,7 +2151,7 @@ static cHpiMarshal hpi_marshal[] =
 };
 
 
-static int hpi_marshal_num = sizeof( hpi_marshal ) / sizeof( cHpiMarshal );
+static size_t hpi_marshal_num = sizeof( hpi_marshal ) / sizeof( cHpiMarshal );
 
 static int hpi_marshal_init = 0;
 
@@ -2147,8 +2161,7 @@ HpiMarshalFind( int id )
 {
   if ( !hpi_marshal_init )
      {
-       int i;
-
+       size_t i;
        for( i = 0; i < hpi_marshal_num; i++ )
 	  {
 //          printf("Entry %d\n", i);

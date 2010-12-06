@@ -32,7 +32,7 @@ int main(int argc, char **argv)
         if (saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sid, NULL))
                 return -1;
                 
-        if (!oHpiGlobalParamSet(NULL))
+        if (!oHpiGlobalParamSet(sid, NULL))
                 return -1;
                 
         

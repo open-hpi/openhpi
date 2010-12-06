@@ -438,7 +438,8 @@ static void __delete_handler(struct oh_handler *h)
         }
 
         /* Free the oh_handler members first, then the handler. */
-        /* FIXME: Where/When should the handler config table be freed? */
+        g_hash_table_destroy(h->config);
+
         g_static_rec_mutex_free(&h->lock);
         g_static_rec_mutex_free(&h->refcount_lock);
         g_free(h);
@@ -538,12 +539,17 @@ int oh_getnext_handler_id(unsigned int hid, unsigned int *next_hid)
         return -1;
 }
 
+static void copy_hashed_new_config (gpointer key, gpointer value, gpointer newhash)
+{
+   g_hash_table_insert ( newhash, g_strdup(key), g_strdup(value) );
+}
 static struct oh_handler *new_handler(GHashTable *handler_config)
 {       /* Return a new oh_handler instance */
         struct oh_plugin *plugin = NULL;
         struct oh_handler *handler = NULL;
 	char *plugin_name = NULL;
         static unsigned int handler_id = 1;
+        GHashTable *newconfig;
 
         if (!handler_config) {
                 err("ERROR creating new handler. Invalid parameter.");
@@ -582,8 +588,12 @@ static struct oh_handler *new_handler(GHashTable *handler_config)
         g_static_rec_mutex_lock(&oh_handlers.lock);
         handler->id = handler_id++;
         g_static_rec_mutex_unlock(&oh_handlers.lock);
-        handler->plugin_name = (char *)g_hash_table_lookup(handler_config, "plugin");
-        handler->config = handler_config;
+        handler->plugin_name = g_strdup(g_hash_table_lookup(handler_config, "plugin"));
+        //copy config in a new hash table
+        newconfig = g_hash_table_new_full (
+                                        g_str_hash, g_str_equal, g_free, g_free);
+        g_hash_table_foreach(handler_config,copy_hashed_new_config,newconfig);
+        handler->config = newconfig;
         handler->refcount = 0;
         g_static_rec_mutex_init(&handler->lock);
         g_static_rec_mutex_init(&handler->refcount_lock);

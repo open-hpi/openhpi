@@ -13,10 +13,13 @@
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
  *     W. David Ashley <dashley@us.ibm.com.com>
+ *     Anton Pak <anton.pak.pigeonpoint.com>
  */
 
 #ifndef dMarshal_h
 #define dMarshal_h
+
+#include <stddef.h>
 
 
 #ifdef __cplusplus
@@ -24,6 +27,7 @@ extern "C" {
 #endif
 
 
+// TODO use (u)int_xxx_t or SaHpi types instead
 typedef unsigned char      tUint8;
 typedef unsigned short     tUint16;
 typedef unsigned int       tUint32;
@@ -39,7 +43,7 @@ typedef double             tFloat64;
 typedef enum 
 {
   eMtUnknown,
-  eMtVoid,  // do nothing
+  eMtVoid,          // do nothing
   eMtUint8,
   eMtUint16,
   eMtUint32,
@@ -51,60 +55,67 @@ typedef enum
   eMtFloat32,
   eMtFloat64,
   eMtArray,
-  eMtVarArray, // only possible in structs
+  eMtVarArray,
   eMtStruct,
   eMtStructElement,
   eMtUnion,
   eMtUnionElement,
-  eMtUserDefined // user defined marshalling
+  eMtUserDefined    // user defined marshalling
 } tMarshalType;
 
-
-int IsSimpleType( tMarshalType type );
-
-
-#define dStructOffset(type,field) ((unsigned int)(((char *) (&(((type *)0)->field)))-((char*)0)))
+// NB
+//
+// VarArray can be used as a structure element only 
+// The struct must have "number of elements" field before the VarArray field
+//
+// Union can be used as a structure element only 
+// The struct must have "union modifier" field before the Union field
+//
 
 
 // helper macro for arrays
-#define dArray( type, size )  \
-{                             \
-  .m_type = eMtArray,         \
-  .m_u.m_array =              \
-  {                           \
-    .m_size = size,           \
-    .m_type = &type           \
-  }                           \
+#define dArray( nelements, element_type, element )  \
+{                                               \
+  .m_type = eMtArray,                           \
+  .u.m_array =                                  \
+  {                                             \
+    .m_nelements      = nelements,              \
+    .m_element_sizeof = sizeof( element_type ), \
+    .m_element        = &element                \
+  }                                             \
 }
 
 // helper macro for var arrays
-#define dVarArray( type, size_pos )  \
-{                             \
-  .m_type = eMtVarArray,      \
-  .m_u.m_var_array =          \
-  {                           \
-    .m_size = size_pos,       \
-    .m_type = &type           \
-  }                           \
+#define dVarArray( nelements_idx, element_type, element )  \
+{                                               \
+  .m_type = eMtVarArray,                        \
+  .u.m_var_array =                              \
+  {                                             \
+    .m_nelements_idx  = nelements_idx,          \
+    .m_element_sizeof = sizeof( element_type ), \
+    .m_element        = &element                \
+  }                                             \
 }
 
 // helper marco for struct
-#define dStruct( type, elems ) \
-{                             \
-  .m_type = eMtStruct,        \
-  .m_u.m_struct =             \
-  {                           \
-    .m_size = sizeof( type ), \
-    .m_elements = elems       \
-  }                           \
+#define dStruct( elements ) \
+{                              \
+  .m_type = eMtStruct,         \
+  .u.m_struct =                \
+  {                            \
+    .m_elements = &elements[0] \
+  }                            \
 }
 
 // helper marco for struct elements
-#define dStructElement( struct_type, field, type ) \
-{                                                  \
-  .m_type = eMtStructElement,                      \
-  .m_u.m_struct_element.m_offset = dStructOffset( struct_type, field ), \
-  .m_u.m_struct_element.m_type   = &type           \
+#define dStructElement( struct_type, field, element ) \
+{                                                \
+  .m_type = eMtStructElement,                    \
+  .u.m_struct_element =                          \
+  {                                              \
+    .m_offset  = offsetof( struct_type, field ), \
+    .m_element = &element                        \
+  }                                              \
 }
 
 // helper marco for struct end
@@ -114,23 +125,25 @@ int IsSimpleType( tMarshalType type );
 }
 
 // helper marco for unions
-#define dUnion( offset, type, elems ) \
-{                              \
-  .m_type = eMtUnion,          \
-  .m_u.m_union =               \
-  {                            \
-    .m_offset = offset,        \
-    .m_size    = sizeof( type ), \
-    .m_elements = elems        \
-  }                            \
+#define dUnion( mod_idx, elements ) \
+{                               \
+  .m_type = eMtUnion,           \
+  .u.m_union =                  \
+  {                             \
+    .m_mod_idx = mod_idx,       \
+    .m_elements  = &elements[0] \
+  }                             \
 }
 
 // helper marco for union elements
-#define dUnionElement( mod, type )    \
+#define dUnionElement( mod, element ) \
 {                                     \
   .m_type = eMtUnionElement,          \
-  .m_u.m_union_element.m_mod  = mod,  \
-  .m_u.m_union_element.m_type = &type \
+  .u.m_union_element =                \
+  {                                   \
+    .m_mod     = mod,                 \
+    .m_element = &element             \
+  }                                   \
 }
 
 // helper marco for union end
@@ -143,9 +156,12 @@ int IsSimpleType( tMarshalType type );
 #define dUserDefined( marshaller, demarshaller, user_data )    \
 {                                     \
   .m_type = eMtUserDefined,           \
-  .m_u.m_user_defined.m_marshal   = marshaller, \
-  .m_u.m_user_defined.m_demarshal = demarshaller, \
-  .m_u.m_user_defined.m_user_data = user_data \
+  .u.m_user_defined =                 \
+  {                                   \
+    .m_marshaller   = marshaller,     \
+    .m_demarshaller = demarshaller,   \
+    .m_user_data    = user_data       \
+  }                                   \
 }
 
 
@@ -165,48 +181,48 @@ struct sMarshalType
   {
     struct
     {
-      int            m_size;  // array size
-      cMarshalType  *m_type;  // array element 
+      size_t         m_nelements;
+      size_t         m_element_sizeof;
+      cMarshalType  *m_element;
     } m_array;
 
     struct
     {
-      unsigned int   m_size; // struct pos where size is
-      cMarshalType  *m_type; // array element
+      size_t         m_nelements_idx; // nelements field ids in parent struct
+      size_t         m_element_sizeof;
+      cMarshalType  *m_element;
     } m_var_array;
 
     struct
     {
-      unsigned int   m_size; // size of structure
-      cMarshalType  *m_elements; // struct elements
+      cMarshalType  *m_elements;
     } m_struct;
 
     struct
     {
-      unsigned int   m_offset;
-      cMarshalType  *m_type;
+      size_t         m_offset; // element offset in parent struct
+      cMarshalType  *m_element;
     } m_struct_element;
 
     struct
     {
-      int            m_offset;    // mod offset in struct
-      unsigned int   m_size;      // size of structure
-      cMarshalType  *m_elements;  // union elements
+      size_t         m_mod_idx;   // mod field index in parent struct
+      cMarshalType  *m_elements;
     } m_union;
 
     struct
     {
-      unsigned int   m_mod;
-      cMarshalType  *m_type; // union element 
+      size_t         m_mod;
+      cMarshalType  *m_element;
     } m_union_element;
 
     struct
     {
-      tMarshalFunction   m_marshal;
-      tDemarshalFunction m_demarshal;
+      tMarshalFunction   m_marshaller;
+      tDemarshalFunction m_demarshaller;
       void              *m_user_data;
     } m_user_defined;
-  } m_u;
+  } u;
 };
 
 
@@ -225,24 +241,17 @@ extern cMarshalType Marshal_Float64Type;
 
 
 // size in bytes
-int MarshalSize( const cMarshalType *type );
-int MarshalSizeArray( const cMarshalType **types );
+size_t MarshalSize( const cMarshalType *type );
+size_t MarshalSizeArray( const cMarshalType **types );
 
 // marshal data into buffer
-int Marshal( const cMarshalType *type, const void *data,
-		      void  *buffer );
-int MarshalArray( const cMarshalType **types, const void **data,
-		  void *buffer );
-int MarshalSimpleTypes( tMarshalType type, const void *data,
-			void  *buffer );
+int Marshal( const cMarshalType *type, const void *data, void  *buffer );
+int MarshalArray( const cMarshalType **types, const void **data, void *buffer );
 
 // demarshal buffer into data
-int Demarshal( int byte_order, const cMarshalType *type,
-	       void *data, const void *buffer );
-int DemarshalArray( int byte_order, const cMarshalType **types,
-		    void **data, const void *buffer );
-int DemarshalSimpleTypes( int byte_order, tMarshalType type, 
-			  void *data, const void *buffer );
+int Demarshal( int byte_order, const cMarshalType *type, void *data, const void *buffer );
+int DemarshalArray( int byte_order, const cMarshalType **types, void **data, const void *buffer );
+
 
 #ifdef __cplusplus
 }

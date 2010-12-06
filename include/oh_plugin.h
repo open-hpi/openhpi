@@ -19,6 +19,10 @@
 #include <glib.h>
 #include <oh_handler.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
  * Plugins are kept in a list within the oh_plugins struct
  */
@@ -94,5 +98,9 @@ SaErrorT oh_discovery(void);
 
 /* Bind abi functions into plugin */
 int oh_load_plugin_functions(struct oh_plugin *plugin, struct oh_abi_v2 **abi);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /*__OH_PLUGIN_H*/

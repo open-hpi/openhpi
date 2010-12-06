@@ -97,7 +97,7 @@ main(int argc, char **argv)
 
   if (fdebug) {
 	if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) printf("saHpiSessionOpen\n");
-	else printf("saHpiSessionOpen to domain %d\n",domainid);
+	else printf("saHpiSessionOpen to domain %u\n",domainid);
   }
   rv = saHpiSessionOpen(domainid, &sessionid, NULL);
   if (rv != SA_OK) {
@@ -127,7 +127,7 @@ main(int argc, char **argv)
 	entryid = SAHPI_FIRST_ENTRY;
 	resourceid = rptentry.ResourceId;
 	rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0;
-	printf("rptentry[%d] resourceid=%d tag: %s\n",
+	printf("rptentry[%u] resourceid=%u tag: %s\n",
 		entryid,resourceid, rptentry.ResourceTag.Data);
         if (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_RESET) {
 		is_reset = 1;

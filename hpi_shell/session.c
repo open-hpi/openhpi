@@ -225,7 +225,7 @@ int add_domain(Domain_t *domain)
 	return(0);
 }
 
-int open_session(int eflag)
+int open_session(SaHpiDomainIdT domainId, int eflag)
 {
 	Domain_t	*par_domain;
 
@@ -236,7 +236,7 @@ int open_session(int eflag)
 	thread_mutex = g_mutex_new();
 	par_domain = (Domain_t *)malloc(sizeof(Domain_t));
 	memset(par_domain, 0, sizeof(Domain_t));
-	par_domain->domainId = SAHPI_UNSPECIFIED_DOMAIN_ID;
+	par_domain->domainId = domainId;
 	if (get_sessionId(par_domain) != SA_OK) return(-1);
 	// set current domain
 	Domain = par_domain;

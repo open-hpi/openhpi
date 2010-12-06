@@ -19,13 +19,13 @@
 
 #define OH_DEFAULT_DOMAIN_ID 0
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <SaHpi.h>
 #include <glib.h>
 #include <oh_utils.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*
  *  Global table of all active domains (oh_domain).

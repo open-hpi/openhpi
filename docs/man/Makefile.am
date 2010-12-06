@@ -37,6 +37,9 @@ EXTRA_DIST		= openhpi.pod.7   openhpid.pod.8      \
                           hpithres.pod.1  hpiwdt.pod.1        \
                           hpievents.pod.1 hpionIBMblade.pod.1 \
                           hpisensor.pod.1 hpitop.pod.1 \
+			  hpidomain.pod.1 hpigensimdata.pod.1 \
+			  ohhandler.pod.1 ohparam.pod.1 \
+                          ohdomainlist.pod.1 \
 			  hpi_shell.pod.1
 
 
@@ -69,7 +72,10 @@ man_MANS = openhpi.7   openhpid.8      \
            hpithres.1  hpiwdt.1        \
            hpievents.1 hpionIBMblade.1 \
            hpisensor.1 hpitop.1        \
-	   hpi_shell.1
+	   hpidomain.1 hpigensimdata.1 \
+           ohhandler.1 ohparam.1       \
+           ohdomainlist.1 \
+           hpi_shell.1
 
 clean-local: am_config_clean-local
 

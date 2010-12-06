@@ -1,6 +1,8 @@
 /*      -*- linux-c -*-
  *
  * (C) Copyright IBM Corp. 2004-2008
+ * (C) Copyright Pigeon Point Systems. 2010
+ * (C) Copyright Nokia Siemens Networks 2010
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -14,6 +16,7 @@
  *      David Judkoivcs <djudkovi@us.ibm.com>
  * 	Renier Morales <renier@openhpi.org>
  *      Anton Pak <anton.pak@pigeonpoint.com>
+ *      Ulrich Kleber <ulikleber@users.sourceforge.net>
  *
  */
 
@@ -98,6 +101,25 @@ static struct option long_options[] = {
 #define PVERBOSE3(msg, ...) if (verbose_flag) printf("CRITICAL: "msg, ## __VA_ARGS__)
 
 /*--------------------------------------------------------------------*/
+/* Function to dehash handler config for oHpiHandlerInfo              */
+/*--------------------------------------------------------------------*/
+static void __dehash_handler_config(gpointer key, gpointer value, gpointer data)
+{
+        oHpiHandlerConfigT *handler_config = (oHpiHandlerConfigT *)data;
+
+        strncpy((char *)handler_config->Params[handler_config->NumberOfParams].Name,
+                (const char *)key,
+                SAHPI_MAX_TEXT_BUFFER_LENGTH);
+        strncpy((char *)handler_config->Params[handler_config->NumberOfParams].Value,
+                (const char *)value,
+                SAHPI_MAX_TEXT_BUFFER_LENGTH);
+
+        handler_config->NumberOfParams = handler_config->NumberOfParams + 1;
+
+        return;
+}
+
+/*--------------------------------------------------------------------*/
 /* Function: display_help                                             */
 /*--------------------------------------------------------------------*/
 
@@ -162,7 +184,7 @@ int main (int argc, char *argv[])
                         verbose_flag = 1;
                         break;
                 case 'f':
-                        pid_file = (char *)malloc(strlen(optarg) + 1);
+                        pid_file = (char *)g_malloc(strlen(optarg) + 1);
                         strcpy(pid_file, optarg);
                         break;
                 case 's':
@@ -191,7 +213,7 @@ int main (int argc, char *argv[])
         }
 
         if (pid_file == NULL) {
-                pid_file = (char *)malloc(strlen(PID_FILE) + 1);
+                pid_file = (char *)g_malloc(strlen(PID_FILE) + 1);
                 strcpy(pid_file, PID_FILE);
         }
 
@@ -245,7 +267,7 @@ int main (int argc, char *argv[])
 		display_help();
                 exit(-1);
         }
-        configfile = (char *) malloc(strlen(cfgfile) + 1);
+        configfile = (char *)g_malloc(strlen(cfgfile) + 1);
         strcpy(configfile, cfgfile);
 
         // get our listening port
@@ -1943,7 +1965,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                                                  params_list.NumberOfParams,
                                                  params_list.ParamsList);
                 
-                        free(params_list.ParamsList);
+                        g_free(params_list.ParamsList);
                         thrdinst->header.m_len = HpiMarshalReply0(hm, pReq,
                                                                   &ret);
                 }
@@ -2833,6 +2855,7 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 break;
 
                 case eFoHpiHandlerCreate: {
+                        SaHpiSessionIdT  session_id;
                         oHpiHandlerIdT id;
                         oHpiHandlerConfigT config;
                         GHashTable *config_table = g_hash_table_new_full(
@@ -2842,70 +2865,89 @@ static tResult HandleMsg(psstrmsock thrdinst,
 
                         PVERBOSE1("%p Processing oHpiHandlerCreate.", thrdid);
                 
-                        if ( HpiDemarshalRequest1( thrdinst->remote_byte_order,
-                                                        hm, pReq, &config ) < 0 )
+                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
+                                       hm, pReq, &session_id, &config ) < 0 )
                                 return eResultError;
                 
                         for (int n = 0; n < config.NumberOfParams; n++) {
                         	g_hash_table_insert(config_table,
-                        			    g_strdup((const gchar *)config.Params[n].Name),
-                        			    g_strdup((const gchar *)config.Params[n].Value));
+                                       g_strdup((const gchar *)config.Params[n].Name),
+                                       g_strdup((const gchar *)config.Params[n].Value));
                         }
-                        free(config.Params);
-                        ret = oHpiHandlerCreate(config_table, &id);
+                        g_free(config.Params);
+
+                        ret = oHpiHandlerCreate(session_id, config_table, &id);
                         g_hash_table_destroy(config_table);
                 
                         thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &id );
-                        result = eResultClose;
                 }
                 break;
                 
                 case eFoHpiHandlerDestroy: {
+                        SaHpiSessionIdT  session_id;
                         oHpiHandlerIdT id;
                 
                         PVERBOSE1("%p Processing oHpiHandlerDestroy.", thrdid);
                 
-                        if ( HpiDemarshalRequest1( thrdinst->remote_byte_order,
-                                                        hm, pReq, &id ) < 0 )
+                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
+                                       hm, pReq, &session_id, &id ) < 0 )
                                 return eResultError;
                 
-                        ret = oHpiHandlerDestroy(id);
+                        ret = oHpiHandlerDestroy(session_id, id);
                 
                         thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                        result = eResultClose;
                 }
                 break;
                 
                 case eFoHpiHandlerInfo: {
+                        SaHpiSessionIdT  session_id;
                         oHpiHandlerIdT id;
                         oHpiHandlerInfoT info;
-                
+                        oHpiHandlerConfigT config;
+                        GHashTable *config_table = 0;
+
                         PVERBOSE1("%p Processing oHpiHandlerInfo.", thrdid);
                 
-                        if ( HpiDemarshalRequest1( thrdinst->remote_byte_order,
-                                                        hm, pReq, &id ) < 0 )
+                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
+                                       hm, pReq, &session_id, &id ) < 0 )
                                 return eResultError;
                 
-                        ret = oHpiHandlerInfo(id, &info);
+                        config_table = g_hash_table_new_full(
+                               g_str_hash, g_str_equal,
+                               g_free, g_free );
                 
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &info );
-                        result = eResultClose;
+                        ret = oHpiHandlerInfo(session_id, id, &info, config_table);
+               
+                        config.NumberOfParams = 0;
+                        config.Params = (oHpiHandlerConfigParamT *)
+                                        g_malloc0(sizeof(oHpiHandlerConfigParamT)
+                                        *g_hash_table_size(config_table));
+                        // add each hash table entry to the marshable handler_config
+                        g_hash_table_foreach(config_table, 
+                                             __dehash_handler_config, 
+                                             &config);
+
+                        thrdinst->header.m_len = HpiMarshalReply2( hm, pReq, 
+                                                      &ret, &info, &config );
+                        // cleanup
+                        g_hash_table_destroy(config_table);
                 }
                 break;
                 
                 case eFoHpiHandlerGetNext: {
+                        SaHpiSessionIdT  session_id;
                         oHpiHandlerIdT id, next_id;
                 
                         PVERBOSE1("%p Processing oHpiHandlerGetNext.", thrdid);
                 
-                        if ( HpiDemarshalRequest1( thrdinst->remote_byte_order,
-                                                        hm, pReq, &id ) < 0 )
+                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
+                                       hm, pReq, &session_id, &id ) < 0 )
                                 return eResultError;
                 
-                        ret = oHpiHandlerGetNext(id, &next_id);
+                        ret = oHpiHandlerGetNext(session_id, id, &next_id);
                 
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &next_id );
-                        result = eResultClose;
+                        thrdinst->header.m_len = HpiMarshalReply1( hm, 
+                                                       pReq, &ret, &next_id );
                 }
                 break;
 
@@ -2922,60 +2964,62 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         ret = oHpiHandlerFind(session_id, rid, &hid);
                 
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &hid );
-                        result = eResultClose;
+                        thrdinst->header.m_len = HpiMarshalReply1( hm, 
+                                                       pReq, &ret, &hid );
                 }
                 break;
 
 		case eFoHpiHandlerRetry: {
+                        SaHpiSessionIdT  session_id;
 			oHpiHandlerIdT hid;
                 
                         PVERBOSE1("%p Processing oHpiHandlerRetry.", thrdid);
                 
-                        if ( HpiDemarshalRequest1( thrdinst->remote_byte_order,
-						   hm, pReq, &hid ) < 0 )
+                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
+                                       hm, pReq, &session_id, &hid ) < 0 )
                                 return eResultError;
                 
-                        ret = oHpiHandlerRetry(hid);
+                        ret = oHpiHandlerRetry(session_id, hid);
                 
                         thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                        result = eResultClose;
                 }
                 break;
                 
                 case eFoHpiGlobalParamGet: {
+                        SaHpiSessionIdT  session_id;
                         oHpiGlobalParamT param;
                 
                         PVERBOSE1("%p Processing oHpiGlobalParamGet.", thrdid);
                 
-                        if ( HpiDemarshalRequest1( thrdinst->remote_byte_order,
-                                                        hm, pReq, &param ) < 0 )
+                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
+                                       hm, pReq, &session_id, &param ) < 0 )
                                 return eResultError;
                 
-                        ret = oHpiGlobalParamGet(&param);
+                        ret = oHpiGlobalParamGet(session_id, &param);
                 
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &param );
-                        result = eResultClose;
+                        thrdinst->header.m_len = HpiMarshalReply1( hm, 
+                                                       pReq, &ret, &param );
                 }
                 break;
                 
                 case eFoHpiGlobalParamSet: {
+                        SaHpiSessionIdT  session_id;
                         oHpiGlobalParamT param;
                 
                         PVERBOSE1("%p Processing oHpiGlobalParamSet.", thrdid);
                 
-                        if ( HpiDemarshalRequest1( thrdinst->remote_byte_order,
-                                                        hm, pReq, &param ) < 0 )
+                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
+                                       hm, pReq, &session_id, &param ) < 0 )
                                 return eResultError;
                 
-                        ret = oHpiGlobalParamSet(&param);
+                        ret = oHpiGlobalParamSet(session_id, &param);
                 
                         thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                        result = eResultClose;
                 }
                 break;
 
                 case eFoHpiInjectEvent: {
+                        SaHpiSessionIdT  session_id;
                         oHpiHandlerIdT  id = 0;
                         SaHpiEventT     event;
                         SaHpiRptEntryT  rpte;
@@ -2988,9 +3032,10 @@ static tResult HandleMsg(psstrmsock thrdinst,
                 
                         PVERBOSE1("%p Processing oHpiInjectEvent.\n", thrdid);
                 
-                        if ( HpiDemarshalRequest4( thrdinst->remote_byte_order,
+                        if ( HpiDemarshalRequest5( thrdinst->remote_byte_order,
                                                    hm, 
                                                    pReq, 
+                                                   &session_id, 
                                                    &id, 
                                                    &event,
                                                    &rpte, 
@@ -2998,11 +3043,9 @@ static tResult HandleMsg(psstrmsock thrdinst,
                                 return eResultError;
 
 
-                        ret = oHpiInjectEvent(id, &event, &rpte, &rdr);
+                        ret = oHpiInjectEvent(session_id, id, &event, &rpte, &rdr);
 
                         thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-
-                        result = eResultClose;
                 }
                 break;
                 

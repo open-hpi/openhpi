@@ -538,7 +538,7 @@ RPT {
          RDR_DETAIL {
             WatchdogNum=0
             Oem=0
-            WTD_GET={
+            WDT_GET={
                Log=1
                Running=0
                TimerUse=0x00
@@ -1615,7 +1615,7 @@ RPT {
          RDR_DETAIL {
             WatchdogNum=0
             Oem=0
-            WTD_GET={
+            WDT_GET={
                Log=1
                Running=0
                TimerUse=0x00

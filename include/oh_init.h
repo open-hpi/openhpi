@@ -20,7 +20,15 @@
 
 #include <SaHpi.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int oh_init(void);
 int oh_finit(void);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* __OH_INIT_H */

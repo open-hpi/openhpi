@@ -23,7 +23,6 @@
 #include <string.h>
 #include <ctype.h>
 #include <errno.h>
-#include <uuid/uuid.h>
 
 #include <SaHpi.h>
 #include <oh_utils.h>
@@ -840,7 +839,7 @@ SaErrorT oh_copy_bigtext(oh_big_textbuffer *dest, const oh_big_textbuffer *from)
 SaErrorT oh_append_textbuffer(SaHpiTextBufferT *buffer, const char *from)
 {
         char *p;
-        uint size;
+        size_t size;
 
         if (!buffer || !from) {
                 err("Invalid parameter.");
@@ -865,7 +864,7 @@ SaErrorT oh_append_textbuffer(SaHpiTextBufferT *buffer, const char *from)
 SaErrorT oh_append_bigtext(oh_big_textbuffer *big_buffer, const char *from)
 {
         char *p;
-        uint size;
+        size_t size;
 
         if (!big_buffer || !from) {
                 err("Invalid parameters");
@@ -932,6 +931,24 @@ SaErrorT oh_append_offset(oh_big_textbuffer *buffer, int offsets)
 
         return(SA_OK);
 }
+
+SaErrorT oh_append_char_bigtext(oh_big_textbuffer * big_buffer, unsigned char c)
+{
+        big_buffer->Data[big_buffer->DataLength] = c;
+        ++big_buffer->DataLength;
+
+        return(SA_OK);
+}
+
+SaErrorT oh_append_hex_bigtext(oh_big_textbuffer * buf, unsigned char c)
+{
+        static const unsigned char tt[] = "0123456789abcdef";
+        oh_append_char_bigtext(buf, tt[c >> 4]);
+        oh_append_char_bigtext(buf, tt[c & 0xF]);
+
+        return(SA_OK);
+}
+
 
 /**
  * oh_fprint_ctrlrec:
@@ -1035,7 +1052,6 @@ SaErrorT oh_fprint_sensorrec(FILE *stream, const SaHpiSensorRecT *sensor, int of
 static SaErrorT oh_build_resourceinfo(oh_big_textbuffer *buffer, const SaHpiResourceInfoT *ResourceInfo, int offsets)
 {
         char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
-        char tempstr[SAHPI_MAX_TEXT_BUFFER_LENGTH];
         int found;
         oh_big_textbuffer working;
         SaHpiTextBufferT tmpbuffer;
@@ -1116,15 +1132,10 @@ static SaErrorT oh_build_resourceinfo(oh_big_textbuffer *buffer, const SaHpiReso
                 memset(empty_guid, 0, sizeof(SaHpiGuidT));
 
                 if (memcmp(empty_guid, ResourceInfo->Guid, sizeof(SaHpiGuidT))) {
-#if defined(__sun) && defined(__SVR4)
-                        uuid_unparse((unsigned char *)ResourceInfo->Guid, tempstr);
-#else
-                        uuid_unparse(ResourceInfo->Guid, tempstr);
-#endif
                         oh_append_offset(&working, offsets);
-                        snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "GUID: %s\n",
-                                        tempstr);
-                        oh_append_bigtext(&working, str);
+                        oh_append_bigtext(&working, "GUID: ");
+                        oh_decode_guid( &ResourceInfo->Guid, &working);
+                        oh_append_char_bigtext(&working, '\n');
                         found++;
                 }
         }
@@ -2570,6 +2581,37 @@ SaErrorT oh_decode_fumicapabilities(SaHpiFumiCapabilityT capabilities,
 
         return(SA_OK);
 }
+
+/**
+ * oh_decode_guid:
+ * @guid: pointer to GUID data of type SaHpiGuidT.
+ * @buffer:  Location to store the string.
+ *
+ * Converts @guid type into a string based.
+ *
+ * Returns:
+ * SA_OK - Normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - @buffer is NULL
+ **/
+SaErrorT oh_decode_guid(const SaHpiGuidT *guid, oh_big_textbuffer *buffer)
+{
+        unsigned int i;
+
+        if (!buffer) {
+                dbg("Invalid parameter.");
+                return(SA_ERR_HPI_INVALID_PARAMS);
+        }
+
+        for (i = 0; i < 16; ++i) {
+                if ((i == 4) || (i == 6) || (i == 8) || (i == 10)) {
+                    oh_append_char_bigtext(buffer, '-');
+                }
+                oh_append_hex_bigtext(buffer, (*guid)[i]);
+        }
+
+        return(SA_OK);
+}
+
 
 //==========================
 

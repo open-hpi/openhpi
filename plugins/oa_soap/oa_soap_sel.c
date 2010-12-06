@@ -58,6 +58,29 @@ SaErrorT oa_soap_get_sel_info(void *oh_handler,
 }
 
 /**
+ * oa_soap_get_sel_caps:
+ *      @oh_handler:  Handler data pointer.
+ *      @resource_id: Resource ID.
+ *      @caps:        Pointer to the event log capabilities data.
+ *
+ * Purpose:
+ *      Gets event log capabilities associated with a resource.
+ *
+ * Detailed Description: NA
+ *
+ * Return values:
+ *      SA_ERR_HPI_UNSUPPORTED_API - current oa soap implementation
+ *                                      does not support this API.
+ **/
+SaErrorT oa_soap_get_sel_caps(void *oh_handler,
+                            SaHpiResourceIdT resource_id,
+                            SaHpiEventLogCapabilitiesT *caps)
+{
+        err("Get Event Log Capabilities is not supported");
+        return SA_ERR_HPI_UNSUPPORTED_API;
+}
+
+/**
  * oa_soap_set_sel_time:
  *      @oh_handler:  Handler data pointer.
  *      @resource_id: Resource ID.
@@ -205,6 +228,11 @@ void * oh_get_el_info (void *,
                        SaHpiResourceIdT,
                        SaHpiEventLogInfoT *)
                 __attribute__ ((weak, alias("oa_soap_get_sel_info")));
+
+void * oh_get_el_caps (void *,
+                       SaHpiResourceIdT,
+                       SaHpiEventLogCapabilitiesT *)
+                __attribute__ ((weak, alias("oa_soap_get_sel_caps")));
 
 void * oh_set_el_time (void *,
                        SaHpiResourceIdT,

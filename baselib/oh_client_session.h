@@ -1,6 +1,7 @@
 /*      -*- linux-c -*-
  *
  * (C) Copyright IBM Corp. 2004-2008
+ * (C) Copyright Pigeon Point Systems. 2010
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12,6 +13,7 @@
  * Author(s):
  *      W. David Ashley <dashley@us.ibm.com>
  *      Renier Morales <renier@openhpi.org>
+ *      Anton Pak <anton.pak@pigeonpoint.com>
  *
  */
 
@@ -20,22 +22,14 @@
 
 #include <strmsock.h>
 
-extern "C"
-{
 #include <glib.h>
 #include <SaHpi.h>
-}
 
-struct oh_client_session {
-        SaHpiDomainIdT did; /* Domain Id */
-        SaHpiSessionIdT csid; /* Client Session Id */
-        SaHpiSessionIdT dsid; /* Domain Session Id */        
-        GHashTable *connxs; /* Connections for this session (per thread) */
-};
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-extern GHashTable *ohd_domains;
-extern GHashTable *ohd_sessions;
-extern GStaticRecMutex ohd_sessions_sem;
+void oh_client_session_init(void);
 
 SaErrorT oh_create_connx(SaHpiDomainIdT, pcstrmsock *);
 void oh_delete_connx(pcstrmsock);
@@ -44,5 +38,9 @@ SaErrorT oh_get_connx(SaHpiSessionIdT, SaHpiSessionIdT *, pcstrmsock *, SaHpiDom
 
 SaHpiSessionIdT oh_open_session(SaHpiDomainIdT, SaHpiSessionIdT, pcstrmsock);
 SaErrorT oh_close_session(SaHpiSessionIdT);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* __OH_CLIENT_SESSION_H */

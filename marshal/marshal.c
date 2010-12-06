@@ -13,13 +13,16 @@
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
  *     W. David Ashley <dashley@us.ibm.com.com>
+ *     Anton Pak <anton.pak.pigeonpoint.com>
  */
 
-#include <stdlib.h>
-// #include <stdio.h>
-#include <string.h>
 #include <assert.h>
+#include <stdlib.h>
+//#include <stdio.h>
+#include <string.h>
+
 #include <glib.h>
+
 #include "marshal.h"
 
 
@@ -80,29 +83,23 @@ cMarshalType Marshal_Float64Type =
 
 
 
-int
+static int
 IsSimpleType( tMarshalType type )
 {
-  assert( type != eMtUnknown );
-  
   switch( type )
      {
-       case eMtUnknown:
-            assert( type != eMtUnknown );
-            return 0;
-
        case eMtVoid:
-       case eMtUint8:
-       case eMtUint16:
-       case eMtUint32:
-       case eMtUint64:
        case eMtInt8:
+       case eMtUint8:
        case eMtInt16:
+       case eMtUint16:
        case eMtInt32:
+       case eMtUint32:
        case eMtInt64:
+       case eMtUint64:
        case eMtFloat32:
        case eMtFloat64:
-            return 1;
+	    return 1;
 
        case eMtArray:
        case eMtVarArray:
@@ -111,301 +108,270 @@ IsSimpleType( tMarshalType type )
        case eMtUnion:
        case eMtUnionElement:
        case eMtUserDefined:
-            return 0;
-     }
+	    return 0;
 
-  // not reached
-  assert( 0 );
-  return 0;
+       default:
+	    assert( 0 );
+	    return 0;
+     }
 }
 
 
-int
+size_t
 MarshalSize( const cMarshalType *type )
 {
   switch( type->m_type )
      {
-       case eMtUnknown:
-	    assert( 0 );
-	    return 0;
-
        case eMtVoid:
 	    return 0;
 
-       case eMtUint8:
        case eMtInt8:
-	    return sizeof( tUint8 );
-
-       case eMtUint16:
+	    return sizeof(tInt8);
+       case eMtUint8:
+	    return sizeof(tUint8);
        case eMtInt16:
-	    return sizeof( tUint16 );
-
-       case eMtUint32:
+	    return sizeof(tInt16);
+       case eMtUint16:
+	    return sizeof(tUint16);
        case eMtInt32:
-	    return sizeof( tUint32 );
-
-       case eMtUint64:
+	    return sizeof(tInt32);
+       case eMtUint32:
+	    return sizeof(tUint32);
        case eMtInt64:
-	    return sizeof( tUint64 );
-
+	    return sizeof(tInt64);
+       case eMtUint64:
+	    return sizeof(tUint64);
        case eMtFloat32:
-	    return sizeof( tFloat32 );
-
+	    return sizeof(tFloat32);
        case eMtFloat64:
-	    return sizeof( tFloat64 );
+	    return sizeof(tFloat64);
 
        case eMtArray:
-	    assert( type->m_u.m_array.m_size > 0 );
-	    assert( type->m_u.m_array.m_type );
+	    {
+	      size_t nelems = type->u.m_array.m_nelements;
+	      assert( nelems > 0 );
+	      const cMarshalType *elem = type->u.m_array.m_element;
+	      assert( elem );
 
-	    return type->m_u.m_array.m_size * MarshalSize( type->m_u.m_array.m_type );
+	      return nelems * MarshalSize( elem );
+	    }
 
        case eMtVarArray:
-            return 0xffff;
+	    // TODO investigate and fix me if necessary
+	    return 0xffff;
 
        case eMtStruct:
 	    {
-	      assert( type->m_u.m_struct.m_elements );
+	      size_t size = 0;
 
-	      int i;
-	      int size = 0;
+	      const cMarshalType *elems = &type->u.m_struct.m_elements[0];
+	      assert( elems );
 
-	      for( i = 0; type->m_u.m_struct.m_elements[i].m_type == eMtStructElement; i++ )
+	      size_t i;
+	      for( i = 0; elems[i].m_type == eMtStructElement; i++ )
 		 {
-		   cMarshalType *elem = &type->m_u.m_struct.m_elements[i];
-
-		   int s = MarshalSize( elem->m_u.m_struct_element.m_type );
-
-		   if ( s < 0 ) {
-                           assert( 0 );
-                           return -1;
-                   }
-		   
-		   size += s;
+		   const cMarshalType *elem = elems[i].u.m_struct_element.m_element;
+		   size += MarshalSize( elem );
 		 }
 
 	      return size;
 	    }
 
        case eMtUnion:
-            {
-	      assert( type->m_u.m_union.m_elements );
+	    {
+	      size_t max = 0;
 
-	      int i;
-	      int max = 0;
+	      const cMarshalType *elems = &type->u.m_union.m_elements[0];
+	      assert( elems );
 
-	      for( i = 0; type->m_u.m_union.m_elements[i].m_type == eMtUnionElement; i++ )
+	      size_t i;
+	      for( i = 0; elems[i].m_type == eMtUnionElement; i++ )
 		 {
-		   cMarshalType *elem = &type->m_u.m_union.m_elements[i];
-
-                   int s = MarshalSize( elem->m_u.m_union_element.m_type );
-
-		   if ( s < 0 ) {
-                           assert( 0 );
-                           return -1;
-                   }
-
-                   if ( max < s )
-                        max = s;
+		   const cMarshalType *elem = elems[i].u.m_union_element.m_element;
+		   size_t s = MarshalSize( elem );
+		   if ( max < s )
+		      {
+			max = s;
+		      }
 		 }
 
 	      return max;
-            }
+	    }
 
        case eMtUserDefined:
-            return 0xffff;
+	    // TODO investigate and fix me if necessary
+	    return 0xffff;
 
-       case eMtStructElement:
-       case eMtUnionElement:
+       default: // including eMtUnknown, eMtStructElement, eMtUnionElement
 	    assert( 0 );
-	    return -1;
+	    return 0;
      }
-
-  // not reached
-  assert( 0 );
-  return -1;
 }
 
 
-int
+size_t
 MarshalSizeArray( const cMarshalType **types )
 {
-  int size = 0;
-  int i;
+  size_t size = 0;
 
+  size_t i;
   for( i = 0; types[i]; i++ )
      {
-       int s = MarshalSize( types[i] );
-
-       if ( s < 0 ) {
-               assert( 0 );
-               return -1;
-       }
-       
-       size += s;
+       size += MarshalSize( types[i] );
      }
 
   return size;
-}
-
-
-int
-MarshalSimpleTypes( tMarshalType type, const void *data,
-                    void *buffer )
-{
-  switch( type )
-     {
-       case eMtVoid:
-            return 0;
-
-       case eMtUint8:
-       case eMtInt8:
-            {
-              memcpy(buffer, data, sizeof(tUint8));
-            }
-
-            return sizeof( tUint8 );
-
-       case eMtInt16:
-       case eMtUint16:
-            {
-              memcpy(buffer, data, sizeof(tUint16));
-            }
-
-            return sizeof( tUint16 );
-
-       case eMtUint32:
-       case eMtInt32:
-            {
-              memcpy(buffer, data, sizeof(tUint32));
-            }
-
-            return sizeof( tUint32 );
-
-       case eMtUint64:
-       case eMtInt64:
-            {
-              memcpy(buffer, data, sizeof(tUint64));
-            }
-
-            return sizeof( tUint64 );
-
-       case eMtFloat32:
-            {
-              memcpy(buffer, data, sizeof(tFloat32));
-            }
-
-            return sizeof( tFloat32 );
-
-       case eMtFloat64:
-            {
-              memcpy(buffer, data, sizeof(tFloat64));
-            }
-
-            return sizeof( tFloat64 );
-
-       default:
-            break;
-     }
-
-  assert( 0 );
-  return -1;
-}
-
-
-static const cMarshalType *
-FindUnionModifierType( const cMarshalType *type, cMarshalType *st_type, const void *d )
-{
-  cMarshalType *mod_struct_element = &type->m_u.m_struct.m_elements[st_type->m_u.m_union.m_offset];
-  assert( mod_struct_element->m_type == eMtStructElement );
-  cMarshalType *mod_type = mod_struct_element->m_u.m_struct_element.m_type;
-  const unsigned char *so = (const unsigned char *)d + mod_struct_element->m_u.m_struct_element.m_offset;
-
-  tUint32 m;
-
-  switch( mod_type->m_type )
-     {
-       case eMtUint8:
-       case eMtInt8:
-	    m = (tUint32)*so;
-	    break;
-
-       case eMtUint16:
-       case eMtInt16:
-	/* compile error */
-//	    m = (tUint32)*(const tUint16 *)so;
-	    m = (tUint32)(*(const tUint16 *)(const void *)so);
-	    break;
-
-       case eMtUint32:
-       case eMtInt32:
-	/* compile error */
-//	    m = *(const tUint32 *)so;
-	    m = *(const tUint32 *)(const void *)so;
-	    break;
-
-       default:
-	    assert( 0 );
-	    m = 0;
-
-	    return 0;
-     }
-
-  int i;
-
-  for( i = 0; st_type->m_u.m_union.m_elements[i].m_type == eMtUnionElement; i++ )
-       if ( st_type->m_u.m_union.m_elements[i].m_u.m_union_element.m_mod == m )
-	    return st_type->m_u.m_union.m_elements[i].m_u.m_union_element.m_type;
-
-  return 0;
 }
 
 
 static int
-FindArraySize( const cMarshalType *type, cMarshalType *st_type, const void *d )
+MarshalSimpleType( tMarshalType type, const void *data, void *buffer )
 {
-  cMarshalType *size_struct_element = &type->m_u.m_struct.m_elements[st_type->m_u.m_var_array.m_size];
-  assert( size_struct_element->m_type == eMtStructElement );
-  cMarshalType *size_type = size_struct_element->m_u.m_struct_element.m_type;
-  const unsigned char *so = (const unsigned char *)d + size_struct_element->m_u.m_struct_element.m_offset;
-
-  tUint32 size;
-
-  switch( size_type->m_type )
+  switch( type )
      {
-       case eMtUint8:
+       case eMtVoid:
+	    return 0;
+
        case eMtInt8:
-	    size = (tUint32)*so;
-	    break;
-
-       case eMtUint16:
+	    memcpy(buffer, data, sizeof(tInt8));
+	    return sizeof(tInt8);
+       case eMtUint8:
+	    memcpy(buffer, data, sizeof(tUint8));
+	    return sizeof(tUint8);
        case eMtInt16:
-	/* compile error */
-//	    size = (tUint32)*(const tUint16 *)so;
-	    size = (tUint32)*(const tUint16 *)(const void *)so;
-	    break;
-
-       case eMtUint32:
+	    memcpy(buffer, data, sizeof(tInt16));
+	    return sizeof(tInt16);
+       case eMtUint16:
+	    memcpy(buffer, data, sizeof(tUint16));
+	    return sizeof(tUint16);
        case eMtInt32:
-	/* compile error */
-//	    size = *(const tUint32 *)so;
-	    size = *(const tUint32 *)(const void *)so;
-	    break;
-
+	    memcpy(buffer, data, sizeof(tInt32));
+	    return sizeof(tInt32);
+       case eMtUint32:
+	    memcpy(buffer, data, sizeof(tUint32));
+	    return sizeof(tUint32);
+       case eMtInt64:
+	    memcpy(buffer, data, sizeof(tInt64));
+	    return sizeof(tInt64);
+       case eMtUint64:
+	    memcpy(buffer, data, sizeof(tUint64));
+	    return sizeof(tUint64);
+       case eMtFloat32:
+	    memcpy(buffer, data, sizeof(tFloat32));
+	    return sizeof(tFloat32);
+       case eMtFloat64:
+	    memcpy(buffer, data, sizeof(tFloat64));
+	    return sizeof(tFloat64);
        default:
 	    assert( 0 );
 	    return -1;
      }
-
-  return size;
 }
 
+/***********************************************************
+ * Gets value of integer structure element
+ * @type - marshal type of the structure
+ * @idx  - element index in the structure
+ * @data - raw pointer to the structure data
+ *
+ * structure element shall be of
+ * eMtUint{8,16,32} and eMtInt{8,16,32} type
+ *
+ * returns obtained integer value (casted to size_t)
+ * or
+ * returns (size_t)(-1) and throws assertion
+ *
+ * NB
+ * function does NOT check for
+ * - type is valid pointer
+ * - type is pointer to marshal type for a structure
+ * - idx is valid for the type
+ * - data is valid pointer
+ ***********************************************************/
+static size_t
+GetStructElementIntegerValue( const cMarshalType *type, size_t idx, const void * data )
+{
+  const cMarshalType *elems = &type->u.m_struct.m_elements[0];
+  const cMarshalType *elem = elems[idx].u.m_struct_element.m_element;
+  const size_t offset      = elems[idx].u.m_struct_element.m_offset;
+
+  union
+  {
+    const void    *raw;
+    const tInt8   *i8;
+    const tUint8  *ui8;
+    const tInt16  *i16;
+    const tUint16 *ui16;
+    const tInt32  *i32;
+    const tUint32 *ui32;
+    const tInt64  *i64;
+    const tUint64 *ui64;
+  } u;
+
+  u.raw = (const unsigned char *)data + offset;
+
+  switch( elem->m_type )
+     {
+       case eMtInt8:
+	    return (size_t)(*u.i8);
+       case eMtUint8:
+	    return (size_t)(*u.ui8);
+       case eMtInt16:
+	    return (size_t)(*u.i16);
+       case eMtUint16:
+	    return (size_t)(*u.ui16);
+       case eMtInt32:
+	    return (size_t)(*u.i32);
+       case eMtUint32:
+	    return (size_t)(*u.ui32);
+       case eMtInt64:
+	    return (size_t)(*u.i64);
+       case eMtUint64:
+	    return (size_t)(*u.ui64);
+       default:
+	    assert( 0 );
+	    return (size_t)(-1);
+     }
+}
+
+/***********************************************************
+ * Gets marshal type for union element specified by modifier
+ * @type      - marshal type of the union
+ * @modifier  - modifier value
+ *
+ * returns union element or 0
+ *
+ * NB
+ * function does NOT check for
+ * - type is valid pointer
+ * - type is pointer to marshal type for a union
+ ***********************************************************/
+static const cMarshalType *
+GetUnionElement( const cMarshalType *type, size_t modifier )
+{
+  const cMarshalType *elems = &type->u.m_union.m_elements[0];
+
+  size_t i;
+  for( i = 0; elems[i].m_type == eMtUnionElement; i++ )
+     {
+       const size_t mod = elems[i].u.m_union_element.m_mod;
+       if ( mod == modifier )
+	  {
+	    const cMarshalType *elem = elems[i].u.m_union_element.m_element;
+	    return elem;
+	  }
+     }
+
+  return 0;
+}
 
 int
 Marshal( const cMarshalType *type, const void *d, void *b )
 {
   if ( IsSimpleType( type->m_type ) )
-       return MarshalSimpleTypes( type->m_type, d, b );
+     {
+       return MarshalSimpleType( type->m_type, d, b );
+     }
 
   int                  size   = 0;
   const unsigned char *data   = d;
@@ -414,122 +380,123 @@ Marshal( const cMarshalType *type, const void *d, void *b )
   switch( type->m_type )
      {
        case eMtArray:
-            {
-              int i;
+	    {
+	      const size_t nelems = type->u.m_array.m_nelements;
+	      assert( nelems > 0 );
 
-              //assert( IsSimpleType( type->m_u.m_array.m_type->m_type ) );
+	      size_t i;
+	      for( i = 0; i < nelems; i++ )
+		 {
+	           const cMarshalType *elem = type->u.m_array.m_element;
+	           const size_t elem_sizeof = type->u.m_array.m_element_sizeof;
 
-              for( i = 0; i < type->m_u.m_array.m_size; i++ )
-                 {
-                   int s = Marshal( type->m_u.m_array.m_type, data, buffer );
+		   int s = Marshal( elem, data, buffer );
+		   if ( s < 0 )
+		      {
+			   assert( 0 );
+			   return -1;
+		      }
 
-		   if ( s < 0 ) {
-                           assert( 0 );
-                           return -1;
-                   }
-
-                   data   += s;
-                   buffer += s;
-                   size   += s;
-                 }
-            }
-            break;
+		   data   += elem_sizeof;
+		   buffer += s;
+		   size   += s;
+		 }
+	    }
+	    break;
 
        case eMtStruct:
 	    {
-	      int i;
- 
-	      for( i = 0; type->m_u.m_struct.m_elements[i].m_type == eMtStructElement; i++ )
+	      const cMarshalType *elems = &type->u.m_struct.m_elements[0];
+	      assert( elems );
+
+	      size_t i;
+	      for( i = 0; elems[i].m_type == eMtStructElement; i++ )
 		 {
-		   cMarshalType *struct_element = &type->m_u.m_struct.m_elements[i];
-                   assert( struct_element->m_type == eMtStructElement );
+		   const cMarshalType *elem = elems[i].u.m_struct_element.m_element;
+		   const size_t offset      = elems[i].u.m_struct_element.m_offset;
+		   int s = 0;
 
-                   cMarshalType *st_type = struct_element->m_u.m_struct_element.m_type;
-
-                   int s = 0;
-
-                   if ( st_type->m_type == eMtUnion )
-                      {
-                        // the mod must be before this entry.
-                        // this is a limitation of demarshaling of unions
-                        assert( st_type->m_u.m_union.m_offset < i );
-			const cMarshalType *mod = FindUnionModifierType( type, st_type, data );
-
-			if ( mod )
-			   {
-			     s = Marshal( mod, data + struct_element->m_u.m_struct_element.m_offset, buffer );
-
-			     if ( s < 0 ) {
-                                     assert( 0 );
-                                     return -1;
-                             }
-			   }
-			else {
-                                assert( 0 );
-                                return -1;
-                        }
-                      }
-                   else if ( st_type->m_type == eMtVarArray )
-                      {
-                        // the array size must be before this entry.
-                        // this is a limitation of demarshaling of var arrays
-                        assert( st_type->m_u.m_var_array.m_size < i );
-
-			int array_size = FindArraySize( type, st_type, data );
-
-                        // only simple types can be array elements
-                        //assert( IsSimpleType( st_type->m_u.m_var_array.m_type->m_type ) );
-
-                        unsigned char *bb = buffer;                        
-                        const unsigned char *vardata = data + struct_element->m_u.m_struct_element.m_offset;
-                        const unsigned char *dd;
-                        tUint32 j;
-                        memcpy(&dd, vardata, sizeof(void *));
-
-                        for( j = 0; j < array_size; j++ )
-                           {
-                             int si = Marshal( st_type->m_u.m_var_array.m_type,
-					       dd, bb );
-
-			     if ( si < 0 ) {
-                                     assert( 0 );
-                                     return -1;
-                             }
-
-                             bb += si;
-                             dd += si;
-                             s  += si;
-                           }
-                      }
-                   else
+		   if ( elem->m_type == eMtUnion )
 		      {
-                        s = Marshal( st_type, data + struct_element->m_u.m_struct_element.m_offset,
-                                     buffer );
+			size_t mod2_idx = elem->u.m_union.m_mod_idx;
+			// the union modifier field must be before this entry.
+			// this is a limitation of demarshaling of unions
+			assert( mod2_idx < i );
+			size_t mod2 = GetStructElementIntegerValue( type, mod2_idx, data );
+			const cMarshalType *elem2 = GetUnionElement( elem, mod2 );
+			assert( elem2 );
 
-                        if ( s < 0 ) {
-                                assert( 0 );
-                                return -1;
-                        }
+			s = Marshal( elem2, data + offset, buffer );
+			if ( s < 0 )
+			   {
+			     assert( 0 );
+			     return -1;
+			   }
+		      }
+		   else if ( elem->m_type == eMtVarArray )
+		      {
+			const size_t nelems2_idx   = elem->u.m_var_array.m_nelements_idx;
+			const cMarshalType *elem2  = elem->u.m_var_array.m_element;
+			const size_t elem2_sizeof  = elem->u.m_var_array.m_element_sizeof;
+
+			// the array nelements field must be before this entry.
+			// this is a limitation of demarshaling of var arrays
+			assert( nelems2_idx < i );
+
+			const size_t nelems2 = GetStructElementIntegerValue( type, nelems2_idx, data );
+
+			// (data + offset ) points to pointer to var array content
+			const unsigned char *data2;
+			memcpy(&data2, data + offset, sizeof(void *));
+
+			unsigned char *buffer2 = buffer;
+			size_t i2;
+			for( i2 = 0; i2 < nelems2; i2++ )
+			   {
+			     int s2 = Marshal( elem2, data2, buffer2 );
+			     if ( s2 < 0 )
+				{
+				  assert( 0 );
+				  return -1;
+				}
+
+			     data2   += elem2_sizeof;
+			     buffer2 += s2;
+			     s       += s2;
+			   }
+		      }
+		   else
+		      {
+			s = Marshal( elem, data + offset, buffer );
+			if ( s < 0 )
+			   {
+			     assert( 0 );
+			     return -1;
+			   }
 		      }
 
 		   buffer += s;
-                   size   += s;
+		   size   += s;
 		 }
 	    }
 	    break;
 
        case eMtUnion:
-            assert( 0 );
+	    assert( 0 );
 	    return -1;
 
        case eMtUserDefined:
-	    assert( type->m_u.m_user_defined.m_marshal );
-	    size = type->m_u.m_user_defined.m_marshal( type, d, b, type->m_u.m_user_defined.m_user_data );
+	    {
+	      tMarshalFunction marshaller = type->u.m_user_defined.m_marshaller;
+	      assert( marshaller );
+	      void * user_data = type->u.m_user_defined.m_user_data;
+	      size = marshaller( type, d, b, user_data );
+            }
 	    break;
 
        default:
-            assert( 0 );
-            return -1;
+	    assert( 0 );
+	    return -1;
      }
 
   return size;
@@ -537,21 +504,20 @@ Marshal( const cMarshalType *type, const void *d, void *b )
 
 
 int
-MarshalArray( const cMarshalType **types, 
-	      const void **data, void *b )
+MarshalArray( const cMarshalType **types, const void **data, void *b )
 {
-  int            i;
   int            size = 0;
   unsigned char *buffer = b;
 
+  size_t i;
   for( i = 0; types[i]; i++ )
      {
        int s = Marshal( types[i], data[i], buffer );
-
-       if ( s < 0 ) {
-               assert( 0 );
-               return -1;
-       }
+       if ( s < 0 )
+	  {
+	    assert( 0 );
+	    return -1;
+	  }
 
        size   += s;
        buffer += s;
@@ -561,125 +527,123 @@ MarshalArray( const cMarshalType **types,
 }
 
 
-// for byte swap float 32
-typedef union
+static int
+DemarshalSimpleTypes( int byte_order, tMarshalType type, void *data, const void *buffer )
 {
-  tUint32  m_u32;
-  tFloat32 m_f32;
-} tFloat32Uint32;
+  union
+  {
+    tInt16    i16;
+    tUint16   ui16;
+    tInt32    i32;
+    tUint32   ui32;
+    tInt64    i64;
+    tUint64   ui64;
+    tFloat32  f32;
+    tFloat64  f64;
+  } u;
 
+  // NB Glib does not provide SWAP_LE_BE macro for signed types!
 
-// for byte swap float 64
-typedef union
-{
-  tUint64  m_u64;
-  tFloat64 m_f64;
-} tFloat64Uint64;
-
-
-int
-DemarshalSimpleTypes( int byte_order, tMarshalType type,
-                      void *data, const void *buffer )
-{
   switch( type )
      {
        case eMtVoid:
 	    return 0;
 
-       case eMtUint8:
        case eMtInt8:
-            {
-              tUint8 v = *(const tUint8 *)buffer;
-              *(tUint8 *)data = v;
-            }
+	    memcpy(data, buffer, sizeof(tInt8));
+	    return sizeof(tInt8);
 
-            return sizeof( tUint8 );
+       case eMtUint8:
+	    memcpy(data, buffer, sizeof(tUint8));
+	    return sizeof(tUint8);
 
        case eMtInt16:
+	    memcpy(&u.i16, buffer, sizeof(tInt16));
+	    if ( G_BYTE_ORDER != byte_order )
+	       {
+	         u.ui16 = GUINT16_SWAP_LE_BE( u.ui16 );
+	       }
+	    memcpy(data, &u.i16, sizeof(tInt16));
+	    return sizeof(tInt16);
+
        case eMtUint16:
-            {
-              tUint16 v;
-              memcpy( &v, buffer, sizeof( tUint16 ) );
+	    memcpy(&u.ui16, buffer, sizeof(tUint16));
+	    if ( G_BYTE_ORDER != byte_order )
+	       {
+	         u.ui16 = GUINT16_SWAP_LE_BE( u.ui16 );
+	       }
+	    memcpy(data, &u.ui16, sizeof(tUint16));
+	    return sizeof(tUint16);
 
-              if ( G_BYTE_ORDER != byte_order )
-                   v = GUINT16_SWAP_LE_BE( v );
-              
-              *(tUint16 *)data = v;
-            }            
-
-            return sizeof( tUint16 );
-
-       case eMtUint32:
        case eMtInt32:
-            {
-              tUint32 v;
-              memcpy( &v, buffer, sizeof( tUint32 ) );
+	    memcpy(&u.i32, buffer, sizeof(tInt32));
+	    if ( G_BYTE_ORDER != byte_order )
+	       {
+	         u.ui32 = GUINT32_SWAP_LE_BE( u.ui32 );
+	       }
+	    memcpy(data, &u.i32, sizeof(tInt32));
+	    return sizeof(tInt32);
+	
+       case eMtUint32:
+	    memcpy(&u.ui32, buffer, sizeof(tUint32));
+	    if ( G_BYTE_ORDER != byte_order )
+	       {
+	         u.ui32 = GUINT32_SWAP_LE_BE( u.ui32 );
+	       }
+	    memcpy(data, &u.ui32, sizeof(tUint32));
+	    return sizeof(tUint32);
 
-              if ( G_BYTE_ORDER != byte_order )
-                   v = GUINT32_SWAP_LE_BE( v );
-
-              *(tUint32 *)data = v;
-            }
-
-            return sizeof( tUint32 );
-
-       case eMtUint64:
        case eMtInt64:
-            {
-              tUint64 v;
-              memcpy( &v, buffer, sizeof( tUint64 ) );
-
-              if ( G_BYTE_ORDER != byte_order )
-                   v = GUINT64_SWAP_LE_BE( v );
-
-              *(tUint64 *)data = v;
-            }
-
-            return sizeof( tUint64 );
-
+	    memcpy(&u.i64, buffer, sizeof(tInt64));
+	    if ( G_BYTE_ORDER != byte_order )
+	       {
+	         u.ui64 = GUINT64_SWAP_LE_BE( u.ui64 );
+	       }
+	    memcpy(data, &u.i64, sizeof(tInt64));
+	    return sizeof(tInt64);
+	
+       case eMtUint64:
+	    memcpy(&u.ui64, buffer, sizeof(tUint64));
+	    if ( G_BYTE_ORDER != byte_order )
+	       {
+	         u.ui64 = GUINT64_SWAP_LE_BE( u.ui64 );
+	       }
+	    memcpy(data, &u.ui64, sizeof(tUint64));
+	    return sizeof(tUint64);
+	
        case eMtFloat32:
-            {
-              // this has been tested for i386 and PPC
-              tFloat32Uint32 v;
-              memcpy( &(v.m_f32), buffer, sizeof( tFloat32 ) );
-
-              if ( G_BYTE_ORDER != byte_order )
-                   v.m_u32 = GUINT32_SWAP_LE_BE( v.m_u32 );
-
-              *(tFloat32 *)data = v.m_f32;
-            }
-
-            return sizeof( tFloat32 );
-
+	
+	    memcpy(&u.f32, buffer, sizeof(tFloat32));
+	    if ( G_BYTE_ORDER != byte_order )
+	       {
+	         u.ui32 = GUINT32_SWAP_LE_BE( u.ui32 );
+	       }
+	    memcpy(data, &u.f32, sizeof(tFloat32));
+	    return sizeof(tFloat32);
+	
        case eMtFloat64:
-            {
-              // this has been tested for i386 and PPC
-              tFloat64Uint64 v;
-              memcpy( &(v.m_f64), buffer, sizeof( tFloat64 ) );
-
-              if ( G_BYTE_ORDER != byte_order )
-                   v.m_u64 = GUINT64_SWAP_LE_BE( v.m_u64 );
-
-              *(tFloat64 *)data = v.m_f64;
-            }
-
-            return sizeof( tFloat64 );
-
+	    memcpy(&u.f64, buffer, sizeof(tFloat64));
+	    if ( G_BYTE_ORDER != byte_order )
+	       {
+	         u.ui64 = GUINT64_SWAP_LE_BE( u.ui64 );
+	       }
+	    memcpy(data, &u.f64, sizeof(tFloat64));
+	    return sizeof(tFloat64);
+	
        default:
-            break;
+	    assert( 0 );
+	    return -1;
      }
-
-  assert( 0 );
-  return -1;
 }
 
 
 int
-Demarshal( int byte_order, const cMarshalType *type, 
-           void *d, const void *b )
+Demarshal( int byte_order, const cMarshalType *type, void *d, const void *b )
 {
   if ( IsSimpleType( type->m_type ) )
+     {
        return DemarshalSimpleTypes( byte_order, type->m_type, d, b );
+     }
 
   int                  size = 0;
   unsigned char       *data  = d;
@@ -688,111 +652,104 @@ Demarshal( int byte_order, const cMarshalType *type,
   switch( type->m_type )
      {
        case eMtArray:
-            {
-              int i;
+	    {
+	      const size_t nelems = type->u.m_array.m_nelements;
+	      assert( nelems > 0 );
 
-              for( i = 0; i < type->m_u.m_array.m_size; i++ )
-                 {
-                   int s = Demarshal( byte_order, type->m_u.m_array.m_type,
-				      data, buffer );
+	      size_t i;
+	      for( i = 0; i < nelems; i++ )
+		 {
+	           const cMarshalType *elem = type->u.m_array.m_element;
+	           const size_t elem_sizeof = type->u.m_array.m_element_sizeof;
 
-		   if ( s < 0 ) {
-                           assert( 0 );
-                           return -1;
-                   }
+		   int s = Demarshal( byte_order, elem, data, buffer );
+		   if ( s < 0 )
+		      {
+			   assert( 0 );
+			   return -1;
+		      }
 
-                   data   += s;
-                   buffer += s;
-                   size   += s;
-                 }
-            }
-            break;
+		   data   += elem_sizeof;
+		   buffer += s;
+		   size   += s;
+		 }
+	    }
+	    break;
 
        case eMtStruct:
 	    {
-	      int i;
- 
-	      for( i = 0; type->m_u.m_struct.m_elements[i].m_type == eMtStructElement; i++ )
-		 {
-		   cMarshalType *struct_element = &type->m_u.m_struct.m_elements[i];
-                   assert( struct_element->m_type == eMtStructElement );
+	      const cMarshalType *elems = &type->u.m_struct.m_elements[0];
+	      assert( elems );
 
-                   cMarshalType *st_type = struct_element->m_u.m_struct_element.m_type;
+	      size_t i;
+	      for( i = 0; elems[i].m_type == eMtStructElement; i++ )
+		 {
+		   const cMarshalType *elem = elems[i].u.m_struct_element.m_element;
+		   const size_t offset      = elems[i].u.m_struct_element.m_offset;
 		   int s = 0;
 
-		   if ( st_type->m_type == eMtUnion )
+		   if ( elem->m_type == eMtUnion )
 		      {
-                        // the mod must be before this entry.
-                        // this is a limitation of demarshaling of unions
-                        assert( st_type->m_u.m_union.m_offset < i );
-			const cMarshalType *mod = FindUnionModifierType( type, st_type, data );
+			size_t mod2_idx = elem->u.m_union.m_mod_idx;
+			// the union modifier field must be before this entry.
+			// this is a limitation of demarshaling of unions
+			assert( mod2_idx < i );
+			size_t mod2 = GetStructElementIntegerValue( type, mod2_idx, data );
+			const cMarshalType *elem2 = GetUnionElement( elem, mod2 );
+			assert( elem2 );
 
-			if ( mod )
+			s = Demarshal( byte_order, elem2, data + offset, buffer );
+			if ( s < 0 )
 			   {
-			     s = Demarshal( byte_order, mod, data + struct_element->m_u.m_struct_element.m_offset, buffer );
-
-			     if ( s < 0 ) {
-                                     assert( 0 );
-                                     return -1;
-                             }
+			     assert( 0 );
+			     return -1;
 			   }
-                        else {
-                                assert( 0 );
-                                return -1;
-                        }
 		      }
-		   else if ( st_type->m_type == eMtVarArray )
+		   else if ( elem->m_type == eMtVarArray )
 		      {
-                        // the array size must be before this entry.
-                        // this is a limitation of demarshaling of var arrays
-                        assert( st_type->m_u.m_var_array.m_size < i );
+			const size_t nelems2_idx   = elem->u.m_var_array.m_nelements_idx;
+			const cMarshalType *elem2  = elem->u.m_var_array.m_element;
+			const size_t elem2_sizeof  = elem->u.m_var_array.m_element_sizeof;
 
-			tUint32 array_size = FindArraySize( type, st_type, data );
+			// the array nelements field must be before this entry.
+			// this is a limitation of demarshaling of var arrays
+			assert( nelems2_idx < i );
 
-                        // only simple types can be array elements
-                        //assert( IsSimpleType( st_type->m_u.m_var_array.m_type->m_type ) );			
-			
-                        const unsigned char *bb = buffer;
-                        const cMarshalType *va_type = st_type->m_u.m_var_array.m_type;
-                        // FIXME: This is a hack! I'm assuming the elements in
-                        // the variable array are structs. That's because this
-                        // is the only instance for which we use var arrays.
-                        unsigned char *dd =
-                        	(unsigned char *)malloc(va_type->m_u.m_struct.m_size*array_size);
-			memset(dd, 0, va_type->m_u.m_struct.m_size*array_size);
-                        unsigned char *vardata = data + struct_element->m_u.m_struct_element.m_offset;
-                        tUint32 j;
-                        memcpy(vardata, &dd, sizeof(void *));
+			const size_t nelems2 = GetStructElementIntegerValue( type, nelems2_idx, data );
 
-                        for( j = 0; j < array_size; j++ )
-                           {
-                             int si = Demarshal( byte_order, st_type->m_u.m_var_array.m_type,
-						 dd, bb );
+			// allocate storage for var array content
+			unsigned char *data2 = (unsigned char *)g_malloc0( nelems2 * elem2_sizeof );
+			// (data + offset ) points to pointer to var array content
+			memcpy(data + offset, &data2, sizeof(void *));
 
-			     if ( si < 0 ) {
-                                     assert( 0 );
-                                     return -1;
-                             }
+			const unsigned char *buffer2 = buffer;
+			size_t i2;
+			for( i2 = 0; i2 < nelems2; i2++ )
+			   {
+			     int s2 = Demarshal( byte_order, elem2, data2, buffer2 );
+			     if ( s2 < 0 )
+				{
+				  assert( 0 );
+				  return -1;
+				}
 
-                             bb += si;
-                             dd += si;
-                             s  += si;
-                           }
-                      }
-                   else
+			     data2   += elem2_sizeof;
+			     buffer2 += s2;
+			     s       += s2;
+			   }
+		      }
+		   else
 		      {
-			s = Demarshal( byte_order, st_type,
-				       data + struct_element->m_u.m_struct_element.m_offset,
-				       buffer );
-
-			if ( s < 0 ) {
-                                assert( 0 );
-                                return -1;
-                        }
+			s = Demarshal( byte_order, elem, data + offset, buffer );
+			if ( s < 0 )
+			   {
+			     assert( 0 );
+			     return -1;
+			   }
 		      }
 
 		   buffer += s;
-                   size   += s;
+		   size   += s;
 		 }
 	    }
 
@@ -800,7 +757,7 @@ Demarshal( int byte_order, const cMarshalType *type,
 
        case eMtUnion:
 	    // unions must me encapsulate in structs
-            assert( 0 );
+	    assert( 0 );
 	    return -1;
 
        case eMtStructElement:
@@ -809,20 +766,17 @@ Demarshal( int byte_order, const cMarshalType *type,
 	    return -1;
 
        case eMtUserDefined:
-	    assert( type->m_u.m_user_defined.m_demarshal );
-	    size = type->m_u.m_user_defined.m_demarshal( byte_order, type, d, b,
-							 type->m_u.m_user_defined. m_user_data );
-
-	    if ( size < 0 ) {
-                    assert( 0 );
-                    return -1;
+	    {
+	      tDemarshalFunction demarshaller = type->u.m_user_defined.m_demarshaller;
+	      assert( demarshaller );
+	      void * user_data = type->u.m_user_defined.m_user_data;
+	      size = demarshaller( byte_order, type, d, b, user_data );
             }
-
 	    break;
 
        default:
-            assert( 0 );
-            return -1;
+	    assert( 0 );
+	    return -1;
      }
 
   return size;
@@ -830,21 +784,20 @@ Demarshal( int byte_order, const cMarshalType *type,
 
 
 int
-DemarshalArray( int byte_order, const cMarshalType **types,
-                void **data, const void *b )
+DemarshalArray( int byte_order, const cMarshalType **types, void **data, const void *b )
 {
-  int i;
   int size = 0;
   const unsigned char *buffer = b;
 
+  size_t i;
   for( i = 0; types[i]; i++ )
      {
        int s = Demarshal( byte_order, types[i], data[i], buffer );
-
-       if ( s < 0 ) {
-               assert( 0 );
-               return -1;
-       }
+       if ( s < 0 )
+	  {
+	    assert( 0 );
+	    return -1;
+	  }
 
        size   += s;
        buffer += s;
@@ -852,3 +805,4 @@ DemarshalArray( int byte_order, const cMarshalType **types,
 
   return size;
 }
+

@@ -60,11 +60,11 @@ show_wdt(SaHpiWatchdogNumT  wdnum, SaHpiWatchdogT *wdt)
   icount = wdt->InitialCount /1000;        /*1000 msec = 1 sec*/
   pcount = wdt->PresentCount /1000;
 
-  if (wdt->TimerUse > NUSE) sprintf(ustr,"%d", wdt->TimerUse );
+  if (wdt->TimerUse > NUSE) sprintf(ustr,"%u", wdt->TimerUse );
   else strcpy(ustr, usedesc[wdt->TimerUse]);
-  if (wdt->TimerAction > NACT) sprintf(astr,"%d", wdt->TimerAction );
+  if (wdt->TimerAction > NACT) sprintf(astr,"%u", wdt->TimerAction );
   else strcpy(astr, actions[wdt->TimerAction]);
-  printf("Watchdog: Num=%d, Log=%d, Running=%d, TimerUse=%s, TimerAction=%s\n",
+  printf("Watchdog: Num=%u, Log=%d, Running=%d, TimerUse=%s, TimerAction=%s\n",
 	wdnum,wdt->Log,wdt->Running,ustr, astr);
   if (wdt->TimerUseExpFlags == 0) strcpy(estr,"none");
   else {
@@ -75,7 +75,7 @@ show_wdt(SaHpiWatchdogNumT  wdnum, SaHpiWatchdogT *wdt)
 	if (wdt->TimerUseExpFlags & 0x08) strcat(estr,"SMS_OS ");
 	if (wdt->TimerUseExpFlags & 0x10) strcat(estr,"OEM ");
   }
-  printf("          ExpiredUse=%s, Timeout=%d sec, Counter=%d sec\n",
+  printf("          ExpiredUse=%s, Timeout=%u sec, Counter=%u sec\n",
 	estr, icount,pcount);
   switch(wdt->PretimerInterrupt) {
   case 1:  pstr = "SMI";    break;
@@ -83,7 +83,7 @@ show_wdt(SaHpiWatchdogNumT  wdnum, SaHpiWatchdogT *wdt)
   case 3:  pstr = "MsgInt"; break;
   default: pstr = "none";   break;
   }
-  printf("          PreTimerInterrupt=%s, PreTimeoutInterval=%d msec\n",
+  printf("          PreTimerInterrupt=%s, PreTimeoutInterval=%u msec\n",
 	 pstr,wdt->PreTimeoutInterval);
   return;
 }
@@ -148,7 +148,7 @@ main(int argc, char **argv)
   
   if (fdebug) {
 	if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) printf("saHpiSessionOpen\n");
-	else printf("saHpiSessionOpen to domain %d\n",domainid);
+	else printf("saHpiSessionOpen to domain %u\n",domainid);
   }
   rv = saHpiSessionOpen(domainid,&sessionid,NULL);
   if (rv != SA_OK) {
@@ -173,7 +173,7 @@ main(int argc, char **argv)
 	resourceid = rptentry.ResourceId;
 	rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0;
 	if (fdebug)
-	   printf("rptentry[%d] resourceid=%d capab=%x tag: %s\n",
+	   printf("rptentry[%u] resourceid=%u capab=%x tag: %s\n",
 		rptentryid, resourceid, rptentry.ResourceCapabilities, 
 		rptentry.ResourceTag.Data);
 

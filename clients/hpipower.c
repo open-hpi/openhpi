@@ -199,7 +199,7 @@ int main(int argc, char **argv)
 
         if (Status == SA_OK)
         {
-                if (domainid!=SAHPI_UNSPECIFIED_DOMAIN_ID) printf("Session opened to HPI domain %d\n",domainid);
+                if (domainid!=SAHPI_UNSPECIFIED_DOMAIN_ID) printf("Session opened to HPI domain %u\n",domainid);
                 /* Find all of the individual systems */
                 // regenerate the Resource Presence Table(RPT)
                 HPI_POWER_DEBUG_PRINT("2.2 Hpi Discovery\n");

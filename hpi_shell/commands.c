@@ -219,6 +219,72 @@ static ret_code_t moreset(void)
         return HPI_SHELL_OK;
 }
 
+static ret_code_t newdomain(void)
+{
+    int i;
+    char buf[SAHPI_MAX_TEXT_BUFFER_LENGTH + 1];
+    char * p;
+
+    SaHpiUint16T port;
+    SaHpiTextBufferT host;
+    SaHpiDomainIdT did;
+
+    SaErrorT rv;
+
+    i = get_string_param("Host[:Port]: ", buf, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+    if (i != 0) {
+        return HPI_SHELL_PARM_ERROR;
+    }
+    if (buf[0] == ':') {
+        return HPI_SHELL_PARM_ERROR;
+    }
+
+    p = strchr(buf, ':');
+    if (p != 0) {
+        *p = '\0';
+        ++p;
+        if (isdigit(*p) == 0) {
+            return HPI_SHELL_PARM_ERROR;
+        }
+        port = (SaHpiUint16T)atoi(p);
+    } else {
+        port = OPENHPI_DEFAULT_DAEMON_PORT;
+    }
+
+    host.DataType = SAHPI_TL_TYPE_TEXT;
+    host.Language = SAHPI_LANG_ENGLISH;
+    host.DataLength = strlen(buf);
+    memcpy(&host.Data[0], &buf[0], host.DataLength );
+    host.Data[host.DataLength] = '\0';
+
+    i = get_string_param("Domain Id: ", buf, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+    if (i == 0) {
+        p = &buf[0];
+        if (isdigit(*p) == 0) {
+            return HPI_SHELL_PARM_ERROR;
+        }
+        did = (SaHpiDomainIdT)atoi(p);
+        rv = oHpiDomainAddById(did, &host, port);
+        if (rv != SA_OK) {
+            printf("oHpiDomainAddById error %s\n", oh_lookup_error(rv));
+            return HPI_SHELL_CMD_ERROR;
+        }
+    } else {
+        rv = oHpiDomainAdd(&host, port, &did);
+        if (rv != SA_OK) {
+            printf("oHpiDomainAdd error %s\n", oh_lookup_error(rv));
+            return HPI_SHELL_CMD_ERROR;
+        }
+    }
+
+    printf("Created new domain %u (%s:%u)\n",
+           did,
+           (const char*)(&host.Data[0]),
+           port);
+
+    return HPI_SHELL_OK;
+}
+
 static ret_code_t power(void)
 {
         SaErrorT                rv;
@@ -844,10 +910,10 @@ static ret_code_t show_ver(void)
    return(HPI_SHELL_OK);
 }
 
-static ret_code_t wtd_get(void)
+static ret_code_t wdt_get(void)
 {
         SaHpiResourceIdT        rptid;
-        SaHpiWatchdogNumT       wtdnum;
+        SaHpiWatchdogNumT       wdtnum;
         SaHpiWatchdogT          watchdog;
         SaHpiWatchdogExpFlagsT  flags;
         SaErrorT                rv;
@@ -857,20 +923,20 @@ static ret_code_t wtd_get(void)
 
         ret = ask_rpt(&rptid);
         if (ret != HPI_SHELL_OK) return(ret);
-        ret = ask_rdr(rptid, SAHPI_WATCHDOG_RDR, &wtdnum);
+        ret = ask_rdr(rptid, SAHPI_WATCHDOG_RDR, &wdtnum);
         if (ret != HPI_SHELL_OK) return(ret);
 
         rv = saHpiWatchdogTimerGet(Domain->sessionId,
-                rptid, wtdnum, &watchdog);
+                rptid, wdtnum, &watchdog);
         if (rv != SA_OK) {
                 printf("ERROR!!! Get Watchdog: ResourceId=%d "
                         "WatchdogNum=%d: %s\n",
-                        rptid, wtdnum, oh_lookup_error(rv));
+                        rptid, wdtnum, oh_lookup_error(rv));
                 return(HPI_SHELL_CMD_ERROR);
         };
         if (watchdog.Log) str = "TRUE";
         else str = "FALSE";
-        printf("  Watchdogtimer (%d/%d): Log=%s", rptid, wtdnum, str);
+        printf("  Watchdogtimer (%d/%d): Log=%s", rptid, wdtnum, str);
         if (watchdog.Running) str = "Running";
         else str = "Stopped";
         printf("  %s\n", str);
@@ -943,10 +1009,10 @@ static ret_code_t wtd_get(void)
         return HPI_SHELL_OK;
 }
 
-static ret_code_t wtd_set(void)
+static ret_code_t wdt_set(void)
 {
         SaHpiResourceIdT        rptid;
-        SaHpiWatchdogNumT       wtdnum;
+        SaHpiWatchdogNumT       wdtnum;
         SaHpiWatchdogT          watchdog;
         SaHpiWatchdogExpFlagsT  flags;
         SaErrorT                rv;
@@ -957,7 +1023,7 @@ static ret_code_t wtd_set(void)
 
         ret = ask_rpt(&rptid);
         if (ret != HPI_SHELL_OK) return(ret);
-        ret = ask_rdr(rptid, SAHPI_WATCHDOG_RDR, &wtdnum);
+        ret = ask_rdr(rptid, SAHPI_WATCHDOG_RDR, &wdtnum);
         if (ret != HPI_SHELL_OK) return(ret);
 
         i = get_string_param("Log(0 | 1): ", tmp, 255);
@@ -1082,31 +1148,31 @@ static ret_code_t wtd_set(void)
         };
         watchdog.InitialCount = res;
 
-        rv = saHpiWatchdogTimerSet(Domain->sessionId, rptid, wtdnum, &watchdog);
+        rv = saHpiWatchdogTimerSet(Domain->sessionId, rptid, wdtnum, &watchdog);
         if (rv != SA_OK) {
                 printf("ERROR!!! Set Watchdog: ResourceId=%d WatchdogNum=%d: %s\n",
-                        rptid, wtdnum, oh_lookup_error(rv));
+                        rptid, wdtnum, oh_lookup_error(rv));
                 return(HPI_SHELL_CMD_ERROR);
         };
         return HPI_SHELL_OK;
 }
 
-static ret_code_t wtd_reset(void)
+static ret_code_t wdt_reset(void)
 {
         SaHpiResourceIdT        rptid;
-        SaHpiWatchdogNumT       wtdnum;
+        SaHpiWatchdogNumT       wdtnum;
         SaErrorT                rv;
         ret_code_t              ret;
 
         ret = ask_rpt(&rptid);
         if (ret != HPI_SHELL_OK) return(ret);
-        ret = ask_rdr(rptid, SAHPI_WATCHDOG_RDR, &wtdnum);
+        ret = ask_rdr(rptid, SAHPI_WATCHDOG_RDR, &wdtnum);
         if (ret != HPI_SHELL_OK) return(ret);
 
-        rv = saHpiWatchdogTimerReset(Domain->sessionId, rptid, wtdnum);
+        rv = saHpiWatchdogTimerReset(Domain->sessionId, rptid, wdtnum);
         if (rv != SA_OK) {
                 printf("ERROR!!! Reset Watchdog: ResourceId=%d WatchdogNum=%d: %s\n",
-                        rptid, wtdnum, oh_lookup_error(rv));
+                        rptid, wdtnum, oh_lookup_error(rv));
                 return(HPI_SHELL_CMD_ERROR);
         };
         return HPI_SHELL_OK;
@@ -1147,7 +1213,7 @@ static ret_code_t reopen_session(void)
         if (rv != SA_OK) {
                 printf("saHpiSessionClose error %s\n", oh_lookup_error(rv));
         }
-        if (open_session(eflag) != 0) {
+        if (open_session(Domain->domainId, eflag) != 0) {
                 printf("Can not open session\n");
                 return(HPI_SHELL_CMD_ERROR);
         }
@@ -1304,13 +1370,8 @@ static ret_code_t domain_info(void)
 
 ret_code_t domain_proc(void)
 {
-        SaHpiDomainInfoT        info;
-        SaHpiEntryIdT           entryid, nextentryid;
-        SaHpiDrtEntryT          drtentry;
-        SaErrorT                rv;
         SaHpiDomainIdT          id;
-        SaHpiSessionIdT         sessionId;
-        int                     i, n, first;
+        int                     i, n;
         gpointer                ptr;
         Domain_t                *domain = (Domain_t *)NULL;
         Domain_t                *new_domain;
@@ -1318,41 +1379,7 @@ ret_code_t domain_proc(void)
 
         term = get_next_term();
         if (term == NULL) {
-                printf("Domain list:\n");
-                printf("    ID: %d   SessionId: %d", Domain->domainId,
-                        Domain->sessionId);
-                rv = saHpiDomainInfoGet(Domain->sessionId, &info);
-                if (rv == SA_OK) {
-                        print_text_buffer_text("    Tag: ",
-                                &(info.DomainTag), NULL, ui_print);
-                };
-                printf("\n");
-                entryid = SAHPI_FIRST_ENTRY;
-                first = 1;
-                while (entryid != SAHPI_LAST_ENTRY) {
-                        rv = saHpiDrtEntryGet(Domain->sessionId, entryid,
-                                &nextentryid, &drtentry);
-                        if (rv != SA_OK) break;
-                        if (first) {
-                                first = 0;
-                                printf("        Domain Reference Table:\n");
-                        };
-                        printf("            ID: %d", drtentry.DomainId);
-                        entryid = nextentryid;
-                        rv = saHpiSessionOpen(drtentry.DomainId,
-                                                &sessionId, NULL);
-                        if (rv != SA_OK) {
-                                printf("\n");
-                                continue;
-                        };
-                        rv = saHpiDomainInfoGet(sessionId, &info);
-                        if (rv == SA_OK) {
-                                print_text_buffer_text("    Tag: ",  &(info.DomainTag), NULL, ui_print);
-                        };
-                        saHpiSessionClose(sessionId);
-                        printf("\n");
-                }
-                return(HPI_SHELL_OK);
+                return(HPI_SHELL_PARM_ERROR);
         };
 
         if (isdigit(term->term[0]))
@@ -1382,6 +1409,56 @@ ret_code_t domain_proc(void)
         add_domain(Domain);
         return(HPI_SHELL_OK);
 }
+
+
+static ret_code_t show_drt(void)
+{
+    SaErrorT rv;
+    SaHpiDomainInfoT dinfo;
+    SaHpiEntryIdT id, nextid;
+
+    rv = saHpiDomainInfoGet(Domain->sessionId, &dinfo);
+    if (rv != SA_OK) {
+        printf("ERROR!!! saHpiDomainInfoGet: %s\n", oh_lookup_error(rv));
+        return(HPI_SHELL_CMD_ERROR);
+    }
+    printf("DRT for Domain %u, Session %u,", Domain->domainId, Domain->sessionId);
+    print_text_buffer_text(" Tag: ", &(dinfo.DomainTag), NULL, ui_print);
+    printf("\n");
+
+    id = SAHPI_FIRST_ENTRY;
+    while (id != SAHPI_LAST_ENTRY) {
+        SaHpiDrtEntryT drte;
+        SaHpiSessionIdT sessionId;
+
+        rv = saHpiDrtEntryGet(Domain->sessionId, id, &nextid, &drte);
+        if (rv == SA_ERR_HPI_NOT_PRESENT) {
+            break;
+        } else if (rv != SA_OK) {
+            printf("ERROR!!! saHpiDrtEntryGet: %s\n", oh_lookup_error(rv));
+            return HPI_SHELL_CMD_ERROR;
+        }
+        printf("   Domain %u", drte.DomainId);
+        if (drte.IsPeer != SAHPI_FALSE ) {
+            printf(", Peer");
+        }
+        rv = saHpiSessionOpen(drte.DomainId, &sessionId, 0);
+        if (rv == SA_OK) {
+            rv = saHpiDomainInfoGet(sessionId, &dinfo);
+            if (rv == SA_OK) {
+                print_text_buffer_text(", Accessible, Tag: ",  &(dinfo.DomainTag), NULL, ui_print);
+            };
+            rv = saHpiSessionClose(sessionId);
+        };
+        printf( "\n" );
+
+        id = nextid;
+    }
+
+    return HPI_SHELL_OK;
+}
+
+
 #ifdef KUZ_DEBUG
 static ret_code_t test_cmd(void)
 {
@@ -1416,10 +1493,12 @@ const char dimiblockhelp[] = "dimi: DIMI command block\n"
                         "       DimiId:: <resourceId> <DimiNum>\n";
 const char debughelp[] = "debug: set or unset OPENHPI_ERROR environment\n"
                         "Usage: debug [ on | off ]";
-const char domainhelp[] = "domain: show domain list and set current domain\n"
+const char domainhelp[] = "domain: set current domain\n"
                         "Usage: domain [<domain id>]";
 const char domaininfohelp[] = "domaininfo: show current domain info\n"
                         "Usage: domaininfo";
+const char drthelp[] = "drt: show DRT for the current domain\n"
+                        "Usage: drt";
 const char dscvhelp[] = "dscv: discovery resources\n"
                         "Usage: dscv ";
 const char echohelp[] = "echo: pass string to the stdout\n"
@@ -1443,7 +1522,7 @@ const char exechelp[] = "exec: execute external program\n"
                         "Usage: exec <filename> [parameters]";
 const char fumiblockhelp[] = "fumi: FUMI command block\n"
                         "Usage: fumi [<FumiId>]\n"
-                        "       DimiId:: <resourceId> <FumiNum>\n";
+                        "       FumiId:: <resourceId> <FumiNum>\n";
 const char helphelp[] = "help: help information for OpenHPI commands\n"
                         "Usage: help [optional commands]";
 const char historyhelp[] = "history: show input commands history\n"
@@ -1465,6 +1544,8 @@ const char lsorhelp[] = "lsensor: list sensors\n"
                         "Usage: lsensor";
 const char morehelp[] = "more: set or unset more enable\n"
                         "Usage: more [ on | off ]";
+const char newdomainhelp[] = "newdomain: create new domain\n"
+                        "Usage: newdomain <host>[:<port>] [<domain_id>]";
 const char parmctrlhelp[] = "parmctrl: save and restore parameters for a resource\n"
                         "Usage: parmctrl <resource id> <action>\n"
                         "    action - default | save | restore";
@@ -1508,12 +1589,12 @@ const char showrpthelp[] = "showrpt: show resource information\n"
                         "   or  rpt [<resource id>]";
 const char versionhelp[] = "ver: show HPI specification, package versions\n"
                         "Usage: ver";
-const char wtdgethelp[] = "wtdget: show watchdog timer\n"
-                        "Usage: wtdget <resource id> <watchdogNum>";
-const char wtdresethelp[] = "wtdreset: reset watchdog timer\n"
-                        "Usage: wtdreset <resource id>";
-const char wtdsethelp[] = "wtdset: set watchdog timer\n"
-                        "Usage: wtdset <resource id> <watchdogNum> <values>";
+const char wdtgethelp[] = "wdtget: show watchdog timer\n"
+                        "Usage: wdtget <resource id> <watchdogNum>";
+const char wdtresethelp[] = "wdtreset: reset watchdog timer\n"
+                        "Usage: wdtreset <resource id>";
+const char wdtsethelp[] = "wdtset: set watchdog timer\n"
+                        "Usage: wdtset <resource id> <watchdogNum> <values>";
 //  sensor command block
 const char sen_dishelp[] = "disable: set sensor disable\n"
                         "Usage: disable";
@@ -1655,6 +1736,7 @@ command_def_t commands[] = {
     { "dimi",           dimi_block,     dimiblockhelp,  MAIN_COM },
     { "domain",         domain_proc,    domainhelp,     MAIN_COM },
     { "domaininfo",     domain_info,    domaininfohelp, MAIN_COM },
+    { "drt",            show_drt,       drthelp,        MAIN_COM },
     { "dscv",           discovery,      dscvhelp,       MAIN_COM },
     { "echo",           echo,           echohelp,       UNDEF_COM },
     { "entinstr",       entity_instruments, entinstrhelp,   UNDEF_COM },
@@ -1673,6 +1755,7 @@ command_def_t commands[] = {
     { "lsres",          listres,        lreshelp,       UNDEF_COM },
     { "lsensor",        list_sensor,    lsorhelp,       MAIN_COM },
     { "more",           moreset,        morehelp,       UNDEF_COM },
+    { "newdomain",      newdomain,      newdomainhelp,  MAIN_COM },
     { "parmctrl",       parmctrl,       parmctrlhelp,   MAIN_COM },
     { "power",          power,          powerhelp,      MAIN_COM },
     { "quit",           quit,           quithelp,       UNDEF_COM },
@@ -1692,9 +1775,9 @@ command_def_t commands[] = {
     { "showrdr",        show_rdr,       showrdrhelp,    MAIN_COM },
     { "showrpt",        show_rpt,       showrpthelp,    MAIN_COM },
     { "ver",            show_ver,       versionhelp,    UNDEF_COM },
-    { "wtdget",         wtd_get,        wtdgethelp,     MAIN_COM },
-    { "wtdreset",       wtd_reset,      wtdresethelp,   MAIN_COM },
-    { "wtdset",         wtd_set,        wtdsethelp,     MAIN_COM },
+    { "wdtget",         wdt_get,        wdtgethelp,     MAIN_COM },
+    { "wdtreset",       wdt_reset,      wdtresethelp,   MAIN_COM },
+    { "wdtset",         wdt_set,        wdtsethelp,     MAIN_COM },
     { "?",              help_cmd,       helphelp,       UNDEF_COM },
 #ifdef KUZ_DEBUG
     { "test",           test_cmd,       helphelp,       UNDEF_COM },

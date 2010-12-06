@@ -14,7 +14,6 @@
  */
 
 #include <string.h>
-#include <sys/time.h>
 
 #include <oh_utils.h>
 #include <oh_error.h>
@@ -159,52 +158,12 @@ static int check_instrument_id(SaHpiRptEntryT *rptentry, SaHpiRdrT *rdr)
         return result;
 }
 
-static SaHpiInstrumentIdT get_rdr_type_num(SaHpiRdrT *rdr)
-{
-        SaHpiInstrumentIdT num = 0;
-
-        switch (rdr->RdrType) {
-                case SAHPI_CTRL_RDR:
-                        num = rdr->RdrTypeUnion.CtrlRec.Num;
-                        break;
-                case SAHPI_SENSOR_RDR:
-                        num = rdr->RdrTypeUnion.SensorRec.Num;
-                        break;
-                case SAHPI_INVENTORY_RDR:
-                        num = rdr->RdrTypeUnion.InventoryRec.IdrId;
-                        break;
-                case SAHPI_WATCHDOG_RDR:
-                        num = rdr->RdrTypeUnion.WatchdogRec.WatchdogNum;
-                        break;
-                case SAHPI_ANNUNCIATOR_RDR:
-                        num = rdr->RdrTypeUnion.AnnunciatorRec.AnnunciatorNum;
-                        break;
-		case SAHPI_DIMI_RDR:
-			num = rdr->RdrTypeUnion.DimiRec.DimiNum;
-			break;
-		case SAHPI_FUMI_RDR:
-			num = rdr->RdrTypeUnion.FumiRec.Num;
-			break;
-                default:
-                        num = 0;
-        }
-
-        return num;
-}
-
 static void update_rptable(RPTable *table) {
-        struct timeval tv;
-        SaHpiTimeT time;
-
         if (!table) {
                 err("ERROR: Cannot work on a null table pointer.");
                 return;
         }
-
-        gettimeofday(&tv, NULL);
-        time = (SaHpiTimeT) tv.tv_sec * 1000000000 + tv.tv_usec * 1000;
-
-        table->update_timestamp = time;
+        oh_gettimeofday(&table->update_timestamp);
         table->update_count++;
 }
 
@@ -230,6 +189,48 @@ SaHpiEntryIdT oh_get_rdr_uid(SaHpiRdrTypeT type, SaHpiInstrumentIdT num)
 SaHpiInstrumentIdT oh_get_rdr_num(SaHpiEntryIdT rdrid) {
         return rdrid & 0x0000ffff;
 }
+
+/**
+ * oh_get_instrument_id
+ * @rdr: RDR
+ *
+ * Helper function to derive the Instrument Id of the rdr
+ *
+ * Returns: an instrument id or zero
+ */
+SaHpiInstrumentIdT oh_get_instrument_id(const SaHpiRdrT *rdr)
+{
+        SaHpiInstrumentIdT num = 0;
+
+        switch (rdr->RdrType) {
+                case SAHPI_CTRL_RDR:
+                        num = rdr->RdrTypeUnion.CtrlRec.Num;
+                        break;
+                case SAHPI_SENSOR_RDR:
+                        num = rdr->RdrTypeUnion.SensorRec.Num;
+                        break;
+                case SAHPI_INVENTORY_RDR:
+                        num = rdr->RdrTypeUnion.InventoryRec.IdrId;
+                        break;
+                case SAHPI_WATCHDOG_RDR:
+                        num = rdr->RdrTypeUnion.WatchdogRec.WatchdogNum;
+                        break;
+                case SAHPI_ANNUNCIATOR_RDR:
+                        num = rdr->RdrTypeUnion.AnnunciatorRec.AnnunciatorNum;
+                        break;
+               case SAHPI_DIMI_RDR:
+                        num = rdr->RdrTypeUnion.DimiRec.DimiNum;
+                        break;
+                case SAHPI_FUMI_RDR:
+                        num = rdr->RdrTypeUnion.FumiRec.Num;
+                        break;
+                default:
+                        num = 0;
+        }
+
+        return num;
+}
+
 
 /**
  * General RPT calls
@@ -698,7 +699,7 @@ SaErrorT oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT *rdr, void *
 {
         RPTEntry *rptentry;
         RDRecord *rdrecord;
-        SaHpiInstrumentIdT type_num;
+        SaHpiInstrumentIdT instr_id;
 
         if (!rdr) {
                 err("Failed to add. RDR is NULL.");
@@ -716,10 +717,10 @@ SaErrorT oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT *rdr, void *
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        type_num = get_rdr_type_num(rdr);
+        instr_id = oh_get_instrument_id(rdr);
 
         /* Form correct RecordId. */
-        rdr->RecordId = oh_get_rdr_uid(rdr->RdrType, type_num);
+        rdr->RecordId = oh_get_rdr_uid(rdr->RdrType, instr_id);
         /* Check if record exists */
         rdrecord = get_rdrecord_by_id(rptentry, rdr->RecordId);
         /* If not, create new rdr */

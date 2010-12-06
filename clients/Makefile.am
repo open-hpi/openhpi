@@ -12,6 +12,7 @@ COMMONLIBS	     += $(top_builddir)/baselib/libopenhpi.la
 CLIENTS_SRC 	     = clients.c
 
 bin_PROGRAMS = \
+	hpidomain \
 	hpievents \
 	hpifan \
         hpiinv \
@@ -26,12 +27,18 @@ bin_PROGRAMS = \
 	hpithres \
 	hpitop   \
 	hpisettime \
-	hpionIBMblade
+	hpionIBMblade \
+        ohdomainlist \
+        ohhandler \
+        ohparam
 
 include_HEADERS         =
 
 hpialarms_SOURCES   = hpialarms.c $(CLIENTS_SRC)
 hpialarms_LDADD     = $(COMMONLIBS) 
+
+hpidomain_SOURCES   	= hpidomain.c $(CLIENTS_SRC)
+hpidomain_LDADD     	= $(COMMONLIBS) 
 
 hpithres_SOURCES        = hpithres.c $(CLIENTS_SRC)
 hpithres_LDADD          = $(COMMONLIBS)
@@ -74,6 +81,15 @@ hpitree_LDADD        = $(COMMONLIBS)
 
 hpionIBMblade_SOURCES      = hpionIBMblade.c $(CLIENTS_SRC)
 hpionIBMblade_LDADD        = $(COMMONLIBS)
+
+ohdomainlist_SOURCES      = ohdomainlist.c $(CLIENTS_SRC)
+ohdomainlist_LDADD        = $(COMMONLIBS)
+
+ohhandler_SOURCES      = ohhandler.c $(CLIENTS_SRC)
+ohhandler_LDADD        = $(COMMONLIBS)
+
+ohparam_SOURCES      = ohparam.c $(CLIENTS_SRC)
+ohparam_LDADD        = $(COMMONLIBS)
 
 clean-local:
 	rm -f *~ *.o

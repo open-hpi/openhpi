@@ -22,16 +22,9 @@
 #define dMarshalHpiTypes_h
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <SaHpi.h>
 #include <oHpi.h>
 #include <oh_utils.h>
-#ifdef __cplusplus
-}
-#endif
 
 
 #ifndef dMarshal_h

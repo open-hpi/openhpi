@@ -92,9 +92,9 @@ int main(int argc, char **argv)
         show_error_quit("saHpiDomainInfoGet() returned %s. Exiting.\n");
 
         if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID)
-		printf("Domain Info: UpdateCount = %d, UpdateTime = %lx\n",
+		printf("Domain Info: UpdateCount = %u, UpdateTime = %lx\n",
         	       dinfo.RptUpdateCount, (unsigned long)dinfo.RptUpdateTimestamp);
-	else	printf("Domain Info: DomainId = %d, UpdateCount = %d, UpdateTime = %lx\n",
+	else	printf("Domain Info: DomainId = %u, UpdateCount = %u, UpdateTime = %lx\n",
                        domainid, dinfo.RptUpdateCount, (unsigned long)dinfo.RptUpdateTimestamp);
 
         if (opts.ep) { /* Entity path specified */
@@ -243,14 +243,14 @@ SaErrorT harvest_sels(SaHpiSessionIdT sid, SaHpiDomainInfoT *dinfo, char *ep)
                         found_entry = SAHPI_TRUE;
 
                         rid = rptentry.ResourceId;
-                        err("RPT %d capabilities = %x\n",
+                        err("RPT %u capabilities = %x\n",
                             rid, rptentry.ResourceCapabilities);
                         rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0;
 
                         oh_init_bigtext(&bigbuf);
                         error = oh_decode_entitypath(&rptentry.ResourceEntity, &bigbuf);
                         printf("%s\n", bigbuf.Data);
-                        printf("rptentry[%d] tag: %s\n", rid, rptentry.ResourceTag.Data);
+                        printf("rptentry[%u] tag: %s\n", rid, rptentry.ResourceTag.Data);
 
                         error = display_el(sid, rid, &rptentry.ResourceTag);
 
@@ -292,12 +292,12 @@ SaErrorT display_el(SaHpiSessionIdT sid, SaHpiResourceIdT rid, SaHpiTextBufferT 
                 return error;
         }
 
-        printf("EventLogInfo for %s, ResourceId %d\n",
+        printf("EventLogInfo for %s, ResourceId %u\n",
                tag->Data, rid);
         oh_print_eventloginfo(&elinfo, 4);
 
         if (elinfo.Entries == 0) {
-                printf("%s Resource %d has an empty event log.\n", tag->Data, rid);
+                printf("%s Resource %u has an empty event log.\n", tag->Data, rid);
                 return SA_OK;
         }
 

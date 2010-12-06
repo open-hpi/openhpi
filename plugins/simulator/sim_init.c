@@ -202,12 +202,35 @@ SaErrorT sim_get_event(void *hnd)
 
 SaErrorT sim_close(void *hnd)
 {
-        struct oh_handler_state *state = hnd;
+    struct oh_handler_state *state = hnd;
 
-        /* TODO: we may need to do more here than just this! */
-//      g_free(state->rptcache);
-        g_free(state);
-        return 0;
+    SaHpiEntryIdT id;
+    SaHpiRptEntryT * rpte;
+
+    id = SAHPI_FIRST_ENTRY;
+    while ((rpte = oh_get_resource_next(state->rptcache, id)) != 0) {
+        struct oh_event * e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
+
+        e->hid = state->hid;
+        e->resource = *rpte;
+        e->rdrs = 0;
+        e->event.Source = rpte->ResourceId;
+        e->event.EventType = SAHPI_ET_RESOURCE;
+        oh_gettimeofday(&e->event.Timestamp);
+        e->event.Severity = SAHPI_MAJOR;
+        e->event.EventDataUnion.ResourceEvent.ResourceEventType = SAHPI_RESE_RESOURCE_REMOVED;
+
+        oh_evt_queue_push(state->eventq, e );
+
+        id = rpte->EntryId;
+    }
+
+    oh_el_close(state->elcache);
+    oh_flush_rpt(state->rptcache);
+    g_free(state->rptcache);
+    g_free(state);
+
+    return 0;
 }
 
 SaErrorT sim_set_resource_tag(void *hnd, SaHpiResourceIdT id, SaHpiTextBufferT *tag)
