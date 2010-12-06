@@ -34,11 +34,11 @@ int main(int argc, char **argv)
         if (saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sid, NULL))
                 return -1;
                 
-        if (!oHpiGlobalParamGet(&bogus_param))
+        if (!oHpiGlobalParamGet(sid, &bogus_param))
                 return -1;
                 
         bogus_param.Type = 255;
-        if (!oHpiGlobalParamGet(&bogus_param))
+        if (!oHpiGlobalParamGet(sid, &bogus_param))
                 return -1;
         
         return 0;

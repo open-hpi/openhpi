@@ -202,6 +202,11 @@ cIpmiMcThread::Run()
            stdlog << "BMC Discovery done\n";
            m_domain->m_bmc_discovered = true;
        }
+       else {
+           stdlog << "BMC Discovery (" << m_addr << ") done\n";
+	   if (m_domain->m_initial_discover == 0) 
+		stdlog << "All BMC Discoveries Completed\n";
+       }
      }
 
   if (    ( m_mc  && (m_properties & dIpmiMcThreadPollAliveMc ) )

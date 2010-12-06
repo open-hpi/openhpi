@@ -249,7 +249,7 @@ int main(int argc, char **argv)
                 
   	if (fdebug) {
  		if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) printf("saHpiSessionOpen\n");
- 		else printf("saHpiSessionOpen to domain %d\n",domainid);
+ 		else printf("saHpiSessionOpen to domain %u\n",domainid);
  	}
         rv = saHpiSessionOpen(domainid,&sessionid,NULL);
         if (rv != SA_OK) {
@@ -266,7 +266,7 @@ int main(int argc, char **argv)
 
         if (fdebug) printf("saHpiDomainInfoGet %s\n", oh_lookup_error(rv));
         
-        printf("RptInfo: UpdateCount = %d, UpdateTime = %lx\n",
+        printf("RptInfo: UpdateCount = %u, UpdateTime = %lx\n",
                dinfo.RptUpdateCount, (unsigned long)dinfo.RptUpdateTimestamp);
         
         /* walk the RPT list */
@@ -288,14 +288,14 @@ int main(int argc, char **argv)
                         entryid = SAHPI_FIRST_ENTRY;
                         resourceid = rptentry.ResourceId;
                         rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0; 
-                        printf("\nRPTEntry[%d] tag: %s\n",
+                        printf("\nRPTEntry[%u] tag: %s\n",
                                resourceid,rptentry.ResourceTag.Data);
                         oh_print_ep(&rptentry.ResourceEntity, 0);
                         while ((rv == SA_OK) && (entryid != SAHPI_LAST_ENTRY))
                         {
                                 rv = saHpiRdrGet(sessionid,resourceid,
                                                  entryid,&nextentryid, &rdr);
-                                if (fdebug) printf("saHpiRdrGet[%d] rv = %d\n",entryid,rv);
+                                if (fdebug) printf("saHpiRdrGet[%u] rv = %d\n",entryid,rv);
                                 if (rv == SA_OK) {
                                         rdr.IdString.Data[rdr.IdString.DataLength] = 0;
                                         if (rdr.RdrType == SAHPI_SENSOR_RDR) {

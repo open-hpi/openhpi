@@ -33,7 +33,9 @@
 
 #define OH_SVN_REV "$Revision$"
 
-static int fan_speed = -1;
+static SaHpiBoolT set_new = SAHPI_FALSE;
+static SaHpiCtrlModeT new_mode = SAHPI_CTRL_MODE_MANUAL;
+static int new_speed = -1;
 SaHpiDomainIdT domainid = SAHPI_UNSPECIFIED_DOMAIN_ID;
 
 
@@ -44,6 +46,7 @@ usage( char *progname )
         fprintf( stderr, "\t\t -D domainid  select the domain to work on\n" );
         fprintf( stderr, "\t\t -h           help\n" );
         fprintf( stderr, "\t\t -s speed     set fan speed for ALL fans in domain\n" );
+        fprintf( stderr, "\t\t speed is a number or \"auto\" for setting fan in auto mode\n" );
 
         return 1;
 }
@@ -75,7 +78,7 @@ display_textbuffer( SaHpiTextBufferT string )
                         printf( "%c", string.Data[i] );
                 break;
         default:
-                printf("Invalid string data type=%d", string.DataType );
+                printf("Invalid string data type=%u", string.DataType );
         }
 }
 
@@ -138,7 +141,7 @@ do_fan( SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id,
         SaHpiCtrlRecT *ctrl_rec = &rdr->RdrTypeUnion.CtrlRec;
 	SaHpiCtrlModeT ctrl_mode;
 
-        printf( "\tfan: num %d, id ", ctrl_rec->Num );
+        printf( "\tfan: num %u, id ", ctrl_rec->Num );
         display_textbuffer( rdr->IdString );
         printf( "\n" );
 
@@ -158,21 +161,25 @@ do_fan( SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id,
         if ( rv != SA_OK )
                 return 0;
 
+        printf( "\t\tmode      %s\n", ctrl_mode == SAHPI_CTRL_MODE_AUTO ? "auto" : "manual" );
         printf( "\t\tcurrent   %d\n", speed );
 
-        if ( fan_speed == -1 )
+        if ( set_new == SAHPI_FALSE ) {
                 return 0;
+        }
+        if ( new_mode == SAHPI_CTRL_MODE_AUTO ) {
+                new_speed = speed;
+        }
   
-        if (    fan_speed < ctrl_rec->TypeUnion.Analog.Min 
-                || fan_speed > ctrl_rec->TypeUnion.Analog.Max ) {
+        if (   new_speed < ctrl_rec->TypeUnion.Analog.Min 
+                || new_speed > ctrl_rec->TypeUnion.Analog.Max ) {
                 fprintf( stderr, "fan speed %d out of range [%d,%d] !\n",
-                         fan_speed, ctrl_rec->TypeUnion.Analog.Min,
+                        new_speed, ctrl_rec->TypeUnion.Analog.Min,
                          ctrl_rec->TypeUnion.Analog.Max );
                 return 0;
         }
 
-        speed = fan_speed;
-        rv = set_fan_speed( session_id, resource_id, ctrl_rec->Num, speed, ctrl_mode);
+        rv = set_fan_speed( session_id, resource_id, ctrl_rec->Num, new_speed, new_mode);
 
         if ( rv != SA_OK )
                 return 0;
@@ -182,6 +189,7 @@ do_fan( SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id,
         if ( rv != SA_OK )
                 return 0;
   
+        printf( "\t\tnew mode  %s\n", ctrl_mode == SAHPI_CTRL_MODE_AUTO ? "auto" : "manual" );
         printf( "\t\tnew speed %d\n", speed );
 
         return 0;
@@ -277,8 +285,14 @@ main( int argc, char *argv[] )
                         break;
 
                 case 's':
-                        if (optarg) fan_speed = atoi( optarg );
-                        else {
+                        if (optarg) {
+                                set_new = SAHPI_TRUE;
+                                if ( strcmp( optarg, "auto" ) == 0 ) {
+                                       new_mode = SAHPI_CTRL_MODE_AUTO;
+                                } else {
+                                       new_speed = atoi( optarg );
+                                }
+                        } else {
                                 printf("hpifan: option requires an argument -- s");
                                 help = 1;
                         }
@@ -300,7 +314,7 @@ main( int argc, char *argv[] )
                 return 1;
         }
 	if (domainid!=SAHPI_UNSPECIFIED_DOMAIN_ID) 
-	     printf("HPI Session to domain %d\n",domainid);
+	     printf("HPI Session to domain %u\n",domainid);
 
 
         rv = saHpiDiscover( sessionid );

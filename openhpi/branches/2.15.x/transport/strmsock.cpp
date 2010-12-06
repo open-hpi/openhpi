@@ -16,17 +16,21 @@
  */
 
 #include <stdlib.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <arpa/inet.h>
 #include <sys/ioctl.h>
 #include <netdb.h>
 #include <errno.h>
 #include <glib.h>
+
+#include <oh_error.h>
 
 #include "strmsock.h"
 
@@ -101,15 +105,15 @@ bool strmsock::WriteMsg(const void *request)
 	unsigned char data[dMaxMessageLength];
 	unsigned int l = sizeof(cMessageHeader) + header.m_len;
 
-//      printf("Message body length = %d.\n", header.m_len);
+      dbg("Message body length = %d.\n", header.m_len);
         errcode = 0;
 	if (!fOpen) {
-                printf("Socket not open.\n");
+                err("Socket not open.\n");
 		return true;
 	}
 
 	if (l > dMaxMessageLength) {
-                printf("Message too large.\n");
+                err("Message too large.\n");
 		return true;
 	}
 
@@ -117,19 +121,19 @@ bool strmsock::WriteMsg(const void *request)
         if (request != NULL) {
                 memcpy(&data[sizeof(cMessageHeader)], request, header.m_len);
         }
-//      printf("Size of message header is %d\n", sizeof(cMessageHeader));
-//      printf("Buffer header address is %p\n", &data[0]);
-//      printf("Buffer request address is %p\n", &data[sizeof(cMessageHeader)]);
-//      printf("Write request buffer (%d bytes) is\n", header.m_len);
+//      dbg("Size of message header is %d\n", sizeof(cMessageHeader));
+//      dbg("Buffer header address is %p\n", &data[0]);
+//      dbg("Buffer request address is %p\n", &data[sizeof(cMessageHeader)]);
+//      dbg("Write request buffer (%d bytes) is\n", header.m_len);
 //      for (unsigned int i = 0; i < header.m_len; i++) {
-//              printf("%02x ", *((unsigned char *)request + i));
+//              dbg("%02x ", *((unsigned char *)request + i));
 //      }
-//      printf("\n");
-//      printf("Write buffer (%d bytes) is\n", l);
+//      dbg("\n");
+//      dbg("Write buffer (%d bytes) is\n", l);
 //      for (int i = 0; i < l; i++) {
-//              printf("%02x ", (unsigned char)data[i]);
+//              dbg("%02x ", (unsigned char)data[i]);
 //      }
-//      printf("\n");
+//      dbg("\n");
 
 	int rv = write(s, data, l);
 
@@ -147,38 +151,46 @@ bool strmsock::ReadMsg(char *data)
 		return true;
 	}
 
-	int len = read( s, data, dMaxMessageLength);
+        size_t got  = 0;
+        size_t need = sizeof(cMessageHeader);
+        bool got_hdr = false;
+        while ( got < need ) {
+        	int len = read( s, data + got, need - got );
 
-	if (len < 0) {
-                errcode = errno;
-                printf("Reading from socket returned and error: %d\n", errcode); // Debug
-		return true;
-	} else if (len == 0) {	//connection has been aborted by the peer
-		Close();
-		printf("Connection has been aborted\n"); // Debug
-		return true;
-	} else if (len < (int)sizeof(cMessageHeader)) {
-		printf("Got corrupted header?\n"); // Debug
-		return true;
-	}
-	memcpy(&header, data, sizeof(cMessageHeader));
-    remote_byte_order = ( ( header.m_flags & dMhEndianBit ) != 0 ) ? G_LITTLE_ENDIAN : G_BIG_ENDIAN;
-        // swap id and len if nessesary in the reply header
-	if (remote_byte_order != G_BYTE_ORDER) {
-		header.m_id  = GUINT32_SWAP_LE_BE(header.m_id);
-		header.m_len = GUINT32_SWAP_LE_BE(header.m_len);
-	}
-	//printf("header.m_flags: 0x%x\n", header.m_flags);
+        	if (len < 0) {
+                        errcode = errno;
+                        err("Reading from socket returned and error: %d\n", errcode); // Debug
+        		return true;
+        	} else if (len == 0) {	//connection has been aborted by the peer
+        		Close();
+        		err("Connection has been aborted\n"); // Debug
+        		return true;
+                }
 
-	if ( (header.m_flags >> 4) != dMhVersion ) {
-		printf("Wrong version? 0x%x != 0x%x\n", header.m_flags, dMhVersion); // Debug
-		return true;
-	}
-//      printf("Read buffer (%d bytes) is\n", len);
+                got += len;
+                if ( ( !got_hdr ) && ( got >= sizeof(cMessageHeader) ) ) {
+	                memcpy(&header, data, sizeof(cMessageHeader));
+                        remote_byte_order = ( ( header.m_flags & dMhEndianBit ) != 0 ) ?
+                                            G_LITTLE_ENDIAN : G_BIG_ENDIAN;
+                        // swap id and len if nessesary in the reply header
+                	if (remote_byte_order != G_BYTE_ORDER) {
+                		header.m_id  = GUINT32_SWAP_LE_BE(header.m_id);
+                		header.m_len = GUINT32_SWAP_LE_BE(header.m_len);
+                	}
+	                if ( (header.m_flags >> 4) != dMhVersion ) {
+                		err("Wrong version? 0x%x != 0x%x\n", header.m_flags, dMhVersion);
+        	        	return true;
+                	}
+                        need += header.m_len;
+                        got_hdr = true;
+                }
+        }
+
+//      dbg("Read buffer (%d bytes) is\n", len);
 //      for (int i = 0; i < len; i++) {
-//              printf("%02x ", (unsigned char)data[i]);
+//              dbg("%02x ", (unsigned char)data[i]);
 //      }
-//      printf("\n");
+//      dbg("\n");
 
 	return false;
 }
@@ -229,7 +241,7 @@ cstrmsock::~cstrmsock()
 
 bool cstrmsock::Open(
 		const char * pszHost,		// the remote host
-		const int lPort)		    // the remote port
+		unsigned short lPort)		// the remote port
 {
 	struct sockaddr_in  addr;		// address structure
 	struct hostent     *phe;		// pointer to a host entry
@@ -264,6 +276,50 @@ bool cstrmsock::Open(
 	errcode = 0;
 	fOpen = TRUE;
 	return(FALSE);
+}
+
+bool cstrmsock::EnableKeepAliveProbes( int keepalive_time,
+                                       int keepalive_intvl,
+                                       int keepalive_probes )
+{
+#ifdef __linux__
+    int rc;
+    int optval;
+
+    optval = 1;
+    rc = setsockopt(s, SOL_SOCKET, SO_KEEPALIVE, &optval, sizeof(optval));
+    if ( rc != 0 ) {
+        err( "failed to set SO_KEEPALIVE option, errno = %d\n", errno );
+        return true;
+    }
+    optval = keepalive_time;
+    rc = setsockopt(s, SOL_TCP, TCP_KEEPIDLE, &optval, sizeof(optval));
+    if ( rc != 0 ) {
+        err( "failed to set TCP_KEEPIDLE option, errno = %d\n", errno );
+        return true;
+    }
+    optval = keepalive_intvl;
+    rc = setsockopt(s, SOL_TCP, TCP_KEEPINTVL, &optval, sizeof(optval));
+    if ( rc != 0 ) {
+        err( "failed to set TCP_KEEPINTVL option, errno = %d\n", errno );
+        return true;
+    }
+    optval = keepalive_probes;
+    rc = setsockopt(s, SOL_TCP, TCP_KEEPCNT, &optval, sizeof(optval));
+    if ( rc != 0 ) {
+        err( "failed to set TCP_KEEPCNT option, errno = %d\n", errno );
+        return true;
+    }
+
+    return false;
+
+#else
+
+    err( "TCP Keep-Alive Probes are not supported\n" );
+
+    return true;
+
+#endif /* __linux__ */
 }
 
 

@@ -30,7 +30,7 @@ cMarshalType Test2Elements[] =
   dStructElementEnd()
 };
 
-cMarshalType Test2Type = dStruct( cTest2, Test2Elements );
+cMarshalType Test2Type = dStruct( Test2Elements );
 
 
 typedef struct
@@ -46,7 +46,7 @@ cMarshalType Test3Elements[] =
   dStructElementEnd()
 };
 
-cMarshalType Test3Type = dStruct( cTest3, Test3Elements );
+cMarshalType Test3Type = dStruct( Test3Elements );
 
 
 typedef struct
@@ -72,7 +72,7 @@ cMarshalType Test1Elements[] =
 };
 
 
-cMarshalType Test1Type = dStruct( cTest1, Test1Elements );
+cMarshalType Test1Type = dStruct( Test1Elements );
 
 
 int

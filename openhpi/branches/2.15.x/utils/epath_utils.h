@@ -34,6 +34,11 @@
 /* Definitions for describing entity path patterns */
 #define OH_MAX_EP_TUPLES SAHPI_MAX_ENTITY_PATH+1
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 typedef struct {
         SaHpiBoolT is_dot;
         SaHpiEntityTypeT type;
@@ -54,9 +59,6 @@ typedef struct {
         oh_entity_pattern epattern[OH_MAX_EP_TUPLES];
 } oh_entitypath_pattern;
 
-#ifdef __cplusplus
-extern "C" {
-#endif 
 
 SaHpiBoolT oh_cmp_ep(const SaHpiEntityPathT *ep1,
 		     const SaHpiEntityPathT *ep2);

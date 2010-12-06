@@ -1,6 +1,8 @@
 /*      -*- linux-c -*-
  *
  * (C) Copright IBM Corp 2004-2006
+ * (C) Copyright Pigeon Point Systems. 2010
+ * (C) Copyright Nokia Siemens Networks 2010
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -11,10 +13,14 @@
  *
  * Authors:
  *     Renier Morales <renier@openhpi.org>
+ *     Anton Pak <anton.pak@pigeonpoint.com>
+ *     Ulrich Kleber <ulikleber@users.sourceforge.net>
  */
 
 #ifndef __OHPI_H
 #define __OHPI_H
+
+#include <stdlib.h>
 
 #include <SaHpi.h>
 #include <glib.h>
@@ -26,6 +32,10 @@
 #define OH_SAHPI_INTERFACE_VERSION_MIN_SUPPORTED (SaHpiVersionT)0x020101 /* B.01.01 */
 #define OH_SAHPI_INTERFACE_VERSION_MAX_SUPPORTED SAHPI_INTERFACE_VERSION
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef SaHpiUint32T oHpiHandlerIdT;
 
 typedef struct {
@@ -34,6 +44,14 @@ typedef struct {
         SaHpiEntityPathT entity_root;
         int load_failed;
 } oHpiHandlerInfoT;
+
+typedef struct {
+        SaHpiDomainIdT   id;
+        SaHpiTextBufferT daemonhost;
+        SaHpiUint16T     port;
+} oHpiDomainEntryT;
+
+
 
 typedef enum {
         OHPI_ON_EP = 1,
@@ -76,28 +94,67 @@ typedef struct {
 } oHpiGlobalParamT;
 
 /* Version function */
-SaHpiUint64T oHpiVersionGet(void);
+SaHpiUint64T SAHPI_API oHpiVersionGet(void);
 
 /* Exported OpenHPI handler (plugin instance) calls */
-SaErrorT oHpiHandlerCreate(GHashTable *config,
-                           oHpiHandlerIdT *id);
-SaErrorT oHpiHandlerDestroy(oHpiHandlerIdT id);
-SaErrorT oHpiHandlerInfo(oHpiHandlerIdT id, oHpiHandlerInfoT *info);
-SaErrorT oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id);
-SaErrorT oHpiHandlerFind(SaHpiSessionIdT sid,
-			 SaHpiResourceIdT rid,
-			 oHpiHandlerIdT *id);
-SaErrorT oHpiHandlerRetry(oHpiHandlerIdT id);
+SaErrorT SAHPI_API oHpiHandlerCreate ( 
+     SAHPI_IN    SaHpiSessionIdT sid,
+     SAHPI_IN    GHashTable *config,
+     SAHPI_OUT   oHpiHandlerIdT *id );
+SaErrorT SAHPI_API oHpiHandlerDestroy (
+     SAHPI_IN    SaHpiSessionIdT sid,
+     SAHPI_IN    oHpiHandlerIdT id );
+SaErrorT SAHPI_API oHpiHandlerInfo ( 
+     SAHPI_IN    SaHpiSessionIdT sid,
+     SAHPI_IN    oHpiHandlerIdT id, 
+     SAHPI_OUT   oHpiHandlerInfoT *info,
+     SAHPI_IN    GHashTable *conf_params );
+SaErrorT SAHPI_API oHpiHandlerGetNext (
+     SAHPI_IN    SaHpiSessionIdT sid,
+     SAHPI_IN    oHpiHandlerIdT id, 
+     SAHPI_OUT   oHpiHandlerIdT *next_id );
+SaErrorT SAHPI_API oHpiHandlerFind ( 
+     SAHPI_IN    SaHpiSessionIdT sid,
+     SAHPI_IN    SaHpiResourceIdT rid,
+     SAHPI_OUT   oHpiHandlerIdT *id );
+SaErrorT SAHPI_API oHpiHandlerRetry (
+     SAHPI_IN    SaHpiSessionIdT sid,
+     SAHPI_IN    oHpiHandlerIdT id );
 
 /* Global parameters */
-SaErrorT oHpiGlobalParamGet(oHpiGlobalParamT *param);
-SaErrorT oHpiGlobalParamSet(oHpiGlobalParamT *param);
+SaErrorT SAHPI_API oHpiGlobalParamGet ( 
+     SAHPI_IN    SaHpiSessionIdT sid,
+     SAHPI_OUT   oHpiGlobalParamT *param );
+SaErrorT SAHPI_API oHpiGlobalParamSet ( 
+     SAHPI_IN    SaHpiSessionIdT sid,
+     SAHPI_IN    oHpiGlobalParamT *param );
 
 /* Injector */
-SaErrorT oHpiInjectEvent(oHpiHandlerIdT id,
-                         SaHpiEventT    *event,
-                         SaHpiRptEntryT *rpte,
-                         SaHpiRdrT *rdr);
+SaErrorT SAHPI_API oHpiInjectEvent ( 
+     SAHPI_IN    SaHpiSessionIdT sid,
+     SAHPI_IN    oHpiHandlerIdT id,
+     SAHPI_IN    SaHpiEventT    *event,
+     SAHPI_IN    SaHpiRptEntryT *rpte,
+     SAHPI_IN    SaHpiRdrT *rdr);
+
+/* Domain configuration */
+SaErrorT SAHPI_API oHpiDomainAdd ( 
+     SAHPI_IN    const SaHpiTextBufferT *host,
+     SAHPI_IN    SaHpiUint16T port,
+     SAHPI_OUT   SaHpiDomainIdT *domain_id );
+SaErrorT SAHPI_API oHpiDomainAddById ( 
+     SAHPI_IN    SaHpiDomainIdT domain_id,
+     SAHPI_IN    const SaHpiTextBufferT *host,
+     SAHPI_IN    SaHpiUint16T port );
+SaErrorT SAHPI_API oHpiDomainEntryGet (
+     SAHPI_IN    SaHpiEntryIdT    EntryId,
+     SAHPI_OUT   SaHpiEntryIdT    *NextEntryId,
+     SAHPI_OUT   oHpiDomainEntryT *DomainEntry );
+SaErrorT SAHPI_API oHpiDomainEntryGetByDomainId (
+     SAHPI_IN    SaHpiDomainIdT    DomainId,
+     SAHPI_OUT   oHpiDomainEntryT *DomainEntry );
+
+
 
 #define OHPI_VERSION_GET(v, VER) \
 { \
@@ -112,5 +169,9 @@ SaErrorT oHpiInjectEvent(oHpiHandlerIdT id,
         start = end; \
         v += (strtoull(start, &end, 10) << 16); \
 }
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /*__OHPI_H*/

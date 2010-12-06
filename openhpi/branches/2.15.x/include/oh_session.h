@@ -21,6 +21,10 @@
 #include <oh_event.h>
 #include <glib.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
  *  Global table of all active sessions (oh_session).  This table is
  *  populated and depopulated by calls to saHpiSessionOpen() and
@@ -77,6 +81,10 @@ SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
                                   SaHpiEvtQueueStatusT *eventq_status);
 SaErrorT oh_destroy_session(SaHpiSessionIdT sid);
 SaErrorT oh_destroy_domain_sessions(SaHpiDomainIdT did);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* __OH_SESSION_H */
 

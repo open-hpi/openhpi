@@ -125,51 +125,12 @@ char *lookup_proc(int num, int val)
 	return(string);
 }
 
-static void append_char_to_big_text(oh_big_textbuffer * buf, unsigned char c)
-{
-    buf->Data[buf->DataLength] = c;
-    ++buf->DataLength;
-}
-
-static void append_hex_to_big_text(oh_big_textbuffer * buf, unsigned char c)
-{
-    static const unsigned char tt[] = "0123456789ABCDEF";
-    append_char_to_big_text(buf, tt[c >> 4]);
-    append_char_to_big_text(buf, tt[c & 0xF]);
-}
-
-static void decode_guid(const SaHpiGuidT * guid, oh_big_textbuffer * buf)
-{
-    unsigned int i;
-	oh_init_bigtext(buf);
-    for (i = 0; i < 4; ++i) {
-        append_hex_to_big_text(buf, (*guid)[i]);
-    }
-    append_char_to_big_text(buf, '-');
-    for (i = 4; i < 6; ++i) {
-        append_hex_to_big_text(buf, (*guid)[i]);
-    }
-    append_char_to_big_text(buf, '-');
-    for (i = 6; i < 8; ++i) {
-        append_hex_to_big_text(buf, (*guid)[i]);
-    }
-    append_char_to_big_text(buf, '-');
-    for (i = 8; i < 10; ++i) {
-        append_hex_to_big_text(buf, (*guid)[i]);
-    }
-    append_char_to_big_text(buf,'-');
-    for (i = 10; i < 16; ++i) {
-        append_hex_to_big_text(buf, (*guid)[i]);
-    }
-    append_char_to_big_text(buf,'\0');
-}
-
 static void decode_configdata(const SaHpiUint8T * configdata, oh_big_textbuffer * buf)
 {
     unsigned int i;
     for ( i = 0; i < SAHPI_CTRL_OEM_CONFIG_LENGTH; ++i ) {
-        append_hex_to_big_text(buf, configdata[i]);
-        append_char_to_big_text(buf, ' ');
+        oh_append_hex_bigtext(buf, configdata[i]);
+        oh_append_char_bigtext(buf, ' ');
     }
 }
 
@@ -177,8 +138,8 @@ static void decode_oemctrlstatebody(const SaHpiCtrlStateOemT * oem_state, oh_big
 {
     unsigned int i;
     for ( i = 0; i < oem_state->BodyLength; ++i ) {
-        append_hex_to_big_text(buf, oem_state->Body[i]);
-        append_char_to_big_text(buf, ' ');
+        oh_append_hex_bigtext(buf, oem_state->Body[i]);
+        oh_append_char_bigtext(buf, ' ');
     }
 }
 
@@ -195,7 +156,7 @@ SaErrorT decode_proc(int num, void *val, char *buf, int bufsize)
 			if (rv != SA_OK) return(-1);
 			break;
         case GUID_PROC:
-            decode_guid((const SaHpiGuidT*)val, &tmpbuf);
+            oh_decode_guid((const SaHpiGuidT*)val, &tmpbuf);
             break;
         case CONFIGDATA_PROC:
             decode_configdata((const SaHpiUint8T*)val, &tmpbuf);
@@ -345,7 +306,7 @@ static void oh_fumi_caps_mask(SaHpiFumiCapabilityT mask, char *buf, int bufsize)
 static void oh_manufacturer_id(SaHpiManufacturerIdT mid, char *buf, int bufsize)
 {
     if (mid != SAHPI_MANUFACTURER_ID_UNSPECIFIED) {
-        snprintf(buf, bufsize, "%d (0x%08X)", mid, mid);
+        snprintf(buf, bufsize, "%d (0x%08x)", mid, mid);
     } else {
         strcpy(buf, "Unspecified");
     }

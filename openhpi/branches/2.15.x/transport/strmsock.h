@@ -24,9 +24,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-#include <SaHpi.h>
 
-	
 #ifndef TRUE
 #define TRUE 1
 #endif
@@ -105,11 +103,23 @@ typedef strmsock *pstrmsock;
 class cstrmsock : public strmsock
 {
 	public:
-	SaHpiSessionIdT		sid;
 	cstrmsock		*next;
 	cstrmsock		();
 	~cstrmsock		();
-	bool Open		(const char *, int);
+	bool Open		(const char *, unsigned short);
+
+    /***********************
+     * TCP Keep-Alive
+     *
+     * keepalive_time   - interval(sec) between the last data packet sent and
+     *                    the first keepalive probe
+     * keepalive_intvl  - interval(sec) between subsequential keepalive probes
+     * keepalive_probes - number of unacknowledged probes to send before
+     *                    considering the connection dead
+     **********************/
+    bool EnableKeepAliveProbes( int keepalive_time,
+                                int keepalive_intvl,
+                                int keepalive_probes );
 };
 typedef cstrmsock *pcstrmsock;
 

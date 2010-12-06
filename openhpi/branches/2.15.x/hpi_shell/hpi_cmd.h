@@ -141,7 +141,7 @@ extern ret_code_t	inv_block_delfield(void);
 extern ret_code_t	inv_block_setfield(void);
 extern ret_code_t	list_sensor(void);
 extern ret_code_t	open_file(char *path);
-extern int		open_session(int eflag);
+extern int		open_session(SaHpiDomainIdT domainId, int eflag);
 extern void		restore_term_flags(void);
 extern int		run_command(void);
 extern ret_code_t	sen_block(void);

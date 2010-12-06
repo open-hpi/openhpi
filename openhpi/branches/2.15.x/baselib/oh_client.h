@@ -1,6 +1,7 @@
 /*      -*- linux-c -*-
  *
  * (C) Copyright IBM Corp. 2004-2008
+ * (C) Copyright Pigeon Point Systems. 2010
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12,44 +13,27 @@
  * Author(s):
  *      W. David Ashley <dashley@us.ibm.com>
  *      Renier Morales <renier@openhpi.org>
+ *      Anton Pak <anton.pak@pigeonpoint.com>
  *
  */
 
 #ifndef __OH_CLIENT_H
 #define __OH_CLIENT_H
 
-/*----------------------------------------------------------------------------*/
-/* Macros                                                                     */
-/*----------------------------------------------------------------------------*/
+#include <glib.h>
 
-#define SendRecv(sid, cmd) \
-	if (pinst->WriteMsg(request)) { \
-		client_err(cmd, "WriteMsg failed\n"); \
-		g_free(request); \
-                if (sid) oh_close_connx(sid); \
-                else oh_delete_connx(pinst); \
-		return SA_ERR_HPI_NO_RESPONSE; \
-	} \
-	if (pinst->ReadMsg(reply)) { \
-		client_err(cmd, "Read failed\n"); \
-		g_free(request); \
-                if (sid) oh_close_connx(sid); \
-                else oh_delete_connx(pinst); \
-		return SA_ERR_HPI_NO_RESPONSE; \
-	}
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#define SendRecvNoReturn(cmd) \
-	if (pinst->WriteMsg(request)) { \
-		client_err(cmd, "WriteMsg failed\n"); \
-		g_free(request); \
-		oh_delete_connx(pinst); \
-		return; \
-	} \
-	if (pinst->ReadMsg(reply)) { \
-		client_err(cmd, "Read failed\n"); \
-		g_free(request); \
-		oh_delete_connx(pinst); \
-		return; \
-	}
+extern GStaticRecMutex ohc_lock;
+
+void oh_client_init(void);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
+
 
 #endif /* __OH_CLIENT_H */
+

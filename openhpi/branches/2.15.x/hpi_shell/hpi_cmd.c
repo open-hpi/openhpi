@@ -11,9 +11,11 @@
  *
  * Authors:
  *     Racing Guo <racing.guo@intel.com>
+ *
  * Changes:
  *	11.30.2004 - Kouzmich: porting to HPI-B
- *
+ *  28.10.2010 - Anton Pak: fixed -c command line argument
+ *  28.10.2010 - Anton Pak: added -D command line argument
  *
  */
 
@@ -28,11 +30,20 @@ int	debug_flag = 0;
 int main(int argc, char **argv)
 {
 	int	c, eflag = 0;
+    SaHpiBoolT printusage = SAHPI_FALSE;
+    SaHpiDomainIdT domainId = SAHPI_UNSPECIFIED_DOMAIN_ID;
 
-	while ( (c = getopt( argc, argv,"c:ef:xn:?")) != EOF )
+	while ( (c = getopt( argc, argv,"D:c:ef:xn:?")) != EOF ) {
 		switch(c)  {
+            case 'D':
+                if (optarg) {
+                    domainId = atoi(optarg);
+                } else {
+                    printusage = SAHPI_TRUE;
+                }
+                break;
 			case 'c':
-				setenv("OPENHPI_CONF", optarg, 1);
+				setenv("OPENHPICLIENT_CONF", optarg, 1);
 				break;
 			case 'e':
 				eflag = 1;
@@ -47,16 +58,23 @@ int main(int argc, char **argv)
                 setenv("OPENHPI_DAEMON_HOST", optarg, 1);
                 break;
 			default:
-				printf("Usage: %s [-c <cfgfile>][-e][-f <file>][-n <hostname>]\n", argv[0]);
-				printf("   -c <cfgfile> - use passed file as configuration file\n");
-				printf("   -e - show short events, discover after subscribe\n");
-				printf("   -f <file> - execute command file\n");
-                printf("   -n <hostname>  use passed hostname as OpenHPI daemon host\n");
-				return(1);
+                printusage = SAHPI_TRUE;
 		}
+    }
+
+    if (printusage != SAHPI_FALSE) {
+        printf("Usage: %s [-c <cfgfile>][-e][-f <file>][-n <hostname>]\n", argv[0]);
+        printf("   -D <did> - select domain id\n");
+        printf("   -c <cfgfile> - use passed file as client configuration file\n");
+        printf("   -e - show short events, discover after subscribe\n");
+        printf("   -f <file> - execute command file\n");
+        printf("   -x - display debug messages\n");
+        printf("   -n <hostname> - use passed hostname as OpenHPI daemon host\n");
+        return 1;
+    }
 
 	domainlist = (GSList *)NULL;
-	if (open_session(eflag) == -1)
+	if (open_session(domainId, eflag) == -1)
 		return(1);
 	cmd_shell();
 	close_session();

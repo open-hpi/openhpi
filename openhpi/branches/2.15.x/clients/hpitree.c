@@ -170,7 +170,7 @@ main(int argc, char **argv)
 
 	if (fdebug) {
 		if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) printf("saHpiSessionOpen\n");
-		else printf("saHpiSessionOpen to domain %d\n",domainid);
+		else printf("saHpiSessionOpen to domain %u\n",domainid);
 	}
         rv = saHpiSessionOpen(domainid,&sessionid,NULL);
 
@@ -179,7 +179,7 @@ main(int argc, char **argv)
 		exit(-1);
 	}
 	if (fdebug)
-	       	printf("saHpiSessionOpen returns with SessionId %d\n", sessionid);
+	       	printf("saHpiSessionOpen returns with SessionId %u\n", sessionid);
 
 	/*
 	 * Resource discovery
@@ -243,11 +243,11 @@ SaErrorT list_resources(SaHpiSessionIdT sessionid,SaHpiResourceIdT resourceid)
 			/* walk the RDR list for this RPT entry */
 			entryid = SAHPI_FIRST_ENTRY;			
 
-			if (fdebug) printf("rptentry[%d] resourceid=%d\n", entryid,resourceid);
+			if (fdebug) printf("rptentry[%u] resourceid=%u\n", entryid,resourceid);
 
 			do {
 				rvRdrGet = saHpiRdrGet(sessionid,l_resourceid, entryid,&nextentryid, &rdr);
-				if (fdebug) printf("saHpiRdrGet[%d] rv = %s\n",entryid,oh_lookup_error(rvRdrGet));
+				if (fdebug) printf("saHpiRdrGet[%u] rv = %s\n",entryid,oh_lookup_error(rvRdrGet));
 
 
 				if (rvRdrGet == SA_OK)
@@ -288,7 +288,7 @@ SaErrorT list_rpt(SaHpiRptEntryT *rptptr,SaHpiResourceIdT resourceid)
 
 		/* Always print resource header */
 		if (!f_listall && !f_rpt) 
-		printf("\nRPT Tag: %s, ResourceId %d\n",rptptr->ResourceTag.Data, rptptr->ResourceId);
+		printf("\nRPT Tag: %s, ResourceId %u\n",rptptr->ResourceTag.Data, rptptr->ResourceId);
 		oh_print_ep(&rptptr->ResourceEntity, 0);
 		printf("\n");
 
@@ -325,7 +325,7 @@ SaErrorT list_inv(SaHpiSessionIdT sessionid,
 					&idrInfo);		
 
 		if (rvInvent !=SA_OK) {
-			printf("saHpiIdrInfoGet: ResourceId %d IdrId %d, error %s\n",
+			printf("saHpiIdrInfoGet: ResourceId %u IdrId %u, error %s\n",
 					l_resourceid, idrid, oh_lookup_error(rvInvent));
 		} else {
 			oh_print_idrinfo(&idrInfo, 4);
@@ -406,7 +406,7 @@ SaErrorT walkInventory(	SaHpiSessionIdT sessionid,
 			} while ((rvField == SA_OK) && (fieldId != SAHPI_LAST_ENTRY));
 		
 			if ( countFields != areaHeader.NumFields) 
-				printf("Area Header error! areaHeader.NumFields %d, countFields %d\n",
+				printf("Area Header error! areaHeader.NumFields %u, countFields %u\n",
 					areaHeader.NumFields, countFields);
 		} else {
 			printf("saHpiIdrAreaHeaderGet error %s\n",oh_lookup_error(rv));
@@ -416,7 +416,7 @@ SaErrorT walkInventory(	SaHpiSessionIdT sessionid,
 	} while ((rv == SA_OK) && (areaId != SAHPI_LAST_ENTRY)); 
 
 	if ((rv == SA_OK) && (countAreas != numAreas)) 
-		printf("idrInfo error! idrInfo.NumAreas = %d; countAreas = %d\n", 
+		printf("idrInfo error! idrInfo.NumAreas = %u; countAreas = %u\n", 
 				numAreas, countAreas);
  	
 	return(rv);
@@ -487,20 +487,20 @@ void sensor_readingthreshold(SaHpiSessionIdT sessionid,
         }
         
         if((rv = oh_decode_eventstate(events, sensorrec->Category, &text)) == SA_OK) {
-                printf("\t  Sensor %d state = %s\n", sensornum, text.Data);
+                printf("\t  Sensor %u state = %s\n", sensornum, text.Data);
         } else {
-                printf("\n\t  Sensor %d state FAILED, %s\n", sensornum, oh_lookup_error(rv));
+                printf("\n\t  Sensor %u state FAILED, %s\n", sensornum, oh_lookup_error(rv));
         }
         
         if (!reading.IsSupported ) {
-                printf("\t  Reading not supported for sensor %d!\n\n", sensornum);
+                printf("\t  Reading not supported for sensor %u!\n\n", sensornum);
                 return;
         } 
         
         if((rv = oh_decode_sensorreading(reading, sensorrec->DataFormat, &text)) == SA_OK) {
-                printf("\t  Sensor %d reading = %s\n", sensornum, text.Data);
+                printf("\t  Sensor %u reading = %s\n", sensornum, text.Data);
         } else {
-                printf("\n\t  Sensor %d reading FAILED, %s\n", sensornum, oh_lookup_error(rv));
+                printf("\n\t  Sensor %u reading FAILED, %s\n", sensornum, oh_lookup_error(rv));
         }
 	
 	rv = saHpiSensorThresholdsGet(sessionid,resourceid, sensornum, &thresh);
@@ -607,7 +607,7 @@ SaErrorT list_rdr(SaHpiSessionIdT sessionid,
 		rv = oh_print_rdr(rdrptr, 4);
 	} else {
 		snprintf((char *)working.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH,
-			"    Found %s, RecordId %d",
+			"    Found %s, RecordId %u",
 			oh_lookup_rdrtype(rdrptr->RdrType), rdrptr->RecordId);
 		rv = oh_print_text(&working);
 	}

@@ -46,8 +46,6 @@ MOSTLYCLEANFILES = $(REMOTE_SOURCES) @TEST_CLEAN@
 
 INCLUDES = @OPENHPI_INCLUDES@
 
-LIBS += -luuid
-
 $(REMOTE_SOURCES):
 	if test ! -f $@ -a ! -L $@; then \
 		if test -f $(top_srcdir)/utils/$@; then \

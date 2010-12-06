@@ -155,6 +155,10 @@ handler libsimulator {
 #        auth_level = "admin" # operator or admin
 #        username = "arthur"
 #        password = "pieman"
+#        IpmiConnectionTimeout = "5000"
+#        AtcaConnectionTimeout = "1000"
+#        MaxOutstanding = "1" # Allow parallel processing of
+#        # ipmi commands; change with care
 #        logflags = ""      # logging off
 #        # logflags = "file stdout"
 #        # infos goes to logfile and stdout

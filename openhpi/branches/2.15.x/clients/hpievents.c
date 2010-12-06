@@ -116,7 +116,7 @@ int main(int argc, char **argv)
 
 	if (fdebug) {
 		if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) printf("saHpiSessionOpen\n");
-		else printf("saHpiSessionOpen to domain %d\n",domainid);
+		else printf("saHpiSessionOpen to domain %u\n",domainid);
 	}
 
 	rv = saHpiSessionOpen(domainid, &sessionid, NULL);
@@ -156,7 +156,7 @@ int main(int argc, char **argv)
 	rv = saHpiDomainInfoGet(sessionid, &domainInfo);
 
 	if (fdebug) printf("saHpiDomainInfoGet %s\n", oh_lookup_error(rv));
-	printf("DomainInfo: UpdateCount = %d, UpdateTime = %lx\n",
+	printf("DomainInfo: UpdateCount = %u, UpdateTime = %lx\n",
 		domainInfo.RptUpdateCount, (unsigned long)domainInfo.RptUpdateTimestamp);
 
 	/* walk the RPT list */
@@ -186,7 +186,7 @@ int main(int argc, char **argv)
 			}
 
 			rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0; 
-			printf("rptentry[%d] tag: %s\n", resourceid, rptentry.ResourceTag.Data);
+			printf("rptentry[%u] tag: %s\n", resourceid, rptentry.ResourceTag.Data);
 
 			rptentryid = nextrptentryid;
 		}
@@ -208,7 +208,7 @@ int main(int argc, char **argv)
 					printf("ERROR: Timeout while infinite wait\n");
 					test_fail = 1;
 				} else if (timeout != SAHPI_TIMEOUT_IMMEDIATE) {
-					printf("ERROR: Time, %d seconds, expired waiting"
+					printf("ERROR: Time, %u seconds, expired waiting"
 						" for event\n", wait);
 					test_fail = 1;
 				}
@@ -225,7 +225,7 @@ int main(int argc, char **argv)
                                 if(rv == SA_OK)
                                         oh_print_event(&event, &rptentry.ResourceEntity, 4);
                                 else {
-                                        printf("Wrong resource Id <%d> detected", event.Source);
+                                        printf("Wrong resource Id <%u> detected", event.Source);
                                         oh_print_event(&event, NULL, 4);
                                 }
                         }

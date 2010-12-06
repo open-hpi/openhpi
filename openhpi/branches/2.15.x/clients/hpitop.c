@@ -175,7 +175,7 @@ main(int argc, char **argv)
 
 	if (fdebug) {
 		if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) printf("saHpiSessionOpen\n");
-		else printf("saHpiSessionOpen to domain %d\n",domainid);
+		else printf("saHpiSessionOpen to domain %u\n",domainid);
 	}
         rv = saHpiSessionOpen(domainid,&sessionid,NULL);
 	if (rv != SA_OK) {
@@ -183,7 +183,7 @@ main(int argc, char **argv)
 		exit(-1);
 	}
 	if (fdebug)
-	       	printf("saHpiSessionOpen returns with SessionId %d\n", sessionid);
+	       	printf("saHpiSessionOpen returns with SessionId %u\n", sessionid);
 
 	/*
 	 * Resource discovery
@@ -247,11 +247,11 @@ SaErrorT list_resources(SaHpiSessionIdT sessionid,SaHpiResourceIdT resourceid)
 			/* walk the RDR list for this RPT entry */
 			entryid = SAHPI_FIRST_ENTRY;			
 
-			if (fdebug) printf("rptentry[%d] resourceid=%d\n", entryid,resourceid);
+			if (fdebug) printf("rptentry[%u] resourceid=%u\n", entryid,resourceid);
 
 			do {
 				rvRdrGet = saHpiRdrGet(sessionid,l_resourceid, entryid,&nextentryid, &rdr);
-				if (fdebug) printf("saHpiRdrGet[%d] rv = %s\n",entryid,oh_lookup_error(rvRdrGet));
+				if (fdebug) printf("saHpiRdrGet[%u] rv = %s\n",entryid,oh_lookup_error(rvRdrGet));
 
 
 				if (rvRdrGet == SA_OK)
@@ -336,7 +336,7 @@ SaErrorT show_rpt(SaHpiRptEntryT *rptptr,SaHpiResourceIdT resourceid)
 
 		rv  = oh_decode_entitypath(&rptptr->ResourceEntity, &bigbuf2);
 		same_system(&bigbuf2);
-		/* printf("ResourceId: %d", rptptr->ResourceId);  */
+		/* printf("ResourceId: %u", rptptr->ResourceId);  */
 		err = oh_append_bigtext(&bigbuf1, rpt_startblock);
 		
 		err = oh_append_bigtext(&bigbuf1, (char *)bigbuf2.Data);
@@ -369,7 +369,7 @@ SaErrorT list_rpt(SaHpiRptEntryT *rptptr)
 	err = oh_init_bigtext(&bigbuf1);
 	if (err) return(err);
 
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "    |    ResourceId:  %d\n", rptptr->ResourceId);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "    |    ResourceId:  %u\n", rptptr->ResourceId);
 	oh_append_bigtext(&bigbuf1, str);
 	
 	oh_decode_capabilities(rptptr->ResourceCapabilities, &textbuffer);
@@ -414,15 +414,15 @@ SaErrorT show_inv(SaHpiSessionIdT sessionid,
 					&idrInfo);		
 
 		if (rvInvent !=SA_OK) {
-			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Inventory: ResourceId %d IdrId %d, error %s\n",
+			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Inventory: ResourceId %u IdrId %u, error %s\n",
 					l_resourceid, idrid, oh_lookup_error(rvInvent));
 			oh_append_bigtext(&buffer, str);
 			show_rdr(&buffer);			
 		} else {
 
-			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Inventory Num: %d, ", rdrptr->RdrTypeUnion.InventoryRec.IdrId);
+			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Inventory Num: %u, ", rdrptr->RdrTypeUnion.InventoryRec.IdrId);
 			oh_append_bigtext(&buffer, str);
-			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Num Areas: %d, ", idrInfo.NumAreas);
+			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Num Areas: %u, ", idrInfo.NumAreas);
 			oh_append_bigtext(&buffer, str);
 			if ( rdrptr->IdString.DataType == SAHPI_TL_TYPE_TEXT ) {
 			   oh_append_bigtext(&buffer, "Tag: ");
@@ -453,7 +453,7 @@ SaErrorT show_sens(SaHpiSessionIdT sessionid,
 
 	if (rdrptr->RdrType == SAHPI_SENSOR_RDR) {							
 		/* Sensor Num */
-		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Sensor Num: %d, ", rdrptr->RdrTypeUnion.SensorRec.Num);
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Sensor Num: %u, ", rdrptr->RdrTypeUnion.SensorRec.Num);
 		oh_append_bigtext(&buffer, str);
 		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Type: %s, ", 
 		 	oh_lookup_sensortype(rdrptr->RdrTypeUnion.SensorRec.Type));
@@ -529,7 +529,7 @@ SaErrorT show_ctrl(SaHpiSessionIdT sessionid,
 	rv = oh_init_bigtext(&buffer);
 																
 	if (rdrptr->RdrType == SAHPI_CTRL_RDR){
-		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Control Num: %d, ", rdrptr->RdrTypeUnion.CtrlRec.Num);
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Control Num: %u, ", rdrptr->RdrTypeUnion.CtrlRec.Num);
 		oh_append_bigtext(&buffer, str);
 		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Type: %s, ", 
 			oh_lookup_ctrltype(rdrptr->RdrTypeUnion.CtrlRec.Type));
@@ -565,7 +565,7 @@ SaErrorT show_wdog(SaHpiSessionIdT sessionid,
 	rv = oh_init_bigtext(&buffer);						
 																
 	if (rdrptr->RdrType == SAHPI_WATCHDOG_RDR) {
-		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Watchdog Num: %d, ", rdrptr->RdrTypeUnion.WatchdogRec.WatchdogNum);
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Watchdog Num: %u, ", rdrptr->RdrTypeUnion.WatchdogRec.WatchdogNum);
 		oh_append_bigtext(&buffer, str);
 		if ( rdrptr->IdString.DataType == SAHPI_TL_TYPE_TEXT ) {
 		   oh_append_bigtext(&buffer, "Tag: ");
@@ -596,7 +596,7 @@ SaErrorT show_dimi(SaHpiSessionIdT sessionid,
 	rv = oh_init_bigtext(&buffer);						
 																
 	if (rdrptr->RdrType == SAHPI_DIMI_RDR) {
-		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "DIMI Num: %d, ", 
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "DIMI Num: %u, ", 
 		                                 rdrptr->RdrTypeUnion.DimiRec.DimiNum);
 		oh_append_bigtext(&buffer, str);
 		if ( rdrptr->IdString.DataType == SAHPI_TL_TYPE_TEXT ) {
@@ -628,7 +628,7 @@ SaErrorT show_fumi(SaHpiSessionIdT sessionid,
 	rv = oh_init_bigtext(&buffer);						
 																
 	if (rdrptr->RdrType == SAHPI_FUMI_RDR) {
-		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "FUMI Num: %d, ", 
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "FUMI Num: %u, ", 
 		                                     rdrptr->RdrTypeUnion.FumiRec.Num);
 		oh_append_bigtext(&buffer, str);
 		if ( rdrptr->IdString.DataType == SAHPI_TL_TYPE_TEXT ) {
@@ -660,7 +660,7 @@ SaErrorT show_ann (SaHpiSessionIdT sessionid,
 	rv = oh_init_bigtext(&buffer);						
 																
 	if (rdrptr->RdrType == SAHPI_ANNUNCIATOR_RDR) {
-		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Annunciator Num: %d, ",
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Annunciator Num: %u, ",
 					 rdrptr->RdrTypeUnion.AnnunciatorRec.AnnunciatorNum);
 		oh_append_bigtext(&buffer, str);
 		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Type: %s, ",

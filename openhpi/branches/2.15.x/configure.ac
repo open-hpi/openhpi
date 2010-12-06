@@ -5,7 +5,7 @@ dnl   various hacks by Sean Dague <http://dague.net/sean> 4/23/03
 
 
 AC_PREREQ(2.57)
-AC_INIT(openhpi, 2.15.0)
+AC_INIT(openhpi, 2.15.1)
 AC_CONFIG_SRCDIR(openhpi.spec.in)
 AM_INIT_AUTOMAKE([1.8])
 
@@ -23,7 +23,7 @@ AH_BOTTOM([#endif /* __OPENHPI_CONFIG_H */])
 # minor version: 11 = 11
 # patch version: 4  = 4
 #
-HPI_LIB_VERSION=17:0:15
+HPI_LIB_VERSION=17:1:15
 HPI_PKG=$PACKAGE_NAME
 HPI_UTIL_PKG=${PACKAGE_NAME}utils
 HPI_CLIENT_PKG=${PACKAGE_NAME}client
@@ -110,6 +110,8 @@ fi
 exact_version=`pkg-config --modversion $GLIB`;
 GLIB_CFLAGS=`pkg-config --cflags $GLIB gthread-2.0`
 GLIB_LIBS=`pkg-config --libs $GLIB gthread-2.0`
+GLIB_ONLY_CFLAGS=`pkg-config --cflags $GLIB`
+GLIB_ONLY_LIBS=`pkg-config --libs $GLIB`
 
 # On some versions of Solaris the pkg-config file for gthread-2.0 contains a
 # compiler option, '-mt', that is incompatible with gcc
@@ -139,6 +141,9 @@ OH_CHECK_FAIL(glib,glib-devel)
 CFLAGS=$old_cflags
 LIBS=$old_libs
 
+AC_SUBST(GLIB_ONLY_CFLAGS)
+AC_SUBST(GLIB_ONLY_LIBS)
+
 
 AC_CHECK_LIB([ltdl], [lt_dlopen], [], [
     OH_CHECK_FAIL(libltdl,libltdl-devel,,
@@ -147,6 +152,10 @@ AC_CHECK_LIB([ltdl], [lt_dlopen], [], [
 
 AC_CHECK_LIB([sysfs], [sysfs_get_mnt_path], [have_sysfs=yes])
 AC_CHECK_HEADER([sysfs/libsysfs.h], [], [have_sysfs=no])
+
+AC_ARG_WITH(net-snmp-config,
+    [[  --with-net-snmp-config=SCRIPT   run SCRIPT as net-snmp-config]],
+    [net_snmp_config=$withval])
 
 OH_CHECK_NETSNMP
 
@@ -247,7 +256,7 @@ if PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig pkg-config --atleas
 fi
 
 AC_ARG_ENABLE([ipmi],
-    [  --enable-ipmi           build openipmi plugin [[default=yes if OpenIPMI exists]]],
+    [  --enable-ipmi           build openipmi plugin [[default=no]]],
     [if test "x$enableval" = "xyes"; then
         if test "x$have_openipmi" = "xyes"; then
             AC_SUBST(IPMI,ipmi)
@@ -269,13 +278,7 @@ AC_ARG_ENABLE([ipmi],
     else
 	    AC_SUBST(WITH_IPMI,0)
     fi],
-    [if test "x$have_openipmi" = "xyes"; then
-            AC_SUBST(IPMI,ipmi)
-	    AC_SUBST(WITH_IPMI,1)
-     else
-	    AC_SUBST(WITH_IPMI,0) 
-     fi
-    ])
+    [AC_SUBST(WITH_IPMI,0)])
 
 AC_ARG_ENABLE([sysfs],
     [  --enable-sysfs          build sysfs plugin [[default=yes if libsysfs exists]]],
@@ -417,6 +420,13 @@ AC_ARG_ENABLE([oa_soap],
         AC_SUBST(WITH_OA_SOAP,0)
      fi
     ])
+
+# configure argument for the slave plugin
+AC_ARG_ENABLE([slave],
+    [  --enable-slave      build slave plugin [[default=no]]],
+    [if test "x$enableval" = "xyes"; then
+        AC_SUBST(SLAVE,slave)
+    fi])
 
 dnl
 dnl create static plugin config
@@ -636,6 +646,9 @@ CXXFLAGS="$CXXFLAGS -D_GNU_SOURCE -D_REENTRANT -fexceptions"
 if test "x$have_openssl" = "xyes"; then
 	SSLDIR=ssl
 	AC_DEFINE([HAVE_OPENSSL],[1],[openssl library was found])
+	AC_SUBST(WITH_OPENSSL, 1)
+else
+	AC_SUBST(WITH_OPENSSL, 0)
 fi
 AM_CONDITIONAL(HAVE_OPENSSL, test x$have_openssl = xyes)
 OH_SSL_INCLUDES="-I\$(top_srcdir)/ssl"
@@ -720,6 +733,7 @@ AC_CONFIG_FILES([openhpi.spec
         plugins/rtas/Makefile
         plugins/ilo2_ribcl/Makefile
         plugins/oa_soap/Makefile
+        plugins/slave/Makefile
         scripts/Makefile
         scripts/test/Makefile
         snmp/Makefile

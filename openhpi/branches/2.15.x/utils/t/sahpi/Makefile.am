@@ -25,8 +25,6 @@ INCLUDES	= @OPENHPI_INCLUDES@
 AM_CFLAGS	= -std=c99
 # the -std=c99 comment above is required to have unicode in the tests
 
-LIBS += -luuid
-
 $(REMOTE_SOURCES):
 	if test ! -f $@ -a ! -L $@; then \
 		if test -f $(top_srcdir)/utils/$@; then \

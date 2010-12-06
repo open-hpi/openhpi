@@ -2,6 +2,7 @@
  *
  * Copyright (c) 2003 by Intel Corp.
  * (C) Copyright IBM Corp. 2003-2006
+ * (C) Copyright Pigeon Point Systems. 2010
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,6 +17,7 @@
  *     Sean Dague <http://dague.net/sean>
  *     Renier Morales <renier@openhpi.org>
  *     Racing Guo <racing.guo@intel.com>
+ *     Anton Pak <anton.pak@pigeonpoint.com>
  */
 
 #include <string.h>
@@ -71,6 +73,13 @@ void oh_event_free(struct oh_event *e, int only_rdrs)
 			}
 			g_slist_free(e->rdrs);
 		}
+		if (e->rdrs_to_remove) {
+			GSList *node = NULL;
+			for (node = e->rdrs_to_remove; node; node = node->next) {
+				g_free(node->data);
+			}
+			g_slist_free(e->rdrs_to_remove);
+		}
 		if (!only_rdrs) g_free(e);
 	}
 }
@@ -87,6 +96,11 @@ struct oh_event *oh_dup_event(struct oh_event *old_event)
 	e->rdrs = NULL;
 	for (node = old_event->rdrs; node; node = node->next) {
 		e->rdrs = g_slist_append(e->rdrs, g_memdup(node->data,
+							   sizeof(SaHpiRdrT)));
+	}
+    e->rdrs_to_remove = NULL;
+	for (node = old_event->rdrs_to_remove; node; node = node->next) {
+		e->rdrs_to_remove = g_slist_append(e->rdrs_to_remove, g_memdup(node->data,
 							   sizeof(SaHpiRdrT)));
 	}
 
@@ -309,6 +323,12 @@ static int process_resource_event(struct oh_domain *d, struct oh_event *e)
             }
             if ( update ) {
                 GSList *node = NULL;
+                for (node = e->rdrs_to_remove; node; node = node->next) {
+                    SaHpiRdrT *rdr = (SaHpiRdrT *)node->data;
+                    SaHpiInstrumentIdT instr_id = oh_get_instrument_id(rdr);
+                    SaHpiEntryIdT rdrid = oh_get_rdr_uid(rdr->RdrType, instr_id);
+                    oh_remove_rdr(rpt, e->resource.ResourceId, rdrid);
+                }
                 for (node = e->rdrs; node; node = node->next) {
                     SaHpiRdrT *rdr = (SaHpiRdrT *)node->data;
                     oh_add_rdr(rpt, e->resource.ResourceId, rdr, NULL, 0);
@@ -364,6 +384,7 @@ static int process_event(SaHpiDomainIdT did,
                          struct oh_event *e)
 {
         struct oh_domain *d = NULL;
+        RPTable *rpt = NULL;
 
         if (!e) {
 		err("Got NULL event");
@@ -372,6 +393,7 @@ static int process_event(SaHpiDomainIdT did,
 
         d = oh_get_domain(did);
         if (!d) return -2;
+        rpt = &(d->rpt);
 
         dbg("Processing event for domain %u", d->id);
 
@@ -380,8 +402,15 @@ static int process_event(SaHpiDomainIdT did,
                 if (!e->hid) {
                         err("Resource event with invalid handler id! Dropping.");
                         break;
-                } else if (!(e->resource.ResourceCapabilities &
-                             SAHPI_CAPABILITY_RESOURCE)) {
+                }
+                if ( e->resource.ResourceCapabilities == 0 ) {
+                        SaHpiRptEntryT * restored;
+                        restored = oh_get_resource_by_id(rpt, e->event.Source);
+                        if ( restored ) {
+                                e->resource = *restored;
+                        }
+                }
+                if (!(e->resource.ResourceCapabilities & SAHPI_CAPABILITY_RESOURCE)) {
                         err("Resource event with invalid capabilities. Dropping.");
                         break;
                 } else if ((e->resource.ResourceCapabilities & SAHPI_CAPABILITY_FRU) &&
@@ -396,8 +425,15 @@ static int process_event(SaHpiDomainIdT did,
                 if (!e->hid) {
                         err("Hotswap event with invalid handler id! Dropping.");
                         break;
-                } else if (!(e->resource.ResourceCapabilities &
-                             SAHPI_CAPABILITY_RESOURCE)) {
+                }
+                if ( e->resource.ResourceCapabilities == 0 ) {
+                        SaHpiRptEntryT * restored;
+                        restored = oh_get_resource_by_id(rpt, e->event.Source);
+                        if ( restored ) {
+                                e->resource = *restored;
+                        }
+                }
+                if (!(e->resource.ResourceCapabilities & SAHPI_CAPABILITY_RESOURCE)) {
                         err("Hotswap event with invalid capabilities. Dropping.");
                         break;
                 } else if (!(e->resource.ResourceCapabilities
@@ -411,6 +447,7 @@ static int process_event(SaHpiDomainIdT did,
         case SAHPI_ET_SENSOR:
         case SAHPI_ET_SENSOR_ENABLE_CHANGE:
         case SAHPI_ET_WATCHDOG:
+        case SAHPI_ET_HPI_SW:
         case SAHPI_ET_OEM:
 	case SAHPI_ET_DOMAIN:
 	case SAHPI_ET_USER:
