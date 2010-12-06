@@ -42,9 +42,8 @@ libopenhpidaemon_la_SOURCES        = config.c \
                                      session.c \
                                      ohpi.c
 
-libopenhpidaemon_la_LIBADD         = $(top_builddir)/utils/libopenhpiutils.la \
-	                                 $(top_builddir)/marshal/libopenhpimarshal.la \
-	                                 $(top_builddir)/transport/libopenhpitransport.la
+libopenhpidaemon_la_LIBADD         = $(top_builddir)/utils/libopenhpiutils.la
+
 if HAVE_OPENSSL
 libopenhpidaemon_la_LIBADD += $(top_builddir)/$(SSLDIR)/libopenhpi_ssl.la
 endif
@@ -56,12 +55,9 @@ sbin_PROGRAMS           = openhpid
 openhpid_SOURCES        = openhpid.cpp
 
 openhpid_LDADD         = libopenhpidaemon.la \
-		                 $(top_builddir)/utils/libopenhpiutils.la \
 		                 $(top_builddir)/marshal/libopenhpimarshal.la \
 						 $(top_builddir)/transport/libopenhpitransport.la
-if HAVE_OPENSSL
-openhpid_LDADD		+= $(top_builddir)/$(SSLDIR)/libopenhpi_ssl.la
-endif
+
 openhpid_LDFLAGS        = -export-dynamic
 
 # this is defined with ./configure --disable-dynamicdaemon
