@@ -29,6 +29,7 @@
 #include <getopt.h>
 
 #include <SaHpi.h>
+#include <glib.h>
 #include <oh_utils.h>
 
 #include "oh_clients.h"
