@@ -108,7 +108,7 @@ SaErrorT SAHPI_API oHpiHandlerInfo (
      SAHPI_IN    SaHpiSessionIdT sid,
      SAHPI_IN    oHpiHandlerIdT id, 
      SAHPI_OUT   oHpiHandlerInfoT *info,
-     SAHPI_IN    GHashTable *conf_params );
+     SAHPI_INOUT GHashTable *conf_params );
 SaErrorT SAHPI_API oHpiHandlerGetNext (
      SAHPI_IN    SaHpiSessionIdT sid,
      SAHPI_IN    oHpiHandlerIdT id, 

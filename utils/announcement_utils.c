@@ -29,7 +29,7 @@ oh_announcement *oh_announcement_create(void)
 {
         oh_announcement *ann;
 
-        ann = (oh_announcement *)g_malloc0(sizeof(oh_announcement));
+        ann = g_new0(oh_announcement, 1);
         if (ann != NULL) {
                 ann->nextId = SAHPI_OLDEST_ENTRY + 1; // always start at 1
                 ann->annentries = NULL;
@@ -63,7 +63,7 @@ SaErrorT oh_announcement_append(oh_announcement *ann, SaHpiAnnouncementT *myann)
         }
 
         /* alloc and copy the new entry */
-        entry = (oh_ann_entry *) g_malloc0(sizeof(oh_ann_entry));
+        entry = g_new0(oh_ann_entry, 1);
         if (entry == NULL) {
                 return SA_ERR_HPI_OUT_OF_SPACE;
         }

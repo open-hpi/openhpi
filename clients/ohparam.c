@@ -25,13 +25,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <getopt.h>
-#include <uuid/uuid.h>
 #include <SaHpi.h> 
 #include <oh_utils.h>
-#include <oh_clients.h>
 #include <oHpi.h>
+
+#include "oh_clients.h"
 
 #define OH_SVN_REV "$Revision: 7142 $"
 

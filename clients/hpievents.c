@@ -29,11 +29,10 @@
 
 #include <SaHpi.h>
 #include <oh_utils.h>
-#include <oh_clients.h>
+
+#include "oh_clients.h"
 
 #define OH_SVN_REV "$Revision$"
-
-#include <unistd.h>
 
 #define HPI_NSEC_PER_SEC 1000000000LL
 

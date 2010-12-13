@@ -129,7 +129,7 @@ SaErrorT oh_encode_entitypath(const gchar *epstr, SaHpiEntityPathT *ep)
 
 		/* Save entity path definitions; reverse order */
 		if (num_entities < SAHPI_MAX_ENTITY_PATH) {
-			entityptr = (SaHpiEntityT *)g_malloc0(sizeof(*entityptr));
+			entityptr = g_new0(SaHpiEntityT, 1);
 			if (entityptr == NULL) {
 				err("No memory.");
 				err = SA_ERR_HPI_OUT_OF_SPACE;
@@ -222,7 +222,7 @@ SaErrorT oh_decode_entitypath(const SaHpiEntityPathT *ep,
 	err = oh_init_bigtext(&tmpbuf);
 	if (err) return(err);
 
-	locstr = (gchar *)g_malloc0(OH_MAX_LOCATION_DIGITS + 1);
+	locstr = g_new0(gchar, OH_MAX_LOCATION_DIGITS + 1);
 	if (locstr == NULL) {
 		err("No memory.");
 		err = SA_ERR_HPI_OUT_OF_SPACE;
@@ -623,7 +623,7 @@ gchar * oh_derive_string(SaHpiEntityPathT *ep,
 
         fragments = g_strsplit(str, OH_DERIVE_BLANK_STR, - 1);
         if (!fragments) { err("Cannot split string"); goto CLEANUP; }
-        str_nodes = g_malloc0((num_blanks + 1) * sizeof(gchar **));
+        str_nodes = g_new0(gchar *, num_blanks + 1);
         if (!str_nodes) { err("Out of memory."); goto CLEANUP; }
         total_num_digits = 0;
         for (i=0; i<num_blanks; i++) {
@@ -632,7 +632,7 @@ gchar * oh_derive_string(SaHpiEntityPathT *ep,
 
                 for (num_digits = 1;
                      (work_location_num = work_location_num/base) > 0; num_digits++);
-                str_nodes[i] = g_malloc0((num_digits+1) * sizeof(gchar));
+                str_nodes[i] = g_new0(gchar, num_digits+1);
                 if (!str_nodes[i]) {err("Out of memory."); goto CLEANUP;}
 		if (base == 10) {
 			snprintf(str_nodes[i], (num_digits + 1) * sizeof(gchar), "%d", 
@@ -647,7 +647,7 @@ gchar * oh_derive_string(SaHpiEntityPathT *ep,
                 total_num_digits = total_num_digits + num_digits;
         }
 
-        new_str = g_malloc0((str_strlen-num_blanks + total_num_digits + 1) * sizeof(gchar));
+        new_str = g_new0(gchar, str_strlen-num_blanks + total_num_digits + 1);
         if (!new_str) { err("Out of memory."); goto CLEANUP; }
         str_walker = new_str;
         for (i=0; fragments[i]; i++) {

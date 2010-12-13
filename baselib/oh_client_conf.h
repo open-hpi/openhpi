@@ -22,6 +22,7 @@
 #define __OH_CLIENT_CONF_H
 
 #include <glib.h>
+
 #include <SaHpi.h>
 
 #ifdef __cplusplus

@@ -319,13 +319,11 @@ static int process_handler_token (GScanner* oh_scanner)
                         int current_token = g_scanner_get_next_token(oh_scanner);
 
                         if (current_token == G_TOKEN_INT) {
-                                gulong *value_int =
-                                        (gulong *)g_malloc(sizeof(gulong));
+                                gulong *value_int = g_new0(gulong, 1);
                                 *value_int = oh_scanner->value.v_int;
                                 value = (gpointer)value_int;
                         } else if (current_token == G_TOKEN_FLOAT) {
-                                gdouble *value_float =
-                                        (gdouble *)g_malloc(sizeof(gdouble));
+                                gdouble *value_float = g_new0(gdouble, 1);
                                 *value_float = oh_scanner->value.v_float;
                                 value = (gpointer)value_float;
                         } else {

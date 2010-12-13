@@ -12,41 +12,33 @@
  * full licensing terms.
  *
  * Author(s):
- *      W. David Ashley <dashley@us.ibm.com>
- *      David Judkoivcs <djudkovi@us.ibm.com>
- * 	Renier Morales <renier@openhpi.org>
- *      Anton Pak <anton.pak@pigeonpoint.com>
- *      Ulrich Kleber <ulikleber@users.sourceforge.net>
+ *     W. David Ashley <dashley@us.ibm.com>
+ *     David Judkoivcs <djudkovi@us.ibm.com>
+ *     Renier Morales <renier@openhpi.org>
+ *     Anton Pak <anton.pak@pigeonpoint.com>
+ *     Ulrich Kleber <ulikleber@users.sourceforge.net>
  *
  */
 
-
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <signal.h>
-#include <unistd.h>
-#include <getopt.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
-#include <glib.h>
-#include <errno.h>
 #include <getopt.h>
-#include <limits.h>
-#include "strmsock.h"
-#include "oh_domain.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
-extern "C"
-{
+#include <glib.h>
+
 #include <SaHpi.h>
 #include <oHpi.h>
+
+#include <marshal_hpi.h>
+#include <oh_domain.h>
 #include <oh_error.h>
 #include <oh_init.h>
-}
-
-#include "marshal_hpi.h"
-
+#include <strmsock.h>
 
 
 /*--------------------------------------------------------------------*/
@@ -56,44 +48,20 @@ extern "C"
 extern "C"
 {
 
-enum tResult
-{
-   eResultOk,
-   eResultError,
-   eResultReply,
-   eResultClose
-};
-
-static bool morph2daemon(void);
-static void service_thread(gpointer data, gpointer user_data);
-static void HandleInvalidRequest(psstrmsock thrdinst);
-static tResult HandleMsg(psstrmsock thrdinst,
-			 char *data,
-			 SaHpiSessionIdT * sid);
-
+static void service_thread(gpointer sock_ptr, gpointer /* user_data */);
+static SaErrorT ProcessMsg(cHpiMarshal * hm,
+                           int rq_byte_order,
+                           char * data,
+                           uint32_t& data_len,
+                           SaHpiSessionIdT& changed_sid);
 }
 
 #define CLIENT_TIMEOUT 0  // Unlimited
 #define PID_FILE "/var/run/openhpid.pid"
 
-static bool stop_server = FALSE;
-static bool runasdaemon = TRUE;
+static bool stop_server = false;
 static int sock_timeout = CLIENT_TIMEOUT;
-static int max_threads = -1;  // unlimited
-
-/* options set by the command line */
-static char *pid_file = NULL;
 static int verbose_flag = 0;
-static struct option long_options[] = {
-        {"verbose",   no_argument,       NULL, 'v'},
-        {"nondaemon", no_argument,       NULL, 'n'},
-        {"config",    required_argument, NULL, 'c'},
-        {"port",      required_argument, NULL, 'p'},
-        {"pidfile",   required_argument, NULL, 'f'},
-        {"timeout",   required_argument, NULL, 's'},
-        {"threads",   required_argument, NULL, 't'},
-        {0, 0, 0, 0}
-};
 
 /* verbose macro */
 #define PVERBOSE1(msg, ...) if (verbose_flag) dbg(msg, ## __VA_ARGS__)
@@ -101,22 +69,20 @@ static struct option long_options[] = {
 #define PVERBOSE3(msg, ...) if (verbose_flag) printf("CRITICAL: "msg, ## __VA_ARGS__)
 
 /*--------------------------------------------------------------------*/
-/* Function to dehash handler config for oHpiHandlerInfo              */
+/* Function to dehash handler cfg for oHpiHandlerInfo                 */
 /*--------------------------------------------------------------------*/
-static void __dehash_handler_config(gpointer key, gpointer value, gpointer data)
+static void dehash_handler_cfg(gpointer key, gpointer value, gpointer data)
 {
-        oHpiHandlerConfigT *handler_config = (oHpiHandlerConfigT *)data;
+    oHpiHandlerConfigT *hc = (oHpiHandlerConfigT *)data;
 
-        strncpy((char *)handler_config->Params[handler_config->NumberOfParams].Name,
-                (const char *)key,
-                SAHPI_MAX_TEXT_BUFFER_LENGTH);
-        strncpy((char *)handler_config->Params[handler_config->NumberOfParams].Value,
-                (const char *)value,
-                SAHPI_MAX_TEXT_BUFFER_LENGTH);
+    strncpy((char *)hc->Params[hc->NumberOfParams].Name,
+            (const char *)key,
+            SAHPI_MAX_TEXT_BUFFER_LENGTH);
+    strncpy((char *)hc->Params[hc->NumberOfParams].Value,
+            (const char *)value,
+            SAHPI_MAX_TEXT_BUFFER_LENGTH);
 
-        handler_config->NumberOfParams = handler_config->NumberOfParams + 1;
-
-        return;
+    ++hc->NumberOfParams;
 }
 
 /*--------------------------------------------------------------------*/
@@ -125,2943 +91,2186 @@ static void __dehash_handler_config(gpointer key, gpointer value, gpointer data)
 
 void display_help(void)
 {
-        printf("Help for openhpid:\n\n");
-        printf("   openhpid -c conf_file [-v] [-p port] [-f pidfile]\n\n");
-        printf("   -c conf_file  conf_file is the path/name of the configuration file.\n");
-        printf("                 This option is required unless the environment\n");
-        printf("                 variable OPENHPI_CONF has been set to a valid\n");
-        printf("                 configuration file.\n");
-        printf("   -v            This option causes the daemon to display verbose\n");
-        printf("                 messages. This option is optional.\n");
-        printf("   -p port       This overrides the default listening port (%d) of\n",
-	       OPENHPI_DEFAULT_DAEMON_PORT);
-        printf("                 the daemon. This option is optional.\n");
-        printf("   -f pidfile    This overrides the default name/location for the daemon.\n");
-        printf("                 pid file. This option is optional.\n");
-        printf("   -s seconds    This overrides the default socket read timeout of 30\n");
-        printf("                 minutes. This option is optional.\n");
-        printf("   -t threads    This sets the maximum number of connection threads.\n");
-        printf("                 The default is umlimited. This option is optional.\n");
-        printf("   -n            This forces the code to run as a foreground process\n");
-        printf("                 and NOT as a daemon. The default is to run as\n");
-        printf("                 a daemon. This option is optional.\n\n");
-        printf("A typical invocation might be\n\n");
-        printf("   ./openhpid -c /etc/openhpi/openhpi.conf\n\n");
+    printf("Help for openhpid:\n\n");
+    printf("   openhpid -c conf_file [-v] [-p port] [-f pidfile]\n\n");
+    printf("   -c conf_file  Sets path/name of the configuration file.\n");
+    printf("                 This option is required unless the environment\n");
+    printf("                 variable OPENHPI_CONF has been set to a valid\n");
+    printf("                 configuration file.\n");
+    printf("   -v            This option causes the daemon to display verbose\n");
+    printf("                 messages. This option is optional.\n");
+    printf("   -p port       Overrides the default listening port (%d) of\n",
+           OPENHPI_DEFAULT_DAEMON_PORT);
+    printf("                 the daemon. The option is optional.\n");
+    printf("   -f pidfile    Overrides the default path/name for the daemon.\n");
+    printf("                 pid file. The option is optional.\n");
+    printf("   -s seconds    Overrides the default socket read timeout of 30\n");
+    printf("                 minutes. The option is optional.\n");
+    printf("   -t threads    Sets the maximum number of connection threads.\n");
+    printf("                 The default is umlimited. The option is optional.\n");
+    printf("   -n            Forces the code to run as a foreground process\n");
+    printf("                 and NOT as a daemon. The default is to run as\n");
+    printf("                 a daemon. The option is optional.\n\n");
+    printf("A typical invocation might be\n\n");
+    printf("   ./openhpid -c /etc/openhpi/openhpi.conf\n\n");
+}
+
+/*--------------------------------------------------------------------*/
+/* PID File Unility Functions                                         */
+/*--------------------------------------------------------------------*/
+bool check_pidfile(const char *pidfile)
+{
+    // TODO add more checks here
+    if (!pidfile) {
+        return false;
+    }
+
+    int fd = open(pidfile, O_RDONLY);
+    if (fd >= 0) {
+        char buf[32];
+        memset(buf, 0, sizeof(buf));
+        ssize_t len = read(fd, buf, sizeof(buf) - 1);
+        if (len < 0) {
+            err("Error: Cannot read from PID file.\n");
+            return false;
+        }
+        close(fd);
+        int pid = atoi(buf);
+        if ((pid > 0) && (pid == getpid() || (kill(pid, 0) < 0))) {
+            unlink(pidfile);
+        } else {
+            err("Error: There is another active OpenHPI daemon.\n");
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool update_pidfile(const char *pidfile)
+{
+    // TODO add more checks here
+    if (!pidfile) {
+        return false;
+    }
+
+    int fd = open(pidfile, O_WRONLY|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP);
+    if (fd < 0) {
+        err("Error: Cannot open PID file.\n");
+        return false;
+    }
+    char buf[32];
+    snprintf(buf, sizeof(buf), "%d\n", (int)getpid());
+    write(fd, buf, strlen(buf));
+    close(fd);
+
+    return true;
+}
+
+/*--------------------------------------------------------------------*/
+/* Function: daemonize                                                */
+/*--------------------------------------------------------------------*/
+
+static bool daemonize(const char *pidfile)
+{
+    if (signal(SIGPIPE, SIG_IGN) == SIG_ERR) {
+        return false;
+    }
+
+    pid_t pid;
+    pid = fork();
+    if (pid < 0) {
+        return false;
+    } else if (pid > 0) {
+        exit(0);
+    }
+    // Become the session leader
+    setsid();
+    // Second fork to make sure we are detached
+    // from any controlling terminal.
+    pid = fork();
+    if (pid < 0) {
+        return false;
+    } else if (pid > 0) {
+        exit(0);
+    }
+
+    update_pidfile(pidfile);
+
+    //chdir("/");
+    umask(0); // Reset default file permissions
+
+    // Close unneeded inherited file descriptors
+    // Keep stdout and stderr open if they already are.
+#ifdef NR_OPEN
+    for (int i = 3; i < NR_OPEN; i++) {
+#else
+    for (int i = 3; i < 1024; i++) {
+#endif
+        close(i);
+    }
+
+    return true;
 }
 
 /*--------------------------------------------------------------------*/
 /* Function: main                                                     */
 /*--------------------------------------------------------------------*/
 
-int main (int argc, char *argv[])
+int main(int argc, char *argv[])
 {
-	GThreadPool *thrdpool;
-        int port, c, option_index = 0;
-        char *portstr;
-        char * configfile = NULL;
-        char pid_buf[256];
-        int pfile, len, pid = 0;
+    struct option options[] = {
+        {"verbose",   no_argument,       0, 'v'},
+        {"nondaemon", no_argument,       0, 'n'},
+        {"cfg",       required_argument, 0, 'c'},
+        {"port",      required_argument, 0, 'p'},
+        {"pidfile",   required_argument, 0, 'f'},
+        {"timeout",   required_argument, 0, 's'},
+        {"threads",   required_argument, 0, 't'},
+        {0, 0, 0, 0}
+    };
 
-        /* get the command line options */
-        while (1) {
-                c = getopt_long(argc, argv, "nvc:p:f:s:t:", long_options,
-                                &option_index);
-                /* detect when done scanning options */
-                if (c == -1) {
-                        break;
+    char *cfgfile    = 0;
+    int  port        = OPENHPI_DEFAULT_DAEMON_PORT;
+    char *pidfile    = 0;
+    int  max_threads = -1;  // unlimited
+    bool runasdaemon = true;
+
+    /* get the command line options */
+    int c;
+    while (1) {
+        c = getopt_long(argc, argv, "nvc:p:f:s:t:", options, 0);
+        /* detect when done scanning options */
+        if (c == -1) {
+            break;
+        }
+        switch (c) {
+            case 0:
+                /* no need to do anything here */
+                break;
+            case 'c':
+                setenv("OPENHPI_CONF", optarg, 1);
+                cfgfile = g_new0(char, strlen(optarg) + 1);
+                strcpy(cfgfile, optarg);
+                break;
+            case 'p':
+                setenv("OPENHPI_DAEMON_PORT", optarg, 1);
+                port = atoi(optarg);
+                break;
+            case 'v':
+                verbose_flag = 1;
+                break;
+            case 'f':
+                pidfile = g_new0(char, strlen(optarg) + 1);
+                strcpy(pidfile, optarg);
+                break;
+            case 's':
+                sock_timeout = atoi(optarg);
+                if (sock_timeout < 0) {
+                    sock_timeout = CLIENT_TIMEOUT;
                 }
-                switch (c) {
-                case 0:
-                        /* no need to do anything here */
-                        break;
-                case 'c':
-                        setenv("OPENHPI_CONF", optarg, 1);
-                        break;
-                case 'p':
-                        setenv("OPENHPI_DAEMON_PORT", optarg, 1);
-                        break;
-                case 'v':
-                        verbose_flag = 1;
-                        break;
-                case 'f':
-                        pid_file = (char *)g_malloc(strlen(optarg) + 1);
-                        strcpy(pid_file, optarg);
-                        break;
-                case 's':
-                        sock_timeout = atoi(optarg);
-                        if (sock_timeout < 0) {
-                                sock_timeout = CLIENT_TIMEOUT;
-                        }
-                        break;
-                case 't':
-                        max_threads = atoi(optarg);
-                        if (max_threads < -1 || max_threads == 0) {
-                                max_threads = -1;
-                        }
-                        break;
-                case 'n':
-                        runasdaemon = FALSE;
-                        break;
-                case '?':
-                        display_help();
-                        exit(0);
-                default:
-			/* they obviously need it */
-			display_help();
-                        exit(-1);
+                break;
+            case 't':
+                max_threads = atoi(optarg);
+                if (max_threads <= 0) {
+                    max_threads = -1;
                 }
-        }
-
-        if (pid_file == NULL) {
-                pid_file = (char *)g_malloc(strlen(PID_FILE) + 1);
-                strcpy(pid_file, PID_FILE);
-        }
-
-        if (optind < argc) {
-                err("Error: Unknown command line option specified .\n");
-                err("       Aborting execution.\n\n");
-		display_help();
-                exit(-1);
-        }
-
-        // see if we are already running
-        if ((pfile = open(pid_file, O_RDONLY)) > 0) {
-                len = read(pfile, pid_buf, sizeof(pid_buf) - 1);
-                close(pfile);
-                pid_buf[len] = '\0';
-                pid = atoi(pid_buf);
-                if (pid && (pid == getpid() || kill(pid, 0) < 0)) {
-                        unlink(pid_file);
-                } else {
-                        // there is already a server running
-                        err("Error: There is already a server running .\n");
-                        err("       Aborting execution.\n");
-                        exit(1);
-                }
-        }
-
-        // write the pid file
-        pfile = open(pid_file, O_WRONLY|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP);
-        if (pfile == -1) {
-                // there is already a server running
-                err("Error: Cannot open PID file .\n");
-                err("       Aborting execution.\n\n");
+                break;
+            case 'n':
+                runasdaemon = false;
+                break;
+            case '?':
+            default:
+                /* they obviously need it */
                 display_help();
-                exit(1);
-        }
-        snprintf(pid_buf, sizeof(pid_buf), "%d\n", (int)getpid());
-        len = write(pfile, pid_buf, strlen(pid_buf));
-        close(pfile);
-
-        // see if we have a valid configuration file
-        char *cfgfile = getenv("OPENHPI_CONF");
-        if (cfgfile == NULL) {
-                err("Error: Configuration file not specified .\n");
-                err("       Aborting execution.\n\n");
-		display_help();
                 exit(-1);
         }
-        if (!g_file_test(cfgfile, G_FILE_TEST_EXISTS)) {
-                err("Error: Configuration file does not exist.\n");
-                err("       Aborting execution.\n\n");
-		display_help();
-                exit(-1);
+    }
+    if (optind < argc) {
+        fprintf(stderr, "Error: Unknown command line option specified. Exiting.\n");
+        display_help();
+        exit(-1);
+    }
+
+    // see if we have a valid configuration file
+    if ((!cfgfile) || (!g_file_test(cfgfile, G_FILE_TEST_EXISTS))) {
+        fprintf(stderr, "Error: Cannot find configuration file. Exiting.\n");
+        display_help();
+        exit(-1);
+    }
+
+    if (!pidfile) {
+        pidfile = g_new0(char, strlen(PID_FILE) + 1);
+        strcpy(pidfile, PID_FILE);
+    }
+    // see if we are already running
+    if (!check_pidfile(pidfile)) {
+        fprintf(stderr, "Error: PID file check failed. Exiting.\n");
+        display_help();
+        exit(1);
+    }
+    if (!update_pidfile(pidfile)) {
+        fprintf(stderr, "Error: Cannot update PID file. Exiting.\n");
+        display_help();
+        exit(1);
+    }
+
+    if (runasdaemon) {
+        if (!daemonize(pidfile)) {
+            exit(8);
         }
-        configfile = (char *)g_malloc(strlen(cfgfile) + 1);
-        strcpy(configfile, cfgfile);
+    }
 
-        // get our listening port
-        portstr = getenv("OPENHPI_DAEMON_PORT");
-        if (portstr == NULL) {
-                port =  OPENHPI_DEFAULT_DAEMON_PORT;
+    if (!g_thread_supported()) {
+        g_thread_init(0);
+    }
+
+    if (oh_init()) { // Initialize OpenHPI
+        err("There was an error initializing OpenHPI. Exiting.\n");
+        return 8;
+    }
+
+    // create the server socket
+    cServerStreamSock * ssock = new cServerStreamSock;
+    if (!ssock->Create(port)) {
+        err("Error creating server socket. Exiting.\n");
+        delete ssock;
+        return 8;
+    }
+
+    // announce ourselves
+    dbg("%s started.\n", argv[0]);
+    dbg("OPENHPI_CONF = %s.\n", cfgfile);
+    dbg("OPENHPI_DAEMON_PORT = %d.\n\n", port);
+
+    // create the thread pool
+    GThreadPool *pool;
+    pool = g_thread_pool_new(service_thread, 0, max_threads, FALSE, 0);
+
+    // wait for a connection and then service the connection
+    while (!stop_server) {
+        cStreamSock * sock = ssock->Accept();
+        if (!sock) {
+            PVERBOSE1("Error accepting server socket.\n");
+            break;
         }
-        else {
-                port =  atoi(portstr);
-        }
+        PVERBOSE1("### Spawning thread to handle connection. ###\n");
+        g_thread_pool_push(pool, (gpointer)sock, 0);
+    }
 
-        // become a daemon
-        if (!morph2daemon()) {
-		exit(8);
-	}
+    // ensure all threads are complete
+    g_thread_pool_free(pool, FALSE, TRUE);
 
-        if (!g_thread_supported()) {
-                g_thread_init(NULL);
-        }
+    delete ssock;
+    PVERBOSE1("Server socket closed.\n");
 
-	if (oh_init()) { // Initialize OpenHPI
-		err("There was an error initializing OpenHPI");
-		return 8;
-	}
-
-	// create the thread pool
-        thrdpool = g_thread_pool_new(service_thread, NULL, max_threads, FALSE, NULL);
-
-        // create the server socket
-	psstrmsock servinst = new sstrmsock;
-	if (servinst->Create(port)) {
-		err("Error creating server socket.\n");
-		g_thread_pool_free(thrdpool, FALSE, TRUE);
-                delete servinst;
-		return 8;
-	}
-
-        // announce ourselves
-        dbg("%s started.\n", argv[0]);
-        dbg("OPENHPI_CONF = %s\n", configfile);
-        dbg("OPENHPI_DAEMON_PORT = %d\n\n", port);
-
-        // wait for a connection and then service the connection
-	while (TRUE) {
-
-		if (stop_server) {
-			break;
-		}
-
-		if (servinst->Accept()) {
-			PVERBOSE1("Error accepting server socket.");
-			break;
-		}
-
-		PVERBOSE1("### Spawning thread to handle connection. ###");
-		psstrmsock thrdinst = new sstrmsock(*servinst);
-		g_thread_pool_push(thrdpool, (gpointer)thrdinst, NULL);
-
-        
-	}
-
-	servinst->CloseSrv();
-	PVERBOSE1("Server socket closed.");
-
-        // ensure all threads are complete
-	g_thread_pool_free(thrdpool, FALSE, TRUE);
-
-	delete servinst;
-	return 0;
+    return 0;
 }
 
 
-/*--------------------------------------------------------------------*/
-/* Function: morph2daemon                                             */
-/*--------------------------------------------------------------------*/
-
-static bool morph2daemon(void)
-{
-        char pid_buf[SA_HPI_MAX_NAME_LENGTH];
-        int pid_fd;
-	int ret;
-
-	if (signal(SIGPIPE, SIG_IGN) == SIG_ERR) {
-		return false;
-	}
-
-	if (runasdaemon) {
-		pid_t pid = fork();
-		if (pid < 0) {
-			return false;
-		} else if (pid != 0) { // parent process
-			exit( 0 );
-		}
-
-                // Become the session leader
-		setsid();
-                // Second fork to make sure we are detached from any
-                // controlling terminal.
-		pid = fork();
-		if (pid < 0) {
-			return false;
-		} else if (pid != 0) { // parent process
-			exit(0);
-		}
-
-                // Rreate the pid file (overwrite of old pid file is ok)
-        	unlink(pid_file);
-        	pid_fd =
-                        open(pid_file, O_WRONLY|O_CREAT,
-                             S_IRUSR|S_IWUSR|S_IRGRP);
-        	snprintf(pid_buf, SA_HPI_MAX_NAME_LENGTH,
-                         "%d\n", (int)getpid());
-        	ret = write(pid_fd, pid_buf, strlen(pid_buf));
-        	close(pid_fd);
-
-		//chdir("/");
-		umask(0); // Reset default file permissions
-                
-                // Close unneeded inherited file descriptors
-                // Keep stdout and stderr open if they already are.
-#ifdef NR_OPEN
-		for (int i = 3; i < NR_OPEN; i++) {
-#else
-                for (int i = 3; i < 1024; i++) {
-#endif
-			close(i);
-		}
-	}
-
-	return true;
-}
 
 
 /*--------------------------------------------------------------------*/
 /* Function: service_thread                                           */
 /*--------------------------------------------------------------------*/
 
-static void service_thread(gpointer data, gpointer user_data)
+static void service_thread(gpointer sock_ptr, gpointer /* user_data */)
 {
-	psstrmsock thrdinst = (psstrmsock) data;
-        bool stop = false;
-	char buf[dMaxMessageLength];
-        tResult result;
-        gpointer thrdid = g_thread_self();
-        SaHpiSessionIdT session_id = 0;
+    cStreamSock * sock = (cStreamSock *)sock_ptr;
+    gpointer thrdid = g_thread_self();
+    // TODO several sids for one connection
+    SaHpiSessionIdT my_sid = 0;
 
-	PVERBOSE1("%p Servicing connection.", thrdid);
+    PVERBOSE1("%p Servicing connection.\n", thrdid);
 
-        /* set the read timeout for the socket */
-        thrdinst->SetReadTimeout(sock_timeout);
+    /* set the read timeout for the socket */
+    // TODO
+    //sock->SetReadTimeout(sock_timeout);
 
-        PVERBOSE1("### service_thread, thrdid [%p] ###", (void *)thrdid);
+    PVERBOSE1("### service_thread, thrdid [%p] ###\n", (void *)thrdid);
 
-	while (stop == false) {
-                if (thrdinst->ReadMsg(buf)) {
-                        if (thrdinst->GetErrcode() == EWOULDBLOCK) {
-                                PVERBOSE3("%p Timeout reading socket.\n", thrdid);
-                        } else {
-                                PVERBOSE3("%p Error reading socket.\n", thrdid);
-                        }
-                        goto thrd_cleanup;
+    while (true) {
+        bool     rc;
+        char     data[dMaxPayloadLength];
+        uint32_t data_len;
+        uint8_t  type;
+        uint32_t id;
+        int      rq_byte_order;
+
+        rc = sock->ReadMsg(type, id, data, data_len, rq_byte_order);
+        if (!rc) {
+            PVERBOSE3("%p Error or Timeout while reading socket.\n", thrdid);
+            break;
+        } else if (type != eMhMsg) {
+            PVERBOSE3("%p Unsupported message type. Discarding.\n", thrdid);
+            sock->WriteMsg(eMhError, id, 0, 0);
+        } else {
+            cHpiMarshal *hm = HpiMarshalFind(id);
+            SaErrorT process_rv;
+            SaHpiSessionIdT changed_sid = 0;
+            process_rv = ProcessMsg(hm, rq_byte_order, data, data_len, changed_sid);
+            if (process_rv != SA_OK) {
+                int mr = HpiMarshalReply0(hm, data, &process_rv);
+                if (mr < 0) {
+                    PVERBOSE2("%p Marshal failed.\n", thrdid);
+                    break;
                 }
-                else {
-                        switch( thrdinst->header.m_type ) {
-                        case eMhMsg:
-                                result = HandleMsg(thrdinst, buf, &session_id);
-                                // marshal error ?
-                                if (result == eResultError) {
-                                        PVERBOSE3("%p Invalid API found.\n", thrdid);
-                                        HandleInvalidRequest(thrdinst);
-                                }
-                                // done ?
-                                if (result == eResultClose) {
-                                        stop = true;
-                                }
-                                break;
-                        default:
-                                PVERBOSE3("%p Error in socket read buffer data.\n", thrdid);
-                                HandleInvalidRequest(thrdinst);
-                                break;
-                        }
+                data_len = (uint32_t)mr;
+            }
+            rc = sock->WriteMsg(eMhMsg, id, data, data_len);
+            if (!rc) {
+                PVERBOSE2("%p Socket write failed.\n", thrdid);
+                break;
+            }
+            if ((process_rv == SA_OK) && (changed_sid != 0)) {
+                if (id == eFsaHpiSessionOpen) {
+                    my_sid = changed_sid;
+                } else if (id == eFsaHpiSessionClose) {
+                    my_sid = 0;
+                    break;
                 }
-	}
-
-        thrd_cleanup:
-        // if necessary, clean up HPI lib data
-        if (session_id != 0) {
-                saHpiSessionClose( session_id );
+            }
         }
-        delete thrdinst; // cleanup thread instance data
+    }
 
-	PVERBOSE1("%p Connection ended.", thrdid);
-	return; // do NOT use g_thread_exit here!
+    // if necessary, clean up HPI lib data
+    if (my_sid != 0) {
+        saHpiSessionClose(my_sid);
+    }
+    delete sock; // cleanup thread instance data
+
+    PVERBOSE1("%p Connection closed.\n", thrdid);
+    // TODO why?
+    return; // do NOT use g_thread_exit here!
 }
 
 
-/*--------------------------------------------------------------------*/
-/* Function: HandleInvalidRequest                                     */
-/*--------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/* RPC Call Processing                                                        */
+/*----------------------------------------------------------------------------*/
 
-void HandleInvalidRequest(psstrmsock thrdinst) {
-       gpointer thrdid = g_thread_self();
-
-       /* create and deliver a pong message */
-       PVERBOSE2("%p Invalid request.", thrdid);
-       thrdinst->MessageHeaderInit(eMhError, 0, thrdinst->header.m_id, 0 );
-       thrdinst->WriteMsg(NULL);
-
-       return;
-}
-
-
-/*--------------------------------------------------------------------*/
-/* Function: HandleMsg                                                */
-/*--------------------------------------------------------------------*/
-
-static tResult HandleMsg(psstrmsock thrdinst,
-			 char *data,
-                         SaHpiSessionIdT * sid)
+struct Params
 {
-        cHpiMarshal *hm;
-        SaErrorT ret;
-        tResult result = eResultReply;
-        char *pReq = data + sizeof(cMessageHeader);
-        gpointer thrdid = g_thread_self();
-        
-        hm = HpiMarshalFind(thrdinst->header.m_id);
-
-        // init reply header
-        thrdinst->MessageHeaderInit((tMessageType) thrdinst->header.m_type, 0,
-                                        thrdinst->header.m_id, hm->m_reply_len );
-
-
-        switch( thrdinst->header.m_id ) {
-                case eFsaHpiSessionOpen: {
-                        SaHpiDomainIdT  domain_id;
-                        SaHpiSessionIdT session_id = 0;
-                        void            *securityparams = NULL;
-                
-                        PVERBOSE1("%p Processing saHpiSessionOpen.", thrdid);
-                
-                        if ( HpiDemarshalRequest1( thrdinst->remote_byte_order,
-                                                        hm, pReq, &domain_id ) < 0 )
-                                return eResultError;
-                
-			// patched version ret = saHpiSessionOpen( SAHPI_UNSPECIFIED_DOMAIN_ID, &session_id, securityparams );
-                        ret = saHpiSessionOpen( OH_DEFAULT_DOMAIN_ID, &session_id, securityparams );
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &session_id );
-                
-                        // this is used in case the connection ever breaks!
-                        *sid = session_id;
-                }
-                break;
-                
-                case eFsaHpiSessionClose: {
-                        SaHpiSessionIdT session_id;
-                
-                        PVERBOSE1("%p Processing saHpiSessionClose.", thrdid);
-                
-                        if ( HpiDemarshalRequest1( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiSessionClose( session_id );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                        result = eResultClose;
-                        *sid = 0;
-                }
-                break;
-                
-                case eFsaHpiDiscover: {
-                        SaHpiSessionIdT session_id;
-                
-                        PVERBOSE1("%p Processing saHpiDiscover.", thrdid);
-                
-                        if ( HpiDemarshalRequest1( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiDiscover( session_id );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-                
-                case eFsaHpiDomainInfoGet: {
-                        SaHpiSessionIdT  session_id;
-                        SaHpiDomainInfoT domain_info;
-                
-                        PVERBOSE1("%p Processing saHpiDomainInfoGet.", thrdid);
-                
-                        if ( HpiDemarshalRequest1( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiDomainInfoGet( session_id, &domain_info );
-                
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &domain_info );
-                }
-                break;
-                
-                case eFsaHpiDrtEntryGet: {
-                        SaHpiSessionIdT session_id;
-                        SaHpiEntryIdT   entry_id;
-                        SaHpiEntryIdT   next_entry_id = 0;
-                        SaHpiDrtEntryT  drt_entry;
-                
-                        PVERBOSE1("%p Processing saHpiDrtEntryGet.", thrdid);
-                
-                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &entry_id ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiDrtEntryGet( session_id, entry_id, &next_entry_id,
-                                                &drt_entry );
-                
-                        thrdinst->header.m_len = HpiMarshalReply2( hm, pReq, &ret, &next_entry_id, &drt_entry );
-                }
-                break;
-                
-                case eFsaHpiDomainTagSet: {
-                        SaHpiSessionIdT  session_id;
-                        SaHpiTextBufferT domain_tag;
-                
-                        PVERBOSE1("%p Processing saHpiDomainTagSet.", thrdid);
-                
-                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &domain_tag ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiDomainTagSet( session_id, &domain_tag );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-                
-                case eFsaHpiRptEntryGet: {
-                        SaHpiSessionIdT session_id;
-                        SaHpiEntryIdT   entry_id;
-                        SaHpiEntryIdT   next_entry_id = 0; // for valgring
-                        SaHpiRptEntryT  rpt_entry;
-                
-                        PVERBOSE1("%p Processing saHpiRptEntryGet.", thrdid);
-                
-                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &entry_id ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiRptEntryGet( session_id, entry_id, &next_entry_id, &rpt_entry );
-                
-                        thrdinst->header.m_len = HpiMarshalReply2( hm, pReq, &ret, &next_entry_id, &rpt_entry );
-                }
-                break;
-                
-                case eFsaHpiRptEntryGetByResourceId: {
-                        SaHpiSessionIdT  session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiRptEntryT   rpt_entry;
-                
-                        PVERBOSE1("%p Processing saHpiRptEntryGetByResourceId.", thrdid);
-                
-                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiRptEntryGetByResourceId( session_id, resource_id, &rpt_entry );
-                
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &rpt_entry );
-                }
-                break;
-                
-                case eFsaHpiResourceSeveritySet: {
-                        SaHpiSessionIdT  session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiSeverityT   severity;
-                
-                        PVERBOSE1("%p Processing saHpiResourceSeveritySet.", thrdid);
-                
-                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &severity ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiResourceSeveritySet( session_id,
-                                                        resource_id, severity );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-                
-                case eFsaHpiResourceTagSet:
-                        {
-                        SaHpiSessionIdT  session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiTextBufferT resource_tag;
-                
-                        PVERBOSE1("%p Processing saHpiResourceTagSet.", thrdid);
-                
-                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &resource_tag ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiResourceTagSet( session_id, resource_id, &resource_tag );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-
-                case eFsaHpiMyEntityPathGet: {
-                        SaHpiSessionIdT session_id;
-                        SaHpiEntityPathT entity_path;
-
-                        PVERBOSE1("%p Processing saHpiMyEntityPathGet.", thrdid);
-
-                        if ( HpiDemarshalRequest1( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id ) < 0 )
-                                return eResultError;
-
-                        ret = saHpiMyEntityPathGet( session_id, &entity_path );
-
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &entity_path );
-                }
-                break;
-                
-                case eFsaHpiResourceIdGet: {
-                        SaHpiSessionIdT session_id;
-                        SaHpiResourceIdT resource_id = 0;
-                
-                        PVERBOSE1("%p Processing saHpiResourceIdGet.", thrdid);
-                
-                        if ( HpiDemarshalRequest1( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiResourceIdGet( session_id, &resource_id );
-                
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &resource_id );
-                }
-                break;
-
-                case eFsaHpiGetIdByEntityPath: {
-                        /* IN params */
-                        SaHpiSessionIdT session_id;
-                        SaHpiEntityPathT entity_path;
-                        SaHpiRdrTypeT instrument_type;
-                        /* INOUT params */
-                        SaHpiUint32T instance_id;
-                        /* OUT params */
-                        SaHpiResourceIdT resource_id;
-                        SaHpiInstrumentIdT instrument_id;
-                        SaHpiUint32T rpt_update_count;
-                
-                        PVERBOSE1("%p Processing saHpiGetIdByEntityPath.", thrdid);
-                
-                        if ( HpiDemarshalRequest4( thrdinst->remote_byte_order,
-                                                   hm, pReq,
-                                                   &session_id, &entity_path,
-                                                   &instrument_type, &instance_id ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiGetIdByEntityPath( session_id, entity_path,
-                                                      instrument_type, &instance_id,
-                                                      &resource_id, &instrument_id,
-                                                      &rpt_update_count );
-                
-                        thrdinst->header.m_len = HpiMarshalReply4( hm, pReq, &ret,
-                                                                   &instance_id,
-                                                                   &resource_id,
-                                                                   &instrument_id,
-                                                                   &rpt_update_count );
-                }
-                break;
-
-                case eFsaHpiGetChildEntityPath: {
-                        /* IN params */
-                        SaHpiSessionIdT session_id;
-                        SaHpiEntityPathT parent_ep;
-                        /* INOUT params */
-                        SaHpiUint32T instance_id;
-                        /* OUT params */
-                        SaHpiEntityPathT child_ep;
-                        SaHpiUint32T rpt_update_count;
-                
-                        PVERBOSE1("%p Processing saHpiGetChildEntityPath.", thrdid);
-                
-                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
-                                                   hm, pReq,
-                                                   &session_id, &parent_ep,
-                                                   &instance_id ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiGetChildEntityPath( session_id, parent_ep,
-                                                       &instance_id, &child_ep,
-                                                       &rpt_update_count );
-                
-                        thrdinst->header.m_len = HpiMarshalReply3( hm, pReq, &ret,
-                                                                   &instance_id,
-                                                                   &child_ep,
-                                                                   &rpt_update_count );
-                }
-                break;
-
-                case eFsaHpiResourceFailedRemove: {
-                        SaHpiSessionIdT session_id;
-                        SaHpiResourceIdT resource_id;
-
-                        PVERBOSE1("%p Processing saHpiResourceFailedRemove.", thrdid);
-                
-                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
-                                                   hm, pReq,
-                                                   &session_id, &resource_id ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiResourceFailedRemove( session_id, resource_id );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-                
-                case eFsaHpiEventLogInfoGet: {
-                        SaHpiSessionIdT    session_id;
-                        SaHpiResourceIdT   resource_id;
-                        SaHpiEventLogInfoT info;
-                
-                        PVERBOSE1("%p Processing saHpiEventLogInfoGet.", thrdid);
-                
-                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiEventLogInfoGet( session_id, resource_id, &info );
-                
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &info );
-                }
-                break;
-
-                case eFsaHpiEventLogCapabilitiesGet: {
-                        SaHpiSessionIdT    session_id;
-                        SaHpiResourceIdT   resource_id;
-                        SaHpiEventLogCapabilitiesT elcaps;
-                
-                        PVERBOSE1("%p Processing saHpiEventLogCapabilitiesGet.", thrdid);
-                
-                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
-                                                   hm, pReq, &session_id, &resource_id ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiEventLogCapabilitiesGet( session_id, resource_id, &elcaps );
-                
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &elcaps );
-                }
-                break;
-                
-                case eFsaHpiEventLogEntryGet: {
-                        SaHpiSessionIdT       session_id;
-                        SaHpiResourceIdT      resource_id;
-                        SaHpiEventLogEntryIdT entry_id;
-                        SaHpiEventLogEntryIdT prev_entry_id = 0;
-                        SaHpiEventLogEntryIdT next_entry_id = 0;
-                        SaHpiEventLogEntryT   event_log_entry;
-                        SaHpiRdrT             rdr;
-                        SaHpiRptEntryT        rpt_entry;
-                
-                        PVERBOSE1("%p Processing saHpiEventLogEntryGet.", thrdid);
-                
-                        memset( &rdr, 0, sizeof( SaHpiRdrT ) );
-                        memset( &rpt_entry, 0, sizeof( SaHpiRptEntryT ) );
-                        memset( &event_log_entry, 0, sizeof( SaHpiEventLogEntryT ) );
-                
-                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &entry_id ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiEventLogEntryGet( session_id, resource_id, entry_id,
-                                                        &prev_entry_id, &next_entry_id,
-                                                        &event_log_entry, &rdr, &rpt_entry );
-                
-                        thrdinst->header.m_len = HpiMarshalReply5( hm, pReq, &ret, &prev_entry_id, &next_entry_id,
-                                                                        &event_log_entry, &rdr, &rpt_entry );
-                }
-                break;
-                
-                case eFsaHpiEventLogEntryAdd: {
-                        SaHpiSessionIdT  session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiEventT      evt_entry;
-                
-                        PVERBOSE1("%p Processing saHpiEventLogEntryAdd.", thrdid);
-                
-                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &evt_entry ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiEventLogEntryAdd( session_id, resource_id,
-                                                        &evt_entry );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-                
-                case eFsaHpiEventLogClear: {
-                        SaHpiSessionIdT  session_id;
-                        SaHpiResourceIdT resource_id;
-                
-                        PVERBOSE1("%p Processing saHpiEventLogClear.", thrdid);
-                
-                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiEventLogClear( session_id, resource_id );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-                
-                case eFsaHpiEventLogTimeGet: {
-                        SaHpiSessionIdT  session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiTimeT       ti;
-                
-                        PVERBOSE1("%p Processing saHpiEventLogTimeGet.", thrdid);
-                
-                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiEventLogTimeGet( session_id, resource_id, &ti );
-                
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &ti );
-                }
-                break;
-                
-                case eFsaHpiEventLogTimeSet: {
-                        SaHpiSessionIdT  session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiTimeT       ti;
-                
-                        PVERBOSE1("%p Processing saHpiEventLogTimeSet.", thrdid);
-                
-                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &ti ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiEventLogTimeSet( session_id, resource_id, ti );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-                
-                case eFsaHpiEventLogStateGet: {
-                        SaHpiSessionIdT  session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiBoolT       enable;
-                
-                        PVERBOSE1("%p Processing saHpiEventLogStateGet.", thrdid);
-                
-                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiEventLogStateGet( session_id, resource_id, &enable );
-                
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &enable );
-                }
-                break;
-                
-                case eFsaHpiEventLogStateSet: {
-                        SaHpiSessionIdT  session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiBoolT       enable;
-                
-                        PVERBOSE1("%p Processing saHpiEventLogStateSet.", thrdid);
-                
-                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &enable ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiEventLogStateSet( session_id, resource_id, enable );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-                
-                case eFsaHpiEventLogOverflowReset: {
-                        SaHpiSessionIdT  session_id;
-                        SaHpiResourceIdT resource_id;
-                
-                        PVERBOSE1("%p Processing saHpiEventLogOverflowReset.", thrdid);
-                
-                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiEventLogOverflowReset( session_id, resource_id );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-                
-                case eFsaHpiSubscribe: {
-                        SaHpiSessionIdT session_id;
-                
-                        PVERBOSE1("%p Processing saHpiSubscribe.", thrdid);
-                
-                        if ( HpiDemarshalRequest1( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiSubscribe( session_id );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-                
-                case eFsaHpiUnsubscribe: {
-                        SaHpiSessionIdT session_id;
-                
-                        PVERBOSE1("%p Processing saHpiUnsubscribe.", thrdid);
-                
-                        if ( HpiDemarshalRequest1( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiUnsubscribe( session_id );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-                
-                case eFsaHpiEventGet: {
-                        SaHpiSessionIdT      session_id;
-                        SaHpiTimeoutT        timeout;
-                        SaHpiEventT          event;
-                        SaHpiRdrT            rdr;
-                        SaHpiRptEntryT       rpt_entry;
-                        SaHpiEvtQueueStatusT status;
-                
-                        PVERBOSE1("%p Processing saHpiEventGet.", thrdid);
-                
-                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &timeout ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiEventGet( session_id, timeout, &event, &rdr,
-                                                &rpt_entry, &status );
-                
-                        thrdinst->header.m_len = HpiMarshalReply4( hm, pReq, &ret, &event, &rdr, &rpt_entry, &status );
-                }
-                break;
-                
-                case eFsaHpiEventAdd: {
-                        SaHpiSessionIdT session_id;
-                        SaHpiEventT     event;
-                
-                        PVERBOSE1("%p Processing saHpiEventAdd.", thrdid);
-                
-                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &event ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiEventAdd( session_id, &event );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-                
-                case eFsaHpiAlarmGetNext: {
-                        SaHpiSessionIdT session_id;
-                        SaHpiSeverityT  severity;
-                        SaHpiBoolT      unack;
-                        SaHpiAlarmT     alarm;
-                
-                        PVERBOSE1("%p Processing saHpiAlarmGetNext.", thrdid);
-                
-                        if ( HpiDemarshalRequest4( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &severity,
-                                                        &unack, &alarm ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiAlarmGetNext( session_id, severity, unack, &alarm );
-                
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &alarm );
-                }
-                break;
-                
-                case eFsaHpiAlarmGet: {
-                        SaHpiSessionIdT session_id;
-                        SaHpiAlarmIdT   alarm_id;
-                        SaHpiAlarmT     alarm;
-                
-                        PVERBOSE1("%p Processing saHpiAlarmGet.", thrdid);
-                
-                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &alarm_id ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiAlarmGet( session_id, alarm_id, &alarm );
-                
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &alarm );
-                }
-                break;
-                
-                case eFsaHpiAlarmAcknowledge: {
-                        SaHpiSessionIdT session_id;
-                        SaHpiAlarmIdT   alarm_id;
-                        SaHpiSeverityT  severity;
-                
-                        PVERBOSE1("%p Processing saHpiAlarmAcknowledge.", thrdid);
-                
-                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &alarm_id,
-                                                        &severity ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiAlarmAcknowledge( session_id, alarm_id, severity );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-                
-                case eFsaHpiAlarmAdd: {
-                        SaHpiSessionIdT session_id;
-                        SaHpiAlarmT     alarm;
-                
-                        PVERBOSE1("%p Processing saHpiAlarmAdd.", thrdid);
-                
-                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &alarm ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiAlarmAdd( session_id, &alarm );
-                
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &alarm );
-                }
-                break;
-                
-                case eFsaHpiAlarmDelete: {
-                        SaHpiSessionIdT session_id;
-                        SaHpiAlarmIdT   alarm_id;
-                        SaHpiSeverityT  severity;
-                
-                        PVERBOSE1("%p Processing saHpiAlarmDelete.", thrdid);
-                
-                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &alarm_id,
-                                                        &severity ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiAlarmDelete( session_id, alarm_id, severity );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-                
-                case eFsaHpiRdrGet: {
-                        SaHpiSessionIdT  session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiEntryIdT    entry_id;
-                        SaHpiEntryIdT    next_entry_id;
-                        SaHpiRdrT        rdr;
-                
-                        PVERBOSE1("%p Processing saHpiRdrGet.", thrdid);
-                
-                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &entry_id ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiRdrGet( session_id, resource_id, entry_id,
-                                                &next_entry_id, &rdr );
-                
-                        thrdinst->header.m_len = HpiMarshalReply2( hm, pReq, &ret, &next_entry_id, &rdr );
-                }
-                break;
-                
-                case eFsaHpiRdrGetByInstrumentId: {
-                        SaHpiSessionIdT    session_id;
-                        SaHpiResourceIdT   resource_id;
-                        SaHpiRdrTypeT      rdr_type;
-                        SaHpiInstrumentIdT inst_id;
-                        SaHpiRdrT          rdr;
-                
-                        PVERBOSE1("%p Processing saHpiRdrGetByInstrumentId.", thrdid);
-                
-                        if ( HpiDemarshalRequest4( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &rdr_type, &inst_id ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiRdrGetByInstrumentId( session_id, resource_id, rdr_type,
-                                                        inst_id, &rdr );
-                
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &rdr );
-                }
-                break;
-                
-                case eFsaHpiRdrUpdateCountGet: {
-                        SaHpiSessionIdT    session_id;
-                        SaHpiResourceIdT   resource_id;
-                        SaHpiUint32T       rdr_update_count;
-
-                        PVERBOSE1("%p Processing saHpiRdrUpdateCountGet.", thrdid);
-
-                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
-                                                   hm, pReq, &session_id, &resource_id ) < 0 )
-                                return eResultError;
-
-                        ret = saHpiRdrUpdateCountGet( session_id, resource_id, &rdr_update_count );
-
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &rdr_update_count );
-                }
-                break;
-
-                case eFsaHpiSensorReadingGet: {
-                        SaHpiSessionIdT     session_id;
-                        SaHpiResourceIdT    resource_id;
-                        SaHpiSensorNumT     sensor_num;
-                        SaHpiSensorReadingT reading;
-                        SaHpiEventStateT    state;
-                
-                        PVERBOSE1("%p Processing saHpiSensorReadingGet.", thrdid);
-                
-                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &sensor_num ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiSensorReadingGet( session_id, resource_id,
-                                                        sensor_num, &reading, &state );
-                
-                        thrdinst->header.m_len = HpiMarshalReply2( hm, pReq, &ret, &reading, &state );
-                }
-                break;
-                
-                case eFsaHpiSensorThresholdsGet: {
-                        SaHpiSessionIdT        session_id;
-                        SaHpiResourceIdT       resource_id;
-                        SaHpiSensorNumT        sensor_num;
-                        SaHpiSensorThresholdsT sensor_thresholds;
-                
-                        PVERBOSE1("%p Processing saHpiSensorThresholdsGet.", thrdid);
-                
-                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &sensor_num ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiSensorThresholdsGet( session_id,
-                                                        resource_id, sensor_num,
-                                                        &sensor_thresholds);
-                
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &sensor_thresholds );
-                }
-                break;
-                
-                case eFsaHpiSensorThresholdsSet: {
-                        SaHpiSessionIdT        session_id;
-                        SaHpiResourceIdT       resource_id;
-                        SaHpiSensorNumT        sensor_num;
-                        SaHpiSensorThresholdsT sensor_thresholds;
-                
-                        PVERBOSE1("%p Processing saHpiSensorThresholdsSet.", thrdid);
-                
-                        if ( HpiDemarshalRequest4( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &sensor_num, &sensor_thresholds ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiSensorThresholdsSet( session_id, resource_id,
-                                                        sensor_num,
-                                                        &sensor_thresholds );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-                
-                case eFsaHpiSensorTypeGet: {
-                        SaHpiSessionIdT     session_id;
-                        SaHpiResourceIdT    resource_id;
-                        SaHpiSensorNumT     sensor_num;
-                        SaHpiSensorTypeT    type;
-                        SaHpiEventCategoryT category;
-                
-                        PVERBOSE1("%p Processing saHpiSensorTypeGet.", thrdid);
-                
-                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &sensor_num ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiSensorTypeGet( session_id, resource_id,
-                                                        sensor_num, &type, &category );
-                
-                        thrdinst->header.m_len = HpiMarshalReply2( hm, pReq, &ret, &type, &category );
-                }
-                break;
-                
-                case eFsaHpiSensorEnableGet: {
-                        SaHpiSessionIdT  session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiSensorNumT  sensor_num;
-                        SaHpiBoolT       enabled;
-                
-                        PVERBOSE1("%p Processing saHpiSensorEnableGet.", thrdid);
-                
-                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &sensor_num ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiSensorEnableGet( session_id, resource_id,
-                                                        sensor_num, &enabled );
-                
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &enabled );
-                }
-                break;
-                
-                case eFsaHpiSensorEnableSet: {
-                        SaHpiSessionIdT  session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiSensorNumT  sensor_num;
-                        SaHpiBoolT       enabled;
-                
-                        PVERBOSE1("%p Processing saHpiSensorEnableSet.", thrdid);
-                
-                        if ( HpiDemarshalRequest4( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &sensor_num, &enabled ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiSensorEnableSet( session_id, resource_id,
-                                                        sensor_num, enabled );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-                
-                case eFsaHpiSensorEventEnableGet: {
-                        SaHpiSessionIdT  session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiSensorNumT  sensor_num;
-                        SaHpiBoolT       enables;
-                
-                        PVERBOSE1("%p Processing saHpiSensorEventEnableGet.", thrdid);
-                
-                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &sensor_num ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiSensorEventEnableGet( session_id, resource_id,
-                                                        sensor_num, &enables );
-                
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &enables );
-                }
-                break;
-                
-                case eFsaHpiSensorEventEnableSet: {
-                        SaHpiSessionIdT  session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiSensorNumT  sensor_num;
-                        SaHpiBoolT       enables;
-                
-                        PVERBOSE1("%p Processing saHpiSensorEventEnableSet.", thrdid);
-                
-                        if ( HpiDemarshalRequest4( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &sensor_num, &enables ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiSensorEventEnableSet( session_id, resource_id,
-                                                        sensor_num, enables );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-                
-                case eFsaHpiSensorEventMasksGet: {
-                        SaHpiSessionIdT  session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiSensorNumT  sensor_num;
-                        SaHpiEventStateT assert_mask;
-                        SaHpiEventStateT deassert_mask;
-                
-                        PVERBOSE1("%p Processing saHpiSensorEventMasksGet.", thrdid);
-                
-                        if ( HpiDemarshalRequest5( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &sensor_num, &assert_mask,
-                                                        &deassert_mask ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiSensorEventMasksGet( session_id, resource_id, sensor_num,
-                                                        &assert_mask, &deassert_mask );
-                
-                        thrdinst->header.m_len = HpiMarshalReply2( hm, pReq, &ret, &assert_mask, &deassert_mask );
-                }
-                break;
-                
-                case eFsaHpiSensorEventMasksSet: {
-                        SaHpiSessionIdT             session_id;
-                        SaHpiResourceIdT            resource_id;
-                        SaHpiSensorNumT             sensor_num;
-                        SaHpiSensorEventMaskActionT action;
-                        SaHpiEventStateT            assert_mask;
-                        SaHpiEventStateT            deassert_mask;
-                
-                        PVERBOSE1("%p Processing saHpiSensorEventMasksSet.", thrdid);
-                
-                        if ( HpiDemarshalRequest6( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &sensor_num, &action, &assert_mask,
-                                                        &deassert_mask ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiSensorEventMasksSet( session_id, resource_id, sensor_num,
-                                                        action, assert_mask, deassert_mask );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-                
-                case eFsaHpiControlTypeGet: {
-                        SaHpiSessionIdT  session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiCtrlNumT    ctrl_num;
-                        SaHpiCtrlTypeT   type;
-                
-                        PVERBOSE1("%p Processing saHpiControlTypeGet.", thrdid);
-                
-                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &ctrl_num ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiControlTypeGet( session_id, resource_id, ctrl_num,
-                                                        &type );
-                
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &type );
-                }
-                break;
-                
-                case eFsaHpiControlGet: {
-                        SaHpiSessionIdT  session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiCtrlNumT    ctrl_num;
-                        SaHpiCtrlModeT   ctrl_mode;
-                        SaHpiCtrlStateT  ctrl_state;
-                
-                        PVERBOSE1("%p Processing saHpiControlGet.", thrdid);
-                
-                        if ( HpiDemarshalRequest4( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &ctrl_num, &ctrl_state ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiControlGet( session_id, resource_id, ctrl_num,
-                                                &ctrl_mode, &ctrl_state );
-                
-                        thrdinst->header.m_len = HpiMarshalReply2( hm, pReq, &ret, &ctrl_mode, &ctrl_state );
-                }
-                break;
-                
-                case eFsaHpiControlSet: {
-                        SaHpiSessionIdT  session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiCtrlNumT    ctrl_num;
-                        SaHpiCtrlModeT   ctrl_mode;
-                        SaHpiCtrlStateT  ctrl_state;
-                
-                        PVERBOSE1("%p Processing saHpiControlSet.", thrdid);
-                
-                        if ( HpiDemarshalRequest5( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &ctrl_num, &ctrl_mode, &ctrl_state ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiControlSet( session_id, resource_id,
-                                                ctrl_num, ctrl_mode, &ctrl_state );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-                
-                case eFsaHpiIdrInfoGet: {
-                        SaHpiSessionIdT  session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiIdrIdT      idr_id;
-                        SaHpiIdrInfoT    info;
-                
-                        PVERBOSE1("%p Processing saHpiIdrInfoGet.", thrdid);
-                
-                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &idr_id ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiIdrInfoGet( session_id, resource_id,
-                                                idr_id, &info );
-                
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &info );
-                }
-                break;
-                
-                case eFsaHpiIdrAreaHeaderGet: {
-                        SaHpiSessionIdT     session_id;
-                        SaHpiResourceIdT    resource_id;
-                        SaHpiIdrIdT         idr_id;
-                        SaHpiIdrAreaTypeT   area;
-                        SaHpiEntryIdT       area_id;
-                        SaHpiEntryIdT       next;
-                        SaHpiIdrAreaHeaderT header;
-                
-                        PVERBOSE1("%p Processing saHpiIdrAreaHeaderGet.", thrdid);
-                
-                        if ( HpiDemarshalRequest5( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &idr_id, &area, &area_id ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiIdrAreaHeaderGet( session_id, resource_id, idr_id,
-                                                        area, area_id, &next, &header );
-                
-                        thrdinst->header.m_len = HpiMarshalReply2( hm, pReq, &ret, &next, &header );
-                }
-                break;
-                
-                case eFsaHpiIdrAreaAdd: {
-                        SaHpiSessionIdT     session_id;
-                        SaHpiResourceIdT    resource_id;
-                        SaHpiIdrIdT         idr_id;
-                        SaHpiIdrAreaTypeT   area;
-                        SaHpiEntryIdT       area_id;
-                
-                        PVERBOSE1("%p Processing saHpiIdrAreaAdd.", thrdid);
-                
-                        if ( HpiDemarshalRequest4( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &idr_id, &area ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiIdrAreaAdd( session_id, resource_id, idr_id,
-                                                area, &area_id  );
-                
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &area_id );
-                }
-                break;
-
-                case eFsaHpiIdrAreaAddById: {
-                        SaHpiSessionIdT     session_id;
-                        SaHpiResourceIdT    resource_id;
-                        SaHpiIdrIdT         idr_id;
-                        SaHpiIdrAreaTypeT   area_type;
-                        SaHpiEntryIdT       area_id;
-                
-                        PVERBOSE1("%p Processing saHpiIdrAreaAddById.", thrdid);
-                
-                        if ( HpiDemarshalRequest5( thrdinst->remote_byte_order,
-                                                   hm, pReq,
-                                                   &session_id, &resource_id,
-                                                   &idr_id, &area_type, &area_id ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiIdrAreaAddById( session_id, resource_id, idr_id,
-                                                   area_type, area_id  );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-                
-                case eFsaHpiIdrAreaDelete: {
-                        SaHpiSessionIdT     session_id;
-                        SaHpiResourceIdT    resource_id;
-                        SaHpiIdrIdT         idr_id;
-                        SaHpiEntryIdT       area_id;
-                
-                        PVERBOSE1("%p Processing saHpiIdrAreaAdd.", thrdid);
-                
-                        if ( HpiDemarshalRequest4( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &idr_id, &area_id ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiIdrAreaDelete( session_id, resource_id, idr_id,
-                                                        area_id  );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-                
-                case eFsaHpiIdrFieldGet: {
-                        SaHpiSessionIdT    session_id;
-                        SaHpiResourceIdT   resource_id;
-                        SaHpiIdrIdT        idr_id;
-                        SaHpiEntryIdT      area_id;
-                        SaHpiIdrFieldTypeT type;
-                        SaHpiEntryIdT      field_id;
-                        SaHpiEntryIdT      next;
-                        SaHpiIdrFieldT     field;
-                
-                        PVERBOSE1("%p Processing saHpiIdrFieldGet.", thrdid);
-                
-                        if ( HpiDemarshalRequest6( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &idr_id, &area_id, &type, &field_id ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiIdrFieldGet( session_id, resource_id, idr_id, area_id,
-                                                type, field_id, &next, &field );
-                
-                        thrdinst->header.m_len = HpiMarshalReply2( hm, pReq, &ret, &next, &field );
-                }
-                break;
-                
-                case eFsaHpiIdrFieldAdd: {
-                        SaHpiSessionIdT    session_id;
-                        SaHpiResourceIdT   resource_id;
-                        SaHpiIdrIdT        idr_id;
-                        SaHpiIdrFieldT     field;
-                
-                        PVERBOSE1("%p Processing saHpiIdrFieldAdd.", thrdid);
-                
-                        if ( HpiDemarshalRequest4( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &idr_id, &field ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiIdrFieldAdd( session_id, resource_id, idr_id,
-                                                &field );
-                
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &field );
-                }
-                break;
-
-                case eFsaHpiIdrFieldAddById: {
-                        SaHpiSessionIdT    session_id;
-                        SaHpiResourceIdT   resource_id;
-                        SaHpiIdrIdT        idr_id;
-                        SaHpiIdrFieldT     field;
-                
-                        PVERBOSE1("%p Processing saHpiIdrFieldAddById.", thrdid);
-                
-                        if ( HpiDemarshalRequest4( thrdinst->remote_byte_order,
-                                                   hm, pReq,
-                                                   &session_id, &resource_id,
-                                                   &idr_id, &field ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiIdrFieldAddById( session_id, resource_id,
-                                                    idr_id, &field );
-                
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &field );
-                }
-                break;
-                
-                case eFsaHpiIdrFieldSet: {
-                        SaHpiSessionIdT    session_id;
-                        SaHpiResourceIdT   resource_id;
-                        SaHpiIdrIdT        idr_id;
-                        SaHpiIdrFieldT     field;
-                
-                        PVERBOSE1("%p Processing saHpiIdrFieldSet.", thrdid);
-                
-                        if ( HpiDemarshalRequest4( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &idr_id, &field ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiIdrFieldSet( session_id, resource_id, idr_id,
-                                                &field );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-                
-                case eFsaHpiIdrFieldDelete: {
-                        SaHpiSessionIdT  session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiIdrIdT      idr_id;
-                        SaHpiEntryIdT    area_id;
-                        SaHpiEntryIdT    field_id;
-                
-                        PVERBOSE1("%p Processing saHpiIdrFieldSet.", thrdid);
-                
-                        if ( HpiDemarshalRequest5( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &idr_id, &area_id, &field_id ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiIdrFieldDelete( session_id, resource_id, idr_id,
-                                                        area_id, field_id );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-                
-                case eFsaHpiWatchdogTimerGet: {
-                        SaHpiSessionIdT   session_id;
-                        SaHpiResourceIdT  resource_id;
-                        SaHpiWatchdogNumT watchdog_num;
-                        SaHpiWatchdogT    watchdog;
-                
-                        PVERBOSE1("%p Processing saHpiWatchdogTimerGet.", thrdid);
-                
-                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &watchdog_num ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiWatchdogTimerGet( session_id, resource_id,
-                                                        watchdog_num, &watchdog );
-                
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &watchdog );
-                }
-                break;
-                
-                case eFsaHpiWatchdogTimerSet: {
-                        SaHpiSessionIdT   session_id;
-                        SaHpiResourceIdT  resource_id;
-                        SaHpiWatchdogNumT watchdog_num;
-                        SaHpiWatchdogT    watchdog;
-                
-                        PVERBOSE1("%p Processing saHpiWatchdogTimerSet.", thrdid);
-                
-                        if ( HpiDemarshalRequest4( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &watchdog_num, &watchdog ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiWatchdogTimerSet( session_id, resource_id,
-                                                        watchdog_num, &watchdog );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-                
-                case eFsaHpiWatchdogTimerReset: {
-                        SaHpiSessionIdT   session_id;
-                        SaHpiResourceIdT  resource_id;
-                        SaHpiWatchdogNumT watchdog_num;
-                
-                        PVERBOSE1("%p Processing saHpiWatchdogTimerReset.", thrdid);
-                
-                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &watchdog_num ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiWatchdogTimerReset( session_id, resource_id,
-                                                        watchdog_num );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-                
-                case eFsaHpiAnnunciatorGetNext: {
-                        SaHpiSessionIdT      session_id;
-                        SaHpiResourceIdT     resource_id;
-                        SaHpiAnnunciatorNumT annun_num;
-                        SaHpiSeverityT       severity;
-                        SaHpiBoolT           unack;
-                        SaHpiAnnouncementT   announcement;
-                
-                        PVERBOSE1("%p Processing saHpiAnnunciatorGetNext.", thrdid);
-                
-                        if ( HpiDemarshalRequest6( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &annun_num, &severity, &unack,
-                                                        &announcement ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiAnnunciatorGetNext( session_id, resource_id, annun_num,
-                                                        severity, unack, &announcement );
-                
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &announcement );
-                }
-                break;
-                
-                case eFsaHpiAnnunciatorGet: {
-                        SaHpiSessionIdT      session_id;
-                        SaHpiResourceIdT     resource_id;
-                        SaHpiAnnunciatorNumT annun_num;
-                        SaHpiEntryIdT        entry_id;
-                        SaHpiAnnouncementT   announcement;
-                
-                        PVERBOSE1("%p Processing saHpiAnnunciatorGet.", thrdid);
-                
-                        if ( HpiDemarshalRequest4( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &annun_num, &entry_id ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiAnnunciatorGet( session_id, resource_id, annun_num,
-                                                        entry_id, &announcement );
-                
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &announcement );
-                }
-                break;
-                
-                case eFsaHpiAnnunciatorAcknowledge: {
-                        SaHpiSessionIdT      session_id;
-                        SaHpiResourceIdT     resource_id;
-                        SaHpiAnnunciatorNumT annun_num;
-                        SaHpiEntryIdT        entry_id;
-                        SaHpiSeverityT       severity;
-                
-                        PVERBOSE1("%p Processing saHpiAnnunciatorAcknowledge.", thrdid);
-                
-                        if ( HpiDemarshalRequest5( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &annun_num, &entry_id, &severity ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiAnnunciatorAcknowledge( session_id, resource_id, annun_num,
-                                                                entry_id, severity );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-                
-                case eFsaHpiAnnunciatorAdd: {
-                        SaHpiSessionIdT      session_id;
-                        SaHpiResourceIdT     resource_id;
-                        SaHpiAnnunciatorNumT annun_num;
-                        SaHpiAnnouncementT   announcement;
-                
-                        PVERBOSE1("%p Processing saHpiAnnunciatorAdd.", thrdid);
-                
-                        if ( HpiDemarshalRequest4( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &annun_num, &announcement ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiAnnunciatorAdd( session_id, resource_id, annun_num,
-                                                        &announcement );
-                
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &announcement );
-                }
-                break;
-                
-                case eFsaHpiAnnunciatorDelete: {
-                        SaHpiSessionIdT      session_id;
-                        SaHpiResourceIdT     resource_id;
-                        SaHpiAnnunciatorNumT annun_num;
-                        SaHpiEntryIdT        entry_id;
-                        SaHpiSeverityT       severity;
-                
-                        PVERBOSE1("%p Processing saHpiAnnunciatorAdd.", thrdid);
-                
-                        if ( HpiDemarshalRequest5( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &annun_num, &entry_id, &severity ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiAnnunciatorDelete( session_id, resource_id, annun_num,
-                                                        entry_id, severity );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-                
-                case eFsaHpiAnnunciatorModeGet: {
-                        SaHpiSessionIdT       session_id;
-                        SaHpiResourceIdT      resource_id;
-                        SaHpiAnnunciatorNumT  annun_num;
-                        SaHpiAnnunciatorModeT mode;
-                
-                        PVERBOSE1("%p Processing saHpiAnnunciatorModeGet.", thrdid);
-                
-                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &annun_num ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiAnnunciatorModeGet( session_id, resource_id, annun_num,
-                                                        &mode );
-                
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &mode );
-                }
-                break;
-                
-                case eFsaHpiAnnunciatorModeSet: {
-                        SaHpiSessionIdT       session_id;
-                        SaHpiResourceIdT      resource_id;
-                        SaHpiAnnunciatorNumT  annun_num;
-                        SaHpiAnnunciatorModeT mode;
-                
-                        PVERBOSE1("%p Processing saHpiAnnunciatorModeSet.", thrdid);
-                
-                        if ( HpiDemarshalRequest4( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &annun_num, &mode ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiAnnunciatorModeSet( session_id, resource_id, annun_num,
-                                                        mode );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-                
-                case eFsaHpiDimiInfoGet: {
-                        SaHpiSessionIdT       session_id;
-                        SaHpiResourceIdT      resource_id;
-                        SaHpiDimiNumT	      dimi_num;
-                        SaHpiDimiInfoT        info;
-                
-                        PVERBOSE1("%p Processing saHpiDimiInfoGet.", thrdid);
-                
-                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &dimi_num ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiDimiInfoGet( session_id, resource_id, dimi_num,
-                                                        &info );
-                
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &info );
-                }
-                break;
-
-                case eFsaHpiDimiTestInfoGet: {
-                        SaHpiSessionIdT       session_id;
-                        SaHpiResourceIdT      resource_id;
-                        SaHpiDimiNumT         dimi_num;
-                        SaHpiDimiTestNumT     test_num;
-                        SaHpiDimiTestT        test;
-                
-                        PVERBOSE1("%p Processing saHpiDimiTestInfoGet.", thrdid);
-                
-                        if (HpiDemarshalRequest4(thrdinst->remote_byte_order,
-                                                 hm, pReq,
-                                                 &session_id, &resource_id,
-                                                 &dimi_num, &test_num) < 0)
-                                return eResultError;
-                
-                        ret = saHpiDimiTestInfoGet(session_id, resource_id,
-                                                   dimi_num, test_num,
-                                                   &test);
-                
-                        thrdinst->header.m_len = HpiMarshalReply1(hm, pReq,
-                                                                  &ret, &test);
-                }
-                break;
-
-                case eFsaHpiDimiTestReadinessGet: {
-                        SaHpiSessionIdT       session_id;
-                        SaHpiResourceIdT      resource_id;
-                        SaHpiDimiNumT         dimi_num;
-                        SaHpiDimiTestNumT     test_num;
-                        SaHpiDimiReadyT       ready;
-                
-                        PVERBOSE1("%p Processing saHpiDimiTestReadinessGet.", thrdid);
-                
-                        if (HpiDemarshalRequest4(thrdinst->remote_byte_order,
-                                                 hm, pReq,
-                                                 &session_id, &resource_id,
-                                                 &dimi_num, &test_num) < 0)
-                                return eResultError;
-                
-                        ret = saHpiDimiTestReadinessGet(session_id, resource_id,
-                                                        dimi_num, test_num,
-                                                        &ready);
-                
-                        thrdinst->header.m_len = HpiMarshalReply1(hm, pReq,
-                                                                  &ret, &ready);
-                }
-                break;
-
-                case eFsaHpiDimiTestStart: {
-                        SaHpiSessionIdT       session_id;
-                        SaHpiResourceIdT      resource_id;
-                        SaHpiDimiNumT         dimi_num;
-                        SaHpiDimiTestNumT     test_num;
-                        SaHpiDimiTestVariableParamsListT params_list;
-                
-                        PVERBOSE1("%p Processing saHpiDimiTestStart.", thrdid);
-                
-                        if (HpiDemarshalRequest5(thrdinst->remote_byte_order,
-                                                 hm, pReq,
-                                                 &session_id, &resource_id,
-                                                 &dimi_num, &test_num,
-                                                 &params_list) < 0)
-                                return eResultError;
-                
-                        ret = saHpiDimiTestStart(session_id, resource_id,
-                                                 dimi_num, test_num,
-                                                 params_list.NumberOfParams,
-                                                 params_list.ParamsList);
-                
-                        g_free(params_list.ParamsList);
-                        thrdinst->header.m_len = HpiMarshalReply0(hm, pReq,
-                                                                  &ret);
-                }
-                break;
-
-                case eFsaHpiDimiTestCancel: {
-                        SaHpiSessionIdT       session_id;
-                        SaHpiResourceIdT      resource_id;
-                        SaHpiDimiNumT         dimi_num;
-                        SaHpiDimiTestNumT     test_num;
-                
-                        PVERBOSE1("%p Processing saHpiDimiTestCancel.", thrdid);
-                
-                        if (HpiDemarshalRequest4(thrdinst->remote_byte_order,
-                                                 hm, pReq,
-                                                 &session_id, &resource_id,
-                                                 &dimi_num, &test_num) < 0)
-                                return eResultError;
-                
-                        ret = saHpiDimiTestCancel(session_id, resource_id,
-                                                  dimi_num, test_num);
-                
-                        thrdinst->header.m_len = HpiMarshalReply0(hm, pReq,
-                                                                  &ret);
-                }
-                break;
-
-                case eFsaHpiDimiTestStatusGet: {
-                        SaHpiSessionIdT       session_id;
-                        SaHpiResourceIdT      resource_id;
-                        SaHpiDimiNumT         dimi_num;
-                        SaHpiDimiTestNumT     test_num;
-                        SaHpiDimiTestPercentCompletedT percent;
-                        SaHpiDimiTestRunStatusT status;
-                
-                        PVERBOSE1("%p Processing saHpiDimiTestStatusGet.", thrdid);
-                
-                        if (HpiDemarshalRequest4(thrdinst->remote_byte_order,
-                                                 hm, pReq,
-                                                 &session_id, &resource_id,
-                                                 &dimi_num, &test_num) < 0)
-                                return eResultError;
-                
-                        ret = saHpiDimiTestStatusGet(session_id, resource_id,
-                                                     dimi_num, test_num,
-                                                     &percent, &status);
-                
-                        thrdinst->header.m_len = HpiMarshalReply2(hm, pReq, &ret,
-                                                                  &percent,
-                                                                  &status);
-                }
-                break;
-
-                case eFsaHpiDimiTestResultsGet: {
-                        SaHpiSessionIdT       session_id;
-                        SaHpiResourceIdT      resource_id;
-                        SaHpiDimiNumT         dimi_num;
-                        SaHpiDimiTestNumT     test_num;
-                        SaHpiDimiTestResultsT results;
-                
-                        PVERBOSE1("%p Processing saHpiDimiTestResultsGet.", thrdid);
-                
-                        if (HpiDemarshalRequest4(thrdinst->remote_byte_order,
-                                                 hm, pReq,
-                                                 &session_id, &resource_id,
-                                                 &dimi_num, &test_num) < 0)
-                                return eResultError;
-                
-                        ret = saHpiDimiTestResultsGet(session_id, resource_id,
-                                                      dimi_num, test_num,
-                                                      &results);
-                
-                        thrdinst->header.m_len = HpiMarshalReply1(hm, pReq,
-                                                                  &ret, &results);
-                }
-                break;
-
-                case eFsaHpiFumiSpecInfoGet: {
-                        SaHpiSessionIdT session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiFumiNumT fumi_num;
-                        SaHpiFumiSpecInfoT spec_info;
-
-                        PVERBOSE1("%p Processing saHpiFumiSpecInfoGet.", thrdid);
-                        if (HpiDemarshalRequest3(thrdinst->remote_byte_order,
-                                        hm, pReq,
-                                        &session_id, &resource_id, &fumi_num) < 0)
-                                return eResultError;
-
-                        ret = saHpiFumiSpecInfoGet(session_id, resource_id,
-                                fumi_num, &spec_info );
-
-                        thrdinst->header.m_len = HpiMarshalReply1(hm, pReq, &ret, &spec_info);
-                }
-                break;
-
-                case eFsaHpiFumiServiceImpactGet: {
-                        SaHpiSessionIdT session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiFumiNumT fumi_num;
-                        SaHpiFumiServiceImpactDataT service_impact;
-
-                        PVERBOSE1("%p Processing saHpiFumiServiceImpactGet.", thrdid);
-                        if (HpiDemarshalRequest3(thrdinst->remote_byte_order,
-                                        hm, pReq,
-                                        &session_id, &resource_id, &fumi_num) < 0)
-                                return eResultError;
-
-                        ret = saHpiFumiServiceImpactGet(session_id, resource_id,
-                                fumi_num, &service_impact );
-
-                        thrdinst->header.m_len = HpiMarshalReply1(hm, pReq, &ret, &service_impact);
-                }
-                break;
-
-                case eFsaHpiFumiSourceSet: {
-                        SaHpiSessionIdT session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiFumiNumT fumi_num;
-			SaHpiBankNumT bank_num;
-			SaHpiTextBufferT source_uri;
-
-                        PVERBOSE1("%p Processing saHpiFumiSourceSet.", thrdid);
-                        if (HpiDemarshalRequest5(thrdinst->remote_byte_order,
-                                        hm, pReq,
-                                        &session_id, &resource_id,
-                                        &fumi_num, &bank_num, &source_uri) < 0)
-                                return eResultError;
-
-                        ret = saHpiFumiSourceSet(session_id, resource_id,
-                                fumi_num, bank_num, &source_uri);
-
-                        thrdinst->header.m_len = HpiMarshalReply0(hm, pReq, &ret);
-                }
-                break;
-
-                case eFsaHpiFumiSourceInfoValidateStart: {
-                        SaHpiSessionIdT session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiFumiNumT fumi_num;
-			SaHpiBankNumT bank_num;
-
-                        PVERBOSE1("%p Processing saHpiFumiSourceInfoValidateStart.", thrdid);
-                        if (HpiDemarshalRequest4(thrdinst->remote_byte_order,
-                                        hm, pReq,
-                                        &session_id, &resource_id,
-                                        &fumi_num, &bank_num) < 0)
-                                return eResultError;
-
-                        ret = saHpiFumiSourceInfoValidateStart(session_id, resource_id,
-                                fumi_num, bank_num);
-
-                        thrdinst->header.m_len = HpiMarshalReply0(hm, pReq, &ret);
-                }
-                break;
-
-                case eFsaHpiFumiSourceInfoGet: {
-                        SaHpiSessionIdT session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiFumiNumT fumi_num;
-			SaHpiBankNumT bank_num;
-			SaHpiFumiSourceInfoT source_info;
-
-                        PVERBOSE1("%p Processing saHpiFumiSourceInfoGet.", thrdid);
-                        if (HpiDemarshalRequest4(thrdinst->remote_byte_order,
-                                        hm, pReq,
-                                        &session_id, &resource_id,
-                                        &fumi_num, &bank_num) < 0)
-                                return eResultError;
-
-                        ret = saHpiFumiSourceInfoGet(session_id, resource_id,
-                                fumi_num, bank_num, &source_info);
-
-                        thrdinst->header.m_len = HpiMarshalReply1(hm, pReq, &ret,
-				&source_info);
-                }
-                break;
-
-                case eFsaHpiFumiSourceComponentInfoGet: {
-                        SaHpiSessionIdT session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiFumiNumT fumi_num;
-                        SaHpiBankNumT bank_num;
-                        SaHpiEntryIdT entry_id;
-                        SaHpiEntryIdT next_entry_id = 0;
-                        SaHpiFumiComponentInfoT component_info;
-
-                        PVERBOSE1("%p Processing saHpiFumiSourceComponentInfoGet.", thrdid);
-                        if (HpiDemarshalRequest5(thrdinst->remote_byte_order,
-                                        hm, pReq,
-                                        &session_id, &resource_id,
-                                        &fumi_num, &bank_num,
-                                        &entry_id ) < 0)
-                                return eResultError;
-
-                        ret = saHpiFumiSourceComponentInfoGet(session_id, resource_id,
-                                fumi_num, bank_num, entry_id, &next_entry_id,
-                                &component_info );
-
-                        thrdinst->header.m_len = HpiMarshalReply2(hm, pReq, &ret,
-                            &next_entry_id, &component_info);
-                }
-                break;
-
-                case eFsaHpiFumiTargetInfoGet: {
-                        SaHpiSessionIdT session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiFumiNumT fumi_num;
-			SaHpiBankNumT bank_num;
-			SaHpiFumiBankInfoT bank_info;
-
-                        PVERBOSE1("%p Processing saHpiFumiTargetInfoGet.", thrdid);
-                        if (HpiDemarshalRequest4(thrdinst->remote_byte_order,
-                                        hm, pReq,
-                                        &session_id, &resource_id,
-                                        &fumi_num, &bank_num) < 0)
-                                return eResultError;
-
-                        ret = saHpiFumiTargetInfoGet(session_id, resource_id,
-                                fumi_num, bank_num, &bank_info);
-
-                        thrdinst->header.m_len = HpiMarshalReply1(hm, pReq, &ret,
-				&bank_info);
-                }
-                break;
-
-                case eFsaHpiFumiTargetComponentInfoGet: {
-                        SaHpiSessionIdT session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiFumiNumT fumi_num;
-                        SaHpiBankNumT bank_num;
-                        SaHpiEntryIdT entry_id;
-                        SaHpiEntryIdT next_entry_id = 0;
-                        SaHpiFumiComponentInfoT component_info;
-
-                        PVERBOSE1("%p Processing saHpiFumiTargetComponentInfoGet.", thrdid);
-                        if (HpiDemarshalRequest5(thrdinst->remote_byte_order,
-                                        hm, pReq,
-                                        &session_id, &resource_id,
-                                        &fumi_num, &bank_num,
-                                        &entry_id ) < 0)
-                                return eResultError;
-
-                        ret = saHpiFumiTargetComponentInfoGet(session_id, resource_id,
-                                fumi_num, bank_num, entry_id, &next_entry_id,
-                                &component_info );
-
-                        thrdinst->header.m_len = HpiMarshalReply2(hm, pReq, &ret,
-                            &next_entry_id, &component_info);
-                }
-                break;
-
-                case eFsaHpiFumiLogicalTargetInfoGet: {
-                        SaHpiSessionIdT session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiFumiNumT fumi_num;
-                        SaHpiFumiLogicalBankInfoT bank_info;
-
-                        PVERBOSE1("%p Processing saHpiFumiLogicalTargetInfoGet.", thrdid);
-                        if (HpiDemarshalRequest3(thrdinst->remote_byte_order,
-                                        hm, pReq,
-                                        &session_id, &resource_id,
-                                        &fumi_num) < 0)
-                                return eResultError;
-
-                        ret = saHpiFumiLogicalTargetInfoGet(session_id, resource_id,
-                                fumi_num, &bank_info);
-
-                        thrdinst->header.m_len = HpiMarshalReply1(hm, pReq, &ret,
-                            &bank_info);
-                }
-                break;
-
-                case eFsaHpiFumiLogicalTargetComponentInfoGet: {
-                        SaHpiSessionIdT session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiFumiNumT fumi_num;
-                        SaHpiEntryIdT entry_id;
-                        SaHpiEntryIdT next_entry_id = 0;
-                        SaHpiFumiLogicalComponentInfoT component_info;
-
-                        PVERBOSE1("%p Processing saHpiFumiLogicalTargetComponentInfoGet.", thrdid);
-                        if (HpiDemarshalRequest4(thrdinst->remote_byte_order,
-                                        hm, pReq,
-                                        &session_id, &resource_id,
-                                        &fumi_num, &entry_id ) < 0)
-                                return eResultError;
-
-                        ret = saHpiFumiLogicalTargetComponentInfoGet(session_id, resource_id,
-                                fumi_num, entry_id, &next_entry_id,
-                                &component_info );
-
-                        thrdinst->header.m_len = HpiMarshalReply2(hm, pReq, &ret,
-                            &next_entry_id, &component_info);
-                }
-                break;
-
-                case eFsaHpiFumiBackupStart: {
-                        SaHpiSessionIdT session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiFumiNumT fumi_num;
-
-                        PVERBOSE1("%p Processing saHpiFumiBackupStart.", thrdid);
-                        if (HpiDemarshalRequest3(thrdinst->remote_byte_order,
-                                        hm, pReq,
-                                        &session_id, &resource_id,
-                                        &fumi_num) < 0)
-                                return eResultError;
-
-                        ret = saHpiFumiBackupStart(session_id, resource_id,
-                                fumi_num);
-
-                        thrdinst->header.m_len = HpiMarshalReply0(hm, pReq, &ret);
-                }
-                break;
-
-                case eFsaHpiFumiBankBootOrderSet: {
-                        SaHpiSessionIdT session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiFumiNumT fumi_num;
-			SaHpiBankNumT bank_num;
-			SaHpiUint32T position;
-
-                        PVERBOSE1("%p Processing saHpiFumiBankBootOrderSet.", thrdid);
-                        if (HpiDemarshalRequest5(thrdinst->remote_byte_order,
-                                        hm, pReq,
-                                        &session_id, &resource_id,
-                                        &fumi_num, &bank_num, &position) < 0)
-                                return eResultError;
-
-                        ret = saHpiFumiBankBootOrderSet(session_id, resource_id,
-                                fumi_num, bank_num, position);
-
-                        thrdinst->header.m_len = HpiMarshalReply0(hm, pReq, &ret);
-                }
-                break;
-
-                case eFsaHpiFumiBankCopyStart: {
-                        SaHpiSessionIdT session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiFumiNumT fumi_num;
-			SaHpiBankNumT source_bank;
-			SaHpiBankNumT target_bank;
-
-                        PVERBOSE1("%p Processing saHpiFumiBankCopyStart.", thrdid);
-                        if (HpiDemarshalRequest5(thrdinst->remote_byte_order,
-                                        hm, pReq,
-                                        &session_id, &resource_id,
-                                        &fumi_num, &source_bank, &target_bank) < 0)
-                                return eResultError;
-
-                        ret = saHpiFumiBankCopyStart(session_id, resource_id,
-                                fumi_num, source_bank, target_bank);
-
-                        thrdinst->header.m_len = HpiMarshalReply0(hm, pReq, &ret);
-                }
-                break;
-
-                case eFsaHpiFumiInstallStart: {
-                        SaHpiSessionIdT session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiFumiNumT fumi_num;
-			SaHpiBankNumT bank_num;
-
-                        PVERBOSE1("%p Processing saHpiFumiInstallStart.", thrdid);
-                        if (HpiDemarshalRequest4(thrdinst->remote_byte_order,
-                                        hm, pReq,
-                                        &session_id, &resource_id,
-                                        &fumi_num, &bank_num) < 0)
-                                return eResultError;
-
-                        ret = saHpiFumiInstallStart(session_id, resource_id,
-                                fumi_num, bank_num);
-
-                        thrdinst->header.m_len = HpiMarshalReply0(hm, pReq, &ret);
-                }
-                break;
-
-                case eFsaHpiFumiUpgradeStatusGet: {
-                        SaHpiSessionIdT session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiFumiNumT fumi_num;
-			SaHpiBankNumT bank_num;
-			SaHpiFumiUpgradeStatusT status;
-
-                        PVERBOSE1("%p Processing saHpiFumiUpgradeStatusGet.", thrdid);
-                        if (HpiDemarshalRequest4(thrdinst->remote_byte_order,
-                                        hm, pReq,
-                                        &session_id, &resource_id,
-                                        &fumi_num, &bank_num) < 0)
-                                return eResultError;
-
-                        ret = saHpiFumiUpgradeStatusGet(session_id, resource_id,
-                                fumi_num, bank_num, &status);
-
-                        thrdinst->header.m_len = HpiMarshalReply1(hm, pReq, &ret,
-				&status);
-                }
-                break;
-
-                case eFsaHpiFumiTargetVerifyStart: {
-                        SaHpiSessionIdT session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiFumiNumT fumi_num;
-			SaHpiBankNumT bank_num;
-
-                        PVERBOSE1("%p Processing saHpiFumiTargetVerifyStart.", thrdid);
-                        if (HpiDemarshalRequest4(thrdinst->remote_byte_order,
-                                        hm, pReq,
-                                        &session_id, &resource_id,
-                                        &fumi_num, &bank_num) < 0)
-                                return eResultError;
-
-                        ret = saHpiFumiTargetVerifyStart(session_id, resource_id,
-                                fumi_num, bank_num);
-
-                        thrdinst->header.m_len = HpiMarshalReply0(hm, pReq, &ret);
-                }
-                break;
-
-                case eFsaHpiFumiTargetVerifyMainStart: {
-                        SaHpiSessionIdT session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiFumiNumT fumi_num;
-
-                        PVERBOSE1("%p Processing saHpiFumiTargetVerifyMainStart.", thrdid);
-                        if (HpiDemarshalRequest3(thrdinst->remote_byte_order,
-                                        hm, pReq,
-                                        &session_id, &resource_id,
-                                        &fumi_num) < 0)
-                                return eResultError;
-
-                        ret = saHpiFumiTargetVerifyMainStart(session_id, resource_id,
-                                fumi_num);
-
-                        thrdinst->header.m_len = HpiMarshalReply0(hm, pReq, &ret);
-                }
-                break;
-
-                case eFsaHpiFumiUpgradeCancel: {
-                        SaHpiSessionIdT session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiFumiNumT fumi_num;
-			SaHpiBankNumT bank_num;
-
-                        PVERBOSE1("%p Processing saHpiFumiUpgradeCancel.", thrdid);
-                        if (HpiDemarshalRequest4(thrdinst->remote_byte_order,
-                                        hm, pReq,
-                                        &session_id, &resource_id,
-                                        &fumi_num, &bank_num) < 0)
-                                return eResultError;
-
-                        ret = saHpiFumiUpgradeCancel(session_id, resource_id,
-                                fumi_num, bank_num);
-
-                        thrdinst->header.m_len = HpiMarshalReply0(hm, pReq, &ret);
-                }
-                break;
-
-                case eFsaHpiFumiAutoRollbackDisableGet: {
-                        SaHpiSessionIdT session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiFumiNumT fumi_num;
-                        SaHpiBoolT disable = SAHPI_FALSE;
-
-                        PVERBOSE1("%p Processing saHpiFumiAutoRollbackDisableGet.", thrdid);
-                        if (HpiDemarshalRequest3(thrdinst->remote_byte_order,
-                                        hm, pReq,
-                                        &session_id, &resource_id,
-                                        &fumi_num) < 0)
-                                return eResultError;
-
-                        ret = saHpiFumiAutoRollbackDisableGet(session_id, resource_id,
-                                fumi_num, &disable);
-
-                        thrdinst->header.m_len = HpiMarshalReply1(hm, pReq, &ret,
-                            &disable);
-                }
-                break;
-
-                case eFsaHpiFumiAutoRollbackDisableSet: {
-                        SaHpiSessionIdT session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiFumiNumT fumi_num;
-                        SaHpiBoolT disable;
-
-                        PVERBOSE1("%p Processing saHpiFumiAutoRollbackDisableSet.", thrdid);
-                        if (HpiDemarshalRequest4(thrdinst->remote_byte_order,
-                                        hm, pReq,
-                                        &session_id, &resource_id,
-                                        &fumi_num, &disable) < 0)
-                                return eResultError;
-
-                        ret = saHpiFumiAutoRollbackDisableSet(session_id, resource_id,
-                                fumi_num, disable);
-
-                        thrdinst->header.m_len = HpiMarshalReply0(hm, pReq, &ret );
-                }
-                break;
-
-                case eFsaHpiFumiRollbackStart: {
-                        SaHpiSessionIdT session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiFumiNumT fumi_num;
-
-                        PVERBOSE1("%p Processing saHpiFumiRollbackStart.", thrdid);
-                        if (HpiDemarshalRequest3(thrdinst->remote_byte_order,
-                                        hm, pReq,
-                                        &session_id, &resource_id,
-                                        &fumi_num) < 0)
-                                return eResultError;
-
-                        ret = saHpiFumiRollbackStart(session_id, resource_id,
-                                fumi_num);
-
-                        thrdinst->header.m_len = HpiMarshalReply0(hm, pReq, &ret);
-                }
-                break;
-
-                case eFsaHpiFumiActivate: {
-                        SaHpiSessionIdT session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiFumiNumT fumi_num;
-
-                        PVERBOSE1("%p Processing saHpiFumiActivate.", thrdid);
-                        if (HpiDemarshalRequest3(thrdinst->remote_byte_order,
-                                        hm, pReq,
-                                        &session_id, &resource_id,
-                                        &fumi_num) < 0)
-                                return eResultError;
-
-                        ret = saHpiFumiActivate(session_id, resource_id,
-                                fumi_num);
-
-                        thrdinst->header.m_len = HpiMarshalReply0(hm, pReq, &ret);
-                }
-                break;
-
-                case eFsaHpiFumiActivateStart: {
-                        SaHpiSessionIdT session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiFumiNumT fumi_num;
-                        SaHpiBoolT logical;
-
-                        PVERBOSE1("%p Processing saHpiFumiActivateStart.", thrdid);
-                        if (HpiDemarshalRequest4(thrdinst->remote_byte_order,
-                                        hm, pReq,
-                                        &session_id, &resource_id,
-                                        &fumi_num, &logical) < 0)
-                                return eResultError;
-
-                        ret = saHpiFumiActivateStart(session_id, resource_id,
-                                fumi_num, logical);
-
-                        thrdinst->header.m_len = HpiMarshalReply0(hm, pReq, &ret);
-                }
-                break;
-
-                case eFsaHpiFumiCleanup: {
-                        SaHpiSessionIdT session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiFumiNumT fumi_num;
-                        SaHpiBankNumT bank_num;
-
-                        PVERBOSE1("%p Processing saHpiFumiCleanup.", thrdid);
-                        if (HpiDemarshalRequest4(thrdinst->remote_byte_order,
-                                        hm, pReq,
-                                        &session_id, &resource_id,
-                                        &fumi_num, &bank_num) < 0)
-                                return eResultError;
-
-                        ret = saHpiFumiCleanup(session_id, resource_id,
-                                fumi_num, bank_num);
-
-                        thrdinst->header.m_len = HpiMarshalReply0(hm, pReq, &ret);
-                }
-                break;
-                
-                case eFsaHpiHotSwapPolicyCancel: {
-                        SaHpiSessionIdT  session_id;
-                        SaHpiResourceIdT resource_id;
-                
-                        PVERBOSE1("%p Processing saHpiHotSwapPolicyCancel.", thrdid);
-                
-                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiHotSwapPolicyCancel( session_id, resource_id );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-                
-                case eFsaHpiResourceActiveSet: {
-                        SaHpiSessionIdT  session_id;
-                        SaHpiResourceIdT resource_id;
-                
-                        PVERBOSE1("%p Processing saHpiResourceActiveSet.", thrdid);
-                
-                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiResourceActiveSet( session_id, resource_id );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-                
-                case eFsaHpiResourceInactiveSet: {
-                        SaHpiSessionIdT  session_id;
-                        SaHpiResourceIdT resource_id;
-                
-                        PVERBOSE1("%p Processing saHpiResourceInactiveSet.", thrdid);
-                
-                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiResourceInactiveSet( session_id, resource_id );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-                
-                case eFsaHpiAutoInsertTimeoutGet: {
-                        SaHpiSessionIdT session_id;
-                        SaHpiTimeoutT   timeout;
-                
-                        PVERBOSE1("%p Processing saHpiAutoInsertTimeoutGet.", thrdid);
-                
-                        if ( HpiDemarshalRequest1( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiAutoInsertTimeoutGet( session_id, &timeout );
-                
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &timeout );
-                }
-                break;
-                
-                case eFsaHpiAutoInsertTimeoutSet: {
-                        SaHpiSessionIdT session_id;
-                        SaHpiTimeoutT   timeout;
-                
-                        PVERBOSE1("%p Processing saHpiAutoInsertTimeoutSet.", thrdid);
-                
-                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &timeout ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiAutoInsertTimeoutSet( session_id, timeout );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-                
-                case eFsaHpiAutoExtractTimeoutGet: {
-                        SaHpiSessionIdT  session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiTimeoutT    timeout;
-                
-                        PVERBOSE1("%p Processing saHpiAutoExtractTimeoutGet.", thrdid);
-                
-                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiAutoExtractTimeoutGet( session_id, resource_id, &timeout );
-                
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &timeout );
-                }
-                break;
-                
-                case eFsaHpiAutoExtractTimeoutSet: {
-                        SaHpiSessionIdT  session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiTimeoutT    timeout;
-                
-                        PVERBOSE1("%p Processing saHpiAutoExtractTimeoutSet.", thrdid);
-                
-                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &timeout ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiAutoExtractTimeoutSet( session_id, resource_id, timeout );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-                
-                case eFsaHpiHotSwapStateGet: {
-                        SaHpiSessionIdT  session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiHsStateT    state;
-                
-                        PVERBOSE1("%p Processing saHpiHotSwapStateGet.", thrdid);
-                
-                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiHotSwapStateGet( session_id, resource_id, &state );
-                
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &state );
-                }
-                break;
-                
-                case eFsaHpiHotSwapActionRequest: {
-                        SaHpiSessionIdT  session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiHsActionT   action;
-                
-                        PVERBOSE1("%p Processing saHpiHotSwapActionRequest.", thrdid);
-                
-                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &action ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiHotSwapActionRequest( session_id, resource_id, action );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-                
-                case eFsaHpiHotSwapIndicatorStateGet: {
-                        SaHpiSessionIdT        session_id;
-                        SaHpiResourceIdT       resource_id;
-                        SaHpiHsIndicatorStateT state;
-                
-                        PVERBOSE1("%p Processing saHpiHotSwapIndicatorStateGet.", thrdid);
-                
-                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiHotSwapIndicatorStateGet( session_id, resource_id, &state );
-                
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &state );
-                }
-                break;
-                
-                case eFsaHpiHotSwapIndicatorStateSet: {
-                        SaHpiSessionIdT        session_id;
-                        SaHpiResourceIdT       resource_id;
-                        SaHpiHsIndicatorStateT state;
-                
-                        PVERBOSE1("%p Processing saHpiHotSwapIndicatorStateSet.", thrdid);
-                
-                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &state ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiHotSwapIndicatorStateSet( session_id, resource_id, state );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-                
-                case eFsaHpiParmControl: {
-                        SaHpiSessionIdT  session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiParmActionT action;
-                
-                        PVERBOSE1("%p Processing saHpiParmControl.", thrdid);
-                
-                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &action ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiParmControl( session_id, resource_id, action );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-
-                case eFsaHpiResourceLoadIdGet: {
-                        SaHpiSessionIdT  session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiLoadIdT load_id;
-                
-                        PVERBOSE1("%p Processing saHpiResourceLoadIdGet.", thrdid);
-                
-                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
-                                                   hm, pReq, &session_id,
-                                                   &resource_id ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiResourceLoadIdGet( session_id, resource_id, &load_id );
-                
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &load_id );
-                }
-                break;
-
-                case eFsaHpiResourceLoadIdSet: {
-                        SaHpiSessionIdT  session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiLoadIdT load_id;
-                
-                        PVERBOSE1("%p Processing saHpiResourceLoadIdSet.", thrdid);
-                
-                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
-                                                   hm, pReq, &session_id,
-                                                   &resource_id, &load_id ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiResourceLoadIdSet( session_id, resource_id, &load_id );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-                
-                case eFsaHpiResourceResetStateGet: {
-                        SaHpiSessionIdT   session_id;
-                        SaHpiResourceIdT  resource_id;
-                        SaHpiResetActionT action;
-                
-                        PVERBOSE1("%p Processing saHpiResourceResetStateGet.", thrdid);
-                
-                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiResourceResetStateGet( session_id, resource_id, &action );
-                
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &action );
-                }
-                break;
-                
-                case eFsaHpiResourceResetStateSet: {
-                        SaHpiSessionIdT   session_id;
-                        SaHpiResourceIdT  resource_id;
-                        SaHpiResetActionT action;
-                
-                        PVERBOSE1("%p Processing saHpiResourceResetStateSet.", thrdid);
-                
-                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &action ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiResourceResetStateSet( session_id, resource_id, action );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-                
-                case eFsaHpiResourcePowerStateGet:
-                        {
-                        SaHpiSessionIdT  session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiPowerStateT state;
-                
-                        PVERBOSE1("%p Processing saHpiResourcePowerStateGet.", thrdid);
-                
-                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiResourcePowerStateGet( session_id, resource_id, &state );
-                
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &state );
-                }
-                break;
-                
-                case eFsaHpiResourcePowerStateSet: {
-                        SaHpiSessionIdT  session_id;
-                        SaHpiResourceIdT resource_id;
-                        SaHpiPowerStateT state;
-                
-                        PVERBOSE1("%p Processing saHpiResourcePowerStateGet.", thrdid);
-                
-                        if ( HpiDemarshalRequest3( thrdinst->remote_byte_order,
-                                                        hm, pReq, &session_id, &resource_id,
-                                                        &state  ) < 0 )
-                                return eResultError;
-                
-                        ret = saHpiResourcePowerStateSet( session_id, resource_id, state );
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-
-                case eFoHpiHandlerCreate: {
-                        SaHpiSessionIdT  session_id;
-                        oHpiHandlerIdT id;
-                        oHpiHandlerConfigT config;
-                        GHashTable *config_table = g_hash_table_new_full(
-                        	g_str_hash, g_str_equal,
-                        	g_free, g_free
-                        );
-
-                        PVERBOSE1("%p Processing oHpiHandlerCreate.", thrdid);
-                
-                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
-                                       hm, pReq, &session_id, &config ) < 0 )
-                                return eResultError;
-                
-                        for (int n = 0; n < config.NumberOfParams; n++) {
-                        	g_hash_table_insert(config_table,
-                                       g_strdup((const gchar *)config.Params[n].Name),
-                                       g_strdup((const gchar *)config.Params[n].Value));
-                        }
-                        g_free(config.Params);
-
-                        ret = oHpiHandlerCreate(session_id, config_table, &id);
-                        g_hash_table_destroy(config_table);
-                
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &id );
-                }
-                break;
-                
-                case eFoHpiHandlerDestroy: {
-                        SaHpiSessionIdT  session_id;
-                        oHpiHandlerIdT id;
-                
-                        PVERBOSE1("%p Processing oHpiHandlerDestroy.", thrdid);
-                
-                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
-                                       hm, pReq, &session_id, &id ) < 0 )
-                                return eResultError;
-                
-                        ret = oHpiHandlerDestroy(session_id, id);
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-                
-                case eFoHpiHandlerInfo: {
-                        SaHpiSessionIdT  session_id;
-                        oHpiHandlerIdT id;
-                        oHpiHandlerInfoT info;
-                        oHpiHandlerConfigT config;
-                        GHashTable *config_table = 0;
-
-                        PVERBOSE1("%p Processing oHpiHandlerInfo.", thrdid);
-                
-                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
-                                       hm, pReq, &session_id, &id ) < 0 )
-                                return eResultError;
-                
-                        config_table = g_hash_table_new_full(
-                               g_str_hash, g_str_equal,
-                               g_free, g_free );
-                
-                        ret = oHpiHandlerInfo(session_id, id, &info, config_table);
-               
-                        config.NumberOfParams = 0;
-                        config.Params = (oHpiHandlerConfigParamT *)
-                                        g_malloc0(sizeof(oHpiHandlerConfigParamT)
-                                        *g_hash_table_size(config_table));
-                        // add each hash table entry to the marshable handler_config
-                        g_hash_table_foreach(config_table, 
-                                             __dehash_handler_config, 
-                                             &config);
-
-                        thrdinst->header.m_len = HpiMarshalReply2( hm, pReq, 
-                                                      &ret, &info, &config );
-                        // cleanup
-                        g_hash_table_destroy(config_table);
-                }
-                break;
-                
-                case eFoHpiHandlerGetNext: {
-                        SaHpiSessionIdT  session_id;
-                        oHpiHandlerIdT id, next_id;
-                
-                        PVERBOSE1("%p Processing oHpiHandlerGetNext.", thrdid);
-                
-                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
-                                       hm, pReq, &session_id, &id ) < 0 )
-                                return eResultError;
-                
-                        ret = oHpiHandlerGetNext(session_id, id, &next_id);
-                
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, 
-                                                       pReq, &ret, &next_id );
-                }
-                break;
-
-		case eFoHpiHandlerFind: {
-                        SaHpiSessionIdT session_id;
-			SaHpiResourceIdT rid;
-			oHpiHandlerIdT hid;
-                
-                        PVERBOSE1("%p Processing oHpiHandlerFind.", thrdid);
-                
-                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
-						   hm, pReq, &session_id, &rid ) < 0 )
-                                return eResultError;
-                
-                        ret = oHpiHandlerFind(session_id, rid, &hid);
-                
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, 
-                                                       pReq, &ret, &hid );
-                }
-                break;
-
-		case eFoHpiHandlerRetry: {
-                        SaHpiSessionIdT  session_id;
-			oHpiHandlerIdT hid;
-                
-                        PVERBOSE1("%p Processing oHpiHandlerRetry.", thrdid);
-                
-                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
-                                       hm, pReq, &session_id, &hid ) < 0 )
-                                return eResultError;
-                
-                        ret = oHpiHandlerRetry(session_id, hid);
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-                
-                case eFoHpiGlobalParamGet: {
-                        SaHpiSessionIdT  session_id;
-                        oHpiGlobalParamT param;
-                
-                        PVERBOSE1("%p Processing oHpiGlobalParamGet.", thrdid);
-                
-                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
-                                       hm, pReq, &session_id, &param ) < 0 )
-                                return eResultError;
-                
-                        ret = oHpiGlobalParamGet(session_id, &param);
-                
-                        thrdinst->header.m_len = HpiMarshalReply1( hm, 
-                                                       pReq, &ret, &param );
-                }
-                break;
-                
-                case eFoHpiGlobalParamSet: {
-                        SaHpiSessionIdT  session_id;
-                        oHpiGlobalParamT param;
-                
-                        PVERBOSE1("%p Processing oHpiGlobalParamSet.", thrdid);
-                
-                        if ( HpiDemarshalRequest2( thrdinst->remote_byte_order,
-                                       hm, pReq, &session_id, &param ) < 0 )
-                                return eResultError;
-                
-                        ret = oHpiGlobalParamSet(session_id, &param);
-                
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-
-                case eFoHpiInjectEvent: {
-                        SaHpiSessionIdT  session_id;
-                        oHpiHandlerIdT  id = 0;
-                        SaHpiEventT     event;
-                        SaHpiRptEntryT  rpte;
-                        SaHpiRdrT       rdr;
-
-                        memset(&event, 0, sizeof(SaHpiEventT));
-                        memset(&rpte,  0, sizeof(SaHpiRptEntryT));
-                        memset(&rdr,   0, sizeof(SaHpiRdrT));
-
-                
-                        PVERBOSE1("%p Processing oHpiInjectEvent.\n", thrdid);
-                
-                        if ( HpiDemarshalRequest5( thrdinst->remote_byte_order,
-                                                   hm, 
-                                                   pReq, 
-                                                   &session_id, 
-                                                   &id, 
-                                                   &event,
-                                                   &rpte, 
-                                                   &rdr ) < 0 )
-                                return eResultError;
-
-
-                        ret = oHpiInjectEvent(session_id, id, &event, &rpte, &rdr);
-
-                        thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
-                }
-                break;
-                
-                default:
-                        PVERBOSE2("%p Function not found", thrdid);
-                        return eResultError;
-       }
-
-       // send the reply
-       bool wrt_result = thrdinst->WriteMsg(pReq);
-       if (wrt_result) {
-               PVERBOSE2("%p Socket write failed.", thrdid);
-               return eResultError;
-       }
-
-       PVERBOSE1("%p Return code = %d", thrdid, ret);
-
-       return result;
+    explicit Params(void * p0 = 0, void * p1 = 0, void * p2 = 0,
+                    void * p3 = 0, void * p4 = 0, void * p5 = 0)
+    {
+        array[0] = p0;
+        array[1] = p1;
+        array[2] = p2;
+        array[3] = p3;
+        array[4] = p4;
+        array[5] = p5;
+    }
+
+    union {
+        void * array[6];
+        const void * const_array[6];
+    };
+};
+
+#define Demarshal_Rq(rq_byte_order, hm, data, iparams) \
+{ \
+    int mr = HpiDemarshalRequest(rq_byte_order, hm, data, iparams.array); \
+    if (mr < 0) { \
+        return SA_ERR_HPI_INVALID_PARAMS; \
+    } \
 }
+
+#define Marshal_Rp(hm, data, data_len, oparams) \
+{ \
+    int mr = HpiMarshalReply(hm, data, oparams.const_array); \
+    if (mr < 0) { \
+        return SA_ERR_HPI_INTERNAL_ERROR; \
+    } \
+    data_len = (uint32_t)mr; \
+}
+
+
+/*--------------------------------------------------------------------*/
+/* Function: ProcessMsg                                                */
+/*--------------------------------------------------------------------*/
+
+static SaErrorT ProcessMsg(cHpiMarshal * hm,
+                           int rq_byte_order,
+                           char * data,
+                           uint32_t& data_len,
+                           SaHpiSessionIdT& changed_sid)
+{
+    gpointer thrdid = g_thread_self();
+
+    PVERBOSE1("%p Processing RPC request %d.\n", thrdid, hm->m_id);
+
+    changed_sid = 0;
+
+    // These vars are used in many places
+    SaErrorT             rv;
+    SaHpiSessionIdT      sid;
+    SaHpiResourceIdT     rid;
+    SaHpiSensorNumT      snum;
+    SaHpiCtrlNumT        cnum;
+    SaHpiIdrIdT          iid;
+    SaHpiWatchdogNumT    wnum;
+    SaHpiAnnunciatorNumT anum;
+    SaHpiDimiNumT        dnum;
+    SaHpiFumiNumT        fnum;
+    SaHpiRdrT            rdr;
+    SaHpiRptEntryT       rpte;
+
+    switch(hm->m_id) {
+        case eFsaHpiSessionOpen: {
+            SaHpiDomainIdT  did;
+            void            *security = 0;
+
+            Params iparams(&did);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiSessionOpen(OH_DEFAULT_DOMAIN_ID, &sid, security);
+            if (rv == SA_OK) {
+                changed_sid = sid;
+            }
+
+            Params oparams(&rv, &sid);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiSessionClose: {
+
+            Params iparams(&sid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiSessionClose(sid);
+            if (rv == SA_OK) {
+                changed_sid = sid;
+            }
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiDiscover: {
+
+            Params iparams(&sid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiDiscover(sid);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiDomainInfoGet: {
+            SaHpiDomainInfoT info;
+
+            Params iparams(&sid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiDomainInfoGet(sid, &info);
+
+            Params oparams(&rv, &info);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiDrtEntryGet: {
+            SaHpiEntryIdT   eid;
+            SaHpiEntryIdT   next_eid;
+            SaHpiDrtEntryT  drte;
+
+            Params iparams(&sid, &eid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiDrtEntryGet(sid, eid, &next_eid, &drte);
+
+            Params oparams(&rv, &next_eid, &drte);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiDomainTagSet: {
+            SaHpiTextBufferT tag;
+
+            Params iparams(&sid, &tag);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiDomainTagSet(sid, &tag);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiRptEntryGet: {
+            SaHpiEntryIdT   eid;
+            SaHpiEntryIdT   next_eid;
+
+            Params iparams(&sid, &eid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiRptEntryGet(sid, eid, &next_eid, &rpte);
+
+            Params oparams(&rv, &next_eid, &rpte);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiRptEntryGetByResourceId: {
+
+            Params iparams(&sid, &rid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiRptEntryGetByResourceId(sid, rid, &rpte);
+
+            Params oparams(&rv, &rpte);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiResourceSeveritySet: {
+            SaHpiSeverityT   sev;
+
+            Params iparams(&sid, &rid, &sev);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiResourceSeveritySet(sid, rid, sev);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiResourceTagSet: {
+            SaHpiTextBufferT tag;
+
+            Params iparams(&sid, &rid, &tag);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiResourceTagSet(sid, rid, &tag);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiMyEntityPathGet: {
+            SaHpiEntityPathT ep;
+
+            Params iparams(&sid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiMyEntityPathGet(sid, &ep);
+
+            Params oparams(&rv, &ep);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiResourceIdGet: {
+
+            Params iparams(&sid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiResourceIdGet(sid, &rid);
+
+            Params oparams(&rv, &rid);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiGetIdByEntityPath: {
+            SaHpiEntityPathT   ep;
+            SaHpiRdrTypeT      instr_type;
+            SaHpiUint32T       instance;
+            SaHpiInstrumentIdT instr_id;
+            SaHpiUint32T       rpt_update_cnt;
+
+            Params iparams(&sid, &ep, &instr_type, &instance);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiGetIdByEntityPath(sid, ep, instr_type, &instance, &rid, &instr_id, &rpt_update_cnt);
+
+            Params oparams(&rv, &instance, &rid, &instr_id, &rpt_update_cnt);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiGetChildEntityPath: {
+            SaHpiEntityPathT parent_ep;
+            SaHpiUint32T     instance;
+            SaHpiEntityPathT child_ep;
+            SaHpiUint32T     rpt_update_cnt;
+
+            Params iparams(&sid, &parent_ep, &instance);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiGetChildEntityPath(sid, parent_ep, &instance, &child_ep, &rpt_update_cnt);
+
+            Params oparams(&rv, &instance, &child_ep, &rpt_update_cnt);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiResourceFailedRemove: {
+
+            Params iparams(&sid, &rid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiResourceFailedRemove(sid, rid);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiEventLogInfoGet: {
+            SaHpiEventLogInfoT info;
+
+            Params iparams(&sid, &rid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiEventLogInfoGet(sid, rid, &info);
+
+            Params oparams(&rv, &info);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiEventLogCapabilitiesGet: {
+            SaHpiEventLogCapabilitiesT caps;
+
+            Params iparams(&sid, &rid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiEventLogCapabilitiesGet(sid, rid, &caps);
+
+            Params oparams(&rv, &caps);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiEventLogEntryGet: {
+            SaHpiEventLogEntryIdT eid;
+            SaHpiEventLogEntryIdT prev_eid;
+            SaHpiEventLogEntryIdT next_eid;
+            SaHpiEventLogEntryT   ele;
+
+            Params iparams(&sid, &rid, &eid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiEventLogEntryGet(sid, rid, eid, &prev_eid, &next_eid, &ele, &rdr, &rpte);
+
+            Params oparams(&rv, &prev_eid, &next_eid, &ele, &rdr, &rpte);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiEventLogEntryAdd: {
+            SaHpiEventT evt;
+
+            Params iparams(&sid, &rid, &evt);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiEventLogEntryAdd(sid, rid, &evt);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiEventLogClear: {
+
+            Params iparams(&sid, &rid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiEventLogClear(sid, rid);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiEventLogTimeGet: {
+            SaHpiTimeT time;
+
+            Params iparams(&sid, &rid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiEventLogTimeGet(sid, rid, &time);
+
+            Params oparams(&rv, &time);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiEventLogTimeSet: {
+            SaHpiTimeT time;
+
+            Params iparams(&sid, &rid, &time);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiEventLogTimeSet(sid, rid, time);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiEventLogStateGet: {
+            SaHpiBoolT enable;
+
+            Params iparams(&sid, &rid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiEventLogStateGet(sid, rid, &enable);
+
+            Params oparams(&rv, &enable);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiEventLogStateSet: {
+            SaHpiBoolT enable;
+
+            Params iparams(&sid, &rid, &enable);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiEventLogStateSet(sid, rid, enable);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiEventLogOverflowReset: {
+
+            Params iparams(&sid, &rid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiEventLogOverflowReset(sid, rid);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiSubscribe: {
+
+            Params iparams(&sid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiSubscribe(sid);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiUnsubscribe: {
+
+            Params iparams(&sid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiUnsubscribe(sid);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiEventGet: {
+            SaHpiTimeoutT        timeout;
+            SaHpiEventT          evt;
+            SaHpiEvtQueueStatusT status;
+
+            Params iparams(&sid, &timeout);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiEventGet(sid, timeout, &evt, &rdr, &rpte, &status);
+
+            Params oparams(&rv, &evt, &rdr, &rpte, &status);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiEventAdd: {
+            SaHpiEventT evt;
+
+            Params iparams(&sid, &evt);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiEventAdd(sid, &evt);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiAlarmGetNext: {
+            SaHpiSeverityT sev;
+            SaHpiBoolT     unack;
+            SaHpiAlarmT    alarm;
+
+            Params iparams(&sid, &sev, &unack, &alarm);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiAlarmGetNext(sid, sev, unack, &alarm);
+
+            Params oparams(&rv, &alarm);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiAlarmGet: {
+            SaHpiAlarmIdT aid;
+            SaHpiAlarmT   alarm;
+
+            Params iparams(&sid, &aid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiAlarmGet(sid, aid, &alarm);
+
+            Params oparams(&rv, &alarm);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiAlarmAcknowledge: {
+            SaHpiAlarmIdT  aid;
+            SaHpiSeverityT sev;
+
+            Params iparams(&sid, &aid, &sev);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiAlarmAcknowledge(sid, aid, sev);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiAlarmAdd: {
+            SaHpiAlarmT alarm;
+
+            Params iparams(&sid, &alarm);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiAlarmAdd(sid, &alarm);
+
+            Params oparams(&rv, &alarm);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiAlarmDelete: {
+            SaHpiAlarmIdT  aid;
+            SaHpiSeverityT sev;
+
+            Params iparams(&sid, &aid, &sev);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiAlarmDelete(sid, aid, sev);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiRdrGet: {
+            SaHpiEntryIdT eid;
+            SaHpiEntryIdT next_eid;
+
+            Params iparams(&sid, &rid, &eid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiRdrGet(sid, rid, eid, &next_eid, &rdr);
+
+            Params oparams(&rv, &next_eid, &rdr);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiRdrGetByInstrumentId: {
+            SaHpiRdrTypeT      rdr_type;
+            SaHpiInstrumentIdT instr_id;
+
+            Params iparams(&sid, &rid, &rdr_type, &instr_id);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiRdrGetByInstrumentId(sid, rid, rdr_type, instr_id, &rdr);
+
+            Params oparams(&rv, &rdr);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiRdrUpdateCountGet: {
+            SaHpiUint32T rdr_update_cnt;
+
+            Params iparams(&sid, &rid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiRdrUpdateCountGet(sid, rid, &rdr_update_cnt);
+
+            Params oparams(&rv, &rdr_update_cnt);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiSensorReadingGet: {
+            SaHpiSensorReadingT reading;
+            SaHpiEventStateT    state;
+
+            Params iparams(&sid, &rid, &snum);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiSensorReadingGet(sid, rid, snum, &reading, &state);
+
+            Params oparams(&rv, &reading, &state);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiSensorThresholdsGet: {
+            SaHpiSensorThresholdsT tholds;
+
+            Params iparams(&sid, &rid, &snum);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiSensorThresholdsGet(sid, rid, snum, &tholds);
+
+            Params oparams(&rv, &tholds);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiSensorThresholdsSet: {
+            SaHpiSensorThresholdsT tholds;
+
+            Params iparams(&sid, &rid, &snum, &tholds);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiSensorThresholdsSet(sid, rid, snum, &tholds);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiSensorTypeGet: {
+            SaHpiSensorTypeT    type;
+            SaHpiEventCategoryT cat;
+
+            Params iparams(&sid, &rid, &snum);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiSensorTypeGet(sid, rid, snum, &type, &cat);
+
+            Params oparams(&rv, &type, &cat);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiSensorEnableGet: {
+            SaHpiBoolT enabled;
+
+            Params iparams(&sid, &rid, &snum);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiSensorEnableGet(sid, rid, snum, &enabled);
+
+            Params oparams(&rv, &enabled);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiSensorEnableSet: {
+            SaHpiBoolT enabled;
+
+            Params iparams(&sid, &rid, &snum, &enabled);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiSensorEnableSet(sid, rid, snum, enabled);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiSensorEventEnableGet: {
+            SaHpiBoolT enabled;
+
+            Params iparams(&sid, &rid, &snum);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiSensorEventEnableGet(sid, rid, snum, &enabled);
+
+            Params oparams(&rv, &enabled);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiSensorEventEnableSet: {
+            SaHpiBoolT enabled;
+
+            Params iparams(&sid, &rid, &snum, &enabled);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiSensorEventEnableSet(sid, rid, snum, enabled);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiSensorEventMasksGet: {
+            SaHpiEventStateT amask;
+            SaHpiEventStateT dmask;
+
+            Params iparams(&sid, &rid, &snum, &amask, &dmask);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiSensorEventMasksGet(sid, rid, snum, &amask, &dmask);
+
+            Params oparams(&rv, &amask, &dmask);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiSensorEventMasksSet: {
+            SaHpiSensorEventMaskActionT action;
+            SaHpiEventStateT            amask;
+            SaHpiEventStateT            dmask;
+
+            Params iparams(&sid, &rid, &snum, &action, &amask, &dmask);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiSensorEventMasksSet(sid, rid, snum, action, amask, dmask);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiControlTypeGet: {
+            SaHpiCtrlTypeT type;
+
+            Params iparams(&sid, &rid, &cnum);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiControlTypeGet(sid, rid, cnum, &type);
+
+            Params oparams(&rv, &type);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiControlGet: {
+            SaHpiCtrlModeT  mode;
+            SaHpiCtrlStateT state;
+
+            Params iparams(&sid, &rid, &cnum, &state);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiControlGet(sid, rid, cnum, &mode, &state);
+
+            Params oparams(&rv, &mode, &state);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiControlSet: {
+            SaHpiCtrlModeT  mode;
+            SaHpiCtrlStateT state;
+
+            Params iparams(&sid, &rid, &cnum, &mode, &state);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiControlSet(sid, rid, cnum, mode, &state);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiIdrInfoGet: {
+            SaHpiIdrInfoT info;
+
+            Params iparams(&sid, &rid, &iid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiIdrInfoGet(sid, rid, iid, &info);
+
+            Params oparams(&rv, &info);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiIdrAreaHeaderGet: {
+            SaHpiIdrAreaTypeT   area;
+            SaHpiEntryIdT       aid;
+            SaHpiEntryIdT       next_aid;
+            SaHpiIdrAreaHeaderT hdr;
+
+            Params iparams(&sid, &rid, &iid, &area, &aid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiIdrAreaHeaderGet(sid, rid, iid, area, aid, &next_aid, &hdr);
+
+            Params oparams(&rv, &next_aid, &hdr);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiIdrAreaAdd: {
+            SaHpiIdrAreaTypeT area;
+            SaHpiEntryIdT     aid;
+
+            Params iparams(&sid, &rid, &iid, &area);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiIdrAreaAdd(sid, rid, iid, area, &aid);
+
+            Params oparams(&rv, &aid);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiIdrAreaAddById: {
+            SaHpiIdrAreaTypeT type;
+            SaHpiEntryIdT     aid;
+
+            Params iparams(&sid, &rid, &iid, &type, &aid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiIdrAreaAddById(sid, rid, iid, type, aid);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiIdrAreaDelete: {
+            SaHpiEntryIdT aid;
+
+            Params iparams(&sid, &rid, &iid, &aid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiIdrAreaDelete(sid, rid, iid, aid);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiIdrFieldGet: {
+            SaHpiEntryIdT      aid;
+            SaHpiIdrFieldTypeT type;
+            SaHpiEntryIdT      fid;
+            SaHpiEntryIdT      next_fid;
+            SaHpiIdrFieldT     field;
+
+            Params iparams(&sid, &rid, &iid, &aid, &type, &fid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiIdrFieldGet(sid, rid, iid, aid, type, fid, &next_fid, &field);
+
+            Params oparams(&rv, &next_fid, &field);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiIdrFieldAdd: {
+            SaHpiIdrFieldT field;
+
+            Params iparams(&sid, &rid, &iid, &field);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiIdrFieldAdd(sid, rid, iid, &field);
+
+            Params oparams(&rv, &field);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiIdrFieldAddById: {
+            SaHpiIdrFieldT field;
+
+            Params iparams(&sid, &rid, &iid, &field);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiIdrFieldAddById(sid, rid, iid, &field);
+
+            Params oparams(&rv, &field);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiIdrFieldSet: {
+            SaHpiIdrFieldT field;
+
+            Params iparams(&sid, &rid, &iid, &field);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiIdrFieldSet(sid, rid, iid, &field);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiIdrFieldDelete: {
+            SaHpiEntryIdT aid;
+            SaHpiEntryIdT fid;
+
+            Params iparams(&sid, &rid, &iid, &aid, &fid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiIdrFieldDelete(sid, rid, iid, aid, fid);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiWatchdogTimerGet: {
+            SaHpiWatchdogT wdt;
+
+            Params iparams(&sid, &rid, &wnum);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiWatchdogTimerGet(sid, rid, wnum, &wdt);
+
+            Params oparams(&rv, &wdt);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiWatchdogTimerSet: {
+            SaHpiWatchdogT wdt;
+
+            Params iparams(&sid, &rid, &wnum, &wdt);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiWatchdogTimerSet(sid, rid, wnum, &wdt);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiWatchdogTimerReset: {
+
+            Params iparams(&sid, &rid, &wnum);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiWatchdogTimerReset(sid, rid, wnum);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiAnnunciatorGetNext: {
+            SaHpiSeverityT     sev;
+            SaHpiBoolT         unack;
+            SaHpiAnnouncementT ann;
+
+            Params iparams(&sid, &rid, &anum, &sev, &unack, &ann);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiAnnunciatorGetNext(sid, rid, anum, sev, unack, &ann);
+
+            Params oparams(&rv, &ann);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiAnnunciatorGet: {
+            SaHpiEntryIdT      eid;
+            SaHpiAnnouncementT ann;
+
+            Params iparams(&sid, &rid, &anum, &eid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiAnnunciatorGet(sid, rid, anum, eid, &ann);
+
+            Params oparams(&rv, &ann);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiAnnunciatorAcknowledge: {
+            SaHpiEntryIdT  eid;
+            SaHpiSeverityT sev;
+
+            Params iparams(&sid, &rid, &anum, &eid, &sev);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiAnnunciatorAcknowledge(sid, rid, anum, eid, sev);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiAnnunciatorAdd: {
+            SaHpiAnnouncementT ann;
+
+            Params iparams(&sid, &rid, &anum, &ann);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiAnnunciatorAdd(sid, rid, anum, &ann);
+
+            Params oparams(&rv, &ann);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiAnnunciatorDelete: {
+            SaHpiEntryIdT  eid;
+            SaHpiSeverityT sev;
+
+            Params iparams(&sid, &rid, &anum, &eid, &sev);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiAnnunciatorDelete(sid, rid, anum, eid, sev);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiAnnunciatorModeGet: {
+            SaHpiAnnunciatorModeT mode;
+
+            Params iparams(&sid, &rid, &anum);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiAnnunciatorModeGet(sid, rid, anum, &mode);
+
+            Params oparams(&rv, &mode);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiAnnunciatorModeSet: {
+            SaHpiAnnunciatorModeT mode;
+
+            Params iparams(&sid, &rid, &anum, &mode);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiAnnunciatorModeSet(sid, rid, anum, mode);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiDimiInfoGet: {
+            SaHpiDimiInfoT info;
+
+            Params iparams(&sid, &rid, &dnum);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiDimiInfoGet(sid, rid, dnum, &info);
+
+            Params oparams(&rv, &info);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiDimiTestInfoGet: {
+            SaHpiDimiTestNumT tnum;
+            SaHpiDimiTestT    test;
+
+            Params iparams(&sid, &rid, &dnum, &tnum);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiDimiTestInfoGet(sid, rid, dnum, tnum, &test);
+
+            Params oparams(&rv, &test);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiDimiTestReadinessGet: {
+            SaHpiDimiTestNumT tnum;
+            SaHpiDimiReadyT   ready;
+
+            Params iparams(&sid, &rid, &dnum, &tnum);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiDimiTestReadinessGet(sid, rid, dnum, tnum, &ready);
+
+            Params oparams(&rv, &ready);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiDimiTestStart: {
+            SaHpiDimiTestNumT                tnum;
+            SaHpiDimiTestVariableParamsListT pl;
+            SaHpiUint8T&                     ntestparams = pl.NumberOfParams;
+            SaHpiDimiTestVariableParamsT*&   testparams  = pl.ParamsList;
+
+            Params iparams(&sid, &rid, &dnum, &tnum, &pl);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiDimiTestStart(sid, rid, dnum, tnum, ntestparams, testparams);
+            g_free(pl.ParamsList);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiDimiTestCancel: {
+            SaHpiDimiTestNumT tnum;
+
+            Params iparams(&sid, &rid, &dnum, &tnum);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiDimiTestCancel(sid, rid, dnum, tnum);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiDimiTestStatusGet: {
+            SaHpiDimiTestNumT              tnum;
+            SaHpiDimiTestPercentCompletedT percent;
+            SaHpiDimiTestRunStatusT        status;
+
+            Params iparams(&sid, &rid, &dnum, &tnum);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiDimiTestStatusGet(sid, rid, dnum, tnum, &percent, &status);
+
+            Params oparams(&rv, &percent, &status);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiDimiTestResultsGet: {
+            SaHpiDimiTestNumT     tnum;
+            SaHpiDimiTestResultsT results;
+
+            Params iparams(&sid, &rid, &dnum, &tnum);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiDimiTestResultsGet(sid, rid, dnum, tnum, &results);
+
+            Params oparams(&rv, &results);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiFumiSpecInfoGet: {
+            SaHpiFumiSpecInfoT info;
+
+            Params iparams(&sid, &rid, &fnum);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiFumiSpecInfoGet(sid, rid, fnum, &info);
+
+            Params oparams(&rv, &info);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiFumiServiceImpactGet: {
+            SaHpiFumiServiceImpactDataT impact;
+
+            Params iparams(&sid, &rid, &fnum);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiFumiServiceImpactGet(sid, rid, fnum, &impact);
+
+            Params oparams(&rv, &impact);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiFumiSourceSet: {
+            SaHpiBankNumT    bnum;
+            SaHpiTextBufferT uri;
+
+            Params iparams(&sid, &rid, &fnum, &bnum, &uri);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiFumiSourceSet(sid, rid, fnum, bnum, &uri);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiFumiSourceInfoValidateStart: {
+            SaHpiBankNumT bnum;
+
+            Params iparams(&sid, &rid, &fnum, &bnum);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiFumiSourceInfoValidateStart(sid, rid, fnum, bnum);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiFumiSourceInfoGet: {
+            SaHpiBankNumT        bnum;
+            SaHpiFumiSourceInfoT info;
+
+            Params iparams(&sid, &rid, &fnum, &bnum);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiFumiSourceInfoGet(sid, rid, fnum, bnum, &info);
+
+            Params oparams(&rv, &info);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiFumiSourceComponentInfoGet: {
+            SaHpiBankNumT           bnum;
+            SaHpiEntryIdT           eid;
+            SaHpiEntryIdT           next_eid;
+            SaHpiFumiComponentInfoT info;
+
+
+            Params iparams(&sid, &rid, &fnum, &bnum, &eid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiFumiSourceComponentInfoGet(sid, rid, fnum, bnum, eid, &next_eid, &info);
+
+            Params oparams(&rv, &next_eid, &info);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiFumiTargetInfoGet: {
+            SaHpiBankNumT      bnum;
+            SaHpiFumiBankInfoT info;
+
+            Params iparams(&sid, &rid, &fnum, &bnum);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiFumiTargetInfoGet(sid, rid, fnum, bnum, &info);
+
+            Params oparams(&rv, &info);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiFumiTargetComponentInfoGet: {
+            SaHpiBankNumT           bnum;
+            SaHpiEntryIdT           eid;
+            SaHpiEntryIdT           next_eid;
+            SaHpiFumiComponentInfoT info;
+
+            Params iparams(&sid, &rid, &fnum, &bnum, &eid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiFumiTargetComponentInfoGet(sid, rid, fnum, bnum, eid, &next_eid, &info);
+
+            Params oparams(&rv, &next_eid, &info);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiFumiLogicalTargetInfoGet: {
+            SaHpiFumiLogicalBankInfoT info;
+
+            Params iparams(&sid, &rid, &fnum);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiFumiLogicalTargetInfoGet(sid, rid, fnum, &info);
+
+            Params oparams(&rv, &info);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiFumiLogicalTargetComponentInfoGet: {
+            SaHpiEntryIdT                  eid;
+            SaHpiEntryIdT                  next_eid;
+            SaHpiFumiLogicalComponentInfoT info;
+
+            Params iparams(&sid, &rid, &fnum, &eid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiFumiLogicalTargetComponentInfoGet(sid, rid, fnum, eid, &next_eid, &info);
+
+            Params oparams(&rv, &next_eid, &info);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiFumiBackupStart: {
+
+            Params iparams(&sid, &rid, &fnum);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiFumiBackupStart(sid, rid, fnum);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiFumiBankBootOrderSet: {
+            SaHpiBankNumT bnum;
+            SaHpiUint32T  pos;
+
+            Params iparams(&sid, &rid, &fnum, &bnum, &pos);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiFumiBankBootOrderSet(sid, rid, fnum, bnum, pos);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiFumiBankCopyStart: {
+            SaHpiBankNumT src_bnum;
+            SaHpiBankNumT dst_bnum;
+
+            Params iparams(&sid, &rid, &fnum, &src_bnum, &dst_bnum);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiFumiBankCopyStart(sid, rid, fnum, src_bnum, dst_bnum);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiFumiInstallStart: {
+            SaHpiBankNumT bnum;
+
+            Params iparams(&sid, &rid, &fnum, &bnum);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiFumiInstallStart(sid, rid, fnum, bnum);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiFumiUpgradeStatusGet: {
+            SaHpiBankNumT           bnum;
+            SaHpiFumiUpgradeStatusT status;
+
+            Params iparams(&sid, &rid, &fnum, &bnum);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiFumiUpgradeStatusGet(sid, rid, fnum, bnum, &status);
+
+            Params oparams(&rv, &status);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiFumiTargetVerifyStart: {
+            SaHpiBankNumT bnum;
+
+            Params iparams(&sid, &rid, &fnum, &bnum);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiFumiTargetVerifyStart(sid, rid, fnum, bnum);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiFumiTargetVerifyMainStart: {
+
+            Params iparams(&sid, &rid, &fnum);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiFumiTargetVerifyMainStart(sid, rid, fnum);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiFumiUpgradeCancel: {
+            SaHpiBankNumT bnum;
+
+            Params iparams(&sid, &rid, &fnum, &bnum);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiFumiUpgradeCancel(sid, rid, fnum, bnum);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiFumiAutoRollbackDisableGet: {
+            SaHpiBoolT disable;
+
+            Params iparams(&sid, &rid, &fnum);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiFumiAutoRollbackDisableGet(sid, rid, fnum, &disable);
+
+            Params oparams(&rv, &disable);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiFumiAutoRollbackDisableSet: {
+            SaHpiBoolT disable;
+
+            Params iparams(&sid, &rid, &fnum, &disable);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiFumiAutoRollbackDisableSet(sid, rid, fnum, disable);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiFumiRollbackStart: {
+
+            Params iparams(&sid, &rid, &fnum);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiFumiRollbackStart(sid, rid, fnum);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiFumiActivate: {
+
+            Params iparams(&sid, &rid, &fnum);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiFumiActivate(sid, rid, fnum);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiFumiActivateStart: {
+            SaHpiBoolT logical;
+
+            Params iparams(&sid, &rid, &fnum, &logical);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiFumiActivateStart(sid, rid, fnum, logical);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiFumiCleanup: {
+            SaHpiBankNumT bnum;
+
+            Params iparams(&sid, &rid, &fnum, &bnum);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiFumiCleanup(sid, rid, fnum, bnum);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiHotSwapPolicyCancel: {
+
+            Params iparams(&sid, &rid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiHotSwapPolicyCancel(sid, rid);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiResourceActiveSet: {
+
+            Params iparams(&sid, &rid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiResourceActiveSet(sid, rid);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiResourceInactiveSet: {
+
+            Params iparams(&sid, &rid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiResourceInactiveSet(sid, rid);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiAutoInsertTimeoutGet: {
+            SaHpiTimeoutT timeout;
+
+            Params iparams(&sid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiAutoInsertTimeoutGet(sid, &timeout);
+
+            Params oparams(&rv, &timeout);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiAutoInsertTimeoutSet: {
+            SaHpiTimeoutT timeout;
+
+            Params iparams(&sid, &timeout);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiAutoInsertTimeoutSet(sid, timeout);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiAutoExtractTimeoutGet: {
+            SaHpiTimeoutT timeout;
+
+            Params iparams(&sid, &rid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiAutoExtractTimeoutGet(sid, rid, &timeout);
+
+            Params oparams(&rv, &timeout);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiAutoExtractTimeoutSet: {
+            SaHpiTimeoutT timeout;
+
+            Params iparams(&sid, &rid, &timeout);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiAutoExtractTimeoutSet(sid, rid, timeout);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiHotSwapStateGet: {
+            SaHpiHsStateT state;
+
+            Params iparams(&sid, &rid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiHotSwapStateGet(sid, rid, &state);
+
+            Params oparams(&rv, &state);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiHotSwapActionRequest: {
+            SaHpiHsActionT action;
+
+            Params iparams(&sid, &rid, &action);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiHotSwapActionRequest(sid, rid, action);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiHotSwapIndicatorStateGet: {
+            SaHpiHsIndicatorStateT state;
+
+            Params iparams(&sid, &rid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiHotSwapIndicatorStateGet(sid, rid, &state);
+
+            Params oparams(&rv, &state);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiHotSwapIndicatorStateSet: {
+            SaHpiHsIndicatorStateT state;
+
+            Params iparams(&sid, &rid, &state);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiHotSwapIndicatorStateSet(sid, rid, state);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiParmControl: {
+            SaHpiParmActionT action;
+
+            Params iparams(&sid, &rid, &action);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiParmControl(sid, rid, action);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiResourceLoadIdGet: {
+            SaHpiLoadIdT lid;
+
+            Params iparams(&sid, &rid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiResourceLoadIdGet(sid, rid, &lid);
+
+            Params oparams(&rv, &lid);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiResourceLoadIdSet: {
+            SaHpiLoadIdT lid;
+
+            Params iparams(&sid, &rid, &lid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiResourceLoadIdSet(sid, rid, &lid);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiResourceResetStateGet: {
+            SaHpiResetActionT action;
+
+            Params iparams(&sid, &rid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiResourceResetStateGet(sid, rid, &action);
+
+            Params oparams(&rv, &action);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiResourceResetStateSet: {
+            SaHpiResetActionT action;
+
+            Params iparams(&sid, &rid, &action);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiResourceResetStateSet(sid, rid, action);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiResourcePowerStateGet: {
+            SaHpiPowerStateT state;
+
+            Params iparams(&sid, &rid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiResourcePowerStateGet(sid, rid, &state);
+
+            Params oparams(&rv, &state);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFsaHpiResourcePowerStateSet: {
+            SaHpiPowerStateT state;
+
+            Params iparams(&sid, &rid, &state);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = saHpiResourcePowerStateSet(sid, rid, state);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFoHpiHandlerCreate: {
+            oHpiHandlerIdT     hid;
+            oHpiHandlerConfigT cfg;
+
+            Params iparams(&sid, &cfg);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            GHashTable *cfg_tbl;
+            cfg_tbl = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
+            for (int n = 0; n < cfg.NumberOfParams; n++) {
+                g_hash_table_insert(cfg_tbl,
+                                    g_strdup((const gchar *)cfg.Params[n].Name),
+                                    g_strdup((const gchar *)cfg.Params[n].Value));
+            }
+            g_free(cfg.Params);
+
+            rv = oHpiHandlerCreate(sid, cfg_tbl, &hid);
+            g_hash_table_destroy(cfg_tbl);
+
+            Params oparams(&rv, &hid);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFoHpiHandlerDestroy: {
+            oHpiHandlerIdT hid;
+
+            Params iparams(&sid, &hid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = oHpiHandlerDestroy(sid, hid);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFoHpiHandlerInfo: {
+            oHpiHandlerIdT hid;
+            oHpiHandlerInfoT info;
+            oHpiHandlerConfigT cfg;
+            GHashTable *cfg_tbl;
+
+            Params iparams(&sid, &hid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            cfg_tbl = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
+
+            rv = oHpiHandlerInfo(sid, hid, &info, cfg_tbl);
+
+            cfg.NumberOfParams = 0;
+            cfg.Params = g_new0(oHpiHandlerConfigParamT, g_hash_table_size(cfg_tbl));
+            // add each hash tbl entry to the marshable handler_cfg
+            g_hash_table_foreach(cfg_tbl, dehash_handler_cfg, &cfg);
+
+            Params oparams(&rv, &info, &cfg);
+            Marshal_Rp(hm, data, data_len, oparams);
+// TODO memory leak
+            // cleanup
+            g_hash_table_destroy(cfg_tbl);
+        }
+        break;
+
+        case eFoHpiHandlerGetNext: {
+            oHpiHandlerIdT hid, next_hid;
+
+            Params iparams(&sid, &hid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = oHpiHandlerGetNext(sid, hid, &next_hid);
+
+            Params oparams(&rv, &next_hid);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFoHpiHandlerFind: {
+            oHpiHandlerIdT hid;
+
+            Params iparams(&sid, &rid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = oHpiHandlerFind(sid, rid, &hid);
+
+            Params oparams(&rv, &hid);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFoHpiHandlerRetry: {
+            oHpiHandlerIdT hid;
+
+            Params iparams(&sid, &hid);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = oHpiHandlerRetry(sid, hid);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFoHpiGlobalParamGet: {
+            oHpiGlobalParamT param;
+
+            Params iparams(&sid, &param);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = oHpiGlobalParamGet(sid, &param);
+
+            Params oparams(&rv, &param);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFoHpiGlobalParamSet: {
+            oHpiGlobalParamT param;
+
+            Params iparams(&sid, &param);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = oHpiGlobalParamSet(sid, &param);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        case eFoHpiInjectEvent: {
+            oHpiHandlerIdT  hid;
+            SaHpiEventT     evt;
+
+            Params iparams(&sid, &hid, &evt, &rpte, &rdr);
+            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+
+            rv = oHpiInjectEvent(sid, hid, &evt, &rpte, &rdr);
+
+            Params oparams(&rv);
+            Marshal_Rp(hm, data, data_len, oparams);
+        }
+        break;
+
+        default:
+            PVERBOSE2("%p Function not found\n", thrdid);
+            return SA_ERR_HPI_UNSUPPORTED_API; 
+    }
+
+    PVERBOSE1("%p Return code = %d\n", thrdid, rv);
+
+    return SA_OK;
+}
+

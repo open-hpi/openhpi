@@ -29,12 +29,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <getopt.h>
 #include <ctype.h>
 #include <SaHpi.h> 
 #include <oh_utils.h>
-#include <oh_clients.h>
+
+#include "oh_clients.h"
 
 #define OH_SVN_REV "$Revision: 6571 $"
 #define GEN_SIM_DATA_VERSION 0.901

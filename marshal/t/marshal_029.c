@@ -127,11 +127,6 @@ main( int argc, char *argv[] )
   if ( s1 != s2 )
        return 1;
 
-  unsigned int s3 = MarshalSizeArray( type_array );
-
-  if ( s1 != s3 )
-       return 1;
-
   if ( value1.m_u8 != result1.m_u8 )
        return 1;
 

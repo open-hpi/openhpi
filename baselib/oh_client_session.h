@@ -20,27 +20,45 @@
 #ifndef __OH_CLIENT_SESSION_H
 #define __OH_CLIENT_SESSION_H
 
-#include <strmsock.h>
+#include <stdint.h>
 
-#include <glib.h>
 #include <SaHpi.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
-void oh_client_session_init(void);
+struct Params
+{
+    explicit Params( void * p2 = 0, void * p3 = 0, void * p4 = 0,
+                     void * p5 = 0, void * p6 = 0 )
+    {
+        array[0] = 0;
+        array[1] = p2;
+        array[2] = p3;
+        array[3] = p4;
+        array[4] = p5;
+        array[5] = p6;
+    }
 
-SaErrorT oh_create_connx(SaHpiDomainIdT, pcstrmsock *);
-void oh_delete_connx(pcstrmsock);
-SaErrorT oh_close_connx(SaHpiSessionIdT);
-SaErrorT oh_get_connx(SaHpiSessionIdT, SaHpiSessionIdT *, pcstrmsock *, SaHpiDomainIdT *);
+    void SetFirst( void * p1 )
+    {
+        array[0] = p1;
+    }
 
-SaHpiSessionIdT oh_open_session(SaHpiDomainIdT, SaHpiSessionIdT, pcstrmsock);
-SaErrorT oh_close_session(SaHpiSessionIdT);
+    union {
+        void * array[6];
+        const void * const_array[6];
+    };
+};
 
-#ifdef __cplusplus
-} /* extern "C" */
-#endif
+
+void ohc_sess_init();
+SaErrorT ohc_sess_open( SaHpiDomainIdT did, SaHpiSessionIdT& sid );
+SaErrorT ohc_sess_close( SaHpiSessionIdT sid );
+SaErrorT ohc_sess_rpc( uint32_t id,
+                       SaHpiSessionIdT sid,
+                       Params& iparams,
+                       Params& oparams );
+SaErrorT ohc_sess_get_did( SaHpiSessionIdT sid, SaHpiDomainIdT& did );
+
 
 #endif /* __OH_CLIENT_SESSION_H */
+

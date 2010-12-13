@@ -91,7 +91,7 @@ struct oh_event *oh_dup_event(struct oh_event *old_event)
 
 	if (!old_event) return NULL;
 
-	e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
+	e = g_new0(struct oh_event, 1);
 	*e = *old_event;
 	e->rdrs = NULL;
 	for (node = old_event->rdrs; node; node = node->next) {
@@ -313,7 +313,7 @@ static int process_resource_event(struct oh_domain *d, struct oh_event *e)
         if ( remove ) {
             oh_remove_resource(rpt, e->resource.ResourceId);
         } else {
-            hidp = g_malloc0(sizeof(unsigned int));
+            hidp = g_new0(unsigned int, 1);
             *hidp = e->hid;
             error = oh_add_resource(rpt, &e->resource, hidp, FREE_RPT_DATA);
             if (error != SA_OK) {
@@ -361,7 +361,7 @@ static int process_hs_event(struct oh_domain *d, struct oh_event *e)
         if (hse->HotSwapState == SAHPI_HS_STATE_NOT_PRESENT) {
             oh_remove_resource(rpt, e->resource.ResourceId);
         } else {
-            hidp = g_malloc0(sizeof(unsigned int));
+            hidp = g_new0(unsigned int, 1);
             *hidp = e->hid;
             error = oh_add_resource(rpt, &e->resource, hidp, FREE_RPT_DATA);
             if (error == SA_OK && !exists) {

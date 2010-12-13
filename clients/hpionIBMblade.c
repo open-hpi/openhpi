@@ -62,14 +62,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <getopt.h>
+
+#include <glib.h>
 
 #include <SaHpi.h>
 #include <oh_utils.h>
 #include <oh_config.h>
 #include <oHpi.h>
-#include <oh_clients.h>
+
+#include "oh_clients.h"
 
 #define OH_SVN_REV "$Revision: 6412 $"
 
@@ -235,7 +237,7 @@ static int select_ep(Rpt_t *Rpt)
 		return(0);
 	}
 	
-	rv = oHpiHandlerInfo(sessionid, this_handler_id, &handler_info, &config);
+	rv = oHpiHandlerInfo(sessionid, this_handler_id, &handler_info, config);
 	if (rv) {
 		if (fdebug) printf("oHpiHandlerInfo returns %s\n", oh_lookup_error(rv));
 		return(0);
@@ -587,7 +589,7 @@ static void mod_sen(void)
 		if (rv == SA_OK)
 			break;
 		if (fdebug) printf("sleep before saHpiEventGet\n");
-		sleep(1);
+		g_usleep(G_USEC_PER_SEC);
 	};
 	saHpiSensorThresholdsGet(sessionid, Rpt->Rpt.ResourceId,
 		Rdr->Rdr.RdrTypeUnion.SensorRec.Num, &thres);
