@@ -1,0 +1,86 @@
+This directory contains test program for verifying HPI functionalities.
+
+ 1. hpi_power_status_get	: Gets the power status of the resources which
+ 				  have power capability
+ 2. hpi_power_status_get_all	: Gets the power state of all the resources
+ 				  which have power capability
+ 3. hpi_power_status_set	: Sets the power state of the resources which
+ 				  have power capability
+ 4. hpi_reset_resource_get	: Gets the reset status of the resources which
+ 				  have reset capability
+ 5. hpi_reset_resource_get_all	: Gets the reset state of all the resources
+ 				  which have reset capability
+ 6. hpi_reset_resource_set	: Sets the reset state of the resources which
+ 				  have reset capability
+ 7. hpi_hs_state_get		: Gets the hotswap state of the resources which
+ 				  have hotswap capability
+ 8. hpi_hs_state_get_all	: Gets the hotswap state of all the resources
+ 				  which have hotswap capability
+ 9. hpi_hs_action_request	: Set the hotswap state of the resources which
+ 				  have hotswap capability
+10. hpi_idr_info_get		: Gets the IDR information for the resources
+				  which have inventory capability
+11. hpi_idr_info_get_all	: Gets the IDR information for all the
+				  resources which have inventory capability
+12. hpi_idr_area_header_get	: Gets the IDR area header from resources which
+				  have inventory capability
+13. hpi_idr_area_add		: Adds the IDR area to resources which have
+				  inventory capability
+14. hpi_idr_area_delete		: Deletes the IDR area from resources which
+				  have inventory capability
+15. hpi_idr_area_add_delete	: Add an IDR area and deletes an IDR area from
+				  resources which have inventory capability
+16. hpi_idr_field_get		: Gets the IDR field from resources which have
+				  inventory capability
+17. hpi_idr_field_add		: Add the IDR field to the area for the
+				  resources which have inventory capability
+18. hpi_idr_field_set		: Sets/modifies the IDR field for the resources
+				  which have inventory capability
+19. hpi_idr_field_delete	: Deletes the IDR field from the area for the
+				  resources which have inventory capability
+20. hpi_eventlog_info_get	: Gets the event log information of domain
+21. hpi_eventlog_entry_get	: Gets all the entries in the domain event log
+22. hpi_eventlog_time_get	: Gets the domain event log time
+23. hpi_eventlog_time_set	: Sets the domain event log time
+24. hpi_eventlog_state_get	: Gets the domain event log state
+25. hpi_eventlog_state_set	: Sets the domain event log state
+ 				  But domain event log state can not be
+				  disabled according to SAF spec
+26. hpi_eventlog_overflowflag_reset : Resets the domain event log overflow flag
+27. hpi_eventlog_clear		: Clears the event log of domain
+28. hpi_event_get		: Subscribes and listens for the hpi events
+29. hpi_control_type_get	: Gets the type of control for the resources
+				  which have control capability
+30. hpi_control_get		: Gets the control for the resources which have
+				  control capability
+31. hpi_control_set		: Sets the control for the resources which have
+				  control capability
+32. hpi_sensor_reading_get	: Gets the sensor reading of the resources
+				  which have sensor capability
+33. hpi_sensor_type_get		: Gets the type of the sensor for the resources
+				  which have sensor capability
+34. hpi_sensor_enable_get       : Gets the sensor enable status of a sensor RDR.
+35. hpi_sensor_enable_set       : Sets the sensor enable status of a sensor RDR.
+36. hpi_sensor_event_enable_get : Gets the sensor event enable status of a
+				  sensor RDR.
+37. hpi_sensor_event_enable_set : Sets the sensor event enable status of a
+				  sensor RDR.
+38. hpi_sensor_event_mask_get   : Gets the sensor assert and deassert masks of
+				  a sensor RDR.
+39. hpi_sensor_event_mask_set   : Sets the sensor assert and deassert masks of
+				  a sensor RDR.
+40. hpi_sensor_thresholds_get   : Gets the threshold of a given sensor.
+41. hpi_rpt_get			: Gets all the rpt entries
+42. hpi_set_tag			: Sets the tag of the resource
+
+
+NOTE :	These are sample test programs. 
+	These test programs test the positive scenarios only.
+	These are not validated on all platforms and with different test
+	scenarios.
+
+
+Beside the above, there are some other test and development tools in this
+directory:
+
+soaptest			: Exercises the SOAP connection to an OA
