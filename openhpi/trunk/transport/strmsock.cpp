@@ -1,6 +1,7 @@
 /*      -*- linux-c -*-
  *
  * (C) Copyright IBM Corp. 2004
+ * (C) Copyright Pigeon Point Systems. 2010
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,19 +16,22 @@
  *
  */
 
-#include <stdlib.h>
-#include <stddef.h>
 #include <stdio.h>
-#include <unistd.h>
 #include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
+
+#ifdef _WIN32
+#include <windows.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
+#include <netdb.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
-#include <arpa/inet.h>
-#include <sys/ioctl.h>
-#include <netdb.h>
-#include <errno.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
+#endif
+
 #include <glib.h>
 
 #include <oh_error.h>
@@ -35,404 +39,463 @@
 #include "strmsock.h"
 
 
-// Local definitions
-#ifndef INADDR_NONE
-#define INADDR_NONE  0xffffffff
+/***************************************************************
+ * Initialization/Finalization
+ **************************************************************/
+static void Initialize( void )__attribute__ ((constructor));
+
+static void Initialize( void )
+{
+#ifdef _WIN32
+    WSADATA wsa_data;
+    WSAStartup( MAKEWORD( 2, 2), &wsa_data );
 #endif
-
-
-/*--------------------------------------------------------------------*/
-/* Stream Sockets base class methods                   */
-/*--------------------------------------------------------------------*/
-
-void strmsock::Close(void)
-{
-	if (fOpen) {
-		close(s);
-		fOpen = FALSE;
-	}
-	errcode = 0;
-	return;
 }
 
+static void Finalize( void )__attribute__ ((destructor));
 
-int strmsock::GetErrcode(void)
+static void Finalize( void )
 {
-	return(errcode);
+#ifdef _WIN32
+    WSACleanup();
+#endif
 }
 
-
-void strmsock::SetDomain(
-        int lNewDomain)                 // the new domain
+/***************************************************************
+ * Helper functions
+ **************************************************************/
+static void SelectAddresses( int hintflags,
+                             const char * node,
+                             uint16_t port,
+                             struct addrinfo * & selected )
 {
-	domain = lNewDomain;
-	errcode = 0;
-	return;
-}
+    selected = 0;
 
+    struct addrinfo hints;
+    memset( &hints, 0, sizeof(hints) );
+    hints.ai_flags    = hintflags;
+    hints.ai_family   = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = IPPROTO_TCP;
 
-void strmsock::SetProtocol(
-        int lNewProtocol)               // the new protocol
-{
-	protocol = lNewProtocol;
-	errcode = 0;
-	return;
-}
+    char service[32];
+    snprintf( service, sizeof(service), "%u", port );
 
-
-void strmsock::SetType(
-        int lNewType)                   // the new type
-{
-	type = lNewType;
-	errcode = 0;
-	return;
-}
-
-
-void strmsock::SetReadTimeout(
-        int seconds)                    // the timeout
-{
-        struct timeval tv;
-
-	tv.tv_sec = seconds;
-	tv.tv_usec = 0;
-        setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
-	return;
-}
-
-bool strmsock::WriteMsg(const void *request)
-{
-	unsigned char data[dMaxMessageLength];
-	unsigned int l = sizeof(cMessageHeader) + header.m_len;
-
-      dbg("Message body length = %d.\n", header.m_len);
-        errcode = 0;
-	if (!fOpen) {
-                err("Socket not open.\n");
-		return true;
-	}
-
-	if (l > dMaxMessageLength) {
-                err("Message too large.\n");
-		return true;
-	}
-
-	memcpy(&data[0], &header, sizeof(cMessageHeader));
-        if (request != NULL) {
-                memcpy(&data[sizeof(cMessageHeader)], request, header.m_len);
-        }
-//      dbg("Size of message header is %d\n", sizeof(cMessageHeader));
-//      dbg("Buffer header address is %p\n", &data[0]);
-//      dbg("Buffer request address is %p\n", &data[sizeof(cMessageHeader)]);
-//      dbg("Write request buffer (%d bytes) is\n", header.m_len);
-//      for (unsigned int i = 0; i < header.m_len; i++) {
-//              dbg("%02x ", *((unsigned char *)request + i));
-//      }
-//      dbg("\n");
-//      dbg("Write buffer (%d bytes) is\n", l);
-//      for (int i = 0; i < l; i++) {
-//              dbg("%02x ", (unsigned char)data[i]);
-//      }
-//      dbg("\n");
-
-	int rv = write(s, data, l);
-
-	if ( (unsigned int)rv != l ) {
-		return true;
-	}
-
-	return false;
-}
-
-bool strmsock::ReadMsg(char *data)
-{
-        errcode = 0;
-	if (!fOpen) {
-		return true;
-	}
-
-        size_t got  = 0;
-        size_t need = sizeof(cMessageHeader);
-        bool got_hdr = false;
-        while ( got < need ) {
-        	int len = read( s, data + got, need - got );
-
-        	if (len < 0) {
-                        errcode = errno;
-                        err("Reading from socket returned and error: %d\n", errcode); // Debug
-        		return true;
-        	} else if (len == 0) {	//connection has been aborted by the peer
-        		Close();
-        		err("Connection has been aborted\n"); // Debug
-        		return true;
-                }
-
-                got += len;
-                if ( ( !got_hdr ) && ( got >= sizeof(cMessageHeader) ) ) {
-	                memcpy(&header, data, sizeof(cMessageHeader));
-                        remote_byte_order = ( ( header.m_flags & dMhEndianBit ) != 0 ) ?
-                                            G_LITTLE_ENDIAN : G_BIG_ENDIAN;
-                        // swap id and len if nessesary in the reply header
-                	if (remote_byte_order != G_BYTE_ORDER) {
-                		header.m_id  = GUINT32_SWAP_LE_BE(header.m_id);
-                		header.m_len = GUINT32_SWAP_LE_BE(header.m_len);
-                	}
-	                if ( (header.m_flags >> 4) != dMhVersion ) {
-                		err("Wrong version? 0x%x != 0x%x\n", header.m_flags, dMhVersion);
-        	        	return true;
-                	}
-                        need += header.m_len;
-                        got_hdr = true;
-                }
-        }
-
-//      dbg("Read buffer (%d bytes) is\n", len);
-//      for (int i = 0; i < len; i++) {
-//              dbg("%02x ", (unsigned char)data[i]);
-//      }
-//      dbg("\n");
-
-	return false;
-}
-
-void strmsock::MessageHeaderInit(tMessageType mtype, unsigned char flags,
-	               	         unsigned int id, unsigned int len )
-{
-	header.m_type    = mtype;
-	header.m_flags   = flags;
-
-        // set version
-	header.m_flags &= 0x0f;
-	header.m_flags |= dMhVersion << 4;
-
-    // set byte order
-    header.m_flags &= ~dMhEndianBit;
-    if ( G_BYTE_ORDER == G_LITTLE_ENDIAN ) {
-        header.m_flags |= dMhEndianBit;
+    struct addrinfo * items;
+    int cc = getaddrinfo( node, service, &hints, &items );
+    if ( cc != 0 ) {
+        err( "Transport: getaddrinfo failed.\n" );
+        return;
     }
 
-	header.m_id = id;
-	header.m_len = len;
+    struct addrinfo * in = 0;
+    struct addrinfo * in_tail = 0;
+    struct addrinfo * out = 0;
+    struct addrinfo * out_tail = 0;
+    for ( struct addrinfo * item = items; item != 0; item = item->ai_next ) {
+        if ( ( item->ai_family == AF_INET ) || ( item->ai_family == AF_INET6 ) ) {
+            if ( in_tail ) {
+                in_tail->ai_next = item;
+                in_tail = item;
+            } else {
+                in = in_tail = item;
+            }
+        } else {
+            if ( out_tail ) {
+                out_tail->ai_next = item;
+                out_tail = item;
+            } else {
+                out = out_tail = item;
+            }
+        }
+    }
+    if ( in_tail ) {
+        in_tail->ai_next = 0;
+    }
+    if ( out_tail ) {
+        out_tail->ai_next = 0;
+        freeaddrinfo( out );
+    }
+
+    selected = in;
 }
 
-/*--------------------------------------------------------------------*/
-/* Stream Sockets client class methods                                */
-/*--------------------------------------------------------------------*/
 
-
-cstrmsock::cstrmsock()
+/***************************************************************
+ * Base Stream Socket class
+ **************************************************************/
+cStreamSock::cStreamSock( SockFdT sockfd )
+    : m_sockfd( sockfd )
 {
-	fOpen = FALSE;
-	ulBufSize = 4096;
-	domain = AF_INET;
-	type = SOCK_STREAM;
-	protocol = 0;
-	s = -1;
-	next = NULL;
+    // empty
 }
 
-
-cstrmsock::~cstrmsock()
+cStreamSock::~cStreamSock()
 {
-	if (fOpen)
-		Close();
+    Close();
 }
 
-
-bool cstrmsock::Open(
-		const char * pszHost,		// the remote host
-		unsigned short lPort)		// the remote port
+bool cStreamSock::ReadMsg( uint8_t& type,
+                           uint32_t& id,
+                           void * payload,
+                           uint32_t& payload_len,
+                           int& payload_byte_order )
 {
-	struct sockaddr_in  addr;		// address structure
-	struct hostent     *phe;		// pointer to a host entry
+    union {
+        MessageHeader hdr;
+        char rawhdr[sizeof(MessageHeader)];
+    };
 
-        // get a socket
-	s = socket(domain, type, protocol);
-	if (s == -1) {
-		errcode = errno;
-		return(TRUE);
-	}
-        // convert the host entry/name to an address
-	phe = gethostbyname(pszHost);
-	if (phe)
-		memcpy((char *) &addr.sin_addr, phe -> h_addr, phe -> h_length);
-	else
-		addr.sin_addr.s_addr = inet_addr(pszHost);
-	if (addr.sin_addr.s_addr == INADDR_NONE) {
-		errcode = 67;  // bad network name
-		close(s);
-		return(TRUE);
-	}
-        // connect to the remote host
-	addr.sin_family = domain;
-	addr.sin_port = htons(lPort);
-	errcode = connect(s, (struct sockaddr *) &addr, sizeof(addr));
-	if (errcode == -1) {
-		errcode = errno;
-		close(s);
-		return(TRUE);
-	}
+    char * dst = rawhdr;
+    size_t got  = 0;
+    size_t need = sizeof(MessageHeader);
+    while ( got < need ) {
+        ssize_t len = recv( m_sockfd, dst + got, need - got, 0 );
+        if ( len < 0 ) {
+            err( "Transport: error while reading message.\n" );
+            return false;
+        } else if ( len == 0 ) {
+            err( "Transport: peer closed connection.\n" );
+            return false;
+        }
+        got += len;
 
-	errcode = 0;
-	fOpen = TRUE;
-	return(FALSE);
+        if ( ( got == need ) && ( dst == rawhdr ) ) {
+            // we got header
+            uint8_t ver = hdr.flags >> 4;
+            if ( ver != dMhRpcVersion ) {
+                err( "Transport: unsupported version 0x%x != 0x%x.\n",
+                     ver,
+                     dMhRpcVersion );
+                return false;
+            }
+            payload_byte_order = ( ( hdr.flags & dMhEndianBit ) != 0 ) ?
+                                 G_LITTLE_ENDIAN : G_BIG_ENDIAN;
+            // swap id and len if nessesary in the reply header
+            if ( payload_byte_order != G_BYTE_ORDER ) {
+                hdr.id  = GUINT32_SWAP_LE_BE( hdr.id );
+                hdr.len = GUINT32_SWAP_LE_BE( hdr.len );
+            }
+            // now prepare to get payload
+            dst  = reinterpret_cast<char *>(payload);
+            got  = 0;
+            need = hdr.len;
+        }
+    }
+
+    type = hdr.type;
+    id   = hdr.id;
+    payload_len = got;
+
+/*
+    printf( "Transport: got message of %u bytes in buffer %p:\n",
+            sizeof(MessageHeader) + got,
+            payload );
+    for ( size_t i = 0; i < sizeof(MessageHeader); ++i ) {
+        union {
+            char c;
+            unsigned char uc;
+        };
+        c = rawhdr[i];
+        printf( "%02x ", uc );
+    }
+    for ( size_t i = 0; i < got; ++i ) {
+        union {
+            char c;
+            unsigned char uc;
+        };
+        c = (reinterpret_cast<char *>(payload))[i];
+        printf( "%02x ", uc );
+    }
+    printf( "\n" );
+*/
+
+    return true;
 }
 
-bool cstrmsock::EnableKeepAliveProbes( int keepalive_time,
-                                       int keepalive_intvl,
-                                       int keepalive_probes )
+bool cStreamSock::WriteMsg( uint8_t type,
+                            uint32_t id,
+                            const void * payload,
+                            uint32_t payload_len )
+{
+    if ( ( payload_len > 0 ) && ( payload == 0 ) ) {
+        return false;
+    }
+    if ( payload_len > dMaxPayloadLength ) {
+        err("Transport: message payload too large.\n");
+        return false;
+    }
+
+    union {
+        MessageHeader hdr;
+        char msg[dMaxMessageLength];
+    };
+
+    hdr.type  = type;
+    hdr.flags = dMhRpcVersion << 4;
+    if ( G_BYTE_ORDER == G_LITTLE_ENDIAN ) {
+        hdr.flags |= dMhEndianBit;
+    }
+    hdr.id    = id;
+    hdr.len   = payload_len;
+
+    if ( payload ) {
+        memcpy( &msg[sizeof(MessageHeader)], payload, hdr.len );
+    }
+
+    size_t msg_len = sizeof(MessageHeader) + hdr.len;
+
+/*
+    printf("Transport: sending message of %d bytes:\n", msg_len );
+    for ( size_t i = 0; i < msg_len; ++i ) {
+        union {
+            char c;
+            unsigned char uc;
+        };
+        c = msg[i];
+        printf( "%02x ", uc );
+    }
+    printf( "\n" );
+*/
+
+    ssize_t cc = send( m_sockfd, &msg[0], msg_len, 0 );
+    if ( cc != (ssize_t)msg_len ) {
+        err( "Transport: error while sending message.\n" );
+        return false;
+    }
+
+    return true;
+}
+
+bool cStreamSock::Create( const struct addrinfo * info )
+{
+    bool rc = Close();
+    if ( !rc ) {
+        return false;
+    }
+
+    SockFdT new_sock;
+    new_sock = socket( info->ai_family, info->ai_socktype, info->ai_protocol );
+    if ( new_sock == InvalidSockFd ) {
+        err( "Transport: cannot create stream socket.\n" );
+        return false;
+    }
+
+    m_sockfd = new_sock;
+
+    return true;
+}
+
+bool cStreamSock::Close()
+{
+    if ( m_sockfd == InvalidSockFd ) {
+        return true;
+    }
+
+    int cc;
+#ifdef _WIN32
+    cc = closesocket( m_sockfd );
+#else
+    cc = close( m_sockfd );
+#endif
+    if ( cc != 0 ) {
+        err( "Transport: cannot close stream socket.\n" );
+        return false;
+    }
+
+    m_sockfd = InvalidSockFd;
+
+    return true;
+}
+
+
+/***************************************************************
+ * Client Stream Socket class
+ **************************************************************/
+cClientStreamSock::cClientStreamSock()
+    : cStreamSock()
+{
+    // empty
+}
+
+cClientStreamSock::~cClientStreamSock()
+{
+    // empty
+}
+
+bool cClientStreamSock::Create( const char * host, uint16_t port )
+{
+    struct addrinfo * infos;
+    SelectAddresses( 0, host, port, infos );
+    if ( infos == 0 ) {
+        err( "Transport: failed to find sockaddr.\n" );
+        return false;
+    }
+
+    bool connected = false;
+    struct addrinfo * info;
+    for ( info = infos; info != 0; info = info->ai_next ) {
+        connected = Create( info );
+        if ( connected ) {
+            break;
+        }
+    }
+
+    freeaddrinfo( infos );
+
+    return connected;
+}
+
+bool cClientStreamSock::EnableKeepAliveProbes( int keepalive_time,
+                                               int keepalive_intvl,
+                                               int keepalive_probes )
 {
 #ifdef __linux__
     int rc;
-    int optval;
+    int val;
 
-    optval = 1;
-    rc = setsockopt(s, SOL_SOCKET, SO_KEEPALIVE, &optval, sizeof(optval));
+    val = 1;
+    rc = setsockopt( SockFd(), SOL_SOCKET, SO_KEEPALIVE, &val, sizeof(val) );
     if ( rc != 0 ) {
-        err( "failed to set SO_KEEPALIVE option, errno = %d\n", errno );
-        return true;
+        err( "Transport: failed to set SO_KEEPALIVE option.\n" );
+        return false;
     }
-    optval = keepalive_time;
-    rc = setsockopt(s, SOL_TCP, TCP_KEEPIDLE, &optval, sizeof(optval));
+    val = keepalive_time;
+    rc = setsockopt( SockFd(), SOL_TCP, TCP_KEEPIDLE, &val, sizeof(val) );
     if ( rc != 0 ) {
-        err( "failed to set TCP_KEEPIDLE option, errno = %d\n", errno );
-        return true;
+        err( "Transport: failed to set TCP_KEEPIDLE option.\n" );
+        return false;
     }
-    optval = keepalive_intvl;
-    rc = setsockopt(s, SOL_TCP, TCP_KEEPINTVL, &optval, sizeof(optval));
+    val = keepalive_intvl;
+    rc = setsockopt( SockFd(), SOL_TCP, TCP_KEEPINTVL, &val, sizeof(val) );
     if ( rc != 0 ) {
-        err( "failed to set TCP_KEEPINTVL option, errno = %d\n", errno );
-        return true;
+        err( "Transport: failed to set TCP_KEEPINTVL option.\n" );
+        return false;
     }
-    optval = keepalive_probes;
-    rc = setsockopt(s, SOL_TCP, TCP_KEEPCNT, &optval, sizeof(optval));
+    val = keepalive_probes;
+    rc = setsockopt( SockFd(), SOL_TCP, TCP_KEEPCNT, &val, sizeof(val) );
     if ( rc != 0 ) {
-        err( "failed to set TCP_KEEPCNT option, errno = %d\n", errno );
-        return true;
+        err( "Transport: failed to set TCP_KEEPCNT option.\n" );
+        return false;
     }
 
-    return false;
+    return true;
 
 #else
 
-    err( "TCP Keep-Alive Probes are not supported\n" );
+    err( "Transport: TCP Keep-Alive Probes are not supported.\n" );
 
-    return true;
+    return false;
 
 #endif /* __linux__ */
 }
 
-
-/*--------------------------------------------------------------------*/
-/* Stream Sockets server class methods                 */
-/*--------------------------------------------------------------------*/
-
-
-sstrmsock::sstrmsock()
+bool cClientStreamSock::Create( const struct addrinfo * info )
 {
-	fOpen = FALSE;
-	fOpenS = FALSE;
-	ulBufSize = 4096;
-	domain = AF_INET;
-	type = SOCK_STREAM;
-	protocol = 0;
-	backlog = 20;
-	s = -1;
-	ss = -1;
+    bool rc = cStreamSock::Create( info );
+    if ( !rc ) {
+        return false;
+    }
+
+    int cc = connect( SockFd(), info->ai_addr, info->ai_addrlen );
+    if ( cc != 0 ) {
+        Close();
+        err( "Transport: connect failed.\n" );
+        return false;
+    }
+
+    return true;
 }
 
 
-sstrmsock::sstrmsock(const sstrmsock &copy)
+/***************************************************************
+ * Server Stream Socket class
+ **************************************************************/
+cServerStreamSock::cServerStreamSock()
+    : cStreamSock()
 {
-	if (this == &copy) {
-		return;
-	}
-	fOpen = copy.fOpen;
-	fOpenS = copy.fOpenS;
-	ulBufSize = copy.ulBufSize;
-	domain = copy.domain;
-	type = copy.type;
-	protocol = copy.protocol;
-	backlog = copy.backlog;
-	s = copy.s;
-	ss = copy.ss;
-	errcode = 0;
+    // empty
 }
 
-
-sstrmsock::~sstrmsock()
+cServerStreamSock::~cServerStreamSock()
 {
-// Note: do NOT close the server socket by default! This will cause
-// an error in a multi-threaded environment.
-	if (fOpen)
-		Close();
+    // empty
 }
 
-
-bool sstrmsock::Accept(void)
+bool cServerStreamSock::Create( uint16_t port )
 {
-	socklen_t sz = sizeof(addr);
+    struct addrinfo * infos;
+    SelectAddresses( AI_PASSIVE, 0, port, infos );
+    if ( infos == 0 ) {
+        err( "Transport: failed to find sockaddr.\n" );
+        return false;
+    }
 
-	if (!fOpenS) {
-		return(TRUE);
-	}
-// accept the connection and obtain the connection socket
-	sz = sizeof (struct sockaddr);
-	s = accept(ss, (struct sockaddr *) &addr, &sz);
-	if (s == -1) {
-		errcode = errno;
-		fOpen = FALSE;
-		return(TRUE);
-	}
+    bool bound = false;
+    struct addrinfo * info;
+    for ( info = infos; info != 0; info = info->ai_next ) {
+        bound = Create( info );
+        if ( bound ) {
+            break;
+        }
+    }
 
-	fOpen = TRUE;
-	return(FALSE);
+    freeaddrinfo( infos );
+
+    return bound;
 }
 
-void sstrmsock::CloseSrv(void)
+bool cServerStreamSock::Create( const struct addrinfo * info )
 {
-	if (fOpenS) {
-		close(ss);
-		fOpenS = FALSE;
-	}
-	errcode = 0;
-	return;
+    bool rc = cStreamSock::Create( info );
+    if ( !rc ) {
+        return false;
+    }
+
+    int cc;
+
+    int val = 1;
+#ifdef _WIN32
+    cc = setsockopt( SockFd(),
+                     SOL_SOCKET,
+                     SO_REUSEADDR,
+                     (const char *)&val, sizeof(val) );
+#else
+    cc = setsockopt( SockFd(),
+                     SOL_SOCKET,
+                     SO_REUSEADDR,
+                     &val,
+                     sizeof(val) );
+#endif
+    if ( cc != 0 ) {
+        Close();
+        err( "Transport: failed to set SO_REUSEADDR option.\n" );
+        return false;
+    }
+    cc = bind( SockFd(), info->ai_addr, info->ai_addrlen );
+    if ( cc != 0 ) {
+        Close();
+        err( "Transport: bind failed.\n" );
+        return false;
+    }
+    cc = listen( SockFd(), 5 /* TODO */ );
+    if ( cc != 0 ) {
+        Close();
+        err( "Transport: listen failed.\n" );
+        return false;
+    }
+
+    return true;
 }
 
-
-bool sstrmsock::Create(
-        int    Port)                    // the local port
+cStreamSock * cServerStreamSock::Accept()
 {
-	int    Rc;				// return code
-	int    so_reuseaddr = TRUE;	// socket reuse flag
+    SockFdT sock = accept( SockFd(), 0, 0 );
+    if ( sock == InvalidSockFd ) {
+        err( "Transport: accept failed.\n" );
+        return 0;
+    }
 
-        // get a server socket
-	ss = socket(domain, type, protocol);
-	if (ss == -1) {
-		errcode = errno;
-		return(TRUE);
-	}
-        // set the socket option to reuse the address
-	setsockopt(ss, SOL_SOCKET, SO_REUSEADDR, &so_reuseaddr,
-							sizeof(so_reuseaddr));
-        // bind the server socket to a port
-	memset(&addr, 0, sizeof (addr));
-	addr.sin_family = domain;
-	addr.sin_port = htons(Port);
-	addr.sin_addr.s_addr = INADDR_ANY;
-	Rc = bind(ss, (struct sockaddr *) &addr, sizeof(addr));
-	if (Rc == -1) {
-		errcode = errno;
-		return (TRUE);
-	}
-        // listen for a client at the port
-	Rc = listen(ss, backlog);
-	if (Rc == -1) {
-		errcode = errno;
-		return(TRUE);
-	}
-
-	errcode = 0;
-	fOpenS = TRUE;
-	return(FALSE);
+    return new cStreamSock( sock );
 }
+

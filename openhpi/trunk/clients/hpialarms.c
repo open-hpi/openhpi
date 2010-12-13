@@ -52,7 +52,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <getopt.h>
 #include <SaHpi.h>
 #include <oHpi.h>
-#include <oh_clients.h>
+
+#include "oh_clients.h"
 
 #define OH_SVN_REV "$Revision$"
 

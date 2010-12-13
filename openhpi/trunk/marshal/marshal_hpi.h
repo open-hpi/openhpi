@@ -174,8 +174,6 @@ typedef struct
   int                  m_id;
   const cMarshalType **m_request;
   const cMarshalType **m_reply; // the first param is the result
-  size_t               m_request_len;
-  size_t               m_reply_len;
 } cHpiMarshal;
 
 
@@ -183,8 +181,7 @@ typedef struct
 {                              \
   eF ## name,                  \
   name ## In,                  \
-  name ## Out,                 \
-  0, 0                         \
+  name ## Out                  \
 }
 
 

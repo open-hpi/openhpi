@@ -435,7 +435,7 @@ SaErrorT oh_add_resource(RPTable *table, SaHpiRptEntryT *entry, void *data, int 
         rptentry = get_rptentry_by_rid(table, entry->ResourceId);
         /* If not, create new RPTEntry */
         if (!rptentry) {
-                rptentry = (RPTEntry *)g_malloc0(sizeof(RPTEntry));
+                rptentry = g_new0(RPTEntry, 1);
                 if (!rptentry) {
                         err("Not enough memory to add RPT entry.");
                         return SA_ERR_HPI_OUT_OF_MEMORY;
@@ -725,7 +725,7 @@ SaErrorT oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT *rdr, void *
         rdrecord = get_rdrecord_by_id(rptentry, rdr->RecordId);
         /* If not, create new rdr */
         if (!rdrecord) {
-                rdrecord = (RDRecord *)g_malloc0(sizeof(RDRecord));
+                rdrecord = g_new0(RDRecord, 1);
                 if (!rdrecord) {
                         err("Not enough memory to add RDR.");
                         return SA_ERR_HPI_OUT_OF_MEMORY;

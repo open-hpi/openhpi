@@ -117,113 +117,6 @@ IsSimpleType( tMarshalType type )
 }
 
 
-size_t
-MarshalSize( const cMarshalType *type )
-{
-  switch( type->m_type )
-     {
-       case eMtVoid:
-	    return 0;
-
-       case eMtInt8:
-	    return sizeof(tInt8);
-       case eMtUint8:
-	    return sizeof(tUint8);
-       case eMtInt16:
-	    return sizeof(tInt16);
-       case eMtUint16:
-	    return sizeof(tUint16);
-       case eMtInt32:
-	    return sizeof(tInt32);
-       case eMtUint32:
-	    return sizeof(tUint32);
-       case eMtInt64:
-	    return sizeof(tInt64);
-       case eMtUint64:
-	    return sizeof(tUint64);
-       case eMtFloat32:
-	    return sizeof(tFloat32);
-       case eMtFloat64:
-	    return sizeof(tFloat64);
-
-       case eMtArray:
-	    {
-	      size_t nelems = type->u.m_array.m_nelements;
-	      assert( nelems > 0 );
-	      const cMarshalType *elem = type->u.m_array.m_element;
-	      assert( elem );
-
-	      return nelems * MarshalSize( elem );
-	    }
-
-       case eMtVarArray:
-	    // TODO investigate and fix me if necessary
-	    return 0xffff;
-
-       case eMtStruct:
-	    {
-	      size_t size = 0;
-
-	      const cMarshalType *elems = &type->u.m_struct.m_elements[0];
-	      assert( elems );
-
-	      size_t i;
-	      for( i = 0; elems[i].m_type == eMtStructElement; i++ )
-		 {
-		   const cMarshalType *elem = elems[i].u.m_struct_element.m_element;
-		   size += MarshalSize( elem );
-		 }
-
-	      return size;
-	    }
-
-       case eMtUnion:
-	    {
-	      size_t max = 0;
-
-	      const cMarshalType *elems = &type->u.m_union.m_elements[0];
-	      assert( elems );
-
-	      size_t i;
-	      for( i = 0; elems[i].m_type == eMtUnionElement; i++ )
-		 {
-		   const cMarshalType *elem = elems[i].u.m_union_element.m_element;
-		   size_t s = MarshalSize( elem );
-		   if ( max < s )
-		      {
-			max = s;
-		      }
-		 }
-
-	      return max;
-	    }
-
-       case eMtUserDefined:
-	    // TODO investigate and fix me if necessary
-	    return 0xffff;
-
-       default: // including eMtUnknown, eMtStructElement, eMtUnionElement
-	    assert( 0 );
-	    return 0;
-     }
-}
-
-
-size_t
-MarshalSizeArray( const cMarshalType **types )
-{
-  size_t size = 0;
-
-  size_t i;
-  for( i = 0; types[i]; i++ )
-     {
-       size += MarshalSize( types[i] );
-     }
-
-  return size;
-}
-
-
 static int
 MarshalSimpleType( tMarshalType type, const void *data, void *buffer )
 {
@@ -718,7 +611,7 @@ Demarshal( int byte_order, const cMarshalType *type, void *d, const void *b )
 			const size_t nelems2 = GetStructElementIntegerValue( type, nelems2_idx, data );
 
 			// allocate storage for var array content
-			unsigned char *data2 = (unsigned char *)g_malloc0( nelems2 * elem2_sizeof );
+			unsigned char *data2 = g_new0(unsigned char, nelems2 * elem2_sizeof );
 			// (data + offset ) points to pointer to var array content
 			memcpy(data + offset, &data2, sizeof(void *));
 

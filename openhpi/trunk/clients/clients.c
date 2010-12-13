@@ -19,7 +19,8 @@
 
 #include <SaHpi.h>
 #include <oHpi.h>
-#include <oh_clients.h>
+
+#include "oh_clients.h"
 
 void oh_prog_version(const char *prog_name, const char *svn_rev_str)
 {

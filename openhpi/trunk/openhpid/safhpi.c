@@ -699,7 +699,7 @@ SaErrorT SAHPI_API saHpiResourceFailedRemove (
 	} else 
 		hsstate = SAHPI_HS_STATE_ACTIVE;
         
-        e = g_malloc0(sizeof(struct oh_event));
+        e = g_new0(struct oh_event, 1);
         e->hid = hid;
         e->resource = saved_res;
         e->event.Source = ResourceId;

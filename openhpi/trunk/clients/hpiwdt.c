@@ -35,8 +35,9 @@
 #include <string.h>
 #include <getopt.h>
 #include <SaHpi.h>
-#include <oh_clients.h>
 #include <oHpi.h>
+
+#include "oh_clients.h"
 
 #define  uchar  unsigned char
 #define OH_SVN_REV "$Revision$"

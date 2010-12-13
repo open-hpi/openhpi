@@ -30,7 +30,7 @@ oh_el *oh_el_create(SaHpiUint32T size)
 {
         oh_el *el;
 
-        el = (oh_el *) g_malloc0(sizeof(oh_el));
+        el = g_new0(oh_el, 1);
         if (el != NULL) {
 		el->basetime = 0;
 		el->sysbasetime = 0;
@@ -83,7 +83,7 @@ SaErrorT oh_el_append(oh_el *el,
         }
 
         /* alloc the new entry */
-        entry = (oh_el_entry *) g_malloc0(sizeof(oh_el_entry));
+        entry = g_new0(oh_el_entry, 1);
         if (entry == NULL) {
                 el->info.OverflowFlag = TRUE;
                 return SA_ERR_HPI_OUT_OF_SPACE;
@@ -148,7 +148,7 @@ SaErrorT oh_el_prepend(oh_el *el,
         }
 
         /* alloc the new entry */
-        entry = (oh_el_entry *) g_malloc0(sizeof(oh_el_entry));
+        entry = g_new0(oh_el_entry, 1);
         if (entry == NULL) {
                 el->info.OverflowFlag = TRUE;
                 return SA_ERR_HPI_OUT_OF_SPACE;
@@ -377,7 +377,7 @@ SaErrorT oh_el_map_from_file(oh_el *el, char *filename)
 
         oh_el_clear(el); // ensure list is empty
         while (read(file, &entry, sizeof(oh_el_entry)) == sizeof(oh_el_entry)) {
-		oh_el_entry *elentry = (oh_el_entry *)g_malloc0(sizeof(oh_el_entry));
+		oh_el_entry *elentry = g_new0(oh_el_entry, 1);
 		el->nextid = entry.event.EntryId;
 		el->nextid++;
 		*elentry = entry;

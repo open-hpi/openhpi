@@ -313,7 +313,7 @@ int oh_load_plugin(char *plugin_name)
                 return 0;
         }
 
-        plugin = (struct oh_plugin *)g_malloc0(sizeof(struct oh_plugin));
+        plugin = g_new0(struct oh_plugin, 1);
         if (!plugin) {
                 err("Out of memory.");
                 return -1;
@@ -562,7 +562,7 @@ static struct oh_handler *new_handler(GHashTable *handler_config)
 		return NULL;
 	}
 
-        handler = (struct oh_handler *)g_malloc0(sizeof(struct oh_handler));
+        handler = g_new0(struct oh_handler, 1);
 
         plugin = oh_get_plugin(plugin_name);
         if(!plugin) { /* Attempt to load plugin here once */
@@ -736,7 +736,7 @@ SaErrorT oh_discovery(void)
 int oh_load_plugin_functions(struct oh_plugin *plugin, struct oh_abi_v2 **abi)
 {
 
-        *abi = (struct oh_abi_v2 *)g_malloc0(sizeof(struct oh_abi_v2));
+        *abi = g_new0(struct oh_abi_v2, 1);
 
 
         if (!(*abi)) {

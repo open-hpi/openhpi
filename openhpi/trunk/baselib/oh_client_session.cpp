@@ -17,225 +17,286 @@
  *
  */
 
-#include <pthread.h>
+#include <glib.h>
 
-#include <oHpi.h>
-#include <config.h>
-#include <oh_domain.h>
 #include <oh_error.h>
+
+#include <marshal_hpi.h>
+#include <strmsock.h>
 
 #include "oh_client.h"
 #include "oh_client_conf.h"
 #include "oh_client_session.h"
 
 
-struct oh_client_session {
-        SaHpiDomainIdT did; /* Domain Id */
-        SaHpiSessionIdT csid; /* Client Session Id */
-        SaHpiSessionIdT dsid; /* Domain Session Id */
-        GHashTable *connxs; /* Connections for this session (per thread) */
-};
-
-static GHashTable *ohc_sessions = NULL;
-static SaHpiSessionIdT next_client_sid = 1;
-
-
-static void __destroy_client_connx(gpointer data)
+/***************************************************************
+ * Session Layer: class cSession
+ **************************************************************/
+class cSession
 {
-        struct oh_client_session *client_session = (struct oh_client_session *)data;
+public:
 
-        g_hash_table_destroy(client_session->connxs);
-        g_free(client_session);
-}
+    explicit cSession();
+    ~cSession();
 
-void oh_client_session_init(void)
-{
-    g_static_rec_mutex_lock(&ohc_lock);
-
-    // Create session table.
-    if (!ohc_sessions) {
-        ohc_sessions = g_hash_table_new_full( g_int_hash, 
-                                              g_int_equal,
-                                              NULL, 
-                                              __destroy_client_connx);
+    SaHpiDomainIdT GetDomainId() const
+    {
+        return m_did;
     }
 
+    SaErrorT RpcOpen( SaHpiDomainIdT did );
+    SaErrorT RpcClose();
+    SaErrorT Rpc( uint32_t id, Params& iparams, Params& oparams );
+
+private:
+
+    cSession( const cSession& );
+    cSession& operator =( cSession& );
+
+    SaErrorT DoRpc( uint32_t id, Params& iparams, Params& oparams );
+
+    SaErrorT GetSock( cClientStreamSock * & sock );
+    static void DeleteSock( gpointer ptr );
+
+private:
+
+    // data
+    SaHpiDomainIdT  m_did;
+    SaHpiSessionIdT m_remote_sid;
+    GStaticPrivate  m_sockets;
+};
+
+
+cSession::cSession()
+    : m_did( SAHPI_UNSPECIFIED_DOMAIN_ID ),
+      m_remote_sid( 0 )
+{
+    g_static_private_init( &m_sockets );
+}
+
+cSession::~cSession()
+{
+    g_static_private_free( &m_sockets );
+}
+
+SaErrorT cSession::RpcOpen( SaHpiDomainIdT did )
+{
+    m_did = did;
+    SaHpiDomainIdT remote_did = SAHPI_UNSPECIFIED_DOMAIN_ID;
+
+    Params iparams, oparams( &m_remote_sid );
+    iparams.SetFirst( &remote_did );
+    return DoRpc( eFsaHpiSessionOpen, iparams, oparams );
+}
+
+SaErrorT cSession::RpcClose()
+{
+    Params iparams, oparams;
+    iparams.SetFirst( &m_remote_sid );
+    return DoRpc( eFsaHpiSessionClose, iparams, oparams );
+}
+
+SaErrorT cSession::Rpc( uint32_t id, Params& iparams, Params& oparams )
+{
+    iparams.SetFirst( &m_remote_sid );
+    return DoRpc( id, iparams, oparams );
+}
+
+SaErrorT cSession::DoRpc( uint32_t id, Params& iparams, Params& oparams )
+{
+    SaErrorT rv;
+
+    cHpiMarshal * hm = HpiMarshalFind( id );
+    if ( !hm ) {
+        return SA_ERR_HPI_UNSUPPORTED_API;
+    }
+
+    cClientStreamSock * sock;
+    rv = GetSock( sock );
+    if ( rv != SA_OK ) {
+        return rv;
+    }
+
+    char data[dMaxPayloadLength];
+    uint32_t data_len;
+    uint8_t  rp_type;
+    uint32_t rp_id;
+    int      rp_byte_order;
+
+    data_len = HpiMarshalRequest( hm, data, iparams.const_array );
+    bool rc = sock->WriteMsg( eMhMsg, id, data, data_len );
+    if ( rc ) {
+        rc = sock->ReadMsg( rp_type, rp_id, data, data_len, rp_byte_order );
+    }
+    if ( !rc ) {
+        g_static_private_set( &m_sockets, 0, 0 ); // close socket
+        return SA_ERR_HPI_NO_RESPONSE;
+    }
+    oparams.SetFirst( &rv );
+    int mr = HpiDemarshalReply( rp_byte_order, hm, data, oparams.array );
+
+    if ( ( mr <= 0 ) || ( rp_type != eMhMsg ) || ( id != rp_id ) ) {
+        g_static_private_set( &m_sockets, 0, 0 ); // close socket
+        return SA_ERR_HPI_NO_RESPONSE;
+    }
+
+    return rv;
+}
+
+SaErrorT cSession::GetSock( cClientStreamSock * & sock )
+{
+    gpointer ptr = g_static_private_get( &m_sockets );
+    if ( ptr ) {
+        sock = reinterpret_cast<cClientStreamSock *>(ptr);
+    } else {
+        g_static_rec_mutex_lock(&ohc_lock);
+        const struct oh_domain_conf * dc = oh_get_domain_conf( m_did );
+        g_static_rec_mutex_unlock( &ohc_lock );
+
+        if (!dc) {
+            err( "Session: cannot find domain %u config.\n", m_did );
+            return SA_ERR_HPI_INVALID_DOMAIN;
+        }
+
+        sock = new cClientStreamSock;
+
+        bool rc = sock->Create( dc->host, dc->port );
+        if ( !rc ) {
+            delete sock;
+            err("Session: cannot open connection to domain %u.\n", m_did );
+            return SA_ERR_HPI_NO_RESPONSE;
+        }
+
+        // TODO configuration file, env vars?
+        sock->EnableKeepAliveProbes( /* keepalive_time*/    1,
+                                     /* keepalive_intvl */  1,
+                                     /* keepalive_probes */ 3 );
+
+        g_static_private_set( &m_sockets, sock, DeleteSock );
+    }
+
+    return SA_OK;
+}
+
+void cSession::DeleteSock( gpointer ptr )
+{
+    cClientStreamSock * sock = reinterpret_cast<cClientStreamSock *>(ptr);
+    delete sock;
+}
+
+
+/***************************************************************
+ * Session Layer: Session Table
+ **************************************************************/
+static GHashTable * sessions = 0;
+
+gpointer sid_key( SaHpiSessionIdT sid )
+{
+    char * key = 0;
+    key += sid;
+    return key;
+}
+
+static void sessions_init()
+{
+    g_static_rec_mutex_lock(&ohc_lock);
+    if ( !sessions ) {
+        sessions = g_hash_table_new( g_direct_hash, g_direct_equal );
+    }
     g_static_rec_mutex_unlock(&ohc_lock);
 }
 
-SaErrorT oh_create_connx(SaHpiDomainIdT did, pcstrmsock *pinst)
+static cSession * sessions_get( SaHpiSessionIdT sid )
 {
-        const struct oh_domain_conf *domain_conf = NULL;
-        pcstrmsock connx = NULL;
-        
-        if (!pinst) {
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
-        
-        oh_client_init(); /* Initialize library - Will run only once */
-
-        g_static_rec_mutex_lock(&ohc_lock);
-	connx = new cstrmsock;
-        if (!connx) {
-                g_static_rec_mutex_unlock(&ohc_lock);
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
-
-        domain_conf = oh_get_domain_conf(did);
-        if (!domain_conf) {
-                delete connx;
-                g_static_rec_mutex_unlock(&ohc_lock);
-                err("Client configuration for domain %u was not found.", did);
-                return SA_ERR_HPI_INVALID_DOMAIN;
-        }
-        g_static_rec_mutex_unlock(&ohc_lock);
-        
-	if (connx->Open(domain_conf->host, domain_conf->port)) {
-		err("Could not open client socket"
-		    "\nPossibly, the OpenHPI daemon has not been started.");
-                delete connx;
-		return SA_ERR_HPI_NO_RESPONSE;
-	}
-    // TODO configuration file, env vars?
-    connx->EnableKeepAliveProbes(/* keepalive_time*/ 1,
-                                 /* keepalive_intvl */ 1,
-                                 /* keepalive_probes */ 3 );
-        
-        *pinst = connx;
-	dbg("Client instance created");
-	return SA_OK;
+    g_static_rec_mutex_lock(&ohc_lock);
+    gpointer value = g_hash_table_lookup( sessions, sid_key( sid ) );
+    g_static_rec_mutex_unlock(&ohc_lock);
+    return reinterpret_cast<cSession*>(value);
 }
 
-void oh_delete_connx(pcstrmsock pinst)
+static SaHpiSessionIdT sessions_add( cSession * session )
 {
-	if (pinst) {
-                pinst->Close();
-                dbg("Connection closed and deleted");
-                delete pinst;
-        }
+    static SaHpiSessionIdT next_sid = 1;
+
+    g_static_rec_mutex_lock( &ohc_lock );
+    SaHpiSessionIdT sid = next_sid;
+    ++next_sid;
+    g_hash_table_insert( sessions, sid_key( sid ), session );
+    g_static_rec_mutex_unlock(&ohc_lock);
+
+    return sid;
 }
 
-SaErrorT oh_close_connx(SaHpiSessionIdT SessionId)
+static void sessions_remove( SaHpiSessionIdT sid )
 {
-        pthread_t thread_id = pthread_self();
-        struct oh_client_session *client_session = NULL;
-
-        if (SessionId == 0)
-                return SA_ERR_HPI_INVALID_PARAMS;
-
-        g_static_rec_mutex_lock(&ohc_lock);
-        client_session = (struct oh_client_session *)g_hash_table_lookup(ohc_sessions, &SessionId);
-        if (!client_session) {
-                g_static_rec_mutex_unlock(&ohc_lock);
-                err("Did not find connx for sid %d", SessionId);
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
-        
-        g_hash_table_remove(client_session->connxs, &thread_id);
-
-        g_static_rec_mutex_unlock(&ohc_lock);
-
-        return SA_OK;
+    g_static_rec_mutex_lock( &ohc_lock );
+    g_hash_table_remove( sessions, sid_key( sid ) );
+    g_static_rec_mutex_unlock(&ohc_lock);
 }
 
-SaErrorT oh_get_connx(SaHpiSessionIdT csid, SaHpiSessionIdT *dsid, pcstrmsock *pinst, SaHpiDomainIdT *did)
+
+/***************************************************************
+ * Session Layer:  Interface
+ **************************************************************/
+
+void ohc_sess_init()
 {
-        pthread_t thread_id = pthread_self();
-        struct oh_client_session *client_session = NULL;
-        pcstrmsock connx = NULL;
-        SaErrorT ret = SA_OK;
-
-	if (!csid || !dsid || !pinst || !did)
-		return SA_ERR_HPI_INVALID_PARAMS;
-		
-	oh_client_init(); /* Initialize library - Will run only once */
-
-        // Look up connection table. If it exists, look up connection.
-        // if there is not connection, create one on-the-fly.
-        g_static_rec_mutex_lock(&ohc_lock);
-        client_session =
-          (struct oh_client_session *)g_hash_table_lookup(ohc_sessions, &csid);
-        
-        if (client_session) {
-                connx = (pcstrmsock)g_hash_table_lookup(client_session->connxs,
-                                                        &thread_id);
-
-                if (!connx) {
-                        ret = oh_create_connx(client_session->did, &connx);
-                        if (connx) {
-                        	g_hash_table_insert(client_session->connxs, 
-                                		    g_memdup(&thread_id,
-                                		     sizeof(pthread_t)),
-                                		    connx);
-				dbg("We are inserting a new connection"
-				    " in conns table");
-                        }
-                }
-                *dsid = client_session->dsid;
-				*did  = client_session->did;
-                *pinst = connx;
-        }
-        g_static_rec_mutex_unlock(&ohc_lock);        
-
-	if (client_session) {
-                if (connx)
-                        return SA_OK;
-                else 
-                        return ret;
-	}
-	else
-		return SA_ERR_HPI_INVALID_SESSION;
+    sessions_init();
 }
 
-static void __delete_connx(gpointer data)
+SaErrorT ohc_sess_open( SaHpiDomainIdT did, SaHpiSessionIdT& sid )
 {
-        pcstrmsock pinst = (pcstrmsock)data;
+    oh_client_init(); // TODO investigate
 
-        oh_delete_connx(pinst);
+    cSession * session = new cSession;
+    SaErrorT rv = session->RpcOpen( did );
+    if ( rv == SA_OK ) {
+        sid = sessions_add( session );
+    } else {
+        delete session;
+    }
+
+    return rv;
 }
 
-SaHpiSessionIdT oh_open_session(SaHpiDomainIdT did,
-                                SaHpiSessionIdT sid,
-                                pcstrmsock pinst)
+SaErrorT ohc_sess_close( SaHpiSessionIdT sid )
 {
-        GHashTable *connxs = NULL;
-        pthread_t thread_id;
-        struct oh_client_session *client_session;
-        
-        if (!sid || !pinst)
-		return 0;
-	
-        client_session = g_new0(struct oh_client_session, 1);
-        
-        g_static_rec_mutex_lock(&ohc_lock);
-        // Create connections table for new session.
-        connxs = g_hash_table_new_full(g_int_hash, g_int_equal,
-                                       g_free, __delete_connx);
-        // Map connection to thread id
-        thread_id = pthread_self();
-        g_hash_table_insert(connxs, g_memdup(&thread_id, sizeof(pthread_t)),
-                            pinst);
-        // Map connecitons table to session id
-        client_session->did = did;
-        client_session->dsid = sid;
-        client_session->csid = next_client_sid++;
-        client_session->connxs = connxs;
-        g_hash_table_insert(ohc_sessions, &client_session->csid, client_session);
-        g_static_rec_mutex_unlock(&ohc_lock);
+    cSession * session = sessions_get( sid );
+    if ( !session ) {
+        return SA_ERR_HPI_INVALID_SESSION;
+    }
 
-        return client_session->csid;
+    SaErrorT rv = session->RpcClose();
+    if ( rv == SA_OK ) {
+        sessions_remove( sid );
+        delete session;
+    }
+
+    return rv;
 }
 
-SaErrorT oh_close_session(SaHpiSessionIdT SessionId)
-{        
-        if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+SaErrorT ohc_sess_rpc( uint32_t id,
+                       SaHpiSessionIdT sid,
+                       Params& iparams,
+                       Params& oparams )
+{
+    cSession * session = sessions_get( sid );
+    if ( !session ) {
+        return SA_ERR_HPI_INVALID_SESSION;
+    }
 
-        g_static_rec_mutex_lock(&ohc_lock);
-        // Since we used g_hash_table_new_full to create the tables,
-        // this will remove the connection hash table and all of its entries also.
-        g_hash_table_remove(ohc_sessions, &SessionId);
-        
-        g_static_rec_mutex_unlock(&ohc_lock);
-        return SA_OK;
+    return session->Rpc( id, iparams, oparams );
 }
+
+SaErrorT ohc_sess_get_did( SaHpiSessionIdT sid, SaHpiDomainIdT& did )
+{
+    cSession * session = sessions_get( sid );
+    if ( !session ) {
+        return SA_ERR_HPI_INVALID_SESSION;
+    }
+
+    did = session->GetDomainId();
+ 
+    return SA_OK;
+}
+

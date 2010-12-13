@@ -903,7 +903,7 @@ static ret_code_t show_ver(void)
 {
    SaHpiVersionT ver = saHpiVersionGet();
 
-   printf("\nPackage version: %s\n", PACKAGE_VERSION);
+   printf("\nPackage version: %s\n", VERSION);
    printf("HPI specification version: SAI_HPI-%c.%02d.%02d\n\n",
    	  ('A' + (ver >> 16) -1), (ver >> 8) & 0xFF, (ver) & 0xFF);
 

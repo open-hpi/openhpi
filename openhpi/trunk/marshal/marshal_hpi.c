@@ -21,7 +21,6 @@
  */
 
 #include <stddef.h>
-#include <stdio.h>
 
 #include "marshal_hpi.h"
 
@@ -2153,25 +2152,10 @@ static cHpiMarshal hpi_marshal[] =
 
 static size_t hpi_marshal_num = sizeof( hpi_marshal ) / sizeof( cHpiMarshal );
 
-static int hpi_marshal_init = 0;
-
 
 cHpiMarshal *
 HpiMarshalFind( int id )
 {
-  if ( !hpi_marshal_init )
-     {
-       size_t i;
-       for( i = 0; i < hpi_marshal_num; i++ )
-	  {
-//          printf("Entry %d\n", i);
-	    hpi_marshal[i].m_request_len = MarshalSizeArray( hpi_marshal[i].m_request );
-	    hpi_marshal[i].m_reply_len   = MarshalSizeArray( hpi_marshal[i].m_reply );
-	  }
-
-       hpi_marshal_init = 1;
-     }
-
   id--;
 
   if ( id < 0 || id >= hpi_marshal_num )

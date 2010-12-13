@@ -26,12 +26,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <getopt.h>
 
 #include <SaHpi.h>
 #include <oh_utils.h>
-#include <oh_clients.h>
+
+#include "oh_clients.h"
 
 #define OH_SVN_REV "$Revision$"
 
@@ -506,7 +506,7 @@ static void mod_sen(void)
 		if (rv == SA_OK)
 			break;
 		if (fdebug) printf("sleep before saHpiEventGet\n");
-		sleep(1);
+		g_usleep(G_USEC_PER_SEC);
 	};
 	saHpiSensorThresholdsGet(sessionid, Rpt->Rpt.ResourceId,
 		Rdr->Rdr.RdrTypeUnion.SensorRec.Num, &thres);

@@ -18,13 +18,11 @@
  */
 
 #include <stdlib.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
+#include <stdio.h>
 #include <string.h>
 
 #include <oHpi.h>
+
 #include <config.h>
 #include <oh_domain.h>
 #include <oh_error.h>
@@ -331,7 +329,7 @@ static void add_domain_conf(SaHpiDomainIdT did,
 {
     struct oh_domain_conf *domain_conf;
 
-    domain_conf = g_malloc0(sizeof(struct oh_domain_conf));
+    domain_conf = g_new0(struct oh_domain_conf, 1);
     domain_conf->did = did;
     strncpy(domain_conf->host, host, SAHPI_MAX_TEXT_BUFFER_LENGTH);
     domain_conf->port = port;
@@ -436,7 +434,7 @@ static void scanner_msg_handler (GScanner *scanner, gchar *message, gboolean is_
 
 static int load_client_config(const char *filename)
 {
-        int oh_client_conf_file, i, done = 0;
+        int i, done = 0;
         GScanner *oh_scanner;
         int num_tokens = sizeof(oh_client_conf_tokens) / sizeof(oh_client_conf_tokens[0]);
 
@@ -454,14 +452,18 @@ static int load_client_config(const char *filename)
         oh_scanner->msg_handler = scanner_msg_handler;
         oh_scanner->input_name = filename;
 
-        oh_client_conf_file = open(filename, O_RDONLY);
-        if (oh_client_conf_file < 0) {
+        FILE * fp = fopen(filename, "r");
+        if (!fp) {
                 err("Client configuration file '%s' could not be opened", filename);
                 g_scanner_destroy(oh_scanner);
                 return -3;
         }
 
-        g_scanner_input_file(oh_scanner, oh_client_conf_file);
+#ifdef _WIN32
+        g_scanner_input_file(oh_scanner, _fileno(fp));
+#else
+        g_scanner_input_file(oh_scanner, fileno(fp));
+#endif
 
         for (i = 0; i < num_tokens; i++) {
                 g_scanner_scope_add_symbol(
@@ -491,7 +493,7 @@ static int load_client_config(const char *filename)
                 }
         }
 
-        if (close(oh_client_conf_file) != 0) {
+        if (fclose(fp) != 0) {
                 err("Couldn't close file '%s'.", filename);
                 g_scanner_destroy(oh_scanner);
                 return -4;
