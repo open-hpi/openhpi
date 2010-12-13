@@ -274,7 +274,7 @@ void cHandler::RemoveAllResources()
     std::vector<ResourceMapEntry> entries;
     TakeEntriesAway( entries );
     for ( unsigned int i = 0, n = entries.size(); i < n; ++i ) {
-        struct oh_event * e = casted_g_malloc0<struct oh_event>();
+        struct oh_event * e = g_new0( struct oh_event, 1 );
         e->event.Source = entries[i].slave_rid;
         e->resource.ResourceCapabilities = 0;
         SaHpiEventT& he = e->event;
@@ -289,8 +289,8 @@ void cHandler::RemoveAllResources()
 
 bool cHandler::ReceiveEvent( struct oh_event *& e )
 {
-    e = casted_g_malloc0<struct oh_event>();
-    SaHpiRdrT * rdr = casted_g_malloc0<SaHpiRdrT>();
+    e = g_new0( struct oh_event, 1 );
+    SaHpiRdrT * rdr = g_new0( SaHpiRdrT, 1 );
     e->rdrs = g_slist_append( e->rdrs, rdr );
 
     SaErrorT rv = Abi()->saHpiEventGet( m_sid,
@@ -341,7 +341,7 @@ void cHandler::HandleEvent( struct oh_event * e )
     struct oh_event * e_update = 0;
     if ( !is_leaving ) {
         if ( ( !is_known ) || is_update ) {
-            e_update = casted_g_malloc0<struct oh_event>();
+            e_update = g_new0( struct oh_event, 1 );
             e_update->event.Source = slave_rid;
             e_update->resource = e->resource;
         }
@@ -400,7 +400,7 @@ bool cHandler::FetchRptAndRdrs( std::queue<struct oh_event *>& events ) const
         SaHpiUint32T cnt = GetRptUpdateCounter();
         SaHpiEntryIdT id, next_id;
         for ( id = SAHPI_FIRST_ENTRY; id != SAHPI_LAST_ENTRY; id = next_id ) {
-            struct oh_event * e = casted_g_malloc0<struct oh_event>();
+            struct oh_event * e = g_new0( struct oh_event, 1 );
             SaErrorT rv = Abi()->saHpiRptEntryGet( m_sid,
                                                    id,
                                                    &next_id,
@@ -440,7 +440,7 @@ bool cHandler::FetchRdrs( struct oh_event * e ) const
         SaHpiUint32T cnt = GetRdrUpdateCounter( slave_rid );
         SaHpiEntryIdT id, next_id;
         for ( id = SAHPI_FIRST_ENTRY; id != SAHPI_LAST_ENTRY; id = next_id ) {
-            SaHpiRdrT * rdr = casted_g_malloc0<SaHpiRdrT>();
+            SaHpiRdrT * rdr = g_new0( SaHpiRdrT, 1 );
             SaErrorT rv = Abi()->saHpiRdrGet( m_sid,
                                               slave_rid,
                                               id,

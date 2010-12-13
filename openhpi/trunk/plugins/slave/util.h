@@ -28,12 +28,6 @@ namespace Slave {
  * Utility Functions
  *************************************************************/
 
-template <typename T>
-T * casted_g_malloc0()
-{
-    return reinterpret_cast<T*>( g_malloc0( sizeof(T) ) );
-}
-
 bool IsLeavingEvent( const SaHpiEventT& );
 
 bool IsUpdateEvent( const SaHpiEventT& );
