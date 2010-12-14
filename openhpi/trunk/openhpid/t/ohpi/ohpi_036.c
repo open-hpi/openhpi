@@ -27,13 +27,13 @@
  
 int main(int argc, char **argv)
 {
+        /* Unset config file env variable *
+
         oHpiGlobalParamT path_param = {
                 .Type = OHPI_PATH,
                 .u.Path = "/mylibdir"
         };
         
-        /* Unset config file env variable *
-
         This test doesn't make sense anymore
 
         setenv("OPENHPI_CONF","./noconfig", 1);

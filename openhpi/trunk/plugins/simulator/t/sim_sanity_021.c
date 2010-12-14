@@ -14,6 +14,7 @@
 */
 
 #include <stdlib.h>
+#include <string.h>
 #include <SaHpi.h>
 #include <oh_utils.h>
 #include <sahpi_struct_utils.h>

@@ -43,6 +43,10 @@ SaErrorT oa_soap_get_sel_info(void *oh_handler,
                              SaHpiResourceIdT resource_id,
                              SaHpiEventLogInfoT *info);
 
+SaErrorT oa_soap_get_sel_caps(void *oh_handler,
+                            SaHpiResourceIdT resource_id,
+                            SaHpiEventLogCapabilitiesT *caps);
+
 SaErrorT oa_soap_set_sel_time(void *oh_handler,
                              SaHpiResourceIdT resource_id,
                              SaHpiTimeT time);
