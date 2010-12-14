@@ -222,6 +222,23 @@ static cSession * sessions_get( SaHpiSessionIdT sid )
     return reinterpret_cast<cSession*>(value);
 }
 
+gboolean dehash_sessions( gpointer /* key */, gpointer value, gpointer user_data )
+{
+    GList ** pvalues = reinterpret_cast<GList **>(user_data);
+    *pvalues = g_list_append( *pvalues, value );
+    return TRUE;
+}
+
+static GList * sessions_take_all()
+{
+    g_static_rec_mutex_lock(&ohc_lock);
+    GList * sessions_list = 0;
+    g_hash_table_foreach_remove( sessions, dehash_sessions, &sessions_list );
+    g_static_rec_mutex_unlock(&ohc_lock);
+
+    return sessions_list;
+}
+
 static SaHpiSessionIdT sessions_add( cSession * session )
 {
     static SaHpiSessionIdT next_sid = 1;
@@ -283,6 +300,29 @@ SaErrorT ohc_sess_close( SaHpiSessionIdT sid )
     return rv;
 }
 
+SaErrorT ohc_sess_close_all()
+{
+    SaErrorT rv = SA_OK;
+
+    GList * sessions_list = sessions_take_all();
+    if ( g_list_length( sessions_list ) == 0 ) {
+        rv = SA_ERR_HPI_INVALID_REQUEST;
+    } else {
+        GList * item = sessions_list;
+        while ( item ) {
+            cSession * session = reinterpret_cast<cSession*>(item->data);
+            session->RpcClose();
+            delete session;
+            item = item->next;
+        }
+    }
+
+    g_list_free( sessions_list );
+
+    return rv;
+}
+
+
 SaErrorT ohc_sess_rpc( uint32_t id,
                        SaHpiSessionIdT sid,
                        ClientRpcParams& iparams,
@@ -304,7 +344,7 @@ SaErrorT ohc_sess_get_did( SaHpiSessionIdT sid, SaHpiDomainIdT& did )
     }
 
     did = session->GetDomainId();
- 
+
     return SA_OK;
 }
 

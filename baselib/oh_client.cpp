@@ -185,6 +185,21 @@ SaErrorT SAHPI_API saHpiInitialize(
     if ((NumOptions != 0) && (Options == 0)) {
         return SA_ERR_HPI_INVALID_PARAMS;
     }
+    for ( size_t i = 0; i < NumOptions; ++i ) {
+        const SaHpiInitOptionT& o = Options[i];
+        if (o.OptionId >= SA_HPI_INITOPTION_FIRST_OEM ) {
+            continue;
+        }
+        if ( o.OptionId != SA_HPI_INITOPTION_HANDLE_CREATE_THREAD ) {
+            if ( FailedOption ) {
+                *FailedOption = i;
+            }
+            if ( OptionError ) {
+                *OptionError = SA_ERR_HPI_UNKNOWN;
+            }
+            return SA_ERR_HPI_INVALID_DATA;
+        }
+    }
 
     // TODO implement more checks from section 5.2.1 of B.03.01 spec
     // Current implementation does not cover options check
@@ -207,6 +222,13 @@ SaErrorT SAHPI_API saHpiFinalize()
     // TODO implement
     // TODO implement any library finalization code here
     // Current implementation does not utilize this function
+    SaErrorT rv;
+
+    rv = ohc_sess_close_all();
+    if ( rv != SA_OK ) {
+        return rv;
+    }
+
     return SA_OK;
 }
 
