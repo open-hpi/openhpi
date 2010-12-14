@@ -24,30 +24,7 @@
 
 #include <SaHpi.h>
 
-
-struct Params
-{
-    explicit Params( void * p2 = 0, void * p3 = 0, void * p4 = 0,
-                     void * p5 = 0, void * p6 = 0 )
-    {
-        array[0] = 0;
-        array[1] = p2;
-        array[2] = p3;
-        array[3] = p4;
-        array[4] = p5;
-        array[5] = p6;
-    }
-
-    void SetFirst( void * p1 )
-    {
-        array[0] = p1;
-    }
-
-    union {
-        void * array[6];
-        const void * const_array[6];
-    };
-};
+#include <oh_rpc_params.h>
 
 
 void ohc_sess_init();
@@ -55,8 +32,8 @@ SaErrorT ohc_sess_open( SaHpiDomainIdT did, SaHpiSessionIdT& sid );
 SaErrorT ohc_sess_close( SaHpiSessionIdT sid );
 SaErrorT ohc_sess_rpc( uint32_t id,
                        SaHpiSessionIdT sid,
-                       Params& iparams,
-                       Params& oparams );
+                       ClientRpcParams& iparams,
+                       ClientRpcParams& oparams );
 SaErrorT ohc_sess_get_did( SaHpiSessionIdT sid, SaHpiDomainIdT& did );
 
 

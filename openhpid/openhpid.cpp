@@ -39,6 +39,7 @@
 #include <oh_domain.h>
 #include <oh_error.h>
 #include <oh_init.h>
+#include <oh_rpc_params.h>
 #include <strmsock.h>
 
 
@@ -450,26 +451,7 @@ static void service_thread(gpointer sock_ptr, gpointer /* user_data */)
 /* RPC Call Processing                                                        */
 /*----------------------------------------------------------------------------*/
 
-struct Params
-{
-    explicit Params(void * p0 = 0, void * p1 = 0, void * p2 = 0,
-                    void * p3 = 0, void * p4 = 0, void * p5 = 0)
-    {
-        array[0] = p0;
-        array[1] = p1;
-        array[2] = p2;
-        array[3] = p3;
-        array[4] = p4;
-        array[5] = p5;
-    }
-
-    union {
-        void * array[6];
-        const void * const_array[6];
-    };
-};
-
-#define Demarshal_Rq(rq_byte_order, hm, data, iparams) \
+#define DEMARSHAL_RQ(rq_byte_order, hm, data, iparams) \
 { \
     int mr = HpiDemarshalRequest(rq_byte_order, hm, data, iparams.array); \
     if (mr < 0) { \
@@ -477,7 +459,7 @@ struct Params
     } \
 }
 
-#define Marshal_Rp(hm, data, data_len, oparams) \
+#define MARSHAL_RP(hm, data, data_len, oparams) \
 { \
     int mr = HpiMarshalReply(hm, data, oparams.const_array); \
     if (mr < 0) { \
@@ -523,56 +505,56 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiDomainIdT  did;
             void            *security = 0;
 
-            Params iparams(&did);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&did);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiSessionOpen(OH_DEFAULT_DOMAIN_ID, &sid, security);
             if (rv == SA_OK) {
                 changed_sid = sid;
             }
 
-            Params oparams(&rv, &sid);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &sid);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiSessionClose: {
 
-            Params iparams(&sid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiSessionClose(sid);
             if (rv == SA_OK) {
                 changed_sid = sid;
             }
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiDiscover: {
 
-            Params iparams(&sid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiDiscover(sid);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiDomainInfoGet: {
             SaHpiDomainInfoT info;
 
-            Params iparams(&sid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiDomainInfoGet(sid, &info);
 
-            Params oparams(&rv, &info);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &info);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -581,26 +563,26 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiEntryIdT   next_eid;
             SaHpiDrtEntryT  drte;
 
-            Params iparams(&sid, &eid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &eid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiDrtEntryGet(sid, eid, &next_eid, &drte);
 
-            Params oparams(&rv, &next_eid, &drte);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &next_eid, &drte);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiDomainTagSet: {
             SaHpiTextBufferT tag;
 
-            Params iparams(&sid, &tag);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &tag);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiDomainTagSet(sid, &tag);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -608,76 +590,76 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiEntryIdT   eid;
             SaHpiEntryIdT   next_eid;
 
-            Params iparams(&sid, &eid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &eid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiRptEntryGet(sid, eid, &next_eid, &rpte);
 
-            Params oparams(&rv, &next_eid, &rpte);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &next_eid, &rpte);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiRptEntryGetByResourceId: {
 
-            Params iparams(&sid, &rid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiRptEntryGetByResourceId(sid, rid, &rpte);
 
-            Params oparams(&rv, &rpte);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &rpte);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiResourceSeveritySet: {
             SaHpiSeverityT   sev;
 
-            Params iparams(&sid, &rid, &sev);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &sev);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiResourceSeveritySet(sid, rid, sev);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiResourceTagSet: {
             SaHpiTextBufferT tag;
 
-            Params iparams(&sid, &rid, &tag);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &tag);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiResourceTagSet(sid, rid, &tag);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiMyEntityPathGet: {
             SaHpiEntityPathT ep;
 
-            Params iparams(&sid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiMyEntityPathGet(sid, &ep);
 
-            Params oparams(&rv, &ep);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &ep);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiResourceIdGet: {
 
-            Params iparams(&sid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiResourceIdGet(sid, &rid);
 
-            Params oparams(&rv, &rid);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &rid);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -688,13 +670,13 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiInstrumentIdT instr_id;
             SaHpiUint32T       rpt_update_cnt;
 
-            Params iparams(&sid, &ep, &instr_type, &instance);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &ep, &instr_type, &instance);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiGetIdByEntityPath(sid, ep, instr_type, &instance, &rid, &instr_id, &rpt_update_cnt);
 
-            Params oparams(&rv, &instance, &rid, &instr_id, &rpt_update_cnt);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &instance, &rid, &instr_id, &rpt_update_cnt);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -704,51 +686,51 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiEntityPathT child_ep;
             SaHpiUint32T     rpt_update_cnt;
 
-            Params iparams(&sid, &parent_ep, &instance);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &parent_ep, &instance);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiGetChildEntityPath(sid, parent_ep, &instance, &child_ep, &rpt_update_cnt);
 
-            Params oparams(&rv, &instance, &child_ep, &rpt_update_cnt);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &instance, &child_ep, &rpt_update_cnt);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiResourceFailedRemove: {
 
-            Params iparams(&sid, &rid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiResourceFailedRemove(sid, rid);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiEventLogInfoGet: {
             SaHpiEventLogInfoT info;
 
-            Params iparams(&sid, &rid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiEventLogInfoGet(sid, rid, &info);
 
-            Params oparams(&rv, &info);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &info);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiEventLogCapabilitiesGet: {
             SaHpiEventLogCapabilitiesT caps;
 
-            Params iparams(&sid, &rid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiEventLogCapabilitiesGet(sid, rid, &caps);
 
-            Params oparams(&rv, &caps);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &caps);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -758,126 +740,126 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiEventLogEntryIdT next_eid;
             SaHpiEventLogEntryT   ele;
 
-            Params iparams(&sid, &rid, &eid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &eid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiEventLogEntryGet(sid, rid, eid, &prev_eid, &next_eid, &ele, &rdr, &rpte);
 
-            Params oparams(&rv, &prev_eid, &next_eid, &ele, &rdr, &rpte);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &prev_eid, &next_eid, &ele, &rdr, &rpte);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiEventLogEntryAdd: {
             SaHpiEventT evt;
 
-            Params iparams(&sid, &rid, &evt);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &evt);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiEventLogEntryAdd(sid, rid, &evt);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiEventLogClear: {
 
-            Params iparams(&sid, &rid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiEventLogClear(sid, rid);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiEventLogTimeGet: {
             SaHpiTimeT time;
 
-            Params iparams(&sid, &rid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiEventLogTimeGet(sid, rid, &time);
 
-            Params oparams(&rv, &time);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &time);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiEventLogTimeSet: {
             SaHpiTimeT time;
 
-            Params iparams(&sid, &rid, &time);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &time);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiEventLogTimeSet(sid, rid, time);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiEventLogStateGet: {
             SaHpiBoolT enable;
 
-            Params iparams(&sid, &rid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiEventLogStateGet(sid, rid, &enable);
 
-            Params oparams(&rv, &enable);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &enable);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiEventLogStateSet: {
             SaHpiBoolT enable;
 
-            Params iparams(&sid, &rid, &enable);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &enable);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiEventLogStateSet(sid, rid, enable);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiEventLogOverflowReset: {
 
-            Params iparams(&sid, &rid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiEventLogOverflowReset(sid, rid);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiSubscribe: {
 
-            Params iparams(&sid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiSubscribe(sid);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiUnsubscribe: {
 
-            Params iparams(&sid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiUnsubscribe(sid);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -886,26 +868,26 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiEventT          evt;
             SaHpiEvtQueueStatusT status;
 
-            Params iparams(&sid, &timeout);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &timeout);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiEventGet(sid, timeout, &evt, &rdr, &rpte, &status);
 
-            Params oparams(&rv, &evt, &rdr, &rpte, &status);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &evt, &rdr, &rpte, &status);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiEventAdd: {
             SaHpiEventT evt;
 
-            Params iparams(&sid, &evt);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &evt);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiEventAdd(sid, &evt);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -914,13 +896,13 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiBoolT     unack;
             SaHpiAlarmT    alarm;
 
-            Params iparams(&sid, &sev, &unack, &alarm);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &sev, &unack, &alarm);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiAlarmGetNext(sid, sev, unack, &alarm);
 
-            Params oparams(&rv, &alarm);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &alarm);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -928,13 +910,13 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiAlarmIdT aid;
             SaHpiAlarmT   alarm;
 
-            Params iparams(&sid, &aid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &aid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiAlarmGet(sid, aid, &alarm);
 
-            Params oparams(&rv, &alarm);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &alarm);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -942,26 +924,26 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiAlarmIdT  aid;
             SaHpiSeverityT sev;
 
-            Params iparams(&sid, &aid, &sev);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &aid, &sev);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiAlarmAcknowledge(sid, aid, sev);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiAlarmAdd: {
             SaHpiAlarmT alarm;
 
-            Params iparams(&sid, &alarm);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &alarm);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiAlarmAdd(sid, &alarm);
 
-            Params oparams(&rv, &alarm);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &alarm);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -969,13 +951,13 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiAlarmIdT  aid;
             SaHpiSeverityT sev;
 
-            Params iparams(&sid, &aid, &sev);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &aid, &sev);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiAlarmDelete(sid, aid, sev);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -983,13 +965,13 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiEntryIdT eid;
             SaHpiEntryIdT next_eid;
 
-            Params iparams(&sid, &rid, &eid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &eid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiRdrGet(sid, rid, eid, &next_eid, &rdr);
 
-            Params oparams(&rv, &next_eid, &rdr);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &next_eid, &rdr);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -997,26 +979,26 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiRdrTypeT      rdr_type;
             SaHpiInstrumentIdT instr_id;
 
-            Params iparams(&sid, &rid, &rdr_type, &instr_id);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &rdr_type, &instr_id);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiRdrGetByInstrumentId(sid, rid, rdr_type, instr_id, &rdr);
 
-            Params oparams(&rv, &rdr);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &rdr);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiRdrUpdateCountGet: {
             SaHpiUint32T rdr_update_cnt;
 
-            Params iparams(&sid, &rid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiRdrUpdateCountGet(sid, rid, &rdr_update_cnt);
 
-            Params oparams(&rv, &rdr_update_cnt);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &rdr_update_cnt);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -1024,39 +1006,39 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiSensorReadingT reading;
             SaHpiEventStateT    state;
 
-            Params iparams(&sid, &rid, &snum);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &snum);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiSensorReadingGet(sid, rid, snum, &reading, &state);
 
-            Params oparams(&rv, &reading, &state);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &reading, &state);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiSensorThresholdsGet: {
             SaHpiSensorThresholdsT tholds;
 
-            Params iparams(&sid, &rid, &snum);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &snum);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiSensorThresholdsGet(sid, rid, snum, &tholds);
 
-            Params oparams(&rv, &tholds);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &tholds);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiSensorThresholdsSet: {
             SaHpiSensorThresholdsT tholds;
 
-            Params iparams(&sid, &rid, &snum, &tholds);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &snum, &tholds);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiSensorThresholdsSet(sid, rid, snum, &tholds);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -1064,65 +1046,65 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiSensorTypeT    type;
             SaHpiEventCategoryT cat;
 
-            Params iparams(&sid, &rid, &snum);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &snum);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiSensorTypeGet(sid, rid, snum, &type, &cat);
 
-            Params oparams(&rv, &type, &cat);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &type, &cat);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiSensorEnableGet: {
             SaHpiBoolT enabled;
 
-            Params iparams(&sid, &rid, &snum);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &snum);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiSensorEnableGet(sid, rid, snum, &enabled);
 
-            Params oparams(&rv, &enabled);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &enabled);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiSensorEnableSet: {
             SaHpiBoolT enabled;
 
-            Params iparams(&sid, &rid, &snum, &enabled);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &snum, &enabled);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiSensorEnableSet(sid, rid, snum, enabled);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiSensorEventEnableGet: {
             SaHpiBoolT enabled;
 
-            Params iparams(&sid, &rid, &snum);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &snum);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiSensorEventEnableGet(sid, rid, snum, &enabled);
 
-            Params oparams(&rv, &enabled);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &enabled);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiSensorEventEnableSet: {
             SaHpiBoolT enabled;
 
-            Params iparams(&sid, &rid, &snum, &enabled);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &snum, &enabled);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiSensorEventEnableSet(sid, rid, snum, enabled);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -1130,13 +1112,13 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiEventStateT amask;
             SaHpiEventStateT dmask;
 
-            Params iparams(&sid, &rid, &snum, &amask, &dmask);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &snum, &amask, &dmask);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiSensorEventMasksGet(sid, rid, snum, &amask, &dmask);
 
-            Params oparams(&rv, &amask, &dmask);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &amask, &dmask);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -1145,26 +1127,26 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiEventStateT            amask;
             SaHpiEventStateT            dmask;
 
-            Params iparams(&sid, &rid, &snum, &action, &amask, &dmask);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &snum, &action, &amask, &dmask);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiSensorEventMasksSet(sid, rid, snum, action, amask, dmask);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiControlTypeGet: {
             SaHpiCtrlTypeT type;
 
-            Params iparams(&sid, &rid, &cnum);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &cnum);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiControlTypeGet(sid, rid, cnum, &type);
 
-            Params oparams(&rv, &type);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &type);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -1172,13 +1154,13 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiCtrlModeT  mode;
             SaHpiCtrlStateT state;
 
-            Params iparams(&sid, &rid, &cnum, &state);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &cnum, &state);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiControlGet(sid, rid, cnum, &mode, &state);
 
-            Params oparams(&rv, &mode, &state);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &mode, &state);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -1186,26 +1168,26 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiCtrlModeT  mode;
             SaHpiCtrlStateT state;
 
-            Params iparams(&sid, &rid, &cnum, &mode, &state);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &cnum, &mode, &state);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiControlSet(sid, rid, cnum, mode, &state);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiIdrInfoGet: {
             SaHpiIdrInfoT info;
 
-            Params iparams(&sid, &rid, &iid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &iid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiIdrInfoGet(sid, rid, iid, &info);
 
-            Params oparams(&rv, &info);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &info);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -1215,13 +1197,13 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiEntryIdT       next_aid;
             SaHpiIdrAreaHeaderT hdr;
 
-            Params iparams(&sid, &rid, &iid, &area, &aid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &iid, &area, &aid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiIdrAreaHeaderGet(sid, rid, iid, area, aid, &next_aid, &hdr);
 
-            Params oparams(&rv, &next_aid, &hdr);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &next_aid, &hdr);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -1229,13 +1211,13 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiIdrAreaTypeT area;
             SaHpiEntryIdT     aid;
 
-            Params iparams(&sid, &rid, &iid, &area);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &iid, &area);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiIdrAreaAdd(sid, rid, iid, area, &aid);
 
-            Params oparams(&rv, &aid);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &aid);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -1243,26 +1225,26 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiIdrAreaTypeT type;
             SaHpiEntryIdT     aid;
 
-            Params iparams(&sid, &rid, &iid, &type, &aid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &iid, &type, &aid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiIdrAreaAddById(sid, rid, iid, type, aid);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiIdrAreaDelete: {
             SaHpiEntryIdT aid;
 
-            Params iparams(&sid, &rid, &iid, &aid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &iid, &aid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiIdrAreaDelete(sid, rid, iid, aid);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -1273,52 +1255,52 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiEntryIdT      next_fid;
             SaHpiIdrFieldT     field;
 
-            Params iparams(&sid, &rid, &iid, &aid, &type, &fid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &iid, &aid, &type, &fid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiIdrFieldGet(sid, rid, iid, aid, type, fid, &next_fid, &field);
 
-            Params oparams(&rv, &next_fid, &field);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &next_fid, &field);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiIdrFieldAdd: {
             SaHpiIdrFieldT field;
 
-            Params iparams(&sid, &rid, &iid, &field);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &iid, &field);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiIdrFieldAdd(sid, rid, iid, &field);
 
-            Params oparams(&rv, &field);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &field);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiIdrFieldAddById: {
             SaHpiIdrFieldT field;
 
-            Params iparams(&sid, &rid, &iid, &field);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &iid, &field);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiIdrFieldAddById(sid, rid, iid, &field);
 
-            Params oparams(&rv, &field);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &field);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiIdrFieldSet: {
             SaHpiIdrFieldT field;
 
-            Params iparams(&sid, &rid, &iid, &field);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &iid, &field);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiIdrFieldSet(sid, rid, iid, &field);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -1326,51 +1308,51 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiEntryIdT aid;
             SaHpiEntryIdT fid;
 
-            Params iparams(&sid, &rid, &iid, &aid, &fid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &iid, &aid, &fid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiIdrFieldDelete(sid, rid, iid, aid, fid);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiWatchdogTimerGet: {
             SaHpiWatchdogT wdt;
 
-            Params iparams(&sid, &rid, &wnum);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &wnum);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiWatchdogTimerGet(sid, rid, wnum, &wdt);
 
-            Params oparams(&rv, &wdt);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &wdt);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiWatchdogTimerSet: {
             SaHpiWatchdogT wdt;
 
-            Params iparams(&sid, &rid, &wnum, &wdt);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &wnum, &wdt);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiWatchdogTimerSet(sid, rid, wnum, &wdt);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiWatchdogTimerReset: {
 
-            Params iparams(&sid, &rid, &wnum);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &wnum);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiWatchdogTimerReset(sid, rid, wnum);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -1379,13 +1361,13 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiBoolT         unack;
             SaHpiAnnouncementT ann;
 
-            Params iparams(&sid, &rid, &anum, &sev, &unack, &ann);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &anum, &sev, &unack, &ann);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiAnnunciatorGetNext(sid, rid, anum, sev, unack, &ann);
 
-            Params oparams(&rv, &ann);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &ann);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -1393,13 +1375,13 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiEntryIdT      eid;
             SaHpiAnnouncementT ann;
 
-            Params iparams(&sid, &rid, &anum, &eid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &anum, &eid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiAnnunciatorGet(sid, rid, anum, eid, &ann);
 
-            Params oparams(&rv, &ann);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &ann);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -1407,26 +1389,26 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiEntryIdT  eid;
             SaHpiSeverityT sev;
 
-            Params iparams(&sid, &rid, &anum, &eid, &sev);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &anum, &eid, &sev);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiAnnunciatorAcknowledge(sid, rid, anum, eid, sev);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiAnnunciatorAdd: {
             SaHpiAnnouncementT ann;
 
-            Params iparams(&sid, &rid, &anum, &ann);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &anum, &ann);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiAnnunciatorAdd(sid, rid, anum, &ann);
 
-            Params oparams(&rv, &ann);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &ann);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -1434,52 +1416,52 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiEntryIdT  eid;
             SaHpiSeverityT sev;
 
-            Params iparams(&sid, &rid, &anum, &eid, &sev);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &anum, &eid, &sev);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiAnnunciatorDelete(sid, rid, anum, eid, sev);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiAnnunciatorModeGet: {
             SaHpiAnnunciatorModeT mode;
 
-            Params iparams(&sid, &rid, &anum);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &anum);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiAnnunciatorModeGet(sid, rid, anum, &mode);
 
-            Params oparams(&rv, &mode);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &mode);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiAnnunciatorModeSet: {
             SaHpiAnnunciatorModeT mode;
 
-            Params iparams(&sid, &rid, &anum, &mode);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &anum, &mode);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiAnnunciatorModeSet(sid, rid, anum, mode);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiDimiInfoGet: {
             SaHpiDimiInfoT info;
 
-            Params iparams(&sid, &rid, &dnum);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &dnum);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiDimiInfoGet(sid, rid, dnum, &info);
 
-            Params oparams(&rv, &info);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &info);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -1487,13 +1469,13 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiDimiTestNumT tnum;
             SaHpiDimiTestT    test;
 
-            Params iparams(&sid, &rid, &dnum, &tnum);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &dnum, &tnum);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiDimiTestInfoGet(sid, rid, dnum, tnum, &test);
 
-            Params oparams(&rv, &test);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &test);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -1501,13 +1483,13 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiDimiTestNumT tnum;
             SaHpiDimiReadyT   ready;
 
-            Params iparams(&sid, &rid, &dnum, &tnum);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &dnum, &tnum);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiDimiTestReadinessGet(sid, rid, dnum, tnum, &ready);
 
-            Params oparams(&rv, &ready);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &ready);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -1517,27 +1499,27 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiUint8T&                     ntestparams = pl.NumberOfParams;
             SaHpiDimiTestVariableParamsT*&   testparams  = pl.ParamsList;
 
-            Params iparams(&sid, &rid, &dnum, &tnum, &pl);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &dnum, &tnum, &pl);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiDimiTestStart(sid, rid, dnum, tnum, ntestparams, testparams);
             g_free(pl.ParamsList);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiDimiTestCancel: {
             SaHpiDimiTestNumT tnum;
 
-            Params iparams(&sid, &rid, &dnum, &tnum);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &dnum, &tnum);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiDimiTestCancel(sid, rid, dnum, tnum);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -1546,13 +1528,13 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiDimiTestPercentCompletedT percent;
             SaHpiDimiTestRunStatusT        status;
 
-            Params iparams(&sid, &rid, &dnum, &tnum);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &dnum, &tnum);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiDimiTestStatusGet(sid, rid, dnum, tnum, &percent, &status);
 
-            Params oparams(&rv, &percent, &status);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &percent, &status);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -1560,39 +1542,39 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiDimiTestNumT     tnum;
             SaHpiDimiTestResultsT results;
 
-            Params iparams(&sid, &rid, &dnum, &tnum);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &dnum, &tnum);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiDimiTestResultsGet(sid, rid, dnum, tnum, &results);
 
-            Params oparams(&rv, &results);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &results);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiFumiSpecInfoGet: {
             SaHpiFumiSpecInfoT info;
 
-            Params iparams(&sid, &rid, &fnum);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &fnum);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiFumiSpecInfoGet(sid, rid, fnum, &info);
 
-            Params oparams(&rv, &info);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &info);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiFumiServiceImpactGet: {
             SaHpiFumiServiceImpactDataT impact;
 
-            Params iparams(&sid, &rid, &fnum);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &fnum);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiFumiServiceImpactGet(sid, rid, fnum, &impact);
 
-            Params oparams(&rv, &impact);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &impact);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -1600,26 +1582,26 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiBankNumT    bnum;
             SaHpiTextBufferT uri;
 
-            Params iparams(&sid, &rid, &fnum, &bnum, &uri);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &fnum, &bnum, &uri);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiFumiSourceSet(sid, rid, fnum, bnum, &uri);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiFumiSourceInfoValidateStart: {
             SaHpiBankNumT bnum;
 
-            Params iparams(&sid, &rid, &fnum, &bnum);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &fnum, &bnum);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiFumiSourceInfoValidateStart(sid, rid, fnum, bnum);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -1627,13 +1609,13 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiBankNumT        bnum;
             SaHpiFumiSourceInfoT info;
 
-            Params iparams(&sid, &rid, &fnum, &bnum);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &fnum, &bnum);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiFumiSourceInfoGet(sid, rid, fnum, bnum, &info);
 
-            Params oparams(&rv, &info);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &info);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -1644,13 +1626,13 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiFumiComponentInfoT info;
 
 
-            Params iparams(&sid, &rid, &fnum, &bnum, &eid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &fnum, &bnum, &eid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiFumiSourceComponentInfoGet(sid, rid, fnum, bnum, eid, &next_eid, &info);
 
-            Params oparams(&rv, &next_eid, &info);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &next_eid, &info);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -1658,13 +1640,13 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiBankNumT      bnum;
             SaHpiFumiBankInfoT info;
 
-            Params iparams(&sid, &rid, &fnum, &bnum);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &fnum, &bnum);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiFumiTargetInfoGet(sid, rid, fnum, bnum, &info);
 
-            Params oparams(&rv, &info);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &info);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -1674,26 +1656,26 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiEntryIdT           next_eid;
             SaHpiFumiComponentInfoT info;
 
-            Params iparams(&sid, &rid, &fnum, &bnum, &eid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &fnum, &bnum, &eid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiFumiTargetComponentInfoGet(sid, rid, fnum, bnum, eid, &next_eid, &info);
 
-            Params oparams(&rv, &next_eid, &info);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &next_eid, &info);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiFumiLogicalTargetInfoGet: {
             SaHpiFumiLogicalBankInfoT info;
 
-            Params iparams(&sid, &rid, &fnum);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &fnum);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiFumiLogicalTargetInfoGet(sid, rid, fnum, &info);
 
-            Params oparams(&rv, &info);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &info);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -1702,25 +1684,25 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiEntryIdT                  next_eid;
             SaHpiFumiLogicalComponentInfoT info;
 
-            Params iparams(&sid, &rid, &fnum, &eid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &fnum, &eid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiFumiLogicalTargetComponentInfoGet(sid, rid, fnum, eid, &next_eid, &info);
 
-            Params oparams(&rv, &next_eid, &info);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &next_eid, &info);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiFumiBackupStart: {
 
-            Params iparams(&sid, &rid, &fnum);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &fnum);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiFumiBackupStart(sid, rid, fnum);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -1728,13 +1710,13 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiBankNumT bnum;
             SaHpiUint32T  pos;
 
-            Params iparams(&sid, &rid, &fnum, &bnum, &pos);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &fnum, &bnum, &pos);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiFumiBankBootOrderSet(sid, rid, fnum, bnum, pos);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -1742,26 +1724,26 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiBankNumT src_bnum;
             SaHpiBankNumT dst_bnum;
 
-            Params iparams(&sid, &rid, &fnum, &src_bnum, &dst_bnum);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &fnum, &src_bnum, &dst_bnum);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiFumiBankCopyStart(sid, rid, fnum, src_bnum, dst_bnum);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiFumiInstallStart: {
             SaHpiBankNumT bnum;
 
-            Params iparams(&sid, &rid, &fnum, &bnum);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &fnum, &bnum);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiFumiInstallStart(sid, rid, fnum, bnum);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -1769,358 +1751,358 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             SaHpiBankNumT           bnum;
             SaHpiFumiUpgradeStatusT status;
 
-            Params iparams(&sid, &rid, &fnum, &bnum);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &fnum, &bnum);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiFumiUpgradeStatusGet(sid, rid, fnum, bnum, &status);
 
-            Params oparams(&rv, &status);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &status);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiFumiTargetVerifyStart: {
             SaHpiBankNumT bnum;
 
-            Params iparams(&sid, &rid, &fnum, &bnum);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &fnum, &bnum);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiFumiTargetVerifyStart(sid, rid, fnum, bnum);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiFumiTargetVerifyMainStart: {
 
-            Params iparams(&sid, &rid, &fnum);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &fnum);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiFumiTargetVerifyMainStart(sid, rid, fnum);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiFumiUpgradeCancel: {
             SaHpiBankNumT bnum;
 
-            Params iparams(&sid, &rid, &fnum, &bnum);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &fnum, &bnum);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiFumiUpgradeCancel(sid, rid, fnum, bnum);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiFumiAutoRollbackDisableGet: {
             SaHpiBoolT disable;
 
-            Params iparams(&sid, &rid, &fnum);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &fnum);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiFumiAutoRollbackDisableGet(sid, rid, fnum, &disable);
 
-            Params oparams(&rv, &disable);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &disable);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiFumiAutoRollbackDisableSet: {
             SaHpiBoolT disable;
 
-            Params iparams(&sid, &rid, &fnum, &disable);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &fnum, &disable);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiFumiAutoRollbackDisableSet(sid, rid, fnum, disable);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiFumiRollbackStart: {
 
-            Params iparams(&sid, &rid, &fnum);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &fnum);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiFumiRollbackStart(sid, rid, fnum);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiFumiActivate: {
 
-            Params iparams(&sid, &rid, &fnum);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &fnum);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiFumiActivate(sid, rid, fnum);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiFumiActivateStart: {
             SaHpiBoolT logical;
 
-            Params iparams(&sid, &rid, &fnum, &logical);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &fnum, &logical);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiFumiActivateStart(sid, rid, fnum, logical);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiFumiCleanup: {
             SaHpiBankNumT bnum;
 
-            Params iparams(&sid, &rid, &fnum, &bnum);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &fnum, &bnum);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiFumiCleanup(sid, rid, fnum, bnum);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiHotSwapPolicyCancel: {
 
-            Params iparams(&sid, &rid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiHotSwapPolicyCancel(sid, rid);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiResourceActiveSet: {
 
-            Params iparams(&sid, &rid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiResourceActiveSet(sid, rid);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiResourceInactiveSet: {
 
-            Params iparams(&sid, &rid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiResourceInactiveSet(sid, rid);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiAutoInsertTimeoutGet: {
             SaHpiTimeoutT timeout;
 
-            Params iparams(&sid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiAutoInsertTimeoutGet(sid, &timeout);
 
-            Params oparams(&rv, &timeout);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &timeout);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiAutoInsertTimeoutSet: {
             SaHpiTimeoutT timeout;
 
-            Params iparams(&sid, &timeout);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &timeout);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiAutoInsertTimeoutSet(sid, timeout);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiAutoExtractTimeoutGet: {
             SaHpiTimeoutT timeout;
 
-            Params iparams(&sid, &rid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiAutoExtractTimeoutGet(sid, rid, &timeout);
 
-            Params oparams(&rv, &timeout);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &timeout);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiAutoExtractTimeoutSet: {
             SaHpiTimeoutT timeout;
 
-            Params iparams(&sid, &rid, &timeout);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &timeout);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiAutoExtractTimeoutSet(sid, rid, timeout);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiHotSwapStateGet: {
             SaHpiHsStateT state;
 
-            Params iparams(&sid, &rid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiHotSwapStateGet(sid, rid, &state);
 
-            Params oparams(&rv, &state);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &state);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiHotSwapActionRequest: {
             SaHpiHsActionT action;
 
-            Params iparams(&sid, &rid, &action);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &action);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiHotSwapActionRequest(sid, rid, action);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiHotSwapIndicatorStateGet: {
             SaHpiHsIndicatorStateT state;
 
-            Params iparams(&sid, &rid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiHotSwapIndicatorStateGet(sid, rid, &state);
 
-            Params oparams(&rv, &state);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &state);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiHotSwapIndicatorStateSet: {
             SaHpiHsIndicatorStateT state;
 
-            Params iparams(&sid, &rid, &state);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &state);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiHotSwapIndicatorStateSet(sid, rid, state);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiParmControl: {
             SaHpiParmActionT action;
 
-            Params iparams(&sid, &rid, &action);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &action);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiParmControl(sid, rid, action);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiResourceLoadIdGet: {
             SaHpiLoadIdT lid;
 
-            Params iparams(&sid, &rid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiResourceLoadIdGet(sid, rid, &lid);
 
-            Params oparams(&rv, &lid);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &lid);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiResourceLoadIdSet: {
             SaHpiLoadIdT lid;
 
-            Params iparams(&sid, &rid, &lid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &lid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiResourceLoadIdSet(sid, rid, &lid);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiResourceResetStateGet: {
             SaHpiResetActionT action;
 
-            Params iparams(&sid, &rid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiResourceResetStateGet(sid, rid, &action);
 
-            Params oparams(&rv, &action);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &action);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiResourceResetStateSet: {
             SaHpiResetActionT action;
 
-            Params iparams(&sid, &rid, &action);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &action);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiResourceResetStateSet(sid, rid, action);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiResourcePowerStateGet: {
             SaHpiPowerStateT state;
 
-            Params iparams(&sid, &rid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiResourcePowerStateGet(sid, rid, &state);
 
-            Params oparams(&rv, &state);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &state);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFsaHpiResourcePowerStateSet: {
             SaHpiPowerStateT state;
 
-            Params iparams(&sid, &rid, &state);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid, &state);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = saHpiResourcePowerStateSet(sid, rid, state);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -2128,8 +2110,8 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             oHpiHandlerIdT     hid;
             oHpiHandlerConfigT cfg;
 
-            Params iparams(&sid, &cfg);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &cfg);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             GHashTable *cfg_tbl;
             cfg_tbl = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
@@ -2143,21 +2125,21 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             rv = oHpiHandlerCreate(sid, cfg_tbl, &hid);
             g_hash_table_destroy(cfg_tbl);
 
-            Params oparams(&rv, &hid);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &hid);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFoHpiHandlerDestroy: {
             oHpiHandlerIdT hid;
 
-            Params iparams(&sid, &hid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &hid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = oHpiHandlerDestroy(sid, hid);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -2167,8 +2149,8 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             oHpiHandlerConfigT cfg;
             GHashTable *cfg_tbl;
 
-            Params iparams(&sid, &hid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &hid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             cfg_tbl = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
 
@@ -2179,8 +2161,8 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             // add each hash tbl entry to the marshable handler_cfg
             g_hash_table_foreach(cfg_tbl, dehash_handler_cfg, &cfg);
 
-            Params oparams(&rv, &info, &cfg);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &info, &cfg);
+            MARSHAL_RP(hm, data, data_len, oparams);
 // TODO memory leak
             // cleanup
             g_hash_table_destroy(cfg_tbl);
@@ -2190,65 +2172,65 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
         case eFoHpiHandlerGetNext: {
             oHpiHandlerIdT hid, next_hid;
 
-            Params iparams(&sid, &hid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &hid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = oHpiHandlerGetNext(sid, hid, &next_hid);
 
-            Params oparams(&rv, &next_hid);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &next_hid);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFoHpiHandlerFind: {
             oHpiHandlerIdT hid;
 
-            Params iparams(&sid, &rid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &rid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = oHpiHandlerFind(sid, rid, &hid);
 
-            Params oparams(&rv, &hid);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &hid);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFoHpiHandlerRetry: {
             oHpiHandlerIdT hid;
 
-            Params iparams(&sid, &hid);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &hid);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = oHpiHandlerRetry(sid, hid);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFoHpiGlobalParamGet: {
             oHpiGlobalParamT param;
 
-            Params iparams(&sid, &param);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &param);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = oHpiGlobalParamGet(sid, &param);
 
-            Params oparams(&rv, &param);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv, &param);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
         case eFoHpiGlobalParamSet: {
             oHpiGlobalParamT param;
 
-            Params iparams(&sid, &param);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &param);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = oHpiGlobalParamSet(sid, &param);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
@@ -2256,13 +2238,13 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
             oHpiHandlerIdT  hid;
             SaHpiEventT     evt;
 
-            Params iparams(&sid, &hid, &evt, &rpte, &rdr);
-            Demarshal_Rq(rq_byte_order, hm, data, iparams);
+            RpcParams iparams(&sid, &hid, &evt, &rpte, &rdr);
+            DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
             rv = oHpiInjectEvent(sid, hid, &evt, &rpte, &rdr);
 
-            Params oparams(&rv);
-            Marshal_Rp(hm, data, data_len, oparams);
+            RpcParams oparams(&rv);
+            MARSHAL_RP(hm, data, data_len, oparams);
         }
         break;
 
