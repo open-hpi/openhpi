@@ -623,6 +623,17 @@ CXX_WARNINGS="\
 	-fno-strict-aliasing \
         -Wno-unused-value "
 
+AC_ARG_ENABLE([werror],
+    [  --enable-werror         appends -Werror to CFLAGS and CXXFLAGS [[default=yes]]],
+    [if test "x$enableval" = "xyes"; then
+	CC_WARNINGS="$CC_WARNINGS -Werror"
+	CXX_WARNINGS="$CXX_WARNINGS -Werror"
+    fi],
+    [
+	CC_WARNINGS="$CC_WARNINGS -Werror"
+	CXX_WARNINGS="$CXX_WARNINGS -Werror"
+    ])
+
 if test -n "`gcc --version | grep ' 3.2'`" ; then
         CC_WARNINGS=`echo $CC_WARNINGS | sed -e 's/-Wno-strict-aliasing//g'`
         CXX_WARNINGS=`echo $CC_WARNINGS | sed -e 's/-Wno-strict-aliasing//g'`

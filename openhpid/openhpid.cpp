@@ -497,7 +497,8 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
                            uint32_t& data_len,
                            SaHpiSessionIdT& changed_sid)
 {
-    gpointer thrdid = g_thread_self();
+    gpointer thrdid;
+    thrdid = g_thread_self();
 
     PVERBOSE1("%p Processing RPC request %d.\n", thrdid, hm->m_id);
 
