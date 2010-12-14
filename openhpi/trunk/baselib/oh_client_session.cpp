@@ -46,14 +46,18 @@ public:
 
     SaErrorT RpcOpen( SaHpiDomainIdT did );
     SaErrorT RpcClose();
-    SaErrorT Rpc( uint32_t id, Params& iparams, Params& oparams );
+    SaErrorT Rpc( uint32_t id,
+                  ClientRpcParams& iparams,
+                  ClientRpcParams& oparams );
 
 private:
 
     cSession( const cSession& );
     cSession& operator =( cSession& );
 
-    SaErrorT DoRpc( uint32_t id, Params& iparams, Params& oparams );
+    SaErrorT DoRpc( uint32_t id,
+                    ClientRpcParams& iparams,
+                    ClientRpcParams& oparams );
 
     SaErrorT GetSock( cClientStreamSock * & sock );
     static void DeleteSock( gpointer ptr );
@@ -84,25 +88,29 @@ SaErrorT cSession::RpcOpen( SaHpiDomainIdT did )
     m_did = did;
     SaHpiDomainIdT remote_did = SAHPI_UNSPECIFIED_DOMAIN_ID;
 
-    Params iparams, oparams( &m_remote_sid );
+    ClientRpcParams iparams, oparams( &m_remote_sid );
     iparams.SetFirst( &remote_did );
     return DoRpc( eFsaHpiSessionOpen, iparams, oparams );
 }
 
 SaErrorT cSession::RpcClose()
 {
-    Params iparams, oparams;
+    ClientRpcParams iparams, oparams;
     iparams.SetFirst( &m_remote_sid );
     return DoRpc( eFsaHpiSessionClose, iparams, oparams );
 }
 
-SaErrorT cSession::Rpc( uint32_t id, Params& iparams, Params& oparams )
+SaErrorT cSession::Rpc( uint32_t id,
+                        ClientRpcParams& iparams,
+                        ClientRpcParams& oparams )
 {
     iparams.SetFirst( &m_remote_sid );
     return DoRpc( id, iparams, oparams );
 }
 
-SaErrorT cSession::DoRpc( uint32_t id, Params& iparams, Params& oparams )
+SaErrorT cSession::DoRpc( uint32_t id,
+                          ClientRpcParams& iparams,
+                          ClientRpcParams& oparams )
 {
     SaErrorT rv;
 
@@ -277,8 +285,8 @@ SaErrorT ohc_sess_close( SaHpiSessionIdT sid )
 
 SaErrorT ohc_sess_rpc( uint32_t id,
                        SaHpiSessionIdT sid,
-                       Params& iparams,
-                       Params& oparams )
+                       ClientRpcParams& iparams,
+                       ClientRpcParams& oparams )
 {
     cSession * session = sessions_get( sid );
     if ( !session ) {

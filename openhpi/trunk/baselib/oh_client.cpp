@@ -27,9 +27,10 @@
 #include <SaHpi.h>
 #include <oHpi.h>
 #include <config.h>
+#include <marshal_hpi.h>
 #include <oh_domain.h>
 #include <oh_error.h>
-#include <marshal_hpi.h>
+#include <oh_rpc_params.h>
 
 #include "oh_client.h"
 #include "oh_client_conf.h"
@@ -250,8 +251,8 @@ SaErrorT SAHPI_API saHpiDiscover(
 {
     SaErrorT rv;
 
-    Params iparams;
-    Params oparams;
+    ClientRpcParams iparams;
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiDiscover, SessionId, iparams, oparams);
 
     return rv;
@@ -272,8 +273,8 @@ SaErrorT SAHPI_API saHpiDomainInfoGet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams;
-    Params oparams(DomainInfo);
+    ClientRpcParams iparams;
+    ClientRpcParams oparams(DomainInfo);
     rv = ohc_sess_rpc(eFsaHpiDomainInfoGet, SessionId, iparams, oparams);
 
     /* Set Domain Id to real Domain Id */
@@ -302,8 +303,8 @@ SaErrorT SAHPI_API saHpiDrtEntryGet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&EntryId);
-    Params oparams(NextEntryId, DrtEntry);
+    ClientRpcParams iparams(&EntryId);
+    ClientRpcParams oparams(NextEntryId, DrtEntry);
     rv = ohc_sess_rpc(eFsaHpiDrtEntryGet, SessionId, iparams, oparams);
 
     /* Set Domain Id to real Domain Id */
@@ -332,8 +333,8 @@ SaErrorT SAHPI_API saHpiDomainTagSet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(DomainTag);
-    Params oparams;
+    ClientRpcParams iparams(DomainTag);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiDomainTagSet, SessionId, iparams, oparams);
 
     return rv;
@@ -359,8 +360,8 @@ SaErrorT SAHPI_API saHpiRptEntryGet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&EntryId);
-    Params oparams(NextEntryId, RptEntry);
+    ClientRpcParams iparams(&EntryId);
+    ClientRpcParams oparams(NextEntryId, RptEntry);
     rv = ohc_sess_rpc(eFsaHpiRptEntryGet, SessionId, iparams, oparams);
 
     return rv;
@@ -382,8 +383,8 @@ SaErrorT SAHPI_API saHpiRptEntryGetByResourceId(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId);
-    Params oparams(RptEntry);
+    ClientRpcParams iparams(&ResourceId);
+    ClientRpcParams oparams(RptEntry);
     rv = ohc_sess_rpc(eFsaHpiRptEntryGetByResourceId, SessionId, iparams, oparams);
 
     return rv;
@@ -408,8 +409,8 @@ SaErrorT SAHPI_API saHpiResourceSeveritySet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &Severity);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, &Severity);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiResourceSeveritySet, SessionId, iparams, oparams);
 
     return rv;
@@ -431,8 +432,8 @@ SaErrorT SAHPI_API saHpiResourceTagSet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, ResourceTag);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, ResourceTag);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiResourceTagSet, SessionId, iparams, oparams);
 
     return rv;
@@ -453,8 +454,8 @@ SaErrorT SAHPI_API saHpiMyEntityPathGet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams;
-    Params oparams(EntityPath);
+    ClientRpcParams iparams;
+    ClientRpcParams oparams(EntityPath);
     rv = ohc_sess_rpc(eFsaHpiMyEntityPathGet, SessionId, iparams, oparams);
 
     return rv;
@@ -475,8 +476,8 @@ SaErrorT SAHPI_API saHpiResourceIdGet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams;
-    Params oparams(ResourceId);
+    ClientRpcParams iparams;
+    ClientRpcParams oparams(ResourceId);
     rv = ohc_sess_rpc(eFsaHpiResourceIdGet, SessionId, iparams, oparams);
 
     return rv;
@@ -509,8 +510,8 @@ SaErrorT SAHPI_API saHpiGetIdByEntityPath(
         InstrumentId = &instrument_id;
     }
 
-    Params iparams(&EntityPath, &InstrumentType, InstanceId);
-    Params oparams(InstanceId, ResourceId, InstrumentId, RptUpdateCount);
+    ClientRpcParams iparams(&EntityPath, &InstrumentType, InstanceId);
+    ClientRpcParams oparams(InstanceId, ResourceId, InstrumentId, RptUpdateCount);
     rv = ohc_sess_rpc(eFsaHpiGetIdByEntityPath, SessionId, iparams, oparams);
 
     return rv;
@@ -534,8 +535,8 @@ SaErrorT SAHPI_API saHpiGetChildEntityPath(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ParentEntityPath, InstanceId);
-    Params oparams(InstanceId, ChildEntityPath, RptUpdateCount);
+    ClientRpcParams iparams(&ParentEntityPath, InstanceId);
+    ClientRpcParams oparams(InstanceId, ChildEntityPath, RptUpdateCount);
     rv = ohc_sess_rpc(eFsaHpiGetChildEntityPath, SessionId, iparams, oparams);
 
     return rv;
@@ -552,8 +553,8 @@ SaErrorT SAHPI_API saHpiResourceFailedRemove(
 {
     SaErrorT rv;
 
-    Params iparams(&ResourceId);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiResourceFailedRemove, SessionId, iparams, oparams);
 
     return rv;
@@ -574,8 +575,8 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId);
-    Params oparams(Info);
+    ClientRpcParams iparams(&ResourceId);
+    ClientRpcParams oparams(Info);
     rv = ohc_sess_rpc(eFsaHpiEventLogInfoGet, SessionId, iparams, oparams);
 
     return rv;
@@ -596,8 +597,8 @@ SaErrorT SAHPI_API saHpiEventLogCapabilitiesGet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId);
-    Params oparams(EventLogCapabilities);
+    ClientRpcParams iparams(&ResourceId);
+    ClientRpcParams oparams(EventLogCapabilities);
     rv = ohc_sess_rpc(eFsaHpiEventLogCapabilitiesGet, SessionId, iparams, oparams);
 
     return rv;
@@ -628,8 +629,8 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet(
     SaHpiRdrT rdr;
     SaHpiRptEntryT rpte;
 
-    Params iparams(&ResourceId, &EntryId);
-    Params oparams(PrevEntryId, NextEntryId, EventLogEntry, &rdr, &rpte);
+    ClientRpcParams iparams(&ResourceId, &EntryId);
+    ClientRpcParams oparams(PrevEntryId, NextEntryId, EventLogEntry, &rdr, &rpte);
     rv = ohc_sess_rpc(eFsaHpiEventLogEntryGet, SessionId, iparams, oparams);
 
     if (Rdr) {
@@ -681,8 +682,8 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, EvtEntry);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, EvtEntry);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiEventLogEntryAdd, SessionId, iparams, oparams);
 
     return rv;
@@ -699,8 +700,8 @@ SaErrorT SAHPI_API saHpiEventLogClear(
 {
     SaErrorT rv;
 
-    Params iparams(&ResourceId);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiEventLogClear, SessionId, iparams, oparams);
 
     return rv;
@@ -722,8 +723,8 @@ SaErrorT SAHPI_API saHpiEventLogTimeGet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId);
-    Params oparams(Time);
+    ClientRpcParams iparams(&ResourceId);
+    ClientRpcParams oparams(Time);
     rv = ohc_sess_rpc(eFsaHpiEventLogTimeGet, SessionId, iparams, oparams);
 
     return rv;
@@ -741,8 +742,8 @@ SaErrorT SAHPI_API saHpiEventLogTimeSet(
 {
     SaErrorT rv;
 
-    Params iparams(&ResourceId, &Time);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, &Time);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiEventLogTimeSet, SessionId, iparams, oparams);
 
     return rv;
@@ -764,8 +765,8 @@ SaErrorT SAHPI_API saHpiEventLogStateGet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId);
-    Params oparams(EnableState);
+    ClientRpcParams iparams(&ResourceId);
+    ClientRpcParams oparams(EnableState);
     rv = ohc_sess_rpc(eFsaHpiEventLogStateGet, SessionId, iparams, oparams);
 
     return rv;
@@ -783,8 +784,8 @@ SaErrorT SAHPI_API saHpiEventLogStateSet(
 {
     SaErrorT rv;
 
-    Params iparams(&ResourceId, &EnableState);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, &EnableState);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiEventLogStateSet, SessionId, iparams, oparams);
 
     return rv;
@@ -801,8 +802,8 @@ SaErrorT SAHPI_API saHpiEventLogOverflowReset(
 {
     SaErrorT rv;
 
-    Params iparams(&ResourceId);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiEventLogOverflowReset, SessionId, iparams, oparams);
 
     return rv;
@@ -818,8 +819,8 @@ SaErrorT SAHPI_API saHpiSubscribe(
 {
     SaErrorT rv;
 
-    Params iparams;
-    Params oparams;
+    ClientRpcParams iparams;
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiSubscribe, SessionId, iparams, oparams);
 
     return rv;
@@ -835,8 +836,8 @@ SaErrorT SAHPI_API saHpiUnsubscribe(
 {
     SaErrorT rv;
 
-    Params iparams;
-    Params oparams;
+    ClientRpcParams iparams;
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiUnsubscribe, SessionId, iparams, oparams);
 
     return rv;
@@ -865,8 +866,8 @@ SaErrorT SAHPI_API saHpiEventGet(
     SaHpiRptEntryT rpte;
     SaHpiEvtQueueStatusT status;
 
-    Params iparams(&Timeout);
-    Params oparams(Event, &rdr, &rpte, &status);
+    ClientRpcParams iparams(&Timeout);
+    ClientRpcParams oparams(Event, &rdr, &rpte, &status);
     rv = ohc_sess_rpc(eFsaHpiEventGet, SessionId, iparams, oparams);
 
     if (Rdr) {
@@ -896,8 +897,8 @@ SaErrorT SAHPI_API saHpiEventAdd(
     rv = oh_valid_addevent(Event);
     if (rv != SA_OK) return rv;
 
-    Params iparams(Event);
-    Params oparams;
+    ClientRpcParams iparams(Event);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiEventAdd, SessionId, iparams, oparams);
 
     return rv;
@@ -926,8 +927,8 @@ SaErrorT SAHPI_API saHpiAlarmGetNext(
         return SA_ERR_HPI_NOT_PRESENT;
     }
 
-    Params iparams(&Severity, &Unack, Alarm);
-    Params oparams(Alarm);
+    ClientRpcParams iparams(&Severity, &Unack, Alarm);
+    ClientRpcParams oparams(Alarm);
     rv = ohc_sess_rpc(eFsaHpiAlarmGetNext, SessionId, iparams, oparams);
 
     /* Set Alarm DomainId to DomainId that HPI Application sees */
@@ -954,8 +955,8 @@ SaErrorT SAHPI_API saHpiAlarmGet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&AlarmId);
-    Params oparams(Alarm);
+    ClientRpcParams iparams(&AlarmId);
+    ClientRpcParams oparams(Alarm);
     rv = ohc_sess_rpc(eFsaHpiAlarmGet, SessionId, iparams, oparams);
 
     /* Set Alarm DomainId to DomainId that HPI Application sees */
@@ -984,8 +985,8 @@ SaErrorT SAHPI_API saHpiAlarmAcknowledge(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&AlarmId, &Severity);
-    Params oparams;
+    ClientRpcParams iparams(&AlarmId, &Severity);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiAlarmAcknowledge, SessionId, iparams, oparams);
 
     return rv;
@@ -1009,8 +1010,8 @@ SaErrorT SAHPI_API saHpiAlarmAdd(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(Alarm);
-    Params oparams(Alarm);
+    ClientRpcParams iparams(Alarm);
+    ClientRpcParams oparams(Alarm);
     rv = ohc_sess_rpc(eFsaHpiAlarmAdd, SessionId, iparams, oparams);
 
     /* Set Alarm DomainId to DomainId that HPI Application sees */
@@ -1037,8 +1038,8 @@ SaErrorT SAHPI_API saHpiAlarmDelete(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&AlarmId, &Severity);
-    Params oparams;
+    ClientRpcParams iparams(&AlarmId, &Severity);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiAlarmDelete, SessionId, iparams, oparams);
 
     return rv;
@@ -1062,8 +1063,8 @@ SaErrorT SAHPI_API saHpiRdrGet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &EntryId);
-    Params oparams(NextEntryId, Rdr);
+    ClientRpcParams iparams(&ResourceId, &EntryId);
+    ClientRpcParams oparams(NextEntryId, Rdr);
     rv = ohc_sess_rpc(eFsaHpiRdrGet, SessionId, iparams, oparams);
 
     return rv;
@@ -1087,8 +1088,8 @@ SaErrorT SAHPI_API saHpiRdrGetByInstrumentId(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &RdrType, &InstrumentId);
-    Params oparams(Rdr);
+    ClientRpcParams iparams(&ResourceId, &RdrType, &InstrumentId);
+    ClientRpcParams oparams(Rdr);
     rv = ohc_sess_rpc(eFsaHpiRdrGetByInstrumentId, SessionId, iparams, oparams);
 
     return rv;
@@ -1110,8 +1111,8 @@ SaErrorT SAHPI_API saHpiRdrUpdateCountGet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId);
-    Params oparams(UpdateCount);
+    ClientRpcParams iparams(&ResourceId);
+    ClientRpcParams oparams(UpdateCount);
     rv = ohc_sess_rpc(eFsaHpiRdrUpdateCountGet, SessionId, iparams, oparams);
 
     return rv;
@@ -1134,8 +1135,8 @@ SaErrorT SAHPI_API saHpiSensorReadingGet(
     SaHpiSensorReadingT reading;
     SaHpiEventStateT state;
 
-    Params iparams(&ResourceId, &SensorNum);
-    Params oparams(&reading, &state);
+    ClientRpcParams iparams(&ResourceId, &SensorNum);
+    ClientRpcParams oparams(&reading, &state);
     rv = ohc_sess_rpc(eFsaHpiSensorReadingGet, SessionId, iparams, oparams);
 
     if (Reading) {
@@ -1165,8 +1166,8 @@ SaErrorT SAHPI_API saHpiSensorThresholdsGet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &SensorNum);
-    Params oparams(Thresholds);
+    ClientRpcParams iparams(&ResourceId, &SensorNum);
+    ClientRpcParams oparams(Thresholds);
     rv = ohc_sess_rpc(eFsaHpiSensorThresholdsGet, SessionId, iparams, oparams);
 
     return rv;
@@ -1193,8 +1194,8 @@ SaErrorT SAHPI_API saHpiSensorThresholdsSet(
     rv = clean_thresholds(Thresholds, &tholds);
     if (rv != SA_OK) return rv;
 
-    Params iparams(&ResourceId, &SensorNum, &tholds);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, &SensorNum, &tholds);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiSensorThresholdsSet, SessionId, iparams, oparams);
 
     return rv;
@@ -1218,8 +1219,8 @@ SaErrorT SAHPI_API saHpiSensorTypeGet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &SensorNum);
-    Params oparams(Type, Category);
+    ClientRpcParams iparams(&ResourceId, &SensorNum);
+    ClientRpcParams oparams(Type, Category);
     rv = ohc_sess_rpc(eFsaHpiSensorTypeGet, SessionId, iparams, oparams);
 
     return rv;
@@ -1242,8 +1243,8 @@ SaErrorT SAHPI_API saHpiSensorEnableGet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &SensorNum);
-    Params oparams(Enabled);
+    ClientRpcParams iparams(&ResourceId, &SensorNum);
+    ClientRpcParams oparams(Enabled);
     rv = ohc_sess_rpc(eFsaHpiSensorEnableGet, SessionId, iparams, oparams);
 
     return rv;
@@ -1262,8 +1263,8 @@ SaErrorT SAHPI_API saHpiSensorEnableSet(
 {
     SaErrorT rv;
 
-    Params iparams(&ResourceId, &SensorNum, &Enabled);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, &SensorNum, &Enabled);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiSensorEnableSet, SessionId, iparams, oparams);
 
     return rv;
@@ -1286,8 +1287,8 @@ SaErrorT SAHPI_API saHpiSensorEventEnableGet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &SensorNum);
-    Params oparams(Enabled);
+    ClientRpcParams iparams(&ResourceId, &SensorNum);
+    ClientRpcParams oparams(Enabled);
     rv = ohc_sess_rpc(eFsaHpiSensorEventEnableGet, SessionId, iparams, oparams);
 
     return rv;
@@ -1306,8 +1307,8 @@ SaErrorT SAHPI_API saHpiSensorEventEnableSet(
 {
     SaErrorT rv;
 
-    Params iparams(&ResourceId, &SensorNum, &Enabled);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, &SensorNum, &Enabled);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiSensorEventEnableSet, SessionId, iparams, oparams);
 
     return rv;
@@ -1329,8 +1330,8 @@ SaErrorT SAHPI_API saHpiSensorEventMasksGet(
 
     SaHpiEventStateT assert, deassert;
 
-    Params iparams(&ResourceId, &SensorNum, &assert, &deassert);
-    Params oparams(&assert, &deassert);
+    ClientRpcParams iparams(&ResourceId, &SensorNum, &assert, &deassert);
+    ClientRpcParams oparams(&assert, &deassert);
     rv = ohc_sess_rpc(eFsaHpiSensorEventMasksGet, SessionId, iparams, oparams);
 
     if (Assert) {
@@ -1358,8 +1359,8 @@ SaErrorT SAHPI_API saHpiSensorEventMasksSet(
 {
     SaErrorT rv;
 
-    Params iparams(&ResourceId, &SensorNum, &Action, &Assert, &Deassert);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, &SensorNum, &Action, &Assert, &Deassert);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiSensorEventMasksSet, SessionId, iparams, oparams);
 
     return rv;
@@ -1382,8 +1383,8 @@ SaErrorT SAHPI_API saHpiControlTypeGet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &CtrlNum);
-    Params oparams(Type);
+    ClientRpcParams iparams(&ResourceId, &CtrlNum);
+    ClientRpcParams oparams(Type);
     rv = ohc_sess_rpc(eFsaHpiControlTypeGet, SessionId, iparams, oparams);
 
     return rv;
@@ -1416,8 +1417,8 @@ SaErrorT SAHPI_API saHpiControlGet(
         state.Type = SAHPI_CTRL_TYPE_TEXT;
     }
 
-    Params iparams(&ResourceId, &CtrlNum, &state);
-    Params oparams(&mode, &state);
+    ClientRpcParams iparams(&ResourceId, &CtrlNum, &state);
+    ClientRpcParams oparams(&mode, &state);
     rv = ohc_sess_rpc(eFsaHpiControlGet, SessionId, iparams, oparams);
 
     if (Mode) {
@@ -1464,8 +1465,8 @@ SaErrorT SAHPI_API saHpiControlSet(
         pmystate = State;
     }
 
-    Params iparams(&ResourceId, &CtrlNum, &Mode, pmystate);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, &CtrlNum, &Mode, pmystate);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiControlSet, SessionId, iparams, oparams);
 
     return rv;
@@ -1488,8 +1489,8 @@ SaErrorT SAHPI_API saHpiIdrInfoGet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &Idrid);
-    Params oparams(Info);
+    ClientRpcParams iparams(&ResourceId, &Idrid);
+    ClientRpcParams oparams(Info);
     rv = ohc_sess_rpc(eFsaHpiIdrInfoGet, SessionId, iparams, oparams);
 
     return rv;
@@ -1522,8 +1523,8 @@ SaErrorT SAHPI_API saHpiIdrAreaHeaderGet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &Idrid, &AreaType, &AreaId);
-    Params oparams(NextAreaId, Header);
+    ClientRpcParams iparams(&ResourceId, &Idrid, &AreaType, &AreaId);
+    ClientRpcParams oparams(NextAreaId, Header);
     rv = ohc_sess_rpc(eFsaHpiIdrAreaHeaderGet, SessionId, iparams, oparams);
 
     return rv;
@@ -1549,8 +1550,8 @@ SaErrorT SAHPI_API saHpiIdrAreaAdd(
         return SA_ERR_HPI_INVALID_DATA;
     }
 
-    Params iparams(&ResourceId, &Idrid, &AreaType);
-    Params oparams(AreaId);
+    ClientRpcParams iparams(&ResourceId, &Idrid, &AreaType);
+    ClientRpcParams oparams(AreaId);
     rv = ohc_sess_rpc(eFsaHpiIdrAreaAdd, SessionId, iparams, oparams);
 
     return rv;
@@ -1576,8 +1577,8 @@ SaErrorT SAHPI_API saHpiIdrAreaAddById(
         return SA_ERR_HPI_INVALID_DATA;
     }
 
-    Params iparams(&ResourceId, &Idrid, &AreaType, &AreaId);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, &Idrid, &AreaType, &AreaId);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiIdrAreaAddById, SessionId, iparams, oparams);
 
     return rv;
@@ -1600,8 +1601,8 @@ SaErrorT SAHPI_API saHpiIdrAreaDelete(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &Idrid, &AreaId);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, &Idrid, &AreaId);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiIdrAreaDelete, SessionId, iparams, oparams);
 
     return rv;
@@ -1633,8 +1634,8 @@ SaErrorT SAHPI_API saHpiIdrFieldGet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &Idrid, &AreaId, &FieldType, &FieldId);
-    Params oparams(NextId, Field);
+    ClientRpcParams iparams(&ResourceId, &Idrid, &AreaId, &FieldType, &FieldId);
+    ClientRpcParams oparams(NextId, Field);
     rv = ohc_sess_rpc(eFsaHpiIdrFieldGet, SessionId, iparams, oparams);
 
     return rv;
@@ -1663,8 +1664,8 @@ SaErrorT SAHPI_API saHpiIdrFieldAdd(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &Idrid, Field);
-    Params oparams(Field);
+    ClientRpcParams iparams(&ResourceId, &Idrid, Field);
+    ClientRpcParams oparams(Field);
     rv = ohc_sess_rpc(eFsaHpiIdrFieldAdd, SessionId, iparams, oparams);
 
     return rv;
@@ -1693,8 +1694,8 @@ SaErrorT SAHPI_API saHpiIdrFieldAddById(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &Idrid, Field);
-    Params oparams(Field);
+    ClientRpcParams iparams(&ResourceId, &Idrid, Field);
+    ClientRpcParams oparams(Field);
     rv = ohc_sess_rpc(eFsaHpiIdrFieldAddById, SessionId, iparams, oparams);
 
     return rv;
@@ -1720,8 +1721,8 @@ SaErrorT SAHPI_API saHpiIdrFieldSet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &Idrid, Field);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, &Idrid, Field);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiIdrFieldSet, SessionId, iparams, oparams);
 
     return rv;
@@ -1745,8 +1746,8 @@ SaErrorT SAHPI_API saHpiIdrFieldDelete(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &Idrid, &AreaId, &FieldId);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, &Idrid, &AreaId, &FieldId);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiIdrFieldDelete, SessionId, iparams, oparams);
 
     return rv;
@@ -1769,8 +1770,8 @@ SaErrorT SAHPI_API saHpiWatchdogTimerGet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &WatchdogNum);
-    Params oparams(Watchdog);
+    ClientRpcParams iparams(&ResourceId, &WatchdogNum);
+    ClientRpcParams oparams(Watchdog);
     rv = ohc_sess_rpc(eFsaHpiWatchdogTimerGet, SessionId, iparams, oparams);
 
     return rv;
@@ -1801,8 +1802,8 @@ SaErrorT SAHPI_API saHpiWatchdogTimerSet(
         return SA_ERR_HPI_INVALID_DATA;
     }
 
-    Params iparams(&ResourceId, &WatchdogNum, Watchdog);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, &WatchdogNum, Watchdog);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiWatchdogTimerSet, SessionId, iparams, oparams);
 
     return rv;
@@ -1820,8 +1821,8 @@ SaErrorT SAHPI_API saHpiWatchdogTimerReset(
 {
     SaErrorT rv;
 
-    Params iparams(&ResourceId, &WatchdogNum);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, &WatchdogNum);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiWatchdogTimerReset, SessionId, iparams, oparams);
 
     return rv;
@@ -1849,8 +1850,8 @@ SaErrorT SAHPI_API saHpiAnnunciatorGetNext(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &AnnNum, &Severity, &Unack, Announcement);
-    Params oparams(Announcement);
+    ClientRpcParams iparams(&ResourceId, &AnnNum, &Severity, &Unack, Announcement);
+    ClientRpcParams oparams(Announcement);
     rv = ohc_sess_rpc(eFsaHpiAnnunciatorGetNext, SessionId, iparams, oparams);
 
     return rv;
@@ -1874,8 +1875,8 @@ SaErrorT SAHPI_API saHpiAnnunciatorGet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &AnnNum, &EntryId);
-    Params oparams(Announcement);
+    ClientRpcParams iparams(&ResourceId, &AnnNum, &EntryId);
+    ClientRpcParams oparams(Announcement);
     rv = ohc_sess_rpc(eFsaHpiAnnunciatorGet, SessionId, iparams, oparams);
 
     return rv;
@@ -1905,8 +1906,8 @@ SaErrorT SAHPI_API saHpiAnnunciatorAcknowledge(
         }
     }
 
-    Params iparams(&ResourceId, &AnnNum, &EntryId, &sev);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, &AnnNum, &EntryId, &sev);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiAnnunciatorAcknowledge, SessionId, iparams, oparams);
 
     return rv;
@@ -1937,8 +1938,8 @@ SaErrorT SAHPI_API saHpiAnnunciatorAdd(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &AnnNum, Announcement);
-    Params oparams(Announcement);
+    ClientRpcParams iparams(&ResourceId, &AnnNum, Announcement);
+    ClientRpcParams oparams(Announcement);
     rv = ohc_sess_rpc(eFsaHpiAnnunciatorAdd, SessionId, iparams, oparams);
 
     return rv;
@@ -1969,8 +1970,8 @@ SaErrorT SAHPI_API saHpiAnnunciatorDelete(
         }
     }
 
-    Params iparams(&ResourceId, &AnnNum, &EntryId, &sev);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, &AnnNum, &EntryId, &sev);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiAnnunciatorDelete, SessionId, iparams, oparams);
 
     return rv;
@@ -1993,8 +1994,8 @@ SaErrorT SAHPI_API saHpiAnnunciatorModeGet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &AnnNum);
-    Params oparams(Mode);
+    ClientRpcParams iparams(&ResourceId, &AnnNum);
+    ClientRpcParams oparams(Mode);
     rv = ohc_sess_rpc(eFsaHpiAnnunciatorModeGet, SessionId, iparams, oparams);
 
     return rv;
@@ -2017,8 +2018,8 @@ SaErrorT SAHPI_API saHpiAnnunciatorModeSet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &AnnNum, &Mode);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, &AnnNum, &Mode);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiAnnunciatorModeSet, SessionId, iparams, oparams);
 
     return rv;
@@ -2041,8 +2042,8 @@ SaErrorT SAHPI_API saHpiDimiInfoGet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &DimiNum);
-    Params oparams(DimiInfo);
+    ClientRpcParams iparams(&ResourceId, &DimiNum);
+    ClientRpcParams oparams(DimiInfo);
     rv = ohc_sess_rpc(eFsaHpiDimiInfoGet, SessionId, iparams, oparams);
 
     return rv;
@@ -2061,8 +2062,8 @@ SaErrorT SAHPI_API saHpiDimiTestInfoGet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &DimiNum, &TestNum);
-    Params oparams(DimiTest);
+    ClientRpcParams iparams(&ResourceId, &DimiNum, &TestNum);
+    ClientRpcParams oparams(DimiTest);
     rv = ohc_sess_rpc(eFsaHpiDimiTestInfoGet, SessionId, iparams, oparams);
 
     return rv;
@@ -2081,8 +2082,8 @@ SaErrorT SAHPI_API saHpiDimiTestReadinessGet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &DimiNum, &TestNum);
-    Params oparams(DimiReady);
+    ClientRpcParams iparams(&ResourceId, &DimiNum, &TestNum);
+    ClientRpcParams oparams(DimiReady);
     rv = ohc_sess_rpc(eFsaHpiDimiTestReadinessGet, SessionId, iparams, oparams);
 
     return rv;
@@ -2106,8 +2107,8 @@ SaErrorT SAHPI_API saHpiDimiTestStart(
     params_list.NumberOfParams = NumberOfParams;
     params_list.ParamsList = ParamsList;
 
-    Params iparams(&ResourceId, &DimiNum, &TestNum, &params_list);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, &DimiNum, &TestNum, &params_list);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiDimiTestStart, SessionId, iparams, oparams);
 
     return rv;
@@ -2121,8 +2122,8 @@ SaErrorT SAHPI_API saHpiDimiTestCancel(
 {
     SaErrorT rv;
 
-    Params iparams(&ResourceId, &DimiNum, &TestNum);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, &DimiNum, &TestNum);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiDimiTestCancel, SessionId, iparams, oparams);
 
     return rv;
@@ -2147,8 +2148,8 @@ SaErrorT SAHPI_API saHpiDimiTestStatusGet(
         ppercent = PercentCompleted;
     }
 
-    Params iparams(&ResourceId, &DimiNum, &TestNum);
-    Params oparams(ppercent, RunStatus);
+    ClientRpcParams iparams(&ResourceId, &DimiNum, &TestNum);
+    ClientRpcParams oparams(ppercent, RunStatus);
     rv = ohc_sess_rpc(eFsaHpiDimiTestStatusGet, SessionId, iparams, oparams);
 
     return rv;
@@ -2167,8 +2168,8 @@ SaErrorT SAHPI_API saHpiDimiTestResultsGet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &DimiNum, &TestNum);
-    Params oparams(TestResults);
+    ClientRpcParams iparams(&ResourceId, &DimiNum, &TestNum);
+    ClientRpcParams oparams(TestResults);
     rv = ohc_sess_rpc(eFsaHpiDimiTestResultsGet, SessionId, iparams, oparams);
 
     return rv;
@@ -2192,8 +2193,8 @@ SaErrorT SAHPI_API saHpiFumiSpecInfoGet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &FumiNum);
-    Params oparams(SpecInfo);
+    ClientRpcParams iparams(&ResourceId, &FumiNum);
+    ClientRpcParams oparams(SpecInfo);
     rv = ohc_sess_rpc(eFsaHpiFumiSpecInfoGet, SessionId, iparams, oparams);
 
     return rv;
@@ -2211,8 +2212,8 @@ SaErrorT SAHPI_API saHpiFumiServiceImpactGet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &FumiNum);
-    Params oparams(ServiceImpact);
+    ClientRpcParams iparams(&ResourceId, &FumiNum);
+    ClientRpcParams oparams(ServiceImpact);
     rv = ohc_sess_rpc(eFsaHpiFumiServiceImpactGet, SessionId, iparams, oparams);
 
     return rv;
@@ -2233,8 +2234,8 @@ SaErrorT SAHPI_API saHpiFumiSourceSet (
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &FumiNum, &BankNum, SourceUri);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, &FumiNum, &BankNum, SourceUri);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiFumiSourceSet, SessionId, iparams, oparams);
 
     return rv;
@@ -2248,8 +2249,8 @@ SaErrorT SAHPI_API saHpiFumiSourceInfoValidateStart (
 {
     SaErrorT rv;
 
-    Params iparams(&ResourceId, &FumiNum, &BankNum);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, &FumiNum, &BankNum);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiFumiSourceInfoValidateStart, SessionId, iparams, oparams);
 
     return rv;
@@ -2268,8 +2269,8 @@ SaErrorT SAHPI_API saHpiFumiSourceInfoGet (
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &FumiNum, &BankNum);
-    Params oparams(SourceInfo);
+    ClientRpcParams iparams(&ResourceId, &FumiNum, &BankNum);
+    ClientRpcParams oparams(SourceInfo);
     rv = ohc_sess_rpc(eFsaHpiFumiSourceInfoGet, SessionId, iparams, oparams);
 
     return rv;
@@ -2293,8 +2294,8 @@ SaErrorT SAHPI_API saHpiFumiSourceComponentInfoGet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &FumiNum, &BankNum, &ComponentEntryId);
-    Params oparams(NextComponentEntryId, ComponentInfo);
+    ClientRpcParams iparams(&ResourceId, &FumiNum, &BankNum, &ComponentEntryId);
+    ClientRpcParams oparams(NextComponentEntryId, ComponentInfo);
     rv = ohc_sess_rpc(eFsaHpiFumiSourceComponentInfoGet, SessionId, iparams, oparams);
 
     return rv;
@@ -2313,8 +2314,8 @@ SaErrorT SAHPI_API saHpiFumiTargetInfoGet (
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &FumiNum, &BankNum);
-    Params oparams(BankInfo);
+    ClientRpcParams iparams(&ResourceId, &FumiNum, &BankNum);
+    ClientRpcParams oparams(BankInfo);
     rv = ohc_sess_rpc(eFsaHpiFumiTargetInfoGet, SessionId, iparams, oparams);
 
     return rv;
@@ -2338,8 +2339,8 @@ SaErrorT SAHPI_API saHpiFumiTargetComponentInfoGet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &FumiNum, &BankNum, &ComponentEntryId);
-    Params oparams(NextComponentEntryId, ComponentInfo);
+    ClientRpcParams iparams(&ResourceId, &FumiNum, &BankNum, &ComponentEntryId);
+    ClientRpcParams oparams(NextComponentEntryId, ComponentInfo);
     rv = ohc_sess_rpc(eFsaHpiFumiTargetComponentInfoGet, SessionId, iparams, oparams);
 
     return rv;
@@ -2357,8 +2358,8 @@ SaErrorT SAHPI_API saHpiFumiLogicalTargetInfoGet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &FumiNum);
-    Params oparams(BankInfo);
+    ClientRpcParams iparams(&ResourceId, &FumiNum);
+    ClientRpcParams oparams(BankInfo);
     rv = ohc_sess_rpc(eFsaHpiFumiLogicalTargetInfoGet, SessionId, iparams, oparams);
 
     return rv;
@@ -2381,8 +2382,8 @@ SaErrorT SAHPI_API saHpiFumiLogicalTargetComponentInfoGet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &FumiNum, &ComponentEntryId);
-    Params oparams(NextComponentEntryId, ComponentInfo);
+    ClientRpcParams iparams(&ResourceId, &FumiNum, &ComponentEntryId);
+    ClientRpcParams oparams(NextComponentEntryId, ComponentInfo);
     rv = ohc_sess_rpc(eFsaHpiFumiLogicalTargetComponentInfoGet, SessionId, iparams, oparams);
 
     return rv;
@@ -2395,8 +2396,8 @@ SaErrorT SAHPI_API saHpiFumiBackupStart(
 {
     SaErrorT rv;
 
-    Params iparams(&ResourceId, &FumiNum);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, &FumiNum);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiFumiBackupStart, SessionId, iparams, oparams);
 
     return rv;
@@ -2411,8 +2412,8 @@ SaErrorT SAHPI_API saHpiFumiBankBootOrderSet (
 {
     SaErrorT rv;
 
-    Params iparams(&ResourceId, &FumiNum, &BankNum, &Position);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, &FumiNum, &BankNum, &Position);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiFumiBankBootOrderSet, SessionId, iparams, oparams);
 
     return rv;
@@ -2427,8 +2428,8 @@ SaErrorT SAHPI_API saHpiFumiBankCopyStart(
 {
     SaErrorT rv;
 
-    Params iparams(&ResourceId, &FumiNum, &SourceBankNum, &TargetBankNum);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, &FumiNum, &SourceBankNum, &TargetBankNum);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiFumiBankCopyStart, SessionId, iparams, oparams);
 
     return rv;
@@ -2442,8 +2443,8 @@ SaErrorT SAHPI_API saHpiFumiInstallStart (
 {
     SaErrorT rv;
 
-    Params iparams(&ResourceId, &FumiNum, &BankNum);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, &FumiNum, &BankNum);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiFumiInstallStart, SessionId, iparams, oparams);
 
     return rv;
@@ -2462,8 +2463,8 @@ SaErrorT SAHPI_API saHpiFumiUpgradeStatusGet (
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &FumiNum, &BankNum);
-    Params oparams(UpgradeStatus);
+    ClientRpcParams iparams(&ResourceId, &FumiNum, &BankNum);
+    ClientRpcParams oparams(UpgradeStatus);
     rv = ohc_sess_rpc(eFsaHpiFumiUpgradeStatusGet, SessionId, iparams, oparams);
 
     return rv;
@@ -2477,8 +2478,8 @@ SaErrorT SAHPI_API saHpiFumiTargetVerifyStart (
 {
     SaErrorT rv;
 
-    Params iparams(&ResourceId, &FumiNum, &BankNum);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, &FumiNum, &BankNum);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiFumiTargetVerifyStart, SessionId, iparams, oparams);
 
     return rv;
@@ -2491,8 +2492,8 @@ SaErrorT SAHPI_API saHpiFumiTargetVerifyMainStart(
 {
     SaErrorT rv;
 
-    Params iparams(&ResourceId, &FumiNum);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, &FumiNum);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiFumiTargetVerifyMainStart, SessionId, iparams, oparams);
 
     return rv;
@@ -2506,8 +2507,8 @@ SaErrorT SAHPI_API saHpiFumiUpgradeCancel (
 {
     SaErrorT rv;
 
-    Params iparams(&ResourceId, &FumiNum, &BankNum);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, &FumiNum, &BankNum);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiFumiUpgradeCancel, SessionId, iparams, oparams);
 
     return rv;
@@ -2525,8 +2526,8 @@ SaErrorT SAHPI_API saHpiFumiAutoRollbackDisableGet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &FumiNum);
-    Params oparams(Disable);
+    ClientRpcParams iparams(&ResourceId, &FumiNum);
+    ClientRpcParams oparams(Disable);
     rv = ohc_sess_rpc(eFsaHpiFumiAutoRollbackDisableGet, SessionId, iparams, oparams);
 
     return rv;
@@ -2540,8 +2541,8 @@ SaErrorT SAHPI_API saHpiFumiAutoRollbackDisableSet(
 {
     SaErrorT rv;
 
-    Params iparams(&ResourceId, &FumiNum, &Disable);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, &FumiNum, &Disable);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiFumiAutoRollbackDisableSet, SessionId, iparams, oparams);
 
     return rv;
@@ -2554,8 +2555,8 @@ SaErrorT SAHPI_API saHpiFumiRollbackStart (
 {
     SaErrorT rv;
 
-    Params iparams(&ResourceId, &FumiNum);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, &FumiNum);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiFumiRollbackStart, SessionId, iparams, oparams);
 
     return rv;
@@ -2568,8 +2569,8 @@ SaErrorT SAHPI_API saHpiFumiActivate (
 {
     SaErrorT rv;
 
-    Params iparams(&ResourceId, &FumiNum);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, &FumiNum);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiFumiActivate, SessionId, iparams, oparams);
 
     return rv;
@@ -2583,8 +2584,8 @@ SaErrorT SAHPI_API saHpiFumiActivateStart(
 {
     SaErrorT rv;
 
-    Params iparams(&ResourceId, &FumiNum, &Logical);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, &FumiNum, &Logical);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiFumiActivateStart, SessionId, iparams, oparams);
 
     return rv;
@@ -2598,8 +2599,8 @@ SaErrorT SAHPI_API saHpiFumiCleanup(
 {
     SaErrorT rv;
 
-    Params iparams(&ResourceId, &FumiNum, &BankNum);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, &FumiNum, &BankNum);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiFumiCleanup, SessionId, iparams, oparams);
 
     return rv;
@@ -2616,8 +2617,8 @@ SaErrorT SAHPI_API saHpiHotSwapPolicyCancel(
 {
     SaErrorT rv;
 
-    Params iparams(&ResourceId);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiHotSwapPolicyCancel, SessionId, iparams, oparams);
 
     return rv;
@@ -2633,8 +2634,8 @@ SaErrorT SAHPI_API saHpiResourceActiveSet(
 {
     SaErrorT rv;
 
-    Params iparams(&ResourceId);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiResourceActiveSet, SessionId, iparams, oparams);
 
     return rv;
@@ -2651,8 +2652,8 @@ SaErrorT SAHPI_API saHpiResourceInactiveSet(
 {
     SaErrorT rv;
 
-    Params iparams(&ResourceId);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiResourceInactiveSet, SessionId, iparams, oparams);
 
     return rv;
@@ -2673,8 +2674,8 @@ SaErrorT SAHPI_API saHpiAutoInsertTimeoutGet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams;
-    Params oparams(Timeout);
+    ClientRpcParams iparams;
+    ClientRpcParams oparams(Timeout);
     rv = ohc_sess_rpc(eFsaHpiAutoInsertTimeoutGet, SessionId, iparams, oparams);
 
     return rv;
@@ -2698,8 +2699,8 @@ SaErrorT SAHPI_API saHpiAutoInsertTimeoutSet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&Timeout);
-    Params oparams;
+    ClientRpcParams iparams(&Timeout);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiAutoInsertTimeoutSet, SessionId, iparams, oparams);
 
     return rv;
@@ -2721,8 +2722,8 @@ SaErrorT SAHPI_API saHpiAutoExtractTimeoutGet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId);
-    Params oparams(Timeout);
+    ClientRpcParams iparams(&ResourceId);
+    ClientRpcParams oparams(Timeout);
     rv = ohc_sess_rpc(eFsaHpiAutoExtractTimeoutGet, SessionId, iparams, oparams);
 
     return rv;
@@ -2747,8 +2748,8 @@ SaErrorT SAHPI_API saHpiAutoExtractTimeoutSet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &Timeout);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, &Timeout);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiAutoExtractTimeoutSet, SessionId, iparams, oparams);
 
     return rv;
@@ -2770,8 +2771,8 @@ SaErrorT SAHPI_API saHpiHotSwapStateGet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId);
-    Params oparams(State);
+    ClientRpcParams iparams(&ResourceId);
+    ClientRpcParams oparams(State);
     rv = ohc_sess_rpc(eFsaHpiHotSwapStateGet, SessionId, iparams, oparams);
 
     return rv;
@@ -2793,8 +2794,8 @@ SaErrorT SAHPI_API saHpiHotSwapActionRequest(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &Action);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, &Action);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiHotSwapActionRequest, SessionId, iparams, oparams);
 
     return rv;
@@ -2816,8 +2817,8 @@ SaErrorT SAHPI_API saHpiHotSwapIndicatorStateGet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId);
-    Params oparams(State);
+    ClientRpcParams iparams(&ResourceId);
+    ClientRpcParams oparams(State);
     rv = ohc_sess_rpc(eFsaHpiHotSwapIndicatorStateGet, SessionId, iparams, oparams);
 
     return rv;
@@ -2839,8 +2840,8 @@ SaErrorT SAHPI_API saHpiHotSwapIndicatorStateSet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &State);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, &State);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiHotSwapIndicatorStateSet, SessionId, iparams, oparams);
 
     return rv;
@@ -2862,8 +2863,8 @@ SaErrorT SAHPI_API saHpiParmControl(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &Action);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, &Action);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiParmControl, SessionId, iparams, oparams);
 
     return rv;
@@ -2881,8 +2882,8 @@ SaErrorT SAHPI_API saHpiResourceLoadIdGet(
 {
     SaErrorT rv;
 
-    Params iparams(&ResourceId);
-    Params oparams(LoadId);
+    ClientRpcParams iparams(&ResourceId);
+    ClientRpcParams oparams(LoadId);
     rv = ohc_sess_rpc(eFsaHpiResourceLoadIdGet, SessionId, iparams, oparams);
 
     return rv;
@@ -2904,8 +2905,8 @@ SaErrorT SAHPI_API saHpiResourceLoadIdSet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, LoadId);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, LoadId);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiResourceLoadIdSet, SessionId, iparams, oparams);
 
     return rv;
@@ -2927,8 +2928,8 @@ SaErrorT SAHPI_API saHpiResourceResetStateGet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId);
-    Params oparams(Action);
+    ClientRpcParams iparams(&ResourceId);
+    ClientRpcParams oparams(Action);
     rv = ohc_sess_rpc(eFsaHpiResourceResetStateGet, SessionId, iparams, oparams);
 
     return rv;
@@ -2950,8 +2951,8 @@ SaErrorT SAHPI_API saHpiResourceResetStateSet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &Action);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, &Action);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiResourceResetStateSet, SessionId, iparams, oparams);
 
     return rv;
@@ -2973,8 +2974,8 @@ SaErrorT SAHPI_API saHpiResourcePowerStateGet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId);
-    Params oparams(State);
+    ClientRpcParams iparams(&ResourceId);
+    ClientRpcParams oparams(State);
     rv = ohc_sess_rpc(eFsaHpiResourcePowerStateGet, SessionId, iparams, oparams);
 
     return rv;
@@ -2996,8 +2997,8 @@ SaErrorT SAHPI_API saHpiResourcePowerStateSet(
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&ResourceId, &State);
-    Params oparams;
+    ClientRpcParams iparams(&ResourceId, &State);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFsaHpiResourcePowerStateSet, SessionId, iparams, oparams);
 
     return rv;
@@ -3041,8 +3042,8 @@ SaErrorT SAHPI_API oHpiHandlerCreate (
     g_hash_table_foreach(config, __dehash_config, &handler_config);
 
     // now create the handler
-    Params iparams(&handler_config);
-    Params oparams(id);
+    ClientRpcParams iparams(&handler_config);
+    ClientRpcParams oparams(id);
     rv = ohc_sess_rpc(eFoHpiHandlerCreate, sid, iparams, oparams);
 
     return rv;
@@ -3063,8 +3064,8 @@ SaErrorT SAHPI_API oHpiHandlerDestroy (
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&id);
-    Params oparams;
+    ClientRpcParams iparams(&id);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFoHpiHandlerDestroy, sid, iparams, oparams);
 
     return rv;
@@ -3091,8 +3092,8 @@ SaErrorT SAHPI_API oHpiHandlerInfo (
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&id);
-    Params oparams(info, &config);
+    ClientRpcParams iparams(&id);
+    ClientRpcParams oparams(info, &config);
     rv = ohc_sess_rpc(eFoHpiHandlerInfo, sid, iparams, oparams);
 
     for (unsigned int n = 0; n < config.NumberOfParams; n++) {
@@ -3121,8 +3122,8 @@ SaErrorT SAHPI_API oHpiHandlerGetNext (
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&id);
-    Params oparams(next_id);
+    ClientRpcParams iparams(&id);
+    ClientRpcParams oparams(next_id);
     rv = ohc_sess_rpc(eFoHpiHandlerGetNext, sid, iparams, oparams);
 
     return rv;
@@ -3144,8 +3145,8 @@ SaErrorT SAHPI_API oHpiHandlerFind (
 
     *id = 0; //Initialize output var
 
-    Params iparams(&sid, &rid);
-    Params oparams(id);
+    ClientRpcParams iparams(&sid, &rid);
+    ClientRpcParams oparams(id);
     rv = ohc_sess_rpc(eFoHpiHandlerFind, sid, iparams, oparams);
 
     return rv;
@@ -3164,8 +3165,8 @@ SaErrorT SAHPI_API oHpiHandlerRetry (
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&id);
-    Params oparams;
+    ClientRpcParams iparams(&id);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFoHpiHandlerRetry, sid, iparams, oparams);
 
     return rv;
@@ -3186,8 +3187,8 @@ SaErrorT SAHPI_API oHpiGlobalParamGet (
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(param);
-    Params oparams(param);
+    ClientRpcParams iparams(param);
+    ClientRpcParams oparams(param);
     rv = ohc_sess_rpc(eFoHpiGlobalParamGet, sid, iparams, oparams);
 
     return rv;
@@ -3208,8 +3209,8 @@ SaErrorT SAHPI_API oHpiGlobalParamSet (
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(param);
-    Params oparams(param);
+    ClientRpcParams iparams(param);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFoHpiGlobalParamSet, sid, iparams, oparams);
 
     return rv;
@@ -3232,8 +3233,8 @@ SaErrorT SAHPI_API oHpiInjectEvent (
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    Params iparams(&id, event, rpte, rdr);
-    Params oparams(&id, event, rpte, rdr);
+    ClientRpcParams iparams(&id, event, rpte, rdr);
+    ClientRpcParams oparams;
     rv = ohc_sess_rpc(eFoHpiInjectEvent, sid, iparams, oparams);
 
     return rv;
