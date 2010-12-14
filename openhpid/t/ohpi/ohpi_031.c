@@ -45,7 +45,7 @@ int main(int argc, char **argv)
         if (oHpiHandlerCreate(sid, config, &hid))
                 return -1;
                 
-        if (!oHpiHandlerInfo(sid, 555, &hinfo, &configinfo))
+        if (!oHpiHandlerInfo(sid, 555, &hinfo, configinfo))
                 return -1;
                         
         

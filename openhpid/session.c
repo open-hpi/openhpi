@@ -266,7 +266,8 @@ SaErrorT oh_queue_session_event(SaHpiSessionIdT sid,
         }
 
         if (param.u.evt_queue_limit != OH_MAX_EVT_QUEUE_LIMIT) {
-                SaHpiSessionIdT tmp_sid = session->id;
+                SaHpiSessionIdT tmp_sid;
+                tmp_sid = session->id;
                 gint qlength = g_async_queue_length(session->eventq);
                 if (qlength > 0 && qlength >= param.u.evt_queue_limit) {
                         /* Don't proceed with event push if queue is overflowed */
