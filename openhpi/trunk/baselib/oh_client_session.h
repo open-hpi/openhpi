@@ -30,12 +30,12 @@
 void ohc_sess_init();
 SaErrorT ohc_sess_open( SaHpiDomainIdT did, SaHpiSessionIdT& sid );
 SaErrorT ohc_sess_close( SaHpiSessionIdT sid );
+SaErrorT ohc_sess_close_all();
 SaErrorT ohc_sess_rpc( uint32_t id,
                        SaHpiSessionIdT sid,
                        ClientRpcParams& iparams,
                        ClientRpcParams& oparams );
 SaErrorT ohc_sess_get_did( SaHpiSessionIdT sid, SaHpiDomainIdT& did );
-
 
 #endif /* __OH_CLIENT_SESSION_H */
 
