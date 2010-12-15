@@ -28,7 +28,7 @@ EXTRA_DIST		= \
 
 # daemon library
 noinst_LTLIBRARIES      = libopenhpidaemon.la
-libopenhpidaemon_la_SOURCES        = config.c \
+libopenhpidaemon_la_SOURCES        = conf.c \
                                      domain.c \
                                      event.c \
                                      threaded.c \
