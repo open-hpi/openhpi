@@ -24,9 +24,10 @@
 #include <marshal_hpi.h>
 #include <strmsock.h>
 
-#include "oh_client.h"
-#include "oh_client_conf.h"
-#include "oh_client_session.h"
+#include "conf.h"
+#include "init.h"
+#include "lock.h"
+#include "session.h"
 
 
 /***************************************************************
@@ -158,7 +159,7 @@ SaErrorT cSession::GetSock( cClientStreamSock * & sock )
         sock = reinterpret_cast<cClientStreamSock *>(ptr);
     } else {
         g_static_rec_mutex_lock(&ohc_lock);
-        const struct oh_domain_conf * dc = oh_get_domain_conf( m_did );
+        const struct ohc_domain_conf * dc = ohc_get_domain_conf( m_did );
         g_static_rec_mutex_unlock( &ohc_lock );
 
         if (!dc) {
@@ -271,7 +272,7 @@ void ohc_sess_init()
 
 SaErrorT ohc_sess_open( SaHpiDomainIdT did, SaHpiSessionIdT& sid )
 {
-    oh_client_init(); // TODO investigate
+    ohc_init(); // TODO investigate
 
     cSession * session = new cSession;
     SaErrorT rv = session->RpcOpen( did );

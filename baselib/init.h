@@ -1,7 +1,8 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2004-2008
+ * (C) Copyright IBM Corp. 2008
  * (C) Copyright Pigeon Point Systems. 2010
+ * (C) Copyright Nokia Siemens Networks 2010
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -11,29 +12,28 @@
  * full licensing terms.
  *
  * Author(s):
- *      W. David Ashley <dashley@us.ibm.com>
  *      Renier Morales <renier@openhpi.org>
  *      Anton Pak <anton.pak@pigeonpoint.com>
+ *      Ulrich Kleber <ulikleber@users.sourceforge.net>
  *
  */
 
-#ifndef __OH_CLIENT_H
-#define __OH_CLIENT_H
+#ifndef __BASELIB_INIT_H
+#define __BASELIB_INIT_H
 
-#include <glib.h>
+#include <SaHpi.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern GStaticRecMutex ohc_lock;
+SaErrorT ohc_init(void);
 
-void oh_client_init(void);
+SaErrorT ohc_fini(void);
 
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
 
-
-#endif /* __OH_CLIENT_H */
+#endif /* __BASELIB_INIT_H */
 
