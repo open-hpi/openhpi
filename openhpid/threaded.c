@@ -14,11 +14,12 @@
  *
  */
 
-#include <oh_threaded.h>
 #include <oh_config.h>
-#include <oh_plugin.h>
-#include <oh_hotswap.h>
 #include <oh_error.h>
+#include <oh_hotswap.h>
+#include <oh_plugin.h>
+#include <oh_threaded.h>
+
 
 #define OH_DISCOVERY_THREAD_SLEEP_TIME 180 * G_USEC_PER_SEC
 #define OH_EVTGET_THREAD_SLEEP_TIME 3 * G_USEC_PER_SEC
@@ -120,10 +121,8 @@ static gpointer oh_evtget_thread_loop(gpointer data)
         while (1) {
                 /* Give the discovery time to start first -> FIXME */
                 if (first_loop) {
-                        struct timespec sleepytime =
-                                { .tv_sec = 0, .tv_nsec = 500000000};
                         first_loop = 0;
-                        nanosleep(&sleepytime, NULL);
+                        g_usleep(G_USEC_PER_SEC / 2 );
                 }
 
                 dbg("Thread Harvesting events");
