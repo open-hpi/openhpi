@@ -19,14 +19,15 @@
  *     Bryan Sutula <sutula@users.sourceforge.net>
  */
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-#include <fcntl.h>
-#include <unistd.h>
+
+#include <config.h>
 #include <oh_config.h>
 #include <oh_plugin.h>
 #include <oh_error.h>
 #include <oh_lock.h>
-#include <config.h>
 
 /*
  * Global Parameters
@@ -473,7 +474,8 @@ static void scanner_msg_handler (GScanner *scanner, gchar *message, gboolean is_
  **/
 int oh_load_config (char *filename, struct oh_parsed_config *config)
 {
-        int oh_conf_file, i;
+        FILE * fp;
+        int i;
         GScanner *oh_scanner;
         int done = 0;
         int num_tokens = sizeof(oh_conf_tokens) / sizeof(oh_conf_tokens[0]);
@@ -493,14 +495,18 @@ int oh_load_config (char *filename, struct oh_parsed_config *config)
         oh_scanner->msg_handler = scanner_msg_handler;
         oh_scanner->input_name = filename;
 
-        oh_conf_file = open(filename, O_RDONLY);
-        if (oh_conf_file < 0) {
+        fp = fopen(filename, "r");
+        if (!fp) {
                 err("Configuration file '%s' could not be opened", filename);
                 g_scanner_destroy(oh_scanner);
                 return -4;
         }
 
-        g_scanner_input_file(oh_scanner, oh_conf_file);
+#ifdef _WIN32
+        g_scanner_input_file(oh_scanner, _fileno(fp));
+#else
+        g_scanner_input_file(oh_scanner, fileno(fp));
+#endif
 
         for (i = 0; i < num_tokens; i++) {
                 g_scanner_scope_add_symbol(
@@ -535,7 +541,7 @@ int oh_load_config (char *filename, struct oh_parsed_config *config)
 
         read_globals_from_env(1);
 
-        if (close(oh_conf_file) != 0) {
+        if (fclose(fp) != 0) {
                 err("Couldn't close file '%s'.", filename);
                 g_scanner_destroy(oh_scanner);
                 return -5;

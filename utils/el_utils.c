@@ -15,10 +15,7 @@
  *      Renier Morales <renier@openhpi.org>
  */
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
+#include <stdio.h>
 #include <string.h>
 
 #include <SaHpi.h>
@@ -322,32 +319,28 @@ SaErrorT oh_el_overflowset(oh_el *el, SaHpiBoolT flag)
 /* write a EL entry list to a file */
 SaErrorT oh_el_map_to_file(oh_el *el, char *filename)
 {
-        int file;
+        FILE *fp;
         GList *node = NULL;
 
         if (el == NULL || filename == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-#ifdef _WIN32
-        file = open(filename, O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR);
-#else
-        file = open(filename, O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRGRP);
-#endif /* _WIN32 */
-        if (file < 0) {
+        fp = fopen(filename, "wb");
+        if (!fp) {
                 err("EL file '%s' could not be opened", filename);
                 return SA_ERR_HPI_ERROR;
         }
         
 	for (node = el->list; node; node = node->next) {
-                if (write(file, (void *)node->data, sizeof(oh_el_entry)) != sizeof(oh_el_entry)) {
+                if (fwrite((void *)node->data, sizeof(oh_el_entry), 1, fp) != 1) {
 			err("Couldn't write to file '%s'.", filename);
-			close(file);
+			fclose(fp);
                 	return SA_ERR_HPI_ERROR;
 		}
         }
 
-        if (close(file) != 0) {
+        if (fclose(fp) != 0) {
                 err("Couldn't close file '%s'.", filename);
                 return SA_ERR_HPI_ERROR;
         }
@@ -359,7 +352,7 @@ SaErrorT oh_el_map_to_file(oh_el *el, char *filename)
 /* read a EL entry list from a file */
 SaErrorT oh_el_map_from_file(oh_el *el, char *filename)
 {
-        int file;
+        FILE *fp;
         oh_el_entry entry;
 
         /* check el params and state */
@@ -369,14 +362,14 @@ SaErrorT oh_el_map_from_file(oh_el *el, char *filename)
                 return SA_ERR_HPI_INVALID_REQUEST;
         }
 
-        file = open(filename, O_RDONLY);
-        if (file < 0) {
+        fp = fopen(filename, "rb");
+        if (!fp) {
                 err("EL file '%s' could not be opened", filename);
                 return SA_ERR_HPI_ERROR;
         }
 
         oh_el_clear(el); // ensure list is empty
-        while (read(file, &entry, sizeof(oh_el_entry)) == sizeof(oh_el_entry)) {
+        while (fread(&entry, sizeof(oh_el_entry), 1, fp) == 1) {
 		oh_el_entry *elentry = g_new0(oh_el_entry, 1);
 		el->nextid = entry.event.EntryId;
 		el->nextid++;
@@ -384,7 +377,7 @@ SaErrorT oh_el_map_from_file(oh_el *el, char *filename)
 		el->list = g_list_append(el->list, elentry);
         }
 
-        if (close(file) != 0) {
+        if (fclose(fp) != 0) {
                 err("Couldn't close file '%s'.", filename);
                 return SA_ERR_HPI_ERROR;
         }
