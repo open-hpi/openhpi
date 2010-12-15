@@ -14,10 +14,7 @@
  *
  */
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
+#include <stdio.h>
 #include <string.h>
 
 #include <oh_alarm.h>
@@ -684,30 +681,28 @@ SaErrorT oh_detect_sensor_mask_alarm(SaHpiDomainIdT did,
 SaErrorT oh_alarms_to_file(struct oh_dat *at, char *filename)
 {
         GSList *alarms = NULL;
-        int file;
+        FILE * fp;
 
         if (!at || !filename) {
                 err("Invalid Parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        file = open(filename, O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP);
-        if (file < 0) {
+        fp = fopen(filename, "wb");
+        if (!fp) {
                 err("File '%s' could not be opened", filename);
                 return SA_ERR_HPI_ERROR;
         }
 
         for (alarms = at->list; alarms; alarms = alarms->next) {
-                int bytes_written = 0;
-                bytes_written = write(file, (void *)alarms->data, sizeof(SaHpiAlarmT));
-                if (bytes_written != sizeof(SaHpiAlarmT)) {
+                if (fwrite(alarms->data, sizeof(SaHpiAlarmT), 1, fp) != 1) {
                         err("Couldn't write to file '%s'.", filename);
-                        close(file);
+                        fclose(fp);
                         return SA_ERR_HPI_ERROR;
                 }
         }
 
-        if (close(file) != 0) {
+        if (fclose(fp) != 0) {
                 err("Couldn't close file '%s'.", filename);
                 return SA_ERR_HPI_ERROR;
         }
@@ -726,7 +721,7 @@ SaErrorT oh_alarms_to_file(struct oh_dat *at, char *filename)
  **/
 SaErrorT oh_alarms_from_file(struct oh_domain *d, char *filename)
 {
-        int file;
+        FILE *fp;
         SaHpiAlarmT alarm;
 
         if (!d || !filename) {
@@ -734,22 +729,22 @@ SaErrorT oh_alarms_from_file(struct oh_domain *d, char *filename)
                 return SA_ERR_HPI_ERROR;
         }
 
-        file = open(filename, O_RDONLY);
-        if (file < 0) {
+        fp = fopen(filename, "rb");
+        if (!fp) {
                 err("File '%s' could not be opened", filename);
                 return SA_ERR_HPI_ERROR;
         }
 
-        while (read(file, &alarm, sizeof(SaHpiAlarmT)) == sizeof(SaHpiAlarmT)) {
+        while (fread(&alarm, sizeof(SaHpiAlarmT), 1, fp) == 1) {
                 SaHpiAlarmT *a = oh_add_alarm(d, &alarm, 1);
                 if (!a) {
-                        close(file);
+                        fclose(fp);
                         err("Error adding alarm read from file.");
                         return SA_ERR_HPI_ERROR;
                 }
         }
 
-        if (close(file) != 0) {
+        if (fclose(fp) != 0) {
                 err("Couldn't close file '%s'.", filename);
                 return SA_ERR_HPI_ERROR;
         }
