@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __OH_CLIENT_SESSION_H
-#define __OH_CLIENT_SESSION_H
+#ifndef __BASELIB_SESSION_H
+#define __BASELIB_SESSION_H
 
 #include <stdint.h>
 
@@ -37,5 +37,5 @@ SaErrorT ohc_sess_rpc( uint32_t id,
                        ClientRpcParams& oparams );
 SaErrorT ohc_sess_get_did( SaHpiSessionIdT sid, SaHpiDomainIdT& did );
 
-#endif /* __OH_CLIENT_SESSION_H */
+#endif /* __BASELIB_SESSION_H */
 

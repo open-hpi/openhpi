@@ -27,8 +27,9 @@
 #include <oh_domain.h>
 #include <oh_error.h>
 
-#include "oh_client.h"
-#include "oh_client_conf.h"
+#include "conf.h"
+#include "init.h"
+#include "lock.h"
 
 
 static GHashTable *ohc_domains = NULL;
@@ -41,7 +42,7 @@ static void extract_keys(gpointer key, gpointer val, gpointer user_data);
 static gint compare_keys(const gint *a, const gint *b);
 
 
-void oh_client_conf_init(void)
+void ohc_conf_init(void)
 {
 
     g_static_rec_mutex_lock(&ohc_lock);
@@ -49,7 +50,7 @@ void oh_client_conf_init(void)
     // Create domain table
     if (!ohc_domains) { // Create domain table
         char * config_file;
-        const struct oh_domain_conf *default_conf;
+        const struct ohc_domain_conf *default_conf;
 
         ohc_domains = g_hash_table_new_full(g_int_hash,
                                             g_int_equal,
@@ -65,7 +66,7 @@ void oh_client_conf_init(void)
         }
 
         /* Check to see if a default domain exists, if not, add it */
-        default_conf = oh_get_domain_conf(OH_DEFAULT_DOMAIN_ID);
+        default_conf = ohc_get_domain_conf(OH_DEFAULT_DOMAIN_ID);
         if (default_conf == NULL) {
             const char *host, *portstr;
             unsigned short port;
@@ -89,19 +90,19 @@ void oh_client_conf_init(void)
     g_static_rec_mutex_unlock(&ohc_lock);
 }
 
-const struct oh_domain_conf * oh_get_domain_conf(SaHpiDomainIdT did)
+const struct ohc_domain_conf * ohc_get_domain_conf(SaHpiDomainIdT did)
 {
-    struct oh_domain_conf *dc;
+    struct ohc_domain_conf *dc;
     g_static_rec_mutex_lock(&ohc_lock);
-    dc = (struct oh_domain_conf *)g_hash_table_lookup(ohc_domains, &did);
+    dc = (struct ohc_domain_conf *)g_hash_table_lookup(ohc_domains, &did);
     g_static_rec_mutex_unlock(&ohc_lock);
 
     return dc;
 }
 
-SaErrorT oh_add_domain_conf(const char *host,
-                            unsigned short port,
-                            SaHpiDomainIdT *did)
+SaErrorT ohc_add_domain_conf(const char *host,
+                             unsigned short port,
+                             SaHpiDomainIdT *did)
 {
     g_static_rec_mutex_lock(&ohc_lock);
 
@@ -141,9 +142,9 @@ SaErrorT oh_add_domain_conf(const char *host,
     return SA_OK;
 }
 
-SaErrorT oh_add_domain_conf_by_id(SaHpiDomainIdT did,
-                                  const char *host,
-                                  unsigned short port)
+SaErrorT ohc_add_domain_conf_by_id(SaHpiDomainIdT did,
+                                   const char *host,
+                                   unsigned short port)
 {
     if (did==SAHPI_UNSPECIFIED_DOMAIN_ID || 
         did==OH_DEFAULT_DOMAIN_ID)
@@ -152,7 +153,7 @@ SaErrorT oh_add_domain_conf_by_id(SaHpiDomainIdT did,
     g_static_rec_mutex_lock(&ohc_lock);
 
     // check new did against all known domain ids 
-    if (oh_get_domain_conf(did) != NULL) {
+    if (ohc_get_domain_conf(did) != NULL) {
         g_static_rec_mutex_unlock(&ohc_lock);
         return SA_ERR_HPI_DUPLICATE;
     }
@@ -162,10 +163,10 @@ SaErrorT oh_add_domain_conf_by_id(SaHpiDomainIdT did,
     return SA_OK;
 }
 
-const struct oh_domain_conf * oh_get_next_domain_conf(SaHpiEntryIdT entry_id,
-                                                     SaHpiEntryIdT *next_entry_id)
+const struct ohc_domain_conf * ohc_get_next_domain_conf(SaHpiEntryIdT entry_id,
+                                                        SaHpiEntryIdT *next_entry_id)
 {
-    struct oh_domain_conf *dc;
+    struct ohc_domain_conf *dc;
     int did, nextdid = SAHPI_UNSPECIFIED_DOMAIN_ID;
 
     g_static_rec_mutex_lock(&ohc_lock);
@@ -181,7 +182,7 @@ const struct oh_domain_conf * oh_get_next_domain_conf(SaHpiEntryIdT entry_id,
     else // EntryId already must be a valid domain id
        did = (SaHpiDomainIdT) entry_id;
 
-    dc = (struct oh_domain_conf *)g_hash_table_lookup(ohc_domains, &did);
+    dc = (struct ohc_domain_conf *)g_hash_table_lookup(ohc_domains, &did);
 
     if (dc != NULL) { 
        // search first domain id > did
@@ -238,7 +239,7 @@ struct tokens {
         guint token;
 };
 
-static struct tokens oh_client_conf_tokens[] = {
+static struct tokens ohc_conf_tokens[] = {
         {
                 .name = "domain",
                 .token = HPI_CLIENT_CONF_TOKEN_DOMAIN
@@ -327,9 +328,9 @@ static void add_domain_conf(SaHpiDomainIdT did,
                             const char *host,
                             unsigned short port)
 {
-    struct oh_domain_conf *domain_conf;
+    struct ohc_domain_conf *domain_conf;
 
-    domain_conf = g_new0(struct oh_domain_conf, 1);
+    domain_conf = g_new0(struct ohc_domain_conf, 1);
     domain_conf->did = did;
     strncpy(domain_conf->host, host, SAHPI_MAX_TEXT_BUFFER_LENGTH);
     domain_conf->port = port;
@@ -436,7 +437,7 @@ static int load_client_config(const char *filename)
 {
         int i, done = 0;
         GScanner *oh_scanner;
-        int num_tokens = sizeof(oh_client_conf_tokens) / sizeof(oh_client_conf_tokens[0]);
+        int num_tokens = sizeof(ohc_conf_tokens) / sizeof(ohc_conf_tokens[0]);
 
         if (!filename) {
                 err("Error. Invalid parameters");
@@ -468,8 +469,8 @@ static int load_client_config(const char *filename)
         for (i = 0; i < num_tokens; i++) {
                 g_scanner_scope_add_symbol(
                         oh_scanner, 0,
-                        oh_client_conf_tokens[i].name,
-                        (void *)((unsigned long)oh_client_conf_tokens[i].token));
+                        ohc_conf_tokens[i].name,
+                        (void *)((unsigned long)ohc_conf_tokens[i].token));
         }
 
         while (!done) {

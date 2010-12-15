@@ -18,8 +18,8 @@
  *
  */
 
-#ifndef __OH_CLIENT_CONF_H
-#define __OH_CLIENT_CONF_H
+#ifndef __BASELIB_CONFIG_H
+#define __BASELIB_CONFIG_H
 
 #include <glib.h>
 
@@ -29,28 +29,28 @@
 extern "C" {
 #endif
 
-struct oh_domain_conf {
+struct ohc_domain_conf {
         SaHpiDomainIdT did;
         char host[SAHPI_MAX_TEXT_BUFFER_LENGTH];
         unsigned short port;
 };
 
 
-void oh_client_conf_init(void);
-const struct oh_domain_conf * oh_get_domain_conf(SaHpiDomainIdT did);
-const struct oh_domain_conf * oh_get_next_domain_conf(SaHpiEntryIdT entry_id,
-                                                      SaHpiEntryIdT *next_entry_id);
+void ohc_conf_init(void);
+const struct ohc_domain_conf * ohc_get_domain_conf(SaHpiDomainIdT did);
+const struct ohc_domain_conf * ohc_get_next_domain_conf(SaHpiEntryIdT entry_id,
+                                                        SaHpiEntryIdT *next_entry_id);
 
-SaErrorT oh_add_domain_conf(const char *host,
-                            unsigned short port,
-                            SaHpiDomainIdT *did);
-SaErrorT oh_add_domain_conf_by_id(SaHpiDomainIdT did,
-                                  const char *host,
-                                  unsigned short port);
+SaErrorT ohc_add_domain_conf(const char *host,
+                             unsigned short port,
+                             SaHpiDomainIdT *did);
+SaErrorT ohc_add_domain_conf_by_id(SaHpiDomainIdT did,
+                                   const char *host,
+                                   unsigned short port);
 
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
 
-#endif /* __OH_CLIENT_CONF_H */
+#endif /* __BASELIB_CONFIG_H */
 
