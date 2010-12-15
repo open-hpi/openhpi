@@ -14,14 +14,16 @@
  *
  */
 
-#include <oh_domain.h>
+#include <stdio.h>
+#include <string.h>
+
 #include <oh_alarm.h>
 #include <oh_config.h>
+#include <oh_domain.h>
 #include <oh_error.h>
-#include <oh_plugin.h>
 #include <oh_event.h>
+#include <oh_plugin.h>
 #include <oh_utils.h>
-#include <string.h>
 
 #define domains_lock() g_static_rec_mutex_lock(&oh_domains.lock)
 #define domains_unlock() g_static_rec_mutex_unlock(&oh_domains.lock)

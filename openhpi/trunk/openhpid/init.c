@@ -15,16 +15,20 @@
  *
  */
 
+#include <glib.h>
+
 #include <config.h>
-#include <oh_init.h>
-#include <oh_ssl.h>
 #include <oh_config.h>
-#include <oh_plugin.h>
 #include <oh_domain.h>
+#include <oh_error.h>
+#include <oh_init.h>
+#include <oh_lock.h>
+#ifndef _WIN32
+#include <oh_ssl.h>
+#endif /* _WIN32 */
+#include <oh_plugin.h>
 #include <oh_session.h>
 #include <oh_threaded.h>
-#include <oh_error.h>
-#include <oh_lock.h>
 #include <oh_utils.h>
 
 
@@ -152,8 +156,7 @@ int oh_init(void)
          * HACK: wait a second before returning
          * to give the threads time to populate the RPT
          */
-        struct timespec waittime = { .tv_sec = 1, .tv_nsec = 1000L};
-        nanosleep(&waittime, NULL);
+        g_usleep(G_USEC_PER_SEC);
 
         /* Do not use SA_OK here in case it is ever changed to something
          * besides zero, The runtime stuff depends on zero being returned here
