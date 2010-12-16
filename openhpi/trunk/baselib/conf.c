@@ -45,7 +45,7 @@ static gint compare_keys(const gint *a, const gint *b);
 void ohc_conf_init(void)
 {
 
-    g_static_rec_mutex_lock(&ohc_lock);
+    ohc_lock();
 
     // Create domain table
     if (!ohc_domains) { // Create domain table
@@ -87,15 +87,15 @@ void ohc_conf_init(void)
         }
     }
 
-    g_static_rec_mutex_unlock(&ohc_lock);
+    ohc_unlock();
 }
 
 const struct ohc_domain_conf * ohc_get_domain_conf(SaHpiDomainIdT did)
 {
     struct ohc_domain_conf *dc;
-    g_static_rec_mutex_lock(&ohc_lock);
+    ohc_lock();
     dc = (struct ohc_domain_conf *)g_hash_table_lookup(ohc_domains, &did);
-    g_static_rec_mutex_unlock(&ohc_lock);
+    ohc_unlock();
 
     return dc;
 }
@@ -104,7 +104,7 @@ SaErrorT ohc_add_domain_conf(const char *host,
                              unsigned short port,
                              SaHpiDomainIdT *did)
 {
-    g_static_rec_mutex_lock(&ohc_lock);
+    ohc_lock();
 
     // get all known domain ids and sort them
     GList *keys = 0;
@@ -126,18 +126,18 @@ SaErrorT ohc_add_domain_conf(const char *host,
     g_list_free(keys);
 
     if (prev_did == SAHPI_UNSPECIFIED_DOMAIN_ID) {
-        g_static_rec_mutex_unlock(&ohc_lock);
+        ohc_unlock();
         return SA_ERR_HPI_OUT_OF_SPACE;
     }
     if ((prev_did + 1) == SAHPI_UNSPECIFIED_DOMAIN_ID) {
-        g_static_rec_mutex_unlock(&ohc_lock);
+        ohc_unlock();
         return SA_ERR_HPI_OUT_OF_SPACE;
     }
 
     *did = prev_did + 1;
     add_domain_conf(*did, host, port);
 
-    g_static_rec_mutex_unlock(&ohc_lock);
+    ohc_unlock();
 
     return SA_OK;
 }
@@ -150,16 +150,16 @@ SaErrorT ohc_add_domain_conf_by_id(SaHpiDomainIdT did,
         did==OH_DEFAULT_DOMAIN_ID)
        return SA_ERR_HPI_INVALID_PARAMS;
 
-    g_static_rec_mutex_lock(&ohc_lock);
+    ohc_lock();
 
     // check new did against all known domain ids 
     if (ohc_get_domain_conf(did) != NULL) {
-        g_static_rec_mutex_unlock(&ohc_lock);
+        ohc_unlock();
         return SA_ERR_HPI_DUPLICATE;
     }
     
     add_domain_conf(did, host, port);
-    g_static_rec_mutex_unlock(&ohc_lock);
+    ohc_unlock();
     return SA_OK;
 }
 
@@ -169,7 +169,7 @@ const struct ohc_domain_conf * ohc_get_next_domain_conf(SaHpiEntryIdT entry_id,
     struct ohc_domain_conf *dc;
     int did, nextdid = SAHPI_UNSPECIFIED_DOMAIN_ID;
 
-    g_static_rec_mutex_lock(&ohc_lock);
+    ohc_lock();
 
     // get all known domain ids and sort them
     GList *keys = 0;
@@ -199,7 +199,7 @@ const struct ohc_domain_conf * ohc_get_next_domain_conf(SaHpiEntryIdT entry_id,
     else *next_entry_id = SAHPI_LAST_ENTRY;
 
     g_list_free(keys);
-    g_static_rec_mutex_unlock(&ohc_lock);
+    ohc_unlock();
 
     return dc;
 }

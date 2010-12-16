@@ -171,7 +171,7 @@ SaErrorT SAHPI_API saHpiFinalize()
     // TODO implement any library finalization code here
     // Current implementation does not utilize this function
 
-    return ohc_fini();
+    return ohc_finit();
 }
 
 /*----------------------------------------------------------------------------*/

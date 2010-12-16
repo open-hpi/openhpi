@@ -68,7 +68,6 @@
 
 #include <SaHpi.h>
 #include <oh_utils.h>
-#include <oh_config.h>
 #include <oHpi.h>
 
 #include "oh_clients.h"

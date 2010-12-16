@@ -14,8 +14,20 @@
  *
  */
 
+#include <glib.h>
+
 #include "lock.h"
 
 
-GStaticRecMutex ohc_lock;
+static GStaticRecMutex ohc_main_lock = G_STATIC_REC_MUTEX_INIT;
+
+void ohc_lock( void )
+{
+    g_static_rec_mutex_lock(&ohc_main_lock);
+}
+
+void ohc_unlock( void )
+{
+    g_static_rec_mutex_unlock(&ohc_main_lock);
+}
 
