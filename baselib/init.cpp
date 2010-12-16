@@ -48,7 +48,7 @@ SaErrorT ohc_init(void)
     return SA_OK;
 }
 
-SaErrorT ohc_fini(void)
+SaErrorT ohc_finit(void)
 {
     SaErrorT rv;
 

@@ -17,13 +17,12 @@
 #ifndef __BASELIB_LOCK_H
 #define __BASELIB_LOCK_H
 
-#include <glib.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern GStaticRecMutex ohc_lock;
+void ohc_lock( void );
+void ohc_unlock( void );
 
 #ifdef __cplusplus
 } /* extern "C" */

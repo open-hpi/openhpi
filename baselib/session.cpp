@@ -158,9 +158,9 @@ SaErrorT cSession::GetSock( cClientStreamSock * & sock )
     if ( ptr ) {
         sock = reinterpret_cast<cClientStreamSock *>(ptr);
     } else {
-        g_static_rec_mutex_lock(&ohc_lock);
+        ohc_lock();
         const struct ohc_domain_conf * dc = ohc_get_domain_conf( m_did );
-        g_static_rec_mutex_unlock( &ohc_lock );
+        ohc_unlock();
 
         if (!dc) {
             err( "Session: cannot find domain %u config.\n", m_did );
@@ -208,18 +208,18 @@ gpointer sid_key( SaHpiSessionIdT sid )
 
 static void sessions_init()
 {
-    g_static_rec_mutex_lock(&ohc_lock);
+    ohc_lock();
     if ( !sessions ) {
         sessions = g_hash_table_new( g_direct_hash, g_direct_equal );
     }
-    g_static_rec_mutex_unlock(&ohc_lock);
+    ohc_unlock();
 }
 
 static cSession * sessions_get( SaHpiSessionIdT sid )
 {
-    g_static_rec_mutex_lock(&ohc_lock);
+    ohc_lock();
     gpointer value = g_hash_table_lookup( sessions, sid_key( sid ) );
-    g_static_rec_mutex_unlock(&ohc_lock);
+    ohc_unlock();
     return reinterpret_cast<cSession*>(value);
 }
 
@@ -232,10 +232,10 @@ gboolean dehash_sessions( gpointer /* key */, gpointer value, gpointer user_data
 
 static GList * sessions_take_all()
 {
-    g_static_rec_mutex_lock(&ohc_lock);
+    ohc_lock();
     GList * sessions_list = 0;
     g_hash_table_foreach_remove( sessions, dehash_sessions, &sessions_list );
-    g_static_rec_mutex_unlock(&ohc_lock);
+    ohc_unlock();
 
     return sessions_list;
 }
@@ -244,20 +244,20 @@ static SaHpiSessionIdT sessions_add( cSession * session )
 {
     static SaHpiSessionIdT next_sid = 1;
 
-    g_static_rec_mutex_lock( &ohc_lock );
+    ohc_lock();
     SaHpiSessionIdT sid = next_sid;
     ++next_sid;
     g_hash_table_insert( sessions, sid_key( sid ), session );
-    g_static_rec_mutex_unlock(&ohc_lock);
+    ohc_unlock();
 
     return sid;
 }
 
 static void sessions_remove( SaHpiSessionIdT sid )
 {
-    g_static_rec_mutex_lock( &ohc_lock );
+    ohc_lock();
     g_hash_table_remove( sessions, sid_key( sid ) );
-    g_static_rec_mutex_unlock(&ohc_lock);
+    ohc_unlock();
 }
 
 

@@ -29,7 +29,7 @@ extern "C" {
 
 SaErrorT ohc_init(void);
 
-SaErrorT ohc_fini(void);
+SaErrorT ohc_finit(void);
 
 #ifdef __cplusplus
 } /* extern "C" */
