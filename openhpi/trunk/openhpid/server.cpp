@@ -20,15 +20,7 @@
  *
  */
 
-#include <fcntl.h>
-#include <getopt.h>
-#include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
 
 #include <glib.h>
 
@@ -38,37 +30,28 @@
 #include <marshal_hpi.h>
 #include <oh_domain.h>
 #include <oh_error.h>
-#include <oh_init.h>
 #include <oh_rpc_params.h>
 #include <strmsock.h>
 
 
 /*--------------------------------------------------------------------*/
-/* Local definitions                                                  */
+/* Forward Declarations                                               */
 /*--------------------------------------------------------------------*/
 
-extern "C"
-{
-
 static void service_thread(gpointer sock_ptr, gpointer /* user_data */);
-static SaErrorT ProcessMsg(cHpiMarshal * hm,
-                           int rq_byte_order,
-                           char * data,
-                           uint32_t& data_len,
-                           SaHpiSessionIdT& changed_sid);
-}
+static SaErrorT process_msg(cHpiMarshal * hm,
+                            int rq_byte_order,
+                            char * data,
+                            uint32_t& data_len,
+                            SaHpiSessionIdT& changed_sid);
 
-#define CLIENT_TIMEOUT 0  // Unlimited
-#define PID_FILE "/var/run/openhpid.pid"
+
+/*--------------------------------------------------------------------*/
+/* Local Definitions                                                  */
+/*--------------------------------------------------------------------*/
 
 static bool stop_server = false;
-static int sock_timeout = CLIENT_TIMEOUT;
-static int verbose_flag = 0;
 
-/* verbose macro */
-#define PVERBOSE1(msg, ...) if (verbose_flag) dbg(msg, ## __VA_ARGS__)
-#define PVERBOSE2(msg, ...) if (verbose_flag) err(msg, ## __VA_ARGS__)
-#define PVERBOSE3(msg, ...) if (verbose_flag) printf("CRITICAL: "msg, ## __VA_ARGS__)
 
 /*--------------------------------------------------------------------*/
 /* Function to dehash handler cfg for oHpiHandlerInfo                 */
@@ -87,263 +70,21 @@ static void dehash_handler_cfg(gpointer key, gpointer value, gpointer data)
     ++hc->NumberOfParams;
 }
 
+
 /*--------------------------------------------------------------------*/
-/* Function: display_help                                             */
+/* HPI Server Interface                                               */
 /*--------------------------------------------------------------------*/
 
-void display_help(void)
+bool oh_server_run( uint16_t port,
+                    unsigned int sock_timeout,
+                    int max_threads )
 {
-    printf("Help for openhpid:\n\n");
-    printf("   openhpid -c conf_file [-v] [-p port] [-f pidfile]\n\n");
-    printf("   -c conf_file  Sets path/name of the configuration file.\n");
-    printf("                 This option is required unless the environment\n");
-    printf("                 variable OPENHPI_CONF has been set to a valid\n");
-    printf("                 configuration file.\n");
-    printf("   -v            This option causes the daemon to display verbose\n");
-    printf("                 messages. This option is optional.\n");
-    printf("   -p port       Overrides the default listening port (%d) of\n",
-           OPENHPI_DEFAULT_DAEMON_PORT);
-    printf("                 the daemon. The option is optional.\n");
-    printf("   -f pidfile    Overrides the default path/name for the daemon.\n");
-    printf("                 pid file. The option is optional.\n");
-    printf("   -s seconds    Overrides the default socket read timeout of 30\n");
-    printf("                 minutes. The option is optional.\n");
-    printf("   -t threads    Sets the maximum number of connection threads.\n");
-    printf("                 The default is umlimited. The option is optional.\n");
-    printf("   -n            Forces the code to run as a foreground process\n");
-    printf("                 and NOT as a daemon. The default is to run as\n");
-    printf("                 a daemon. The option is optional.\n\n");
-    printf("A typical invocation might be\n\n");
-    printf("   ./openhpid -c /etc/openhpi/openhpi.conf\n\n");
-}
-
-/*--------------------------------------------------------------------*/
-/* PID File Unility Functions                                         */
-/*--------------------------------------------------------------------*/
-bool check_pidfile(const char *pidfile)
-{
-    // TODO add more checks here
-    if (!pidfile) {
-        return false;
-    }
-
-    int fd = open(pidfile, O_RDONLY);
-    if (fd >= 0) {
-        char buf[32];
-        memset(buf, 0, sizeof(buf));
-        ssize_t len = read(fd, buf, sizeof(buf) - 1);
-        if (len < 0) {
-            err("Error: Cannot read from PID file.\n");
-            return false;
-        }
-        close(fd);
-        int pid = atoi(buf);
-        if ((pid > 0) && (pid == getpid() || (kill(pid, 0) < 0))) {
-            unlink(pidfile);
-        } else {
-            err("Error: There is another active OpenHPI daemon.\n");
-            return false;
-        }
-    }
-
-    return true;
-}
-
-bool update_pidfile(const char *pidfile)
-{
-    // TODO add more checks here
-    if (!pidfile) {
-        return false;
-    }
-
-    int fd = open(pidfile, O_WRONLY|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP);
-    if (fd < 0) {
-        err("Error: Cannot open PID file.\n");
-        return false;
-    }
-    char buf[32];
-    snprintf(buf, sizeof(buf), "%d\n", (int)getpid());
-    write(fd, buf, strlen(buf));
-    close(fd);
-
-    return true;
-}
-
-/*--------------------------------------------------------------------*/
-/* Function: daemonize                                                */
-/*--------------------------------------------------------------------*/
-
-static bool daemonize(const char *pidfile)
-{
-    if (signal(SIGPIPE, SIG_IGN) == SIG_ERR) {
-        return false;
-    }
-
-    pid_t pid;
-    pid = fork();
-    if (pid < 0) {
-        return false;
-    } else if (pid > 0) {
-        exit(0);
-    }
-    // Become the session leader
-    setsid();
-    // Second fork to make sure we are detached
-    // from any controlling terminal.
-    pid = fork();
-    if (pid < 0) {
-        return false;
-    } else if (pid > 0) {
-        exit(0);
-    }
-
-    update_pidfile(pidfile);
-
-    //chdir("/");
-    umask(0); // Reset default file permissions
-
-    // Close unneeded inherited file descriptors
-    // Keep stdout and stderr open if they already are.
-#ifdef NR_OPEN
-    for (int i = 3; i < NR_OPEN; i++) {
-#else
-    for (int i = 3; i < 1024; i++) {
-#endif
-        close(i);
-    }
-
-    return true;
-}
-
-/*--------------------------------------------------------------------*/
-/* Function: main                                                     */
-/*--------------------------------------------------------------------*/
-
-int main(int argc, char *argv[])
-{
-    struct option options[] = {
-        {"verbose",   no_argument,       0, 'v'},
-        {"nondaemon", no_argument,       0, 'n'},
-        {"cfg",       required_argument, 0, 'c'},
-        {"port",      required_argument, 0, 'p'},
-        {"pidfile",   required_argument, 0, 'f'},
-        {"timeout",   required_argument, 0, 's'},
-        {"threads",   required_argument, 0, 't'},
-        {0, 0, 0, 0}
-    };
-
-    char *cfgfile    = 0;
-    int  port        = OPENHPI_DEFAULT_DAEMON_PORT;
-    char *pidfile    = 0;
-    int  max_threads = -1;  // unlimited
-    bool runasdaemon = true;
-
-    /* get the command line options */
-    int c;
-    while (1) {
-        c = getopt_long(argc, argv, "nvc:p:f:s:t:", options, 0);
-        /* detect when done scanning options */
-        if (c == -1) {
-            break;
-        }
-        switch (c) {
-            case 0:
-                /* no need to do anything here */
-                break;
-            case 'c':
-                setenv("OPENHPI_CONF", optarg, 1);
-                cfgfile = g_new0(char, strlen(optarg) + 1);
-                strcpy(cfgfile, optarg);
-                break;
-            case 'p':
-                setenv("OPENHPI_DAEMON_PORT", optarg, 1);
-                port = atoi(optarg);
-                break;
-            case 'v':
-                verbose_flag = 1;
-                break;
-            case 'f':
-                pidfile = g_new0(char, strlen(optarg) + 1);
-                strcpy(pidfile, optarg);
-                break;
-            case 's':
-                sock_timeout = atoi(optarg);
-                if (sock_timeout < 0) {
-                    sock_timeout = CLIENT_TIMEOUT;
-                }
-                break;
-            case 't':
-                max_threads = atoi(optarg);
-                if (max_threads <= 0) {
-                    max_threads = -1;
-                }
-                break;
-            case 'n':
-                runasdaemon = false;
-                break;
-            case '?':
-            default:
-                /* they obviously need it */
-                display_help();
-                exit(-1);
-        }
-    }
-    if (optind < argc) {
-        fprintf(stderr, "Error: Unknown command line option specified. Exiting.\n");
-        display_help();
-        exit(-1);
-    }
-
-    // see if we have a valid configuration file
-    if ((!cfgfile) || (!g_file_test(cfgfile, G_FILE_TEST_EXISTS))) {
-        fprintf(stderr, "Error: Cannot find configuration file. Exiting.\n");
-        display_help();
-        exit(-1);
-    }
-
-    if (!pidfile) {
-        pidfile = g_new0(char, strlen(PID_FILE) + 1);
-        strcpy(pidfile, PID_FILE);
-    }
-    // see if we are already running
-    if (!check_pidfile(pidfile)) {
-        fprintf(stderr, "Error: PID file check failed. Exiting.\n");
-        display_help();
-        exit(1);
-    }
-    if (!update_pidfile(pidfile)) {
-        fprintf(stderr, "Error: Cannot update PID file. Exiting.\n");
-        display_help();
-        exit(1);
-    }
-
-    if (runasdaemon) {
-        if (!daemonize(pidfile)) {
-            exit(8);
-        }
-    }
-
-    if (!g_thread_supported()) {
-        g_thread_init(0);
-    }
-
-    if (oh_init()) { // Initialize OpenHPI
-        err("There was an error initializing OpenHPI. Exiting.\n");
-        return 8;
-    }
-
     // create the server socket
-    cServerStreamSock * ssock = new cServerStreamSock;
-    if (!ssock->Create(port)) {
+    cServerStreamSock ssock;
+    if (!ssock.Create(port)) {
         err("Error creating server socket. Exiting.\n");
-        delete ssock;
-        return 8;
+        return false;
     }
-
-    // announce ourselves
-    dbg("%s started.\n", argv[0]);
-    dbg("OPENHPI_CONF = %s.\n", cfgfile);
-    dbg("OPENHPI_DAEMON_PORT = %d.\n\n", port);
 
     // create the thread pool
     GThreadPool *pool;
@@ -351,25 +92,28 @@ int main(int argc, char *argv[])
 
     // wait for a connection and then service the connection
     while (!stop_server) {
-        cStreamSock * sock = ssock->Accept();
+        cStreamSock * sock = ssock.Accept();
         if (!sock) {
-            PVERBOSE1("Error accepting server socket.\n");
-            break;
+            err("Error accepting server socket.\n");
+            return false;
         }
-        PVERBOSE1("### Spawning thread to handle connection. ###\n");
+        dbg("### Spawning thread to handle connection. ###\n");
         g_thread_pool_push(pool, (gpointer)sock, 0);
     }
 
     // ensure all threads are complete
     g_thread_pool_free(pool, FALSE, TRUE);
 
-    delete ssock;
-    PVERBOSE1("Server socket closed.\n");
+    dbg("Server socket closed.\n");
 
-    return 0;
+    return true;
 }
 
-
+void oh_server_stop(void)
+{
+    stop_server = true;
+    // TODO do something more to stop Accept function
+}
 
 
 /*--------------------------------------------------------------------*/
@@ -379,17 +123,18 @@ int main(int argc, char *argv[])
 static void service_thread(gpointer sock_ptr, gpointer /* user_data */)
 {
     cStreamSock * sock = (cStreamSock *)sock_ptr;
-    gpointer thrdid = g_thread_self();
+    gpointer thrdid;
+    thrdid = g_thread_self();
     // TODO several sids for one connection
     SaHpiSessionIdT my_sid = 0;
 
-    PVERBOSE1("%p Servicing connection.\n", thrdid);
+    dbg("%p Servicing connection.\n", thrdid);
 
     /* set the read timeout for the socket */
     // TODO
     //sock->SetReadTimeout(sock_timeout);
 
-    PVERBOSE1("### service_thread, thrdid [%p] ###\n", (void *)thrdid);
+    dbg("### service_thread, thrdid [%p] ###\n", (void *)thrdid);
 
     while (true) {
         bool     rc;
@@ -401,27 +146,27 @@ static void service_thread(gpointer sock_ptr, gpointer /* user_data */)
 
         rc = sock->ReadMsg(type, id, data, data_len, rq_byte_order);
         if (!rc) {
-            PVERBOSE3("%p Error or Timeout while reading socket.\n", thrdid);
+            err("%p Error or Timeout while reading socket.\n", thrdid);
             break;
         } else if (type != eMhMsg) {
-            PVERBOSE3("%p Unsupported message type. Discarding.\n", thrdid);
+            err("%p Unsupported message type. Discarding.\n", thrdid);
             sock->WriteMsg(eMhError, id, 0, 0);
         } else {
             cHpiMarshal *hm = HpiMarshalFind(id);
             SaErrorT process_rv;
             SaHpiSessionIdT changed_sid = 0;
-            process_rv = ProcessMsg(hm, rq_byte_order, data, data_len, changed_sid);
+            process_rv = process_msg(hm, rq_byte_order, data, data_len, changed_sid);
             if (process_rv != SA_OK) {
                 int mr = HpiMarshalReply0(hm, data, &process_rv);
                 if (mr < 0) {
-                    PVERBOSE2("%p Marshal failed.\n", thrdid);
+                    err("%p Marshal failed.\n", thrdid);
                     break;
                 }
                 data_len = (uint32_t)mr;
             }
             rc = sock->WriteMsg(eMhMsg, id, data, data_len);
             if (!rc) {
-                PVERBOSE2("%p Socket write failed.\n", thrdid);
+                err("%p Socket write failed.\n", thrdid);
                 break;
             }
             if ((process_rv == SA_OK) && (changed_sid != 0)) {
@@ -441,7 +186,7 @@ static void service_thread(gpointer sock_ptr, gpointer /* user_data */)
     }
     delete sock; // cleanup thread instance data
 
-    PVERBOSE1("%p Connection closed.\n", thrdid);
+    dbg("%p Connection closed.\n", thrdid);
     // TODO why?
     return; // do NOT use g_thread_exit here!
 }
@@ -470,19 +215,19 @@ static void service_thread(gpointer sock_ptr, gpointer /* user_data */)
 
 
 /*--------------------------------------------------------------------*/
-/* Function: ProcessMsg                                                */
+/* Function: process_msg                                              */
 /*--------------------------------------------------------------------*/
 
-static SaErrorT ProcessMsg(cHpiMarshal * hm,
-                           int rq_byte_order,
-                           char * data,
-                           uint32_t& data_len,
-                           SaHpiSessionIdT& changed_sid)
+static SaErrorT process_msg(cHpiMarshal * hm,
+                            int rq_byte_order,
+                            char * data,
+                            uint32_t& data_len,
+                            SaHpiSessionIdT& changed_sid)
 {
     gpointer thrdid;
     thrdid = g_thread_self();
 
-    PVERBOSE1("%p Processing RPC request %d.\n", thrdid, hm->m_id);
+    dbg("%p Processing RPC request %d.\n", thrdid, hm->m_id);
 
     changed_sid = 0;
 
@@ -2249,11 +1994,11 @@ static SaErrorT ProcessMsg(cHpiMarshal * hm,
         break;
 
         default:
-            PVERBOSE2("%p Function not found\n", thrdid);
+            dbg("%p Function not found\n", thrdid);
             return SA_ERR_HPI_UNSUPPORTED_API; 
     }
 
-    PVERBOSE1("%p Return code = %d\n", thrdid, rv);
+    dbg("%p Return code = %d\n", thrdid, rv);
 
     return SA_OK;
 }

@@ -24,7 +24,7 @@ SUBDIRS = t
 DIST_SUBDIRS = t
 
 EXTRA_DIST		= \
-	openhpid.sh.in
+	openhpid.sh.in server.h
 
 # daemon library
 noinst_LTLIBRARIES      = libopenhpidaemon.la
@@ -52,7 +52,7 @@ libopenhpidaemon_la_LDFLAGS   = -version-info @HPI_LIB_VERSION@
 # daemon
 sbin_PROGRAMS           = openhpid
 
-openhpid_SOURCES        = openhpid.cpp
+openhpid_SOURCES        = server.cpp openhpid-posix.cpp
 
 openhpid_LDADD         = libopenhpidaemon.la \
 		                 $(top_builddir)/marshal/libopenhpimarshal.la \

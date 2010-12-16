@@ -51,6 +51,10 @@ int oh_init(void)
         	return 0;
         }
 
+        if (g_thread_supported() == FALSE) {
+            g_thread_init(0);
+        }
+
         /* Initialize thread engine */
         oh_threaded_init();
 #ifdef HAVE_OPENSSL
