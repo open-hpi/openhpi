@@ -98,6 +98,8 @@ OH_CHECK_GCC(3,2,0)
 dnl glib 2.x checks
 GLIB_REQUIRED_VERSION=2.2.0
 GLIB=glib-2.0
+GTHREAD=gthread-2.0
+GMODULE=gmodule-2.0
 
 if pkg-config --atleast-version $GLIB_REQUIRED_VERSION $GLIB; then
    :
@@ -108,10 +110,12 @@ else
 fi
 
 exact_version=`pkg-config --modversion $GLIB`;
-GLIB_CFLAGS=`pkg-config --cflags $GLIB gthread-2.0`
-GLIB_LIBS=`pkg-config --libs $GLIB gthread-2.0`
+GLIB_CFLAGS=`pkg-config --cflags $GLIB $GTHREAD`
+GLIB_LIBS=`pkg-config --libs $GLIB $GTHREAD`
 GLIB_ONLY_CFLAGS=`pkg-config --cflags $GLIB`
 GLIB_ONLY_LIBS=`pkg-config --libs $GLIB`
+GMODULE_ONLY_CFLAGS=`pkg-config --cflags $GMODULE`
+GMODULE_ONLY_LIBS=`pkg-config --libs $GMODULE`
 
 # On some versions of Solaris the pkg-config file for gthread-2.0 contains a
 # compiler option, '-mt', that is incompatible with gcc
@@ -143,12 +147,9 @@ LIBS=$old_libs
 
 AC_SUBST(GLIB_ONLY_CFLAGS)
 AC_SUBST(GLIB_ONLY_LIBS)
+AC_SUBST(GMODULE_ONLY_CFLAGS)
+AC_SUBST(GMODULE_ONLY_LIBS)
 
-
-AC_CHECK_LIB([ltdl], [lt_dlopen], [], [
-    OH_CHECK_FAIL(libltdl,libltdl-devel,,
-        this is required for plugin loading)
-    ])
 
 AC_CHECK_LIB([sysfs], [sysfs_get_mnt_path], [have_sysfs=yes])
 AC_CHECK_HEADER([sysfs/libsysfs.h], [], [have_sysfs=no])

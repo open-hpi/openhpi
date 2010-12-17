@@ -51,67 +51,89 @@ check_PROGRAMS = $(TESTS)
 
 ohpi_007_SOURCES = ohpi_007.c
 ohpi_007_LDADD   = $(TDEPLIB)
+ohpi_007_LDFLAGS = -export-dynamic
 
 ohpi_008_SOURCES = ohpi_008.c
 ohpi_008_LDADD   = $(TDEPLIB)
+ohpi_008_LDFLAGS = -export-dynamic
 
 ohpi_009_SOURCES = ohpi_009.c
 ohpi_009_LDADD   = $(TDEPLIB)
+ohpi_009_LDFLAGS = -export-dynamic
 
 ohpi_010_SOURCES = ohpi_010.c
 ohpi_010_LDADD   = $(TDEPLIB)
+ohpi_010_LDFLAGS = -export-dynamic
 
 ohpi_024_SOURCES = ohpi_024.c
 ohpi_024_LDADD   = $(TDEPLIB)
+ohpi_024_LDFLAGS = -export-dynamic
 
 ohpi_025_SOURCES = ohpi_025.c
 ohpi_025_LDADD   = $(TDEPLIB)
+ohpi_025_LDFLAGS = -export-dynamic
 
 ohpi_026_SOURCES = ohpi_026.c
 ohpi_026_LDADD   = $(TDEPLIB)
+ohpi_026_LDFLAGS = -export-dynamic
 
 ohpi_027_SOURCES = ohpi_027.c
 ohpi_027_LDADD   = $(TDEPLIB)
+ohpi_027_LDFLAGS = -export-dynamic
 
 ohpi_028_SOURCES = ohpi_028.c
 ohpi_028_LDADD   = $(TDEPLIB)
+ohpi_028_LDFLAGS = -export-dynamic
 
 ohpi_029_SOURCES = ohpi_029.c
 ohpi_029_LDADD   = $(TDEPLIB)
+ohpi_029_LDFLAGS = -export-dynamic
 
 ohpi_030_SOURCES = ohpi_030.c
 ohpi_030_LDADD   = $(TDEPLIB)
+ohpi_030_LDFLAGS = -export-dynamic
 
 ohpi_031_SOURCES = ohpi_031.c
 ohpi_031_LDADD   = $(TDEPLIB)
+ohpi_031_LDFLAGS = -export-dynamic
 
 ohpi_032_SOURCES = ohpi_032.c
 ohpi_032_LDADD   = $(TDEPLIB)
+ohpi_032_LDFLAGS = -export-dynamic
 
 ohpi_033_SOURCES = ohpi_033.c
 ohpi_033_LDADD   = $(TDEPLIB)
+ohpi_033_LDFLAGS = -export-dynamic
 
 ohpi_034_SOURCES = ohpi_034.c
 ohpi_034_LDADD   = $(TDEPLIB)
+ohpi_034_LDFLAGS = -export-dynamic
 
 ohpi_035_SOURCES = ohpi_035.c
 ohpi_035_LDADD   = $(TDEPLIB)
+ohpi_035_LDFLAGS = -export-dynamic
 
 ohpi_036_SOURCES = ohpi_036.c
 ohpi_036_LDADD   = $(TDEPLIB)
+ohpi_036_LDFLAGS = -export-dynamic
 
 ohpi_037_SOURCES = ohpi_037.c
 ohpi_037_LDADD   = $(TDEPLIB)
+ohpi_037_LDFLAGS = -export-dynamic
 
 ohpi_038_SOURCES = ohpi_038.c
 ohpi_038_LDADD   = $(TDEPLIB)
+ohpi_038_LDFLAGS = -export-dynamic
 
 ohpi_039_SOURCES = ohpi_039.c
 ohpi_039_LDADD   = $(TDEPLIB)
+ohpi_039_LDFLAGS = -export-dynamic
 
 ohpi_version_SOURCES = ohpi_version.c
 ohpi_version_LDADD   = $(TDEPLIB)
+ohpi_version_LDFLAGS = -export-dynamic
 
 hpiinjector_SOURCES = hpiinjector.c
 hpiinjector_LDADD   = $(TDEPLIB)
+hpiinjector_LDFLAGS = -export-dynamic
 
