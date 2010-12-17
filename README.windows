@@ -1,0 +1,101 @@
+========================================================================
+OpenHPI provides windows version of
+- Base HPI library (libopehpi-${VERSION}.dll)
+- OpenHPI utils library (libopenhpiutils-${VERSION}.dll)
+- OpenHPI marshal library (libopenhpimarshal-${VERSION}.dll)
+- OpenHPI transport library (libopenhpitransport-${VERSION}.dll)
+- OpenHPI clients:
+-- hpialarms.exe
+-- hpidomain.exe
+-- hpiel.exe
+-- hpievents.exe
+-- hpifan.exe
+-- hpigensimdata.exe
+-- hpiinv.exe
+-- hpionIBMblade.exe
+-- hpipower.exe
+-- hpireset.exe
+-- hpisensor.exe
+-- hpisettime.exe
+-- hpithres.exe
+-- hpitop.exe
+-- hpitree.exe
+-- hpiwdt.exe
+-- ohdomainlist.exe
+-- ohhandler.exe
+-- ohparam.exe
+
+========================================================================
+Dependencies:
+
+The only dependence (save for mingw compiler) is glib2.
+Windows version can be obtained at http://www.gtk.org/download-windows.html
+
+========================================================================
+Current windows build system supports only Mingw compiler.
+http://www.mingw.org/
+However the built libraries can be use as ordinary windows DLL
+in projects with any compiler.
+
+========================================================================
+The libraries' names are constructed in the following way:
+lib + name + '-' + version + '.dll'.
+I.e. libopenhpi-2.17.0.dll
+
+N.B. This naming schema can be changed in future releases.
+
+========================================================================
+Build instructions:
+
+- Get mingw (cross or native).
+- Get archive with glib2 for windows and unpack it somewhere.
+- Enter openhpi source tree root directory.
+- Modify Makefile.mingw32.def:
+-- TOOLCHAIN_PATH in order that CC and CXX point to C and C++
+   compilers correspondingly.
+-- GLIB_DIR: in order that GLIB_INCLUDES and GLIB_LIBS
+   point to valid directories with glib headers and libraries.
+- run "make -f Makefile.mingw32".
+- run "make -f Makefile.mingw32 bin".
+- the bin subdirectory will contain all produced stuff.
+
+========================================================================
+Client Usage instructions:
+
+There are two ways:
+
+Way 1) prepare openhpiclient.conf and set env. var. OPENHPI_CLIENT_CONF
+to its path
+
+Way 2) set env. var. OPENHPI_DAEMON_HOST to OpenHPI daemon address.
+
+========================================================================
+Library Usage instructions:
+
+Header file SaHpi.h contains declarations on provided functions.
+The functions are in libopenhpi-${VERSION}.dll.
+
+Define "SAHPI_API" macro as "__declspec(dllexport)".
+
+For Mingw compiler it can be just linked.
+
+For MSVC:
+- There is def file libopenhpi-${VERSION}.dll.def
+- With lib tool you can create import library
+- Command example "lib /machine:i386 /def:libopenhpi-${VERSION}.dll.def"
+
+And see Client Usage instrustions about configuring OpenHPI daemon address
+to connect.
+
+========================================================================
+Troubleshouting:
+
+Mailing list: openhpi-devel@lists.sourceforge.net
+
+or
+
+IRC channel #openhpi on FreeNode.
+
+
+    Anton Pak
+
