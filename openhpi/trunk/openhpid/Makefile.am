@@ -47,7 +47,7 @@ libopenhpidaemon_la_LIBADD         = $(top_builddir)/utils/libopenhpiutils.la
 if HAVE_OPENSSL
 libopenhpidaemon_la_LIBADD += $(top_builddir)/$(SSLDIR)/libopenhpi_ssl.la
 endif
-libopenhpidaemon_la_LDFLAGS   = -version-info @HPI_LIB_VERSION@
+libopenhpidaemon_la_LDFLAGS   = @HPI_LIB_VERSION@ @GMODULE_ONLY_LIBS@
 
 # daemon
 sbin_PROGRAMS           = openhpid
