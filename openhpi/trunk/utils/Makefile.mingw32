@@ -1,0 +1,32 @@
+include ../Makefile.mingw32.def
+
+TARGET := libopenhpiutils-${VERSION}.dll
+
+SRC := announcement_utils.c \
+       el_utils.c \
+       epath_utils.c \
+       rpt_utils.c \
+       sahpi_enum_utils.c \
+       sahpi_event_encode.c \
+       sahpi_event_utils.c \
+       sahpi_struct_utils.c \
+       sahpi_time_utils.c \
+       sahpiatca_enum_utils.c \
+       sahpixtca_enum_utils.c \
+       uid_utils.c
+OBJ := $(patsubst %.c, %.o, ${SRC})
+
+CFLAGS += ${GLIB_INCLUDES} -I .
+
+.PHONY: all clean
+
+all : ${TARGET}
+
+${TARGET} : ${OBJ}
+	${CC} -shared -o $@ $^ ${GLIB_LIBS} \
+    -Wl,--out-implib,$@.a \
+    -Wl,--output-def,$@.def
+
+clean:
+	rm -f ${OBJ} ${TARGET}
+

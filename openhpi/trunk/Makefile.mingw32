@@ -1,0 +1,33 @@
+include Makefile.mingw32.def
+
+out := openhpi-${VERSION}-win32
+openhpi_libs := utils transport marshal baselib clients
+
+.PHONY: all clean $(openhpi_libs)
+
+all: $(openhpi_libs)
+
+$(openhpi_libs):
+	make -f Makefile.mingw32 -C $@
+
+clean:
+	for d in $(openhpi_libs); \
+	do \
+		make -f Makefile.mingw32 -C $$d clean; \
+	done
+	rm -rf ${out}
+
+out:
+	mkdir -p ${out}
+	cp README.windows ${out}
+	cat include/SaHpi.h | sed 's/ __attribute__.*/;/' > ${out}/SaHpi.h
+	cp utils/libopenhpiutils-${VERSION}.dll ${out}/
+	cp utils/libopenhpiutils-${VERSION}.dll.a ${out}/
+	cp utils/libopenhpiutils-${VERSION}.dll.def ${out}/
+	cp transport/libopenhpitransport-${VERSION}.dll ${out}/
+	cp marshal/libopenhpimarshal-${VERSION}.dll ${out}/
+	cp baselib/libopenhpi-${VERSION}.dll ${out}/
+	cp baselib/libopenhpi-${VERSION}.dll.a ${out}/
+	cp baselib/libopenhpi-${VERSION}.dll.def ${out}/
+	cp clients/*.exe ${out}/
+

@@ -1,0 +1,22 @@
+include ../Makefile.mingw32.def
+
+TARGET := libopenhpimarshal-${VERSION}.dll
+
+SRC := marshal.c \
+       marshal_hpi.c \
+       marshal_hpi_types.c
+
+OBJ := $(patsubst %.c, %.o, ${SRC})
+
+CFLAGS += ${GLIB_INCLUDES} -I ../utils
+
+.PHONY: all clean
+
+all : ${TARGET}
+
+${TARGET} : ${OBJ}
+	${CC} -shared -o $@ $^ ${GLIB_LIBS}
+
+clean:
+	rm -f ${OBJ} ${TARGET}
+

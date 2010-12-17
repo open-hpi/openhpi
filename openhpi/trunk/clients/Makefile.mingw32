@@ -1,0 +1,42 @@
+include ../Makefile.mingw32.def
+
+TARGETS := hpialarms.exe \
+           hpidomain.exe \
+           hpiel.exe \
+           hpievents.exe \
+           hpifan.exe \
+           hpigensimdata.exe \
+           hpiinv.exe \
+           hpionIBMblade.exe \
+           hpipower.exe \
+           hpireset.exe \
+           hpisensor.exe \
+           hpisettime.exe \
+           hpithres.exe \
+           hpitop.exe \
+           hpitree.exe \
+           hpiwdt.exe \
+           ohdomainlist.exe \
+           ohhandler.exe \
+           ohparam.exe
+
+OBJS := $(patsubst %.exe, %.o, ${TARGETS}) clients.o
+
+INCLUDES := ${GLIB_INCLUDES} -I ../utils -I ../include
+LIB_DIRS := ${GLIB_LIBS} -L ../baselib -L ../utils
+LIB_DIRS += -L ../baselib -lopenhpi-${VERSION}
+LIB_DIRS += -L ../utils -lopenhpiutils-${VERSION}
+
+CXXFLAGS += ${INCLUDES} -DSAHPI_API="__declspec(dllimport)"
+CFLAGS += ${INCLUDES} -DSAHPI_API="__declspec(dllimport)"
+
+.PHONY: all clean
+
+all : ${TARGETS}
+
+%.exe : %.o clients.o
+	${CXX} -o $@ $^ ${LIB_DIRS} 
+
+clean:
+	rm -f ${OBJS} ${TARGETS}
+

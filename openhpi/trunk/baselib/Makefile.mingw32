@@ -1,0 +1,34 @@
+include ../Makefile.mingw32.def
+
+TARGET := libopenhpi-${VERSION}.dll
+
+SRC := conf.c \
+       init.cpp \
+       lock.c \
+       ohpi.cpp \
+       safhpi.cpp \
+       session.cpp
+
+OBJ := $(patsubst %.c, %.o, $(patsubst %.cpp, %.o, ${SRC}))
+
+INCLUDES := ${GLIB_INCLUDES} -I ../utils -I ../transport -I ../marshal
+LIBS := ${GLIB_LIBS} ${GTHREAD_LIBS}
+LIBS += -L ../utils -lopenhpiutils-${VERSION}
+LIBS += -L ../transport -lopenhpitransport-${VERSION}
+LIBS += -L ../marshal -lopenhpimarshal-${VERSION}
+
+CXXFLAGS += ${INCLUDES} -DSAHPI_API="__declspec(dllexport)"
+CFLAGS += ${INCLUDES} -DSAHPI_API="__declspec(dllexport)"
+
+.PHONY: all clean
+
+all : ${TARGET}
+
+${TARGET} : ${OBJ}
+	${CXX} -shared -o $@ $^ ${LIBS} \
+    -Wl,--out-implib,$@.a \
+    -Wl,--output-def,$@.def
+
+clean:
+	rm -f ${OBJ} ${TARGET}
+

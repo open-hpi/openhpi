@@ -1,0 +1,21 @@
+VERSION := 2.17.0
+
+############################################################################
+TOOLCHAIN_PATH := /home/avpak/environments/mingw32
+
+CC  := ${TOOLCHAIN_PATH}/bin/i386-mingw32-gcc
+CXX := ${TOOLCHAIN_PATH}/bin/i386-mingw32-g++
+
+GLIB_DIR := /home/avpak/environments/mingw32/i386-mingw32/glib-2.0
+
+GLIB_INCLUDES := -I ${GLIB_DIR}/include/glib-2.0 -I ${GLIB_DIR}/lib/glib-2.0/include
+GLIB_LIBS := -L ${GLIB_DIR}/lib -lglib-2.0
+GTHREAD_LIBS := -L ${GLIB_DIR}/lib -lgthread-2.0
+############################################################################
+
+INCLUDES := -I ../include -I ../mingw32
+
+CFLAGS := -DVERSION=\"${VERSION}\" -D_WIN32_WINNT=0x0501 ${INCLUDES}
+CXXFLAGS := -DVERSION=\"${VERSION}\" -D_WIN32_WINNT=0x0501 ${INCLUDES}
+LDFLAGS := -no-undefined --enable-runtime-pseudo-reloc
+
