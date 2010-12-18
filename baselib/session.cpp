@@ -163,7 +163,6 @@ SaErrorT cSession::GetSock( cClientStreamSock * & sock )
         ohc_unlock();
 
         if (!dc) {
-            err( "Session: cannot find domain %u config.\n", m_did );
             return SA_ERR_HPI_INVALID_DOMAIN;
         }
 
