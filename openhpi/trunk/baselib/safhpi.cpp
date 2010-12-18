@@ -27,7 +27,6 @@
 #include <SaHpi.h>
 #include <marshal_hpi.h>
 #include <oh_domain.h>
-#include <oh_error.h>
 #include <oh_rpc_params.h>
 
 #include "init.h"
@@ -50,7 +49,6 @@ static SaErrorT clean_reading(SaHpiSensorReadingT *read_in,
 
     if (read_in->IsSupported == SAHPI_TRUE) {
         if (!oh_lookup_sensorreadingtype(read_in->Type)) {
-            //printf("Invalid reading type: %d\n", read_in->Type);
             return SA_ERR_HPI_INVALID_DATA;
         }
         read_out->Type = read_in->Type;
@@ -1927,7 +1925,6 @@ SaErrorT SAHPI_API saHpiAnnunciatorDelete(
 
     if (EntryId == SAHPI_ENTRY_UNSPECIFIED) {
         if (!oh_lookup_severity(Severity)) {
-            printf("Bad severity %d passed in.\n", Severity);
             return SA_ERR_HPI_INVALID_PARAMS;
         } else {
             sev = Severity;

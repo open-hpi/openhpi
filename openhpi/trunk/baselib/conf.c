@@ -357,14 +357,12 @@ static int process_domain_token (GScanner *oh_scanner)
         next_token = g_scanner_get_next_token(oh_scanner);
         if (next_token == HPI_CLIENT_CONF_TOKEN_DEFAULT) {
                 did = OH_DEFAULT_DOMAIN_ID;
-                dbg("Processing domain: Found default domain definition");
         } else if (next_token == G_TOKEN_INT) {
                 if (oh_scanner->value.v_int == 0) { // Domain Id of 0 is invalid
                         err("Processing domain: A domain id of 0 is invalid");
                         return -2;
                 }
                 did = (SaHpiDomainIdT)oh_scanner->value.v_int;
-                dbg("Processing domain: Found domain definition");
         } else {
                 err("Processing domain: Expected int or string ('default') token");
                 return -3;
@@ -476,7 +474,6 @@ static int load_client_config(const char *filename)
         while (!done) {
                 guint my_token;
                 my_token = g_scanner_peek_next_token(oh_scanner);
-                /*dbg("token: %d", my_token);*/
                 switch (my_token)
                 {
                 case G_TOKEN_EOF:
@@ -494,17 +491,11 @@ static int load_client_config(const char *filename)
                 }
         }
 
-        if (fclose(fp) != 0) {
-                err("Couldn't close file '%s'.", filename);
-                g_scanner_destroy(oh_scanner);
-                return -4;
-        }
+        fclose(fp);
 
         done = oh_scanner->parse_errors;
 
         g_scanner_destroy(oh_scanner);
-
-        dbg("Done processing conf file.\nNumber of parse errors:%d", done);
 
         return 0;
 }

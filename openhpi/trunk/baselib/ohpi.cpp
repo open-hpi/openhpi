@@ -28,7 +28,6 @@
 #include <oHpi.h>
 #include <config.h>
 #include <marshal_hpi.h>
-#include <oh_error.h>
 #include <oh_rpc_params.h>
 
 #include "conf.h"

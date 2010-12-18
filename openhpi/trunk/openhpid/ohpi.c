@@ -176,7 +176,6 @@ SaErrorT SAHPI_API oHpiHandlerInfo (
 
         h = oh_get_handler(id);
         if (!h) {
-                err("Handler %d not found.", id);
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_NOT_PRESENT;
         }
@@ -282,7 +281,6 @@ SaErrorT SAHPI_API oHpiHandlerFind (
         hid = (unsigned int *)oh_get_resource_data(&d->rpt, rid);
 
         if (hid == NULL) {
-                err("No such Resource Id %d in Domain %d", rid, did);
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_INVALID_RESOURCE;
         }
@@ -367,7 +365,6 @@ SaErrorT SAHPI_API oHpiGlobalParamGet (
         if (sid == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
         if (!param || !param->Type) {
-                err("Invalid parameters. oHpiGlobalParamGet()");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
         
@@ -414,7 +411,6 @@ SaErrorT SAHPI_API oHpiGlobalParamSet (
         if (sid == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
         if (!param || !param->Type) {
-                err("Invalid parameters. oHpiGlobalParamSet()");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
         
@@ -477,23 +473,18 @@ SaErrorT SAHPI_API oHpiInjectEvent (
 	SaErrorT error = SA_OK;
 
         if (sid == 0){
-		err("Invalid session id %d passed",sid);
 		return SA_ERR_HPI_INVALID_SESSION;
         }
 	if (id == 0) {
-		err("Invalid handler id %d passed",id);
 		return SA_ERR_HPI_INVALID_PARAMS;
 	} 
         if (!event) {
-		err("Invalid NULL event passed");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
         if (!rpte) {
-		err("Invalid NULL rpte passed");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
         if (!rdr) {
-		err("Invalid NULL rdr passed");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
@@ -515,9 +506,6 @@ SaErrorT SAHPI_API oHpiInjectEvent (
         }
 
 	error = inject_event(h->hnd, event, rpte, rdr);
-        if (error) {
-                err("Event injection into handler %d failed", id);
-        }
 
         oh_release_handler(h);
         oh_release_domain(d); /* Unlock domain */
