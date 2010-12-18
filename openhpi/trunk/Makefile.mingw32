@@ -1,7 +1,12 @@
 include Makefile.mingw32.def
 
 out := openhpi-${VERSION}-win32
-openhpi_libs := utils transport marshal baselib clients
+openhpi_libs := utils \
+                transport \
+                marshal \
+                baselib \
+                clients \
+                openhpid
 
 .PHONY: all clean $(openhpi_libs)
 
@@ -20,7 +25,7 @@ clean:
 out:
 	mkdir -p ${out}
 	cp README.windows ${out}
-	cat include/SaHpi.h | sed 's/ __attribute__.*/;/' > ${out}/SaHpi.h
+	cat include/SaHpi.h | sed -e 's/ __attribute__.*/;/' -e 's/#define SAHPI_API/#define SAHPI_API __declspec(dllimport)/' > ${out}/SaHpi.h
 	cp utils/libopenhpiutils-${VERSION}.dll ${out}/
 	cp utils/libopenhpiutils-${VERSION}.dll.a ${out}/
 	cp utils/libopenhpiutils-${VERSION}.dll.def ${out}/

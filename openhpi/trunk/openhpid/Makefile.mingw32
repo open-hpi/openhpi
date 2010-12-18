@@ -1,0 +1,42 @@
+include ../Makefile.mingw32.def
+
+TARGET := openhpid.exe
+
+SRC := alarm.c \
+       conf.c \
+       domain.c \
+       event.c \
+       hotswap.c \
+       init.c \
+       lock.c \
+       ohpi.c \
+       plugin.c \
+       plugin_static.c \
+       safhpi.c \
+       session.c \
+       threaded.c \
+       server.cpp \
+       openhpid-win32.cpp
+
+OBJ := $(patsubst %.c, %.o,$(patsubst %.cpp, %.o, ${SRC} ) )
+
+INCLUDES := ${GLIB_INCLUDES} -I ../utils -I ../transport -I ../marshal 
+LIB_DIRS := ${GLIB_LIBS} -L ../utils -L ../transport -L ../marshal
+
+CXXFLAGS += ${INCLUDES}
+CFLAGS += ${INCLUDES}
+
+.PHONY: all clean
+
+all : ${TARGET}
+
+${TARGET} : ${OBJ}
+	${CXX} -o $@ $^ ${LIB_DIRS} \
+    -lglib-2.0 -lgthread-2.0 -lgmodule-2.0 \
+    -lopenhpiutils-${VERSION} \
+    -lopenhpitransport-${VERSION} \
+    -lopenhpimarshal-${VERSION}
+
+clean:
+	rm -f ${OBJ} ${TARGET}
+

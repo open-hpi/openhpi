@@ -75,7 +75,7 @@ Library Usage instructions:
 Header file SaHpi.h contains declarations on provided functions.
 The functions are in libopenhpi-${VERSION}.dll.
 
-Define "SAHPI_API" macro as "__declspec(dllexport)".
+Define "SAHPI_API" macro as "__declspec(dllimport)".
 
 For Mingw compiler it can be just linked.
 
