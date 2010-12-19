@@ -21,11 +21,20 @@ INCLUDES 		= \
 	@OPENHPI_INCLUDES@  -I$(top_srcdir)/transport -I$(top_srcdir)/marshal @OH_SSL_INCLUDES@
 
 EXTRA_DIST		= \
-	conf.h init.h lock.h session.h
+	Makefile.mingw32 \
+    conf.h \
+    init.h \
+    lock.h \
+    session.h
 
 lib_LTLIBRARIES	        = libopenhpi.la
 
-libopenhpi_la_SOURCES = conf.c init.cpp lock.c ohpi.cpp safhpi.cpp session.cpp
+libopenhpi_la_SOURCES = conf.c \
+                        init.cpp \
+                        lock.c \
+                        ohpi.cpp \
+                        safhpi.cpp \
+                        session.cpp
 
 
 libopenhpi_la_LDFLAGS = -version-info @HPI_LIB_VERSION@

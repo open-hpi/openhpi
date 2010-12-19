@@ -44,6 +44,10 @@ EXTRA_DIST              = openhpi.spec.in \
 	simulation.data.example \
 	openhpiclient.conf.example \
 	README.daemon \
+	README.windows \
+	Makefile.mingw32 \
+	Makefile.mingw32.def \
+	mingw32/config.h \
         $(shell find $(srcdir)/include -name '*.h')
 
 AUTOMAKE_OPTIONS        = foreign

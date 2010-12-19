@@ -3,7 +3,7 @@ MOSTLYCLEANFILES     = @TEST_CLEAN@
 
 INCLUDES             = @OPENHPI_INCLUDES@
 
-EXTRA_DIST	     = oh_clients.h
+EXTRA_DIST	     = Makefile.mingw32 oh_clients.h
 
 COMMONLIBS 	     = @STATIC_PLUGIN_LIBS@ @STATIC_PLUGIN_EXTRA_LIBS@
 
