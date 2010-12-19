@@ -17,6 +17,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <oHpi.h>
+
 #include <oh_alarm.h>
 #include <oh_config.h>
 #include <oh_domain.h>

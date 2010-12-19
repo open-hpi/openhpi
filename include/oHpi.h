@@ -26,6 +26,8 @@
 #include <glib.h>
 #include <oh_utils.h>
 
+#define OH_DEFAULT_DOMAIN_ID 0
+
 #define OPENHPI_DEFAULT_DAEMON_PORT 4743
 #define MAX_PLUGIN_NAME_LENGTH 32
 

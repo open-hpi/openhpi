@@ -25,8 +25,9 @@
 #include <glib.h>
 
 #include <SaHpi.h>
+#include <oHpi.h>
+
 #include <marshal_hpi.h>
-#include <oh_domain.h>
 #include <oh_rpc_params.h>
 
 #include "init.h"
