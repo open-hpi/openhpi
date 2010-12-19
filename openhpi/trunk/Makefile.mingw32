@@ -5,8 +5,8 @@ openhpi_libs := utils \
                 transport \
                 marshal \
                 baselib \
-                clients \
-                openhpid
+                clients
+#                openhpid
 
 .PHONY: all clean $(openhpi_libs)
 

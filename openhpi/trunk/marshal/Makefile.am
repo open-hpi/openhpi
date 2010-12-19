@@ -19,6 +19,8 @@ DIST_SUBDIRS 		= t
 
 MAINTAINERCLEANFILES 	= Makefile.in *~
 
+EXTRA_DIST = Makefile.mingw32
+
 INCLUDES 		= @OPENHPI_INCLUDES@
 # just to clear LIBS
 LIBS			=

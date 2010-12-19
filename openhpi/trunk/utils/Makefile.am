@@ -46,6 +46,7 @@ GENERATED_SRC_FILES = \
 GENERATED_FILES = $(GENERATED_HEADER_FILES) $(GENERATED_SRC_FILES)
 
 EXTRA_DIST = \
+		Makefile.mingw32 \
 		$(GENERATED_HEADER_FILES) \
 		announcement_utils.h \
 		el_utils.h \
