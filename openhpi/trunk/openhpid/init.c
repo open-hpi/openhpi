@@ -17,6 +17,8 @@
 
 #include <glib.h>
 
+#include <oHpi.h>
+
 #include <config.h>
 #include <oh_config.h>
 #include <oh_domain.h>

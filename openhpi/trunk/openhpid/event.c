@@ -22,6 +22,8 @@
 
 #include <string.h>
 
+#include <oHpi.h>
+
 #include <oh_event.h>
 #include <oh_config.h>
 #include <oh_handler.h>
