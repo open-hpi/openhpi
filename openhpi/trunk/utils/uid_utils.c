@@ -325,7 +325,6 @@ SaHpiUint32T oh_uid_lookup(SaHpiEntityPathT *ep)
         uid_lock(&oh_uid_lock);
         ep_xref = (EP_XREF *)g_hash_table_lookup (oh_ep_table, key);
         if(!ep_xref) {
-                err("error looking up EP to get uid");
                 uid_unlock(&oh_uid_lock);
                 return 0;
         }
