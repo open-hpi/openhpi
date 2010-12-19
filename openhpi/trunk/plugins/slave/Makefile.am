@@ -27,9 +27,9 @@ libslave_la_SOURCES = baselib.cpp \
                       resourcemap.cpp \
                       resourcemap.h \
                       slave.cpp \
+                      slave.h \
                       util.cpp \
                       util.h
 
-libslave_la_LIBADD =  -ldl
-libslave_la_LDFLAGS = -module -version-info @HPI_LIB_VERSION@
+libslave_la_LDFLAGS = -module -version-info @HPI_LIB_VERSION@ @GMODULE_ONLY_LIBS@
 

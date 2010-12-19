@@ -11,6 +11,7 @@ GLIB_DIR := /home/avpak/usr/cross/mingw32/i386-mingw32/glib-2.0
 GLIB_INCLUDES := -I ${GLIB_DIR}/include/glib-2.0 -I ${GLIB_DIR}/lib/glib-2.0/include
 GLIB_LIBS := -L ${GLIB_DIR}/lib -lglib-2.0
 GTHREAD_LIBS := -L ${GLIB_DIR}/lib -lgthread-2.0
+GMODULE_LIBS := -L ${GLIB_DIR}/lib -lgmodule-2.0
 ############################################################################
 
 INCLUDES := -I ../include -I ../mingw32

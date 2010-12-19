@@ -27,10 +27,8 @@
 #include <oh_utils.h>
 
 #include "handler.h"
+#include "slave.h"
 #include "util.h"
-
-
-extern "C" {
 
 
 using Slave::cHandler;
@@ -86,17 +84,8 @@ static bool slave_parse_config(
 /**************************************************************
  * slave_open
  *************************************************************/
-static
 void *
-slave_open(
-    GHashTable * handler_config,
-    unsigned int hid,
-    oh_evt_queue * eventq
-) __attribute__((used));
-
-static
-void *
-slave_open(
+oh_open(
     GHashTable * handler_config,
     unsigned int hid,
     oh_evt_queue * eventq )
@@ -140,37 +129,21 @@ slave_open(
 /**************************************************************
  * slave_close
  *************************************************************/
-static
-SaErrorT
-slave_close(
-    void * hnd
-) __attribute__((used));
-
-static
-SaErrorT
-slave_close(
+void
+oh_close(
     void * hnd )
 {
     cHandler * handler = reinterpret_cast<cHandler *>(hnd);
 
     delete handler;
-
-    return SA_OK;
 }
 
 
 /**************************************************************
- * slave_discover
+ * slave_discover_resources
  *************************************************************/
-static
 SaErrorT
-slave_discover(
-    void * hnd
-) __attribute__((used));
-
-static
-SaErrorT
-slave_discover(
+oh_discover_resources(
     void * hnd )
 {
     cHandler * handler = reinterpret_cast<cHandler *>(hnd);
@@ -184,17 +157,8 @@ slave_discover(
 /**************************************************************
  * slave_set_resource_tag
  *************************************************************/
-static
 SaErrorT
-slave_set_resource_tag(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiTextBufferT * tag
-) __attribute__((used));
-
-static
-SaErrorT
-slave_set_resource_tag(
+oh_set_resource_tag(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiTextBufferT * tag )
@@ -217,17 +181,8 @@ slave_set_resource_tag(
 /**************************************************************
  * slave_set_resource_severity
  *************************************************************/
-static
 SaErrorT
-slave_set_resource_severity(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiSeverityT sev
-) __attribute__((used));
-
-static
-SaErrorT
-slave_set_resource_severity(
+oh_set_resource_severity(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiSeverityT sev )
@@ -250,16 +205,8 @@ slave_set_resource_severity(
 /**************************************************************
  * slave_resource_failed_remove
  *************************************************************/
-static
 SaErrorT
-slave_resource_failed_remove(
-    void * hnd,
-    SaHpiResourceIdT id
-) __attribute__((used));
-
-static
-SaErrorT
-slave_resource_failed_remove(
+oh_resource_failed_remove(
     void * hnd,
     SaHpiResourceIdT id )
 {
@@ -280,17 +227,8 @@ slave_resource_failed_remove(
 /**************************************************************
  * slave_get_el_info
  *************************************************************/
-static
 SaErrorT
-slave_get_el_info(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiEventLogInfoT * info
-) __attribute__((used));
-
-static
-SaErrorT
-slave_get_el_info(
+oh_get_el_info(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiEventLogInfoT * info )
@@ -313,17 +251,8 @@ slave_get_el_info(
 /**************************************************************
  * slave_get_el_caps
  *************************************************************/
-static
 SaErrorT
-slave_get_el_caps(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiEventLogCapabilitiesT * caps
-) __attribute__((used));
-
-static
-SaErrorT
-slave_get_el_caps(
+oh_get_el_caps(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiEventLogCapabilitiesT * caps )
@@ -346,17 +275,8 @@ slave_get_el_caps(
 /**************************************************************
  * slave_set_el_time
  *************************************************************/
-static
 SaErrorT
-slave_set_el_time(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiTimeT time
-) __attribute__((used));
-
-static
-SaErrorT
-slave_set_el_time(
+oh_set_el_time(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiTimeT time )
@@ -379,17 +299,8 @@ slave_set_el_time(
 /**************************************************************
  * slave_add_el_entry
  *************************************************************/
-static
 SaErrorT
-slave_add_el_entry(
-    void * hnd,
-    SaHpiResourceIdT id,
-    const SaHpiEventT * event
-) __attribute__((used));
-
-static
-SaErrorT
-slave_add_el_entry(
+oh_add_el_entry(
     void * hnd,
     SaHpiResourceIdT id,
     const SaHpiEventT * event )
@@ -415,22 +326,8 @@ slave_add_el_entry(
 /**************************************************************
  * slave_get_el_entry
  *************************************************************/
-static
 SaErrorT
-slave_get_el_entry(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiEventLogEntryIdT current,
-    SaHpiEventLogEntryIdT * prev,
-    SaHpiEventLogEntryIdT * next,
-    SaHpiEventLogEntryT * entry,
-    SaHpiRdrT * rdr,
-    SaHpiRptEntryT * rpte
-) __attribute__((used));
-
-static
-SaErrorT
-slave_get_el_entry(
+oh_get_el_entry(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiEventLogEntryIdT current,
@@ -474,16 +371,8 @@ slave_get_el_entry(
 /**************************************************************
  * slave_clear_el
  *************************************************************/
-static
 SaErrorT
-slave_clear_el(
-    void * hnd,
-    SaHpiResourceIdT id
-) __attribute__((used));
-
-static
-SaErrorT
-slave_clear_el(
+oh_clear_el(
     void * hnd,
     SaHpiResourceIdT id )
 {
@@ -504,17 +393,8 @@ slave_clear_el(
 /**************************************************************
  * slave_set_el_state
  *************************************************************/
-static
 SaErrorT
-slave_set_el_state(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiBoolT e
-) __attribute__((used));
-
-static
-SaErrorT
-slave_set_el_state(
+oh_set_el_state(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiBoolT e )
@@ -537,16 +417,8 @@ slave_set_el_state(
 /**************************************************************
  * slave_reset_el_overflow
  *************************************************************/
-static
 SaErrorT
-slave_reset_el_overflow(
-    void * hnd,
-    SaHpiResourceIdT id
-) __attribute__((used));
-
-static
-SaErrorT
-slave_reset_el_overflow(
+oh_reset_el_overflow(
     void * hnd,
     SaHpiResourceIdT id )
 {
@@ -567,19 +439,8 @@ slave_reset_el_overflow(
 /**************************************************************
  * slave_get_sensor_reading
  *************************************************************/
-static
 SaErrorT
-slave_get_sensor_reading(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiSensorNumT num,
-    SaHpiSensorReadingT * reading,
-    SaHpiEventStateT * state
-) __attribute__((used));
-
-static
-SaErrorT
-slave_get_sensor_reading(
+oh_get_sensor_reading(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiSensorNumT num,
@@ -606,18 +467,8 @@ slave_get_sensor_reading(
 /**************************************************************
  * slave_get_sensor_thresholds
  *************************************************************/
-static
 SaErrorT
-slave_get_sensor_thresholds(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiSensorNumT num,
-    SaHpiSensorThresholdsT * thres
-) __attribute__((used));
-
-static
-SaErrorT
-slave_get_sensor_thresholds(
+oh_get_sensor_thresholds(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiSensorNumT num,
@@ -642,18 +493,8 @@ slave_get_sensor_thresholds(
 /**************************************************************
  * slave_set_sensor_thresholds
  *************************************************************/
-static
 SaErrorT
-slave_set_sensor_thresholds(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiSensorNumT num,
-    const SaHpiSensorThresholdsT * thres
-) __attribute__((used));
-
-static
-SaErrorT
-slave_set_sensor_thresholds(
+oh_set_sensor_thresholds(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiSensorNumT num,
@@ -681,18 +522,8 @@ slave_set_sensor_thresholds(
 /**************************************************************
  * slave_get_sensor_enable
  *************************************************************/
-static
 SaErrorT
-slave_get_sensor_enable(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiSensorNumT num,
-    SaHpiBoolT * enable
-) __attribute__((used));
-
-static
-SaErrorT
-slave_get_sensor_enable(
+oh_get_sensor_enable(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiSensorNumT num,
@@ -717,18 +548,8 @@ slave_get_sensor_enable(
 /**************************************************************
  * slave_set_sensor_enable
  *************************************************************/
-static
 SaErrorT
-slave_set_sensor_enable(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiSensorNumT num,
-    SaHpiBoolT enable
-) __attribute__((used));
-
-static
-SaErrorT
-slave_set_sensor_enable(
+oh_set_sensor_enable(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiSensorNumT num,
@@ -753,18 +574,8 @@ slave_set_sensor_enable(
 /**************************************************************
  * slave_get_sensor_event_enables
  *************************************************************/
-static
 SaErrorT
-slave_get_sensor_event_enables(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiSensorNumT num,
-    SaHpiBoolT * enables
-) __attribute__((used));
-
-static
-SaErrorT
-slave_get_sensor_event_enables(
+oh_get_sensor_event_enables(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiSensorNumT num,
@@ -789,18 +600,8 @@ slave_get_sensor_event_enables(
 /**************************************************************
  * slave_set_sensor_event_enables
  *************************************************************/
-static
 SaErrorT
-slave_set_sensor_event_enables(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiSensorNumT num,
-    const SaHpiBoolT enables
-) __attribute__((used));
-
-static
-SaErrorT
-slave_set_sensor_event_enables(
+oh_set_sensor_event_enables(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiSensorNumT num,
@@ -825,19 +626,8 @@ slave_set_sensor_event_enables(
 /**************************************************************
  * slave_get_sensor_event_masks
  *************************************************************/
-static
 SaErrorT
-slave_get_sensor_event_masks(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiSensorNumT num,
-    SaHpiEventStateT * AssertEventMask,
-    SaHpiEventStateT * DeassertEventMask
-) __attribute__((used));
-
-static
-SaErrorT
-slave_get_sensor_event_masks(
+oh_get_sensor_event_masks(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiSensorNumT num,
@@ -864,20 +654,8 @@ slave_get_sensor_event_masks(
 /**************************************************************
  * slave_set_sensor_event_masks
  *************************************************************/
-static
 SaErrorT
-slave_set_sensor_event_masks(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiSensorNumT num,
-    SaHpiSensorEventMaskActionT act,
-    SaHpiEventStateT AssertEventMask,
-    SaHpiEventStateT DeassertEventMask
-) __attribute__((used));
-
-static
-SaErrorT
-slave_set_sensor_event_masks(
+oh_set_sensor_event_masks(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiSensorNumT num,
@@ -906,19 +684,8 @@ slave_set_sensor_event_masks(
 /**************************************************************
  * slave_get_control_state
  *************************************************************/
-static
 SaErrorT
-slave_get_control_state(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiCtrlNumT num,
-    SaHpiCtrlModeT * mode,
-    SaHpiCtrlStateT * state
-) __attribute__((used));
-
-static
-SaErrorT
-slave_get_control_state(
+oh_get_control_state(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiCtrlNumT num,
@@ -945,19 +712,8 @@ slave_get_control_state(
 /**************************************************************
  * slave_set_control_state
  *************************************************************/
-static
 SaErrorT
-slave_set_control_state(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiCtrlNumT num,
-    SaHpiCtrlModeT mode,
-    SaHpiCtrlStateT * state
-) __attribute__((used));
-
-static
-SaErrorT
-slave_set_control_state(
+oh_set_control_state(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiCtrlNumT num,
@@ -984,18 +740,8 @@ slave_set_control_state(
 /**************************************************************
  * slave_get_idr_info
  *************************************************************/
-static
 SaErrorT
-slave_get_idr_info(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiIdrIdT idrid,
-    SaHpiIdrInfoT * idrinfo
-) __attribute__((used));
-
-static
-SaErrorT
-slave_get_idr_info(
+oh_get_idr_info(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiIdrIdT idrid,
@@ -1020,21 +766,8 @@ slave_get_idr_info(
 /**************************************************************
  * slave_get_idr_area_header
  *************************************************************/
-static
 SaErrorT
-slave_get_idr_area_header(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiIdrIdT idrid,
-    SaHpiIdrAreaTypeT areatype,
-    SaHpiEntryIdT areaid,
-    SaHpiEntryIdT * nextareaid,
-    SaHpiIdrAreaHeaderT * header
-) __attribute__((used));
-
-static
-SaErrorT
-slave_get_idr_area_header(
+oh_get_idr_area_header(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiIdrIdT idrid,
@@ -1065,19 +798,8 @@ slave_get_idr_area_header(
 /**************************************************************
  * slave_add_idr_area
  *************************************************************/
-static
 SaErrorT
-slave_add_idr_area(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiIdrIdT idrid,
-    SaHpiIdrAreaTypeT areatype,
-    SaHpiEntryIdT * areaid
-) __attribute__((used));
-
-static
-SaErrorT
-slave_add_idr_area(
+oh_add_idr_area(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiIdrIdT idrid,
@@ -1104,19 +826,8 @@ slave_add_idr_area(
 /**************************************************************
  * slave_add_idr_area_id
  *************************************************************/
-static
 SaErrorT
-slave_add_idr_area_id(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiIdrIdT idrid,
-    SaHpiIdrAreaTypeT areatype,
-    SaHpiEntryIdT areaid
-) __attribute__((used));
-
-static
-SaErrorT
-slave_add_idr_area_id(
+oh_add_idr_area_id(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiIdrIdT idrid,
@@ -1143,18 +854,8 @@ slave_add_idr_area_id(
 /**************************************************************
  * slave_del_idr_area
  *************************************************************/
-static
 SaErrorT
-slave_del_idr_area(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiIdrIdT idrid,
-    SaHpiEntryIdT areaid
-) __attribute__((used));
-
-static
-SaErrorT
-slave_del_idr_area(
+oh_del_idr_area(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiIdrIdT idrid,
@@ -1179,22 +880,8 @@ slave_del_idr_area(
 /**************************************************************
  * slave_get_idr_field
  *************************************************************/
-static
 SaErrorT
-slave_get_idr_field(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiIdrIdT idrid,
-    SaHpiEntryIdT areaid,
-    SaHpiIdrFieldTypeT fieldtype,
-    SaHpiEntryIdT fieldid,
-    SaHpiEntryIdT * nextfieldid,
-    SaHpiIdrFieldT * field
-) __attribute__((used));
-
-static
-SaErrorT
-slave_get_idr_field(
+oh_get_idr_field(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiIdrIdT idrid,
@@ -1227,18 +914,8 @@ slave_get_idr_field(
 /**************************************************************
  * slave_add_idr_field
  *************************************************************/
-static
 SaErrorT
-slave_add_idr_field(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiIdrIdT idrid,
-    SaHpiIdrFieldT * field
-) __attribute__((used));
-
-static
-SaErrorT
-slave_add_idr_field(
+oh_add_idr_field(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiIdrIdT idrid,
@@ -1263,18 +940,8 @@ slave_add_idr_field(
 /**************************************************************
  * slave_add_idr_field_id
  *************************************************************/
-static
 SaErrorT
-slave_add_idr_field_id(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiIdrIdT idrid,
-    SaHpiIdrFieldT * field
-) __attribute__((used));
-
-static
-SaErrorT
-slave_add_idr_field_id(
+oh_add_idr_field_id(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiIdrIdT idrid,
@@ -1299,18 +966,8 @@ slave_add_idr_field_id(
 /**************************************************************
  * slave_set_idr_field
  *************************************************************/
-static
 SaErrorT
-slave_set_idr_field(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiIdrIdT idrid,
-    SaHpiIdrFieldT * field
-) __attribute__((used));
-
-static
-SaErrorT
-slave_set_idr_field(
+oh_set_idr_field(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiIdrIdT idrid,
@@ -1335,19 +992,8 @@ slave_set_idr_field(
 /**************************************************************
  * slave_del_idr_field
  *************************************************************/
-static
 SaErrorT
-slave_del_idr_field(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiIdrIdT idrid,
-    SaHpiEntryIdT areaid,
-    SaHpiEntryIdT fieldid
-) __attribute__((used));
-
-static
-SaErrorT
-slave_del_idr_field(
+oh_del_idr_field(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiIdrIdT idrid,
@@ -1374,18 +1020,8 @@ slave_del_idr_field(
 /**************************************************************
  * slave_get_watchdog_info
  *************************************************************/
-static
 SaErrorT
-slave_get_watchdog_info(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiWatchdogNumT num,
-    SaHpiWatchdogT * wdt
-) __attribute__((used));
-
-static
-SaErrorT
-slave_get_watchdog_info(
+oh_get_watchdog_info(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiWatchdogNumT num,
@@ -1410,18 +1046,8 @@ slave_get_watchdog_info(
 /**************************************************************
  * slave_set_watchdog_info
  *************************************************************/
-static
 SaErrorT
-slave_set_watchdog_info(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiWatchdogNumT num,
-    SaHpiWatchdogT * wdt
-) __attribute__((used));
-
-static
-SaErrorT
-slave_set_watchdog_info(
+oh_set_watchdog_info(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiWatchdogNumT num,
@@ -1446,17 +1072,8 @@ slave_set_watchdog_info(
 /**************************************************************
  * slave_reset_watchdog
  *************************************************************/
-static
 SaErrorT
-slave_reset_watchdog(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiWatchdogNumT num
-) __attribute__((used));
-
-static
-SaErrorT
-slave_reset_watchdog(
+oh_reset_watchdog(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiWatchdogNumT num )
@@ -1479,20 +1096,8 @@ slave_reset_watchdog(
 /**************************************************************
  * slave_get_next_announce
  *************************************************************/
-static
 SaErrorT
-slave_get_next_announce(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiAnnunciatorNumT num,
-    SaHpiSeverityT sev,
-    SaHpiBoolT ack,
-    SaHpiAnnouncementT * ann
-) __attribute__((used));
-
-static
-SaErrorT
-slave_get_next_announce(
+oh_get_next_announce(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiAnnunciatorNumT num,
@@ -1527,19 +1132,8 @@ slave_get_next_announce(
 /**************************************************************
  * slave_get_announce
  *************************************************************/
-static
 SaErrorT
-slave_get_announce(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiAnnunciatorNumT num,
-    SaHpiEntryIdT annid,
-    SaHpiAnnouncementT * ann
-) __attribute__((used));
-
-static
-SaErrorT
-slave_get_announce(
+oh_get_announce(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiAnnunciatorNumT num,
@@ -1572,19 +1166,8 @@ slave_get_announce(
 /**************************************************************
  * slave_ack_announce
  *************************************************************/
-static
 SaErrorT
-slave_ack_announce(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiAnnunciatorNumT num,
-    SaHpiEntryIdT annid,
-    SaHpiSeverityT sev
-) __attribute__((used));
-
-static
-SaErrorT
-slave_ack_announce(
+oh_ack_announce(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiAnnunciatorNumT num,
@@ -1611,18 +1194,8 @@ slave_ack_announce(
 /**************************************************************
  * slave_add_announce
  *************************************************************/
-static
 SaErrorT
-slave_add_announce(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiAnnunciatorNumT num,
-    SaHpiAnnouncementT * ann
-) __attribute__((used));
-
-static
-SaErrorT
-slave_add_announce(
+oh_add_announce(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiAnnunciatorNumT num,
@@ -1648,19 +1221,8 @@ slave_add_announce(
 /**************************************************************
  * slave_del_announce
  *************************************************************/
-static
 SaErrorT
-slave_del_announce(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiAnnunciatorNumT num,
-    SaHpiEntryIdT annid,
-    SaHpiSeverityT sev
-) __attribute__((used));
-
-static
-SaErrorT
-slave_del_announce(
+oh_del_announce(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiAnnunciatorNumT num,
@@ -1687,18 +1249,8 @@ slave_del_announce(
 /**************************************************************
  * slave_get_annunc_mode
  *************************************************************/
-static
 SaErrorT
-slave_get_annunc_mode(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiAnnunciatorNumT num,
-    SaHpiAnnunciatorModeT * mode
-) __attribute__((used));
-
-static
-SaErrorT
-slave_get_annunc_mode(
+oh_get_annunc_mode(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiAnnunciatorNumT num,
@@ -1723,18 +1275,8 @@ slave_get_annunc_mode(
 /**************************************************************
  * slave_set_annunc_mode
  *************************************************************/
-static
 SaErrorT
-slave_set_annunc_mode(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiAnnunciatorNumT num,
-    SaHpiAnnunciatorModeT mode
-) __attribute__((used));
-
-static
-SaErrorT
-slave_set_annunc_mode(
+oh_set_annunc_mode(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiAnnunciatorNumT num,
@@ -1759,18 +1301,8 @@ slave_set_annunc_mode(
 /**************************************************************
  * slave_get_dimi_info
  *************************************************************/
-static
 SaErrorT
-slave_get_dimi_info(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiDimiNumT num,
-    SaHpiDimiInfoT * info
-) __attribute__((used));
-
-static
-SaErrorT
-slave_get_dimi_info(
+oh_get_dimi_info(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiDimiNumT num,
@@ -1795,19 +1327,8 @@ slave_get_dimi_info(
 /**************************************************************
  * slave_get_dimi_test
  *************************************************************/
-static
 SaErrorT
-slave_get_dimi_test(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiDimiNumT num,
-    SaHpiDimiTestNumT testnum,
-    SaHpiDimiTestT * test
-) __attribute__((used));
-
-static
-SaErrorT
-slave_get_dimi_test(
+oh_get_dimi_test(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiDimiNumT num,
@@ -1838,19 +1359,8 @@ slave_get_dimi_test(
 /**************************************************************
  * slave_get_dimi_test_ready
  *************************************************************/
-static
 SaErrorT
-slave_get_dimi_test_ready(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiDimiNumT num,
-    SaHpiDimiTestNumT testnum,
-    SaHpiDimiReadyT * ready
-) __attribute__((used));
-
-static
-SaErrorT
-slave_get_dimi_test_ready(
+oh_get_dimi_test_ready(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiDimiNumT num,
@@ -1877,20 +1387,8 @@ slave_get_dimi_test_ready(
 /**************************************************************
  * slave_start_dimi_test
  *************************************************************/
-static
 SaErrorT
-slave_start_dimi_test(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiDimiNumT num,
-    SaHpiDimiTestNumT testnum,
-    SaHpiUint8T numparams,
-    SaHpiDimiTestVariableParamsT * paramslist
-) __attribute__((used));
-
-static
-SaErrorT
-slave_start_dimi_test(
+oh_start_dimi_test(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiDimiNumT num,
@@ -1919,18 +1417,8 @@ slave_start_dimi_test(
 /**************************************************************
  * slave_cancel_dimi_test
  *************************************************************/
-static
 SaErrorT
-slave_cancel_dimi_test(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiDimiNumT num,
-    SaHpiDimiTestNumT testnum
-) __attribute__((used));
-
-static
-SaErrorT
-slave_cancel_dimi_test(
+oh_cancel_dimi_test(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiDimiNumT num,
@@ -1955,20 +1443,8 @@ slave_cancel_dimi_test(
 /**************************************************************
  * slave_get_dimi_test_status
  *************************************************************/
-static
 SaErrorT
-slave_get_dimi_test_status(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiDimiNumT num,
-    SaHpiDimiTestNumT testnum,
-    SaHpiDimiTestPercentCompletedT * percentcompleted,
-    SaHpiDimiTestRunStatusT * runstatus
-) __attribute__((used));
-
-static
-SaErrorT
-slave_get_dimi_test_status(
+oh_get_dimi_test_status(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiDimiNumT num,
@@ -1997,19 +1473,8 @@ slave_get_dimi_test_status(
 /**************************************************************
  * slave_get_dimi_test_results
  *************************************************************/
-static
 SaErrorT
-slave_get_dimi_test_results(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiDimiNumT num,
-    SaHpiDimiTestNumT testnum,
-    SaHpiDimiTestResultsT * testresults
-) __attribute__((used));
-
-static
-SaErrorT
-slave_get_dimi_test_results(
+oh_get_dimi_test_results(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiDimiNumT num,
@@ -2036,18 +1501,8 @@ slave_get_dimi_test_results(
 /**************************************************************
  * slave_get_fumi_spec
  *************************************************************/
-static
 SaErrorT
-slave_get_fumi_spec(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num,
-    SaHpiFumiSpecInfoT * specinfo
-) __attribute__((used));
-
-static
-SaErrorT
-slave_get_fumi_spec(
+oh_get_fumi_spec(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiFumiNumT num,
@@ -2072,18 +1527,8 @@ slave_get_fumi_spec(
 /**************************************************************
  * slave_get_fumi_service_impact
  *************************************************************/
-static
 SaErrorT
-slave_get_fumi_service_impact(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num,
-    SaHpiFumiServiceImpactDataT * serviceimpact
-) __attribute__((used));
-
-static
-SaErrorT
-slave_get_fumi_service_impact(
+oh_get_fumi_service_impact(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiFumiNumT num,
@@ -2115,19 +1560,8 @@ slave_get_fumi_service_impact(
 /**************************************************************
  * slave_set_fumi_source
  *************************************************************/
-static
 SaErrorT
-slave_set_fumi_source(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num,
-    SaHpiBankNumT banknum,
-    SaHpiTextBufferT * sourceuri
-) __attribute__((used));
-
-static
-SaErrorT
-slave_set_fumi_source(
+oh_set_fumi_source(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiFumiNumT num,
@@ -2154,18 +1588,8 @@ slave_set_fumi_source(
 /**************************************************************
  * slave_validate_fumi_source
  *************************************************************/
-static
 SaErrorT
-slave_validate_fumi_source(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num,
-    SaHpiBankNumT banknum
-) __attribute__((used));
-
-static
-SaErrorT
-slave_validate_fumi_source(
+oh_validate_fumi_source(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiFumiNumT num,
@@ -2190,19 +1614,8 @@ slave_validate_fumi_source(
 /**************************************************************
  * slave_get_fumi_source
  *************************************************************/
-static
 SaErrorT
-slave_get_fumi_source(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num,
-    SaHpiBankNumT banknum,
-    SaHpiFumiSourceInfoT * sourceinfo
-) __attribute__((used));
-
-static
-SaErrorT
-slave_get_fumi_source(
+oh_get_fumi_source(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiFumiNumT num,
@@ -2229,21 +1642,8 @@ slave_get_fumi_source(
 /**************************************************************
  * slave_get_fumi_source_component
  *************************************************************/
-static
 SaErrorT
-slave_get_fumi_source_component(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num,
-    SaHpiBankNumT banknum,
-    SaHpiEntryIdT compid,
-    SaHpiEntryIdT * nextcompid,
-    SaHpiFumiComponentInfoT * compinfo
-) __attribute__((used));
-
-static
-SaErrorT
-slave_get_fumi_source_component(
+oh_get_fumi_source_component(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiFumiNumT num,
@@ -2274,19 +1674,8 @@ slave_get_fumi_source_component(
 /**************************************************************
  * slave_get_fumi_target
  *************************************************************/
-static
 SaErrorT
-slave_get_fumi_target(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num,
-    SaHpiBankNumT banknum,
-    SaHpiFumiBankInfoT * bankinfo
-) __attribute__((used));
-
-static
-SaErrorT
-slave_get_fumi_target(
+oh_get_fumi_target(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiFumiNumT num,
@@ -2313,21 +1702,8 @@ slave_get_fumi_target(
 /**************************************************************
  * slave_get_fumi_target_component
  *************************************************************/
-static
 SaErrorT
-slave_get_fumi_target_component(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num,
-    SaHpiBankNumT banknum,
-    SaHpiEntryIdT compid,
-    SaHpiEntryIdT * nextcompid,
-    SaHpiFumiComponentInfoT * compinfo
-) __attribute__((used));
-
-static
-SaErrorT
-slave_get_fumi_target_component(
+oh_get_fumi_target_component(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiFumiNumT num,
@@ -2358,18 +1734,8 @@ slave_get_fumi_target_component(
 /**************************************************************
  * slave_get_fumi_logical_target
  *************************************************************/
-static
 SaErrorT
-slave_get_fumi_logical_target(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num,
-    SaHpiFumiLogicalBankInfoT * bankinfo
-) __attribute__((used));
-
-static
-SaErrorT
-slave_get_fumi_logical_target(
+oh_get_fumi_logical_target(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiFumiNumT num,
@@ -2394,20 +1760,8 @@ slave_get_fumi_logical_target(
 /**************************************************************
  * slave_get_fumi_logical_target_component
  *************************************************************/
-static
 SaErrorT
-slave_get_fumi_logical_target_component(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num,
-    SaHpiEntryIdT compid,
-    SaHpiEntryIdT * nextcompid,
-    SaHpiFumiLogicalComponentInfoT * compinfo
-) __attribute__((used));
-
-static
-SaErrorT
-slave_get_fumi_logical_target_component(
+oh_get_fumi_logical_target_component(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiFumiNumT num,
@@ -2436,17 +1790,8 @@ slave_get_fumi_logical_target_component(
 /**************************************************************
  * slave_start_fumi_backup
  *************************************************************/
-static
 SaErrorT
-slave_start_fumi_backup(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num
-) __attribute__((used));
-
-static
-SaErrorT
-slave_start_fumi_backup(
+oh_start_fumi_backup(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiFumiNumT num )
@@ -2469,19 +1814,8 @@ slave_start_fumi_backup(
 /**************************************************************
  * slave_set_fumi_bank_order
  *************************************************************/
-static
 SaErrorT
-slave_set_fumi_bank_order(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num,
-    SaHpiBankNumT banknum,
-    SaHpiUint32T position
-) __attribute__((used));
-
-static
-SaErrorT
-slave_set_fumi_bank_order(
+oh_set_fumi_bank_order(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiFumiNumT num,
@@ -2508,19 +1842,8 @@ slave_set_fumi_bank_order(
 /**************************************************************
  * slave_start_fumi_bank_copy
  *************************************************************/
-static
 SaErrorT
-slave_start_fumi_bank_copy(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num,
-    SaHpiBankNumT sourcebanknum,
-    SaHpiBankNumT targetbanknum
-) __attribute__((used));
-
-static
-SaErrorT
-slave_start_fumi_bank_copy(
+oh_start_fumi_bank_copy(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiFumiNumT num,
@@ -2547,18 +1870,8 @@ slave_start_fumi_bank_copy(
 /**************************************************************
  * slave_start_fumi_install
  *************************************************************/
-static
 SaErrorT
-slave_start_fumi_install(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num,
-    SaHpiBankNumT banknum
-) __attribute__((used));
-
-static
-SaErrorT
-slave_start_fumi_install(
+oh_start_fumi_install(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiFumiNumT num,
@@ -2583,19 +1896,8 @@ slave_start_fumi_install(
 /**************************************************************
  * slave_get_fumi_status
  *************************************************************/
-static
 SaErrorT
-slave_get_fumi_status(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num,
-    SaHpiBankNumT banknum,
-    SaHpiFumiUpgradeStatusT * status
-) __attribute__((used));
-
-static
-SaErrorT
-slave_get_fumi_status(
+oh_get_fumi_status(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiFumiNumT num,
@@ -2622,18 +1924,8 @@ slave_get_fumi_status(
 /**************************************************************
  * slave_start_fumi_verify
  *************************************************************/
-static
 SaErrorT
-slave_start_fumi_verify(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num,
-    SaHpiBankNumT banknum
-) __attribute__((used));
-
-static
-SaErrorT
-slave_start_fumi_verify(
+oh_start_fumi_verify(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiFumiNumT num,
@@ -2658,17 +1950,8 @@ slave_start_fumi_verify(
 /**************************************************************
  * slave_start_fumi_verify_main
  *************************************************************/
-static
 SaErrorT
-slave_start_fumi_verify_main(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num
-) __attribute__((used));
-
-static
-SaErrorT
-slave_start_fumi_verify_main(
+oh_start_fumi_verify_main(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiFumiNumT num  )
@@ -2691,18 +1974,8 @@ slave_start_fumi_verify_main(
 /**************************************************************
  * slave_cancel_fumi_upgrade
  *************************************************************/
-static
 SaErrorT
-slave_cancel_fumi_upgrade(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num,
-    SaHpiBankNumT banknum
-) __attribute__((used));
-
-static
-SaErrorT
-slave_cancel_fumi_upgrade(
+oh_cancel_fumi_upgrade(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiFumiNumT num,
@@ -2727,18 +2000,8 @@ slave_cancel_fumi_upgrade(
 /**************************************************************
  * slave_get_fumi_autorollback_disable
  *************************************************************/
-static
 SaErrorT
-slave_get_fumi_autorollback_disable(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num,
-    SaHpiBoolT * disable
-) __attribute__((used));
-
-static
-SaErrorT
-slave_get_fumi_autorollback_disable(
+oh_get_fumi_autorollback_disable(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiFumiNumT num,
@@ -2763,18 +2026,8 @@ slave_get_fumi_autorollback_disable(
 /**************************************************************
  * slave_set_fumi_autorollback_disable
  *************************************************************/
-static
 SaErrorT
-slave_set_fumi_autorollback_disable(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num,
-    SaHpiBoolT disable
-) __attribute__((used));
-
-static
-SaErrorT
-slave_set_fumi_autorollback_disable(
+oh_set_fumi_autorollback_disable(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiFumiNumT num,
@@ -2799,17 +2052,8 @@ slave_set_fumi_autorollback_disable(
 /**************************************************************
  * slave_start_fumi_rollback
  *************************************************************/
-static
 SaErrorT
-slave_start_fumi_rollback(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num
-) __attribute__((used));
-
-static
-SaErrorT
-slave_start_fumi_rollback(
+oh_start_fumi_rollback(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiFumiNumT num )
@@ -2832,17 +2076,8 @@ slave_start_fumi_rollback(
 /**************************************************************
  * slave_activate_fumi
  *************************************************************/
-static
 SaErrorT
-slave_activate_fumi(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num
-) __attribute__((used));
-
-static
-SaErrorT
-slave_activate_fumi(
+oh_activate_fumi(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiFumiNumT num )
@@ -2865,18 +2100,8 @@ slave_activate_fumi(
 /**************************************************************
  * slave_start_fumi_activate
  *************************************************************/
-static
 SaErrorT
-slave_start_fumi_activate(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num,
-    SaHpiBoolT logical
-) __attribute__((used));
-
-static
-SaErrorT
-slave_start_fumi_activate(
+oh_start_fumi_activate(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiFumiNumT num,
@@ -2901,18 +2126,8 @@ slave_start_fumi_activate(
 /**************************************************************
  * slave_cleanup_fumi
  *************************************************************/
-static
 SaErrorT
-slave_cleanup_fumi(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num,
-    SaHpiBankNumT banknum
-) __attribute__((used));
-
-static
-SaErrorT
-slave_cleanup_fumi(
+oh_cleanup_fumi(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiFumiNumT num,
@@ -2937,17 +2152,8 @@ slave_cleanup_fumi(
 /**************************************************************
  * slave_hotswap_policy_cancel
  *************************************************************/
-static
 SaErrorT
-slave_hotswap_policy_cancel(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiTimeoutT timeout
-) __attribute__((used));
-
-static
-SaErrorT
-slave_hotswap_policy_cancel(
+oh_hotswap_policy_cancel(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiTimeoutT timeout )
@@ -2970,16 +2176,8 @@ slave_hotswap_policy_cancel(
 /**************************************************************
  * slave_set_autoinsert_timeout
  *************************************************************/
-static
 SaErrorT
-slave_set_autoinsert_timeout(
-    void * hnd,
-    SaHpiTimeoutT timeout
-) __attribute__((used));
-
-static
-SaErrorT
-slave_set_autoinsert_timeout(
+oh_set_autoinsert_timeout(
     void * hnd,
     SaHpiTimeoutT timeout )
 {
@@ -2998,17 +2196,8 @@ slave_set_autoinsert_timeout(
 /**************************************************************
  * slave_get_autoextract_timeout
  *************************************************************/
-static
 SaErrorT
-slave_get_autoextract_timeout(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiTimeoutT * timeout
-) __attribute__((used));
-
-static
-SaErrorT
-slave_get_autoextract_timeout(
+oh_get_autoextract_timeout(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiTimeoutT * timeout )
@@ -3031,17 +2220,8 @@ slave_get_autoextract_timeout(
 /**************************************************************
  * slave_set_autoextract_timeout
  *************************************************************/
-static
 SaErrorT
-slave_set_autoextract_timeout(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiTimeoutT timeout
-) __attribute__((used));
-
-static
-SaErrorT
-slave_set_autoextract_timeout(
+oh_set_autoextract_timeout(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiTimeoutT timeout )
@@ -3064,17 +2244,8 @@ slave_set_autoextract_timeout(
 /**************************************************************
  * slave_get_hotswap_state
  *************************************************************/
-static
 SaErrorT
-slave_get_hotswap_state(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiHsStateT * state
-) __attribute__((used));
-
-static
-SaErrorT
-slave_get_hotswap_state(
+oh_get_hotswap_state(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiHsStateT * state )
@@ -3097,17 +2268,8 @@ slave_get_hotswap_state(
 /**************************************************************
  * slave_set_hotswap_state
  *************************************************************/
-static
 SaErrorT
-slave_set_hotswap_state(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiHsStateT state
-) __attribute__((used));
-
-static
-SaErrorT
-slave_set_hotswap_state(
+oh_set_hotswap_state(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiHsStateT state )
@@ -3138,17 +2300,8 @@ slave_set_hotswap_state(
 /**************************************************************
  * slave_request_hotswap_action
  *************************************************************/
-static
 SaErrorT
-slave_request_hotswap_action(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiHsActionT act
-) __attribute__((used));
-
-static
-SaErrorT
-slave_request_hotswap_action(
+oh_request_hotswap_action(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiHsActionT act )
@@ -3171,17 +2324,8 @@ slave_request_hotswap_action(
 /**************************************************************
  * slave_get_indicator_state
  *************************************************************/
-static
 SaErrorT
-slave_get_indicator_state(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiHsIndicatorStateT * state
-) __attribute__((used));
-
-static
-SaErrorT
-slave_get_indicator_state(
+oh_get_indicator_state(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiHsIndicatorStateT * state )
@@ -3204,17 +2348,8 @@ slave_get_indicator_state(
 /**************************************************************
  * slave_set_indicator_state
  *************************************************************/
-static
 SaErrorT
-slave_set_indicator_state(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiHsIndicatorStateT state
-) __attribute__((used));
-
-static
-SaErrorT
-slave_set_indicator_state(
+oh_set_indicator_state(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiHsIndicatorStateT state )
@@ -3237,17 +2372,8 @@ slave_set_indicator_state(
 /**************************************************************
  * slave_get_power_state
  *************************************************************/
-static
 SaErrorT
-slave_get_power_state(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiPowerStateT * state
-) __attribute__((used));
-
-static
-SaErrorT
-slave_get_power_state(
+oh_get_power_state(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiPowerStateT * state )
@@ -3270,17 +2396,8 @@ slave_get_power_state(
 /**************************************************************
  * slave_set_power_state
  *************************************************************/
-static
 SaErrorT
-slave_set_power_state(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiPowerStateT state
-) __attribute__((used));
-
-static
-SaErrorT
-slave_set_power_state(
+oh_set_power_state(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiPowerStateT state )
@@ -3303,17 +2420,8 @@ slave_set_power_state(
 /**************************************************************
  * slave_control_parm
  *************************************************************/
-static
 SaErrorT
-slave_control_parm(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiParmActionT act
-) __attribute__((used));
-
-static
-SaErrorT
-slave_control_parm(
+oh_control_parm(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiParmActionT act )
@@ -3336,17 +2444,8 @@ slave_control_parm(
 /**************************************************************
  * slave_load_id_get
  *************************************************************/
-static
 SaErrorT
-slave_load_id_get(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiLoadIdT * load_id
-) __attribute__((used));
-
-static
-SaErrorT
-slave_load_id_get(
+oh_load_id_get(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiLoadIdT * load_id )
@@ -3369,17 +2468,8 @@ slave_load_id_get(
 /**************************************************************
  * slave_load_id_set
  *************************************************************/
-static
 SaErrorT
-slave_load_id_set(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiLoadIdT * load_id
-) __attribute__((used));
-
-static
-SaErrorT
-slave_load_id_set(
+oh_load_id_set(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiLoadIdT * load_id )
@@ -3402,17 +2492,8 @@ slave_load_id_set(
 /**************************************************************
  * slave_get_reset_state
  *************************************************************/
-static
 SaErrorT
-slave_get_reset_state(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiResetActionT * act
-) __attribute__((used));
-
-static
-SaErrorT
-slave_get_reset_state(
+oh_get_reset_state(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiResetActionT * act )
@@ -3435,17 +2516,8 @@ slave_get_reset_state(
 /**************************************************************
  * slave_set_reset_state
  *************************************************************/
-static
 SaErrorT
-slave_set_reset_state(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiResetActionT act
-) __attribute__((used));
-
-static
-SaErrorT
-slave_set_reset_state(
+oh_set_reset_state(
     void * hnd,
     SaHpiResourceIdT id,
     SaHpiResetActionT act )
@@ -3463,655 +2535,4 @@ slave_set_reset_state(
 
     return rv;
 }
-
-
-/**************************************************************
- * Slave plugin interface
- *************************************************************/
-
-void * oh_open( GHashTable *, unsigned int, oh_evt_queue * )
-    __attribute__((weak, alias("slave_open")));
-
-void oh_close( void * )
-    __attribute__((weak, alias("slave_close")));
-
-SaErrorT oh_discover_resources( void * )
-    __attribute__((weak, alias("slave_discover")));
-
-SaErrorT oh_set_resource_tag(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiTextBufferT * tag
-) __attribute__((weak, alias("slave_set_resource_tag")));
-
-SaErrorT oh_set_resource_severity(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiSeverityT sev
-) __attribute__((weak, alias("slave_set_resource_severity")));
-
-SaErrorT oh_resource_failed_remove(
-    void * hnd,
-    SaHpiResourceIdT id
-) __attribute__((weak, alias("slave_resource_failed_remove")));
-
-SaErrorT oh_get_el_info(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiEventLogInfoT * info
-) __attribute__((weak, alias("slave_get_el_info")));
-
-SaErrorT oh_get_el_caps(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiEventLogCapabilitiesT * caps
-) __attribute__((weak, alias("slave_get_el_caps")));
-
-SaErrorT oh_set_el_time(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiTimeT time
-) __attribute__((weak, alias("slave_set_el_time")));
-
-SaErrorT oh_add_el_entry(
-    void * hnd,
-    SaHpiResourceIdT id,
-    const SaHpiEventT * event
-) __attribute__((weak, alias("slave_add_el_entry")));
-
-SaErrorT oh_get_el_entry(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiEventLogEntryIdT current,
-    SaHpiEventLogEntryIdT * prev,
-    SaHpiEventLogEntryIdT * next,
-    SaHpiEventLogEntryT * entry,
-    SaHpiRdrT * rdr,
-    SaHpiRptEntryT * rpte
-) __attribute__((weak, alias("slave_get_el_entry")));
-
-SaErrorT oh_clear_el(
-    void * hnd,
-    SaHpiResourceIdT id
-) __attribute__((weak, alias("slave_clear_el")));
-
-SaErrorT oh_set_el_state(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiBoolT e
-) __attribute__((weak, alias("slave_set_el_state")));
-
-SaErrorT oh_reset_el_overflow(
-    void * hnd,
-    SaHpiResourceIdT id
-) __attribute__((weak, alias("slave_reset_el_overflow")));
-
-SaErrorT oh_get_sensor_reading(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiSensorNumT num,
-    SaHpiSensorReadingT * reading,
-    SaHpiEventStateT * state
-) __attribute__((weak, alias("slave_get_sensor_reading")));
-
-SaErrorT oh_get_sensor_thresholds(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiSensorNumT num,
-    SaHpiSensorThresholdsT * thres
-) __attribute__((weak, alias("slave_get_sensor_thresholds")));
-
-SaErrorT oh_set_sensor_thresholds(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiSensorNumT num,
-    const SaHpiSensorThresholdsT * thres
-) __attribute__((weak, alias("slave_set_sensor_thresholds")));
-
-SaErrorT oh_get_sensor_enable(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiSensorNumT num,
-    SaHpiBoolT * enable
-) __attribute__((weak, alias("slave_get_sensor_enable")));
-
-SaErrorT oh_set_sensor_enable(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiSensorNumT num,
-    SaHpiBoolT enable
-) __attribute__((weak, alias("slave_set_sensor_enable")));
-
-SaErrorT oh_get_sensor_event_enables(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiSensorNumT num,
-    SaHpiBoolT * enables
-) __attribute__((weak, alias("slave_get_sensor_event_enables")));
-
-SaErrorT oh_set_sensor_event_enables(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiSensorNumT num,
-    const SaHpiBoolT enables
-) __attribute__((weak, alias("slave_set_sensor_event_enables")));
-
-SaErrorT oh_get_sensor_event_masks(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiSensorNumT num,
-    SaHpiEventStateT * AssertEventMask,
-    SaHpiEventStateT * DeassertEventMask
-) __attribute__((weak, alias("slave_get_sensor_event_masks")));
-
-SaErrorT oh_set_sensor_event_masks(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiSensorNumT num,
-    SaHpiSensorEventMaskActionT act,
-    SaHpiEventStateT AssertEventMask,
-    SaHpiEventStateT DeassertEventMask
-) __attribute__((weak, alias("slave_set_sensor_event_masks")));
-
-SaErrorT oh_get_control_state(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiCtrlNumT num,
-    SaHpiCtrlModeT * mode,
-    SaHpiCtrlStateT * state
-) __attribute__((weak, alias("slave_get_control_state")));
-
-SaErrorT oh_set_control_state(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiCtrlNumT num,
-    SaHpiCtrlModeT mode,
-    SaHpiCtrlStateT * state
-) __attribute__((weak, alias("slave_set_control_state")));
-
-SaErrorT oh_get_idr_info(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiIdrIdT idrid,
-    SaHpiIdrInfoT * idrinfo
-) __attribute__((weak, alias("slave_get_idr_info")));
-
-SaErrorT oh_get_idr_area_header(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiIdrIdT idrid,
-    SaHpiIdrAreaTypeT areatype,
-    SaHpiEntryIdT areaid,
-    SaHpiEntryIdT * nextareaid,
-    SaHpiIdrAreaHeaderT * header
-) __attribute__((weak, alias("slave_get_idr_area_header")));
-
-SaErrorT oh_add_idr_area(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiIdrIdT idrid,
-    SaHpiIdrAreaTypeT areatype,
-    SaHpiEntryIdT * areaid
-) __attribute__((weak, alias("slave_add_idr_area")));
-
-SaErrorT oh_add_idr_area_id(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiIdrIdT idrid,
-    SaHpiIdrAreaTypeT areatype,
-    SaHpiEntryIdT areaid
-) __attribute__((weak, alias("slave_add_idr_area_id")));
-
-SaErrorT oh_del_idr_area(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiIdrIdT idrid,
-    SaHpiEntryIdT areaid
-) __attribute__((weak, alias("slave_del_idr_area")));
-
-SaErrorT oh_get_idr_field(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiIdrIdT idrid,
-    SaHpiEntryIdT areaid,
-    SaHpiIdrFieldTypeT fieldtype,
-    SaHpiEntryIdT fieldid,
-    SaHpiEntryIdT * nextfieldid,
-    SaHpiIdrFieldT * field
-) __attribute__((weak, alias("slave_get_idr_field")));
-
-SaErrorT oh_add_idr_field(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiIdrIdT idrid,
-    SaHpiIdrFieldT * field
-) __attribute__((weak, alias("slave_add_idr_field")));
-
-SaErrorT oh_add_idr_field_id(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiIdrIdT idrid,
-    SaHpiIdrFieldT * field
-) __attribute__((weak, alias("slave_add_idr_field_id")));
-
-SaErrorT oh_set_idr_field(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiIdrIdT idrid,
-    SaHpiIdrFieldT * field
-) __attribute__((weak, alias("slave_set_idr_field")));
-
-SaErrorT oh_del_idr_field(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiIdrIdT idrid,
-    SaHpiEntryIdT areaid,
-    SaHpiEntryIdT fieldid
-) __attribute__((weak, alias("slave_del_idr_field")));
-
-SaErrorT oh_get_watchdog_info(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiWatchdogNumT num,
-    SaHpiWatchdogT * wdt
-) __attribute__((weak, alias("slave_get_watchdog_info")));
-
-SaErrorT oh_set_watchdog_info(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiWatchdogNumT num,
-    SaHpiWatchdogT * wdt
-) __attribute__((weak, alias("slave_set_watchdog_info")));
-
-SaErrorT oh_reset_watchdog(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiWatchdogNumT num
-) __attribute__((weak, alias("slave_reset_watchdog")));
-
-SaErrorT oh_get_next_announce(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiAnnunciatorNumT num,
-    SaHpiSeverityT sev,
-    SaHpiBoolT ack,
-    SaHpiAnnouncementT * ann
-) __attribute__((weak, alias("slave_get_next_announce")));
-
-SaErrorT oh_get_announce(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiAnnunciatorNumT num,
-    SaHpiEntryIdT annid,
-    SaHpiAnnouncementT * ann
-) __attribute__((weak, alias("slave_get_announce")));
-
-SaErrorT oh_ack_announce(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiAnnunciatorNumT num,
-    SaHpiEntryIdT annid,
-    SaHpiSeverityT sev
-) __attribute__((weak, alias("slave_ack_announce")));
-
-SaErrorT oh_add_announce(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiAnnunciatorNumT num,
-    SaHpiAnnouncementT * ann
-) __attribute__((weak, alias("slave_add_announce")));
-
-SaErrorT oh_del_announce(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiAnnunciatorNumT num,
-    SaHpiEntryIdT annid,
-    SaHpiSeverityT sev
-) __attribute__((weak, alias("slave_del_announce")));
-
-SaErrorT oh_get_annunc_mode(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiAnnunciatorNumT num,
-    SaHpiAnnunciatorModeT * mode
-) __attribute__((weak, alias("slave_get_annunc_mode")));
-
-SaErrorT oh_set_annunc_mode(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiAnnunciatorNumT num,
-    SaHpiAnnunciatorModeT mode
-) __attribute__((weak, alias("slave_set_annunc_mode")));
-
-SaErrorT oh_get_dimi_info(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiDimiNumT num,
-    SaHpiDimiInfoT * info
-) __attribute__((weak, alias("slave_get_dimi_info")));
-
-SaErrorT oh_get_dimi_test(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiDimiNumT num,
-    SaHpiDimiTestNumT testnum,
-    SaHpiDimiTestT * test
-) __attribute__((weak, alias("slave_get_dimi_test")));
-
-SaErrorT oh_get_dimi_test_ready(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiDimiNumT num,
-    SaHpiDimiTestNumT testnum,
-    SaHpiDimiReadyT * ready
-) __attribute__((weak, alias("slave_get_dimi_test_ready")));
-
-SaErrorT oh_start_dimi_test(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiDimiNumT num,
-    SaHpiDimiTestNumT testnum,
-    SaHpiUint8T numparams,
-    SaHpiDimiTestVariableParamsT * paramslist
-) __attribute__((weak, alias("slave_start_dimi_test")));
-
-SaErrorT oh_cancel_dimi_test(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiDimiNumT num,
-    SaHpiDimiTestNumT testnum
-) __attribute__((weak, alias("slave_cancel_dimi_test")));
-
-SaErrorT oh_get_dimi_test_status(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiDimiNumT num,
-    SaHpiDimiTestNumT testnum,
-    SaHpiDimiTestPercentCompletedT * percentcompleted,
-    SaHpiDimiTestRunStatusT * runstatus
-) __attribute__((weak, alias("slave_get_dimi_test_status")));
-
-SaErrorT oh_get_dimi_test_results(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiDimiNumT num,
-    SaHpiDimiTestNumT testnum,
-    SaHpiDimiTestResultsT * testresults
-) __attribute__((weak, alias("slave_get_dimi_test_results")));
-
-SaErrorT oh_get_fumi_spec(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num,
-    SaHpiFumiSpecInfoT * specinfo
-) __attribute__((weak, alias("slave_get_fumi_spec")));
-
-SaErrorT oh_get_fumi_service_impact(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num,
-    SaHpiFumiServiceImpactDataT * serviceimpact
-) __attribute__((weak, alias("slave_get_fumi_service_impact")));
-
-SaErrorT oh_set_fumi_source(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num,
-    SaHpiBankNumT banknum,
-    SaHpiTextBufferT * sourceuri
-) __attribute__((weak, alias("slave_set_fumi_source")));
-
-SaErrorT oh_validate_fumi_source(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num,
-    SaHpiBankNumT banknum
-) __attribute__((weak, alias("slave_validate_fumi_source")));
-
-SaErrorT oh_get_fumi_source(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num,
-    SaHpiBankNumT banknum,
-    SaHpiFumiSourceInfoT * sourceinfo
-) __attribute__((weak, alias("slave_get_fumi_source")));
-
-SaErrorT oh_get_fumi_source_component(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num,
-    SaHpiBankNumT banknum,
-    SaHpiEntryIdT compid,
-    SaHpiEntryIdT * nextcompid,
-    SaHpiFumiComponentInfoT * compinfo
-) __attribute__((weak, alias("slave_get_fumi_source_component")));
-
-SaErrorT oh_get_fumi_target(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num,
-    SaHpiBankNumT banknum,
-    SaHpiFumiBankInfoT * bankinfo
-) __attribute__((weak, alias("slave_get_fumi_target")));
-
-SaErrorT oh_get_fumi_target_component(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num,
-    SaHpiBankNumT banknum,
-    SaHpiEntryIdT compid,
-    SaHpiEntryIdT * nextcompid,
-    SaHpiFumiComponentInfoT * compinfo
-) __attribute__((weak, alias("slave_get_fumi_target_component")));
-
-SaErrorT oh_get_fumi_logical_target(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num,
-    SaHpiFumiLogicalBankInfoT * bankinfo
-) __attribute__((weak, alias("slave_get_fumi_logical_target")));
-
-SaErrorT oh_get_fumi_logical_target_component(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num,
-    SaHpiEntryIdT compid,
-    SaHpiEntryIdT * nextcompid,
-    SaHpiFumiLogicalComponentInfoT * compinfo
-) __attribute__((weak, alias("slave_get_fumi_logical_target_component")));
-
-SaErrorT oh_start_fumi_backup(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num
-) __attribute__((weak, alias("slave_start_fumi_backup")));
-
-SaErrorT oh_set_fumi_bank_order(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num,
-    SaHpiBankNumT banknum,
-    SaHpiUint32T position
-) __attribute__((weak, alias("slave_set_fumi_bank_order")));
-
-SaErrorT oh_start_fumi_bank_copy(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num,
-    SaHpiBankNumT sourcebanknum,
-    SaHpiBankNumT targetbanknum
-) __attribute__((weak, alias("slave_start_fumi_bank_copy")));
-
-SaErrorT oh_start_fumi_install(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num,
-    SaHpiBankNumT banknum
-) __attribute__((weak, alias("slave_start_fumi_install")));
-
-SaErrorT oh_get_fumi_status(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num,
-    SaHpiBankNumT banknum,
-    SaHpiFumiUpgradeStatusT * status
-) __attribute__((weak, alias("slave_get_fumi_status")));
-
-SaErrorT oh_start_fumi_verify(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num,
-    SaHpiBankNumT banknum
-) __attribute__((weak, alias("slave_start_fumi_verify")));
-
-SaErrorT oh_start_fumi_verify_main(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num
-) __attribute__((weak, alias("slave_start_fumi_verify_main")));
-
-SaErrorT oh_cancel_fumi_upgrade(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num,
-    SaHpiBankNumT banknum
-) __attribute__((weak, alias("slave_cancel_fumi_upgrade")));
-
-SaErrorT oh_get_fumi_autorollback_disable(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num,
-    SaHpiBoolT * disable
-) __attribute__((weak, alias("slave_get_fumi_autorollback_disable")));
-
-SaErrorT oh_set_fumi_autorollback_disable(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num,
-    SaHpiBoolT disable
-) __attribute__((weak, alias("slave_set_fumi_autorollback_disable")));
-
-SaErrorT oh_start_fumi_rollback(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num
-) __attribute__((weak, alias("slave_start_fumi_rollback")));
-
-SaErrorT oh_activate_fumi(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num
-) __attribute__((weak, alias("slave_activate_fumi")));
-
-SaErrorT oh_start_fumi_activate(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num,
-    SaHpiBoolT logical
-) __attribute__((weak, alias("slave_start_fumi_activate")));
-
-SaErrorT oh_cleanup_fumi(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiFumiNumT num,
-    SaHpiBankNumT banknum
-) __attribute__((weak, alias("slave_cleanup_fumi")));
-
-SaErrorT oh_hotswap_policy_cancel(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiTimeoutT timeout
-) __attribute__((weak, alias("slave_hotswap_policy_cancel")));
-
-SaErrorT oh_set_autoinsert_timeout(
-    void * hnd,
-    SaHpiTimeoutT timeout
-) __attribute__((weak, alias("slave_set_autoinsert_timeout")));
-
-SaErrorT oh_get_autoextract_timeout(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiTimeoutT * timeout
-) __attribute__((weak, alias("slave_get_autoextract_timeout")));
-
-SaErrorT oh_set_autoextract_timeout(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiTimeoutT timeout
-) __attribute__((weak, alias("slave_set_autoextract_timeout")));
-
-SaErrorT oh_get_hotswap_state(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiHsStateT * state
-) __attribute__((weak, alias("slave_get_hotswap_state")));
-
-SaErrorT oh_set_hotswap_state(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiHsStateT state
-) __attribute__((weak, alias("slave_set_hotswap_state")));
-
-SaErrorT oh_request_hotswap_action(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiHsActionT act
-) __attribute__((weak, alias("slave_request_hotswap_action")));
-
-SaErrorT oh_get_indicator_state(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiHsIndicatorStateT * state
-) __attribute__((weak, alias("slave_get_indicator_state")));
-
-SaErrorT oh_set_indicator_state(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiHsIndicatorStateT state
-) __attribute__((weak, alias("slave_set_indicator_state")));
-
-SaErrorT oh_get_power_state(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiPowerStateT * state
-) __attribute__((weak, alias("slave_get_power_state")));
-
-SaErrorT oh_set_power_state(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiPowerStateT state
-) __attribute__((weak, alias("slave_set_power_state")));
-
-SaErrorT oh_control_parm(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiParmActionT act
-) __attribute__((weak, alias("slave_control_parm")));
-
-SaErrorT oh_load_id_get(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiLoadIdT * load_id
-) __attribute__((weak, alias("slave_load_id_get")));
-
-SaErrorT oh_load_id_set(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiLoadIdT * load_id
-) __attribute__((weak, alias("slave_load_id_set")));
-
-SaErrorT oh_get_reset_state(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiResetActionT * act
-) __attribute__((weak, alias("slave_get_reset_state")));
-
-SaErrorT oh_set_reset_state(
-    void * hnd,
-    SaHpiResourceIdT id,
-    SaHpiResetActionT act
-) __attribute__((weak, alias("slave_set_reset_state")));
-
-
-}; // extern "C"
 
