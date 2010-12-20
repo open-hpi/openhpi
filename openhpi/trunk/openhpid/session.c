@@ -18,12 +18,12 @@
 
 #include <oHpi.h>
 
-#include <oh_config.h>
 #include <oh_domain.h>
 #include <oh_error.h>
 #include <oh_session.h>
 #include <oh_utils.h>
 
+#include "conf.h"
 #include "lock.h"
 
 struct oh_session_table oh_sessions = {

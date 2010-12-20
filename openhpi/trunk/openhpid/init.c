@@ -20,19 +20,19 @@
 #include <oHpi.h>
 
 #include <config.h>
-#include <oh_config.h>
 #include <oh_domain.h>
 #include <oh_error.h>
-#include <oh_init.h>
 #ifndef _WIN32
 #include <oh_ssl.h>
 #endif /* _WIN32 */
 #include <oh_plugin.h>
 #include <oh_session.h>
-#include <oh_threaded.h>
 #include <oh_utils.h>
 
+#include "conf.h"
+#include "init.h"
 #include "lock.h"
+#include "threaded.h"
 
 /**
  * oh_init

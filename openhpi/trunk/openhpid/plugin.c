@@ -26,11 +26,11 @@
 
 #include <config.h>
 
-#include <oh_config.h>
 #include <oh_domain.h>
 #include <oh_error.h>
 #include <oh_plugin.h>
 
+#include "conf.h"
 #include "lock.h"
 
 /*

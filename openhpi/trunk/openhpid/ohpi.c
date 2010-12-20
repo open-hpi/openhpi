@@ -20,8 +20,6 @@
 #include <string.h>
 
 #include <oHpi.h>
-#include <oh_config.h>
-#include <oh_init.h>
 #include <oh_plugin.h>
 #include <oh_event.h>
 #include <oh_domain.h>
@@ -31,7 +29,10 @@
 #include <sahpimacros.h>
 #include <config.h>
 
+#include "conf.h"
+#include "init.h"
 #include "lock.h"
+
 
 /**
  * oHpiVersionGet

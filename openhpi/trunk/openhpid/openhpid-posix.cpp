@@ -35,8 +35,8 @@
 #include <oHpi.h>
 
 #include <oh_error.h>
-#include <oh_init.h>
 
+#include "init.h"
 #include "server.h"
 
 

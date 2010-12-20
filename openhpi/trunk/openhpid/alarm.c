@@ -17,10 +17,11 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <oh_alarm.h>
-#include <oh_config.h>
 #include <oh_error.h>
 #include <oh_utils.h>
+
+#include "alarm.h"
+#include "conf.h"
 
 static void __update_dat(struct oh_domain *d)
 {
