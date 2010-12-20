@@ -19,7 +19,6 @@
 #include <string.h>
 
 #include <SaHpi.h>
-#include <openhpi.h>
 #include <oh_utils.h>
 #include <el_utils.h>
 

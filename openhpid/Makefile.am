@@ -24,7 +24,7 @@ SUBDIRS = t
 DIST_SUBDIRS = t
 
 EXTRA_DIST		= \
-	Makefile.mingw32 openhpid.sh.in server.h
+	Makefile.mingw32 openhpid.sh.in lock.h server.h
 
 # daemon library
 noinst_LTLIBRARIES      = libopenhpidaemon.la

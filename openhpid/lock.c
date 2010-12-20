@@ -16,7 +16,7 @@
 
 #include <glib.h>
 
-#include <oh_lock.h>
+#include "lock.h"
 
 int oh_will_block = 0;
 int lockcount = 0;

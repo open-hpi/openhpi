@@ -24,7 +24,6 @@
 #include <oh_domain.h>
 #include <oh_error.h>
 #include <oh_init.h>
-#include <oh_lock.h>
 #ifndef _WIN32
 #include <oh_ssl.h>
 #endif /* _WIN32 */
@@ -33,6 +32,7 @@
 #include <oh_threaded.h>
 #include <oh_utils.h>
 
+#include "lock.h"
 
 /**
  * oh_init

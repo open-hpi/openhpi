@@ -34,7 +34,6 @@ extern "C" {
 #include "SaHpi.h"
 }
 
-#include <openhpi.h>
 #include <oh_utils.h>
 
 #ifndef __NEW_SIM_FILE_H__

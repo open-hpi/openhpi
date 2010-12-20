@@ -28,10 +28,10 @@
 #include <oh_session.h>
 #include <oh_utils.h>
 #include <oh_error.h>
-#include <oh_lock.h>
 #include <sahpimacros.h>
 #include <config.h>
 
+#include "lock.h"
 
 /**
  * oHpiVersionGet

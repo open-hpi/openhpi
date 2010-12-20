@@ -30,6 +30,8 @@
 #include <glib.h>
 #include <math.h>
 
+#include <oh_error.h>
+
 #include "new_sim_domain.h"
 #include "new_sim_sensor.h"
 #include "new_sim_entity.h"

@@ -16,6 +16,8 @@
  * full licensing terms.
  * 
  */
+
+#include <oh_error.h>
  
 #include "new_sim_hotswap.h"
 #include "new_sim_utils.h"

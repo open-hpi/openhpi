@@ -27,6 +27,8 @@
 #include <netdb.h>
 #include <errno.h>
 
+#include <oh_error.h>
+
 #include "new_sim.h"
 #include "new_sim_utils.h"
 

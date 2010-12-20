@@ -29,9 +29,9 @@
 #include <oh_config.h>
 #include <oh_domain.h>
 #include <oh_error.h>
-#include <oh_lock.h>
 #include <oh_plugin.h>
 
+#include "lock.h"
 
 /*
  * Structure containing global list of plugins (oh_plugin).
