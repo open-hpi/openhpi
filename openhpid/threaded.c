@@ -14,11 +14,12 @@
  *
  */
 
-#include <oh_config.h>
 #include <oh_error.h>
-#include <oh_hotswap.h>
 #include <oh_plugin.h>
-#include <oh_threaded.h>
+
+#include "conf.h"
+#include "hotswap.h"
+#include "threaded.h"
 
 
 #define OH_DISCOVERY_THREAD_SLEEP_TIME 180 * G_USEC_PER_SEC

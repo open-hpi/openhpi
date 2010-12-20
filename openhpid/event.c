@@ -24,15 +24,17 @@
 
 #include <oHpi.h>
 
+#include <oh_domain.h>
+#include <oh_error.h>
 #include <oh_event.h>
-#include <oh_config.h>
 #include <oh_handler.h>
 #include <oh_plugin.h>
-#include <oh_domain.h>
 #include <oh_session.h>
-#include <oh_alarm.h>
 #include <oh_utils.h>
-#include <oh_error.h>
+
+#include "alarm.h"
+#include "conf.h"
+
 
 struct _oh_evt_queue {
         GAsyncQueue *q;

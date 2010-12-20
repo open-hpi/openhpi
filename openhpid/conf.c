@@ -24,10 +24,10 @@
 #include <string.h>
 
 #include <config.h>
-#include <oh_config.h>
 #include <oh_plugin.h>
 #include <oh_error.h>
 
+#include "conf.h"
 #include "lock.h"
 
 /*

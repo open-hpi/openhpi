@@ -27,7 +27,6 @@
 #include <ctype.h>
 #include <unistd.h>
 #include <config.h>
-#include <oh_config.h>
 #include <oHpi.h>
 #include <hpi_ui.h>
 #include "hpi_cmd.h"
