@@ -22,7 +22,6 @@
 #include <unistd.h>
 
 #include <SaHpi.h>
-#include <openhpi.h>
 #include <oh_utils.h>
 
 

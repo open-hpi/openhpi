@@ -24,11 +24,22 @@
  */
 
 #include <string.h>
+
 #include <SaHpi.h>
-#include <openhpi.h>
+
+#include <oh_error.h>
 #include <oh_threaded.h>
 #include <oh_utils.h>
 #include <sahpimacros.h>
+
+#include <oh_alarm.h>
+#include <oh_config.h>
+#include <oh_domain.h>
+#include <oh_handler.h>
+#include <oh_hotswap.h>
+#include <oh_init.h>
+#include <oh_plugin.h>
+#include <oh_session.h>
 
 /*********************************************************************
  *

@@ -13,8 +13,12 @@
  *      Steve Sherman <stevees@us.ibm.com>
  */
 
+#include <glib.h>
+
 #include <SaHpi.h>
-#include <openhpi.h>
+
+#include <oh_error.h>
+
 #include <snmp_utils.h>
 #include <sim_resources.h>
 

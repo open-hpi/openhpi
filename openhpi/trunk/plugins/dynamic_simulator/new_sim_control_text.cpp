@@ -16,6 +16,8 @@
  * full licensing terms.
  * 
  */
+
+#include <oh_error.h>
  
 #include "new_sim_control.h"
 #include "new_sim_control_text.h"

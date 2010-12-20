@@ -27,7 +27,8 @@
 #include <oh_config.h>
 #include <oh_plugin.h>
 #include <oh_error.h>
-#include <oh_lock.h>
+
+#include "lock.h"
 
 /*
  * Global Parameters

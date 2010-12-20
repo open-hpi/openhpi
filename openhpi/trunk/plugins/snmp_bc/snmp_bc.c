@@ -14,6 +14,8 @@
  *      Steve Sherman <stevees@us.ibm.com>
  */
 
+#include <oh_error.h>
+
 #include <snmp_bc_plugin.h>
 
 /**
