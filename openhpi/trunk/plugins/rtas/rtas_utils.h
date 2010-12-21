@@ -22,7 +22,6 @@
 #include <oh_handler.h>
 #include <oh_utils.h>
 #include <oh_error.h>
-#include <oh_domain.h>
 #include <librtas.h>
 
 void decode_rtas_error (int error, char *buf, size_t size, int token, int index);
