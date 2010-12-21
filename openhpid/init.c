@@ -47,14 +47,14 @@ int oh_init(void)
         struct oh_global_param unconf_param = { .type = OPENHPI_UNCONFIGURED };
         SaErrorT rval;
 
+        if (g_thread_supported() == FALSE) {
+            g_thread_init(0);
+        }
+
         data_access_lock();
         if (initialized) { /* Don't initialize more than once */
         	data_access_unlock();
         	return 0;
-        }
-
-        if (g_thread_supported() == FALSE) {
-            g_thread_init(0);
         }
 
         /* Initialize thread engine */
