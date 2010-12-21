@@ -59,22 +59,25 @@ SaErrorT oh_encode_entitypath(const gchar *epstr, SaHpiEntityPathT *ep)
 	SaHpiTextBufferT tmpbuffer;
 	SaHpiEntityTypeT eptype;
 
-	if (!epstr || epstr[0] == '\0' || !ep) {
-		err("Invalid parameter.");
+	if (!epstr || !ep) {
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
 	/* Check for runaway string */
 	if (strlen(epstr) >  OH_MAX_TEXT_BUFFER_LENGTH) {
-		err("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_DATA);
 	}
 
         /* Split out {xxx,yyy} definition pairs */
        	gstr = g_strstrip(g_strdup(epstr));
-	if (gstr == NULL || gstr[0] == '\0') {
+	if (gstr == NULL) {
 		err("Stripped entity path string is NULL"); 
 		err = SA_ERR_HPI_INVALID_DATA;
+		goto CLEANUP;
+	}
+	if (gstr[0] == '\0') {
+	        oh_init_ep(ep);
+		err = SA_OK;
 		goto CLEANUP;
 	}
 
@@ -131,7 +134,6 @@ SaErrorT oh_encode_entitypath(const gchar *epstr, SaHpiEntityPathT *ep)
 		if (num_entities < SAHPI_MAX_ENTITY_PATH) {
 			entityptr = g_new0(SaHpiEntityT, 1);
 			if (entityptr == NULL) {
-				err("No memory.");
 				err = SA_ERR_HPI_OUT_OF_SPACE;
 				goto CLEANUP;
 			}
@@ -215,7 +217,6 @@ SaErrorT oh_decode_entitypath(const SaHpiEntityPathT *ep,
 	SaErrorT  err = SA_OK;
 
 	if (!bigbuf || !ep) {
-		err("Invalid parameter");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
@@ -224,7 +225,6 @@ SaErrorT oh_decode_entitypath(const SaHpiEntityPathT *ep,
 
 	locstr = g_new0(gchar, OH_MAX_LOCATION_DIGITS + 1);
 	if (locstr == NULL) {
-		err("No memory.");
 		err = SA_ERR_HPI_OUT_OF_SPACE;
 		goto CLEANUP;
 	}
@@ -301,7 +301,6 @@ SaErrorT oh_init_ep(SaHpiEntityPathT *ep)
 	 int i;
 
          if (!ep) {
-		 err("Invalid parameter.");
 		 return(SA_ERR_HPI_INVALID_PARAMS);
 	 }
          
@@ -331,7 +330,6 @@ SaErrorT oh_concat_ep(SaHpiEntityPathT *dest, const SaHpiEntityPathT *append)
         int i, j;
 
         if (!dest) {
-		err("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
@@ -402,12 +400,10 @@ SaErrorT oh_set_ep_location(SaHpiEntityPathT *ep, SaHpiEntityTypeT et, SaHpiEnti
         int i;
 
 	if (!ep) {
-		err("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
 	if (!oh_valid_ep(ep)) {
-		err("Invalid entity path");
 		return(SA_ERR_HPI_INVALID_DATA);
 	}
 
@@ -442,7 +438,6 @@ SaHpiBoolT oh_cmp_ep(const SaHpiEntityPathT *ep1, const SaHpiEntityPathT *ep2)
         unsigned int i, j;
         
         if (!ep1 || !ep2) {
-                err("Invalid parameter.");
                 return(SAHPI_FALSE);
         }
 
@@ -494,7 +489,6 @@ SaErrorT oh_fprint_ep(FILE *stream, const SaHpiEntityPathT *ep, int offsets)
         SaErrorT err;
 	
         if (!ep) {
-		err("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
         }
 
@@ -586,7 +580,6 @@ gchar * oh_derive_string(SaHpiEntityPathT *ep,
         guint total_num_digits, i, work_location_num, num_digits;
 
 	if (!ep || !str) {
-		err("NULL parameter.");
 		return(NULL);
 	}
 
@@ -699,7 +692,6 @@ SaErrorT oh_compile_entitypath_pattern(const char *epp_str,
         oh_entitypath_pattern pattern;
 
         if (!epp_str || !epp) {
-                err("Got null parameters.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
         memset(&pattern, 0, sizeof(oh_entitypath_pattern));

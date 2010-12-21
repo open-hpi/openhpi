@@ -120,7 +120,6 @@ SaHpiAlarmT *oh_add_alarm(struct oh_domain *d, SaHpiAlarmT *alarm, int fromfile)
         struct oh_global_param param = { .type = OPENHPI_DAT_SIZE_LIMIT };
 
         if (!d) {
-                err("NULL domain pointer passed.");
                 return NULL;
         }
 
@@ -685,7 +684,6 @@ SaErrorT oh_alarms_to_file(struct oh_dat *at, char *filename)
         FILE * fp;
 
         if (!at || !filename) {
-                err("Invalid Parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
@@ -703,10 +701,7 @@ SaErrorT oh_alarms_to_file(struct oh_dat *at, char *filename)
                 }
         }
 
-        if (fclose(fp) != 0) {
-                err("Couldn't close file '%s'.", filename);
-                return SA_ERR_HPI_ERROR;
-        }
+        fclose(fp);
 
         return SA_OK;
 }
@@ -726,7 +721,6 @@ SaErrorT oh_alarms_from_file(struct oh_domain *d, char *filename)
         SaHpiAlarmT alarm;
 
         if (!d || !filename) {
-                err("Invalid Parameters");
                 return SA_ERR_HPI_ERROR;
         }
 
@@ -745,10 +739,7 @@ SaErrorT oh_alarms_from_file(struct oh_domain *d, char *filename)
                 }
         }
 
-        if (fclose(fp) != 0) {
-                err("Couldn't close file '%s'.", filename);
-                return SA_ERR_HPI_ERROR;
-        }
+        fclose(fp);
 
         return SA_OK;
 }

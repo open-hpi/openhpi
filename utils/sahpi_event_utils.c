@@ -54,7 +54,6 @@ SaErrorT oh_decode_eventstate(SaHpiEventStateT event_state,
 
 	/* Don't check for mutual exclusive events, since we want to see them all */
 	if (!buffer || !oh_valid_eventstate(event_state, event_cat, SAHPI_FALSE)) {
-		err("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
@@ -145,11 +144,9 @@ SaErrorT oh_encode_eventstate(SaHpiTextBufferT *buffer,
 	SaHpiEventCategoryT working_cat=0;
 		
 	if (!buffer || !event_state || !event_cat) {
-		err("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 	if (buffer->Data == NULL || buffer->Data[0] == '\0') {
-		err("Invalid Data buffer parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
@@ -170,7 +167,6 @@ SaErrorT oh_encode_eventstate(SaHpiTextBufferT *buffer,
 
 	eventdefs = g_strsplit(gstr, OH_ENCODE_DELIMITER_CHAR, -1);
 	if (eventdefs == NULL) {
-		err("No event definitions");
 		rtncode = SA_ERR_HPI_INVALID_PARAMS;
 		goto CLEANUP;
 	}
@@ -571,7 +567,6 @@ SaHpiBoolT oh_valid_eventstate(SaHpiEventStateT event_state,
 SaErrorT oh_valid_addevent(SaHpiEventT *event)
 {
 	if (!event) {
-		err("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 	
@@ -580,7 +575,6 @@ SaErrorT oh_valid_addevent(SaHpiEventT *event)
 	    NULL == oh_lookup_severity(event->Severity) ||
 	    event->Severity == SAHPI_ALL_SEVERITIES ||
 	    !oh_valid_textbuffer(&(event->EventDataUnion.UserEvent.UserEventData))) {
-		err("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 

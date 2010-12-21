@@ -542,11 +542,7 @@ int oh_load_config (char *filename, struct oh_parsed_config *config)
 
         read_globals_from_env(1);
 
-        if (fclose(fp) != 0) {
-                err("Couldn't close file '%s'.", filename);
-                g_scanner_destroy(oh_scanner);
-                return -5;
-        }
+        fclose(fp);
 
         done = oh_scanner->parse_errors;
 
