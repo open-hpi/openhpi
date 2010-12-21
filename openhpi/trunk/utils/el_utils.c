@@ -340,10 +340,7 @@ SaErrorT oh_el_map_to_file(oh_el *el, char *filename)
 		}
         }
 
-        if (fclose(fp) != 0) {
-                err("Couldn't close file '%s'.", filename);
-                return SA_ERR_HPI_ERROR;
-        }
+        fclose(fp);
 
         return SA_OK;
 }
@@ -377,10 +374,7 @@ SaErrorT oh_el_map_from_file(oh_el *el, char *filename)
 		el->list = g_list_append(el->list, elentry);
         }
 
-        if (fclose(fp) != 0) {
-                err("Couldn't close file '%s'.", filename);
-                return SA_ERR_HPI_ERROR;
-        }
+        fclose(fp);
 
         return SA_OK;
 }

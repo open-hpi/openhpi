@@ -275,18 +275,16 @@ SaErrorT oh_uid_remove(SaHpiUint32T uid)
         uid_lock(&oh_uid_lock);
         ep_xref = (EP_XREF *)g_hash_table_lookup (oh_resource_id_table, key);
         if(!ep_xref) {
-                err("error freeing oh_resource_id_table");
                 uid_unlock(&oh_uid_lock);
-                return SA_ERR_HPI_ERROR;
+                return SA_ERR_HPI_NOT_PRESENT;
         }
 
         /* check netry exist in oh_resource_id_table */
         key = (gpointer)&ep_xref->entity_path;
         ep_xref = (EP_XREF *)g_hash_table_lookup (oh_ep_table, key);
         if(!ep_xref) {
-                err("error freeing oh_resource_id_table");
                 uid_unlock(&oh_uid_lock);
-                return SA_ERR_HPI_ERROR;
+                return SA_ERR_HPI_NOT_PRESENT;
         }
 
         g_hash_table_remove(oh_resource_id_table, &ep_xref->resource_id);
@@ -356,9 +354,8 @@ SaErrorT oh_entity_path_lookup(SaHpiUint32T id, SaHpiEntityPathT *ep)
         uid_lock(&oh_uid_lock);
         ep_xref = (EP_XREF *)g_hash_table_lookup (oh_resource_id_table, key);
         if(!ep_xref) {
-                err("error looking up EP to get uid");
                 uid_unlock(&oh_uid_lock);
-                return SA_ERR_HPI_ERROR ;
+                return SA_ERR_HPI_NOT_PRESENT;
         }
 
         memcpy(ep, &ep_xref->entity_path, sizeof(SaHpiEntityPathT));
@@ -406,11 +403,7 @@ SaErrorT oh_uid_map_to_file(void)
         /* write all EP_XREF data records */
         g_hash_table_foreach(oh_resource_id_table, write_ep_xref, fp);
 
-        if(fclose(fp) != 0) {
-                err("Couldn't close file '%s'.", uid_map_file);
-                uid_unlock(&oh_uid_lock);
-                return SA_ERR_HPI_ERROR;
-        }
+        fclose(fp);
 
         uid_unlock(&oh_uid_lock);
 
