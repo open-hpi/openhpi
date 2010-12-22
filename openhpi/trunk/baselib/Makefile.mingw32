@@ -26,9 +26,9 @@ all : ${TARGET}
 
 ${TARGET} : ${OBJ}
 	${CXX} -shared -o $@ $^ ${LIBS} \
-    -Wl,--out-implib,$@.a \
-    -Wl,--output-def,$@.def
+    -Wl,--out-implib,${@:.dll=.a} \
+    -Wl,--output-def,${@:.dll=.def}
 
 clean:
-	rm -f ${OBJ} ${TARGET}
+	rm -f ${OBJ} ${TARGET} ${TARGET:.dll=.a} ${TARGET:.dll=.def}
 
