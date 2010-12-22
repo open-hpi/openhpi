@@ -306,7 +306,8 @@ SaErrorT ohc_sess_close_all()
 
     GList * sessions_list = sessions_take_all();
     if ( g_list_length( sessions_list ) == 0 ) {
-        rv = SA_ERR_HPI_INVALID_REQUEST;
+        //rv = SA_ERR_HPI_INVALID_REQUEST;
+        rv = SA_OK;
     } else {
         GList * item = sessions_list;
         while ( item ) {
