@@ -32,7 +32,7 @@ The only dependence (save for mingw compiler) is glib2.
 Windows version can be obtained at http://www.gtk.org/download-windows.html
 
 ========================================================================
-Current windows build system supports only Mingw compiler.
+Current windows build system supports only mingw compiler.
 http://www.mingw.org/
 However the built libraries can be use as ordinary windows DLL
 in projects with any compiler.
@@ -56,7 +56,7 @@ Build instructions:
 -- GLIB_DIR: in order that GLIB_INCLUDES and GLIB_LIBS
    point to valid directories with glib headers and libraries.
 - run "make -f Makefile.mingw32".
-- run "make -f Makefile.mingw32 bin".
+- run "make -f Makefile.mingw32 out".
 - the bin subdirectory will contain all produced stuff.
 
 ========================================================================
@@ -77,15 +77,28 @@ The functions are in libopenhpi-${VERSION}.dll.
 
 Define "SAHPI_API" macro as "__declspec(dllimport)".
 
-For Mingw compiler it can be just linked.
+For mingw compiler it can be just linked.
 
 For MSVC:
 - There is def file libopenhpi-${VERSION}.dll.def
 - With lib tool you can create import library
 - Command example "lib /machine:i386 /def:libopenhpi-${VERSION}.dll.def"
+- Point produced import library in Project settings
 
 And see Client Usage instrustions about configuring OpenHPI daemon address
 to connect.
+
+========================================================================
+Library Known Issues:
+
+Seems mingw has its own copy of environment variables.
+So the code:
+
+    _putenv("OPENHPI_DAEMON_HOST=...");
+    rv = saHpiSessionOpen(...)
+
+does not work in MSVC as expected.
+But setting any variable before running executable works!
 
 ========================================================================
 Troubleshouting:
