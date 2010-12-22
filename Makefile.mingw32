@@ -22,10 +22,12 @@ clean:
 	done
 	rm -rf ${out}
 
-out:
+out: all
+	rm -rf ${out}
 	mkdir -p ${out}
 	cp README.windows ${out}
 	cat include/SaHpi.h | sed -e 's/ __attribute__.*/;/' -e 's/#define SAHPI_API/#define SAHPI_API __declspec(dllimport)/' > ${out}/SaHpi.h
+	cp include/oHpi.h ${out}
 	cp utils/libopenhpiutils-${VERSION}.dll ${out}/
 	cp utils/libopenhpiutils-${VERSION}.dll.a ${out}/
 	cp utils/libopenhpiutils-${VERSION}.dll.def ${out}/
