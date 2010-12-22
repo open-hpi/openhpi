@@ -1114,9 +1114,9 @@ cMarshalType oHpiHandlerInfoType = dStruct( oHpiHandlerInfoElements );
 
 
 // global param
-static cMarshalType GlobalParamPathArray = dArray( OH_MAX_TEXT_BUFFER_LENGTH, SaHpiUint8T, SaHpiUint8Type );
-static cMarshalType GlobalParamVarPathArray = dArray( OH_MAX_TEXT_BUFFER_LENGTH, SaHpiUint8T, SaHpiUint8Type );
-static cMarshalType GlobalParamConfArray = dArray( SAHPI_MAX_TEXT_BUFFER_LENGTH, SaHpiUint8T, SaHpiUint8Type );
+static cMarshalType GlobalParamPathArray = dArray( OH_PATH_PARAM_MAX_LENGTH, SaHpiUint8T, SaHpiUint8Type );
+static cMarshalType GlobalParamVarPathArray = dArray( OH_PATH_PARAM_MAX_LENGTH, SaHpiUint8T, SaHpiUint8Type );
+static cMarshalType GlobalParamConfArray = dArray( OH_PATH_PARAM_MAX_LENGTH, SaHpiUint8T, SaHpiUint8Type );
 
 static cMarshalType oHpiGlobalParamUnionTypeElements[] =
 {

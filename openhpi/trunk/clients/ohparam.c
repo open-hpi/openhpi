@@ -58,7 +58,7 @@ main(int argc, char **argv)
    SaErrorT    rv = SA_OK;
    
    oHpiGlobalParamTypeT paramtype = OHPI_CONF;
-   char setparam[OH_MAX_TEXT_BUFFER_LENGTH];
+   char setparam[OH_PATH_PARAM_MAX_LENGTH];
    SaHpiBoolT printusage = FALSE;
    int i=1;
 

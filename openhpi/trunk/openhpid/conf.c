@@ -59,10 +59,10 @@ static struct {
         SaHpiUint32T dat_size_limit;
         SaHpiUint32T dat_user_limit;
         SaHpiBoolT dat_save;
-        char path[OH_MAX_TEXT_BUFFER_LENGTH];
-        char varpath[OH_MAX_TEXT_BUFFER_LENGTH];
-        char conf[OH_MAX_TEXT_BUFFER_LENGTH];
-        char client_conf[OH_MAX_TEXT_BUFFER_LENGTH];	
+        char path[OH_PATH_PARAM_MAX_LENGTH];
+        char varpath[OH_PATH_PARAM_MAX_LENGTH];
+        char conf[OH_PATH_PARAM_MAX_LENGTH];
+        char client_conf[OH_PATH_PARAM_MAX_LENGTH];	
         SaHpiBoolT unconfigured;
         unsigned char read_env;
         GStaticRecMutex lock;
@@ -197,23 +197,23 @@ static void process_global_param(const char *name, char *value)
                 }
         } else if (!strcmp("OPENHPI_PATH", name)) {
                 g_static_rec_mutex_lock(&global_params.lock);
-                memset(global_params.path, 0, OH_MAX_TEXT_BUFFER_LENGTH);
-                strncpy(global_params.path, value, OH_MAX_TEXT_BUFFER_LENGTH-1);
+                memset(global_params.path, 0, OH_PATH_PARAM_MAX_LENGTH);
+                strncpy(global_params.path, value, OH_PATH_PARAM_MAX_LENGTH-1);
                 g_static_rec_mutex_unlock(&global_params.lock);
         } else if (!strcmp("OPENHPI_VARPATH", name)) {
                 g_static_rec_mutex_lock(&global_params.lock);
-                memset(global_params.varpath, 0, OH_MAX_TEXT_BUFFER_LENGTH);
-                strncpy(global_params.varpath, value, OH_MAX_TEXT_BUFFER_LENGTH-1);
+                memset(global_params.varpath, 0, OH_PATH_PARAM_MAX_LENGTH);
+                strncpy(global_params.varpath, value, OH_PATH_PARAM_MAX_LENGTH-1);
                 g_static_rec_mutex_unlock(&global_params.lock);
         } else if (!strcmp("OPENHPI_CONF", name)) {
                 g_static_rec_mutex_lock(&global_params.lock);
-                memset(global_params.conf, 0, OH_MAX_TEXT_BUFFER_LENGTH);
-                strncpy(global_params.conf, value, OH_MAX_TEXT_BUFFER_LENGTH-1);
+                memset(global_params.conf, 0, OH_PATH_PARAM_MAX_LENGTH);
+                strncpy(global_params.conf, value, OH_PATH_PARAM_MAX_LENGTH-1);
                 g_static_rec_mutex_unlock(&global_params.lock);
         } else if (!strcmp("OPENHPICLIENT_CONF", name)) {
                 g_static_rec_mutex_lock(&global_params.lock);
-                memset(global_params.client_conf, 0, OH_MAX_TEXT_BUFFER_LENGTH);
-                strncpy(global_params.client_conf, value, OH_MAX_TEXT_BUFFER_LENGTH-1);
+                memset(global_params.client_conf, 0, OH_PATH_PARAM_MAX_LENGTH);
+                strncpy(global_params.client_conf, value, OH_PATH_PARAM_MAX_LENGTH-1);
                 g_static_rec_mutex_unlock(&global_params.lock);
         } else if (!strcmp("OPENHPI_UNCONFIGURED", name)) {
                 if (!strcmp("YES", value)) {
@@ -655,28 +655,28 @@ int oh_get_global_param(struct oh_global_param *param)
                         g_static_rec_mutex_lock(&global_params.lock);
                         strncpy(param->u.path,
                                 global_params.path,
-                                OH_MAX_TEXT_BUFFER_LENGTH);
+                                OH_PATH_PARAM_MAX_LENGTH);
                         g_static_rec_mutex_unlock(&global_params.lock);
                         break;
                 case OPENHPI_VARPATH:
                         g_static_rec_mutex_lock(&global_params.lock);
                         strncpy(param->u.varpath,
                                 global_params.varpath,
-                                OH_MAX_TEXT_BUFFER_LENGTH);
+                                OH_PATH_PARAM_MAX_LENGTH);
                         g_static_rec_mutex_unlock(&global_params.lock);
                         break;
                 case OPENHPI_CONF:
                         g_static_rec_mutex_lock(&global_params.lock);
                         strncpy(param->u.conf,
                                 global_params.conf,
-                                OH_MAX_TEXT_BUFFER_LENGTH);
+                                OH_PATH_PARAM_MAX_LENGTH);
                         g_static_rec_mutex_unlock(&global_params.lock);
                         break;
                 case OPENHPICLIENT_CONF:
                         g_static_rec_mutex_lock(&global_params.lock);
                         strncpy(param->u.conf,
                                 global_params.client_conf,
-                                OH_MAX_TEXT_BUFFER_LENGTH);
+                                OH_PATH_PARAM_MAX_LENGTH);
                         g_static_rec_mutex_unlock(&global_params.lock);
                         break;
                 case OPENHPI_UNCONFIGURED:
@@ -734,34 +734,34 @@ int oh_set_global_param(struct oh_global_param *param)
                         break;
                 case OPENHPI_PATH:
                         g_static_rec_mutex_lock(&global_params.lock);
-                        memset(global_params.path, 0, OH_MAX_TEXT_BUFFER_LENGTH);
+                        memset(global_params.path, 0, OH_PATH_PARAM_MAX_LENGTH);
                         strncpy(global_params.path,
                                 param->u.path,
-                                OH_MAX_TEXT_BUFFER_LENGTH-1);
+                                OH_PATH_PARAM_MAX_LENGTH-1);
                         g_static_rec_mutex_unlock(&global_params.lock);
                         break;
                 case OPENHPI_VARPATH:
                         g_static_rec_mutex_lock(&global_params.lock);
-                        memset(global_params.varpath, 0, OH_MAX_TEXT_BUFFER_LENGTH);
+                        memset(global_params.varpath, 0, OH_PATH_PARAM_MAX_LENGTH);
                         strncpy(global_params.varpath,
                                 param->u.varpath,
-                                OH_MAX_TEXT_BUFFER_LENGTH-1);
+                                OH_PATH_PARAM_MAX_LENGTH-1);
                         g_static_rec_mutex_unlock(&global_params.lock);
                         break;
                 case OPENHPI_CONF:
                         g_static_rec_mutex_lock(&global_params.lock);
-                        memset(global_params.conf, 0, OH_MAX_TEXT_BUFFER_LENGTH);
+                        memset(global_params.conf, 0, OH_PATH_PARAM_MAX_LENGTH);
                         strncpy(global_params.conf,
                                 param->u.conf,
-                                OH_MAX_TEXT_BUFFER_LENGTH-1);
+                                OH_PATH_PARAM_MAX_LENGTH-1);
                         g_static_rec_mutex_unlock(&global_params.lock);
                         break;
                 case OPENHPICLIENT_CONF:
                         g_static_rec_mutex_lock(&global_params.lock);
-                        memset(global_params.conf, 0, OH_MAX_TEXT_BUFFER_LENGTH);
+                        memset(global_params.conf, 0, OH_PATH_PARAM_MAX_LENGTH);
                         strncpy(global_params.client_conf,
                                 param->u.conf,
-                                OH_MAX_TEXT_BUFFER_LENGTH-1);
+                                OH_PATH_PARAM_MAX_LENGTH-1);
                         g_static_rec_mutex_unlock(&global_params.lock);
                         break;			
                 case OPENHPI_UNCONFIGURED:
