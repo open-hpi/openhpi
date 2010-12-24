@@ -19,21 +19,20 @@ COMMONLIBS		= $(top_builddir)/transport/libopenhpitransport.la \
 
 bin_PROGRAMS		= hpi_shell
 
-HS_SOURCES		= \
-	hpi_cmd.h \
-	hpi_cmd.c \
-	cmdparser.c \
-	commands.c \
-	ctrl_inv.c \
-	inputcmd.c \
-	sensor.c \
-	session.c \
-	show.c \
-	service.c \
-	dimi.c \
-	fumi.c
+hpi_shell_SOURCES =  \
+    cmdparser.c \
+    commands.c \
+    ctrl_inv.c \
+    dimi.c \
+    fumi.c \
+    hpi_cmd.c  \
+    hpi_cmd.h \
+    inputcmd.c \
+    sensor.c \
+    service.c \
+    session.c \
+    show.c
 
-hpi_shell_SOURCES = $(HS_SOURCES)
 
 hpi_shell_LDADD   = $(COMMONLIBS)
 

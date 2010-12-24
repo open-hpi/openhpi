@@ -27,30 +27,30 @@ DIST_SUBDIRS = t
 
 EXTRA_DIST		= \
     Makefile.mingw32 \
-    openhpid.sh.in \
-    alarm.h \
-    conf.h \
-    hotswap.h \
-    init.h \
-    lock.h \
-    server.h \
-    threaded.h
+    openhpid.sh.in
 
 # daemon library
 noinst_LTLIBRARIES      = libopenhpidaemon.la
-libopenhpidaemon_la_SOURCES        = conf.c \
-                                     domain.c \
-                                     event.c \
-                                     threaded.c \
-                                     alarm.c \
-                                     hotswap.c \
-                                     lock.c \
-                                     plugin.c \
-									 plugin_static.c \
-                                     init.c \
-                                     safhpi.c \
-                                     session.c \
-                                     ohpi.c
+libopenhpidaemon_la_SOURCES        = \
+    alarm.c \
+    alarm.h \
+    conf.c \
+    conf.h \
+    domain.c \
+    event.c \
+    hotswap.c \
+    hotswap.h \
+    init.c \
+    init.h \
+    lock.c \
+    lock.h \
+    ohpi.c \
+    plugin.c \
+    plugin_static.c \
+    safhpi.c \
+    session.c \
+    threaded.c \
+    threaded.h
 
 libopenhpidaemon_la_LIBADD         = $(top_builddir)/utils/libopenhpiutils.la
 
@@ -62,7 +62,7 @@ libopenhpidaemon_la_LDFLAGS   = @HPI_LIB_VERSION@ @GMODULE_ONLY_LIBS@
 # daemon
 sbin_PROGRAMS           = openhpid
 
-openhpid_SOURCES        = server.cpp openhpid-posix.cpp
+openhpid_SOURCES        = server.cpp server.h openhpid-posix.cpp
 
 openhpid_LDADD         = libopenhpidaemon.la \
 		                 $(top_builddir)/marshal/libopenhpimarshal.la \

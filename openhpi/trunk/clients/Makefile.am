@@ -5,34 +5,32 @@ AM_CPPFLAGS = -DG_LOG_DOMAIN=\"client\"
 
 INCLUDES             = @OPENHPI_INCLUDES@
 
-EXTRA_DIST	     = Makefile.mingw32 oh_clients.h
-
 COMMONLIBS 	     = @STATIC_PLUGIN_LIBS@ @STATIC_PLUGIN_EXTRA_LIBS@
 
 COMMONLIBS	     += $(top_builddir)/baselib/libopenhpi.la
 
-CLIENTS_SRC 	     = clients.c
+CLIENTS_SRC 	     = clients.c oh_clients.h
 
 bin_PROGRAMS = \
-	hpidomain \
-	hpievents \
-	hpifan \
-        hpiinv \
-	hpiel \
-	hpigensimdata \
-	hpisensor \
-        hpipower \
-	hpitree \
-	hpialarms \
-	hpireset \
-	hpiwdt \
-	hpithres \
-	hpitop   \
-	hpisettime \
-	hpionIBMblade \
-        ohdomainlist \
-        ohhandler \
-        ohparam
+    hpidomain \
+    hpievents \
+    hpifan \
+    hpiinv \
+    hpiel \
+    hpigensimdata \
+    hpisensor \
+    hpipower \
+    hpitree \
+    hpialarms \
+    hpireset \
+    hpiwdt \
+    hpithres \
+    hpitop   \
+    hpisettime \
+    hpionIBMblade \
+    ohdomainlist \
+    ohhandler \
+    ohparam
 
 include_HEADERS         =
 
