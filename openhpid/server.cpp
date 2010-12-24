@@ -82,7 +82,7 @@ bool oh_server_run( uint16_t port,
     // create the server socket
     cServerStreamSock ssock;
     if (!ssock.Create(port)) {
-        CRIT("Error creating server socket. Exiting.\n");
+        CRIT("Error creating server socket. Exiting.");
         return false;
     }
 
@@ -94,17 +94,17 @@ bool oh_server_run( uint16_t port,
     while (!stop_server) {
         cStreamSock * sock = ssock.Accept();
         if (!sock) {
-            CRIT("Error accepting server socket.\n");
+            CRIT("Error accepting server socket.");
             return false;
         }
-        DBG("### Spawning thread to handle connection. ###\n");
+        DBG("### Spawning thread to handle connection. ###");
         g_thread_pool_push(pool, (gpointer)sock, 0);
     }
 
     // ensure all threads are complete
     g_thread_pool_free(pool, FALSE, TRUE);
 
-    DBG("Server socket closed.\n");
+    DBG("Server socket closed.");
 
     return true;
 }
@@ -128,13 +128,13 @@ static void service_thread(gpointer sock_ptr, gpointer /* user_data */)
     // TODO several sids for one connection
     SaHpiSessionIdT my_sid = 0;
 
-    DBG("%p Servicing connection.\n", thrdid);
+    DBG("%p Servicing connection.", thrdid);
 
     /* set the read timeout for the socket */
     // TODO
     //sock->SetReadTimeout(sock_timeout);
 
-    DBG("### service_thread, thrdid [%p] ###\n", (void *)thrdid);
+    DBG("### service_thread, thrdid [%p] ###", (void *)thrdid);
 
     while (true) {
         bool     rc;
@@ -146,10 +146,10 @@ static void service_thread(gpointer sock_ptr, gpointer /* user_data */)
 
         rc = sock->ReadMsg(type, id, data, data_len, rq_byte_order);
         if (!rc) {
-            CRIT("%p Error or Timeout while reading socket.\n", thrdid);
+            CRIT("%p Error or Timeout while reading socket.", thrdid);
             break;
         } else if (type != eMhMsg) {
-            CRIT("%p Unsupported message type. Discarding.\n", thrdid);
+            CRIT("%p Unsupported message type. Discarding.", thrdid);
             sock->WriteMsg(eMhError, id, 0, 0);
         } else {
             cHpiMarshal *hm = HpiMarshalFind(id);
@@ -159,14 +159,14 @@ static void service_thread(gpointer sock_ptr, gpointer /* user_data */)
             if (process_rv != SA_OK) {
                 int mr = HpiMarshalReply0(hm, data, &process_rv);
                 if (mr < 0) {
-                    CRIT("%p Marshal failed.\n", thrdid);
+                    CRIT("%p Marshal failed.", thrdid);
                     break;
                 }
                 data_len = (uint32_t)mr;
             }
             rc = sock->WriteMsg(eMhMsg, id, data, data_len);
             if (!rc) {
-                CRIT("%p Socket write failed.\n", thrdid);
+                CRIT("%p Socket write failed.", thrdid);
                 break;
             }
             if ((process_rv == SA_OK) && (changed_sid != 0)) {
@@ -186,7 +186,7 @@ static void service_thread(gpointer sock_ptr, gpointer /* user_data */)
     }
     delete sock; // cleanup thread instance data
 
-    DBG("%p Connection closed.\n", thrdid);
+    DBG("%p Connection closed.", thrdid);
     // TODO why?
     return; // do NOT use g_thread_exit here!
 }
@@ -227,7 +227,7 @@ static SaErrorT process_msg(cHpiMarshal * hm,
     gpointer thrdid;
     thrdid = g_thread_self();
 
-    DBG("%p Processing RPC request %d.\n", thrdid, hm->m_id);
+    DBG("%p Processing RPC request %d.", thrdid, hm->m_id);
 
     changed_sid = 0;
 
@@ -1994,11 +1994,11 @@ static SaErrorT process_msg(cHpiMarshal * hm,
         break;
 
         default:
-            DBG("%p Function not found\n", thrdid);
+            DBG("%p Function not found", thrdid);
             return SA_ERR_HPI_UNSUPPORTED_API; 
     }
 
-    DBG("%p Return code = %d\n", thrdid, rv);
+    DBG("%p Return code = %d", thrdid, rv);
 
     return SA_OK;
 }
