@@ -31,12 +31,12 @@ LIBS			=
 lib_LTLIBRARIES = libopenhpimarshal.la
 
 libopenhpimarshal_la_SOURCES    = \
-	marshal_hpi.h \
-	marshal_hpi.c \
-	marshal_hpi_types.h \
-	marshal_hpi_types.c \
-	marshal.h \
-        marshal.c
+    marshal_hpi.c \
+    marshal_hpi.h \
+    marshal_hpi_types.c \
+    marshal_hpi_types.h \
+    marshal.c \
+    marshal.h
 
 # we need glib-2.0 for gmalloc
 libopenhpimarshal_la_LDFLAGS= -version-info @HPI_LIB_VERSION@ @GLIB_ONLY_LIBS@

@@ -28,8 +28,8 @@ LIBS			=
 lib_LTLIBRARIES = libopenhpitransport.la
 
 libopenhpitransport_la_SOURCES    = \
-	strmsock.h \
-	strmsock.cpp
+	strmsock.cpp \
+	strmsock.h
 
 libopenhpitransport_la_LDFLAGS= -version-info @HPI_LIB_VERSION@
 

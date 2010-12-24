@@ -18,9 +18,7 @@ AM_CFLAGS		= @SNMPFLAGS@
 
 lib_LTLIBRARIES		= libopenhpi_snmp.la
 
-EXTRA_DIST = snmp_utils.h
-
-libopenhpi_snmp_la_SOURCES = snmp_utils.c
+libopenhpi_snmp_la_SOURCES = snmp_utils.c snmp_utils.h
 
 libopenhpi_snmp_la_LIBADD  = -luuid @SNMPLIBS@
 libopenhpi_snmp_la_LDFLAGS = -version-info @HPI_LIB_VERSION@

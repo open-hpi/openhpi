@@ -22,22 +22,20 @@ AM_CPPFLAGS = -DG_LOG_DOMAIN=\"baselib\"
 INCLUDES 		= \
 	@OPENHPI_INCLUDES@  -I$(top_srcdir)/transport -I$(top_srcdir)/marshal @OH_SSL_INCLUDES@
 
-EXTRA_DIST		= \
-	Makefile.mingw32 \
-    conf.h \
-    init.h \
-    lock.h \
-    session.h
+EXTRA_DIST	= Makefile.mingw32
 
 lib_LTLIBRARIES	        = libopenhpi.la
 
 libopenhpi_la_SOURCES = conf.c \
+                        conf.h \
                         init.cpp \
+                        init.h \
                         lock.c \
+                        lock.h \
                         ohpi.cpp \
                         safhpi.cpp \
-                        session.cpp
-
+                        session.cpp \
+                        session.h
 
 libopenhpi_la_LDFLAGS = -version-info @HPI_LIB_VERSION@
 libopenhpi_la_LIBADD  = $(top_builddir)/transport/libopenhpitransport.la -lstdc++ \
