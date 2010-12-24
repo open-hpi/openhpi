@@ -5,6 +5,8 @@ AM_CPPFLAGS = -DG_LOG_DOMAIN=\"client\"
 
 INCLUDES             = @OPENHPI_INCLUDES@
 
+EXTRA_DIST       = Makefile.mingw32
+
 COMMONLIBS 	     = @STATIC_PLUGIN_LIBS@ @STATIC_PLUGIN_EXTRA_LIBS@
 
 COMMONLIBS	     += $(top_builddir)/baselib/libopenhpi.la
