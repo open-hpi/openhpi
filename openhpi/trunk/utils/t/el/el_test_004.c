@@ -65,7 +65,7 @@ int main(int argc, char **argv)
 
         	retc = oh_el_append(el, &event, NULL, NULL);
         	if (retc != SA_OK) {
-              	err("ERROR: oh_el_append failed.");
+              	CRIT("oh_el_append failed.");
                	return 1;
         	}       
 	}
@@ -73,20 +73,20 @@ int main(int argc, char **argv)
        /* save the EL to file */
         retc = oh_el_map_to_file(el, "./elTest.data");
         if (retc != SA_OK) {
-                err("ERROR: oh_el_map_to_file failed.");
+                CRIT("oh_el_map_to_file failed.");
                 return 1;
         }
 
         /* get EL from file (el2) */
         retc = oh_el_map_from_file(el2, "./elTest.data");
 	if (retc != SA_OK) {
-                err("ERROR: oh_el_map_from_file failed.");
+                CRIT("oh_el_map_from_file failed.");
                 return 1;
         }
 
 
         if(g_list_length(el->list) != g_list_length(el2->list)) {
-                 err("ERROR: el->list != el2->list.");
+                 CRIT("el->list != el2->list.");
                  return 1;
          }
 
@@ -94,7 +94,7 @@ int main(int argc, char **argv)
         /* close the el */
         retc = oh_el_close(el);
         if (retc != SA_OK) {
-                err("ERROR: oh_el_close failed.");
+                CRIT("oh_el_close failed.");
                 return 1;
         }
 

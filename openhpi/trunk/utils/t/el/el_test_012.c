@@ -44,14 +44,14 @@ int main(int argc, char **argv)
 	el = oh_el_create(20);
         retc = oh_el_append(el, NULL, NULL, NULL);
         if (retc == SA_OK) {
-                err("ERROR: oh_el_append failed.");
+                CRIT("oh_el_append failed.");
                 return 1;
         } 
 
         /* close el */
         retc = oh_el_close(el);
         if (retc != SA_OK) {
-                err("ERROR: oh_el_close on el failed.");
+                CRIT("oh_el_close on el failed.");
                 return 1;
         }
 

@@ -46,7 +46,7 @@ int main(int argc, char **argv)
         /* close el without saving to file*/
         retc = oh_el_close(el);
         if (retc == SA_OK) {
-                err("ERROR: oh_el_close on el failed.");
+                CRIT("oh_el_close on el failed.");
                 return 1;
         }
 

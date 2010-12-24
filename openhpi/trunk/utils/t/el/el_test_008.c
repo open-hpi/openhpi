@@ -67,7 +67,7 @@ int main(int argc, char **argv)
 
         	retc = oh_el_append(el, &event, NULL, NULL);
         	if (retc != SA_OK) {
-                	err("ERROR: oh_el_append failed.");
+                	CRIT("oh_el_append failed.");
                 	return 1;
         	}       
 	}
@@ -76,20 +76,20 @@ int main(int argc, char **argv)
  	/* clear the el */
 	retc = oh_el_clear(el);
         if (retc != SA_OK) {
-                err("ERROR: el clear failed.");
+                CRIT("el clear failed.");
                 return 1;
         }
 
 	/* verify el list nodes are cleared */
 	if(el->list != NULL){
-		err("ERROR: el clear failed.");
+		CRIT("el clear failed.");
 		return 1;
 	}
 
         /* close el without saving to file*/
         retc = oh_el_close(el);
         if (retc != SA_OK) {
-                err("ERROR: oh_el_close on el failed.");
+                CRIT("oh_el_close on el failed.");
                 return 1;
         }
 

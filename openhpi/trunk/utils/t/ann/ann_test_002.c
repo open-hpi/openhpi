@@ -62,12 +62,12 @@ int main(int argc, char **argv)
         rc = oh_announcement_append(ann, &announ);
 
         if(ann->nextId != SAHPI_OLDEST_ENTRY + 2) {
-                err("ERROR: ann->nextId invalid.");
+                CRIT("ann->nextId invalid.");
                 return 1;
         }
 
         if(ann->annentries == NULL) {
-                err("ERROR: ann->annentries invalid.");
+                CRIT("ann->annentries invalid.");
                 return 1;
         }
 
