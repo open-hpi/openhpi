@@ -13,6 +13,8 @@ MAINTAINERCLEANFILES = Makefile.in
 MOSTLYCLEANFILES 	= @TEST_CLEAN@ uid_map
 EXTRA_DIST              = openhpi.conf
 
+AM_CPPFLAGS = -DG_LOG_DOMAIN=\"t\"
+
 INCLUDES		= @OPENHPI_INCLUDES@
 
 TDEPLIB                 = $(top_builddir)/openhpid/libopenhpidaemon.la \

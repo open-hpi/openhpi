@@ -171,7 +171,7 @@ SaErrorT cSession::GetSock( cClientStreamSock * & sock )
         bool rc = sock->Create( dc->host, dc->port );
         if ( !rc ) {
             delete sock;
-            err("Session: cannot open connection to domain %u.\n", m_did );
+            CRIT("Session: cannot open connection to domain %u.", m_did );
             return SA_ERR_HPI_NO_RESPONSE;
         }
 

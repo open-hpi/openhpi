@@ -349,7 +349,7 @@ static int process_domain_token (GScanner *oh_scanner)
         port = OPENHPI_DEFAULT_DAEMON_PORT;
 
         if (g_scanner_get_next_token(oh_scanner) != HPI_CLIENT_CONF_TOKEN_DOMAIN) {
-                err("Processing domain: Expected a domain token");
+                CRIT("Processing domain: Expected a domain token");
                 return -1;
         }
 
@@ -359,18 +359,18 @@ static int process_domain_token (GScanner *oh_scanner)
                 did = OH_DEFAULT_DOMAIN_ID;
         } else if (next_token == G_TOKEN_INT) {
                 if (oh_scanner->value.v_int == 0) { // Domain Id of 0 is invalid
-                        err("Processing domain: A domain id of 0 is invalid");
+                        CRIT("Processing domain: A domain id of 0 is invalid");
                         return -2;
                 }
                 did = (SaHpiDomainIdT)oh_scanner->value.v_int;
         } else {
-                err("Processing domain: Expected int or string ('default') token");
+                CRIT("Processing domain: Expected int or string ('default') token");
                 return -3;
         }
 
         /* Check for Left Brace token type. If we have it, then continue parsing. */
         if (g_scanner_get_next_token(oh_scanner) != G_TOKEN_LEFT_CURLY) {
-                err("Processing domain: Expected left curly token.");
+                CRIT("Processing domain: Expected left curly token.");
                 return -10;
         }
 
@@ -379,12 +379,12 @@ static int process_domain_token (GScanner *oh_scanner)
                 if (next_token == HPI_CLIENT_CONF_TOKEN_HOST) {
                         next_token = g_scanner_get_next_token(oh_scanner);
                         if (next_token != G_TOKEN_EQUAL_SIGN) {
-                                err("Processing domain: Expected equal sign");
+                                CRIT("Processing domain: Expected equal sign");
                                 return -10;
                         }
                         next_token = g_scanner_get_next_token(oh_scanner);
                         if (next_token != G_TOKEN_STRING) {
-                                err("Processing domain: Expected a string");
+                                CRIT("Processing domain: Expected a string");
                                 return -10;
                         }
                         if (host[0] == '\0') {
@@ -393,27 +393,27 @@ static int process_domain_token (GScanner *oh_scanner)
                 } else if (next_token == HPI_CLIENT_CONF_TOKEN_PORT) {
                         next_token = g_scanner_get_next_token(oh_scanner);
                         if (next_token != G_TOKEN_EQUAL_SIGN) {
-                                err("Processing domain: Expected equal sign");
+                                CRIT("Processing domain: Expected equal sign");
                                 return -10;
                         }
                         next_token = g_scanner_get_next_token(oh_scanner);
                         if (next_token != G_TOKEN_INT) {
-                                err("Processing domain: Expected an integer");
+                                CRIT("Processing domain: Expected an integer");
                                 return -10;
                         }
                         port = oh_scanner->value.v_int;
                 } else {
-                        err("Processing domain: Should not get here!");
+                        CRIT("Processing domain: Should not get here!");
                         return -10;
                 }
                 next_token = g_scanner_get_next_token(oh_scanner);
         }
 
         if (next_token == G_TOKEN_EOF) {
-                err("Processing domain: Expected a right curly");
+                CRIT("Processing domain: Expected a right curly");
                 return -10;
         } else if (host[0] == '\0') {
-                err("Processing domain: Did not find the host parameter");
+                CRIT("Processing domain: Did not find the host parameter");
                 return -10;
         }
 
@@ -426,7 +426,7 @@ static void scanner_msg_handler (GScanner *scanner, gchar *message, gboolean is_
 {
         g_return_if_fail (scanner != NULL);
 
-        err("%s:%d: %s%s\n",
+        CRIT("%s:%d: %s%s\n",
             scanner->input_name ? scanner->input_name : "<memory>",
             scanner->line, is_error ? "error: " : "", message );
 }
@@ -438,13 +438,13 @@ static int load_client_config(const char *filename)
         int num_tokens = sizeof(ohc_conf_tokens) / sizeof(ohc_conf_tokens[0]);
 
         if (!filename) {
-                err("Error. Invalid parameters");
+                CRIT("Error. Invalid parameters");
                 return -1;
         }
 
         oh_scanner = g_scanner_new(&oh_scanner_conf);
         if (!oh_scanner) {
-                err("Couldn't allocate g_scanner for file parsing");
+                CRIT("Couldn't allocate g_scanner for file parsing");
                 return -2;
         }
 
@@ -453,7 +453,7 @@ static int load_client_config(const char *filename)
 
         FILE * fp = fopen(filename, "r");
         if (!fp) {
-                err("Client configuration file '%s' could not be opened", filename);
+                CRIT("Client configuration file '%s' could not be opened", filename);
                 g_scanner_destroy(oh_scanner);
                 return -3;
         }

@@ -44,7 +44,7 @@ static RPTEntry *get_rptentry_by_rid(RPTable *table, SaHpiResourceIdT rid)
         }
 
         if (!(table->rptlist)) {
-                /*dbg("Info: RPT is empty.");*/
+                /*DBG("Info: RPT is empty.");*/
                 return NULL;
         }
 
@@ -67,7 +67,7 @@ static GSList *get_rptnode_by_rid(RPTable *table, SaHpiResourceIdT rid)
         }
 
         if (!(table->rptlist)) {
-                /*dbg("Info: RPT is empty.");*/
+                /*DBG("Info: RPT is empty.");*/
                 return NULL;
         }
 
@@ -90,7 +90,7 @@ static RDRecord *get_rdrecord_by_id(RPTEntry *rptentry, SaHpiEntryIdT id)
         }
 
         if (!rptentry->rdrlist) {
-                /*dbg("Info: RDR repository is empty.");*/
+                /*DBG("Info: RDR repository is empty.");*/
                 return NULL;
         }
 
@@ -113,7 +113,7 @@ static GSList *get_rdrnode_by_id(RPTEntry *rptentry, SaHpiEntryIdT id)
         }
 
         if (!rptentry->rdrlist) {
-                /*dbg("Info: RPT is empty.");*/
+                /*DBG("Info: RPT is empty.");*/
                 return NULL;
         }
 
@@ -515,7 +515,7 @@ void *oh_get_resource_data(RPTable *table, SaHpiResourceIdT rid)
 
         rptentry = get_rptentry_by_rid(table, rid);
         if (!rptentry) {
-                /*dbg("Warning: RPT entry not found. Returning NULL.");*/
+                /*DBG("Warning: RPT entry not found. Returning NULL.");*/
                 return NULL;
         }
 
@@ -540,7 +540,7 @@ SaHpiRptEntryT *oh_get_resource_by_id(RPTable *table, SaHpiResourceIdT rid)
 
         rptentry = get_rptentry_by_rid(table, rid);
         if (!rptentry) {
-                /*dbg("Warning: RPT entry not found. Returning NULL.");*/
+                /*DBG("Warning: RPT entry not found. Returning NULL.");*/
                 return NULL;
         }
 
@@ -573,7 +573,7 @@ SaHpiRptEntryT *oh_get_resource_by_ep(RPTable *table, SaHpiEntityPathT *ep)
                 /* Found it in uid database */
                 return oh_get_resource_by_id(table, rid);
         } else {
-                dbg("Didn't find the EP in the Uid table so "
+                DBG("Didn't find the EP in the Uid table so "
                     "looking manually in the RPTable");
         }
 
@@ -585,7 +585,7 @@ SaHpiRptEntryT *oh_get_resource_by_ep(RPTable *table, SaHpiEntityPathT *ep)
         }
 
         if (!rptentry) {
-                /*dbg("Warning: RPT entry not found. Returning NULL.");*/
+                /*DBG("Warning: RPT entry not found. Returning NULL.");*/
                 return NULL;
         }
 
@@ -694,7 +694,7 @@ SaErrorT oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT *rdr, void *
         }
 
         if (check_instrument_id(&(rptentry->rpt_entry), rdr)) {
-                err("Invalid instrument id found in RDR.");
+                CRIT("Invalid instrument id found in RDR.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
@@ -807,7 +807,7 @@ void *oh_get_rdr_data(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid)
 
         rdrecord = get_rdrecord_by_id(rptentry, rdrid);
         if (!rdrecord) {
-                /*dbg("Warning: RDR not found. Returning NULL.");*/
+                /*DBG("Warning: RDR not found. Returning NULL.");*/
                 return NULL;
         }
 
@@ -841,7 +841,7 @@ SaHpiRdrT *oh_get_rdr_by_id(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT 
 
         rdrecord = get_rdrecord_by_id(rptentry, rdrid);
         if (!rdrecord) {
-                /*dbg("Warning: RDR not found. Returning NULL.");*/
+                /*DBG("Warning: RDR not found. Returning NULL.");*/
                 return NULL;
         }
 
@@ -879,7 +879,7 @@ SaHpiRdrT *oh_get_rdr_by_type(RPTable *table, SaHpiResourceIdT rid,
         rdr_uid = oh_get_rdr_uid(type, num);
         rdrecord = get_rdrecord_by_id(rptentry, rdr_uid);
         if (!rdrecord) {
-                /*dbg("Warning: RDR not found. Returning NULL.");*/
+                /*DBG("Warning: RDR not found. Returning NULL.");*/
                 return NULL;
         }
 

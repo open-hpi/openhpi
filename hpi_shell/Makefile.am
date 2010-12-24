@@ -6,6 +6,8 @@ MOSTLYCLEANFILES	= @TEST_CLEAN@
 
 EXTRA_DIST		= hpi_ui.h
 
+AM_CPPFLAGS = -DG_LOG_DOMAIN=\"hpi_shell\"
+
 INCLUDES		= -I$(top_srcdir)/include -I$(top_srcdir)/utils
 
 INCLUDES 		+= -I$(top_srcdir)/openhpid \

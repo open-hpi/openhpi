@@ -31,6 +31,8 @@
  
 MAINTAINERCLEANFILES 	= Makefile.in
 
+AM_CPPFLAGS = -DG_LOG_DOMAIN=\"ipmi\"
+
 EXTRA_DIST 		= ipmi.sym ekeyfru.h
 
 SUBDIRS			= t

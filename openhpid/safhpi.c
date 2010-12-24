@@ -5720,7 +5720,7 @@ SaErrorT SAHPI_API saHpiAutoInsertTimeoutSet(
         }
         oh_release_domain(domain); /* Unlock domain */
 
-        if (!hids->len) err("Did not find any handlers for domain resources?!");
+        if (!hids->len) CRIT("Did not find any handlers for domain resources?!");
         /* 2. Use list to push down autoInsertTimeoutSet() to those handlers.
          */
         for (i = 0; i < hids->len; i++) {
@@ -5731,7 +5731,7 @@ SaErrorT SAHPI_API saHpiAutoInsertTimeoutSet(
 #endif
                 struct oh_handler *h = oh_get_handler(hid);
                 if (!h || !h->hnd) {
-                        err("No such handler %u", hid);
+                        CRIT("No such handler %u", hid);
                         error = SA_ERR_HPI_INTERNAL_ERROR;
                         break;
                 }

@@ -31,6 +31,8 @@
 
 MAINTAINERCLEANFILES = Makefile.in
 
+AM_CPPFLAGS = -DG_LOG_DOMAIN=\"utils\"
+
 GENERATED_HEADER_FILES = \
 			sahpi_enum_utils.h \
 			sahpixtca_enum_utils.h \

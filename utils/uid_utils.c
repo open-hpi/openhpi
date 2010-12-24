@@ -193,7 +193,7 @@ SaHpiUint32T oh_uid_from_entity_path(SaHpiEntityPathT *ep)
         /* previously assigned uid      */
         ep_xref = (EP_XREF *)g_hash_table_lookup (oh_ep_table, key);
         if (ep_xref) {
-                /*dbg("Entity Path already assigned uid. Use oh_uid_lookup().");*/
+                /*DBG("Entity Path already assigned uid. Use oh_uid_lookup().");*/
                 uid_unlock(&oh_uid_lock);
                 return ep_xref->resource_id;
         }
@@ -201,7 +201,7 @@ SaHpiUint32T oh_uid_from_entity_path(SaHpiEntityPathT *ep)
         /* allocate storage for EP cross reference data structure*/
         ep_xref = g_new0(EP_XREF, 1);
         if(!ep_xref) {
-                err("malloc failed");
+                CRIT("malloc failed");
                 uid_unlock(&oh_uid_lock);
                 return 0;
         }
@@ -235,11 +235,11 @@ SaHpiUint32T oh_uid_from_entity_path(SaHpiEntityPathT *ep)
                 if (fwrite(ep_xref, sizeof(EP_XREF), 1, fp) == 1) {
                         fseek(fp, 0, SEEK_SET);
                         if (fwrite(&resource_id, sizeof(resource_id), 1, fp) != 1) {
-        			err("write resource_id failed");
+        			CRIT("write resource_id failed");
                                 ruid = 0;
         		}
 		} else {
-			err("write ep_xref failed");
+			CRIT("write ep_xref failed");
                         ruid = 0;
                 }
                 fclose(fp);
@@ -387,14 +387,14 @@ SaErrorT oh_uid_map_to_file(void)
 
         fp = fopen(uid_map_file, "wb");
         if(!fp) {
-                err("Configuration file '%s' could not be opened", uid_map_file);
+                CRIT("Configuration file '%s' could not be opened", uid_map_file);
                 uid_unlock(&oh_uid_lock);
                 return SA_ERR_HPI_ERROR;
         }
 
         /* write resource id */
         if (fwrite((void *)&resource_id, sizeof(resource_id), 1, fp) != 1) {
-		err("write resource_id failed");
+		CRIT("write resource_id failed");
 		fclose(fp);
                 uid_unlock(&oh_uid_lock);
 		return SA_ERR_HPI_ERROR;
@@ -420,7 +420,7 @@ SaErrorT oh_uid_map_to_file(void)
 static void write_ep_xref(gpointer key, gpointer value, gpointer fp)
 {
         if (fwrite(value, sizeof(EP_XREF), 1, (FILE *)fp) != 1) {
-		err("write EP_XREF failed");
+		CRIT("write EP_XREF failed");
 	}
 }
 
@@ -446,20 +446,20 @@ static gint uid_map_from_file()
          fp = fopen(uid_map_file, "rb");
          if(!fp) {
                  /* create map file with resource id initial value */
-                 err("Configuration file '%s' does not exist, initializing", uid_map_file);
+                 CRIT("Configuration file '%s' does not exist, initializing", uid_map_file);
                  fp = fopen(uid_map_file, "wb");
                  if(!fp) {
-                         err("Could not initialize uid map file, %s", uid_map_file );
+                         CRIT("Could not initialize uid map file, %s", uid_map_file );
                                          return -1;
                  }
                  /* write initial uid value */
                  if(fwrite(&resource_id, sizeof(resource_id), 1, fp) != 1 ) {
-                         err("failed to write uid, on uid map file initialization");
+                         CRIT("failed to write uid, on uid map file initialization");
                          fclose(fp);
                          return -1;
                  }
                  if(fclose(fp) != 0) {
-                         err("Couldn't close file '%s'.during uid map file initialization", uid_map_file);
+                         CRIT("Couldn't close file '%s'.during uid map file initialization", uid_map_file);
                          return -1;
                  }
                  /* return from successful initialization, from newly created uid map file */
@@ -468,7 +468,7 @@ static gint uid_map_from_file()
 
          /* read uid/resouce_id highest count from uid map file */
          if (fread(&resource_id, sizeof(resource_id), 1, fp) != 1) {
-                 err("error setting uid from existing uid map file");
+                 CRIT("error setting uid from existing uid map file");
                 fclose(fp);
                  return -1;
          }
@@ -519,7 +519,7 @@ static gint build_uid_map_data(FILE *fp)
         }
 
         if ((feof(fp) == 0) || (ferror(fp) != 0)) {
-                err("error building ep xref from map file");
+                CRIT("error building ep xref from map file");
                 return -1;
         }
         return 0;

@@ -19,6 +19,8 @@ DIST_SUBDIRS 		= t
 
 MAINTAINERCLEANFILES 	= Makefile.in *~
 
+AM_CPPFLAGS = -DG_LOG_DOMAIN=\"marshal\"
+
 EXTRA_DIST = Makefile.mingw32
 
 INCLUDES 		= @OPENHPI_INCLUDES@

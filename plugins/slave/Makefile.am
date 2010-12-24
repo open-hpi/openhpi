@@ -15,6 +15,8 @@
 
 MAINTAINERCLEANFILES = Makefile.in
 
+AM_CPPFLAGS = -DG_LOG_DOMAIN=\"slave\"
+
 INCLUDES = @OPENHPI_INCLUDES@
 
 pkglib_LTLIBRARIES = libslave.la

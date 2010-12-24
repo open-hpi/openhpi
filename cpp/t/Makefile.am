@@ -10,6 +10,8 @@
 
 MOSTLYCLEANFILES 	= @TEST_CLEAN@
 
+AM_CPPFLAGS = -DG_LOG_DOMAIN=\"t\"
+
 INCLUDES                = @OPENHPI_INCLUDES@ -I$(top_builddir)/cpp
 
 MAINTAINERCLEANFILES 	= Makefile.in

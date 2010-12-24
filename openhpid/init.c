@@ -62,7 +62,7 @@ int oh_init(void)
 #ifdef HAVE_OPENSSL
 	/* Initialize SSL library */
 	if (oh_ssl_init()) {
-                err("SSL library intialization failed.");
+                CRIT("SSL library intialization failed.");
                 data_access_unlock();
 		return SA_ERR_HPI_OUT_OF_MEMORY; /* Most likely */
 	}
@@ -73,7 +73,7 @@ int oh_init(void)
         rval = oh_load_config(config_param.u.conf, &config);
         /* Don't error out if there is no conf file */
         if (rval < 0 && rval != -4) {
-                err("Can not load config.");
+                CRIT("Can not load config.");
                 data_access_unlock();
                 return SA_ERR_HPI_NOT_PRESENT;
         }
@@ -83,7 +83,7 @@ int oh_init(void)
 	 */
 	oh_get_global_param(&unconf_param);
 	if (unconf_param.u.unconfigured) {
-                err("OpenHPI is not configured.  See openhpi.conf file.");
+                CRIT("OpenHPI is not configured.  See openhpi.conf file.");
                 data_access_unlock();
                 return SA_ERR_HPI_ERROR;
 	}
@@ -91,23 +91,23 @@ int oh_init(void)
         /* Initialize uid_utils */
         rval = oh_uid_initialize();
         if( (rval != SA_OK) && (rval != SA_ERR_HPI_ERROR) ) {
-                err("Unique ID intialization failed.");
+                CRIT("Unique ID intialization failed.");
                 data_access_unlock();
                 return rval;
         }
-        dbg("Initialized UID.");
+        DBG("Initialized UID.");
 
         /* Initialize handler table */
         oh_handlers.table = g_hash_table_new(g_int_hash, g_int_equal);
-        dbg("Initialized handler table");
+        DBG("Initialized handler table");
 
         /* Initialize domain table */
         oh_domains.table = g_hash_table_new(g_int_hash, g_int_equal);
-        dbg("Initialized domain table");
+        DBG("Initialized domain table");
 
         /* Initialize session table */
         oh_sessions.table = g_hash_table_new(g_int_hash, g_int_equal);
-        dbg("Initialized session table");
+        DBG("Initialized session table");
 
         /* Load plugins, create handlers and domains */
         oh_process_config(&config);
@@ -120,7 +120,7 @@ int oh_init(void)
 	                      SAHPI_DOMAIN_CAP_AUTOINSERT_READ_ONLY,
 	                      SAHPI_TIMEOUT_IMMEDIATE)) {
 	        data_access_unlock();
-		err("Could not create first domain!");
+		CRIT("Could not create first domain!");
 		return SA_ERR_HPI_ERROR;
        }
 
@@ -135,10 +135,10 @@ int oh_init(void)
          * all of them failed to load, Then return with an error.
          */
         if (config.handlers_defined > 0 && config.handlers_loaded == 0) {
-                warn("Warning: Handlers were defined, but none loaded.");
+                WARN("Warning: Handlers were defined, but none loaded.");
         } else if (config.handlers_defined > 0 &&
                    config.handlers_loaded < config.handlers_defined) {
-                warn("*Warning*: Not all handlers defined loaded."
+                WARN("*Warning*: Not all handlers defined loaded."
                      " Check previous messages.");
         }
 
@@ -147,13 +147,13 @@ int oh_init(void)
 
         initialized = 1;
         data_access_unlock();
-	dbg("OpenHPI has been initialized");
+	DBG("OpenHPI has been initialized");
 
         /* infrastructure initialization has completed at this point */
 
         /* Check if there are any handlers loaded */
         if (config.handlers_defined == 0) {
-                warn("*Warning*: No handler definitions found in config file."
+                WARN("*Warning*: No handler definitions found in config file."
                      " Check configuration file %s and previous messages",
                      config_param.u.conf);
         }

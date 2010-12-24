@@ -17,6 +17,8 @@
 
 MAINTAINERCLEANFILES 	= Makefile.in *~
 
+AM_CPPFLAGS = -DG_LOG_DOMAIN=\"openhpid\"
+
 INCLUDES 		= \
 	@OPENHPI_INCLUDES@  -I$(top_srcdir)/transport -I$(top_srcdir)/marshal @OH_SSL_INCLUDES@
 
