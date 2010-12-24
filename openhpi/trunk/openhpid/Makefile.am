@@ -52,12 +52,13 @@ libopenhpidaemon_la_SOURCES        = \
     threaded.c \
     threaded.h
 
-libopenhpidaemon_la_LIBADD         = $(top_builddir)/utils/libopenhpiutils.la
+libopenhpidaemon_la_LIBADD         = $(top_builddir)/utils/libopenhpiutils.la \
+                                     @GMODULE_ONLY_LIBS@
 
 if HAVE_OPENSSL
 libopenhpidaemon_la_LIBADD += $(top_builddir)/$(SSLDIR)/libopenhpi_ssl.la
 endif
-libopenhpidaemon_la_LDFLAGS   = @HPI_LIB_VERSION@ @GMODULE_ONLY_LIBS@
+libopenhpidaemon_la_LDFLAGS   = @HPI_LIB_VERSION@
 
 # daemon
 sbin_PROGRAMS           = openhpid
@@ -70,7 +71,7 @@ openhpid_LDADD         = libopenhpidaemon.la \
 
 openhpid_LDFLAGS        = -export-dynamic
 
-# this is defined with ./configure --disable-dynamicdaemon
+# this is defined with ./configure --disable-dynamic-daemon
 if OPENHPID_STATIC
 openhpid_LDFLAGS        += -static
 else
