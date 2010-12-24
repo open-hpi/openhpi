@@ -59,7 +59,7 @@ MOSTLYCLEANFILES        = tags
 
 
 SUBDIRS                 = utils scripts @SSLDIR@ @SNMPDIR@ transport marshal baselib @ENABLED_DIRS@ plugins docs hpi_shell
-DIST_SUBDIRS            = utils scripts snmp ssl transport marshal baselib openhpid plugins docs clients cpp hpi_shell
+DIST_SUBDIRS            = utils scripts ssl snmp transport marshal baselib openhpid plugins docs clients cpp hpi_shell
 
 
 DISTCHECK_CONFIGURE_FLAGS = --with-initdir=prefix

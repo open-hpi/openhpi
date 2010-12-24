@@ -630,10 +630,7 @@ AC_ARG_ENABLE([werror],
 	CC_WARNINGS="$CC_WARNINGS -Werror"
 	CXX_WARNINGS="$CXX_WARNINGS -Werror"
     fi],
-    [
-	CC_WARNINGS="$CC_WARNINGS -Werror"
-	CXX_WARNINGS="$CXX_WARNINGS -Werror"
-    ])
+    [])
 
 if test -n "`gcc --version | grep ' 3.2'`" ; then
         CC_WARNINGS=`echo $CC_WARNINGS | sed -e 's/-Wno-strict-aliasing//g'`
