@@ -11,14 +11,18 @@ SRC := conf.c \
 
 OBJ := $(patsubst %.c, %.o, $(patsubst %.cpp, %.o, ${SRC}))
 
-INCLUDES := ${GLIB_INCLUDES} -I ../utils -I ../transport -I ../marshal
+DEFS := -DG_LOG_DOMAIN=\"baselib\"
+DEFS += -DSAHPI_API="__declspec(dllexport)"
+
+INCLUDES := ${GLIB_INCLUDES}
+INCLUDES += -I ../mingw32 -I ../include -I ../utils -I ../transport -I ../marshal
+
 LIBS := ${GLIB_LIBS} ${GTHREAD_LIBS}
 LIBS += -L ../utils -lopenhpiutils-${VERSION}
 LIBS += -L ../transport -lopenhpitransport-${VERSION}
 LIBS += -L ../marshal -lopenhpimarshal-${VERSION}
 
-CXXFLAGS += ${INCLUDES} -DSAHPI_API="__declspec(dllexport)"
-CFLAGS += ${INCLUDES} -DSAHPI_API="__declspec(dllexport)"
+CPPFLAGS += ${DEFS} ${INCLUDES}
 
 .PHONY: all clean
 

@@ -8,14 +8,20 @@ SRC := marshal.c \
 
 OBJ := $(patsubst %.c, %.o, ${SRC})
 
-CFLAGS += ${GLIB_INCLUDES} -I ../utils
+DEFS := -DG_LOG_DOMAIN=\"marshal\"
+
+INCLUDES := ${GLIB_INCLUDES} -I ../mingw32 -I ../include -I ../utils
+
+LIBS := ${GLIB_LIBS}
+
+CPPFLAGS += ${DEFS} ${INCLUDES}
 
 .PHONY: all clean
 
 all : ${TARGET}
 
 ${TARGET} : ${OBJ}
-	${CC} -shared -o $@ $^ ${GLIB_LIBS}
+	${CC} -shared -o $@ $^ ${LIBS}
 
 clean:
 	rm -f ${OBJ} ${TARGET}

@@ -20,22 +20,24 @@ SRC := alarm.c \
 
 OBJ := $(patsubst %.c, %.o,$(patsubst %.cpp, %.o, ${SRC} ) )
 
-INCLUDES := ${GLIB_INCLUDES} -I ../utils -I ../transport -I ../marshal 
-LIB_DIRS := ${GLIB_LIBS} -L ../utils -L ../transport -L ../marshal
+DEFS := -DG_LOG_DOMAIN=\"openhpid\"
 
-CXXFLAGS += ${INCLUDES}
-CFLAGS += ${INCLUDES}
+INCLUDES := ${GLIB_INCLUDES}
+INCLUDES +=  -I ../mingw32 -I ../include -I ../utils -I ../transport -I ../marshal 
+
+LIBS := ${GLIB_LIBS} ${GTHREAD_LIBS} ${GMODULE_LIBS}
+LIBS += -L ../utils -lopenhpiutils-${VERSION} 
+LIBS += -L ../transport -lopenhpitransport-${VERSION} 
+LIBS += -L ../marshal -lopenhpimarshal-${VERSION}
+
+CPPFLAGS += ${DEFS} ${INCLUDES}
 
 .PHONY: all clean
 
 all : ${TARGET}
 
 ${TARGET} : ${OBJ}
-	${CXX} -o $@ $^ ${LIB_DIRS} \
-    -lglib-2.0 -lgthread-2.0 -lgmodule-2.0 \
-    -lopenhpiutils-${VERSION} \
-    -lopenhpitransport-${VERSION} \
-    -lopenhpimarshal-${VERSION}
+	${CXX} -o $@ $^ ${LIBS}
 
 clean:
 	rm -f ${OBJ} ${TARGET}

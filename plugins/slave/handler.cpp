@@ -106,7 +106,7 @@ bool cHandler::Init()
 bool cHandler::WaitForDiscovery()
 {
     while ( m_startup_discovery_status == StartupDiscoveryUncompleted ) {
-        usleep( (useconds_t)( DiscoveryStatusCheckInterval / 1000ULL ) );
+        g_usleep( (gulong)( DiscoveryStatusCheckInterval / 1000ULL ) );
     }
 
     return ( m_startup_discovery_status == StartupDiscoveryDone );
@@ -188,7 +188,7 @@ void cHandler::ThreadProc()
             }
         }
         if ( !m_stop ) {
-            usleep( (useconds_t)( OpenSessionRetryInterval / 1000ULL ) );
+            g_usleep( (gulong)( OpenSessionRetryInterval / 1000ULL ) );
         }
     }
 }

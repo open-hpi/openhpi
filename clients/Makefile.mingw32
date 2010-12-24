@@ -22,20 +22,23 @@ TARGETS := hpialarms.exe \
 
 OBJS := $(patsubst %.exe, %.o, ${TARGETS}) clients.o
 
-INCLUDES := ${GLIB_INCLUDES} -I ../utils -I ../include
-LIB_DIRS := ${GLIB_LIBS} -L ../baselib -L ../utils
-LIB_DIRS += -L ../baselib -lopenhpi-${VERSION}
-LIB_DIRS += -L ../utils -lopenhpiutils-${VERSION}
+DEFS := -DG_LOG_DOMAIN=\"client\"
+DEFS += -DSAHPI_API="__declspec(dllimport)"
 
-CXXFLAGS += ${INCLUDES} -DSAHPI_API="__declspec(dllimport)"
-CFLAGS += ${INCLUDES} -DSAHPI_API="__declspec(dllimport)"
+INCLUDES := ${GLIB_INCLUDES} -I ../mingw32 -I ../include -I ../utils
+
+LIBS := ${GLIB_LIBS}
+LIBS += -L ../baselib -lopenhpi-${VERSION}
+LIBS += -L ../utils -lopenhpiutils-${VERSION}
+
+CPPFLAGS += ${DEFS} ${INCLUDES}
 
 .PHONY: all clean
 
 all : ${TARGETS}
 
 %.exe : %.o clients.o
-	${CXX} -o $@ $^ ${LIB_DIRS} 
+	${CXX} -o $@ $^ ${LIBS} 
 
 clean:
 	rm -f ${OBJS} ${TARGETS}

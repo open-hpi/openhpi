@@ -14,9 +14,6 @@ GTHREAD_LIBS := -L ${GLIB_DIR}/lib -lgthread-2.0
 GMODULE_LIBS := -L ${GLIB_DIR}/lib -lgmodule-2.0
 ############################################################################
 
-INCLUDES := -I ../include -I ../mingw32
-
-CFLAGS := -DVERSION=\"${VERSION}\" -D_WIN32_WINNT=0x0501 ${INCLUDES}
-CXXFLAGS := -DVERSION=\"${VERSION}\" -D_WIN32_WINNT=0x0501 ${INCLUDES}
+CPPFLAGS := -DVERSION=\"${VERSION}\" -D_WIN32_WINNT=0x0501 -DOH_DBG_MSGS
 LDFLAGS := -no-undefined --enable-runtime-pseudo-reloc
 
