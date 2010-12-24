@@ -28,6 +28,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <syslog.h>
 #include <unistd.h>
 
 #include <glib.h>
@@ -40,7 +41,8 @@
 #include "server.h"
 
 
-static int verbose_flag = 0;
+static bool daemonized   = false;
+static bool verbose_flag = false;
 
 
 /*--------------------------------------------------------------------*/
@@ -74,6 +76,67 @@ void display_help(void)
 }
 
 /*--------------------------------------------------------------------*/
+/* Logging Utility Functions                                          */
+/*--------------------------------------------------------------------*/
+static const char * get_log_level_name(GLogLevelFlags log_level)
+{
+    if (log_level & G_LOG_LEVEL_ERROR) {
+        return "ERR";
+    } else if (log_level & G_LOG_LEVEL_CRITICAL) {
+        return "CRIT";
+    } else if (log_level & G_LOG_LEVEL_WARNING) {
+        return "WARN";
+    } else if (log_level & G_LOG_LEVEL_MESSAGE) {
+        return "MSG";
+    } else if (log_level & G_LOG_LEVEL_INFO) {
+        return "INFO";
+    } else if (log_level & G_LOG_LEVEL_DEBUG) {
+        return "DBG";
+    }
+    return "???";
+}
+
+static int get_syslog_level(GLogLevelFlags log_level)
+{
+    if (log_level & G_LOG_LEVEL_ERROR) {
+        return LOG_ERR;
+    } else if (log_level & G_LOG_LEVEL_CRITICAL) {
+        return LOG_CRIT;
+    } else if (log_level & G_LOG_LEVEL_WARNING) {
+        return LOG_WARNING;
+    } else if (log_level & G_LOG_LEVEL_MESSAGE) {
+        return LOG_NOTICE;
+    } else if (log_level & G_LOG_LEVEL_INFO) {
+        return LOG_INFO;
+    } else if (log_level & G_LOG_LEVEL_DEBUG) {
+        return LOG_DEBUG;
+    }
+    return LOG_INFO;
+}
+
+void log_handler(const gchar *log_domain,
+                 GLogLevelFlags log_level,
+                 const gchar *message,
+                 gpointer /*user_data */)
+{
+    if ((!verbose_flag) && ((log_level & G_LOG_LEVEL_CRITICAL) == 0) ) {
+        return;
+    }
+    if (!daemonized) {
+        printf("%s: %s: %s\n",
+               log_domain,
+               get_log_level_name(log_level),
+               message);
+    } else {
+        syslog(LOG_DAEMON | get_syslog_level(log_level),
+               "%s: %s\n",
+               log_domain,
+               message);
+    }
+}
+
+
+/*--------------------------------------------------------------------*/
 /* PID File Unility Functions                                         */
 /*--------------------------------------------------------------------*/
 bool check_pidfile(const char *pidfile)
@@ -89,7 +152,7 @@ bool check_pidfile(const char *pidfile)
         memset(buf, 0, sizeof(buf));
         ssize_t len = read(fd, buf, sizeof(buf) - 1);
         if (len < 0) {
-            err("Error: Cannot read from PID file.\n");
+            CRIT("Cannot read from PID file.");
             return false;
         }
         close(fd);
@@ -97,7 +160,7 @@ bool check_pidfile(const char *pidfile)
         if ((pid > 0) && (pid == getpid() || (kill(pid, 0) < 0))) {
             unlink(pidfile);
         } else {
-            err("Error: There is another active OpenHPI daemon.\n");
+            CRIT("There is another active OpenHPI daemon.");
             return false;
         }
     }
@@ -114,7 +177,7 @@ bool update_pidfile(const char *pidfile)
 
     int fd = open(pidfile, O_WRONLY|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP);
     if (fd < 0) {
-        err("Error: Cannot open PID file.\n");
+        CRIT("Cannot open PID file.");
         return false;
     }
     char buf[32];
@@ -153,6 +216,8 @@ static bool daemonize(const char *pidfile)
         exit(0);
     }
 
+    daemonized = true;
+
     update_pidfile(pidfile);
 
     //chdir("/");
@@ -177,6 +242,8 @@ static bool daemonize(const char *pidfile)
 
 int main(int argc, char *argv[])
 {
+    g_log_set_default_handler(log_handler, 0);
+
     struct option options[] = {
         {"verbose",   no_argument,       0, 'v'},
         {"nondaemon", no_argument,       0, 'n'},
@@ -216,7 +283,7 @@ int main(int argc, char *argv[])
                 port = atoi(optarg);
                 break;
             case 'v':
-                verbose_flag = 1;
+                verbose_flag = true;
                 break;
             case 'f':
                 pidfile = g_strdup(optarg);
@@ -241,26 +308,26 @@ int main(int argc, char *argv[])
         }
     }
     if (optind < argc) {
-        fprintf(stderr, "Error: Unknown command line option specified. Exiting.\n");
+        CRIT("Unknown command line option specified. Exiting.");
         display_help();
         exit(-1);
     }
 
     // see if we have a valid configuration file
     if ((!cfgfile) || (!g_file_test(cfgfile, G_FILE_TEST_EXISTS))) {
-        fprintf(stderr, "Error: Cannot find configuration file. Exiting.\n");
+        CRIT("Cannot find configuration file. Exiting.");
         display_help();
         exit(-1);
     }
 
     // see if we are already running
     if (!check_pidfile(pidfile)) {
-        fprintf(stderr, "Error: PID file check failed. Exiting.\n");
+        CRIT("PID file check failed. Exiting.");
         display_help();
         exit(1);
     }
     if (!update_pidfile(pidfile)) {
-        fprintf(stderr, "Error: Cannot update PID file. Exiting.\n");
+        CRIT("Cannot update PID file. Exiting.");
         display_help();
         exit(1);
     }
@@ -272,14 +339,14 @@ int main(int argc, char *argv[])
     }
 
     if (oh_init()) { // Initialize OpenHPI
-        err("There was an error initializing OpenHPI. Exiting.\n");
+        CRIT("There was an error initializing OpenHPI. Exiting.");
         return 8;
     }
 
     // announce ourselves
-    dbg("%s started.\n", argv[0]);
-    dbg("OPENHPI_CONF = %s.\n", cfgfile);
-    dbg("OPENHPI_DAEMON_PORT = %u.\n\n", port);
+    INFO("%s version %s started.", argv[0], VERSION);
+    INFO("OPENHPI_CONF = %s.", cfgfile);
+    INFO("OPENHPI_DAEMON_PORT = %u", port);
 
     bool rc = oh_server_run(port, sock_timeout, max_threads);
     if (!rc) {

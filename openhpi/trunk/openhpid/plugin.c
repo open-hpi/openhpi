@@ -124,7 +124,7 @@ struct oh_plugin *oh_get_plugin(char *plugin_name)
         struct oh_plugin *plugin = NULL;
 
         if (!plugin_name) {
-                err("ERROR getting plugin. Invalid parameter.");
+                CRIT("ERROR getting plugin. Invalid parameter.");
                 return NULL;
         }
 
@@ -155,7 +155,7 @@ struct oh_plugin *oh_get_plugin(char *plugin_name)
 void oh_release_plugin(struct oh_plugin *plugin)
 {
         if (!plugin) {
-                err("WARNING - NULL plugin parameter passed.");
+                CRIT("WARNING - NULL plugin parameter passed.");
                 return;
         }
 
@@ -181,7 +181,7 @@ int oh_getnext_plugin_name(char *plugin_name,
         GSList *node = NULL;
 
         if (!next_plugin_name) {
-                err("ERROR. Invalid parameter.");
+                CRIT("ERROR. Invalid parameter.");
                 return -1;
         }
         memset(next_plugin_name, '\0', size);
@@ -195,7 +195,7 @@ int oh_getnext_plugin_name(char *plugin_name,
                         return 0;
                 } else {
                         g_static_rec_mutex_unlock(&oh_plugins.lock);
-                        dbg("No plugins have been loaded yet.");
+                        DBG("No plugins have been loaded yet.");
                         return -1;
                 }
         } else {
@@ -241,26 +241,26 @@ int oh_load_plugin(char *plugin_name)
         int err;
 
         if (!plugin_name) {
-                err("ERROR. NULL plugin name passed.");
+                CRIT("ERROR. NULL plugin name passed.");
                 return -1;
         }
 
         if (g_module_supported() == FALSE) {
-                err("ERROR. GModule is not supported. Cannot load plugins.");
+                CRIT("ERROR. GModule is not supported. Cannot load plugins.");
                 return -1;
         }
 
         plugin = oh_get_plugin(plugin_name);
         if (plugin) {
                 oh_release_plugin(plugin);
-                dbg("Plugin %s already loaded. Not loading twice.",
+                DBG("Plugin %s already loaded. Not loading twice.",
                     plugin_name);
                 return 0;
         }
 
         plugin = g_new0(struct oh_plugin, 1);
         if (!plugin) {
-                err("Out of memory.");
+                CRIT("Out of memory.");
                 return -1;
         }
         plugin->name = g_strdup(plugin_name);
@@ -276,11 +276,11 @@ int oh_load_plugin(char *plugin_name)
                         err = (*p->get_interface)((void **)&plugin->abi, UUID_OH_ABI_V2);
 
                         if (err < 0 || !plugin->abi || !plugin->abi->open) {
-                                err("Can not get ABI V2");
+                                CRIT("Can not get ABI V2");
                                 goto cleanup_and_quit;
                         }
 
-                        dbg("found static plugin %s", p->name);
+                        DBG("found static plugin %s", p->name);
 
                         g_static_rec_mutex_lock(&oh_plugins.lock);
                         oh_plugins.list = g_slist_append(oh_plugins.list, plugin);
@@ -303,14 +303,14 @@ int oh_load_plugin(char *plugin_name)
         }
         g_strfreev(plugin_search_dirs);
         if (plugin->dl_handle == NULL) {
-                err("Can not open %s plugin: %s", plugin->name, g_module_error());
+                CRIT("Can not open %s plugin: %s", plugin->name, g_module_error());
                 goto cleanup_and_quit;
         }
 
         err = oh_load_plugin_functions(plugin, &plugin->abi);
 
         if (err < 0 || !plugin->abi || !plugin->abi->open) {
-                err("Can not get ABI");
+                CRIT("Can not get ABI");
                 goto cleanup_and_quit;
         }
         g_static_rec_mutex_lock(&oh_plugins.lock);
@@ -334,19 +334,19 @@ int oh_unload_plugin(char *plugin_name)
         struct oh_plugin *plugin = NULL;
 
         if (!plugin_name) {
-                err("ERROR unloading plugin. NULL parameter passed.");
+                CRIT("ERROR unloading plugin. NULL parameter passed.");
                 return -1;
         }
 
         plugin = oh_get_plugin(plugin_name);
         if (!plugin) {
-                err("ERROR unloading plugin. Plugin not found.");
+                CRIT("ERROR unloading plugin. Plugin not found.");
                 return -2;
         }
 
         if (plugin->handler_count > 0) {
                 oh_release_plugin(plugin);
-                err("ERROR unloading plugin. Handlers are still referencing it.");
+                CRIT("ERROR unloading plugin. Handlers are still referencing it.");
                 return -3;
         }
 
@@ -386,7 +386,7 @@ static void __delete_handler(struct oh_handler *h)
         /* Subtract one from the number of handlers using this plugin */
         plugin = oh_get_plugin(h->plugin_name);
         if (!plugin) {
-                err("BAD ERROR - Handler loaded, but plugin does not exist!");
+                CRIT("BAD ERROR - Handler loaded, but plugin does not exist!");
         } else {
                 plugin->handler_count--;
                 oh_release_plugin(plugin);
@@ -416,7 +416,7 @@ struct oh_handler *oh_get_handler(unsigned int hid)
         handler = node ? node->data : NULL;
         if (!handler) {
                 g_static_rec_mutex_unlock(&oh_handlers.lock);
-                err("Error - Handler %d was not found", hid);
+                CRIT("Error - Handler %d was not found", hid);
                 return NULL;
         }
         __inc_handler_refcount(handler);
@@ -436,7 +436,7 @@ struct oh_handler *oh_get_handler(unsigned int hid)
 void oh_release_handler(struct oh_handler *handler)
 {
         if (!handler) {
-                err("Warning - NULL parameter passed.");
+                CRIT("Warning - NULL parameter passed.");
                 return;
         }
 
@@ -462,7 +462,7 @@ int oh_getnext_handler_id(unsigned int hid, unsigned int *next_hid)
         struct oh_handler *h = NULL;
 
         if (!next_hid) {
-                err("ERROR. Invalid parameter.");
+                CRIT("ERROR. Invalid parameter.");
                 return -1;
         }
         *next_hid = 0;
@@ -476,7 +476,7 @@ int oh_getnext_handler_id(unsigned int hid, unsigned int *next_hid)
                         return 0;
                 } else {
                         g_static_rec_mutex_unlock(&oh_handlers.lock);
-                        err("Warning - no handlers");
+                        CRIT("Warning - no handlers");
                         return -1;
                 }
         } else { /* Return handler id coming after hid in the list */
@@ -507,13 +507,13 @@ static struct oh_handler *new_handler(GHashTable *handler_config)
         GHashTable *newconfig;
 
         if (!handler_config) {
-                err("ERROR creating new handler. Invalid parameter.");
+                CRIT("ERROR creating new handler. Invalid parameter.");
                 return NULL;
         }
 
 	plugin_name = (char *)g_hash_table_lookup(handler_config, "plugin");
 	if (!plugin_name) {
-		err("ERROR creating new handler. No plugin name received.");
+		CRIT("ERROR creating new handler. No plugin name received.");
 		return NULL;
 	}
 
@@ -523,14 +523,14 @@ static struct oh_handler *new_handler(GHashTable *handler_config)
         if(!plugin) { /* Attempt to load plugin here once */
 		int rc = oh_load_plugin(plugin_name);
 		if (rc) {
-                	err("Could not create handler. Plugin %s not loaded",
+                	CRIT("Could not create handler. Plugin %s not loaded",
                     	    plugin_name);
                 	goto cleanexit;
 		}
 
 		plugin = oh_get_plugin(plugin_name);
 		if (!plugin) {
-			err("Tried but could not get a plugin to "
+			CRIT("Tried but could not get a plugin to "
 			    "create this handler.");
 			goto cleanexit;
 		}
@@ -574,7 +574,7 @@ SaErrorT oh_create_handler (GHashTable *handler_config, unsigned int *hid)
         struct oh_handler *handler = NULL;
 
         if (!handler_config || !hid) {
-                err("ERROR creating handler. Invalid parameters.");
+                CRIT("ERROR creating handler. Invalid parameters.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
@@ -594,7 +594,7 @@ SaErrorT oh_create_handler (GHashTable *handler_config, unsigned int *hid)
                                           handler->id,
                                           &oh_process_q);
         if (!handler->hnd) {
-                err("A handler #%d on the %s plugin could not be opened.",
+                CRIT("A handler #%d on the %s plugin could not be opened.",
                     handler->id, handler->plugin_name);
 		g_static_rec_mutex_unlock(&oh_handlers.lock);
 		return SA_ERR_HPI_INTERNAL_ERROR;
@@ -615,13 +615,13 @@ int oh_destroy_handler(unsigned int hid)
         struct oh_handler *handler = NULL;
 
         if (hid < 1) {
-                err("ERROR - Invalid handler 0 id passed.");
+                CRIT("ERROR - Invalid handler 0 id passed.");
                 return -1;
         }
 
         handler = oh_get_handler(hid);
         if (!handler) {
-                err("ERROR - Handler %d not found.", hid);
+                CRIT("ERROR - Handler %d not found.", hid);
                 return -1;
         }
 
@@ -661,7 +661,7 @@ SaErrorT oh_discovery(void)
 
                 h = oh_get_handler(hid);
                 if (!h) {
-                        err("No such handler %d", hid);
+                        CRIT("No such handler %d", hid);
                         break;
                 }
 
@@ -695,7 +695,7 @@ int oh_load_plugin_functions(struct oh_plugin *plugin, struct oh_abi_v2 **abi)
 
 
         if (!(*abi)) {
-                err("Out of Memory!");
+                CRIT("Out of Memory!");
                 return -1;
         }
 

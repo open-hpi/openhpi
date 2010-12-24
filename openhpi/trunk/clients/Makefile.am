@@ -1,6 +1,8 @@
 MAINTAINERCLEANFILES = Makefile.in
 MOSTLYCLEANFILES     = @TEST_CLEAN@
 
+AM_CPPFLAGS = -DG_LOG_DOMAIN=\"client\"
+
 INCLUDES             = @OPENHPI_INCLUDES@
 
 EXTRA_DIST	     = Makefile.mingw32 oh_clients.h

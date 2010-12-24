@@ -71,7 +71,7 @@ SaErrorT oh_encode_entitypath(const gchar *epstr, SaHpiEntityPathT *ep)
         /* Split out {xxx,yyy} definition pairs */
        	gstr = g_strstrip(g_strdup(epstr));
 	if (gstr == NULL) {
-		err("Stripped entity path string is NULL"); 
+		CRIT("Stripped entity path string is NULL"); 
 		err = SA_ERR_HPI_INVALID_DATA;
 		goto CLEANUP;
 	}
@@ -83,7 +83,7 @@ SaErrorT oh_encode_entitypath(const gchar *epstr, SaHpiEntityPathT *ep)
 
 	epathdefs = g_strsplit(gstr, EPATHSTRING_END_DELIMITER, -1);
 	if (epathdefs == NULL) {
-		err("Cannot split entity path string.");
+		CRIT("Cannot split entity path string.");
 		err = SA_ERR_HPI_INTERNAL_ERROR;
 		goto CLEANUP;
         }
@@ -95,7 +95,7 @@ SaErrorT oh_encode_entitypath(const gchar *epstr, SaHpiEntityPathT *ep)
 		/* Check format - for starting delimiter and a comma */
 		if ((epathdefs[i][0] != EPATHSTRING_START_DELIMITER_CHAR) || 
 		    (strpbrk(epathdefs[i], EPATHSTRING_VALUE_DELIMITER) == NULL)) {
-			err("Invalid entity path format.");
+			CRIT("Invalid entity path format.");
 			err = SA_ERR_HPI_INVALID_DATA;
 			goto CLEANUP;
 		}
@@ -115,7 +115,7 @@ SaErrorT oh_encode_entitypath(const gchar *epstr, SaHpiEntityPathT *ep)
 			err = SA_OK;
                         int num = strtol(g_strstrip(epathvalues[0]), &endptr, 0);
                         if (num <= 0 || endptr[0] != '\0') {
-                                err("Invalid entity type string");
+                                CRIT("Invalid entity type string");
                                 err = SA_ERR_HPI_INVALID_DATA;
                                 goto CLEANUP;
                         }
@@ -125,7 +125,7 @@ SaErrorT oh_encode_entitypath(const gchar *epstr, SaHpiEntityPathT *ep)
 		/* Find entity location */
 		location = strtol(g_strstrip(epathvalues[1]), &endptr, 10);
 		if (endptr[0] != '\0') {
-			err("Invalid location character");
+			CRIT("Invalid location character");
 			err = SA_ERR_HPI_INVALID_DATA;
 			goto CLEANUP;
                 }
@@ -163,7 +163,7 @@ SaErrorT oh_encode_entitypath(const gchar *epstr, SaHpiEntityPathT *ep)
 	}
 
 	if (num_entities > SAHPI_MAX_ENTITY_PATH) {
-		err("Too many entity defs");
+		CRIT("Too many entity defs");
 		err = SA_ERR_HPI_INVALID_DATA;
 	}
 
@@ -248,7 +248,7 @@ SaErrorT oh_decode_entitypath(const SaHpiEntityPathT *ep,
 		     num_digits++);
 		
 		if (num_digits > OH_MAX_LOCATION_DIGITS) {
-                        err("Location value too big");
+                        CRIT("Location value too big");
                         err = SA_ERR_HPI_INVALID_DATA;
 			goto CLEANUP;
 		}
@@ -460,7 +460,7 @@ SaHpiBoolT oh_cmp_ep(const SaHpiEntityPathT *ep1, const SaHpiEntityPathT *ep2)
         for (i=0; i<j; i++) {
                 if (ep1->Entry[i].EntityType != ep2->Entry[i].EntityType ||
                     ep1->Entry[i].EntityLocation != ep2->Entry[i].EntityLocation) {
-                        /* dbg("Entity element %d: EP1 {%d,%d} != EP2 {%d,%d}", i, 
+                        /* DBG("Entity element %d: EP1 {%d,%d} != EP2 {%d,%d}", i, 
                             ep1->Entry[i].EntityType,
                             ep1->Entry[i].EntityLocation,
                             ep2->Entry[i].EntityType,
@@ -584,22 +584,22 @@ gchar * oh_derive_string(SaHpiEntityPathT *ep,
 	}
 
 	if (offset < 0) {
-		err("Invalid location offset.");
+		CRIT("Invalid location offset.");
 		return(NULL);
 	}
 
 	if (!(base == 10 || base == 16)) {
-		err("Invalid base.");
+		CRIT("Invalid base.");
 		return(NULL);
 	}
 
         for (num_epe = 0;
              ep->Entry[num_epe].EntityType != SAHPI_ENT_ROOT && num_epe < SAHPI_MAX_ENTITY_PATH;
              num_epe++);
-        /* dbg("Number of elements in entity path: %d", num_epe); */
+        /* DBG("Number of elements in entity path: %d", num_epe); */
 
         if (num_epe == 0) {
-                err("Entity Path is null.");
+                CRIT("Entity Path is null.");
                 return(NULL);
         }
         if ((str_strlen = strlen(str)) == 0) return(NULL); /* Str is zero length */
@@ -608,16 +608,16 @@ gchar * oh_derive_string(SaHpiEntityPathT *ep,
         for (num_blanks=0, i=0; i<str_strlen; i++) {
                 if (str[i] == OH_DERIVE_BLANK_CHAR) num_blanks++;
         }
-        /* dbg("Number of blanks in str: %d, %s", num_blanks, str); */
+        /* DBG("Number of blanks in str: %d, %s", num_blanks, str); */
         if (num_blanks > num_epe) {
-                err("Number of replacements=%d > entity path elements=%d", num_blanks, num_epe);
+                CRIT("Number of replacements=%d > entity path elements=%d", num_blanks, num_epe);
                 return(NULL);
         }
 
         fragments = g_strsplit(str, OH_DERIVE_BLANK_STR, - 1);
-        if (!fragments) { err("Cannot split string"); goto CLEANUP; }
+        if (!fragments) { CRIT("Cannot split string"); goto CLEANUP; }
         str_nodes = g_new0(gchar *, num_blanks + 1);
-        if (!str_nodes) { err("Out of memory."); goto CLEANUP; }
+        if (!str_nodes) { CRIT("Out of memory."); goto CLEANUP; }
         total_num_digits = 0;
         for (i=0; i<num_blanks; i++) {
                 work_location_num = ep->Entry[num_blanks-1-i].EntityLocation;
@@ -626,7 +626,7 @@ gchar * oh_derive_string(SaHpiEntityPathT *ep,
                 for (num_digits = 1;
                      (work_location_num = work_location_num/base) > 0; num_digits++);
                 str_nodes[i] = g_new0(gchar, num_digits+1);
-                if (!str_nodes[i]) {err("Out of memory."); goto CLEANUP;}
+                if (!str_nodes[i]) {CRIT("Out of memory."); goto CLEANUP;}
 		if (base == 10) {
 			snprintf(str_nodes[i], (num_digits + 1) * sizeof(gchar), "%d", 
 				 ep->Entry[num_blanks - 1 - i].EntityLocation + offset);
@@ -636,22 +636,22 @@ gchar * oh_derive_string(SaHpiEntityPathT *ep,
 				 ep->Entry[num_blanks - 1 - i].EntityLocation + offset);
 		}
 
-                /* dbg("Location number: %s", str_nodes[i]); */
+                /* DBG("Location number: %s", str_nodes[i]); */
                 total_num_digits = total_num_digits + num_digits;
         }
 
         new_str = g_new0(gchar, str_strlen-num_blanks + total_num_digits + 1);
-        if (!new_str) { err("Out of memory."); goto CLEANUP; }
+        if (!new_str) { CRIT("Out of memory."); goto CLEANUP; }
         str_walker = new_str;
         for (i=0; fragments[i]; i++) {
                 str_walker = strcpy(str_walker, fragments[i]);
                 str_walker = str_walker + strlen(fragments[i]);
                 if (str_nodes[i]) {
                         str_walker = strcpy(str_walker, str_nodes[i]);
-                        /* dbg("Location number: %s", str_nodes[i]); */
+                        /* DBG("Location number: %s", str_nodes[i]); */
                         str_walker = str_walker + strlen(str_nodes[i]);
                 }
-                /* dbg("New str: %s", new_str); */
+                /* DBG("New str: %s", new_str); */
         }
 
 CLEANUP:

@@ -556,7 +556,7 @@ SaErrorT oh_encode_sensorreading(SaHpiTextBufferT *buffer,
         for (i=skip; i<buffer->DataLength && !found_number; i++) {
                 if (buffer->Data[i] == '+' || buffer->Data[i] == '-') {
                         if (found_sign) {
-                                err("Cannot parse multiple sign values");
+                                CRIT("Cannot parse multiple sign values");
                                 return(SA_ERR_HPI_INVALID_DATA);
                         }
                         found_sign = 1;
@@ -574,7 +574,7 @@ SaErrorT oh_encode_sensorreading(SaHpiTextBufferT *buffer,
                         if (buffer->Data[i] == '.') { /* Unless its a decimal point */
                                 if (in_number) {
                                         if (found_float) {
-                                                err("Cannot parse multiple decimal points");
+                                                CRIT("Cannot parse multiple decimal points");
                                                 return(SA_ERR_HPI_INVALID_DATA);
                                         }
                                         found_float = 1;
@@ -602,7 +602,7 @@ SaErrorT oh_encode_sensorreading(SaHpiTextBufferT *buffer,
         }
 
         if (found_float && type != SAHPI_SENSOR_READING_TYPE_FLOAT64) {
-                err("Number and type incompatible");
+                CRIT("Number and type incompatible");
                 return(SA_ERR_HPI_INVALID_DATA);
         }
 
@@ -613,11 +613,11 @@ SaErrorT oh_encode_sensorreading(SaHpiTextBufferT *buffer,
                         errno = 0;
                         num_int64 = strtoll(numstr, &endptr, 10);
                         if (errno) {
-                                err("strtoll failed, errno=%d", errno);
+                                CRIT("strtoll failed, errno=%d", errno);
                                 return(SA_ERR_HPI_INVALID_DATA);
                         }
                         if (*endptr != '\0') {
-                                err("strtoll failed: End Pointer=%s", endptr);
+                                CRIT("strtoll failed: End Pointer=%s", endptr);
                                 return(SA_ERR_HPI_INVALID_DATA);
                         }
                 }
@@ -633,11 +633,11 @@ SaErrorT oh_encode_sensorreading(SaHpiTextBufferT *buffer,
                         errno = 0;
                         num_uint64 = strtoull(numstr, &endptr, 10);
                         if (errno) {
-                                err("strtoull failed, errno=%d", errno);
+                                CRIT("strtoull failed, errno=%d", errno);
                                 return(SA_ERR_HPI_INVALID_DATA);
                         }
                         if (*endptr != '\0') {
-                                err("strtoull failed: End Pointer=%s", endptr);
+                                CRIT("strtoull failed: End Pointer=%s", endptr);
                                 return(SA_ERR_HPI_INVALID_DATA);
                         }
                 }
@@ -653,11 +653,11 @@ SaErrorT oh_encode_sensorreading(SaHpiTextBufferT *buffer,
                         errno = 0;
                         num_float64 = strtold(numstr, &endptr);
                         if (errno) {
-                                err("strtold failed, errno=%d", errno);
+                                CRIT("strtold failed, errno=%d", errno);
                                 return(SA_ERR_HPI_INVALID_DATA);
                         }
                         if (*endptr != '\0') {
-                                err("strtold failed: End Pointer=%s", endptr);
+                                CRIT("strtold failed: End Pointer=%s", endptr);
                                 return(SA_ERR_HPI_INVALID_DATA);
                         }
 
@@ -669,7 +669,7 @@ SaErrorT oh_encode_sensorreading(SaHpiTextBufferT *buffer,
                 break;
 
         default: /* Should never get here */
-                err("Invalid type=%d", type);
+                CRIT("Invalid type=%d", type);
                 return(SA_ERR_HPI_INTERNAL_ERROR);
         }
 
@@ -728,7 +728,7 @@ SaErrorT oh_fprint_bigtext(FILE *stream, const oh_big_textbuffer *big_buffer)
         if (big_buffer->DataType == SAHPI_TL_TYPE_TEXT) {
                 err = fprintf(stream, "%s\n", big_buffer->Data);
                 if (err < 0) {
-                        err("Invalid parameter.");
+                        CRIT("Invalid parameter.");
                         return(SA_ERR_HPI_INVALID_PARAMS);
                 }
         }
@@ -834,7 +834,7 @@ SaErrorT oh_append_textbuffer(SaHpiTextBufferT *buffer, const char *from)
         }
         size = strlen(from);
         if ((size + buffer->DataLength) >= SAHPI_MAX_TEXT_BUFFER_LENGTH) {
-                err("Cannot append to text buffer. Bufsize=%d, size=%u",
+                CRIT("Cannot append to text buffer. Bufsize=%d, size=%u",
                     buffer->DataLength, size);
                 return(SA_ERR_HPI_OUT_OF_SPACE);
         }
@@ -858,7 +858,7 @@ SaErrorT oh_append_bigtext(oh_big_textbuffer *big_buffer, const char *from)
         }
         size = strlen(from);
         if ((size + big_buffer->DataLength) >= OH_MAX_TEXT_BUFFER_LENGTH) {
-                err("Cannot append to buffer. Bufsize=%d, size=%u",
+                CRIT("Cannot append to buffer. Bufsize=%d, size=%u",
                     big_buffer->DataLength, size);
                 return(SA_ERR_HPI_INTERNAL_ERROR);
         }
@@ -891,7 +891,7 @@ static inline SaErrorT oh_append_data(oh_big_textbuffer *big_buffer, const SaHpi
                 slen = strlen(buff);
 
                 if ((slen + big_buffer->DataLength) >= OH_MAX_TEXT_BUFFER_LENGTH) {
-                        err("Cannot append to buffer. Bufsize=%d, len=%d",
+                        CRIT("Cannot append to buffer. Bufsize=%d, len=%d",
                             big_buffer->DataLength, len);
                         return(SA_ERR_HPI_INTERNAL_ERROR);
                 }
@@ -2321,7 +2321,7 @@ static SaErrorT oh_build_dimirec(oh_big_textbuffer *textbuff, const SaHpiDimiRec
         oh_big_textbuffer mybuf;
 
         if (!textbuff || !dimirec) {
-                dbg("Invalid parameter.");
+                DBG("Invalid parameter.");
                 return(SA_ERR_HPI_INVALID_PARAMS);
         }
 
@@ -2358,7 +2358,7 @@ SaErrorT oh_decode_dimitestcapabilities(SaHpiDimiTestCapabilityT capabilities,
         SaHpiTextBufferT working;
         
         if (!buffer) {
-                dbg("Invalid parameter.");
+                DBG("Invalid parameter.");
                 return(SA_ERR_HPI_INVALID_PARAMS);
         }       
         
@@ -2430,7 +2430,7 @@ SaErrorT oh_decode_fumiprotocols(SaHpiFumiProtocolT protocols,
         SaHpiTextBufferT working;
         
         if (!buffer) {
-                dbg("Invalid parameter.");
+                DBG("Invalid parameter.");
                 return(SA_ERR_HPI_INVALID_PARAMS);
         }       
         
@@ -2506,7 +2506,7 @@ SaErrorT oh_decode_fumicapabilities(SaHpiFumiCapabilityT capabilities,
         SaHpiTextBufferT working;
         
         if (!buffer) {
-                dbg("Invalid parameter.");
+                DBG("Invalid parameter.");
                 return(SA_ERR_HPI_INVALID_PARAMS);
         }       
         
@@ -2569,7 +2569,7 @@ SaErrorT oh_decode_guid(const SaHpiGuidT *guid, oh_big_textbuffer *buffer)
         unsigned int i;
 
         if (!buffer) {
-                dbg("Invalid parameter.");
+                DBG("Invalid parameter.");
                 return(SA_ERR_HPI_INVALID_PARAMS);
         }
 
@@ -2606,7 +2606,7 @@ static SaErrorT oh_build_fumirec(oh_big_textbuffer *textbuff, const SaHpiFumiRec
         SaHpiTextBufferT tmpbuffer;
 
         if (!textbuff || !fumirec) {
-                dbg("Invalid parameter.");
+                DBG("Invalid parameter.");
                 return(SA_ERR_HPI_INVALID_PARAMS);
         }
 
@@ -2839,7 +2839,7 @@ SaErrorT oh_build_event(oh_big_textbuffer *buffer,
         } else {
                 err = oh_entity_path_lookup(id, &ep);
                 if (err) {
-                        err("Could not determine entity path.");
+                        CRIT("Could not determine entity path.");
                 } else {
                         /* Only if we were able to get the entity path */
                         err  = oh_decode_entitypath(&ep, &bigbuf);
@@ -2917,7 +2917,7 @@ SaErrorT oh_build_event(oh_big_textbuffer *buffer,
                 err = oh_build_event_fumi(buffer, event, offsets);
                 break;
         default:
-                err("Unrecognized Event Type=%d.", event->EventType);
+                CRIT("Unrecognized Event Type=%d.", event->EventType);
                 return(SA_ERR_HPI_INVALID_PARAMS);
         }
 
@@ -3617,7 +3617,7 @@ static SaErrorT oh_build_event_dimi(oh_big_textbuffer *buffer, const SaHpiEventT
         const SaHpiDimiEventT* de = &(event->EventDataUnion.DimiEvent);
 
         if ( !buffer || !event) {
-                dbg("Invalid parameter.");
+                DBG("Invalid parameter.");
                 return(SA_ERR_HPI_INVALID_PARAMS);
         }
 
@@ -3665,7 +3665,7 @@ static SaErrorT oh_build_event_dimi_update(oh_big_textbuffer *buffer, const SaHp
         const SaHpiDimiUpdateEventT* de = &(event->EventDataUnion.DimiUpdateEvent);
 
         if ( !buffer || !event) {
-                dbg("Invalid parameter.");
+                DBG("Invalid parameter.");
                 return(SA_ERR_HPI_INVALID_PARAMS);
         }
 
@@ -3698,7 +3698,7 @@ static SaErrorT oh_build_event_fumi(oh_big_textbuffer *buffer, const SaHpiEventT
         const SaHpiFumiEventT* fe = &(event->EventDataUnion.FumiEvent);
 
         if ( !buffer || !event) {
-                dbg("Invalid parameter.");
+                DBG("Invalid parameter.");
                 return(SA_ERR_HPI_INVALID_PARAMS);
         }
 
@@ -3891,7 +3891,7 @@ SaHpiBoolT oh_valid_textbuffer(SaHpiTextBufferT *buffer)
         case SAHPI_TL_TYPE_BINARY: /* No check possible */
                 break;
         default:
-                err("Invalid data type");
+                CRIT("Invalid data type");
                 return(SAHPI_FALSE);
         }
 
@@ -3948,7 +3948,7 @@ if (thds->thdname.IsSupported) { \
         case SAHPI_SENSOR_READING_TYPE_BUFFER: \
 		break; \
         default: \
-                err("Invalid threshold reading type."); \
+                CRIT("Invalid threshold reading type."); \
                 return(SA_ERR_HPI_INVALID_CMD); \
         } \
 } \
@@ -4058,7 +4058,7 @@ SaErrorT oh_valid_ordering(SaHpiSensorThresholdsT *thds, SaHpiRdrT *rdr)
 
         format = rdr->RdrTypeUnion.SensorRec.DataFormat;
          
-        dbg("Start of ordering validation.");
+        DBG("Start of ordering validation.");
         switch (format.ReadingType) {
         case SAHPI_SENSOR_READING_TYPE_INT64:
                 validate_threshold_order(SensorInt64);
@@ -4072,7 +4072,7 @@ SaErrorT oh_valid_ordering(SaHpiSensorThresholdsT *thds, SaHpiRdrT *rdr)
         case SAHPI_SENSOR_READING_TYPE_BUFFER:
 		break;
         default:
-                err("Invalid threshold reading type.");
+                CRIT("Invalid threshold reading type.");
                 return(SA_ERR_HPI_INVALID_CMD);
         }
 
@@ -4114,22 +4114,22 @@ SaErrorT oh_valid_thresholds(SaHpiSensorThresholdsT *thds, SaHpiRdrT *rdr)
             rdr->RdrTypeUnion.SensorRec.ThresholdDefn.IsAccessible == SAHPI_FALSE ||
             rdr->RdrTypeUnion.SensorRec.ThresholdDefn.WriteThold == 0) return(SA_ERR_HPI_INVALID_CMD);
 
-        dbg("Start of threshold validation:");
-        dbg("Check SAHPI_STM_LOW_CRIT");
+        DBG("Start of threshold validation:");
+        DBG("Check SAHPI_STM_LOW_CRIT");
         validate_threshold(LowCritical, SAHPI_STM_LOW_CRIT);
-        dbg("Check SAHPI_STM_LOW_MAJOR");
+        DBG("Check SAHPI_STM_LOW_MAJOR");
         validate_threshold(LowMajor, SAHPI_STM_LOW_MAJOR);
-        dbg("Check SAHPI_STM_LOW_MINOR");
+        DBG("Check SAHPI_STM_LOW_MINOR");
         validate_threshold(LowMinor, SAHPI_STM_LOW_MINOR);
-        dbg("Check SAHPI_STM_UP_CRIT");
+        DBG("Check SAHPI_STM_UP_CRIT");
         validate_threshold(UpCritical, SAHPI_STM_UP_CRIT);
-        dbg("Check SAHPI_STM_UP_MAJOR");
+        DBG("Check SAHPI_STM_UP_MAJOR");
         validate_threshold(UpMajor, SAHPI_STM_UP_MAJOR);
-        dbg("Check SAHPI_STM_UP_MINOR");
+        DBG("Check SAHPI_STM_UP_MINOR");
         validate_threshold(UpMinor, SAHPI_STM_UP_MINOR);
-        dbg("Check SAHPI_STM_UP_HYSTERESIS");
+        DBG("Check SAHPI_STM_UP_HYSTERESIS");
         validate_threshold(PosThdHysteresis, SAHPI_STM_UP_HYSTERESIS);
-        dbg("Check SAHPI_STM_LOW_HYSTERESIS");
+        DBG("Check SAHPI_STM_LOW_HYSTERESIS");
         validate_threshold(NegThdHysteresis, SAHPI_STM_LOW_HYSTERESIS);
 
         return (SA_OK);
@@ -4289,7 +4289,7 @@ int oh_compare_sensorreading(SaHpiSensorReadingTypeT type,
                 else { return 0; }
                 break;
         default:
-                err("Invalid sensor reading type.");
+                CRIT("Invalid sensor reading type.");
                 return 0;
         }
 }
@@ -4401,7 +4401,7 @@ SaErrorT oh_valid_ctrl_state_mode(SaHpiCtrlRecT *ctrl_rdr,
                         /* No HPI spec error check - leave to caller, if needed */
                         break;
                 default:
-                        err("Invalid control state");
+                        CRIT("Invalid control state");
                         return(SA_ERR_HPI_INTERNAL_ERROR);
                 }
         }

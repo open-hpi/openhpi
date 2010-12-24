@@ -328,13 +328,13 @@ SaErrorT oh_el_map_to_file(oh_el *el, char *filename)
 
         fp = fopen(filename, "wb");
         if (!fp) {
-                err("EL file '%s' could not be opened", filename);
+                CRIT("EL file '%s' could not be opened", filename);
                 return SA_ERR_HPI_ERROR;
         }
         
 	for (node = el->list; node; node = node->next) {
                 if (fwrite((void *)node->data, sizeof(oh_el_entry), 1, fp) != 1) {
-			err("Couldn't write to file '%s'.", filename);
+			CRIT("Couldn't write to file '%s'.", filename);
 			fclose(fp);
                 	return SA_ERR_HPI_ERROR;
 		}
@@ -361,7 +361,7 @@ SaErrorT oh_el_map_from_file(oh_el *el, char *filename)
 
         fp = fopen(filename, "rb");
         if (!fp) {
-                err("EL file '%s' could not be opened", filename);
+                CRIT("EL file '%s' could not be opened", filename);
                 return SA_ERR_HPI_ERROR;
         }
 

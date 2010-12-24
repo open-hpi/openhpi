@@ -31,6 +31,8 @@
 
 MAINTAINERCLEANFILES    = Makefile.in *~ core core.*
 
+AM_CPPFLAGS = -DG_LOG_DOMAIN=\"dynsim\"
+
 INCLUDES                = @OPENHPI_INCLUDES@ 
 
 pkglib_LTLIBRARIES      = libdyn_simulator.la

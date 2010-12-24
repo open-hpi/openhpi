@@ -73,7 +73,7 @@ SaErrorT snmp_get( void *sessp,
 			} else if ( !(CHECK_END(vars->type)) ) {
 				/* This is one of the exception condition */
 				returncode = SA_ERR_HPI_NOT_PRESENT;
-				dbg("Warning: OID=%s gets snmp exception %d \n",objid, vars->type);
+				DBG("Warning: OID=%s gets snmp exception %d \n",objid, vars->type);
 
                     	} else if ( (vars->type == ASN_INTEGER) || 
 				    (vars->type == ASN_COUNTER) || 
@@ -92,7 +92,7 @@ SaErrorT snmp_get( void *sessp,
                 	}
 
 		} else {
-                        dbg("Error in packet %s\nReason: %s\n",
+                        DBG("Error in packet %s\nReason: %s\n",
                             objid, snmp_errstring(response->errstat));
 			returncode = errstat2hpi(response->errstat);
 		}
@@ -101,7 +101,7 @@ SaErrorT snmp_get( void *sessp,
                 value->type = (u_char)0x00; 
 		session = snmp_sess_session(sessp);
                 snmp_sess_perror("snmpget", session);
-                dbg("OID %s, error status: %d\n",objid, status);
+                DBG("OID %s, error status: %d\n",objid, status);
 		returncode = snmpstat2hpi(status);
         }
 
@@ -157,7 +157,7 @@ SaErrorT snmp_set(
                         break;
                 default:
                         rtncode = SA_ERR_HPI_INVALID_PARAMS;
-                        err("datatype %c not yet supported by snmp_set()\n", value.type);
+                        CRIT("datatype %c not yet supported by snmp_set()\n", value.type);
                         break;
         }
 
@@ -250,7 +250,7 @@ SaErrorT snmp_get2(void *sessp,
 			} else if ( !(CHECK_END(vars->type)) ) {
 				/* This is one of the exception condition */
 				returncode = SA_ERR_HPI_NOT_PRESENT;
-				dbg("snmp exception %d \n",vars->type);
+				DBG("snmp exception %d \n",vars->type);
 
                     	} else if ( (vars->type == ASN_INTEGER) || 
 				    (vars->type == ASN_COUNTER) || 
@@ -281,7 +281,7 @@ SaErrorT snmp_get2(void *sessp,
 						vars);
 				fprintf(stderr, "********************************************************\n");
 			}  else {
-				err("snmp_get2(): No idea.Unknown Type: %X", vars->type);
+				CRIT("snmp_get2(): No idea.Unknown Type: %X", vars->type);
 				fprint_variable(stderr, 
 						vars->name, 
 						vars->name_length, 
@@ -289,7 +289,7 @@ SaErrorT snmp_get2(void *sessp,
 			}		
 #endif
 		} else {
-                       err("Error, Reason: %s", 
+                       CRIT("Error, Reason: %s", 
 				snmp_errstring(response->errstat));
 			fprintf(stderr, "objid: ");
 			for(i = 0; i<objid_len; i++ )
@@ -354,7 +354,7 @@ SaErrorT snmp_set2(void *sessp,
                         break;
                 default:
                         rtncode = SA_ERR_HPI_INVALID_PARAMS;
-                        err("datatype %c not yet supported by snmp_set2()", 
+                        CRIT("datatype %c not yet supported by snmp_set2()", 
 				value->type);
                         break;
         }
@@ -393,10 +393,10 @@ SaErrorT snmp_set2(void *sessp,
 				if (!(CHECK_END(response->variables->type)) ) {
                                 	/* This is one of the exception condition */
 				        rtncode = SA_ERR_HPI_NOT_PRESENT;
-                                	err("snmp exception %d \n",vars->type);
+                                	CRIT("snmp exception %d \n",vars->type);
 				}
 			} else {
-                        	err("snmp_set2: Error in packet, Reason: %s",
+                        	CRIT("snmp_set2: Error in packet, Reason: %s",
 						snmp_errstring(response->errstat));
                                 rtncode = errstat2hpi(response->errstat);
 

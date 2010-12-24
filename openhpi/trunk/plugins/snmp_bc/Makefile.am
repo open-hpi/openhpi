@@ -10,6 +10,8 @@
 
 MAINTAINERCLEANFILES = Makefile.in
 
+AM_CPPFLAGS = -DG_LOG_DOMAIN=\"snmp_bc\"
+
 # Generated files - need to keep in sync with t/Makefile.am
 GENERATED_EVENT_XML_MAP = event.xml
 GENERATED_EVENT_CODE = el2event.c

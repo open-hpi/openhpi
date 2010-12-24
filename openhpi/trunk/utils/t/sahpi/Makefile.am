@@ -21,6 +21,9 @@ REMOTE_SOURCES =  epath_utils.c \
 		  uid_utils.c
 
 MOSTLYCLEANFILES = $(REMOTE_SOURCES) @TEST_CLEAN@
+
+AM_CPPFLAGS = -DG_LOG_DOMAIN=\"t\"
+
 INCLUDES	= @OPENHPI_INCLUDES@
 AM_CFLAGS	= -std=c99
 # the -std=c99 comment above is required to have unicode in the tests

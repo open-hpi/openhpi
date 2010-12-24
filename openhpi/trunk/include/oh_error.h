@@ -17,67 +17,54 @@
 #ifndef __OH_ERROR_H
 #define __OH_ERROR_H
 
+#include <config.h>
 
 #ifdef OH_DBG_MSGS
 
+#include <glib.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <syslog.h>
+#define CRIT( fmt, ... ) \
+    g_critical( "%s:%d: " fmt, __FILE__, __LINE__,## __VA_ARGS__ )
 
-#include <config.h>
+#define WARN( fmt, ... ) \
+    g_warning( "%s:%d: " fmt, __FILE__, __LINE__,## __VA_ARGS__ )
 
-/* this is put here intentionally as there are too many instances
- * of unqualified sprintf calls in plugin code. Use snprintf instead
- * to ensure there are no buffer overruns 
- */
-/* Unfortunately, sprintf is used in the system headers of some versions
- * of Solaris, so we can't poison sprintf there.
- */
-#if !defined(__sun) || !defined(__SVR4)
-#undef sprintf
-#pragma GCC poison sprintf
-#endif
+#define MSG( fmt, ... ) \
+    g_message( "%s:%d: " fmt, __FILE__, __LINE__,## __VA_ARGS__ )
 
-#define OH_ERROR "OPENHPI_ERROR"
-#define OH_DEBUG "OPENHPI_DEBUG"
+#define INFO( fmt, ... ) \
+    g_log (G_LOG_DOMAIN, G_LOG_LEVEL_INFO, \
+           "%s:%d: " fmt, __FILE__, __LINE__,## __VA_ARGS__ )
 
-#define err(format, ...) \
-    do { \
-        syslog(3, "ERROR: (%s, %d, "format")", __FILE__, __LINE__,## __VA_ARGS__); \
-        if (getenv(OH_ERROR) && !strcmp("YES", getenv(OH_ERROR))) { \
-            fprintf(stderr, "%s:%d ("format")\n", __FILE__, __LINE__, ## __VA_ARGS__); \
-        } \
-    } while(0)
+#define DBG( fmt, ... ) \
+    g_debug( "%s:%d: " fmt, __FILE__, __LINE__,## __VA_ARGS__ )
 
-#define warn(format, ...) \
-    do { \
-        syslog(3, "WARNING: (%s, %d, "format")", __FILE__, __LINE__,## __VA_ARGS__); \
-        if (getenv(OH_ERROR) && !strcmp("YES", getenv(OH_ERROR))) { \
-            fprintf(stderr, "%s:%d ("format")\n", __FILE__, __LINE__, ## __VA_ARGS__); \
-        } \
-    } while(0)
 
-#define dbg(format, ...) \
-    do { \
-        if (getenv(OH_DEBUG) && !strcmp("YES", getenv(OH_DEBUG))) { \
-                fprintf(stderr, " %s:%d:%s: ", __FILE__, __LINE__, __func__); \
-                fprintf(stderr, format "\n", ## __VA_ARGS__); \
-        } \
-    } while(0)
+/******************************************************************
+ * Use CRIT, WARN, DBG macros intead of legacy err, warn, dbg
+ ******************************************************************/
+#define err( fmt, ... ) \
+    g_critical( "%s:%d: " fmt, __FILE__, __LINE__,## __VA_ARGS__ )
 
+#define warn( fmt, ... ) \
+    g_warning( "%s:%d: " fmt, __FILE__, __LINE__,## __VA_ARGS__ )
+
+#define dbg( fmt, ... ) \
+    g_debug( "%s:%d: " fmt, __FILE__, __LINE__,## __VA_ARGS__ )
 
 #else /* OH_DBG_MSGS */
 
+#define CRIT( fmt, ... )
+#define WARN( fmt, ... )
+#define MSG( fmt, ... )
+#define INFO( fmt, ... )
+#define DBG( fmt, ... )
 
-#define err(format, ...)
-#define warn(format, ...)
-#define dbg(format, ...)
-
+#define err( fmt, ... )
+#define warn( fmt, ... )
+#define dbg( fmt, ... )
 
 #endif /* OH_DBG_MSGS */
-        
 
 #endif /* __OH_ERROR_H */
 

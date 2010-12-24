@@ -34,7 +34,6 @@
                 SaHpiBoolT state; \
                 SaErrorT init_error; \
                 if ((init_error = oh_get_session_subscription(sid,&state)) != SA_OK) { \
-                        err("Init state check failed! (%s, %d)", oh_lookup_error(init_error), sid); \
                         return init_error; \
                 } \
         }
@@ -48,7 +47,6 @@
         { \
                 did = oh_get_session_domain(sid); \
                 if (did == SAHPI_UNSPECIFIED_DOMAIN_ID) { \
-                        err("No domain for session id %d",sid); \
                         return SA_ERR_HPI_INVALID_SESSION; \
                 } \
         }
@@ -60,7 +58,6 @@
 #define OH_GET_DOMAIN(did, d) \
         { \
                 if (!(d = oh_get_domain(did))) { \
-                        err("Domain %d doesn't exist", did); \
                         return SA_ERR_HPI_INVALID_DOMAIN; \
                 } \
         }
@@ -74,7 +71,6 @@
                 unsigned int *hid = NULL; \
                 hid = oh_get_resource_data(&(d->rpt), rid); \
                 if (!hid) { \
-                        err("Can't find handler for Resource %d in Domain %d", rid, d->id); \
                         oh_release_domain(d); \
                         return SA_ERR_HPI_INVALID_RESOURCE; \
                 } \
@@ -94,7 +90,6 @@
         { \
                 r = oh_get_resource_by_id(&(d->rpt), rid); \
                 if (!r) { \
-                        err("Resource %d in Domain %d doesn't exist", rid, d->id); \
                         oh_release_domain(d); \
                         return SA_ERR_HPI_INVALID_RESOURCE; \
                 } \
@@ -109,11 +104,9 @@
         { \
                 r = oh_get_resource_by_id(&(d->rpt), rid); \
                 if (!r) { \
-                        err("Resource %d in Domain %d doesn't exist", rid, d->id); \
                         oh_release_domain(d); \
                         return SA_ERR_HPI_INVALID_RESOURCE; \
                 } else if (r->ResourceFailed != SAHPI_FALSE) { \
-                        err("Resource %d in Domain %d is Failed", rid, d->id); \
                         oh_release_domain(d); \
                         return SA_ERR_HPI_NO_RESPONSE; \
                 } \

@@ -50,14 +50,14 @@ static bool slave_parse_config(
     param = (const char*)g_hash_table_lookup( config, "entity_root" );
     if ( param && ( strlen( param ) > 0 ) ) {
         if ( oh_encode_entitypath( param, &root ) != SA_OK ) {
-            err( "Slave: Cannot decode entity_root." );
+            CRIT( "Cannot decode entity_root." );
             return false;
         }
     }
 
     param = (const char*)g_hash_table_lookup( config, "host" );
     if ( !param ) {
-        err( "Slave: No host specified." );
+        CRIT( "No host specified." );
         return false;
     }
     host = param;
@@ -91,15 +91,15 @@ oh_open(
     oh_evt_queue * eventq )
 {
     if ( !handler_config ) {
-        err( "Slave: handler_config is NULL!" );
+        CRIT( "handler_config is NULL!" );
         return 0;
     }
     if ( hid == 0 ) {
-        err( "Slave: Bad handler id passed." );
+        CRIT( "Bad handler id passed." );
         return 0;
     }
     if ( !eventq ) {
-        err( "Slave: No event queue was passed." );
+        CRIT( "No event queue was passed." );
         return 0;
     }
 
@@ -110,7 +110,7 @@ oh_open(
     unsigned short port;
     rc = slave_parse_config( handler_config, root, host, port );
     if ( !rc ) {
-        err( "Slave: Error while parsing config." );
+        CRIT( "Error while parsing config." );
         return 0;
     }
 
@@ -118,7 +118,7 @@ oh_open(
 
     rc = handler->Init();
     if ( !rc ) {
-        err( "Slave: Handler::Init failed.");
+        CRIT( "Handler::Init failed.");
         return 0;
     }
 

@@ -18,6 +18,8 @@ MAINTAINERCLEANFILES 	= Makefile.in *~
 
 EXTRA_DIST = Makefile.mingw32
 
+AM_CPPFLAGS = -DG_LOG_DOMAIN=\"transport\"
+
 INCLUDES 		= @OPENHPI_INCLUDES@
 # just to clear LIBS
 LIBS			=

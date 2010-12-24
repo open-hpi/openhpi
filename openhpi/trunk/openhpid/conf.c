@@ -222,7 +222,7 @@ static void process_global_param(const char *name, char *value)
                         global_params.unconfigured = SAHPI_FALSE;
                 }
 	} else {
-                err("ERROR. Invalid global parameter %s in config file", name);
+                CRIT("ERROR. Invalid global parameter %s in config file", name);
         }
 
         return;
@@ -265,14 +265,14 @@ static int process_handler_token (GScanner* oh_scanner)
         data_access_lock();
 
         if (g_scanner_get_next_token(oh_scanner) != HPI_CONF_TOKEN_HANDLER) {
-                err("Processing handler: Unexpected token.");
+                CRIT("Processing handler: Unexpected token.");
                 data_access_unlock();
                 return -1;
         }
 
         /* Get the plugin type and store in Hash Table */
         if (g_scanner_get_next_token(oh_scanner) != G_TOKEN_STRING) {
-                err("Processing handler: Expected string token.");
+                CRIT("Processing handler: Expected string token.");
                 data_access_unlock();
                 return -1;
         } else {
@@ -288,14 +288,14 @@ static int process_handler_token (GScanner* oh_scanner)
 
         /* Check for Left Brace token type. If we have it, then continue parsing. */
         if (g_scanner_get_next_token(oh_scanner) != G_TOKEN_LEFT_CURLY) {
-                err("Processing handler: Expected left curly token.");
+                CRIT("Processing handler: Expected left curly token.");
                 goto free_table;
         }
 
         while (!found_right_curly) {
                 /* get key token in key\value pair set (e.g. key = value) */
                 if (g_scanner_get_next_token(oh_scanner) != G_TOKEN_STRING) {
-                        err("Processing handler: Expected string token.");
+                        CRIT("Processing handler: Expected string token.");
                         goto free_table;
                 } else {
                         tablekey = g_strdup(oh_scanner->value.v_string);
@@ -303,7 +303,7 @@ static int process_handler_token (GScanner* oh_scanner)
 
                 /* Check for the equal sign next. If we have it, continue parsing */
                 if (g_scanner_get_next_token(oh_scanner) != G_TOKEN_EQUAL_SIGN) {
-                        err("Processing handler: Expected equal sign token.");
+                        CRIT("Processing handler: Expected equal sign token.");
                         goto free_table_and_key;
                 }
 
@@ -314,7 +314,7 @@ static int process_handler_token (GScanner* oh_scanner)
                 if (g_scanner_peek_next_token(oh_scanner) != G_TOKEN_INT &&
                     g_scanner_peek_next_token(oh_scanner) != G_TOKEN_FLOAT &&
                     g_scanner_peek_next_token(oh_scanner) != G_TOKEN_STRING) {
-                        err("Processing handler: Expected string, integer, or float token.");
+                        CRIT("Processing handler: Expected string, integer, or float token.");
                         goto free_table_and_key;
                 } else { /* The type of token tells us how to fetch the value from oh_scanner */
                         gpointer value = NULL;
@@ -335,7 +335,7 @@ static int process_handler_token (GScanner* oh_scanner)
                         }
 
                         if (value == NULL) {
-                                err("Processing handler:"
+                                CRIT("Processing handler:"
                                     " Unable to allocate memory for value."
                                     " Token Type: %d",
                                     current_token);
@@ -388,26 +388,26 @@ static int process_global_token(GScanner *scanner)
         /* Get the global parameter name */
         current_token = g_scanner_get_next_token(scanner);
         if (current_token != G_TOKEN_STRING) {
-                err("Processing global: Expected string token. Got %d",
+                CRIT("Processing global: Expected string token. Got %d",
                     current_token);
                 goto quit;
         }
 
         name = g_strdup(scanner->value.v_string);
         if (!name) {
-                err("Unable to allocate for global param name.");
+                CRIT("Unable to allocate for global param name.");
                 goto quit;
         }
 
         current_token = g_scanner_get_next_token(scanner);
         if (current_token != G_TOKEN_EQUAL_SIGN) {
-                err("Did not get expected '=' token. Got %d", current_token);
+                CRIT("Did not get expected '=' token. Got %d", current_token);
                 goto free_and_quit;
         }
 
         current_token = g_scanner_get_next_token(scanner);
         if (current_token != G_TOKEN_STRING && current_token != G_TOKEN_INT) {
-                err("Did not get expected string value for global parameter."
+                CRIT("Did not get expected string value for global parameter."
                     " Got %d", current_token);
                 goto free_and_quit;
         }
@@ -427,7 +427,7 @@ static int process_global_token(GScanner *scanner)
         }
 
         if (!value) {
-                err("Unable to allocate for global param value.");
+                CRIT("Unable to allocate for global param value.");
                 goto free_and_quit;
         }
 
@@ -458,7 +458,7 @@ static void scanner_msg_handler (GScanner *scanner, gchar *message, gboolean is_
 {
         g_return_if_fail (scanner != NULL);
 
-        err("%s:%d: %s%s\n",
+        CRIT("%s:%d: %s%s\n",
             scanner->input_name ? scanner->input_name : "<memory>",
             scanner->line, is_error ? "error: " : "", message );
 }
@@ -482,14 +482,14 @@ int oh_load_config (char *filename, struct oh_parsed_config *config)
         int num_tokens = sizeof(oh_conf_tokens) / sizeof(oh_conf_tokens[0]);
 
         if (!filename || !config) {
-                err("Error. Invalid parameters");
+                CRIT("Error. Invalid parameters");
                 return -1;
         }
 
         handler_configs = NULL;
         oh_scanner = g_scanner_new(&oh_scanner_config);
         if (!oh_scanner) {
-                err("Couldn't allocate g_scanner for file parsing");
+                CRIT("Couldn't allocate g_scanner for file parsing");
                 return -2;
         }
 
@@ -498,7 +498,7 @@ int oh_load_config (char *filename, struct oh_parsed_config *config)
 
         fp = fopen(filename, "r");
         if (!fp) {
-                err("Configuration file '%s' could not be opened", filename);
+                CRIT("Configuration file '%s' could not be opened", filename);
                 g_scanner_destroy(oh_scanner);
                 return -4;
         }
@@ -519,7 +519,7 @@ int oh_load_config (char *filename, struct oh_parsed_config *config)
         while (!done) {
                 guint my_token;
                 my_token = g_scanner_peek_next_token (oh_scanner);
-                /*dbg("token: %d", my_token);*/
+                /*DBG("token: %d", my_token);*/
                 switch (my_token)
                 {
                 case G_TOKEN_EOF:
@@ -548,7 +548,7 @@ int oh_load_config (char *filename, struct oh_parsed_config *config)
 
         g_scanner_destroy(oh_scanner);
 
-        dbg("Done processing conf file.\nNumber of parse errors:%d", done);
+        DBG("Done processing conf file.\nNumber of parse errors:%d", done);
 
         config->handler_configs = handler_configs;
 
@@ -580,11 +580,11 @@ SaErrorT oh_process_config(struct oh_parsed_config *config)
 
 		error = oh_create_handler(handler_config, &hid);
                 if (error == SA_OK) {
-                        dbg("Loaded handler for plugin %s",
+                        DBG("Loaded handler for plugin %s",
                             (char *)g_hash_table_lookup(handler_config, "plugin"));
                         config->handlers_loaded++;
                 } else {
-                        err("Couldn't load handler for plugin %s",
+                        CRIT("Couldn't load handler for plugin %s",
                             (char *)g_hash_table_lookup(handler_config, "plugin"));
                         if (hid == 0) g_hash_table_destroy(handler_config);
                 }
@@ -612,11 +612,11 @@ int oh_get_global_param(struct oh_global_param *param)
         if (!param || !(param->type)) {
 
             if (!param) {
-                err("ERROR. Invalid parameters param NULL");
+                CRIT("ERROR. Invalid parameters param NULL");
             }
 
             if (!param->type) {
-                err("ERROR. Invalid parameters param->type NULL");
+                CRIT("ERROR. Invalid parameters param->type NULL");
             }
 
                 return -1;
@@ -683,7 +683,7 @@ int oh_get_global_param(struct oh_global_param *param)
                         param->u.unconfigured = global_params.unconfigured;
                         break;
                default:
-                        err("ERROR. Invalid global parameter %d!", param->type);
+                        CRIT("ERROR. Invalid global parameter %d!", param->type);
                         return -2;
         }
 
@@ -699,7 +699,7 @@ int oh_get_global_param(struct oh_global_param *param)
 int oh_set_global_param(struct oh_global_param *param)
 {
         if (!param || !(param->type)) {
-                err("ERROR. Invalid parameters");
+                CRIT("ERROR. Invalid parameters");
                 return -1;
         }
 
@@ -768,7 +768,7 @@ int oh_set_global_param(struct oh_global_param *param)
                         global_params.unconfigured = param->u.unconfigured;
                         break;
                 default:
-                        err("ERROR. Invalid global parameter %d!", param->type);
+                        CRIT("ERROR. Invalid global parameter %d!", param->type);
                         return -2;
         }
 

@@ -10,6 +10,8 @@
 
 MAINTAINERCLEANFILES 	= Makefile.in
 
+AM_CPPFLAGS = -DG_LOG_DOMAIN=\"ssl\"
+
 INCLUDES		= @OPENHPI_INCLUDES@
 
 lib_LTLIBRARIES		= libopenhpi_ssl.la

@@ -72,10 +72,10 @@ static gpointer oh_discovery_thread_loop(gpointer data)
 
         g_mutex_lock(oh_discovery_thread_mutex);
         while (1) {
-                dbg("Doing threaded discovery on all handlers");
+                DBG("Doing threaded discovery on all handlers");
                 error = oh_discovery();
                 if (error) {
-                        dbg("Got error on threaded discovery return.");
+                        DBG("Got error on threaded discovery return.");
                 }
 
                 /* Let oh_wake_discovery_thread know this thread is done */
@@ -83,12 +83,12 @@ static gpointer oh_discovery_thread_loop(gpointer data)
                 g_get_current_time(&time);
                 g_time_val_add(&time, OH_DISCOVERY_THREAD_SLEEP_TIME);
                 /* Go to sleep; let oh_wake_discovery_thread take the mutex */
-                dbg("Going to sleep");
+                DBG("Going to sleep");
                 if (g_cond_timed_wait(oh_discovery_thread_wait,
                                       oh_discovery_thread_mutex, &time))
-                        dbg("SIGNALED: Got signal from saHpiDiscover()");
+                        DBG("SIGNALED: Got signal from saHpiDiscover()");
                 else
-                        dbg("TIMEDOUT: Woke up, am doing discovery again");
+                        DBG("TIMEDOUT: Woke up, am doing discovery again");
         }
         g_mutex_unlock(oh_discovery_thread_mutex);
         g_thread_exit(0);
@@ -102,9 +102,9 @@ static gpointer oh_evtpop_thread_loop(gpointer data)
 
         g_mutex_lock(oh_evtpop_thread_mutex);
         while(1) {
-                dbg("Thread processing events");
+                DBG("Thread processing events");
                 error = oh_process_events();
-                if (error != SA_OK) err("Error on processing of events.");
+                if (error != SA_OK) CRIT("Error on processing of events.");
         }
         g_mutex_unlock(oh_evtpop_thread_mutex);
         g_thread_exit(0);
@@ -126,19 +126,19 @@ static gpointer oh_evtget_thread_loop(gpointer data)
                         g_usleep(G_USEC_PER_SEC / 2 );
                 }
 
-                dbg("Thread Harvesting events");
+                DBG("Thread Harvesting events");
                 error = oh_harvest_events();
-                if (error != SA_OK) err("Error on harvest of events.");
+                if (error != SA_OK) CRIT("Error on harvest of events.");
 
                 /* Let oh_wake_evtget_thread know this thread is done */
                 g_cond_broadcast(oh_evtget_thread_wait);
                 g_get_current_time(&time);
                 g_time_val_add(&time, OH_EVTGET_THREAD_SLEEP_TIME);
-                dbg("Going to sleep");
+                DBG("Going to sleep");
                 if (g_cond_timed_wait(oh_evtget_thread_wait, oh_evtget_thread_mutex, &time))
-                        dbg("SIGNALED: Got signal from plugin");
+                        DBG("SIGNALED: Got signal from plugin");
                 else
-                        dbg("TIMEDOUT: Woke up, am looping again");
+                        DBG("TIMEDOUT: Woke up, am looping again");
         }
         g_mutex_unlock(oh_evtget_thread_mutex);
         g_thread_exit(0);
@@ -150,12 +150,12 @@ int oh_threaded_init()
 {
         int error = 0;
 
-        dbg("Attempting to init event");
+        DBG("Attempting to init event");
         if (!g_thread_supported()) {
-                dbg("Initializing thread support");
+                DBG("Initializing thread support");
                 g_thread_init(NULL);
         } else {
-                dbg("Already supporting threads");
+                DBG("Already supporting threads");
         }
 
         error = oh_event_init();
@@ -166,14 +166,14 @@ int oh_threaded_init()
 
 int oh_threaded_start()
 {
-        dbg("Starting discovery thread");
+        DBG("Starting discovery thread");
         oh_discovery_thread_wait = g_cond_new();
         oh_discovery_thread_mutex = g_mutex_new();
         oh_discovery_thread = g_thread_create(oh_discovery_thread_loop,
                                 NULL, FALSE,
                                 &oh_discovery_thread_error);
 
-        dbg("Starting event threads");
+        DBG("Starting event threads");
         oh_evtget_thread_wait = g_cond_new();
         oh_evtget_thread_mutex = g_mutex_new();
         oh_evtget_thread = g_thread_create(oh_evtget_thread_loop,
@@ -216,18 +216,18 @@ void oh_wake_discovery_thread(SaHpiBoolT wait)
         g_static_mutex_lock(&oh_wake_discovery_mutex);
         if (g_mutex_trylock(oh_discovery_thread_mutex)) {
                 /* The thread was asleep; wake it up. */
-                dbg("Going to wait for discovery thread to loop once.");
+                DBG("Going to wait for discovery thread to loop once.");
                 g_cond_broadcast(oh_discovery_thread_wait);
                 g_cond_wait(oh_discovery_thread_wait,
                                 oh_discovery_thread_mutex);
-                dbg("Got signal from discovery"
+                DBG("Got signal from discovery"
                     " thread being done. Giving lock back");
                 g_mutex_unlock(oh_discovery_thread_mutex);
         } else {
                 /* Thread was already up. Wait until it completes */
-                dbg("Waiting for discovery thread...");
+                DBG("Waiting for discovery thread...");
                 g_mutex_lock(oh_discovery_thread_mutex);
-                dbg("...Done waiting for discovery thread.");
+                DBG("...Done waiting for discovery thread.");
                 g_mutex_unlock(oh_discovery_thread_mutex);
         }
         g_static_mutex_unlock(&oh_wake_discovery_mutex);
@@ -258,18 +258,18 @@ void oh_wake_event_thread(SaHpiBoolT wait)
         g_static_mutex_lock(&oh_wake_evtget_mutex);
         if (g_mutex_trylock(oh_evtget_thread_mutex)) {
                 /* The thread was asleep; wake it up. */
-                dbg("Going to wait for event thread to loop once.");
+                DBG("Going to wait for event thread to loop once.");
                 g_cond_broadcast(oh_evtget_thread_wait);
                 g_cond_wait(oh_evtget_thread_wait,
                             oh_evtget_thread_mutex);
-                dbg("Got signal from event"
+                DBG("Got signal from event"
                     " thread being done. Giving lock back");
                 g_mutex_unlock(oh_evtget_thread_mutex);
         } else {
                 /* Thread was already up. Wait until it completes */
-                dbg("Waiting for event thread...");
+                DBG("Waiting for event thread...");
                 g_mutex_lock(oh_evtget_thread_mutex);
-                dbg("...Done waiting for event thread.");
+                DBG("...Done waiting for event thread.");
                 g_mutex_unlock(oh_evtget_thread_mutex);
         }
         g_static_mutex_unlock(&oh_wake_evtget_mutex);

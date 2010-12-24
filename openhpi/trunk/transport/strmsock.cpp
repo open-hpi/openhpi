@@ -84,7 +84,7 @@ static void SelectAddresses( int hintflags,
     struct addrinfo * items;
     int cc = getaddrinfo( node, service, &hints, &items );
     if ( cc != 0 ) {
-        err( "Transport: getaddrinfo failed.\n" );
+        CRIT( "Transport: getaddrinfo failed." );
         return;
     }
 
@@ -152,10 +152,10 @@ bool cStreamSock::ReadMsg( uint8_t& type,
     while ( got < need ) {
         ssize_t len = recv( m_sockfd, dst + got, need - got, 0 );
         if ( len < 0 ) {
-            err( "Transport: error while reading message.\n" );
+            CRIT( "Transport: error while reading message." );
             return false;
         } else if ( len == 0 ) {
-            err( "Transport: peer closed connection.\n" );
+            CRIT( "Transport: peer closed connection." );
             return false;
         }
         got += len;
@@ -164,7 +164,7 @@ bool cStreamSock::ReadMsg( uint8_t& type,
             // we got header
             uint8_t ver = hdr.flags >> 4;
             if ( ver != dMhRpcVersion ) {
-                err( "Transport: unsupported version 0x%x != 0x%x.\n",
+                CRIT( "Transport: unsupported version 0x%x != 0x%x.",
                      ver,
                      dMhRpcVersion );
                 return false;
@@ -222,7 +222,7 @@ bool cStreamSock::WriteMsg( uint8_t type,
         return false;
     }
     if ( payload_len > dMaxPayloadLength ) {
-        err("Transport: message payload too large.\n");
+        CRIT("Transport: message payload too large.");
         return false;
     }
 
@@ -260,7 +260,7 @@ bool cStreamSock::WriteMsg( uint8_t type,
 
     ssize_t cc = send( m_sockfd, &msg[0], msg_len, 0 );
     if ( cc != (ssize_t)msg_len ) {
-        err( "Transport: error while sending message.\n" );
+        CRIT( "Transport: error while sending message." );
         return false;
     }
 
@@ -277,7 +277,7 @@ bool cStreamSock::Create( const struct addrinfo * info )
     SockFdT new_sock;
     new_sock = socket( info->ai_family, info->ai_socktype, info->ai_protocol );
     if ( new_sock == InvalidSockFd ) {
-        err( "Transport: cannot create stream socket.\n" );
+        CRIT( "Transport: cannot create stream socket." );
         return false;
     }
 
@@ -299,7 +299,7 @@ bool cStreamSock::Close()
     cc = close( m_sockfd );
 #endif
     if ( cc != 0 ) {
-        err( "Transport: cannot close stream socket.\n" );
+        CRIT( "Transport: cannot close stream socket." );
         return false;
     }
 
@@ -328,7 +328,7 @@ bool cClientStreamSock::Create( const char * host, uint16_t port )
     struct addrinfo * infos;
     SelectAddresses( 0, host, port, infos );
     if ( infos == 0 ) {
-        err( "Transport: failed to find sockaddr.\n" );
+        CRIT( "Transport: failed to find sockaddr." );
         return false;
     }
 
@@ -357,25 +357,25 @@ bool cClientStreamSock::EnableKeepAliveProbes( int keepalive_time,
     val = 1;
     rc = setsockopt( SockFd(), SOL_SOCKET, SO_KEEPALIVE, &val, sizeof(val) );
     if ( rc != 0 ) {
-        err( "Transport: failed to set SO_KEEPALIVE option.\n" );
+        CRIT( "Transport: failed to set SO_KEEPALIVE option." );
         return false;
     }
     val = keepalive_time;
     rc = setsockopt( SockFd(), SOL_TCP, TCP_KEEPIDLE, &val, sizeof(val) );
     if ( rc != 0 ) {
-        err( "Transport: failed to set TCP_KEEPIDLE option.\n" );
+        CRIT( "Transport: failed to set TCP_KEEPIDLE option." );
         return false;
     }
     val = keepalive_intvl;
     rc = setsockopt( SockFd(), SOL_TCP, TCP_KEEPINTVL, &val, sizeof(val) );
     if ( rc != 0 ) {
-        err( "Transport: failed to set TCP_KEEPINTVL option.\n" );
+        CRIT( "Transport: failed to set TCP_KEEPINTVL option." );
         return false;
     }
     val = keepalive_probes;
     rc = setsockopt( SockFd(), SOL_TCP, TCP_KEEPCNT, &val, sizeof(val) );
     if ( rc != 0 ) {
-        err( "Transport: failed to set TCP_KEEPCNT option.\n" );
+        CRIT( "Transport: failed to set TCP_KEEPCNT option." );
         return false;
     }
 
@@ -383,7 +383,7 @@ bool cClientStreamSock::EnableKeepAliveProbes( int keepalive_time,
 
 #else
 
-    err( "Transport: TCP Keep-Alive Probes are not supported.\n" );
+    CRIT( "Transport: TCP Keep-Alive Probes are not supported." );
 
     return false;
 
@@ -400,7 +400,7 @@ bool cClientStreamSock::Create( const struct addrinfo * info )
     int cc = connect( SockFd(), info->ai_addr, info->ai_addrlen );
     if ( cc != 0 ) {
         Close();
-        err( "Transport: connect failed.\n" );
+        CRIT( "Transport: connect failed." );
         return false;
     }
 
@@ -427,7 +427,7 @@ bool cServerStreamSock::Create( uint16_t port )
     struct addrinfo * infos;
     SelectAddresses( AI_PASSIVE, 0, port, infos );
     if ( infos == 0 ) {
-        err( "Transport: failed to find sockaddr.\n" );
+        CRIT( "Transport: failed to find sockaddr." );
         return false;
     }
 
@@ -469,19 +469,19 @@ bool cServerStreamSock::Create( const struct addrinfo * info )
 #endif
     if ( cc != 0 ) {
         Close();
-        err( "Transport: failed to set SO_REUSEADDR option.\n" );
+        CRIT( "Transport: failed to set SO_REUSEADDR option." );
         return false;
     }
     cc = bind( SockFd(), info->ai_addr, info->ai_addrlen );
     if ( cc != 0 ) {
         Close();
-        err( "Transport: bind failed.\n" );
+        CRIT( "Transport: bind failed." );
         return false;
     }
     cc = listen( SockFd(), 5 /* TODO */ );
     if ( cc != 0 ) {
         Close();
-        err( "Transport: listen failed.\n" );
+        CRIT( "Transport: listen failed." );
         return false;
     }
 
@@ -492,7 +492,7 @@ cStreamSock * cServerStreamSock::Accept()
 {
     SockFdT sock = accept( SockFd(), 0, 0 );
     if ( sock == InvalidSockFd ) {
-        err( "Transport: accept failed.\n" );
+        CRIT( "Transport: accept failed." );
         return 0;
     }
 

@@ -15,6 +15,7 @@
  *	Renier Morales <renier@openhpi.org>
  */
 
+#include <stdio.h>
 #include <string.h>
 
 #include <SaHpi.h>

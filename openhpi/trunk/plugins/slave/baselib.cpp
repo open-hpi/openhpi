@@ -58,7 +58,7 @@ void GetF( GModule * handle, const char * name, gpointer * pf, std::string& erro
 bool cBaseLib::LoadBaseLib()
 {
     if ( g_module_supported() == FALSE ) {
-        err( "ERROR. GModule is not supported. Cannot load base lib." );
+        CRIT( "ERROR. GModule is not supported. Cannot load base lib." );
         return false;
     }
 
@@ -566,7 +566,7 @@ bool cBaseLib::LoadBaseLib()
     if ( !error.empty() ) {
         g_module_close( m_handle );
         m_handle = 0;
-        err( "Slave: %s\n", error.c_str() );
+        CRIT( "%s", error.c_str() );
         return false;
     }
 
@@ -574,7 +574,7 @@ bool cBaseLib::LoadBaseLib()
     if ( rv != SA_OK ) {
         g_module_close( m_handle );
         m_handle = 0;
-        err( "Slave: saHpiInitialize failed with rv = %d\n", rv );
+        CRIT( "saHpiInitialize failed with rv = %d", rv );
         return false;
     }
 

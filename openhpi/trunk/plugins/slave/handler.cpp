@@ -88,15 +88,15 @@ bool cHandler::Init()
     SaHpiDomainIdT did;
     SaErrorT rv = Abi()->oHpiDomainAdd( &m_host, m_port, &did );
     if ( rv != SA_OK ) {
-        err( "Slave: oHpiDomainAdd failed with rv = %d\n", rv );
+        CRIT( "oHpiDomainAdd failed with rv = %d", rv );
         return false;
     }
-    dbg( "XXX: Domain %u is created\n", m_did );
+    DBG( "XXX: Domain %u is created", m_did );
     m_did = did;
 
     rc = StartThread();
     if ( !rc ) {
-        err( "Slave: cannot start thread\n" );
+        CRIT( "cannot start thread" );
         return false;
     }
 
@@ -196,7 +196,7 @@ void cHandler::ThreadProc()
 bool cHandler::OpenSession()
 {
     if ( m_sid != InvalidSessionId ) {
-        err( "Slave: Session is already open\n" );
+        CRIT( "Session is already open" );
         return true;
     }
 
@@ -205,16 +205,16 @@ bool cHandler::OpenSession()
     SaHpiSessionIdT sid;
     rv = Abi()->saHpiSessionOpen( m_did, &sid, 0 );
     if ( rv != SA_OK ) {
-        err( "Slave: saHpiSessionOpen failed with rv = %d\n", rv );
+        CRIT( "saHpiSessionOpen failed with rv = %d", rv );
         return false;
     }
 
     rv = Abi()->saHpiSubscribe( sid );
     if ( rv != SA_OK ) {
-        err( "Slave: saHpiSubscribe failed with rv = %d\n", rv );
+        CRIT( "saHpiSubscribe failed with rv = %d", rv );
         rv = Abi()->saHpiSessionClose( m_sid );
         if ( rv != SA_OK ) {
-            err( "Slave: saHpiSessionClose failed with rv = %d\n", rv );
+            CRIT( "saHpiSessionClose failed with rv = %d", rv );
         }
         return false;
     }
@@ -234,7 +234,7 @@ bool cHandler::CloseSession()
 
     rv = Abi()->saHpiSessionClose( m_sid );
     if ( rv != SA_OK ) {
-        err( "Slave: saHpiSessionClose failed with rv = %d\n", rv );
+        CRIT( "saHpiSessionClose failed with rv = %d", rv );
     }
     m_sid = InvalidSessionId;
 
@@ -248,7 +248,7 @@ bool cHandler::Discover()
 
     rv = Abi()->saHpiDiscover( m_sid );
     if ( rv != SA_OK ) {
-        err( "Slave: saHpiDiscover failed with rv = %d\n", rv );
+        CRIT( "saHpiDiscover failed with rv = %d", rv );
         return false;
     }
 
@@ -303,7 +303,7 @@ bool cHandler::ReceiveEvent( struct oh_event *& e )
         oh_event_free( e, 0 );
         e = 0;
         if ( rv != SA_ERR_HPI_TIMEOUT ) {
-            err( "Slave: saHpiEventGet failed with rv = %d\n", rv );
+            CRIT( "saHpiEventGet failed with rv = %d", rv );
             return false;
         }
         return true;
@@ -371,7 +371,7 @@ SaHpiUint32T cHandler::GetRptUpdateCounter() const
     if ( rv == SA_OK ) {
         return di.RptUpdateCount;
     } else {
-        err( "Slave: saHpiDomainInfoGet failed with rv = %d\n", rv );
+        CRIT( "saHpiDomainInfoGet failed with rv = %d", rv );
         return 0;
     }
 }
@@ -384,7 +384,7 @@ SaHpiUint32T cHandler::GetRdrUpdateCounter( SaHpiResourceIdT slave_rid ) const
     if ( rv == SA_OK ) {
         return cnt;
     } else {
-        err( "Slave: saHpiRdrUpdateCountGet failed with rv = %d\n", rv );
+        CRIT( "saHpiRdrUpdateCountGet failed with rv = %d", rv );
         return 0;
     }
 }
@@ -406,7 +406,7 @@ bool cHandler::FetchRptAndRdrs( std::queue<struct oh_event *>& events ) const
                                                    &next_id,
                                                    &e->resource );
             if ( rv != SA_OK ) {
-                err( "Slave: saHpiRptEntryGet failed with rv = %d\n", rv );
+                CRIT( "saHpiRptEntryGet failed with rv = %d", rv );
                 break;
             }
             e->event.Source = e->resource.ResourceId;
@@ -448,7 +448,7 @@ bool cHandler::FetchRdrs( struct oh_event * e ) const
                                               rdr );
             if ( rv != SA_OK ) {
                 g_free( rdr );
-                err( "Slave: saHpiRdrGet failed with rv = %d\n", rv );
+                CRIT( "saHpiRdrGet failed with rv = %d", rv );
                 break;
             }
             e->rdrs = g_slist_append( e->rdrs, rdr );

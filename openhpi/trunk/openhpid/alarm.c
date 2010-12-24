@@ -128,7 +128,7 @@ SaHpiAlarmT *oh_add_alarm(struct oh_domain *d, SaHpiAlarmT *alarm, int fromfile)
 
         if (param.u.dat_size_limit != OH_MAX_DAT_SIZE_LIMIT &&
             g_slist_length(d->dat.list) >= param.u.dat_size_limit) {
-                err("DAT for domain %d is overflowed", d->id);
+                CRIT("DAT for domain %d is overflowed", d->id);
                 d->dat.overflow = SAHPI_TRUE;
                 return NULL;
         } else if (alarm && alarm->AlarmCond.Type == SAHPI_STATUS_COND_TYPE_USER) {
@@ -140,7 +140,7 @@ SaHpiAlarmT *oh_add_alarm(struct oh_domain *d, SaHpiAlarmT *alarm, int fromfile)
                     __count_alarms(d,
                                    &alarm->AlarmCond.Type,
                                    SAHPI_ALL_SEVERITIES) >= param.u.dat_user_limit) {
-                        err("DAT for domain %d has reached its user alarms limit", d->id);
+                        CRIT("DAT for domain %d has reached its user alarms limit", d->id);
                         return NULL;
                 }
         }
@@ -689,13 +689,13 @@ SaErrorT oh_alarms_to_file(struct oh_dat *at, char *filename)
 
         fp = fopen(filename, "wb");
         if (!fp) {
-                err("File '%s' could not be opened", filename);
+                CRIT("File '%s' could not be opened", filename);
                 return SA_ERR_HPI_ERROR;
         }
 
         for (alarms = at->list; alarms; alarms = alarms->next) {
                 if (fwrite(alarms->data, sizeof(SaHpiAlarmT), 1, fp) != 1) {
-                        err("Couldn't write to file '%s'.", filename);
+                        CRIT("Couldn't write to file '%s'.", filename);
                         fclose(fp);
                         return SA_ERR_HPI_ERROR;
                 }
@@ -726,7 +726,7 @@ SaErrorT oh_alarms_from_file(struct oh_domain *d, char *filename)
 
         fp = fopen(filename, "rb");
         if (!fp) {
-                err("File '%s' could not be opened", filename);
+                CRIT("File '%s' could not be opened", filename);
                 return SA_ERR_HPI_ERROR;
         }
 
@@ -734,7 +734,7 @@ SaErrorT oh_alarms_from_file(struct oh_domain *d, char *filename)
                 SaHpiAlarmT *a = oh_add_alarm(d, &alarm, 1);
                 if (!a) {
                         fclose(fp);
-                        err("Error adding alarm read from file.");
+                        CRIT("Error adding alarm read from file.");
                         return SA_ERR_HPI_ERROR;
                 }
         }

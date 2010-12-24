@@ -22,6 +22,7 @@
 #include <SaHpi.h>
 #include <SaHpiBladeCenter.h>
 
+#include <oh_domain.h>
 #include <oh_error.h>
 #include <oh_event.h>
 #include <oh_handler.h>

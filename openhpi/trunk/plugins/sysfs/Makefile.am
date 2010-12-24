@@ -31,6 +31,7 @@
  
 MAINTAINERCLEANFILES 	= Makefile.in
 
+AM_CPPFLAGS = -DG_LOG_DOMAIN=\"sysfs\"
 
 INCLUDES		= @OPENHPI_INCLUDES@  -I/usr/include/sysfs
 

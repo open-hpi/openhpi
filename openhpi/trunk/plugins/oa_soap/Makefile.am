@@ -29,6 +29,8 @@
 
 MAINTAINERCLEANFILES    = Makefile.in
 
+AM_CPPFLAGS = -DG_LOG_DOMAIN=\"oa_soap\"
+
 INCLUDES                = @OPENHPI_INCLUDES@ @XML2_INCLUDE@ @OH_SSL_INCLUDES@
 
 pkglib_LTLIBRARIES      = liboa_soap.la

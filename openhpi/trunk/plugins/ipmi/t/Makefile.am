@@ -30,6 +30,9 @@
 #  
  
 MAINTAINERCLEANFILES 	= Makefile.in
+
+AM_CPPFLAGS = -DG_LOG_DOMAIN=\"t\"
+
 noinst_PROGRAMS         = ipmi_thres_test
 INCLUDES                = @OPENHPI_INCLUDES@
 

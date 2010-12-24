@@ -23,6 +23,8 @@ REMOTE_SOURCES		= rpt_utils.c \
 
 MOSTLYCLEANFILES 	= $(REMOTE_SOURCES) @TEST_CLEAN@
 
+AM_CPPFLAGS = -DG_LOG_DOMAIN=\"t\"
+
 INCLUDES		= @OPENHPI_INCLUDES@
 
 EXTRA_DIST              = rpt_resources.h

@@ -137,7 +137,7 @@ static void gen_domain_event(SaHpiDomainIdT target_id,
         e->event.EventDataUnion.DomainEvent.Type = type;
         e->event.EventDataUnion.DomainEvent.DomainId = subject_id;
         oh_gettimeofday(&e->event.Timestamp);
-        dbg("domain %d %s domain %d", subject_id,
+        DBG("domain %d %s domain %d", subject_id,
             type == SAHPI_DOMAIN_REF_ADDED ? "added to" : "removed from",
             target_id);
         oh_evt_queue_push(&oh_process_q, e);
@@ -154,7 +154,7 @@ static void update_drt(SaHpiDomainIdT target_id,
 
         domain = oh_get_domain(target_id);
         if (!domain) {
-                err("Warning. Could not update DRT. Domain %u not found.",
+                CRIT("Warning. Could not update DRT. Domain %u not found.",
                     target_id);
                 return;
         }
@@ -214,7 +214,7 @@ static int connect2parent(struct oh_domain *domain, SaHpiDomainIdT parent_id)
 
         parent = oh_get_domain(parent_id);
         if (!parent) {
-                err("Couldn't get domain %d", parent_id);
+                CRIT("Couldn't get domain %d", parent_id);
                 return -3;
         }
 
@@ -251,7 +251,7 @@ static int connect2peer(struct oh_domain *domain, SaHpiDomainIdT peer_id)
 
         peer = oh_get_domain(peer_id);
         if (!peer) {
-                err("Couldn't get domain %d", peer_id);
+                CRIT("Couldn't get domain %d", peer_id);
                 return -3;
         }
 
@@ -367,7 +367,7 @@ SaErrorT oh_create_domain(SaHpiDomainIdT id,
         if (g_hash_table_lookup(oh_domains.table, &id)) {
                 domains_unlock();
                 g_free(domain);
-                err("Domain %u already exists; not creating twice.", id);
+                CRIT("Domain %u already exists; not creating twice.", id);
                 return SA_ERR_HPI_INVALID_DOMAIN;
         }
 
@@ -433,14 +433,14 @@ SaErrorT oh_create_domain(SaHpiDomainIdT id,
         /* Establish child-parent relationship */
         if (child_of != SAHPI_UNSPECIFIED_DOMAIN_ID &&
             connect2parent(domain, child_of)) {
-                err("Error connecting domain %u to parent %u",
+                CRIT("Error connecting domain %u to parent %u",
                     domain->id, child_of);
         }
 
         /* Establish peer relationships */
         if (peer_of != SAHPI_UNSPECIFIED_DOMAIN_ID &&
             connect2peer(domain, peer_of)) {
-                err("Error connection domain %u to peer %u",
+                CRIT("Error connection domain %u to peer %u",
                     domain->id, peer_of);
         }
         
@@ -471,7 +471,7 @@ SaErrorT oh_create_domain_from_table(GHashTable *table)
         ai_readonly = (unsigned int *)g_hash_table_lookup(table, "ai_readonly");
 
         if (!id) {
-                err("Error creating a domain from configuration."
+                CRIT("Error creating a domain from configuration."
                     " No domain id was given.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
@@ -483,12 +483,12 @@ SaErrorT oh_create_domain_from_table(GHashTable *table)
         }
 
         if (peer_of && entity_pattern) {
-                warn("Warning creating domain %u. Entity pattern will be"
+                WARN("Warning creating domain %u. Entity pattern will be"
                      " disregarded since a peer was specified.",
                      *id);
         } else if (!peer_of &&
                    oh_compile_entitypath_pattern(entity_pattern, &epp)) {
-                err("Error creating domain %u. "
+                CRIT("Error creating domain %u. "
                     "Invalid entity pattern given.", *id);
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
@@ -640,13 +640,13 @@ SaErrorT oh_drt_entry_get(SaHpiDomainIdT     did,
         GSList *node = NULL;
 
         if (did < 0 || !nextentryid || !drtentry) {
-                err("Error - Invalid parameters passed.");
+                CRIT("Error - Invalid parameters passed.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
         domain = oh_get_domain(did);
         if (domain == NULL) {
-                err("no domain for id %d", did);
+                CRIT("no domain for id %d", did);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 

@@ -50,13 +50,13 @@ extern GMutex *oh_event_thread_mutex;
  */
 int oh_event_init()
 {
-        dbg("Setting up event processing queue");
+        DBG("Setting up event processing queue");
         if (!oh_process_q.q) oh_process_q.q = g_async_queue_new();
         if (oh_process_q.q) {
-                dbg("Set up processing queue");
+                DBG("Set up processing queue");
                 return 1;
         } else {
-                err("Failed to allocate processing queue");
+                CRIT("Failed to allocate processing queue");
                 return 0;
         }
 }
@@ -128,7 +128,7 @@ static SaErrorT harvest_events_for_handler(struct oh_handler *h)
         do {
                 error = h->abi->get_event(h->hnd);
                 if (error < 1) {
-                        dbg("Handler is out of Events");
+                        DBG("Handler is out of Events");
                 }
         } while (error > 0);
 
@@ -143,12 +143,12 @@ SaErrorT oh_harvest_events()
 
         oh_getnext_handler_id(hid, &next_hid);
         while (next_hid) {
-                dbg("harvesting for %d", next_hid);
+                DBG("harvesting for %d", next_hid);
                 hid = next_hid;
 
                 h = oh_get_handler(hid);
                 if (!h) {
-                        err("No such handler %d", hid);
+                        CRIT("No such handler %d", hid);
                         break;
                 }
                 /*
@@ -227,23 +227,23 @@ static int process_hpi_event(struct oh_domain *d, struct oh_event *e)
         }
 
         oh_add_event_to_del(d, e);
-        dbg("Added event to EL");
+        DBG("Added event to EL");
 
         /*
          * Here is the SESSION MULTIPLEXING code
          */
         sessions = oh_list_sessions(d->id);
         if (!sessions) {
-                err("Error: Got an empty session list on domain id %u", d->id);
+                CRIT("Error: Got an empty session list on domain id %u", d->id);
                 return -2;
         }
-        dbg("Got session list for domain %u", d->id);
+        DBG("Got session list for domain %u", d->id);
 
         /* Drop events if there are no sessions open to receive them.
          */
         if (sessions->len < 1) {
                 g_array_free(sessions, TRUE);
-                dbg("No sessions open for event's domain %u. "
+                DBG("No sessions open for event's domain %u. "
                     "Dropping hpi_event", d->id);
                 return 0;
         }
@@ -262,7 +262,7 @@ static int process_hpi_event(struct oh_domain *d, struct oh_event *e)
                 }
         }
         g_array_free(sessions, TRUE);
-        dbg("done multiplexing event into sessions");
+        DBG("done multiplexing event into sessions");
 
         return 0;
 }
@@ -310,7 +310,7 @@ static int process_resource_event(struct oh_domain *d, struct oh_event *e)
             default:
                 // unknown resource event
                 // do nothing
-                err("Got unknown resource event.");
+                CRIT("Got unknown resource event.");
                 return -1;
         }
 
@@ -322,7 +322,7 @@ static int process_resource_event(struct oh_domain *d, struct oh_event *e)
             error = oh_add_resource(rpt, &e->resource, hidp, FREE_RPT_DATA);
             if (error != SA_OK) {
                 g_free( hidp );
-                err("Cannot update resource.");
+                CRIT("Cannot update resource.");
                 return -1;
             }
             if ( update ) {
@@ -391,7 +391,7 @@ static int process_event(SaHpiDomainIdT did,
         RPTable *rpt = NULL;
 
         if (!e) {
-		err("Got NULL event");
+		CRIT("Got NULL event");
 		return -1;
 	}
 
@@ -399,12 +399,12 @@ static int process_event(SaHpiDomainIdT did,
         if (!d) return -2;
         rpt = &(d->rpt);
 
-        dbg("Processing event for domain %u", d->id);
+        DBG("Processing event for domain %u", d->id);
 
         switch (e->event.EventType) {
         case SAHPI_ET_RESOURCE:
                 if (!e->hid) {
-                        err("Resource event with invalid handler id! Dropping.");
+                        CRIT("Resource event with invalid handler id! Dropping.");
                         break;
                 }
                 if ( e->resource.ResourceCapabilities == 0 ) {
@@ -415,11 +415,11 @@ static int process_event(SaHpiDomainIdT did,
                         }
                 }
                 if (!(e->resource.ResourceCapabilities & SAHPI_CAPABILITY_RESOURCE)) {
-                        err("Resource event with invalid capabilities. Dropping.");
+                        CRIT("Resource event with invalid capabilities. Dropping.");
                         break;
                 } else if ((e->resource.ResourceCapabilities & SAHPI_CAPABILITY_FRU) &&
 			   (e->event.EventDataUnion.ResourceEvent.ResourceEventType == SAHPI_RESE_RESOURCE_ADDED)) {
-                        err("Invalid event. Resource in resource added event "
+                        CRIT("Invalid event. Resource in resource added event "
                             "has FRU capability. Dropping.");
                 } else {
                         process_resource_event(d, e);
@@ -427,7 +427,7 @@ static int process_event(SaHpiDomainIdT did,
                 break;
         case SAHPI_ET_HOTSWAP:
                 if (!e->hid) {
-                        err("Hotswap event with invalid handler id! Dropping.");
+                        CRIT("Hotswap event with invalid handler id! Dropping.");
                         break;
                 }
                 if ( e->resource.ResourceCapabilities == 0 ) {
@@ -438,11 +438,11 @@ static int process_event(SaHpiDomainIdT did,
                         }
                 }
                 if (!(e->resource.ResourceCapabilities & SAHPI_CAPABILITY_RESOURCE)) {
-                        err("Hotswap event with invalid capabilities. Dropping.");
+                        CRIT("Hotswap event with invalid capabilities. Dropping.");
                         break;
                 } else if (!(e->resource.ResourceCapabilities
                              & SAHPI_CAPABILITY_FRU)) {
-                        err("Invalid event. Resource in hotswap event "
+                        CRIT("Invalid event. Resource in hotswap event "
                                 "has no FRU capability. Dropping.");
                 } else {
                         process_hs_event(d, e);
@@ -461,7 +461,7 @@ static int process_event(SaHpiDomainIdT did,
                 process_hpi_event(d, e);
                 break;
         default:
-		err("Don't know what to do for event type  %d", e->event.EventType);
+		CRIT("Don't know what to do for event type  %d", e->event.EventType);
         }
         oh_detect_event_alarm(d, e);
         oh_release_domain(d);
@@ -480,7 +480,7 @@ SaErrorT oh_process_events()
 
         while ((e = g_async_queue_pop(oh_process_q.q)) != NULL) {
                 et = oh_lookup_eventtype(e->event.EventType);
-                dbg("Event Type = %s", (et) ? et : "<Unknown>");
+                DBG("Event Type = %s", (et) ? et : "<Unknown>");
                 
                 /* 1. Take care of special cases: user and domain type events */
                 if (e->event.EventType == SAHPI_ET_DOMAIN) {
