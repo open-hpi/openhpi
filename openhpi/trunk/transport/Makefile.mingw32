@@ -6,14 +6,20 @@ SRC := strmsock.cpp
 
 OBJ := $(patsubst %.cpp, %.o, ${SRC})
 
-CXXFLAGS += ${GLIB_INCLUDES}
+DEFS :=  -DG_LOG_DOMAIN=\"transport\"
+
+INCLUDES := ${GLIB_INCLUDES} -I ../mingw32 -I ../include
+
+LIBS := ${GLIB_LIBS} -lws2_32
+
+CPPFLAGS += ${DEFS} ${INCLUDES}
 
 .PHONY: all clean
 
 all : ${TARGET}
 
 ${TARGET} : ${OBJ}
-	${CXX} -shared -o $@ $^ -lws2_32
+	${CXX} -shared -o $@ $^ ${LIBS}
 
 clean:
 	rm -f ${OBJ} ${TARGET}

@@ -548,7 +548,7 @@ int oh_load_config (char *filename, struct oh_parsed_config *config)
 
         g_scanner_destroy(oh_scanner);
 
-        DBG("Done processing conf file.\nNumber of parse errors:%d", done);
+        DBG("Done processing conf file. Parse errors: %d", done);
 
         config->handler_configs = handler_configs;
 

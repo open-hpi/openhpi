@@ -16,14 +16,20 @@ SRC := announcement_utils.c \
        uid_utils.c
 OBJ := $(patsubst %.c, %.o, ${SRC})
 
-CFLAGS += ${GLIB_INCLUDES} -I .
+DEFS := -DG_LOG_DOMAIN=\"utils\"
+
+INCLUDES := ${GLIB_INCLUDES} -I ../mingw32 -I ../include -I .
+
+LIBS := ${GLIB_LIBS}
+
+CPPFLAGS += ${DEFS} ${INCLUDES}
 
 .PHONY: all clean
 
 all : ${TARGET}
 
 ${TARGET} : ${OBJ}
-	${CC} -shared -o $@ $^ ${GLIB_LIBS} \
+	${CC} -shared -o $@ $^ ${LIBS} \
     -Wl,--out-implib,${@:.dll=.a} \
     -Wl,--output-def,${@:.dll=.def}
 
