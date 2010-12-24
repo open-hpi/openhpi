@@ -46,7 +46,7 @@ int main(int argc, char **argv)
 
         retc = oh_el_get(el, SAHPI_NEWEST_ENTRY, &prev, &next, &entry);
         if (retc == SA_OK) {
-        	err("ERROR: oh_el_get failed.");
+        	CRIT("oh_el_get failed.");
                 return 1;
         }
 

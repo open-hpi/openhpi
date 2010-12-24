@@ -47,7 +47,7 @@ int main(int argc, char **argv)
 
         retc = oh_el_map_from_file(el, "./elTest.data");
         if (retc == SA_OK) {
-                err("ERROR: oh_el_map_from_file failed.");
+                CRIT("oh_el_map_from_file failed.");
                 return 1;
 	}
 

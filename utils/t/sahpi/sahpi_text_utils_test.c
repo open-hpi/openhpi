@@ -37,7 +37,7 @@
 #define failed(num)                         \
         do {                                \
                 failcount++;                \
-                err("Failed Test %d", num); \
+                CRIT("Failed Test %d", num); \
         } while(0)
 
 

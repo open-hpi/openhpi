@@ -45,7 +45,7 @@ int main(int argc, char **argv)
 
 	retc = oh_el_clear(el);
         if (retc == SA_OK) {
-                err("ERROR: el clear failed.");
+                CRIT("el clear failed.");
                 return 1;
         }
 

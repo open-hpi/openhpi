@@ -69,7 +69,7 @@ int main(int argc, char **argv)
 
         rc = oh_announcement_close(ann);
         if(rc != SA_OK) {
-                err("ERROR: on_announcement_close returned %d.", rc);
+                CRIT("on_announcement_close returned %d.", rc);
                 return 1;
         }
 

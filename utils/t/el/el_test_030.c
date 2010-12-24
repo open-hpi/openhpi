@@ -49,7 +49,7 @@ int main(int argc, char **argv)
 
         retc = oh_el_info(el, &info);
         if (retc == SA_OK) {
-                err("ERROR: oh_el_info failed.");
+                CRIT("oh_el_info failed.");
                 return 1;
         }
 

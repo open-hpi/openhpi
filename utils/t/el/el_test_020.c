@@ -55,7 +55,7 @@ int main(int argc, char **argv)
 	strcpy((char *) &event.EventDataUnion.UserEvent.UserEventData.Data, data[0]);
 	retc = oh_el_prepend(el, &event, NULL, NULL);
 	if (retc != SA_OK) {
-		err("ERROR: oh_el_prepend failed.");
+		CRIT("oh_el_prepend failed.");
                	return 1;
         }
 
@@ -63,14 +63,14 @@ int main(int argc, char **argv)
 
 	retc = oh_el_prepend(el, &event, NULL, NULL);
 	if (retc == SA_OK) {
-		err("ERROR: oh_el_prepend failed.");
+		CRIT("oh_el_prepend failed.");
 		return 1;
 	}
 
         /* close el */
         retc = oh_el_close(el);
         if (retc != SA_OK) {
-                err("ERROR: oh_el_close on el failed.");
+                CRIT("oh_el_close on el failed.");
                 return 1;
         }
 
