@@ -26,7 +26,6 @@
 
 #include <oHpi.h>
 #include <oh_error.h>
-#include <oh_event.h>
 #include <oh_utils.h>
 
 #include "handler.h"
@@ -91,8 +90,8 @@ bool cHandler::Init()
         CRIT( "oHpiDomainAdd failed with rv = %d", rv );
         return false;
     }
-    DBG( "XXX: Domain %u is created", m_did );
     m_did = did;
+    DBG( "Domain %u is created", m_did );
 
     rc = StartThread();
     if ( !rc ) {

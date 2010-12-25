@@ -21,12 +21,12 @@
 
 #include <oh_domain.h>
 #include <oh_error.h>
-#include <oh_event.h>
 #include <oh_plugin.h>
 #include <oh_utils.h>
 
 #include "alarm.h"
 #include "conf.h"
+#include "event.h"
 
 #define domains_lock() g_static_rec_mutex_lock(&oh_domains.lock)
 #define domains_unlock() g_static_rec_mutex_unlock(&oh_domains.lock)
@@ -140,7 +140,7 @@ static void gen_domain_event(SaHpiDomainIdT target_id,
         DBG("domain %d %s domain %d", subject_id,
             type == SAHPI_DOMAIN_REF_ADDED ? "added to" : "removed from",
             target_id);
-        oh_evt_queue_push(&oh_process_q, e);
+        oh_evt_queue_push(oh_process_q, e);
 }
 
 static void update_drt(SaHpiDomainIdT target_id,

@@ -20,16 +20,18 @@
 #include <string.h>
 
 #include <oHpi.h>
-#include <oh_plugin.h>
-#include <oh_event.h>
-#include <oh_domain.h>
-#include <oh_session.h>
-#include <oh_utils.h>
-#include <oh_error.h>
-#include <sahpimacros.h>
+
 #include <config.h>
 
+#include <oh_domain.h>
+#include <oh_error.h>
+#include <oh_plugin.h>
+#include <oh_session.h>
+#include <oh_utils.h>
+#include <sahpimacros.h>
+
 #include "conf.h"
+#include "event.h"
 #include "init.h"
 #include "lock.h"
 
@@ -334,7 +336,7 @@ SaErrorT SAHPI_API oHpiHandlerRetry (
 		return SA_OK;
 	}
 
-	h->hnd = h->abi->open(h->config, h->id, &oh_process_q);
+	h->hnd = h->abi->open(h->config, h->id, oh_process_q);
 	if (h->hnd == NULL) error = SA_ERR_HPI_INTERNAL_ERROR;
 	else error = SA_OK;
 

@@ -31,6 +31,7 @@
 #include <oh_plugin.h>
 
 #include "conf.h"
+#include "event.h"
 #include "lock.h"
 
 /*
@@ -592,7 +593,7 @@ SaErrorT oh_create_handler (GHashTable *handler_config, unsigned int *hid)
 
         handler->hnd = handler->abi->open(handler->config,
                                           handler->id,
-                                          &oh_process_q);
+                                          oh_process_q);
         if (!handler->hnd) {
                 CRIT("A handler #%d on the %s plugin could not be opened.",
                     handler->id, handler->plugin_name);

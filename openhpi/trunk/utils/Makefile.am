@@ -71,6 +71,8 @@ libopenhpiutils_la_SOURCES = \
     announcement_utils.h \
     el_utils.c \
     el_utils.h \
+    event_utils.c \
+    event_utils.h \
     epath_utils.c \
     epath_utils.h \
     oh_utils.h \

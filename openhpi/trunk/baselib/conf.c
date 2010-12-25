@@ -24,7 +24,6 @@
 #include <oHpi.h>
 
 #include <config.h>
-#include <oh_domain.h>
 #include <oh_error.h>
 
 #include "conf.h"

@@ -14,7 +14,6 @@
  */
 
 #include "ipmi.h"
-#include<oh_event.h>
 #include <oh_utils.h>
 #include <string.h>
 

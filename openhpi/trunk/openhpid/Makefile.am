@@ -38,6 +38,7 @@ libopenhpidaemon_la_SOURCES        = \
     conf.h \
     domain.c \
     event.c \
+    event.h \
     hotswap.c \
     hotswap.h \
     init.c \

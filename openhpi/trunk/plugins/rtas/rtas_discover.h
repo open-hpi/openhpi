@@ -22,7 +22,6 @@
 #include <oh_handler.h>
 #include <oh_utils.h>
 #include <oh_error.h>
-#include <oh_event.h>
 #include <rtas_sensor.h>
 #include <librtas.h>
 

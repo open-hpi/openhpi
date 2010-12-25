@@ -20,7 +20,7 @@
 #define __SIM_INJECTOR_H
 
 #include <sim_resources.h>
-#include <oh_event.h>
+#include <oh_utils.h>
 
 struct oh_handler_state *sim_get_handler_by_name(char *name);
 SaErrorT sim_inject_resource(struct oh_handler_state *state,

@@ -18,6 +18,7 @@
 #include <oh_plugin.h>
 
 #include "conf.h"
+#include "event.h"
 #include "hotswap.h"
 #include "threaded.h"
 
