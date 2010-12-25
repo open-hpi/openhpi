@@ -6,8 +6,8 @@ openhpi_libs := utils \
                 marshal \
                 baselib \
                 clients
- #               openhpid \
- #               plugins/slave
+#                openhpid \
+#                plugins/slave
 
 .PHONY: all clean $(openhpi_libs)
 
