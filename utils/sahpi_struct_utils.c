@@ -834,8 +834,8 @@ SaErrorT oh_append_textbuffer(SaHpiTextBufferT *buffer, const char *from)
         }
         size = strlen(from);
         if ((size + buffer->DataLength) >= SAHPI_MAX_TEXT_BUFFER_LENGTH) {
-                CRIT("Cannot append to text buffer. Bufsize=%d, size=%u",
-                    buffer->DataLength, size);
+                CRIT("Cannot append to text buffer. Bufsize=%u, size=%lu",
+                    buffer->DataLength, (unsigned long)size);
                 return(SA_ERR_HPI_OUT_OF_SPACE);
         }
 
@@ -858,8 +858,8 @@ SaErrorT oh_append_bigtext(oh_big_textbuffer *big_buffer, const char *from)
         }
         size = strlen(from);
         if ((size + big_buffer->DataLength) >= OH_MAX_TEXT_BUFFER_LENGTH) {
-                CRIT("Cannot append to buffer. Bufsize=%d, size=%u",
-                    big_buffer->DataLength, size);
+                CRIT("Cannot append to buffer. Bufsize=%u, size=%lu",
+                    big_buffer->DataLength, (unsigned long)size);
                 return(SA_ERR_HPI_INTERNAL_ERROR);
         }
 
@@ -891,7 +891,7 @@ static inline SaErrorT oh_append_data(oh_big_textbuffer *big_buffer, const SaHpi
                 slen = strlen(buff);
 
                 if ((slen + big_buffer->DataLength) >= OH_MAX_TEXT_BUFFER_LENGTH) {
-                        CRIT("Cannot append to buffer. Bufsize=%d, len=%d",
+                        CRIT("Cannot append to buffer. Bufsize=%u, len=%u",
                             big_buffer->DataLength, len);
                         return(SA_ERR_HPI_INTERNAL_ERROR);
                 }

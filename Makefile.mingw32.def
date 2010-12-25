@@ -14,6 +14,6 @@ GTHREAD_LIBS := -L ${GLIB_DIR}/lib -lgthread-2.0
 GMODULE_LIBS := -L ${GLIB_DIR}/lib -lgmodule-2.0
 ############################################################################
 
-CPPFLAGS := -DVERSION=\"${VERSION}\" -D_WIN32_WINNT=0x0501 -DOH_DBG_MSGS
+CPPFLAGS := -DVERSION=\"${VERSION}\" -D_WIN32_WINNT=0x0501 -DOH_DBG_MSGS -Wall
 LDFLAGS := -no-undefined --enable-runtime-pseudo-reloc
 
