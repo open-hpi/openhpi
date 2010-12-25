@@ -19,8 +19,8 @@
 #ifndef __SIM_SENSORS_H
 #define __SIM_SENSORS_H
 
-#include <oh_event.h>
 #include <oh_handler.h>
+#include <oh_utils.h>
 
 #define SIM_MAX_EVENTS_PER_SENSOR 24
 #define SIM_MAX_READING_MAPS_PER_SENSOR 3

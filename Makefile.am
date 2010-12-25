@@ -107,7 +107,8 @@ include_HEADERS = $(top_srcdir)/include/SaHpi.h \
                   $(top_srcdir)/utils/sahpi_time_utils.h \
                   $(top_srcdir)/utils/uid_utils.h \
                   $(top_srcdir)/utils/epath_utils.h \
-                  $(top_srcdir)/utils/el_utils.h
+                  $(top_srcdir)/utils/el_utils.h \
+                  $(top_srcdir)/utils/event_utils.h
 
 docsdir=$(datadir)/doc/$(PACKAGE_NAME)-$(VERSION)
 docs_DATA = README README.daemon COPYING

@@ -20,7 +20,6 @@
 #ifndef __NEW_SIM_HOTSWAP_H__
 #define __NEW_SIM_HOTSWAP_H__
 
-#include <oh_event.h>
 #include <oh_utils.h>
 
 #ifndef __NEW_SIM_UTILS_H__

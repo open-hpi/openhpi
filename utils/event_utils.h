@@ -1,6 +1,7 @@
 /*      -*- linux-c -*-
  *
  * (C) Copyright IBM Corp. 2004-2006
+ * (C) Copyright Pigeon Point Systems. 2010
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -11,17 +12,20 @@
  *
  * Author(s):
  *      Sean Dague <sdague@users.sf.net>
- *	Renier Morales <renier@openhpi.org>
+ *	    Renier Morales <renier@openhpi.org>
+ *      Anton Pak <anton.pak@pigeonpoint.com>
  *
  */
 
-#ifndef __OH_EVENT_H
-#define __OH_EVENT_H
+#ifndef __EVENT_UTILS_H
+#define __EVENT_UTILS_H
+
+#ifndef __OH_UTILS_H
+#warning *** Include oh_utils.h instead of individual utility header files ***
+#endif
 
 #include <SaHpi.h>
 #include <glib.h>
-
-#define OH_MAX_EVT_QUEUE_LIMIT 0
 
 #ifdef __cplusplus
 extern "C" {
@@ -99,27 +103,16 @@ struct oh_event {
         GSList *rdrs_to_remove;
 };
 
-typedef struct _oh_evt_queue oh_evt_queue;
-extern oh_evt_queue oh_process_q;
+typedef GAsyncQueue oh_evt_queue;
 
-/* Event utility macros */
 #define oh_new_event() g_new0(struct oh_event, 1)
-#define oh_copy_event(dest, src) memcpy(dest, src, sizeof(struct oh_event))
-#define sahpi_new_event() g_new0(SaHpiEventT, 1)
-#define sahpi_dup_event(old) g_memdup(old, sizeof(SaHpiEventT))
-#define sahpi_copy_event(dest, src) memcpy(dest, src, sizeof(SaHpiEventT))
-
-/* function definitions */
-int oh_event_init(void);
-void oh_evt_queue_push(oh_evt_queue *equeue, gpointer data);
-SaErrorT oh_harvest_events(void);
-SaErrorT oh_process_events(void);
 void oh_event_free(struct oh_event *e, int only_rdrs);
 struct oh_event *oh_dup_event(struct oh_event *old_event);
+void oh_evt_queue_push(oh_evt_queue *equeue, gpointer data);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __OH_EVENT_H */
+#endif /* __EVENT_UTILS_H */
 

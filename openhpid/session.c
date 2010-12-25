@@ -250,6 +250,7 @@ SaErrorT oh_queue_session_event(SaHpiSessionIdT sid,
         struct oh_session *session = NULL;
         struct oh_event *qevent = NULL;
         struct oh_global_param param = {.type = OPENHPI_EVT_QUEUE_LIMIT };
+        SaHpiBoolT nolimit = SAHPI_FALSE;
 
         if (sid < 1 || !event)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -258,8 +259,9 @@ SaErrorT oh_queue_session_event(SaHpiSessionIdT sid,
         if (!qevent)
                 return SA_ERR_HPI_OUT_OF_MEMORY;
 
-        if (oh_get_global_param(&param))
-                param.u.evt_queue_limit = OH_MAX_EVT_QUEUE_LIMIT;
+        if (oh_get_global_param(&param)) {
+                nolimit = SAHPI_TRUE;
+        }
 
         g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
         session = g_hash_table_lookup(oh_sessions.table, &sid);
@@ -269,7 +271,7 @@ SaErrorT oh_queue_session_event(SaHpiSessionIdT sid,
                 return SA_ERR_HPI_INVALID_SESSION;
         }
 
-        if (param.u.evt_queue_limit != OH_MAX_EVT_QUEUE_LIMIT) {
+        if (nolimit == SAHPI_FALSE) {
                 SaHpiSessionIdT tmp_sid;
                 tmp_sid = session->id;
                 gint qlength = g_async_queue_length(session->eventq);

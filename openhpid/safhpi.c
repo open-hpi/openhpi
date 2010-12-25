@@ -37,6 +37,7 @@
 
 #include "alarm.h"
 #include "conf.h"
+#include "event.h"
 #include "hotswap.h"
 #include "init.h"
 #include "threaded.h"
@@ -701,7 +702,7 @@ SaErrorT SAHPI_API saHpiResourceFailedRemove (
                 SAHPI_HS_STATE_NOT_PRESENT;
         e->event.EventDataUnion.HotSwapEvent.CauseOfStateChange =
                 SAHPI_HS_CAUSE_USER_UPDATE;
-        oh_evt_queue_push(&oh_process_q, e);
+        oh_evt_queue_push(oh_process_q, e);
         
         return SA_OK;
 }
@@ -1488,7 +1489,7 @@ SaErrorT SAHPI_API saHpiEventAdd (
         /* indicate this is a user-added event */
         e.resource.ResourceSeverity = SAHPI_INFORMATIONAL;
 
-        oh_evt_queue_push(&oh_process_q, g_memdup(&e, sizeof(struct oh_event)));
+        oh_evt_queue_push(oh_process_q, g_memdup(&e, sizeof(struct oh_event)));
 
         oh_wake_event_thread(SAHPI_TRUE);
 

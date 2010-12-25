@@ -23,7 +23,7 @@
 
 #include <SaHpi.h>
 
-#include <oh_event.h>
+#include <oh_utils.h>
 
 #include "baselib.h"
 #include "lock.h"

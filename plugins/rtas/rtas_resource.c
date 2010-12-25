@@ -16,7 +16,6 @@
 
 #include <rtas_resource.h>
 #include <oh_handler.h>
-#include <oh_event.h>
 #include <oh_utils.h>
 
 SaErrorT rtas_set_resource_tag(void *hnd,

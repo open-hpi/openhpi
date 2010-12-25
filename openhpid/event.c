@@ -26,7 +26,6 @@
 
 #include <oh_domain.h>
 #include <oh_error.h>
-#include <oh_event.h>
 #include <oh_handler.h>
 #include <oh_plugin.h>
 #include <oh_session.h>
@@ -34,14 +33,10 @@
 
 #include "alarm.h"
 #include "conf.h"
+#include "event.h"
 
 
-struct _oh_evt_queue {
-        GAsyncQueue *q;
-};
-oh_evt_queue oh_process_q = { .q = NULL };
-
-extern GMutex *oh_event_thread_mutex;
+oh_evt_queue * oh_process_q = 0;
 
 /*
  *  The following is required to set up the thread state for
@@ -51,41 +46,14 @@ extern GMutex *oh_event_thread_mutex;
 int oh_event_init()
 {
         DBG("Setting up event processing queue");
-        if (!oh_process_q.q) oh_process_q.q = g_async_queue_new();
-        if (oh_process_q.q) {
+        if (!oh_process_q) oh_process_q = g_async_queue_new();
+        if (oh_process_q) {
                 DBG("Set up processing queue");
                 return 1;
         } else {
                 CRIT("Failed to allocate processing queue");
                 return 0;
         }
-}
-
-void oh_evt_queue_push(oh_evt_queue *equeue, gpointer data)
-{
-        g_async_queue_push(equeue->q, data);
-        return;
-}
-
-void oh_event_free(struct oh_event *e, int only_rdrs)
-{
-	if (e) {
-		if (e->rdrs) {
-			GSList *node = NULL;
-			for (node = e->rdrs; node; node = node->next) {
-				g_free(node->data);
-			}
-			g_slist_free(e->rdrs);
-		}
-		if (e->rdrs_to_remove) {
-			GSList *node = NULL;
-			for (node = e->rdrs_to_remove; node; node = node->next) {
-				g_free(node->data);
-			}
-			g_slist_free(e->rdrs_to_remove);
-		}
-		if (!only_rdrs) g_free(e);
-	}
 }
 
 struct oh_event *oh_dup_event(struct oh_event *old_event)
@@ -478,7 +446,7 @@ SaErrorT oh_process_events()
 
         // domain_results = oh_query_domains();
 
-        while ((e = g_async_queue_pop(oh_process_q.q)) != NULL) {
+        while ((e = g_async_queue_pop(oh_process_q)) != NULL) {
                 et = oh_lookup_eventtype(e->event.EventType);
                 DBG("Event Type = %s", (et) ? et : "<Unknown>");
                 

@@ -17,9 +17,11 @@
 #ifndef __OH_SESSION_H
 #define __OH_SESSION_H
 
-#include <SaHpi.h>
-#include <oh_event.h>
 #include <glib.h>
+
+#include <SaHpi.h>
+
+#include <oh_utils.h>
 
 #ifdef __cplusplus
 extern "C" {

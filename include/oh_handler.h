@@ -24,17 +24,14 @@
 #include <uuid/uuid.h>
 #include <glib.h>
 
-#include <sys/time.h>
 #include <SaHpi.h>
-#include <oh_event.h>
-#include <oh_utils.h>
 #include <oHpi.h>
+
+#include <oh_utils.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-void oh_wake_event_thread(SaHpiBoolT);
 
 /*
  * Common OpenHPI implementation specific definitions

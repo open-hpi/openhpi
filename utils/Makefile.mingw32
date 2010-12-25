@@ -5,6 +5,7 @@ TARGET := libopenhpiutils-${VERSION}.dll
 SRC := announcement_utils.c \
        el_utils.c \
        epath_utils.c \
+       event_utils.c \
        rpt_utils.c \
        sahpi_enum_utils.c \
        sahpi_event_encode.c \

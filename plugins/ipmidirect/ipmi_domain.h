@@ -34,7 +34,6 @@ extern "C" {
 }
 
 #include <oh_error.h>
-#include <oh_event.h>
 #include <oh_handler.h>
 #include <oh_utils.h>
 
