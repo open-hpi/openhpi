@@ -129,6 +129,44 @@ SaErrorT SAHPI_API oHpiHandlerDestroy (
 
         if (error == SA_OK)
            if (oh_destroy_handler(id)) error = SA_ERR_HPI_ERROR;
+
+        if (error == SA_OK) {
+            // Remove all handler remaing resources from the Domain RPT
+            SaHpiRptEntryT *rpte;
+            SaHpiResourceIdT rid;
+            GSList *events = 0;
+
+            rid = SAHPI_FIRST_ENTRY;
+            while ((rpte = oh_get_resource_next(&(d->rpt), rid)) != 0) {
+                const void * data;
+                data = oh_get_resource_data(&(d->rpt), rpte->ResourceId);
+                if (data) {
+                    const unsigned int hid = *(const unsigned int*)(data);
+                    if (hid == id) {
+                        struct oh_event * e = g_new0(struct oh_event, 1);
+                        e->hid = id;
+                        e->resource = *rpte;
+                        e->rdrs = 0;
+                        e->rdrs_to_remove = 0;
+                        e->event.Source = rpte->ResourceId;
+                        e->event.EventType = SAHPI_ET_RESOURCE;
+                        oh_gettimeofday(&e->event.Timestamp);
+                        e->event.Severity = SAHPI_MAJOR;
+                        e->event.EventDataUnion.ResourceEvent.ResourceEventType
+                            = SAHPI_RESE_RESOURCE_REMOVED;
+                        events = g_slist_prepend(events, e);
+                    }
+                }
+                rid = rpte->ResourceId;
+            }
+
+            GSList *iter = events;
+            while (iter) {
+                oh_evt_queue_push(oh_process_q, iter->data);
+                iter = g_slist_next(iter);
+            }
+            g_slist_free(events);
+        }
    
         oh_release_domain(d); /* Unlock domain */
         return error;

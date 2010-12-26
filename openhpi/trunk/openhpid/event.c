@@ -274,6 +274,7 @@ static int process_resource_event(struct oh_domain *d, struct oh_event *e)
                 break;
             case SAHPI_RESE_RESOURCE_REMOVED:
                 remove = TRUE;
+                process = ( exists != 0 ) ? TRUE : FALSE;
                 break;
             default:
                 // unknown resource event
@@ -283,7 +284,9 @@ static int process_resource_event(struct oh_domain *d, struct oh_event *e)
         }
 
         if ( remove ) {
-            oh_remove_resource(rpt, e->resource.ResourceId);
+            if ( exists ) {
+                oh_remove_resource(rpt, e->resource.ResourceId);
+            }
         } else {
             hidp = g_new0(unsigned int, 1);
             *hidp = e->hid;
