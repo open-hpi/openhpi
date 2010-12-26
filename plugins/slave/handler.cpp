@@ -278,7 +278,7 @@ void cHandler::RemoveAllResources()
         e->resource.ResourceCapabilities = 0;
         SaHpiEventT& he = e->event;
         he.EventType = SAHPI_ET_RESOURCE;
-        he.Severity = SAHPI_MAJOR; // TODO
+        he.Severity = SAHPI_MAJOR;
         SaHpiResourceEventT& re = he.EventDataUnion.ResourceEvent;
         re.ResourceEventType = SAHPI_RESE_RESOURCE_REMOVED;
    
