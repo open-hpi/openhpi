@@ -173,7 +173,7 @@ static char *get_input_line(char *mes, int new_cmd)
 	current_row = 0;
 	if (read_stdin) {
 		if (mes != (char *)NULL) snprintf(Title, READ_BUF_SIZE, "%s", mes);
-		else strcpy(Title, "OpenHPI> ");
+		else strcpy(Title, "hpi_shell> ");
 		printf("%s", Title);
 		res = get_command_line(new_cmd, COMPL_CMD);
 		if (res != (char *)NULL) {

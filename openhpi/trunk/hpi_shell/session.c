@@ -102,7 +102,7 @@ static void* get_event(void *unused)
 
 	rv = saHpiSubscribe(Domain->sessionId);
 	if (rv != SA_OK) {
-		printf("OpenHPI>Fail to Subscribe event\n");
+		printf("hpi_shell>Fail to Subscribe event\n");
 		return (void *)0;
 	}	
 	
