@@ -216,11 +216,11 @@ SaErrorT show_control(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
         if (proc(buf) != HPI_UI_OK) return(SA_OK);
         if (ctrl->DefaultMode.ReadOnly) str = "(Read Only)";
         else str = " ";
-        snprintf(buf, SHOW_BUF_SZ, "  Mode: %s  %s\n",
+        snprintf(buf, SHOW_BUF_SZ, "Default Mode: %s  %s\n",
                 oh_lookup_ctrlmode(ctrl->DefaultMode.Mode), str);
         if (proc(buf) != HPI_UI_OK) return(SA_OK);
 
-        if (proc("Data:\n") != HPI_UI_OK) return(SA_OK);
+        if (proc("Default Data:\n") != HPI_UI_OK) return(SA_OK);
         switch (type) {
                 case SAHPI_CTRL_TYPE_DIGITAL:
                         digit = &(ctrl->TypeUnion.Digital);
