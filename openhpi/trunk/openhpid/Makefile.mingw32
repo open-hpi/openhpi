@@ -11,7 +11,6 @@ SRC := alarm.c \
        lock.c \
        ohpi.c \
        plugin.c \
-       plugin_static.c \
        safhpi.c \
        session.c \
        threaded.c \

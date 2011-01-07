@@ -1,0 +1,31 @@
+include ../../Makefile.mingw32.def
+
+TARGET := libslave.dll
+
+SRC := baselib.cpp \
+       handler.cpp \
+       resourcemap.cpp \
+       slave.cpp \
+       util.cpp
+
+OBJ := $(patsubst %.cpp, %.o, ${SRC})
+
+DEFS := -DG_LOG_DOMAIN=\"slave\"
+
+INCLUDES := ${GLIB_INCLUDES} -I ../../mingw32 -I ../../include -I ../../utils
+
+LIBS := ${GLIB_LIBS} ${GTHREAD_LIBS} ${GMODULE_LIBS}
+LIBS += -L ../../utils -lopenhpiutils-${VERSION}
+
+CPPFLAGS += ${DEFS} ${INCLUDES}
+
+.PHONY: all clean
+
+all : ${TARGET}
+
+${TARGET} : ${OBJ}
+	${CXX} -shared -o $@ $^ ${LIBS}
+
+clean:
+	rm -f ${OBJ} ${TARGET}
+

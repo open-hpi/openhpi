@@ -5,9 +5,9 @@ openhpi_libs := utils \
                 transport \
                 marshal \
                 baselib \
-                clients
-#                openhpid \
-#                plugins/slave
+                clients \
+                openhpid \
+                plugins/slave
 
 .PHONY: all clean $(openhpi_libs)
 
@@ -26,7 +26,7 @@ clean:
 out: all
 	rm -rf ${out}
 	mkdir -p ${out}
-#	mkdir -p ${out}/plugins
+	mkdir -p ${out}/plugins
 	cp README.windows ${out}
 	cat include/SaHpi.h | sed -e 's/ __attribute__.*/;/' -e 's/#define SAHPI_API/#define SAHPI_API __declspec(dllimport)/' > ${out}/SaHpi.h
 	cp include/oHpi.h ${out}
@@ -39,6 +39,6 @@ out: all
 	cp baselib/libopenhpi-${VERSION}.a ${out}/
 	cp baselib/libopenhpi-${VERSION}.def ${out}/
 	cp clients/*.exe ${out}/
-#	cp openhpid/openhpid.exe ${out}/
-#	cp plugins/slave/libslave.dll ${out}/plugins
+	cp openhpid/openhpid.exe ${out}/
+	cp plugins/slave/libslave.dll ${out}/plugins
 
