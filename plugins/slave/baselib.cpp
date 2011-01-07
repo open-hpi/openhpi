@@ -62,8 +62,12 @@ bool cBaseLib::LoadBaseLib()
         CRIT( "GModule is not supported. Cannot load base library." );
         return false;
     }
-
+// TODO fix me
+#ifdef _WIN32
+    m_handle = g_module_open( "libopenhpi-" VERSION, G_MODULE_BIND_LOCAL );
+#else
     m_handle = g_module_open( "libopenhpi", G_MODULE_BIND_LOCAL );
+#endif
     if ( !m_handle ) {
         CRIT( "Cannot load base library." );
         return false;
@@ -565,7 +569,7 @@ bool cBaseLib::LoadBaseLib()
           reinterpret_cast<gpointer *>( &m_abi.oHpiDomainAdd ),
           nerrors );
     GetF( m_handle,
-          "xoHpiDomainAdd",
+          "oHpiDomainAdd",
           reinterpret_cast<gpointer *>( &m_abi.oHpiDomainAdd ),
           nerrors );
 
