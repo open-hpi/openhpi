@@ -220,8 +220,6 @@ int oh_getnext_plugin_name(char *plugin_name,
         return -1;
 }
 
-/* list of static plugins. defined in plugin_static.c.in */
-extern struct oh_static_plugin static_plugins[];
 /**
  * oh_load_plugin
  * @plugin_name: name of plugin to be loaded (e.g. "libdummy").
@@ -238,7 +236,6 @@ int oh_load_plugin(char *plugin_name)
         gchar *plugin_path;
 
         struct oh_plugin *plugin = NULL;
-        struct oh_static_plugin *p = static_plugins;
         int err;
 
         if (!plugin_name) {
@@ -269,28 +266,6 @@ int oh_load_plugin(char *plugin_name)
         plugin->refcount = 0;
         g_static_rec_mutex_init(&plugin->lock);
         g_static_rec_mutex_init(&plugin->refcount_lock);
-
-        /* first take search plugin in the array of static plugin */
-        while (p->name) {
-                if (!strcmp(plugin->name, p->name)) {
-                        plugin->dl_handle = 0;
-                        err = (*p->get_interface)((void **)&plugin->abi, UUID_OH_ABI_V2);
-
-                        if (err < 0 || !plugin->abi || !plugin->abi->open) {
-                                CRIT("Can not get ABI V2");
-                                goto cleanup_and_quit;
-                        }
-
-                        DBG("found static plugin %s", p->name);
-
-                        g_static_rec_mutex_lock(&oh_plugins.lock);
-                        oh_plugins.list = g_slist_append(oh_plugins.list, plugin);
-                        g_static_rec_mutex_unlock(&oh_plugins.lock);
-
-                        return 0;
-                }
-                p++;
-        }
 
         oh_get_global_param(&path_param);
         plugin_search_dirs = g_strsplit(path_param.u.path, ":", -1);
