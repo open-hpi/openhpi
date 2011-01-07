@@ -24,6 +24,8 @@ OpenHPI provides windows version of
 -- ohdomainlist.exe
 -- ohhandler.exe
 -- ohparam.exe
+- OpenHPI daemon as a console Windows application (openhpid.exe)
+-- Slave plug-in (libslave.dll)
 
 ========================================================================
 Dependencies:
@@ -55,9 +57,10 @@ Build instructions:
    compilers correspondingly.
 -- GLIB_DIR: in order that GLIB_INCLUDES and GLIB_LIBS
    point to valid directories with glib headers and libraries.
-- run "make -f Makefile.mingw32".
-- run "make -f Makefile.mingw32 out".
-- the bin subdirectory will contain all produced stuff.
+- Run "make -f Makefile.mingw32".
+- Run "make -f Makefile.mingw32 out".
+- The bin subdirectory will contain all produced stuff.
+- Optional step - strip produced exe and dll files.
 
 ========================================================================
 Client Usage instructions:
@@ -91,6 +94,7 @@ to connect.
 ========================================================================
 Library Known Issues:
 
+===================================================
 Seems mingw has its own copy of environment variables.
 So the code:
 
@@ -99,6 +103,21 @@ So the code:
 
 does not work in MSVC as expected.
 But setting any variable before running executable works!
+
+===================================================
+Seems client applications do not close sockets.
+The sockets remain in TIME_WAIT state.
+It can exhaust system resources.
+
+========================================================================
+Daemon Usage instructions:
+
+Only Slave plug-in is now ported under Windows.
+
+- prepare openhpi.conf
+- set OPENHPI_UID_MAP="path to uid map file"
+- set OPENHPI_PATH="path to directory with libslave.dll"
+- openhpid.exe -n -v -c "path to openhpi.conf"
 
 ========================================================================
 Troubleshouting:
