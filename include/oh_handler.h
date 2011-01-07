@@ -21,7 +21,6 @@
 #ifndef __OH_HANDLER_H
 #define __OH_HANDLER_H
 
-#include <uuid/uuid.h>
 #include <glib.h>
 
 #include <SaHpi.h>
@@ -124,39 +123,6 @@ struct oh_handler_state {
         oh_el           *elcache;
         GThread         *thread_handle;
         void            *data;
-};
-
-/* Current abi is version 2. Version 1 is out-of-date and nobody
- * should use it
- */
-
-/* UUID_OH_ABI_V1 is out-of-date, keep here just for reference
- * ee778a5f-32cf-453b-a650-518814dc956c
- */
-/* static const uuid_t UUID_OH_ABI_V1 = {
-        0xee, 0x77, 0x8a, 0x5f, 0x32, 0xcf, 0x45, 0x3b,
-        0xa6, 0x50, 0x51, 0x88, 0x14, 0xdc, 0x95, 0x6c
-};
-*/
-
-/* 13adfcc7-d788-4aaf-b966-5cd30bdcd808 */
-/* regen this with via
- *
- * perl -e 'use POSIX qw(strftime); my $str = strftime("%Y%m%d%H%M%S",gmtime(time)); $str .= "00"; for my $c (split(//, $str)) {print "0x0$c, "} '
- *
- * any time you make a change */
-
-/*
-static const uuid_t UUID_OH_ABI_V2 = {
-        0x02, 0x00, 0x00, 0x04, 0x01, 0x02, 0x01, 0x05,
-        0x01, 0x06, 0x01, 0x04, 0x01, 0x00, 0x00, 0x00,
-};
-*/
-
-
-static const uuid_t UUID_OH_ABI_V2 = {
-        0x02, 0x00, 0x00, 0x05, 0x00, 0x04, 0x01, 0x03,
-        0x01, 0x02, 0x05, 0x04, 0x05, 0x00, 0x00, 0x00,
 };
 
 
@@ -1009,18 +975,6 @@ struct oh_abi_v2 {
                             	   SaHpiRptEntryT *rpte,
                             	   SaHpiRdrT *rdr);
 
-};
-
-/*The function is used for plugin loader to get interface*/
-int get_interface(void **pp, const uuid_t uuid) __attribute__ ((weak));
-
-/* Structure for static plugins */
-typedef int (*get_interface_t)( void **pp, const uuid_t uuid );
-
-struct oh_static_plugin
-{
-        char           *name;
-        get_interface_t get_interface;
 };
 
 #ifdef __cplusplus

@@ -221,10 +221,6 @@ AC_PATH_PROGS(RPM, rpmbuild)
 
 dnl plugin enablement stanzas
 
-dnl list of static plugins
-STATIC_PLUGIN_LIST=
-STATIC_PLUGIN_EXTRA_LIBS=
-
 AC_CHECK_HEADER([linux/watchdog.h], [have_linux_watchdog_h=yes], [], [#include <linux/types.h>])
 AC_ARG_ENABLE([watchdog],
     [  --enable-watchdog       build watchdog plugin [[default=yes if linux/watchdog.h exists]]],
@@ -262,16 +258,6 @@ AC_ARG_ENABLE([ipmi],
         if test "x$have_openipmi" = "xyes"; then
             AC_SUBST(IPMI,ipmi)
 	    AC_SUBST(WITH_IPMI,1)
-        else
-            OH_CHECK_FAIL(OpenIPMI,libOpenIPMI-devel,http://openipmi.sf.net,
-                         Can not build IPMI support without OpenIPMI >= 1.4.20)
-        fi
-    elif test "x$enableval" = "xstatic"; then
-        if test "x$have_openipmi" = "xyes"; then
-            AC_SUBST(IPMI,ipmi)
-	    AC_SUBST(WITH_IPMI,1)
-            STATIC_PLUGIN_LIST="$STATIC_PLUGIN_LIST ipmi"
-            STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS"
         else
             OH_CHECK_FAIL(OpenIPMI,libOpenIPMI-devel,http://openipmi.sf.net,
                          Can not build IPMI support without OpenIPMI >= 1.4.20)
@@ -329,10 +315,6 @@ AC_ARG_ENABLE([ipmidirect],
     [  --enable-ipmidirect     build direct ipmi plugin [[default=yes]]],
     [if test "x$enableval" = "xyes"; then
             AC_SUBST(IPMIDIRECT,ipmidirect)
-     elif test "x$enableval" = "xstatic"; then
-            AC_SUBST(IPMIDIRECT,ipmidirect)
-            STATIC_PLUGIN_LIST="$STATIC_PLUGIN_LIST ipmidirect"
-            STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS $SSL_LIB -luuid -lm -lstdc++"
      fi],
     [AC_SUBST(IPMIDIRECT,ipmidirect)])
 
@@ -428,28 +410,6 @@ AC_ARG_ENABLE([slave],
     [if test "x$enableval" = "xyes"; then
         AC_SUBST(SLAVE,slave)
     fi])
-
-dnl
-dnl create static plugin config
-dnl
-
-STATIC_PLUGIN=
-STATIC_PLUGIN_EXTERN=
-STATIC_PLUGIN_LIBS=
-
-for name in $STATIC_PLUGIN_LIST; do
-        STATIC_PLUGIN="$STATIC_PLUGIN { \"$name\", ${name}_get_interface },";
-        STATIC_PLUGIN_EXTERN="${STATIC_PLUGIN_EXTERN} extern int ${name}_get_interface(void **pp, const uuid_t uuid);";
-        STATIC_PLUGIN_LIBS="$STATIC_PLUGIN_LIBS \$(top_builddir)/plugins/$name/lib${name}.la";
-done
-
-dnl use openhpid/plugin_static.c.in
-AC_SUBST(STATIC_PLUGIN_EXTERN)
-AC_SUBST(STATIC_PLUGIN)
-
-dnl additional libs
-AC_SUBST(STATIC_PLUGIN_LIBS)
-AC_SUBST(STATIC_PLUGIN_EXTRA_LIBS)
 
 dnl setup SNMPFLAGS
 AC_SUBST(SNMPFLAGS)
@@ -753,7 +713,6 @@ AC_CONFIG_FILES([openhpi.spec
         docs/man/Makefile
         openhpid/Makefile
         openhpid/openhpid.sh
-        openhpid/plugin_static.c
         openhpid/t/Makefile
         openhpid/t/ohpi/Makefile
         hpi_shell/Makefile

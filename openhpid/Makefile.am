@@ -47,7 +47,6 @@ libopenhpidaemon_la_SOURCES        = \
     lock.h \
     ohpi.c \
     plugin.c \
-    plugin_static.c \
     safhpi.c \
     session.c \
     threaded.c \
