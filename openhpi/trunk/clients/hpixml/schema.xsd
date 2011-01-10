@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="http://openhpi.org/SAI-HPI-B.03.02"
+           xmlns="http://openhpi.org/SAI-HPI-B.03.02"
+           elementFormDefault="qualified">
+
+<xs:annotation>
+ <xs:documentation xml:lang="en">
+  (C) Copyright Pigeon Point Systems. 2010
+
+  This file is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. This
+  file is licensed under a BSD style license. See
+  the Copying file included with the OpenHPI distribution for
+  full licensing terms.
+
+  Author(s):
+      Anton Pak &lt;anton.pak@pigeonpoint.com&gt;
+ </xs:documentation>
+</xs:annotation>
+
+
+<!-- Basic HPI Types -->
+
+<xs:simpleType name="SaHpiUint8T">
+ <xs:restriction base="xs:nonNegativeInteger">
+  <xs:maxInclusive value="255"/>
+ </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiUint16T">
+ <xs:restriction base="xs:nonNegativeInteger">
+  <xs:maxInclusive value="65535"/>
+ </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiUint32T">
+ <xs:restriction base="xs:nonNegativeInteger">
+  <xs:maxInclusive value="4294967295"/>
+ </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiUint64T">
+ <xs:restriction base="xs:nonNegativeInteger">
+  <xs:maxInclusive value="18446744073709551615"/>
+ </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiInt8T">
+ <xs:restriction base="xs:integer">
+  <xs:minInclusive value="-128"/>
+  <xs:maxInclusive value="127"/>
+ </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiInt16T">
+ <xs:restriction base="xs:integer">
+  <xs:minInclusive value="-32768"/>
+  <xs:maxInclusive value="32767"/>
+ </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiInt32T">
+ <xs:restriction base="xs:integer">
+  <xs:minInclusive value="-2147483648"/>
+  <xs:maxInclusive value="2147483647"/>
+ </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiInt64T">
+ <xs:restriction base="xs:integer">
+  <xs:minInclusive value="-9223372036854775808"/>
+  <xs:maxInclusive value="9223372036854775807"/>
+ </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiFloat64T">
+ <xs:restriction base="xs:double"/>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiBoolT">
+ <xs:restriction base="xs:boolean"/>
+</xs:simpleType>
+
+
+<!-- HPI Enum Types -->
+
+<xs:simpleType name="SaHpiSeverityT">
+ <!-- TODO more on Severity -->
+ <xs:restriction base="xs:nonNegativeInteger"/>
+</xs:simpleType>
+
+
+<!-- Complex HPI Types -->
+
+<xs:simpleType name="SaHpiGuidT">
+ <!-- TODO more on Guid -->
+ <xs:restriction base="xs:string"/>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiEntityPathT">
+ <!-- TODO more on Entity Path -->
+ <xs:restriction base="xs:string"/>
+</xs:simpleType>
+
+<xs:complexType name="SaHpiTextBufferT">
+ <xs:sequence>
+  <xs:element name="DataType" type="SaHpiUint32T"/>
+  <xs:element name="Language" type="SaHpiUint32T"/>
+  <xs:element name="DataLength" type="SaHpiUint8T"/>
+  <!-- TODO more on Data -->
+  <xs:element name="Data" type="xs:string"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiDrtEntryT">
+ <xs:sequence>
+  <xs:element name="DomainId" type="SaHpiUint32T"/>
+  <xs:element name="IsPeer" type="SaHpiBoolT"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiResourceInfoT">
+ <xs:sequence>
+  <xs:element name="ResourceRev" type="SaHpiUint8T"/>
+  <xs:element name="SpecificVer" type="SaHpiUint8T"/>
+  <xs:element name="DeviceSupport" type="SaHpiUint8T"/>
+  <xs:element name="ManufacturerId" type="SaHpiUint32T"/>
+  <xs:element name="ProductId" type="SaHpiUint16T"/>
+  <xs:element name="FirmwareMajorRev" type="SaHpiUint8T"/>
+  <xs:element name="FirmwareMinorRev" type="SaHpiUint8T"/>
+  <xs:element name="AuxFirmwareRev" type="SaHpiUint8T"/>
+  <xs:element name="Guid" type="SaHpiGuidT"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiRptEntryT">
+ <xs:sequence>
+  <xs:element name="ResourceId" type="SaHpiUint32T"/>
+  <xs:element name="ResourceInfo" type="SaHpiResourceInfoT"/>
+  <xs:element name="ResourceEntity" type="SaHpiEntityPathT"/>
+  <xs:element name="ResourceCapabilities" type="SaHpiUint32T"/>
+  <xs:element name="HotSwapCapabilities" type="SaHpiUint32T"/>
+  <xs:element name="ResourceSeverity" type="SaHpiSeverityT"/>
+  <xs:element name="ResourceFailed" type="SaHpiBoolT"/>
+  <xs:element name="ResourceTag" type="SaHpiTextBufferT"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiAlarmT">
+ <xs:sequence>
+  <!-- TODO -->
+ </xs:sequence>
+</xs:complexType>
+
+
+<!-- HPI System Blocks -->
+
+<xs:complexType name="DomainReferenceTable">
+ <xs:sequence>
+  <xs:element name="DrtUpdateCount" type="SaHpiUint32T"/>
+  <xs:element name="DrtUpdateTimestamp" type="SaHpiInt64T"/>
+  <xs:element name="Reference" type="SaHpiDrtEntryT" minOccurs="0" maxOccurs="unbounded"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="Resource">
+ <xs:complexContent>
+  <xs:extension base="SaHpiRptEntryT">
+   <xs:sequence>
+    <xs:element name="xxx" type="xs:string"/>
+   </xs:sequence>
+  </xs:extension>
+ </xs:complexContent>
+</xs:complexType>
+
+<xs:complexType name="ResourcePresenceTable">
+ <xs:sequence>
+  <xs:element name="RptUpdateCount" type="SaHpiUint32T"/>
+  <xs:element name="RptUpdateTimestamp" type="SaHpiInt64T"/>
+  <xs:element name="Resource" type="Resource" minOccurs="0" maxOccurs="unbounded"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="EventLog">
+ <xs:sequence>
+  <!-- TODO -->
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="DomainAlarmTable">
+ <xs:sequence>
+  <xs:element name="DatUpdateCount" type="SaHpiUint32T"/>
+  <xs:element name="DatUpdateTimestamp" type="SaHpiInt64T"/>
+  <xs:element name="ActiveAlarms" type="SaHpiUint32T"/>
+  <xs:element name="CriticalAlarms" type="SaHpiUint32T"/>
+  <xs:element name="MajorAlarms" type="SaHpiUint32T"/>
+  <xs:element name="MinorAlarms" type="SaHpiUint32T"/>
+  <xs:element name="DatUserAlarmLimit" type="SaHpiUint32T"/>
+  <xs:element name="DatOverflow" type="SaHpiBoolT"/>
+  <xs:element name="Alarm" type="SaHpiAlarmT" minOccurs="0" maxOccurs="unbounded"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="Domain">
+ <xs:sequence>
+  <xs:element name="DomainId" type="SaHpiUint32T"/>
+  <xs:element name="DomainCapabilities" type="SaHpiUint32T"/>
+  <xs:element name="IsPeer" type="SaHpiBoolT"/>
+  <xs:element name="DomainTag" type="SaHpiTextBufferT"/>
+  <xs:element name="Guid" type ="SaHpiGuidT"/>
+  <xs:element name="DomainReferenceTable" type="DomainReferenceTable"/>
+  <xs:element name="ResourcePresenceTable" type="ResourcePresenceTable"/>
+<!--
+  <xs:element name="DomainEventLog" type="EventLog"/>
+-->
+  <xs:element name="DomainAlarmTable" type="DomainAlarmTable"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:element name="HPI">
+ <xs:complexType>
+  <xs:sequence>
+   <xs:element name="Version" fixed="B.03.02"/>
+   <xs:element name="Domain" type="Domain"/>
+  </xs:sequence>
+ </xs:complexType>
+</xs:element>
+
+</xs:schema>
+

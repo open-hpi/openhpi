@@ -1,0 +1,37 @@
+include ../../Makefile.mingw32.def
+
+TARGET := hpixml.exe
+
+SRC := \
+    hpi.cpp \
+    hpi_xml_writer.cpp \
+    schema.xsd \
+    main.cpp \
+    xml_writer.cpp
+
+OBJ := $(patsubst %.xsd, %.o,$(patsubst %.cpp, %.o, ${SRC} ) )
+
+DEFS := -DG_LOG_DOMAIN=\"hpixml\"
+
+INCLUDES := ${GLIB_INCLUDES}
+INCLUDES +=  -I ../../mingw32 -I ../../include -I ../../utils
+
+LIBS := ${GLIB_LIBS}
+LIBS += -L ../../utils -lopenhpiutils-${VERSION}
+LIBS += -L ../../baselib -lopenhpi-${VERSION}
+
+CPPFLAGS += ${DEFS} ${INCLUDES}
+
+.PHONY: all clean
+
+all : ${TARGET}
+
+%.o : %.xsd
+	${LD} -r -b binary -o $@ $^
+
+${TARGET} : ${OBJ}
+	${CXX} -o $@ $^ ${LIBS}
+
+clean:
+	rm -f ${OBJ} ${TARGET}
+
