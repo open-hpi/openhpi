@@ -6,6 +6,7 @@ openhpi_libs := utils \
                 marshal \
                 baselib \
                 clients \
+                clients/hpixml \
                 openhpid \
                 plugins/slave
 
@@ -39,6 +40,7 @@ out: all
 	cp baselib/libopenhpi-${VERSION}.a ${out}/
 	cp baselib/libopenhpi-${VERSION}.def ${out}/
 	cp clients/*.exe ${out}/
+	cp clients/hpixml/hpixml.exe ${out}/
 	cp openhpid/openhpid.exe ${out}/
 	cp plugins/slave/libslave.dll ${out}/plugins
 

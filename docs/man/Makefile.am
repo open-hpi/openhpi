@@ -38,6 +38,7 @@ EXTRA_DIST		= openhpi.pod.7   openhpid.pod.8      \
                           hpievents.pod.1 hpionIBMblade.pod.1 \
                           hpisensor.pod.1 hpitop.pod.1 \
 			  hpidomain.pod.1 hpigensimdata.pod.1 \
+			  hpixml.pod.1 \
 			  ohhandler.pod.1 ohparam.pod.1 \
                           ohdomainlist.pod.1 \
 			  hpi_shell.pod.1
@@ -73,6 +74,7 @@ man_MANS = openhpi.7   openhpid.8      \
            hpievents.1 hpionIBMblade.1 \
            hpisensor.1 hpitop.1        \
 	   hpidomain.1 hpigensimdata.1 \
+	   hpixml.1 \
            ohhandler.1 ohparam.1       \
            ohdomainlist.1 \
            hpi_shell.1
