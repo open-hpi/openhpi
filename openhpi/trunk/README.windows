@@ -1,6 +1,6 @@
 ========================================================================
 OpenHPI provides windows version of
-- Base HPI library (libopehpi-${VERSION}.dll)
+- Base HPI library (libopenhpi-${VERSION}.dll)
 - OpenHPI utils library (libopenhpiutils-${VERSION}.dll)
 - OpenHPI marshal library (libopenhpimarshal-${VERSION}.dll)
 - OpenHPI transport library (libopenhpitransport-${VERSION}.dll)
