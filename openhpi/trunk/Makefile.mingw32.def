@@ -5,7 +5,7 @@ TOOLCHAIN_PATH := /home/avpak/usr/cross/mingw32
 
 CC  := ${TOOLCHAIN_PATH}/bin/i386-mingw32-gcc
 CXX := ${TOOLCHAIN_PATH}/bin/i386-mingw32-g++
-LD  := ${TOOLCHAIN_PATH}/bin/i386-mingw32-ld
+AS  := ${TOOLCHAIN_PATH}/bin/i386-mingw32-as
 
 GLIB_DIR := /home/avpak/usr/cross/mingw32/i386-mingw32/glib-2.0
 

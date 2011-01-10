@@ -53,8 +53,7 @@ Build instructions:
 - Get archive with glib2 for windows and unpack it somewhere.
 - Enter openhpi source tree root directory.
 - Modify Makefile.mingw32.def:
--- TOOLCHAIN_PATH in order that CC and CXX point to C and C++
-   compilers correspondingly.
+-- TOOLCHAIN_PATH in order that CC, CXX and AS point to correct files.
 -- GLIB_DIR: in order that GLIB_INCLUDES and GLIB_LIBS
    point to valid directories with glib headers and libraries.
 - Run "make -f Makefile.mingw32".

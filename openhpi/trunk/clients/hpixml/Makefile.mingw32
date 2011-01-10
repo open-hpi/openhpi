@@ -5,13 +5,13 @@ TARGET := hpixml.exe
 SRC := \
     hpi.cpp \
     hpi_xml_writer.cpp \
-    schema.xsd \
+    schema.S \
     main.cpp \
     xml_writer.cpp
 
-OBJ := $(patsubst %.xsd, %.o,$(patsubst %.cpp, %.o, ${SRC} ) )
+OBJ := $(patsubst %.S, %.o,$(patsubst %.cpp, %.o, ${SRC} ) )
 
-DEFS := -DG_LOG_DOMAIN=\"hpixml\"
+DEFS := -DG_LOG_DOMAIN=\"hpixml\" -DSCHEMA=\"schema.xsd\"
 
 INCLUDES := ${GLIB_INCLUDES}
 INCLUDES +=  -I ../../mingw32 -I ../../include -I ../../utils
@@ -25,9 +25,6 @@ CPPFLAGS += ${DEFS} ${INCLUDES}
 .PHONY: all clean
 
 all : ${TARGET}
-
-%.o : %.xsd
-	${LD} -r -b binary -o $@ $^
 
 ${TARGET} : ${OBJ}
 	${CXX} -o $@ $^ ${LIBS}

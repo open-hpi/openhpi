@@ -20,21 +20,8 @@
 extern "C"
 {
 
-#ifdef WIN32
-
-extern char binary_schema_xsd_start;
-extern char binary_schema_xsd_end;
-#define SCHEMA_START (&binary_schema_xsd_start)
-#define SCHEMA_END   (&binary_schema_xsd_end)
-
-#else
-
-extern char _binary_schema_xsd_start;
-extern char _binary_schema_xsd_end;
-#define SCHEMA_START (&_binary_schema_xsd_start)
-#define SCHEMA_END   (&_binary_schema_xsd_end)
-
-#endif
+extern char schema_begin;
+extern char schema_end;
 
 };
 

@@ -2,10 +2,11 @@ MAINTAINERCLEANFILES = Makefile.in
 MOSTLYCLEANFILES     = @TEST_CLEAN@
 
 AM_CPPFLAGS = -DG_LOG_DOMAIN=\"hpixml\"
+AM_CCASFLAGS = -DSCHEMA=\"$(srcdir)/schema.xsd\"
 
 INCLUDES       = @OPENHPI_INCLUDES@
 
-EXTRA_DIST     = Makefile.mingw32
+EXTRA_DIST     = Makefile.mingw32 schema.xsd
 
 bin_PROGRAMS   = hpixml
 
@@ -16,14 +17,11 @@ hpixml_SOURCES = \
     hpi_xml_writer.h \
     main.cpp \
     schema.h \
-    schema.xsd \
+    schema.S \
     xml_writer.cpp \
     xml_writer.h
 
 hpixml_LDADD   = $(top_builddir)/baselib/libopenhpi.la
-
-.xsd.o:
-	${LD} -r -b binary -o $@ $<
 
 clean-local:
 	rm -f *~ *.o
