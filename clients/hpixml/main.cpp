@@ -75,7 +75,7 @@ int main( int argc, char * argv[] )
         return 1;
     }
     if ( print_xsd ) {
-        for ( char * p = SCHEMA_START; p < SCHEMA_END; ++p ) {
+        for ( char * p = &schema_begin; p < &schema_end; ++p ) {
             fwrite( p, 1, 1, stdout );
         }
         return 0;

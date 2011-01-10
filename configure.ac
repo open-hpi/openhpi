@@ -35,6 +35,7 @@ AC_SUBST(ac_configure_args)
 
 dnl Checks for programs
 AC_PROG_CC
+AM_PROG_AS
 AC_LIBTOOL_DLOPEN
 AC_PROG_LIBTOOL
 AC_PROG_LN_S
