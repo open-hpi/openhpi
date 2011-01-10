@@ -83,9 +83,9 @@ Define "SAHPI_API" macro as "__declspec(dllimport)".
 For mingw compiler it can be just linked.
 
 For MSVC:
-- There is def file libopenhpi-${VERSION}.dll.def
+- There is def file libopenhpi-${VERSION}.def
 - With lib tool you can create import library
-- Command example "lib /machine:i386 /def:libopenhpi-${VERSION}.dll.def"
+- Command example "lib /machine:i386 /def:libopenhpi-${VERSION}.def"
 - Point produced import library in Project settings
 
 And see Client Usage instrustions about configuring OpenHPI daemon address
