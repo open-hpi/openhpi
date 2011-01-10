@@ -59,7 +59,7 @@ Build instructions:
    point to valid directories with glib headers and libraries.
 - Run "make -f Makefile.mingw32".
 - Run "make -f Makefile.mingw32 out".
-- The bin subdirectory will contain all produced stuff.
+- The bin sub-directory will contain all produced stuff.
 - Optional step - strip produced exe and dll files.
 
 ========================================================================
@@ -88,7 +88,7 @@ For MSVC:
 - Command example "lib /machine:i386 /def:libopenhpi-${VERSION}.def"
 - Point produced import library in Project settings
 
-And see Client Usage instrustions about configuring OpenHPI daemon address
+And see Client Usage instructions about configuring OpenHPI daemon address
 to connect.
 
 ========================================================================
