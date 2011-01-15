@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+ <assemblyIdentity type="win32" name="openhpi.windows.libraries" version="2.17.0.3" processorArchitecture="x86"/>
+ <file name="libopenhpi.dll"/>
+ <file name="libopenhpimarshal.dll"/>
+ <file name="libopenhpitransport.dll"/>
+ <file name="libopenhpiutils.dll"/>
+ <file name="libglib-2.0-0.dll"/>
+ <file name="libgmodule-2.0-0.dll"/>
+ <file name="libgthread-2.0-0.dll"/>
+</assembly>

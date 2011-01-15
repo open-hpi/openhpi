@@ -1,6 +1,6 @@
 include ../Makefile.mingw32.def
 
-TARGET := libopenhpimarshal-${VERSION}.dll
+TARGET := libopenhpimarshal.dll
 
 SRC := marshal.c \
        marshal_hpi.c \

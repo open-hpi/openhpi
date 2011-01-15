@@ -1,6 +1,6 @@
 include ../Makefile.mingw32.def
 
-TARGET := libopenhpitransport-${VERSION}.dll
+TARGET := libopenhpitransport.dll
 
 SRC := strmsock.cpp
 

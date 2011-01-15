@@ -1,9 +1,9 @@
 ========================================================================
-OpenHPI provides windows version of
-- Base HPI library (libopenhpi-${VERSION}.dll)
-- OpenHPI utils library (libopenhpiutils-${VERSION}.dll)
-- OpenHPI marshal library (libopenhpimarshal-${VERSION}.dll)
-- OpenHPI transport library (libopenhpitransport-${VERSION}.dll)
+This package provides windows version of
+- Base HPI library (libopenhpi.dll)
+- OpenHPI utils library (libopenhpiutils.dll)
+- OpenHPI marshal library (libopenhpimarshal.dll)
+- OpenHPI transport library (libopenhpitransport.dll)
 - OpenHPI clients:
 -- hpialarms.exe
 -- hpidomain.exe
@@ -27,6 +27,23 @@ OpenHPI provides windows version of
 - OpenHPI daemon as a console Windows application (openhpid.exe)
 -- Slave plug-in (libslave.dll)
 
+libopenhpi.dll, libopenhpiutils.dll, libopenhpimarshal.dll,
+libopenhpitransport.dll constitute
+private side-by-side assembly openhpi.windows.libraries.
+And the assembly also includes necessary glib2 libraries:
+- libglib-2.0-0.dll
+- libgthread-2.0-0.dll
+- libgmodule-2.0-0.dll
+
+NB: glib2 libraries were obtained in binary form from 
+http://www.gtk.org/download-windows.html and were included 
+without any change.
+NB: glib2 is distributed under LGPL2 license.
+
+libslave.dll constitutes private side-by-side assembly
+openhpi.windows.plugins. It is planned to use this assembly
+for OpenHPI daemon plug-ins.
+
 ========================================================================
 Dependencies:
 
@@ -40,20 +57,13 @@ However the built libraries can be use as ordinary windows DLL
 in projects with any compiler.
 
 ========================================================================
-The libraries' names are constructed in the following way:
-lib + name + '-' + version + '.dll'.
-I.e. libopenhpi-2.17.0.dll
-
-N.B. This naming schema can be changed in future releases.
-
-========================================================================
 Build instructions:
 
 - Get mingw (cross or native).
 - Get archive with glib2 for windows and unpack it somewhere.
-- Enter openhpi source tree root directory.
+- Enter OpenHPI source tree root directory.
 - Modify Makefile.mingw32.def:
--- TOOLCHAIN_PATH in order that CC, CXX and AS point to correct files.
+-- TOOLCHAIN_PATH in order that CC, CXX, AS and RC point to correct files.
 -- GLIB_DIR: in order that GLIB_INCLUDES and GLIB_LIBS
    point to valid directories with glib headers and libraries.
 - Run "make -f Makefile.mingw32".
@@ -66,7 +76,7 @@ Client Usage instructions:
 
 There are two ways:
 
-Way 1) prepare openhpiclient.conf and set env. var. OPENHPI_CLIENT_CONF
+Way 1) prepare openhpiclient.conf and set env. var. OPENHPICLIENT_CONF
 to its path
 
 Way 2) set env. var. OPENHPI_DAEMON_HOST to OpenHPI daemon address.
@@ -74,18 +84,27 @@ Way 2) set env. var. OPENHPI_DAEMON_HOST to OpenHPI daemon address.
 ========================================================================
 Library Usage instructions:
 
-Header file SaHpi.h contains declarations on provided functions.
-The functions are in libopenhpi-${VERSION}.dll.
+Header file SaHpi.h contains declarations on provided HPI functions.
+Header file oHpi.h contains declarations on provided OpenHPI extension functions.
+The functions are in libopenhpi.dll.
 
 Define "SAHPI_API" macro as "__declspec(dllimport)".
 
 For mingw compiler it can be just linked.
 
 For MSVC:
-- There is def file libopenhpi-${VERSION}.def
+- There is def file libopenhpi.def
 - With lib tool you can create import library
-- Command example "lib /machine:i386 /def:libopenhpi-${VERSION}.def"
+- Command example "lib /machine:i386 /def:libopenhpi.def"
 - Point produced import library in Project settings
+
+For application running and distribution there are two ways:
+- you can copy assembly openhpi.windows.libraries dir
+  to application dir and put copy app.manifest as
+  your_application_name.exe.manifest into application dir.
+  Or embed this manifest to your application.
+- get necessary libraries from assembly openhpi.windows.libraries
+  assembly dir and copy them to your application dir.
 
 And see Client Usage instructions about configuring OpenHPI daemon address
 to connect.
@@ -115,8 +134,9 @@ Only Slave plug-in is now ported under Windows.
 
 - prepare openhpi.conf
 - set OPENHPI_UID_MAP="path to uid map file"
-- set OPENHPI_PATH="path to directory with libslave.dll"
 - openhpid.exe -n -v -c "path to openhpi.conf"
+
+NB: Flags -v is for verbose messages and can be omitted.
 
 ========================================================================
 Troubleshouting:
@@ -126,7 +146,4 @@ Mailing list: openhpi-devel@lists.sourceforge.net
 or
 
 IRC channel #openhpi on FreeNode.
-
-
-    Anton Pak
 
