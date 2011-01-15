@@ -1,6 +1,12 @@
 include Makefile.mingw32.def
 
-out := openhpi-${VERSION}-win32
+out     := openhpi-${VERSION}-win32
+doc     := ${out}/doc
+libs    := ${out}/openhpi.windows.libraries
+devel   := ${out}/devel
+progs   := ${out}
+plugins := ${out}/openhpi.windows.plugins
+
 openhpi_libs := utils \
                 transport \
                 marshal \
@@ -27,20 +33,30 @@ clean:
 out: all
 	rm -rf ${out}
 	mkdir -p ${out}
-	mkdir -p ${out}/plugins
-	cp README.windows ${out}
-	cat include/SaHpi.h | sed -e 's/ __attribute__.*/;/' -e 's/#define SAHPI_API/#define SAHPI_API __declspec(dllimport)/' > ${out}/SaHpi.h
-	cp include/oHpi.h ${out}
-	cp utils/libopenhpiutils-${VERSION}.dll ${out}/
-	cp utils/libopenhpiutils-${VERSION}.a ${out}/
-	cp utils/libopenhpiutils-${VERSION}.def ${out}/
-	cp transport/libopenhpitransport-${VERSION}.dll ${out}/
-	cp marshal/libopenhpimarshal-${VERSION}.dll ${out}/
-	cp baselib/libopenhpi-${VERSION}.dll ${out}/
-	cp baselib/libopenhpi-${VERSION}.a ${out}/
-	cp baselib/libopenhpi-${VERSION}.def ${out}/
-	cp clients/*.exe ${out}/
-	cp clients/hpixml/hpixml.exe ${out}/
-	cp openhpid/openhpid.exe ${out}/
-	cp plugins/slave/libslave.dll ${out}/plugins
+	mkdir -p ${doc}
+	cp README.windows ${doc}/README.windows.txt
+	mkdir -p ${libs}
+	cp transport/libopenhpitransport.dll ${libs}
+	cp marshal/libopenhpimarshal.dll ${libs}
+	cp utils/libopenhpiutils.dll ${libs}
+	cp baselib/libopenhpi.dll ${libs}
+	cp ${GLIB_DIR}/bin/libglib-2.0-0.dll ${libs}
+	cp ${GLIB_DIR}/bin/libgmodule-2.0-0.dll ${libs}
+	cp ${GLIB_DIR}/bin/libgthread-2.0-0.dll ${libs}
+	cp mingw32/openhpi.windows.libraries.manifest ${libs}
+	mkdir -p ${devel}
+	cat include/SaHpi.h | sed -e 's/ __attribute__.*/;/' -e 's/#define SAHPI_API/#define SAHPI_API __declspec(dllimport)/' > ${devel}/SaHpi.h
+	cp include/oHpi.h ${devel}
+	cp utils/libopenhpiutils.a ${devel}
+	cp utils/libopenhpiutils.def ${devel}
+	cp baselib/libopenhpi.a ${devel}
+	cp baselib/libopenhpi.def ${devel}
+	cp mingw32/app.manifest ${devel}
+	mkdir -p ${progs}
+	cp clients/*.exe ${progs}
+	cp clients/hpixml/hpixml.exe ${progs}
+	cp openhpid/openhpid.exe ${progs}
+	mkdir -p ${plugins}
+	cp plugins/slave/libslave.dll ${plugins}
+	cp mingw32/openhpi.windows.plugins.manifest ${plugins}
 

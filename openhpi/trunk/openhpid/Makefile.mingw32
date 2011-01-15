@@ -15,9 +15,10 @@ SRC := alarm.c \
        session.c \
        threaded.c \
        server.cpp \
-       openhpid-win32.cpp
+       openhpid-win32.cpp \
+       manifest.rc
 
-OBJ := $(patsubst %.c, %.o,$(patsubst %.cpp, %.o, ${SRC} ) )
+OBJ := $(patsubst %.rc, %.o, $(patsubst %.c, %.o, $(patsubst %.cpp, %.o, ${SRC} ) ) )
 
 DEFS := -DG_LOG_DOMAIN=\"openhpid\"
 
@@ -25,15 +26,18 @@ INCLUDES := ${GLIB_INCLUDES}
 INCLUDES +=  -I ../mingw32 -I ../include -I ../utils -I ../transport -I ../marshal 
 
 LIBS := ${GLIB_LIBS} ${GTHREAD_LIBS} ${GMODULE_LIBS}
-LIBS += -L ../utils -lopenhpiutils-${VERSION} 
-LIBS += -L ../transport -lopenhpitransport-${VERSION} 
-LIBS += -L ../marshal -lopenhpimarshal-${VERSION}
+LIBS += -L ../utils -lopenhpiutils
+LIBS += -L ../transport -lopenhpitransport
+LIBS += -L ../marshal -lopenhpimarshal
 
 CPPFLAGS += ${DEFS} ${INCLUDES}
 
 .PHONY: all clean
 
 all : ${TARGET}
+
+manifest.o: manifest.rc
+	${RC} -i $^ -o $@
 
 ${TARGET} : ${OBJ}
 	${CXX} -o $@ $^ ${LIBS}

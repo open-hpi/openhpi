@@ -7,9 +7,10 @@ SRC := \
     hpi_xml_writer.cpp \
     schema.S \
     main.cpp \
+    manifest.rc \
     xml_writer.cpp
 
-OBJ := $(patsubst %.S, %.o,$(patsubst %.cpp, %.o, ${SRC} ) )
+OBJ := $(patsubst %.rc, %.o, $(patsubst %.S, %.o, $(patsubst %.cpp, %.o, ${SRC} ) ) )
 
 DEFS := -DG_LOG_DOMAIN=\"hpixml\" -DSCHEMA=\"schema.xsd\"
 
@@ -17,14 +18,17 @@ INCLUDES := ${GLIB_INCLUDES}
 INCLUDES +=  -I ../../mingw32 -I ../../include -I ../../utils
 
 LIBS := ${GLIB_LIBS}
-LIBS += -L ../../utils -lopenhpiutils-${VERSION}
-LIBS += -L ../../baselib -lopenhpi-${VERSION}
+LIBS += -L ../../utils -lopenhpiutils
+LIBS += -L ../../baselib -lopenhpi
 
 CPPFLAGS += ${DEFS} ${INCLUDES}
 
 .PHONY: all clean
 
 all : ${TARGET}
+
+manifest.o: manifest.rc
+	${RC} -i $^ -o $@
 
 ${TARGET} : ${OBJ}
 	${CXX} -o $@ $^ ${LIBS}

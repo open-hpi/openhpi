@@ -1,6 +1,6 @@
 include ../Makefile.mingw32.def
 
-TARGET := libopenhpiutils-${VERSION}.dll
+TARGET := libopenhpiutils.dll
 
 SRC := announcement_utils.c \
        el_utils.c \

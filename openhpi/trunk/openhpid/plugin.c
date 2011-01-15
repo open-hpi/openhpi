@@ -230,11 +230,6 @@ int oh_getnext_plugin_name(char *plugin_name,
  **/
 int oh_load_plugin(char *plugin_name)
 {
-        struct oh_global_param path_param = { .type = OPENHPI_PATH };
-        gchar **plugin_search_dirs;
-        size_t i;
-        gchar *plugin_path;
-
         struct oh_plugin *plugin = NULL;
         int err;
 
@@ -267,17 +262,28 @@ int oh_load_plugin(char *plugin_name)
         g_static_rec_mutex_init(&plugin->lock);
         g_static_rec_mutex_init(&plugin->refcount_lock);
 
-        oh_get_global_param(&path_param);
-        plugin_search_dirs = g_strsplit(path_param.u.path, ":", -1);
-        for( i = 0; plugin_search_dirs[i] != 0; ++i) {
-            plugin_path = g_module_build_path(plugin_search_dirs[i], plugin->name);
-            plugin->dl_handle = g_module_open(plugin_path, G_MODULE_BIND_LOCAL);
-            g_free(plugin_path);
-            if (plugin->dl_handle) {
-                break;
+#ifdef _WIN32
+        plugin->dl_handle = g_module_open(plugin->name, G_MODULE_BIND_LOCAL);
+#else
+        {
+            struct oh_global_param path_param = { .type = OPENHPI_PATH };
+            gchar **plugin_search_dirs;
+            size_t i;
+            gchar *plugin_path;
+
+            oh_get_global_param(&path_param);
+            plugin_search_dirs = g_strsplit(path_param.u.path, ":", -1);
+            for( i = 0; plugin_search_dirs[i] != 0; ++i) {
+                plugin_path = g_module_build_path(plugin_search_dirs[i], plugin->name);
+                plugin->dl_handle = g_module_open(plugin_path, G_MODULE_BIND_LOCAL);
+                g_free(plugin_path);
+                if (plugin->dl_handle) {
+                    break;
+                }
             }
+            g_strfreev(plugin_search_dirs);
         }
-        g_strfreev(plugin_search_dirs);
+#endif
         if (plugin->dl_handle == NULL) {
                 CRIT("Can not open %s plugin: %s", plugin->name, g_module_error());
                 goto cleanup_and_quit;

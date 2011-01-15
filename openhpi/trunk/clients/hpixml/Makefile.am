@@ -6,7 +6,7 @@ AM_CCASFLAGS = -DSCHEMA=\"$(srcdir)/schema.xsd\"
 
 INCLUDES       = @OPENHPI_INCLUDES@
 
-EXTRA_DIST     = Makefile.mingw32 schema.xsd
+EXTRA_DIST     = Makefile.mingw32 schema.xsd manifest.rc
 
 bin_PROGRAMS   = hpixml
 

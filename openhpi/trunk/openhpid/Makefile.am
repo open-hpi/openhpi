@@ -28,6 +28,7 @@ DIST_SUBDIRS = t
 EXTRA_DIST		= \
     openhpid.sh.in \
     Makefile.mingw32 \
+    manifest.rc \
     openhpid-win32.cpp
 
 # daemon library

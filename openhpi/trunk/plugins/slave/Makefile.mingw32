@@ -15,7 +15,7 @@ DEFS := -DG_LOG_DOMAIN=\"slave\"
 INCLUDES := ${GLIB_INCLUDES} -I ../../mingw32 -I ../../include -I ../../utils
 
 LIBS := ${GLIB_LIBS} ${GTHREAD_LIBS} ${GMODULE_LIBS}
-LIBS += -L ../../utils -lopenhpiutils-${VERSION}
+LIBS += -L ../../utils -lopenhpiutils
 
 CPPFLAGS += ${DEFS} ${INCLUDES}
 
