@@ -10,7 +10,7 @@
 #domain default {                        # Has to be string "default", no quote.
 #                                        # Number 0 is not allowed.
 #       host = "my_default_domain_host"  # String value. Double quotes required.
-#       port = my_defaultdomain_port     # Interger value
+#       port = my_defaultdomain_port     # Integer value
 #}
 #                                        # If no "default" stanza is declared, 
 #                                        #  host = "localhost" and port = 4743
@@ -18,16 +18,16 @@
 #                                        #
 #domain 1 {
 #	host = "my_domain1_host"   # String value. Double quotes required.
-#	port = my_domain1_port     # Interger value 
+#	port = my_domain1_port     # Integer value 
 #}
 
 #domain 2 {
 #	host = "my_domain2_host"   # String value. Double quotes required.
-#	port = my_domain2_port     # Interger value
+#	port = my_domain2_port     # Integer value
 #}
 
 #domain 3 {
 #	host = "my_domain3_host"   # String value. Double quotes required.
-#	port = my_domain3_port     # Interger value
+#	port = my_domain3_port     # Integer value
 #}
 
