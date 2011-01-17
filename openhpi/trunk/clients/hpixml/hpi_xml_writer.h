@@ -1,6 +1,6 @@
 /*      -*- c++ -*-
  *
- * Copyright (C) 2010, Pigeon Point Systems
+ * Copyright (C) 2011, Pigeon Point Systems
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -44,8 +44,18 @@ public:
 
     void BeginRptNode( const SaHpiDomainInfoT& di );
     void EndRptNode();
-    void BeginResourceNode( const SaHpiRptEntryT& rpte );
+    void BeginResourceNode( const SaHpiRptEntryT& rpte,
+                            SaHpiUint32T rdr_update_count );
     void EndResourceNode();
+
+    void BeginInstrumentNode( const SaHpiRdrT& rdr );
+    void EndInstrumentNode();
+
+    void BeginEventLogNode();
+    void EndEventLogNode();
+
+    void BeginDomainEventLogNode();
+    void EndDomainEventLogNode();
 
     void BeginDatNode( const SaHpiDomainInfoT& di );
     void EndDatNode();
@@ -108,10 +118,6 @@ private:
         const char * name,
         const SaHpiVersionT& x
     );
-    void NodeSaErrorT(
-        const char * name,
-        const SaErrorT& x
-    );
     void NodeSaHpiDomainIdT(
         const char * name,
         const SaHpiDomainIdT& x
@@ -143,10 +149,6 @@ private:
     void NodeSaHpiEntityLocationT(
         const char * name,
         const SaHpiEntityLocationT& x
-    );
-    void NodeSaHpiEventCategoryT(
-        const char * name,
-        const SaHpiEventCategoryT& x
     );
     void NodeSaHpiEventStateT(
         const char * name,
@@ -468,6 +470,19 @@ private:
 
 
     /****************************
+     * Enum-Like Types
+     ***************************/
+    void NodeSaErrorT(
+        const char * name,
+        const SaErrorT& x
+    );
+
+    void NodeSaHpiEventCategoryT(
+        const char * name,
+        const SaHpiEventCategoryT& x
+    );
+
+    /****************************
      * Complex Types
      ***************************/
     void NodeSaHpiTextBufferT(
@@ -478,6 +493,10 @@ private:
         const char * name,
         const SaHpiEntityPathT& x
     );
+    void NodeSaHpiNameT(
+        const char * name,
+        const SaHpiNameT& x
+    );
     void NodeSaHpiConditionT(
         const char * name,
         const SaHpiConditionT& x
@@ -485,6 +504,94 @@ private:
     void NodeSaHpiGuidT(
         const char * name,
         const SaHpiGuidT& x
+    );
+    void NodeSaHpiRptEntryT(
+        const char * name,
+        const SaHpiRptEntryT& x
+    );
+    void NodeSaHpiCtrlStateStreamT(
+        const char * name,
+        const SaHpiCtrlStateStreamT& x
+    );
+    void NodeSaHpiCtrlStateTextT(
+        const char * name,
+        const SaHpiCtrlStateTextT& x
+    );
+    void NodeSaHpiCtrlStateOemT(
+        const char * name,
+        const SaHpiCtrlStateOemT& x
+    );
+    void NodeSaHpiCtrlRecDigitalT(
+        const char * name,
+        const SaHpiCtrlRecDigitalT& x
+    );
+    void NodeSaHpiCtrlRecDiscreteT(
+        const char * name,
+        const SaHpiCtrlRecDiscreteT& x
+    );
+    void NodeSaHpiCtrlRecAnalogT(
+        const char * name,
+        const SaHpiCtrlRecAnalogT& x
+    );
+    void NodeSaHpiCtrlRecStreamT(
+        const char * name,
+        const SaHpiCtrlRecStreamT& x
+    );
+    void NodeSaHpiCtrlRecTextT(
+        const char * name,
+        const SaHpiCtrlRecTextT& x
+    );
+    void NodeSaHpiCtrlRecOemT(
+        const char * name,
+        const SaHpiCtrlRecOemT& x
+    );
+    void NodeSaHpiCtrlRecT(
+        const char * name,
+        const SaHpiCtrlRecT& x
+    );
+    void NodeSaHpiSensorReadingT(
+        const char * name,
+        const SaHpiSensorReadingT& x
+    );
+    void NodeSaHpiSensorRangeT(
+        const char * name,
+        const SaHpiSensorRangeT& x
+    );
+    void NodeSaHpiSensorDataFormatT(
+        const char * name,
+        const SaHpiSensorDataFormatT& x
+    );
+    void NodeSaHpiSensorThdDefnT(
+        const char * name,
+        const SaHpiSensorThdDefnT& x
+    );
+    void NodeSaHpiSensorRecT(
+        const char * name,
+        const SaHpiSensorRecT& x
+    );
+    void NodeSaHpiInventoryRecT(
+        const char * name,
+        const SaHpiInventoryRecT& x
+    );
+    void NodeSaHpiWatchdogRecT(
+        const char * name,
+        const SaHpiWatchdogRecT& x
+    );
+    void NodeSaHpiAnnunciatorRecT(
+        const char * name,
+        const SaHpiAnnunciatorRecT& x
+    );
+    void NodeSaHpiDimiRecT(
+        const char * name,
+        const SaHpiDimiRecT& x
+    );
+    void NodeSaHpiFumiRecT(
+        const char * name,
+        const SaHpiFumiRecT& x
+    );
+    void NodeSaHpiRdrT(
+        const char * name,
+        const SaHpiRdrT& x
     );
 };
 

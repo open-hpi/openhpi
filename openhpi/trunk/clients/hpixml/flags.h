@@ -13,18 +13,24 @@
  *      Anton Pak <anton.pak@pigeonpoint.com>
  */
 
-#ifndef SCHEMA_H_EC5AF80F_A79B_49D7_8371_F71504C426A6
-#define SCHEMA_H_EC5AF80F_A79B_49D7_8371_F71504C426A6
+#ifndef FLAGS_H_EC5AF80F_A79B_49D7_8371_F71504C426A6
+#define FLAGS_H_EC5AF80F_A79B_49D7_8371_F71504C426A6
+
+#include <stdint.h>
+#include <stddef.h>
 
 
-extern "C"
+namespace Flags
 {
 
-extern char schema_begin;
-extern char schema_end;
 
-};
+const size_t Num = 32;
+typedef uint32_t Type;
+typedef const char * Names[Num];
 
 
-#endif /* SCHEMA_H_EC5AF80F_A79B_49D7_8371_F71504C426A6 */
+}; /* namespace Flags */
+
+
+#endif /* FLAGS_H_EC5AF80F_A79B_49D7_8371_F71504C426A6 */
 

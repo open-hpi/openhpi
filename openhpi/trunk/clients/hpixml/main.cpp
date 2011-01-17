@@ -1,6 +1,6 @@
 /*      -*- c++ -*-
  *
- * Copyright (c) 2010 by Pigeon Point Systems.
+ * Copyright (c) 2011 by Pigeon Point Systems.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of

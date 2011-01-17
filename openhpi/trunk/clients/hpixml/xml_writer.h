@@ -1,6 +1,6 @@
 /*      -*- c++ -*-
  *
- * Copyright (C) 2010, Pigeon Point Systems
+ * Copyright (C) 2011, Pigeon Point Systems
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -20,6 +20,8 @@
 #include <stdint.h>
 
 #include <string>
+
+#include "flags.h"
 
 
 /***************************************************
@@ -44,18 +46,22 @@ public:
     template<class T>
     void NodeEnum( const char * name,
                    T value,
-                   char * (*lookup)( T value ) )
+                   char * (*get_value_name)( T ) )
     {
-        const char * value_str =  0;
-        if ( m_use_names && lookup ) {
-            value_str = lookup( value );
+        const char * value_name = 0;
+        if ( m_use_names && get_value_name ) {
+            value_name = get_value_name( value );
         }
-        if ( value_str ) {
-            Node( name, "%s", value_str );
+        if ( value_name ) {
+            Node( name, "%s", value_name );
         } else {
-            Node( name, "%d", value );
+            Node( name, "%d", (int)value );
         }
     }
+
+    void NodeFlags( const char * name,
+                    Flags::Type flags,
+                    const Flags::Names * flag_names );
 
     void BeginNode( const char * name );
     void EndNode( const char * name );
