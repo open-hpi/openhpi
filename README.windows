@@ -133,8 +133,13 @@ Daemon Usage instructions:
 Only Slave plug-in is now ported under Windows.
 
 - prepare openhpi.conf
-- set OPENHPI_UID_MAP="path to uid map file"
 - openhpid.exe -n -v -c "path to openhpi.conf"
+
+As an optional step you can do 
+- set OPENHPI_UID_MAP="path to uid map file"
+before running openhpid.exe.
+The uid map file will be used for persistent
+resource id <-> entity path mapping.
 
 NB: Flags -v is for verbose messages and can be omitted.
 
