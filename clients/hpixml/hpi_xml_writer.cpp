@@ -1,6 +1,6 @@
 /*      -*- c++ -*-
  *
- * Copyright (c) 2010 by Pigeon Point Systems.
+ * Copyright (c) 2011 by Pigeon Point Systems.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -20,7 +20,552 @@
 
 #include <oh_utils.h>
 
+#include "flags.h"
 #include "hpi_xml_writer.h"
+
+
+/****************************
+ * Flags Types
+ ***************************/
+static Flags::Names NamesSaHpiEventStateT =
+{
+    /* bit 0,  0x00000001 */  "STATE_00",
+    /* bit 1,  0x00000002 */  "STATE_01",
+    /* bit 2,  0x00000004 */  "STATE_02",
+    /* bit 3,  0x00000008 */  "STATE_03",
+    /* bit 4,  0x00000010 */  "STATE_04",
+    /* bit 5,  0x00000020 */  "STATE_05",
+    /* bit 6,  0x00000040 */  "STATE_06",
+    /* bit 7,  0x00000080 */  "STATE_07",
+    /* bit 8,  0x00000100 */  "STATE_08",
+    /* bit 9,  0x00000200 */  "STATE_09",
+    /* bit 10, 0x00000400 */  "STATE_10",
+    /* bit 11, 0x00000800 */  "STATE_11",
+    /* bit 12, 0x00001000 */  "STATE_12",
+    /* bit 13, 0x00002000 */  "STATE_13",
+    /* bit 14, 0x00004000 */  "STATE_14",
+    /* bit 15, 0x00008000 */  0,
+    /* bit 16, 0x00010000 */  0,
+    /* bit 17, 0x00020000 */  0,
+    /* bit 18, 0x00040000 */  0,
+    /* bit 19, 0x00080000 */  0,
+    /* bit 20, 0x00100000 */  0,
+    /* bit 21, 0x00200000 */  0,
+    /* bit 22, 0x00400000 */  0,
+    /* bit 23, 0x00800000 */  0,
+    /* bit 24, 0x01000000 */  0,
+    /* bit 25, 0x02000000 */  0,
+    /* bit 26, 0x04000000 */  0,
+    /* bit 27, 0x08000000 */  0,
+    /* bit 28, 0x10000000 */  0,
+    /* bit 29, 0x20000000 */  0,
+    /* bit 30, 0x40000000 */  0,
+    /* bit 31, 0x80000000 */  0
+};
+
+static Flags::Names NamesSaHpiSensorRangeFlagsT =
+{
+    /* bit 0,  0x00000001 */  "NOMINAL",
+    /* bit 1,  0x00000002 */  "NORMAL_MAX",
+    /* bit 2,  0x00000004 */  "NORMAL_MIN",
+    /* bit 3,  0x00000008 */  "MAX",
+    /* bit 4,  0x00000010 */  "MIN",
+    /* bit 5,  0x00000020 */  0,
+    /* bit 6,  0x00000040 */  0,
+    /* bit 7,  0x00000080 */  0,
+    /* bit 8,  0x00000100 */  0,
+    /* bit 9,  0x00000200 */  0,
+    /* bit 10, 0x00000400 */  0,
+    /* bit 11, 0x00000800 */  0,
+    /* bit 12, 0x00001000 */  0,
+    /* bit 13, 0x00002000 */  0,
+    /* bit 14, 0x00004000 */  0,
+    /* bit 15, 0x00008000 */  0,
+    /* bit 16, 0x00010000 */  0,
+    /* bit 17, 0x00020000 */  0,
+    /* bit 18, 0x00040000 */  0,
+    /* bit 19, 0x00080000 */  0,
+    /* bit 20, 0x00100000 */  0,
+    /* bit 21, 0x00200000 */  0,
+    /* bit 22, 0x00400000 */  0,
+    /* bit 23, 0x00800000 */  0,
+    /* bit 24, 0x01000000 */  0,
+    /* bit 25, 0x02000000 */  0,
+    /* bit 26, 0x04000000 */  0,
+    /* bit 27, 0x08000000 */  0,
+    /* bit 28, 0x10000000 */  0,
+    /* bit 29, 0x20000000 */  0,
+    /* bit 30, 0x40000000 */  0,
+    /* bit 31, 0x80000000 */  0
+};
+
+static Flags::Names NamesSaHpiSensorThdMaskT =
+{
+    /* bit 0,  0x00000001 */  "LOW_MINOR",
+    /* bit 1,  0x00000002 */  "LOW_MAJOR",
+    /* bit 2,  0x00000004 */  "LOW_CRIT",
+    /* bit 3,  0x00000008 */  "UP_MINOR",
+    /* bit 4,  0x00000010 */  "UP_MAJOR",
+    /* bit 5,  0x00000020 */  "UP_CRIT",
+    /* bit 6,  0x00000040 */  "UP_HYSTERESIS",
+    /* bit 7,  0x00000080 */  "LOW_HYSTERESIS",
+    /* bit 8,  0x00000100 */  0,
+    /* bit 9,  0x00000200 */  0,
+    /* bit 10, 0x00000400 */  0,
+    /* bit 11, 0x00000800 */  0,
+    /* bit 12, 0x00001000 */  0,
+    /* bit 13, 0x00002000 */  0,
+    /* bit 14, 0x00004000 */  0,
+    /* bit 15, 0x00008000 */  0,
+    /* bit 16, 0x00010000 */  0,
+    /* bit 17, 0x00020000 */  0,
+    /* bit 18, 0x00040000 */  0,
+    /* bit 19, 0x00080000 */  0,
+    /* bit 20, 0x00100000 */  0,
+    /* bit 21, 0x00200000 */  0,
+    /* bit 22, 0x00400000 */  0,
+    /* bit 23, 0x00800000 */  0,
+    /* bit 24, 0x01000000 */  0,
+    /* bit 25, 0x02000000 */  0,
+    /* bit 26, 0x04000000 */  0,
+    /* bit 27, 0x08000000 */  0,
+    /* bit 28, 0x10000000 */  0,
+    /* bit 29, 0x20000000 */  0,
+    /* bit 30, 0x40000000 */  0,
+    /* bit 31, 0x80000000 */  0
+};
+
+static Flags::Names NamesSaHpiWatchdogExpFlagsT =
+{
+    /* bit 0,  0x00000001 */  0,
+    /* bit 1,  0x00000002 */  "BIOS_FRB2",
+    /* bit 2,  0x00000004 */  "BIOS_POST",
+    /* bit 3,  0x00000008 */  "OS_LOAD",
+    /* bit 4,  0x00000010 */  "SMS_OS",
+    /* bit 5,  0x00000020 */  "OEM",
+    /* bit 6,  0x00000040 */  0,
+    /* bit 7,  0x00000080 */  0,
+    /* bit 8,  0x00000100 */  0,
+    /* bit 9,  0x00000200 */  0,
+    /* bit 10, 0x00000400 */  0,
+    /* bit 11, 0x00000800 */  0,
+    /* bit 12, 0x00001000 */  0,
+    /* bit 13, 0x00002000 */  0,
+    /* bit 14, 0x00004000 */  0,
+    /* bit 15, 0x00008000 */  0,
+    /* bit 16, 0x00010000 */  0,
+    /* bit 17, 0x00020000 */  0,
+    /* bit 18, 0x00040000 */  0,
+    /* bit 19, 0x00080000 */  0,
+    /* bit 20, 0x00100000 */  0,
+    /* bit 21, 0x00200000 */  0,
+    /* bit 22, 0x00400000 */  0,
+    /* bit 23, 0x00800000 */  0,
+    /* bit 24, 0x01000000 */  0,
+    /* bit 25, 0x02000000 */  0,
+    /* bit 26, 0x04000000 */  0,
+    /* bit 27, 0x08000000 */  0,
+    /* bit 28, 0x10000000 */  0,
+    /* bit 29, 0x20000000 */  0,
+    /* bit 30, 0x40000000 */  0,
+    /* bit 31, 0x80000000 */  0
+};
+
+static Flags::Names NamesSaHpiDimiTestCapabilityT =
+{
+    /* bit 0,  0x00000001 */  "RESULTSOUTPUT",
+    /* bit 1,  0x00000002 */  "SERVICEMODE",
+    /* bit 2,  0x00000004 */  "LOOPCOUNT",
+    /* bit 3,  0x00000008 */  "LOOPTIME",
+    /* bit 4,  0x00000010 */  "LOGGING",
+    /* bit 5,  0x00000020 */  "TESTCANCEL",
+    /* bit 6,  0x00000040 */  0,
+    /* bit 7,  0x00000080 */  0,
+    /* bit 8,  0x00000100 */  0,
+    /* bit 9,  0x00000200 */  0,
+    /* bit 10, 0x00000400 */  0,
+    /* bit 11, 0x00000800 */  0,
+    /* bit 12, 0x00001000 */  0,
+    /* bit 13, 0x00002000 */  0,
+    /* bit 14, 0x00004000 */  0,
+    /* bit 15, 0x00008000 */  0,
+    /* bit 16, 0x00010000 */  0,
+    /* bit 17, 0x00020000 */  0,
+    /* bit 18, 0x00040000 */  0,
+    /* bit 19, 0x00080000 */  0,
+    /* bit 20, 0x00100000 */  0,
+    /* bit 21, 0x00200000 */  0,
+    /* bit 22, 0x00400000 */  0,
+    /* bit 23, 0x00800000 */  0,
+    /* bit 24, 0x01000000 */  0,
+    /* bit 25, 0x02000000 */  0,
+    /* bit 26, 0x04000000 */  0,
+    /* bit 27, 0x08000000 */  0,
+    /* bit 28, 0x10000000 */  0,
+    /* bit 29, 0x20000000 */  0,
+    /* bit 30, 0x40000000 */  0,
+    /* bit 31, 0x80000000 */  0
+};
+
+static Flags::Names NamesSaHpiFumiLogicalBankStateFlagsT =
+{
+    /* bit 0,  0x00000001 */  "NO_MAIN_PERSISTENT_COPY",
+    /* bit 1,  0x00000002 */  0,
+    /* bit 2,  0x00000004 */  0,
+    /* bit 3,  0x00000008 */  0,
+    /* bit 4,  0x00000010 */  0,
+    /* bit 5,  0x00000020 */  0,
+    /* bit 6,  0x00000040 */  0,
+    /* bit 7,  0x00000080 */  0,
+    /* bit 8,  0x00000100 */  0,
+    /* bit 9,  0x00000200 */  0,
+    /* bit 10, 0x00000400 */  0,
+    /* bit 11, 0x00000800 */  0,
+    /* bit 12, 0x00001000 */  0,
+    /* bit 13, 0x00002000 */  0,
+    /* bit 14, 0x00004000 */  0,
+    /* bit 15, 0x00008000 */  0,
+    /* bit 16, 0x00010000 */  0,
+    /* bit 17, 0x00020000 */  0,
+    /* bit 18, 0x00040000 */  0,
+    /* bit 19, 0x00080000 */  0,
+    /* bit 20, 0x00100000 */  0,
+    /* bit 21, 0x00200000 */  0,
+    /* bit 22, 0x00400000 */  0,
+    /* bit 23, 0x00800000 */  0,
+    /* bit 24, 0x01000000 */  0,
+    /* bit 25, 0x02000000 */  0,
+    /* bit 26, 0x04000000 */  0,
+    /* bit 27, 0x08000000 */  0,
+    /* bit 28, 0x10000000 */  0,
+    /* bit 29, 0x20000000 */  0,
+    /* bit 30, 0x40000000 */  0,
+    /* bit 31, 0x80000000 */  0
+};
+
+static Flags::Names NamesSaHpiFumiProtocolT =
+{
+    /* bit 0,  0x00000001 */  "TFTP",
+    /* bit 1,  0x00000002 */  "FTP",
+    /* bit 2,  0x00000004 */  "HTTP",
+    /* bit 3,  0x00000008 */  "LDAP",
+    /* bit 4,  0x00000010 */  "LOCAL",
+    /* bit 5,  0x00000020 */  "NFS",
+    /* bit 6,  0x00000040 */  "DBACCESS",
+    /* bit 7,  0x00000080 */  0,
+    /* bit 8,  0x00000100 */  0,
+    /* bit 9,  0x00000200 */  0,
+    /* bit 10, 0x00000400 */  0,
+    /* bit 11, 0x00000800 */  0,
+    /* bit 12, 0x00001000 */  0,
+    /* bit 13, 0x00002000 */  0,
+    /* bit 14, 0x00004000 */  0,
+    /* bit 15, 0x00008000 */  0,
+    /* bit 16, 0x00010000 */  0,
+    /* bit 17, 0x00020000 */  0,
+    /* bit 18, 0x00040000 */  0,
+    /* bit 19, 0x00080000 */  0,
+    /* bit 20, 0x00100000 */  0,
+    /* bit 21, 0x00200000 */  0,
+    /* bit 22, 0x00400000 */  0,
+    /* bit 23, 0x00800000 */  0,
+    /* bit 24, 0x01000000 */  0,
+    /* bit 25, 0x02000000 */  0,
+    /* bit 26, 0x04000000 */  0,
+    /* bit 27, 0x08000000 */  0,
+    /* bit 28, 0x10000000 */  0,
+    /* bit 29, 0x20000000 */  0,
+    /* bit 30, 0x40000000 */  0,
+    /* bit 31, 0x80000000 */  0
+};
+
+static Flags::Names NamesSaHpiFumiCapabilityT =
+{
+    /* bit 0,  0x00000001 */  "ROLLBACK",
+    /* bit 1,  0x00000002 */  "BANKCOPY",
+    /* bit 2,  0x00000004 */  "BANKREORDER",
+    /* bit 3,  0x00000008 */  "BACKUP",
+    /* bit 4,  0x00000010 */  "TARGET_VERIFY",
+    /* bit 5,  0x00000020 */  "TARGET_VERIFY_MAIN",
+    /* bit 6,  0x00000040 */  "COMPONENTS",
+    /* bit 7,  0x00000080 */  "AUTOROLLBACK",
+    /* bit 8,  0x00000100 */  "AUTOROLLBACK_CAN_BE_DISABLED",
+    /* bit 9,  0x00000200 */  "MAIN_NOT_PERSISTENT",
+    /* bit 10, 0x00000400 */  0,
+    /* bit 11, 0x00000800 */  0,
+    /* bit 12, 0x00001000 */  0,
+    /* bit 13, 0x00002000 */  0,
+    /* bit 14, 0x00004000 */  0,
+    /* bit 15, 0x00008000 */  0,
+    /* bit 16, 0x00010000 */  0,
+    /* bit 17, 0x00020000 */  0,
+    /* bit 18, 0x00040000 */  0,
+    /* bit 19, 0x00080000 */  0,
+    /* bit 20, 0x00100000 */  0,
+    /* bit 21, 0x00200000 */  0,
+    /* bit 22, 0x00400000 */  0,
+    /* bit 23, 0x00800000 */  0,
+    /* bit 24, 0x01000000 */  0,
+    /* bit 25, 0x02000000 */  0,
+    /* bit 26, 0x04000000 */  0,
+    /* bit 27, 0x08000000 */  0,
+    /* bit 28, 0x10000000 */  0,
+    /* bit 29, 0x20000000 */  0,
+    /* bit 30, 0x40000000 */  0,
+    /* bit 31, 0x80000000 */  0
+};
+
+static Flags::Names NamesSaHpiSensorOptionalDataT =
+{
+    /* bit 0,  0x00000001 */  "TRIGGER_READING",
+    /* bit 1,  0x00000002 */  "TRIGGER_THRESHOLD",
+    /* bit 2,  0x00000004 */  "OEM",
+    /* bit 3,  0x00000008 */  "PREVIOUS_STATE",
+    /* bit 4,  0x00000010 */  "CURRENT_STATE",
+    /* bit 5,  0x00000020 */  "SENSOR_SPECIFIC", 
+    /* bit 6,  0x00000040 */  0,
+    /* bit 7,  0x00000080 */  0,
+    /* bit 8,  0x00000100 */  0,
+    /* bit 9,  0x00000200 */  0,
+    /* bit 10, 0x00000400 */  0,
+    /* bit 11, 0x00000800 */  0,
+    /* bit 12, 0x00001000 */  0,
+    /* bit 13, 0x00002000 */  0,
+    /* bit 14, 0x00004000 */  0,
+    /* bit 15, 0x00008000 */  0,
+    /* bit 16, 0x00010000 */  0,
+    /* bit 17, 0x00020000 */  0,
+    /* bit 18, 0x00040000 */  0,
+    /* bit 19, 0x00080000 */  0,
+    /* bit 20, 0x00100000 */  0,
+    /* bit 21, 0x00200000 */  0,
+    /* bit 22, 0x00400000 */  0,
+    /* bit 23, 0x00800000 */  0,
+    /* bit 24, 0x01000000 */  0,
+    /* bit 25, 0x02000000 */  0,
+    /* bit 26, 0x04000000 */  0,
+    /* bit 27, 0x08000000 */  0,
+    /* bit 28, 0x10000000 */  0,
+    /* bit 29, 0x20000000 */  0,
+    /* bit 30, 0x40000000 */  0,
+    /* bit 31, 0x80000000 */  0
+};
+
+static Flags::Names NamesSaHpiSensorEnableOptDataT =
+{
+    /* bit 0,  0x00000001 */  0,
+    /* bit 1,  0x00000002 */  0,
+    /* bit 2,  0x00000004 */  0,
+    /* bit 3,  0x00000008 */  0,
+    /* bit 4,  0x00000010 */  "CURRENT_STATE",
+    /* bit 5,  0x00000020 */  0,
+    /* bit 6,  0x00000040 */  "ALARM_STATES",
+    /* bit 7,  0x00000080 */  0,
+    /* bit 8,  0x00000100 */  0,
+    /* bit 9,  0x00000200 */  0,
+    /* bit 10, 0x00000400 */  0,
+    /* bit 11, 0x00000800 */  0,
+    /* bit 12, 0x00001000 */  0,
+    /* bit 13, 0x00002000 */  0,
+    /* bit 14, 0x00004000 */  0,
+    /* bit 15, 0x00008000 */  0,
+    /* bit 16, 0x00010000 */  0,
+    /* bit 17, 0x00020000 */  0,
+    /* bit 18, 0x00040000 */  0,
+    /* bit 19, 0x00080000 */  0,
+    /* bit 20, 0x00100000 */  0,
+    /* bit 21, 0x00200000 */  0,
+    /* bit 22, 0x00400000 */  0,
+    /* bit 23, 0x00800000 */  0,
+    /* bit 24, 0x01000000 */  0,
+    /* bit 25, 0x02000000 */  0,
+    /* bit 26, 0x04000000 */  0,
+    /* bit 27, 0x08000000 */  0,
+    /* bit 28, 0x10000000 */  0,
+    /* bit 29, 0x20000000 */  0,
+    /* bit 30, 0x40000000 */  0,
+    /* bit 31, 0x80000000 */  0
+};
+
+static Flags::Names NamesSaHpiEvtQueueStatusT =
+{
+    /* bit 0,  0x00000001 */  "OVERFLOW",
+    /* bit 1,  0x00000002 */  0,
+    /* bit 2,  0x00000004 */  0,
+    /* bit 3,  0x00000008 */  0,
+    /* bit 4,  0x00000010 */  0,
+    /* bit 5,  0x00000020 */  0,
+    /* bit 6,  0x00000040 */  0,
+    /* bit 7,  0x00000080 */  0,
+    /* bit 8,  0x00000100 */  0,
+    /* bit 9,  0x00000200 */  0,
+    /* bit 10, 0x00000400 */  0,
+    /* bit 11, 0x00000800 */  0,
+    /* bit 12, 0x00001000 */  0,
+    /* bit 13, 0x00002000 */  0,
+    /* bit 14, 0x00004000 */  0,
+    /* bit 15, 0x00008000 */  0,
+    /* bit 16, 0x00010000 */  0,
+    /* bit 17, 0x00020000 */  0,
+    /* bit 18, 0x00040000 */  0,
+    /* bit 19, 0x00080000 */  0,
+    /* bit 20, 0x00100000 */  0,
+    /* bit 21, 0x00200000 */  0,
+    /* bit 22, 0x00400000 */  0,
+    /* bit 23, 0x00800000 */  0,
+    /* bit 24, 0x01000000 */  0,
+    /* bit 25, 0x02000000 */  0,
+    /* bit 26, 0x04000000 */  0,
+    /* bit 27, 0x08000000 */  0,
+    /* bit 28, 0x10000000 */  0,
+    /* bit 29, 0x20000000 */  0,
+    /* bit 30, 0x40000000 */  0,
+    /* bit 31, 0x80000000 */  0
+};
+
+static Flags::Names NamesSaHpiCapabilitiesT =
+{
+    /* bit 0,  0x00000001 */  "SENSOR",
+    /* bit 1,  0x00000002 */  "RDR",
+    /* bit 2,  0x00000004 */  "EVENT_LOG",
+    /* bit 3,  0x00000008 */  "INVENTORY_DATA",
+    /* bit 4,  0x00000010 */  "RESET",
+    /* bit 5,  0x00000020 */  "POWER",
+    /* bit 6,  0x00000040 */  "ANNUNCIATOR",
+    /* bit 7,  0x00000080 */  "LOAD_ID",
+    /* bit 8,  0x00000100 */  "FRU",
+    /* bit 9,  0x00000200 */  "CONTROL",
+    /* bit 10, 0x00000400 */  "WATCHDOG",
+    /* bit 11, 0x00000800 */  "MANAGED_HOTSWAP",
+    /* bit 12, 0x00001000 */  "CONFIGURATION",
+    /* bit 13, 0x00002000 */  "AGGREGATE_STATUS",
+    /* bit 14, 0x00004000 */  "DIMI",
+    /* bit 15, 0x00008000 */  "EVT_DEASSERTS",
+    /* bit 16, 0x00010000 */  "FUMI",                  
+    /* bit 17, 0x00020000 */  0,
+    /* bit 18, 0x00040000 */  0,
+    /* bit 19, 0x00080000 */  0,
+    /* bit 20, 0x00100000 */  0,
+    /* bit 21, 0x00200000 */  0,
+    /* bit 22, 0x00400000 */  0,
+    /* bit 23, 0x00800000 */  0,
+    /* bit 24, 0x01000000 */  0,
+    /* bit 25, 0x02000000 */  0,
+    /* bit 26, 0x04000000 */  0,
+    /* bit 27, 0x08000000 */  0,
+    /* bit 28, 0x10000000 */  0,
+    /* bit 29, 0x20000000 */  0,
+    /* bit 30, 0x40000000 */  "RESOURCE",
+    /* bit 31, 0x80000000 */  0
+};
+
+static Flags::Names NamesSaHpiHsCapabilitiesT =
+{
+    /* bit 0,  0x00000001 */  0,
+    /* bit 1,  0x00000002 */  0,
+    /* bit 2,  0x00000004 */  0,
+    /* bit 3,  0x00000008 */  0,
+    /* bit 4,  0x00000010 */  0,
+    /* bit 5,  0x00000020 */  0,
+    /* bit 6,  0x00000040 */  0,
+    /* bit 7,  0x00000080 */  0,
+    /* bit 8,  0x00000100 */  0,
+    /* bit 9,  0x00000200 */  0,
+    /* bit 10, 0x00000400 */  0,
+    /* bit 11, 0x00000800 */  0,
+    /* bit 12, 0x00001000 */  0,
+    /* bit 13, 0x00002000 */  0,
+    /* bit 14, 0x00004000 */  0,
+    /* bit 15, 0x00008000 */  0,
+    /* bit 16, 0x00010000 */  0,
+    /* bit 17, 0x00020000 */  0,
+    /* bit 18, 0x00040000 */  0,
+    /* bit 19, 0x00080000 */  0,
+    /* bit 20, 0x00100000 */  0,
+    /* bit 21, 0x00200000 */  0,
+    /* bit 22, 0x00400000 */  0,
+    /* bit 23, 0x00800000 */  0,
+    /* bit 24, 0x01000000 */  0,
+    /* bit 25, 0x02000000 */  0,
+    /* bit 26, 0x04000000 */  0,
+    /* bit 27, 0x08000000 */  0,
+    /* bit 28, 0x10000000 */  0,
+    /* bit 29, 0x20000000 */  "AUTOINSERT_IMMEDIATE",
+    /* bit 30, 0x40000000 */  "INDICATOR_SUPPORTED",
+    /* bit 31, 0x80000000 */  "AUTOEXTRACT_READ_ONLY"
+};
+
+static Flags::Names NamesSaHpiDomainCapabilitiesT =
+{
+    /* bit 0,  0x00000001 */  "AUTOINSERT_READ_ONLY",
+    /* bit 1,  0x00000002 */  0,
+    /* bit 2,  0x00000004 */  0,
+    /* bit 3,  0x00000008 */  0,
+    /* bit 4,  0x00000010 */  0,
+    /* bit 5,  0x00000020 */  0,
+    /* bit 6,  0x00000040 */  0,
+    /* bit 7,  0x00000080 */  0,
+    /* bit 8,  0x00000100 */  0,
+    /* bit 9,  0x00000200 */  0,
+    /* bit 10, 0x00000400 */  0,
+    /* bit 11, 0x00000800 */  0,
+    /* bit 12, 0x00001000 */  0,
+    /* bit 13, 0x00002000 */  0,
+    /* bit 14, 0x00004000 */  0,
+    /* bit 15, 0x00008000 */  0,
+    /* bit 16, 0x00010000 */  0,
+    /* bit 17, 0x00020000 */  0,
+    /* bit 18, 0x00040000 */  0,
+    /* bit 19, 0x00080000 */  0,
+    /* bit 20, 0x00100000 */  0,
+    /* bit 21, 0x00200000 */  0,
+    /* bit 22, 0x00400000 */  0,
+    /* bit 23, 0x00800000 */  0,
+    /* bit 24, 0x01000000 */  0,
+    /* bit 25, 0x02000000 */  0,
+    /* bit 26, 0x04000000 */  0,
+    /* bit 27, 0x08000000 */  0,
+    /* bit 28, 0x10000000 */  0,
+    /* bit 29, 0x20000000 */  0,
+    /* bit 30, 0x40000000 */  0,
+    /* bit 31, 0x80000000 */  0
+};
+
+static Flags::Names NamesSaHpiEventLogCapabilitiesT =
+{
+    /* bit 0,  0x00000001 */  "ENTRY_ADD",
+    /* bit 1,  0x00000002 */  "CLEAR",
+    /* bit 2,  0x00000004 */  "TIME_SET",
+    /* bit 3,  0x00000008 */  "STATE_SET",
+    /* bit 4,  0x00000010 */  "OVERFLOW_RESET",
+    /* bit 5,  0x00000020 */  0,
+    /* bit 6,  0x00000040 */  0,
+    /* bit 7,  0x00000080 */  0,
+    /* bit 8,  0x00000100 */  0,
+    /* bit 9,  0x00000200 */  0,
+    /* bit 10, 0x00000400 */  0,
+    /* bit 11, 0x00000800 */  0,
+    /* bit 12, 0x00001000 */  0,
+    /* bit 13, 0x00002000 */  0,
+    /* bit 14, 0x00004000 */  0,
+    /* bit 15, 0x00008000 */  0,
+    /* bit 16, 0x00010000 */  0,
+    /* bit 17, 0x00020000 */  0,
+    /* bit 18, 0x00040000 */  0,
+    /* bit 19, 0x00080000 */  0,
+    /* bit 20, 0x00100000 */  0,
+    /* bit 21, 0x00200000 */  0,
+    /* bit 22, 0x00400000 */  0,
+    /* bit 23, 0x00800000 */  0,
+    /* bit 24, 0x01000000 */  0,
+    /* bit 25, 0x02000000 */  0,
+    /* bit 26, 0x04000000 */  0,
+    /* bit 27, 0x08000000 */  0,
+    /* bit 28, 0x10000000 */  0,
+    /* bit 29, 0x20000000 */  0,
+    /* bit 30, 0x40000000 */  0,
+    /* bit 31, 0x80000000 */  0
+};
 
 
 /***************************************************
@@ -97,34 +642,48 @@ void cHpiXmlWriter::EndRptNode()
     cXmlWriter::EndNode( "ResourcePresenceTable" );
 }
 
-void cHpiXmlWriter::BeginResourceNode( const SaHpiRptEntryT& rpte )
+void cHpiXmlWriter::BeginResourceNode( const SaHpiRptEntryT& rpte,
+                                       SaHpiUint32T rdr_update_count )
 {
-    const SaHpiResourceInfoT info = rpte.ResourceInfo;
-
     cXmlWriter::BeginNode( "Resource" );
-    NodeSaHpiResourceIdT( "ResourceId", rpte.ResourceId );
-    cXmlWriter::BeginNode( "ResourceInfo" );
-    NodeSaHpiUint8T( "ResourceRev", info.ResourceRev );
-    NodeSaHpiUint8T( "SpecificVer", info.SpecificVer );
-    NodeSaHpiUint8T( "DeviceSupport", info.DeviceSupport );
-    NodeSaHpiManufacturerIdT( "ManufacturerId", info.ManufacturerId );
-    NodeSaHpiUint16T( "ProductId", info.ProductId );
-    NodeSaHpiUint8T( "FirmwareMajorRev", info.FirmwareMajorRev );
-    NodeSaHpiUint8T( "FirmwareMinorRev", info.FirmwareMinorRev );
-    NodeSaHpiUint8T( "AuxFirmwareRev", info.AuxFirmwareRev );
-    NodeSaHpiGuidT( "Guid", info.Guid );
-    cXmlWriter::EndNode( "ResourceInfo" );
-    NodeSaHpiEntityPathT( "ResourceEntity", rpte.ResourceEntity );
-    NodeSaHpiCapabilitiesT( "ResourceCapabilities", rpte.ResourceCapabilities );
-    NodeSaHpiHsCapabilitiesT( "HotSwapCapabilities", rpte.HotSwapCapabilities );
-    NodeSaHpiSeverityT( "ResourceSeverity", rpte.ResourceSeverity );
-    NodeSaHpiBoolT( "ResourceFailed", rpte.ResourceFailed );
-    NodeSaHpiTextBufferT( "ResourceTag", rpte.ResourceTag );
+    NodeSaHpiRptEntryT( "RptEntry", rpte );
+    NodeSaHpiUint32T( "RdrUpdateCount", rdr_update_count );
 }
 
 void cHpiXmlWriter::EndResourceNode()
 {
     cXmlWriter::EndNode( "Resource" );
+}
+
+void cHpiXmlWriter::BeginInstrumentNode( const SaHpiRdrT& rdr )
+{
+    cXmlWriter::BeginNode( "Instrument" );
+    NodeSaHpiRdrT( "Rdr", rdr );
+}
+
+void cHpiXmlWriter::EndInstrumentNode()
+{
+    cXmlWriter::EndNode( "Instrument" );
+}
+
+void cHpiXmlWriter::BeginEventLogNode()
+{
+    cXmlWriter::BeginNode( "EventLog" );
+}
+
+void cHpiXmlWriter::EndEventLogNode()
+{
+    cXmlWriter::EndNode( "EventLog" );
+}
+
+void cHpiXmlWriter::BeginDomainEventLogNode()
+{
+    cXmlWriter::BeginNode( "DomainEventLog" );
+}
+
+void cHpiXmlWriter::EndDomainEventLogNode()
+{
+    cXmlWriter::EndNode( "DomainEventLog" );
 }
 
 
@@ -253,13 +812,6 @@ void cHpiXmlWriter::NodeSaHpiVersionT(
     cXmlWriter::Node( name, "%c.%02u.%02u", 'A' - 1 + comp, major, minor );
 }
 
-void cHpiXmlWriter::NodeSaErrorT(
-    const char * name,
-    const SaErrorT& x )
-{
-    NodeSaHpiInt32T( name, x );
-}
-
 void cHpiXmlWriter::NodeSaHpiDomainIdT(
     const char * name,
     const SaHpiDomainIdT& x )
@@ -316,18 +868,11 @@ void cHpiXmlWriter::NodeSaHpiEntityLocationT(
     NodeSaHpiUint32T( name, x );
 }
 
-void cHpiXmlWriter::NodeSaHpiEventCategoryT(
-    const char * name,
-    const SaHpiEventCategoryT& x )
-{
-    NodeSaHpiUint8T( name, x );
-}
-
 void cHpiXmlWriter::NodeSaHpiEventStateT(
     const char * name,
     const SaHpiEventStateT& x )
 {
-    NodeSaHpiUint16T( name, x );
+    cXmlWriter::NodeFlags( name, x, &NamesSaHpiEventStateT );
 }
 
 void cHpiXmlWriter::NodeSaHpiSensorNumT(
@@ -341,14 +886,14 @@ void cHpiXmlWriter::NodeSaHpiSensorRangeFlagsT(
     const char * name,
     const SaHpiSensorRangeFlagsT& x )
 {
-    NodeSaHpiUint8T( name, x );
+    cXmlWriter::NodeFlags( name, x, &NamesSaHpiSensorRangeFlagsT );
 }
 
 void cHpiXmlWriter::NodeSaHpiSensorThdMaskT(
     const char * name,
     const SaHpiSensorThdMaskT& x )
 {
-    NodeSaHpiUint8T( name, x );
+    cXmlWriter::NodeFlags( name, x, &NamesSaHpiSensorThdMaskT );
 }
 
 void cHpiXmlWriter::NodeSaHpiCtrlNumT(
@@ -397,7 +942,7 @@ void cHpiXmlWriter::NodeSaHpiWatchdogExpFlagsT(
     const char * name,
     const SaHpiWatchdogExpFlagsT& x )
 {
-    NodeSaHpiUint8T( name, x );
+    cXmlWriter::NodeFlags( name, x, &NamesSaHpiWatchdogExpFlagsT );
 }
 
 void cHpiXmlWriter::NodeSaHpiDimiNumT(
@@ -411,7 +956,7 @@ void cHpiXmlWriter::NodeSaHpiDimiTestCapabilityT(
     const char * name,
     const SaHpiDimiTestCapabilityT& x )
 {
-    NodeSaHpiUint32T( name, x );
+    cXmlWriter::NodeFlags( name, x, &NamesSaHpiDimiTestCapabilityT );
 }
 
 void cHpiXmlWriter::NodeSaHpiDimiTestNumT(
@@ -446,42 +991,42 @@ void cHpiXmlWriter::NodeSaHpiFumiLogicalBankStateFlagsT(
     const char * name,
     const SaHpiFumiLogicalBankStateFlagsT& x )
 {
-    NodeSaHpiUint32T( name, x );
+    cXmlWriter::NodeFlags( name, x, &NamesSaHpiFumiLogicalBankStateFlagsT );
 }
 
 void cHpiXmlWriter::NodeSaHpiFumiProtocolT(
     const char * name,
     const SaHpiFumiProtocolT& x )
 {
-    NodeSaHpiUint32T( name, x );
+    cXmlWriter::NodeFlags( name, x, &NamesSaHpiFumiProtocolT );
 }
 
 void cHpiXmlWriter::NodeSaHpiFumiCapabilityT(
     const char * name,
     const SaHpiFumiCapabilityT& x )
 {
-    NodeSaHpiUint32T( name, x );
+    cXmlWriter::NodeFlags( name, x, &NamesSaHpiFumiCapabilityT );
 }
 
 void cHpiXmlWriter::NodeSaHpiSensorOptionalDataT(
     const char * name,
     const SaHpiSensorOptionalDataT& x )
 {
-    NodeSaHpiUint8T( name, x );
+    cXmlWriter::NodeFlags( name, x, &NamesSaHpiSensorOptionalDataT );
 }
 
 void cHpiXmlWriter::NodeSaHpiSensorEnableOptDataT(
     const char * name,
     const SaHpiSensorEnableOptDataT& x )
 {
-    NodeSaHpiUint8T( name, x );
+    cXmlWriter::NodeFlags( name, x, &NamesSaHpiSensorEnableOptDataT );
 }
 
 void cHpiXmlWriter::NodeSaHpiEvtQueueStatusT(
     const char * name,
     const SaHpiEvtQueueStatusT& x )
 {
-    NodeSaHpiUint32T( name, x );
+    cXmlWriter::NodeFlags( name, x, &NamesSaHpiEvtQueueStatusT );
 }
 
 void cHpiXmlWriter::NodeSaHpiAnnunciatorNumT(
@@ -502,21 +1047,21 @@ void cHpiXmlWriter::NodeSaHpiCapabilitiesT(
     const char * name,
     const SaHpiCapabilitiesT& x )
 {
-    NodeSaHpiUint32T( name, x );
+    cXmlWriter::NodeFlags( name, x, &NamesSaHpiCapabilitiesT );
 }
 
 void cHpiXmlWriter::NodeSaHpiHsCapabilitiesT(
     const char * name,
     const SaHpiHsCapabilitiesT& x )
 {
-    NodeSaHpiUint32T( name, x );
+    cXmlWriter::NodeFlags( name, x, &NamesSaHpiHsCapabilitiesT );
 }
 
 void cHpiXmlWriter::NodeSaHpiDomainCapabilitiesT(
     const char * name,
     const SaHpiDomainCapabilitiesT& x )
 {
-    NodeSaHpiUint32T( name, x );
+    cXmlWriter::NodeFlags( name, x, &NamesSaHpiDomainCapabilitiesT );
 }
 
 void cHpiXmlWriter::NodeSaHpiAlarmIdT(
@@ -530,7 +1075,7 @@ void cHpiXmlWriter::NodeSaHpiEventLogCapabilitiesT(
     const char * name,
     const SaHpiEventLogCapabilitiesT& x )
 {
-    NodeSaHpiUint32T( name, x );
+    cXmlWriter::NodeFlags( name, x, &NamesSaHpiEventLogCapabilitiesT );
 }
 
 void cHpiXmlWriter::NodeSaHpiEventLogEntryIdT(
@@ -873,6 +1418,25 @@ void cHpiXmlWriter::NodeSaHpiEventLogOverflowActionT(
     cXmlWriter::NodeEnum( name, x, oh_lookup_eventlogoverflowaction );
 }
 
+/****************************
+ * Enum-Like Types
+ ***************************/
+void cHpiXmlWriter::NodeSaErrorT(
+    const char * name,
+    const SaErrorT& x )
+{
+    cXmlWriter::NodeEnum( name, x, oh_lookup_error );
+}
+
+void cHpiXmlWriter::NodeSaHpiEventCategoryT(
+    const char * name,
+    const SaHpiEventCategoryT& x )
+{
+    cXmlWriter::NodeEnum( name, x, oh_lookup_eventcategory );
+}
+
+
+
 
 /****************************
  * Complex Types
@@ -934,44 +1498,33 @@ void cHpiXmlWriter::NodeSaHpiEntityPathT(
     }
 }
 
+void cHpiXmlWriter::NodeSaHpiNameT(
+    const char * name,
+    const SaHpiNameT& x )
+{
+    std::string s;
+    s.assign( reinterpret_cast<const char *>(&x.Value[0]), x.Length );
+
+    cXmlWriter::BeginNode( name );
+    NodeSaHpiUint16T( "Length", x.Length );
+    cXmlWriter::Node( "Value", "%s", s.c_str() );
+    cXmlWriter::EndNode( name );
+}
+
 void cHpiXmlWriter::NodeSaHpiConditionT(
     const char * name,
     const SaHpiConditionT& x )
 {
     cXmlWriter::BeginNode( name );
     NodeSaHpiStatusCondTypeT( "Type", x.Type );
-
-typedef struct {
-
-    SaHpiStatusCondTypeT Type;         /* Status Condition Type */
-    SaHpiEntityPathT     Entity;       /* Entity assoc. with status condition */
-    SaHpiDomainIdT       DomainId;     /* Domain associated with status.
-                                          May be SAHPI_UNSPECIFIED_DOMAIN_ID
-                                          meaning current domain, or domain
-                                          not meaningful for status condition*/
-    SaHpiResourceIdT     ResourceId;   /* Resource associated with status.
-                                          May be SAHPI_UNSPECIFIED_RESOURCE_ID
-                                          if Type is SAHPI_STATUS_COND_USER.
-                                          Must be set to valid ResourceId in
-                                          domain specified by DomainId,
-                                          or in current domain, if DomainId
-                                          is SAHPI_UNSPECIFIED_DOMAIN_ID */
-    SaHpiSensorNumT      SensorNum;    /* Sensor associated with status
-                                          Only valid if Type is
-                                          SAHPI_STATUS_COND_TYPE_SENSOR */
-    SaHpiEventStateT     EventState;   /* Sensor event state.
-                                          Only valid if Type is
-                                          SAHPI_STATUS_COND_TYPE_SENSOR. */
-    SaHpiNameT           Name;         /* AIS compatible identifier associated
-                                          with Status condition */
-    SaHpiManufacturerIdT Mid;          /* Manufacturer Id associated with
-                                          status condition, required when type
-                                          is SAHPI_STATUS_COND_TYPE_OEM. */
-    SaHpiTextBufferT     Data;         /* Optional Data associated with
-                                          Status condition */
-} SaHpiConditionT;
-
-
+    NodeSaHpiEntityPathT( "Entity", x.Entity );
+    NodeSaHpiDomainIdT( "DomainId", x.DomainId );
+    NodeSaHpiResourceIdT( "ResourceId", x.ResourceId );
+    NodeSaHpiSensorNumT( "SensorNum", x.SensorNum );
+    NodeSaHpiEventStateT( "EventState", x.EventState );
+    NodeSaHpiNameT( "Name", x.Name );
+    NodeSaHpiManufacturerIdT( "Mid", x.Mid );
+    NodeSaHpiTextBufferT( "Data", x.Data );
     cXmlWriter::EndNode( name );
 }
 
@@ -980,5 +1533,372 @@ void cHpiXmlWriter::NodeSaHpiGuidT(
     const SaHpiGuidT& x )
 {
     cXmlWriter::NodeHex( name, &x[0], sizeof(x) );
+}
+
+void cHpiXmlWriter::NodeSaHpiRptEntryT(
+    const char * name,
+    const SaHpiRptEntryT& x )
+{
+    const SaHpiResourceInfoT info = x.ResourceInfo;
+
+    cXmlWriter::BeginNode( name );
+    NodeSaHpiResourceIdT( "ResourceId", x.ResourceId );
+    cXmlWriter::BeginNode( "ResourceInfo" );
+    NodeSaHpiUint8T( "ResourceRev", info.ResourceRev );
+    NodeSaHpiUint8T( "SpecificVer", info.SpecificVer );
+    NodeSaHpiUint8T( "DeviceSupport", info.DeviceSupport );
+    NodeSaHpiManufacturerIdT( "ManufacturerId", info.ManufacturerId );
+    NodeSaHpiUint16T( "ProductId", info.ProductId );
+    NodeSaHpiUint8T( "FirmwareMajorRev", info.FirmwareMajorRev );
+    NodeSaHpiUint8T( "FirmwareMinorRev", info.FirmwareMinorRev );
+    NodeSaHpiUint8T( "AuxFirmwareRev", info.AuxFirmwareRev );
+    NodeSaHpiGuidT( "Guid", info.Guid );
+    cXmlWriter::EndNode( "ResourceInfo" );
+    NodeSaHpiEntityPathT( "ResourceEntity", x.ResourceEntity );
+    NodeSaHpiCapabilitiesT( "ResourceCapabilities", x.ResourceCapabilities );
+    NodeSaHpiHsCapabilitiesT( "HotSwapCapabilities", x.HotSwapCapabilities );
+    NodeSaHpiSeverityT( "ResourceSeverity", x.ResourceSeverity );
+    NodeSaHpiBoolT( "ResourceFailed", x.ResourceFailed );
+    NodeSaHpiTextBufferT( "ResourceTag", x.ResourceTag );
+    cXmlWriter::EndNode( name );
+}
+
+void cHpiXmlWriter::NodeSaHpiCtrlStateStreamT(
+    const char * name,
+    const SaHpiCtrlStateStreamT& x )
+{
+    cXmlWriter::BeginNode( name );
+    NodeSaHpiBoolT( "Repeat", x.Repeat );
+    NodeSaHpiUint32T( "StreamLength", x.StreamLength );
+    cXmlWriter::NodeHex( "Stream", &x.Stream[0], x.StreamLength );
+    cXmlWriter::EndNode( name );
+}
+
+void cHpiXmlWriter::NodeSaHpiCtrlStateTextT(
+    const char * name,
+    const SaHpiCtrlStateTextT& x )
+{
+    cXmlWriter::BeginNode( name );
+    NodeSaHpiTxtLineNumT( "Line", x.Line );
+    NodeSaHpiTextBufferT( "Text", x.Text );
+    cXmlWriter::EndNode( name );
+}
+
+void cHpiXmlWriter::NodeSaHpiCtrlStateOemT(
+    const char * name,
+    const SaHpiCtrlStateOemT& x )
+{
+    cXmlWriter::BeginNode( name );
+    NodeSaHpiManufacturerIdT( "MId", x.MId );
+    NodeSaHpiUint8T( "BodyLength", x.BodyLength );
+    cXmlWriter::NodeHex( "Body", &x.Body[0], x.BodyLength );
+    cXmlWriter::EndNode( name );
+}
+
+void cHpiXmlWriter::NodeSaHpiCtrlRecDigitalT(
+    const char * name,
+    const SaHpiCtrlRecDigitalT& x )
+{
+    cXmlWriter::BeginNode( name );
+    NodeSaHpiCtrlStateDigitalT( "Default", x.Default );
+    cXmlWriter::EndNode( name );
+}
+
+void cHpiXmlWriter::NodeSaHpiCtrlRecDiscreteT(
+    const char * name,
+    const SaHpiCtrlRecDiscreteT& x )
+{
+    cXmlWriter::BeginNode( name );
+    NodeSaHpiCtrlStateDiscreteT( "Default", x.Default );
+    cXmlWriter::EndNode( name );
+}
+
+void cHpiXmlWriter::NodeSaHpiCtrlRecAnalogT(
+    const char * name,
+    const SaHpiCtrlRecAnalogT& x )
+{
+    cXmlWriter::BeginNode( name );
+    NodeSaHpiCtrlStateAnalogT( "Min", x.Min );
+    NodeSaHpiCtrlStateAnalogT( "Max", x.Max );
+    NodeSaHpiCtrlStateAnalogT( "Default", x.Default );
+    cXmlWriter::EndNode( name );
+}
+
+void cHpiXmlWriter::NodeSaHpiCtrlRecStreamT(
+    const char * name,
+    const SaHpiCtrlRecStreamT& x )
+{
+    cXmlWriter::BeginNode( name );
+    NodeSaHpiCtrlStateStreamT( "Default", x.Default );
+    cXmlWriter::EndNode( name );
+}
+
+void cHpiXmlWriter::NodeSaHpiCtrlRecTextT(
+    const char * name,
+    const SaHpiCtrlRecTextT& x )
+{
+    cXmlWriter::BeginNode( name );
+    NodeSaHpiUint8T( "MaxChars", x.MaxChars );
+    NodeSaHpiUint8T( "MaxLines", x.MaxLines );
+    NodeSaHpiLanguageT( "Language", x.Language );
+    NodeSaHpiTextTypeT( "DataType", x.DataType );
+    NodeSaHpiCtrlStateTextT( "Default", x.Default );
+    cXmlWriter::EndNode( name );
+}
+
+void cHpiXmlWriter::NodeSaHpiCtrlRecOemT(
+    const char * name,
+    const SaHpiCtrlRecOemT& x )
+{
+    cXmlWriter::BeginNode( name );
+    NodeSaHpiManufacturerIdT( "MId", x.MId );
+    cXmlWriter::NodeHex( "ConfigData",
+                         &x.ConfigData[0],
+                         SAHPI_CTRL_OEM_CONFIG_LENGTH );
+    NodeSaHpiCtrlStateOemT( "Default", x.Default );
+    cXmlWriter::EndNode( name );
+}
+
+void cHpiXmlWriter::NodeSaHpiCtrlRecT(
+    const char * name,
+    const SaHpiCtrlRecT& x )
+{
+    cXmlWriter::BeginNode( name );
+    NodeSaHpiCtrlNumT( "Num", x.Num );
+    NodeSaHpiCtrlOutputTypeT( "OutputType", x.OutputType );
+    NodeSaHpiCtrlTypeT( "Type", x.Type );
+    cXmlWriter::BeginNode( "TypeUnion" );
+    switch ( x.Type ) {
+        case SAHPI_CTRL_TYPE_DIGITAL:
+            NodeSaHpiCtrlRecDigitalT( "Digital", x.TypeUnion.Digital );
+            break;
+        case SAHPI_CTRL_TYPE_DISCRETE:
+            NodeSaHpiCtrlRecDiscreteT( "Discrete", x.TypeUnion.Discrete );
+            break;
+        case SAHPI_CTRL_TYPE_ANALOG:
+            NodeSaHpiCtrlRecAnalogT( "Analog", x.TypeUnion.Analog );
+            break;
+        case SAHPI_CTRL_TYPE_STREAM:
+            NodeSaHpiCtrlRecStreamT( "Stream", x.TypeUnion.Stream );
+            break;
+        case SAHPI_CTRL_TYPE_TEXT:
+            NodeSaHpiCtrlRecTextT( "Text", x.TypeUnion.Text );
+            break;
+        case SAHPI_CTRL_TYPE_OEM:
+            NodeSaHpiCtrlRecOemT( "Oem", x.TypeUnion.Oem );
+            break;
+        default:
+            break;
+    }
+    cXmlWriter::EndNode( "TypeUnion" );
+    cXmlWriter::BeginNode( "DefaultMode" );
+    NodeSaHpiCtrlModeT( "Mode", x.DefaultMode.Mode );
+    NodeSaHpiBoolT( "ReadOnly", x.DefaultMode.ReadOnly );
+    cXmlWriter::EndNode( "DefaultMode" );
+    NodeSaHpiBoolT( "WriteOnly", x.WriteOnly );
+    NodeSaHpiUint32T( "Oem", x.Oem );
+    cXmlWriter::EndNode( name );
+}
+
+void cHpiXmlWriter::NodeSaHpiSensorReadingT(
+    const char * name,
+    const SaHpiSensorReadingT& x )
+{
+    cXmlWriter::BeginNode( name );
+    NodeSaHpiBoolT( "IsSupported", x.IsSupported );
+    if ( x.IsSupported != SAHPI_FALSE ) {
+        NodeSaHpiSensorReadingTypeT( "Type", x.Type );
+        cXmlWriter::BeginNode( "Value" );
+        switch( x.Type ) {
+            case SAHPI_SENSOR_READING_TYPE_INT64:
+                NodeSaHpiInt64T( "SensorInt64", x.Value.SensorInt64 );
+                break;
+            case SAHPI_SENSOR_READING_TYPE_UINT64:
+                NodeSaHpiUint64T( "SensorUint64", x.Value.SensorUint64 );
+                break;
+            case SAHPI_SENSOR_READING_TYPE_FLOAT64:
+                NodeSaHpiFloat64T( "SensorFloat64", x.Value.SensorFloat64 );
+                break;
+            case SAHPI_SENSOR_READING_TYPE_BUFFER:
+                cXmlWriter::NodeHex( "SensorBuffer",
+                                     &x.Value.SensorBuffer[0],
+                                     SAHPI_SENSOR_BUFFER_LENGTH );
+                break;
+            default:
+                break;
+        }
+        cXmlWriter::EndNode( "Value" );
+    }
+    cXmlWriter::EndNode( name );
+}
+
+void cHpiXmlWriter::NodeSaHpiSensorRangeT(
+    const char * name,
+    const SaHpiSensorRangeT& x )
+{
+    cXmlWriter::BeginNode( name );
+    NodeSaHpiSensorRangeFlagsT( "Flags", x.Flags );
+    if ( x.Flags & SAHPI_SRF_MAX ) {
+        NodeSaHpiSensorReadingT( "Max", x.Max );
+    }
+    if ( x.Flags & SAHPI_SRF_MIN ) {
+        NodeSaHpiSensorReadingT( "Min", x.Min );
+    }
+    if ( x.Flags & SAHPI_SRF_NOMINAL ) {
+        NodeSaHpiSensorReadingT( "Nominal", x.Nominal );
+    }
+    if ( x.Flags & SAHPI_SRF_NORMAL_MAX ) {
+        NodeSaHpiSensorReadingT( "NormalMax", x.NormalMax );
+    }
+    if ( x.Flags & SAHPI_SRF_NORMAL_MIN ) {
+        NodeSaHpiSensorReadingT( "NormalMin", x.NormalMin );
+    }
+    cXmlWriter::EndNode( name );
+}
+
+void cHpiXmlWriter::NodeSaHpiSensorDataFormatT(
+    const char * name,
+    const SaHpiSensorDataFormatT& x )
+{
+    cXmlWriter::BeginNode( name );
+    NodeSaHpiBoolT( "IsSupported", x.IsSupported );
+    if ( x.IsSupported != SAHPI_FALSE ) {
+        NodeSaHpiSensorReadingTypeT( "ReadingType", x.ReadingType );
+        NodeSaHpiSensorUnitsT( "BaseUnits", x.BaseUnits );
+        NodeSaHpiSensorUnitsT( "ModifierUnits", x.ModifierUnits );
+        NodeSaHpiSensorModUnitUseT( "ModifierUse", x.ModifierUse );
+        NodeSaHpiBoolT( "Percentage", x.Percentage );
+        NodeSaHpiSensorRangeT( "Range", x.Range );
+        NodeSaHpiFloat64T( "AccuracyFactor", x.AccuracyFactor );
+    }
+    cXmlWriter::EndNode( name );
+}
+
+void cHpiXmlWriter::NodeSaHpiSensorThdDefnT(
+    const char * name,
+    const SaHpiSensorThdDefnT& x )
+{
+    cXmlWriter::BeginNode( name );
+    NodeSaHpiBoolT( "IsAccessible", x.IsAccessible );
+    if ( x.IsAccessible != SAHPI_FALSE ) {
+        NodeSaHpiSensorThdMaskT( "ReadThold", x.ReadThold );
+        NodeSaHpiSensorThdMaskT( "WriteThold", x.WriteThold );
+        NodeSaHpiBoolT( "Nonlinear", x.Nonlinear );
+    }
+    cXmlWriter::EndNode( name );
+}
+
+void cHpiXmlWriter::NodeSaHpiSensorRecT(
+    const char * name,
+    const SaHpiSensorRecT& x )
+{
+    cXmlWriter::BeginNode( name );
+    NodeSaHpiSensorNumT( "Num", x.Num );
+    NodeSaHpiSensorTypeT( "Type", x.Type );
+    NodeSaHpiEventCategoryT( "Category", x.Category );
+    NodeSaHpiBoolT( "EnableCtrl", x.EnableCtrl );
+    NodeSaHpiSensorEventCtrlT( "EventCtrl", x.EventCtrl );
+    NodeSaHpiEventStateT( "Events", x.Events );
+    NodeSaHpiSensorDataFormatT( "DataFormat", x.DataFormat );
+    NodeSaHpiSensorThdDefnT( "ThresholdDefn", x.ThresholdDefn );
+    NodeSaHpiUint32T( "Oem", x.Oem );
+    cXmlWriter::EndNode( name );
+}
+
+void cHpiXmlWriter::NodeSaHpiInventoryRecT(
+    const char * name,
+    const SaHpiInventoryRecT& x )
+{
+    cXmlWriter::BeginNode( name );
+    NodeSaHpiIdrIdT( "IdrId", x.IdrId );
+    NodeSaHpiBoolT( "Persistent", x.Persistent );
+    NodeSaHpiUint32T( "Oem", x.Oem );
+    cXmlWriter::EndNode( name );
+}
+
+void cHpiXmlWriter::NodeSaHpiWatchdogRecT(
+    const char * name,
+    const SaHpiWatchdogRecT& x )
+{
+    cXmlWriter::BeginNode( name );
+    NodeSaHpiWatchdogNumT( "WatchdogNum", x.WatchdogNum );
+    NodeSaHpiUint32T( "Oem", x.Oem );
+    cXmlWriter::EndNode( name );
+}
+
+void cHpiXmlWriter::NodeSaHpiAnnunciatorRecT(
+    const char * name,
+    const SaHpiAnnunciatorRecT& x )
+{
+    cXmlWriter::BeginNode( name );
+    NodeSaHpiAnnunciatorNumT( "AnnunciatorNum", x.AnnunciatorNum );
+    NodeSaHpiAnnunciatorTypeT( "AnnunciatorType", x.AnnunciatorType );
+    NodeSaHpiBoolT( "ModeReadOnly", x.ModeReadOnly );
+    NodeSaHpiUint32T( "MaxConditions", x.MaxConditions );
+    NodeSaHpiUint32T( "Oem", x.Oem );
+    cXmlWriter::EndNode( name );
+}
+
+void cHpiXmlWriter::NodeSaHpiDimiRecT(
+    const char * name,
+    const SaHpiDimiRecT& x )
+{
+    cXmlWriter::BeginNode( name );
+    NodeSaHpiDimiNumT( "DimiNum", x.DimiNum );
+    NodeSaHpiUint32T( "Oem", x.Oem );
+    cXmlWriter::EndNode( name );
+}
+
+void cHpiXmlWriter::NodeSaHpiFumiRecT(
+    const char * name,
+    const SaHpiFumiRecT& x )
+{
+    cXmlWriter::BeginNode( name );
+    NodeSaHpiFumiNumT( "Num", x.Num );
+    NodeSaHpiFumiProtocolT( "AccessProt", x.AccessProt );
+    NodeSaHpiFumiCapabilityT( "Capability", x.Capability );
+    NodeSaHpiUint8T( "NumBanks", x.NumBanks );
+    NodeSaHpiUint32T( "Oem", x.Oem );
+    cXmlWriter::EndNode( name );
+}
+
+void cHpiXmlWriter::NodeSaHpiRdrT(
+    const char * name,
+    const SaHpiRdrT& x )
+{
+    cXmlWriter::BeginNode( name );
+    NodeSaHpiRdrTypeT( "RdrType", x.RdrType );
+    NodeSaHpiEntityPathT( "Entity", x.Entity );
+    NodeSaHpiBoolT( "IsFru", x.IsFru );
+
+    cXmlWriter::BeginNode( "RdrTypeUnion" );
+    switch ( x.RdrType ) {
+        case SAHPI_CTRL_RDR:
+            NodeSaHpiCtrlRecT( "CtrlRec", x.RdrTypeUnion.CtrlRec );
+            break;
+        case SAHPI_SENSOR_RDR:
+            NodeSaHpiSensorRecT( "SensorRec", x.RdrTypeUnion.SensorRec );
+            break;
+        case SAHPI_INVENTORY_RDR:
+            NodeSaHpiInventoryRecT( "InventoryRec", x.RdrTypeUnion.InventoryRec );
+            break;
+        case SAHPI_WATCHDOG_RDR:
+            NodeSaHpiWatchdogRecT( "WatchdogRec", x.RdrTypeUnion.WatchdogRec );
+            break;
+        case SAHPI_ANNUNCIATOR_RDR:
+            NodeSaHpiAnnunciatorRecT( "AnnunciatorRec", x.RdrTypeUnion.AnnunciatorRec );
+            break;
+        case SAHPI_DIMI_RDR:
+            NodeSaHpiDimiRecT( "DimiRec", x.RdrTypeUnion.DimiRec );
+            break;
+        case SAHPI_FUMI_RDR:
+            NodeSaHpiFumiRecT( "FumiRec", x.RdrTypeUnion.FumiRec );
+            break;
+        default:
+            break;
+    }
+    cXmlWriter::EndNode( "RdrTypeUnion" );
+    NodeSaHpiTextBufferT( "IdString", x.IdString );
+    cXmlWriter::EndNode( name );
 }
 

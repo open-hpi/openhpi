@@ -11,6 +11,7 @@ EXTRA_DIST     = Makefile.mingw32 schema.xsd manifest.rc
 bin_PROGRAMS   = hpixml
 
 hpixml_SOURCES = \
+    flags.h \
     hpi.cpp \
     hpi.h \
     hpi_xml_writer.cpp \

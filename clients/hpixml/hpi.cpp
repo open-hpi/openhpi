@@ -1,6 +1,6 @@
 /*      -*- c++ -*-
  *
- * Copyright (c) 2010 by Pigeon Point Systems.
+ * Copyright (c) 2011 by Pigeon Point Systems.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -24,6 +24,17 @@
 
 
 /***************************************************
+ * Data Types
+ ***************************************************/
+struct Resource
+{
+    SaHpiRptEntryT rpte;
+    SaHpiUint32T rdr_update_count;
+    std::list<SaHpiRdrT> instruments;
+};
+
+
+/***************************************************
  * Helper Functions
  ***************************************************/
 static bool GetDomainInfo( SaHpiSessionIdT sid, SaHpiDomainInfoT& di )
@@ -35,12 +46,6 @@ static bool GetDomainInfo( SaHpiSessionIdT sid, SaHpiDomainInfoT& di )
     }
     return ( rv == SA_OK );
 }
-
-/*
-static SaHpiUint32T GetRdrUpdateCounter( SaHpiSessionIdT rid )
-{
-}
-*/
 
 static bool FetchDrt( SaHpiSessionIdT sid,
                       SaHpiDomainInfoT& di,
@@ -87,9 +92,57 @@ static bool FetchDrt( SaHpiSessionIdT sid,
     return true;
 }
 
+static SaHpiUint32T GetRdrUpdateCounter( SaHpiSessionIdT sid, SaHpiResourceIdT rid )
+{
+    SaHpiUint32T cnt;
+    SaErrorT rv = saHpiRdrUpdateCountGet( sid, rid, &cnt );
+    if ( rv != SA_OK ) {
+        CRIT( "saHpiRdrUpdateCountGet %s", oh_lookup_error( rv ) );
+        return 0;
+    }
+    return cnt;
+}
+
+static bool FetchInstruments( SaHpiSessionIdT sid,
+                              Resource& resource )
+
+{
+    SaErrorT rv;
+    SaHpiResourceIdT rid = resource.rpte.ResourceId;
+    SaHpiUint32T& cnt = resource.rdr_update_count;
+    SaHpiUint32T cnt2;
+
+    do {
+        resource.instruments.clear();
+        cnt = GetRdrUpdateCounter( sid, rid );
+
+        SaHpiEntryIdT id, next_id;
+        SaHpiRdrT rdr;
+        id = SAHPI_FIRST_ENTRY;
+        while ( id != SAHPI_LAST_ENTRY ) {
+            rv = saHpiRdrGet( sid, rid, id, &next_id, &rdr );
+            if ( rv == SA_ERR_HPI_NOT_PRESENT ) {
+                break;
+            }
+            if ( rv != SA_OK ) {
+                resource.instruments.clear();
+                CRIT( "saHpiRdrGet returned %s", oh_lookup_error( rv ) );
+                return false;
+            }
+            resource.instruments.push_back( rdr );
+            id = next_id;
+        }
+
+        cnt2 = GetRdrUpdateCounter( sid, rid );
+
+    } while ( cnt != cnt2 );
+
+    return true;
+}
+
 static bool FetchResources( SaHpiSessionIdT sid,
                             SaHpiDomainInfoT& di,
-                            std::list<SaHpiRptEntryT>& rpt )
+                            std::list<Resource>& rpt )
 {
     SaHpiDomainInfoT di2;
 
@@ -104,11 +157,11 @@ static bool FetchResources( SaHpiSessionIdT sid,
         }
 
         SaHpiEntryIdT id, next_id;
-        SaHpiRptEntryT rpte;
+        Resource resource;
         id = SAHPI_FIRST_ENTRY;
         while ( id != SAHPI_LAST_ENTRY ) {
             SaErrorT rv;
-            rv = saHpiRptEntryGet( sid, id, &next_id, &rpte );
+            rv = saHpiRptEntryGet( sid, id, &next_id, &resource.rpte );
             if ( rv == SA_ERR_HPI_NOT_PRESENT ) {
                 break;
             }
@@ -117,7 +170,11 @@ static bool FetchResources( SaHpiSessionIdT sid,
                 CRIT( "saHpiRptEntryGet returned %s", oh_lookup_error( rv ) );
                 return false;
             }
-            rpt.push_back( rpte );
+            rc = FetchInstruments( sid, resource );
+            if ( !rc ) {
+                break;
+            }
+            rpt.push_back( resource );
             id = next_id;
         }
 
@@ -174,144 +231,6 @@ static bool FetchDat( SaHpiSessionIdT sid,
 
     return true;
 }
-
-/*
-void cHpiSubProviderDRT::GetEntries( std::deque<HpiEntry>& entries ) const
-{
-    entries.clear();
-
-    SaErrorT rv;
-    SaHpiEntryIdT id, next_id;
-    SaHpiDrtEntryT drte;
-
-    bool first = true;
-    id = SAHPI_FIRST_ENTRY;
-    while ( id != SAHPI_LAST_ENTRY ) {
-        rv = saHpiDrtEntryGet( m_ctx.session_id, id, &next_id, &drte );
-        if ( first && ( rv == SA_ERR_HPI_NOT_PRESENT ) ) {
-            break;
-        }
-
-        if ( rv != SA_OK ) {
-            return;
-        }
-
-        std::wstring name;
-        MakeNameForDomain( drte.DomainId, name );
-        entries.push_back( HpiEntry( eHpiEntryResource, drte.EntryId, name ) );
-
-        first = false;
-        id = next_id;
-    }
-}
-
-SaHpiUint32T cHandler::GetRptUpdateCounter() const
-{
-    SaErrorT rv;
-    SaHpiDomainInfoT di;
-    rv = Abi()->saHpiDomainInfoGet( m_sid, &di );
-    if ( rv == SA_OK ) {
-        return di.RptUpdateCount;
-    } else {
-        CRIT( "saHpiDomainInfoGet failed with rv = %d", rv );
-        return 0;
-    }
-}
-
-SaHpiUint32T cHandler::GetRdrUpdateCounter( SaHpiResourceIdT slave_rid ) const
-{
-    SaErrorT rv;
-    SaHpiUint32T cnt;
-    rv = Abi()->saHpiRdrUpdateCountGet( m_sid, slave_rid, &cnt );
-    if ( rv == SA_OK ) {
-        return cnt;
-    } else {
-        CRIT( "saHpiRdrUpdateCountGet failed with rv = %d", rv );
-        return 0;
-    }
-}
-
-bool cHandler::FetchRptAndRdrs( std::queue<struct oh_event *>& events ) const
-{
-    for ( unsigned int attempt = 0; attempt < MaxFetchAttempts; ++attempt ) {
-        while( !events.empty() ) {
-            oh_event_free( events.front(), 0 );
-            events.pop();
-        }
-
-        SaHpiUint32T cnt = GetRptUpdateCounter();
-        SaHpiEntryIdT id, next_id;
-        for ( id = SAHPI_FIRST_ENTRY; id != SAHPI_LAST_ENTRY; id = next_id ) {
-            struct oh_event * e = g_new0( struct oh_event, 1 );
-            SaErrorT rv = Abi()->saHpiRptEntryGet( m_sid,
-                                                   id,
-                                                   &next_id,
-                                                   &e->resource );
-            if ( rv != SA_OK ) {
-                CRIT( "saHpiRptEntryGet failed with rv = %d", rv );
-                break;
-            }
-            e->event.Source = e->resource.ResourceId;
-            bool rc = FetchRdrs( e );
-            if ( !rc ) {
-                break;
-            }
-            events.push( e );
-        }
-        if ( cnt == GetRptUpdateCounter() ) {
-            return true;
-        }
-    }
-
-    while( !events.empty() ) {
-        oh_event_free( events.front(), 0 );
-        events.pop();
-
-    while( !events.empty() ) {
-        oh_event_free( events.front(), 0 );
-        events.pop();
-    }
-
-    return false;
-}
-
-bool cHandler::FetchRdrs( struct oh_event * e ) const
-{
-    SaHpiResourceIdT slave_rid = e->event.Source;
-
-    for ( unsigned int attempt = 0; attempt < MaxFetchAttempts; ++attempt ) {
-        oh_event_free( e, 1 );
-        e->rdrs = 0;
-
-        SaHpiUint32T cnt = GetRdrUpdateCounter( slave_rid );
-        SaHpiEntryIdT id, next_id;
-        for ( id = SAHPI_FIRST_ENTRY; id != SAHPI_LAST_ENTRY; id = next_id ) {
-            SaHpiRdrT * rdr = g_new0( SaHpiRdrT, 1 );
-            SaErrorT rv = Abi()->saHpiRdrGet( m_sid,
-                                              slave_rid,
-                                              id,
-                                              &next_id,
-                                              rdr );
-            if ( rv != SA_OK ) {
-                g_free( rdr );
-                CRIT( "saHpiRdrGet failed with rv = %d", rv );
-                break;
-            }
-            e->rdrs = g_slist_append( e->rdrs, rdr );
-        }
-
-        if ( cnt == GetRdrUpdateCounter( slave_rid ) ) {
-            return true;
-        }
-    }
-
-    oh_event_free( e, 1 );
-    e->rdrs = 0;
-
-    return false;
-}
-
-*/
 
 
 /***************************************************
@@ -405,18 +324,35 @@ bool cHpi::Dump( cHpiXmlWriter& writer )
     writer.EndDrtNode();
 
     SaHpiDomainInfoT rpt_di;
-    std::list<SaHpiRptEntryT> rpt;
+    std::list<Resource> rpt;
     rc = FetchResources( m_sid, rpt_di, rpt );
     if ( !rc ) {
         return false;
     }
     writer.BeginRptNode( rpt_di );
     while ( !rpt.empty() ) {
-        writer.BeginResourceNode( rpt.front() );
+        Resource& resource = rpt.front();
+        writer.BeginResourceNode( resource.rpte, resource.rdr_update_count );
+
+        if ( resource.rpte.ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG ) {
+            writer.BeginEventLogNode();
+            writer.EndEventLogNode();
+        }
+
+        std::list<SaHpiRdrT>& instruments = resource.instruments;
+        while ( !instruments.empty() ) {
+            writer.BeginInstrumentNode( instruments.front() );
+            writer.EndInstrumentNode();
+            instruments.pop_front();
+        }
+
         writer.EndResourceNode();
         rpt.pop_front();
     }
     writer.EndRptNode();
+
+    writer.BeginDomainEventLogNode();
+    writer.EndDomainEventLogNode();
 
     SaHpiDomainInfoT dat_di;
     std::list<SaHpiAlarmT> dat;

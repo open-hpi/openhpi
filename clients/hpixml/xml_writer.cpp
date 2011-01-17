@@ -1,6 +1,6 @@
 /*      -*- c++ -*-
  *
- * Copyright (c) 2010 by Pigeon Point Systems.
+ * Copyright (c) 2011 by Pigeon Point Systems.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -78,6 +78,38 @@ void cXmlWriter::NodeHex( const char * name, const uint8_t * data, size_t len )
     }
     printf( "</%s>\n", name );
 }
+
+void cXmlWriter::NodeFlags( const char * name,
+                            Flags::Type flags,
+                            const Flags::Names * flag_names )
+{
+    if ( ( !m_use_names ) || ( !flag_names ) ) {
+        Node( name, "%lu", (unsigned long)flags );
+        return;
+    }
+
+    PrintIndent();
+    printf( "<%s>", name );
+    uint8_t i;
+    bool first = true;
+    for ( i = 0; i < Flags::Num; ++i ) {
+        Flags::Type flag = 1 << i;
+        if ( flags & flag ) {
+            if ( !first ) {
+                printf( " " );
+            }
+            const char * flag_name = (*flag_names)[i];
+            if ( flag_name ) {
+                printf( "%s", flag_name );
+            } else {
+                printf( "%lu", (unsigned long)flag );
+            }
+            first = false;
+        }
+    }
+    printf( "</%s>\n", name );
+}
+
 
 void cXmlWriter::BeginNode( const char * name )
 {
