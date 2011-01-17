@@ -61,7 +61,7 @@ static GStaticMutex oh_uid_lock = G_STATIC_MUTEX_INIT;
 static GHashTable *oh_ep_table;
 static GHashTable *oh_resource_id_table;
 static guint       resource_id;
-static const char * oh_uid_map_file = 0;
+static char * oh_uid_map_file = 0;
 static int initialized = FALSE;
 
 
@@ -131,10 +131,9 @@ gboolean oh_entity_path_equal(gconstpointer a, gconstpointer b)
  **/
 SaErrorT oh_uid_initialize(void)
 {
-        SaErrorT rval = SA_OK;
-
         uid_lock(&oh_uid_lock);
         if (!initialized) {
+                int cc;
                 const char * uid_map_file = 0;
 
                 /* initialize hash tables */
@@ -157,11 +156,17 @@ SaErrorT oh_uid_initialize(void)
                 }
 
                 /* initialize uid map */
-                rval = uid_map_from_file();
+                cc = uid_map_from_file();
+                if (cc != 0) {
+                        g_free(oh_uid_map_file);
+                        oh_uid_map_file = 0;
+                        WARN( "Disabling using UID Map file." );
+                        WARN( "Resource Id will not be persistent." );
+                }
         }
         uid_unlock(&oh_uid_lock);
 
-        return rval;
+        return 0;
 }
 
 SaHpiBoolT oh_uid_is_initialized()
