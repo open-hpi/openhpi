@@ -3569,7 +3569,14 @@ SaErrorT oa_soap_build_fan_rdr(struct oh_handler_state *oh_handler,
 	/* Build device missing sensor rdr */
 	OA_SOAP_BUILD_ENABLE_SENSOR_RDR(OA_SOAP_SEN_DEV_MISS,
 					diag_ex_status[DIAG_EX_DEV_MISS])
+      
+        /* Build Device not supported sensor rdr */
+	 OA_SOAP_BUILD_ENABLE_SENSOR_RDR(OA_SOAP_SEN_DEV_NOT_SUPPORT,
+  	                                diag_ex_status[DIAG_EX_DEV_NOT_SUPPORT])
 
+        /* Build Device mix match sensor rdr */
+        OA_SOAP_BUILD_ENABLE_SENSOR_RDR(OA_SOAP_SEN_DEV_MIX_MATCH,
+                                        diag_ex_status[DIAG_EX_DEV_MIX_MATCH])
         return SA_OK;
 }
 
