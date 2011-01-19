@@ -26,13 +26,6 @@
 /***************************************************
  * Data Types
  ***************************************************/
-struct Resource
-{
-    SaHpiRptEntryT rpte;
-    SaHpiUint32T rdr_update_count;
-    std::list<SaHpiRdrT> instruments;
-};
-
 struct LogEntry
 {
     SaHpiEventLogEntryT entry;
@@ -45,6 +38,14 @@ struct Log
     SaHpiEventLogInfoT info;
     SaHpiEventLogCapabilitiesT caps;
     std::list<LogEntry> entries;
+};
+
+struct Resource
+{
+    SaHpiRptEntryT rpte;
+    SaHpiUint32T rdr_update_count;
+    std::list<SaHpiRdrT> instruments;
+    Log log;
 };
 
 
@@ -234,6 +235,13 @@ static bool FetchResources( SaHpiSessionIdT sid,
             if ( !rc ) {
                 break;
             }
+            if ( resource.rpte.ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG ) {
+                rc = FetchLog( sid, resource.rpte.ResourceId, resource.log );
+                if ( !rc ) {
+                    break;
+                }
+            }
+
             rpt.push_back( resource );
             id = next_id;
         }
@@ -339,11 +347,7 @@ static void DumpResources( cHpiXmlWriter& writer,
         writer.BeginResourceNode( resource.rpte, resource.rdr_update_count );
 
         if ( resource.rpte.ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG ) {
-// TODO
-/*
-            writer.BeginEventLogNode( resource.rpte.ResourceId );
-            writer.EndEventLogNode( resource.rpte.ResourceId );
-*/
+            DumpLog( writer, resource.rpte.ResourceId, resource.log );
         }
 
         DumpInstruments( writer, resource.instruments );
