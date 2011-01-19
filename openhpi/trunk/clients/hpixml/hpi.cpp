@@ -33,6 +33,20 @@ struct Resource
     std::list<SaHpiRdrT> instruments;
 };
 
+struct LogEntry
+{
+    SaHpiEventLogEntryT entry;
+    SaHpiRdrT rdr;
+    SaHpiRptEntryT rpte;
+};
+
+struct Log
+{
+    SaHpiEventLogInfoT info;
+    SaHpiEventLogCapabilitiesT caps;
+    std::list<LogEntry> entries;
+};
+
 
 /***************************************************
  * Helper Functions
@@ -88,6 +102,52 @@ static bool FetchDrt( SaHpiSessionIdT sid,
         }
 
     } while ( di.DrtUpdateCount != di2.DrtUpdateCount );
+
+    return true;
+}
+
+static bool FetchLog( SaHpiSessionIdT sid,
+                      SaHpiResourceIdT rid,
+                      Log& log )
+{
+    SaErrorT rv;
+
+    log.entries.clear();
+
+    rv = saHpiEventLogInfoGet( sid, rid, &log.info );
+    if ( rv != SA_OK ) {
+        CRIT( "saHpiEventLogInfoGet returned %s", oh_lookup_error( rv ) );
+        return false;
+    }
+    rv = saHpiEventLogCapabilitiesGet( sid, rid, &log.caps );
+    if ( rv != SA_OK ) {
+        CRIT( "saHpiEventLogCapabilitiesGet returned %s", oh_lookup_error( rv ) );
+        return false;
+    }
+
+    SaHpiEventLogEntryIdT prev_id, id, next_id;
+    LogEntry le;
+    id = SAHPI_OLDEST_ENTRY;
+    while ( id != SAHPI_NO_MORE_ENTRIES ) {
+        rv = saHpiEventLogEntryGet( sid,
+                                    rid,
+                                    id,
+                                    &prev_id,
+                                    &next_id,
+                                    &le.entry,
+                                    &le.rdr,
+                                    &le.rpte );
+        if ( rv == SA_ERR_HPI_NOT_PRESENT ) {
+            break;
+        }
+        if ( rv != SA_OK ) {
+            log.entries.clear();
+            CRIT( "saHpiRptEntryGet returned %s", oh_lookup_error( rv ) );
+            return false;
+        }
+        log.entries.push_back( le );
+        id = next_id;
+    }
 
     return true;
 }
@@ -232,6 +292,80 @@ static bool FetchDat( SaHpiSessionIdT sid,
     return true;
 }
 
+static void DumpDrt( cHpiXmlWriter& writer,
+                     SaHpiDomainInfoT& di,
+                     std::list<SaHpiDrtEntryT>& drt )
+{
+    writer.BeginDrtNode( di );
+    while ( !drt.empty() ) {
+        writer.DrtEntryNode( drt.front() );
+        drt.pop_front();
+    }
+    writer.EndDrtNode();
+}
+
+static void DumpLog( cHpiXmlWriter& writer,
+                     SaHpiResourceIdT rid,
+                     Log& log )
+{
+    writer.BeginEventLogNode( rid, log.info, log.caps );
+
+    while ( !log.entries.empty() ) {
+        const LogEntry& le( log.entries.front() );
+        writer.LogEntryNode( le.entry, le.rdr, le.rpte );
+        log.entries.pop_front();
+    }
+
+    writer.EndEventLogNode( rid );
+}
+
+static void DumpInstruments( cHpiXmlWriter& writer,
+                             std::list<SaHpiRdrT>& instruments )
+{
+    while ( !instruments.empty() ) {
+        writer.BeginInstrumentNode( instruments.front() );
+        writer.EndInstrumentNode();
+        instruments.pop_front();
+    }
+}
+
+static void DumpResources( cHpiXmlWriter& writer,
+                           SaHpiDomainInfoT& di,
+                           std::list<Resource>& rpt )
+{
+    writer.BeginRptNode( di );
+    while ( !rpt.empty() ) {
+        Resource& resource = rpt.front();
+        writer.BeginResourceNode( resource.rpte, resource.rdr_update_count );
+
+        if ( resource.rpte.ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG ) {
+// TODO
+/*
+            writer.BeginEventLogNode( resource.rpte.ResourceId );
+            writer.EndEventLogNode( resource.rpte.ResourceId );
+*/
+        }
+
+        DumpInstruments( writer, resource.instruments );
+
+        writer.EndResourceNode();
+        rpt.pop_front();
+    }
+    writer.EndRptNode();
+}
+
+static void DumpDat( cHpiXmlWriter& writer,
+                     SaHpiDomainInfoT& di,
+                     std::list<SaHpiAlarmT> dat )
+{
+    writer.BeginDatNode( di );
+    while ( !dat.empty() ) {
+        writer.AlarmNode( dat.front() );
+        dat.pop_front();
+    }
+    writer.EndDatNode();
+}
+
 
 /***************************************************
  * class cHpi
@@ -316,12 +450,7 @@ bool cHpi::Dump( cHpiXmlWriter& writer )
     if ( !rc ) {
         return false;
     }
-    writer.BeginDrtNode( drt_di );
-    while ( !drt.empty() ) {
-        writer.DrtEntryNode( drt.front() );
-        drt.pop_front();
-    }
-    writer.EndDrtNode();
+    DumpDrt( writer, drt_di, drt );
 
     SaHpiDomainInfoT rpt_di;
     std::list<Resource> rpt;
@@ -329,30 +458,14 @@ bool cHpi::Dump( cHpiXmlWriter& writer )
     if ( !rc ) {
         return false;
     }
-    writer.BeginRptNode( rpt_di );
-    while ( !rpt.empty() ) {
-        Resource& resource = rpt.front();
-        writer.BeginResourceNode( resource.rpte, resource.rdr_update_count );
+    DumpResources( writer, rpt_di, rpt );
 
-        if ( resource.rpte.ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG ) {
-            writer.BeginEventLogNode();
-            writer.EndEventLogNode();
-        }
-
-        std::list<SaHpiRdrT>& instruments = resource.instruments;
-        while ( !instruments.empty() ) {
-            writer.BeginInstrumentNode( instruments.front() );
-            writer.EndInstrumentNode();
-            instruments.pop_front();
-        }
-
-        writer.EndResourceNode();
-        rpt.pop_front();
+    Log del;
+    rc = FetchLog( m_sid, SAHPI_UNSPECIFIED_RESOURCE_ID, del );
+    if ( !rc ) {
+        return false;
     }
-    writer.EndRptNode();
-
-    writer.BeginDomainEventLogNode();
-    writer.EndDomainEventLogNode();
+    DumpLog( writer, SAHPI_UNSPECIFIED_RESOURCE_ID, del );
 
     SaHpiDomainInfoT dat_di;
     std::list<SaHpiAlarmT> dat;
@@ -360,12 +473,7 @@ bool cHpi::Dump( cHpiXmlWriter& writer )
     if ( !rc ) {
         return false;
     }
-    writer.BeginDatNode( dat_di );
-    while ( !dat.empty() ) {
-        writer.AlarmNode( dat.front() );
-        dat.pop_front();
-    }
-    writer.EndDatNode();
+    DumpDat( writer, dat_di, dat );
 
     writer.EndDomainNode();
 

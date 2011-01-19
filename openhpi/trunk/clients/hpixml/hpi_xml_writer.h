@@ -51,11 +51,13 @@ public:
     void BeginInstrumentNode( const SaHpiRdrT& rdr );
     void EndInstrumentNode();
 
-    void BeginEventLogNode();
-    void EndEventLogNode();
-
-    void BeginDomainEventLogNode();
-    void EndDomainEventLogNode();
+    void BeginEventLogNode( SaHpiResourceIdT rid,
+                            const SaHpiEventLogInfoT& info,
+                            const SaHpiEventLogCapabilitiesT& caps );
+    void EndEventLogNode( SaHpiResourceIdT rid );
+    void LogEntryNode( const SaHpiEventLogEntryT& entry,
+                       const SaHpiRdrT& rdr,
+                       const SaHpiRptEntryT& rpte );
 
     void BeginDatNode( const SaHpiDomainInfoT& di );
     void EndDatNode();
@@ -592,6 +594,58 @@ private:
     void NodeSaHpiRdrT(
         const char * name,
         const SaHpiRdrT& x
+    );
+    void NodeSaHpiResourceEventT(
+        const char * name,
+        const SaHpiResourceEventT& x
+    );
+    void NodeSaHpiDomainEventT(
+        const char * name,
+        const SaHpiDomainEventT& x
+    );
+    void NodeSaHpiSensorEventT(
+        const char * name,
+        const SaHpiSensorEventT& x
+    );
+    void NodeSaHpiSensorEnableChangeEventT(
+        const char * name,
+        const SaHpiSensorEnableChangeEventT& x
+    );
+    void NodeSaHpiHotSwapEventT(
+        const char * name,
+        const SaHpiHotSwapEventT& x
+    );
+    void NodeSaHpiWatchdogEventT(
+        const char * name,
+        const SaHpiWatchdogEventT& x
+    );
+    void NodeSaHpiHpiSwEventT(
+        const char * name,
+        const SaHpiHpiSwEventT& x
+    );
+    void NodeSaHpiOemEventT(
+        const char * name,
+        const SaHpiOemEventT& x
+    );
+    void NodeSaHpiUserEventT(
+        const char * name,
+        const SaHpiUserEventT& x
+    );
+    void NodeSaHpiDimiEventT(
+        const char * name,
+        const SaHpiDimiEventT& x
+    );
+    void NodeSaHpiDimiUpdateEventT(
+        const char * name,
+        const SaHpiDimiUpdateEventT& x
+    );
+    void NodeSaHpiFumiEventT(
+        const char * name,
+        const SaHpiFumiEventT& x
+    );
+    void NodeSaHpiEventT(
+        const char * name,
+        const SaHpiEventT& x
     );
 };
 
