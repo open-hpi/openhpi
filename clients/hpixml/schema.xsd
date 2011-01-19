@@ -2177,6 +2177,141 @@
  </xs:sequence>
 </xs:complexType>
 
+<xs:complexType name="SaHpiResourceEventT">
+ <xs:sequence>
+  <xs:element name="ResourceEventType" type="SaHpiResourceEventTypeT"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiDomainEventT">
+ <xs:sequence>
+  <xs:element name="Type" type="SaHpiDomainEventTypeT"/>
+  <xs:element name="DomainId" type="SaHpiDomainIdT"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiSensorEventT">
+ <xs:sequence>
+  <xs:element name="SensorNum" type="SaHpiSensorNumT"/>
+  <xs:element name="SensorType" type="SaHpiSensorTypeT"/>
+  <xs:element name="EventCategory" type="SaHpiEventCategoryT"/>
+  <xs:element name="Assertion" type="SaHpiBoolT"/>
+  <xs:element name="EventState" type="SaHpiEventStateT"/>
+  <xs:element name="OptionalDataPresent" type="SaHpiSensorOptionalDataT"/>
+  <xs:element name="TriggerReading" type="SaHpiSensorReadingT" minOccurs="0"/>
+  <xs:element name="TriggerThreshold" type="SaHpiSensorReadingT" minOccurs="0"/>
+  <xs:element name="PreviousState" type="SaHpiEventStateT" minOccurs="0"/>
+  <xs:element name="CurrentState" type="SaHpiEventStateT" minOccurs="0"/>
+  <xs:element name="Oem" type="SaHpiUint32T" minOccurs="0"/>
+  <xs:element name="SensorSpecific" type="SaHpiUint32T" minOccurs="0"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiSensorEnableChangeEventT">
+ <xs:sequence>
+  <xs:element name="SensorNum" type="SaHpiSensorNumT"/>
+  <xs:element name="SensorType" type="SaHpiSensorTypeT"/>
+  <xs:element name="EventCategory" type="SaHpiEventCategoryT"/>
+  <xs:element name="SensorEnable" type="SaHpiBoolT"/>
+  <xs:element name="SensorEventEnable" type="SaHpiBoolT"/>
+  <xs:element name="AssertEventMask" type="SaHpiEventStateT"/>
+  <xs:element name="DeassertEventMask" type="SaHpiEventStateT"/>
+  <xs:element name="OptionalDataPresent" type="SaHpiSensorEnableOptDataT"/>
+  <xs:element name="CurrentState" type="SaHpiEventStateT" minOccurs="0"/>
+  <xs:element name="CriticalAlarms" type="SaHpiEventStateT" minOccurs="0"/>
+  <xs:element name="MajorAlarms" type="SaHpiEventStateT" minOccurs="0"/>
+  <xs:element name="MinorAlarms" type="SaHpiEventStateT" minOccurs="0"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiHotSwapEventT">
+ <xs:sequence>
+  <xs:element name="HotSwapState" type="SaHpiHsStateT"/>
+  <xs:element name="PreviousHotSwapState" type="SaHpiHsStateT"/>
+  <xs:element name="CauseOfStateChange" type="SaHpiHsCauseOfStateChangeT"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiWatchdogEventT">
+ <xs:sequence>
+  <xs:element name="WatchdogNum" type="SaHpiWatchdogNumT"/>
+  <xs:element name="WatchdogAction" type="SaHpiWatchdogActionEventT"/>
+  <xs:element name="WatchdogPreTimerAction" type="SaHpiWatchdogPretimerInterruptT"/>
+  <xs:element name="WatchdogUse" type="SaHpiWatchdogTimerUseT"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiHpiSwEventT">
+ <xs:sequence>
+  <xs:element name="MId" type="SaHpiManufacturerIdT"/>
+  <xs:element name="Type" type="SaHpiSwEventTypeT"/>
+  <xs:element name="EventData" type="SaHpiTextBufferT"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiOemEventT">
+ <xs:sequence>
+  <xs:element name="MId" type="SaHpiManufacturerIdT"/>
+  <xs:element name="OemEventData" type="SaHpiTextBufferT"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiUserEventT">
+ <xs:sequence>
+  <xs:element name="UserEventData" type="SaHpiTextBufferT"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiDimiEventT">
+ <xs:sequence>
+  <xs:element name="DimiNum" type="SaHpiDimiNumT"/>
+  <xs:element name="TestNum" type="SaHpiDimiTestNumT"/>
+  <xs:element name="DimiTestRunStatus" type="SaHpiDimiTestRunStatusT"/>
+  <xs:element name="DimiTestPercentCompleted" type="SaHpiDimiTestPercentCompletedT"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiDimiUpdateEventT">
+ <xs:sequence>
+  <xs:element name="DimiNum" type="SaHpiDimiNumT"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiFumiEventT">
+ <xs:sequence>
+  <xs:element name="FumiNum" type="SaHpiFumiNumT"/>
+  <xs:element name="BankNum" type="SaHpiUint8T"/>
+  <xs:element name="UpgradeStatus" type="SaHpiFumiUpgradeStatusT"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiEventUnionT">
+ <xs:choice>
+  <xs:element name="ResourceEvent" type="SaHpiResourceEventT"/>
+  <xs:element name="DomainEvent" type="SaHpiDomainEventT"/>
+  <xs:element name="SensorEvent" type="SaHpiSensorEventT"/>
+  <xs:element name="SensorEnableChangeEvent" type="SaHpiSensorEnableChangeEventT"/>
+  <xs:element name="HotSwapEvent" type="SaHpiHotSwapEventT"/>
+  <xs:element name="WatchdogEvent" type="SaHpiWatchdogEventT"/>
+  <xs:element name="HpiSwEvent" type="SaHpiHpiSwEventT"/>
+  <xs:element name="OemEvent" type="SaHpiOemEventT"/>
+  <xs:element name="UserEvent" type="SaHpiUserEventT"/>
+  <xs:element name="DimiEvent" type="SaHpiDimiEventT"/>
+  <xs:element name="DimiUpdateEvent" type="SaHpiDimiUpdateEventT"/>
+  <xs:element name="FumiEvent" type="SaHpiFumiEventT"/>
+ </xs:choice>
+</xs:complexType>
+
+<xs:complexType name="SaHpiEventT">
+ <xs:sequence>
+  <xs:element name="Source" type="SaHpiResourceIdT"/>
+  <xs:element name="EventType" type="SaHpiEventTypeT"/>
+  <xs:element name="Timestamp" type="SaHpiTimeT"/>
+  <xs:element name="Severity" type="SaHpiSeverityT"/>
+  <xs:element name="EventDataUnion" type="SaHpiEventUnionT"/>
+ </xs:sequence>
+</xs:complexType>
+
 <xs:complexType name="SaHpiNameT">
  <xs:sequence>
   <xs:element name="Length" type="SaHpiUint16T"/>
@@ -2224,10 +2359,28 @@
  </xs:sequence>
 </xs:complexType>
 
+<xs:complexType name="EventLogEntry">
+ <xs:sequence>
+  <xs:element name="Timestamp" type="SaHpiTimeT"/>
+  <xs:element name="Event" type="SaHpiEventT"/>
+  <xs:element name="Rdr" type="SaHpiRdrT" minOccurs="0"/>
+  <xs:element name="RptEntry" type="SaHpiRptEntryT" minOccurs="0"/>
+ </xs:sequence>
+</xs:complexType>
+
 <xs:complexType name="EventLog">
  <xs:sequence>
-  <!-- TODO -->
-  <xs:any minOccurs="0"/>
+  <xs:element name="Entries" type="SaHpiUint32T"/>
+  <xs:element name="Size" type="SaHpiUint32T"/>
+  <xs:element name="UserEventMaxSize" type="SaHpiUint32T"/>
+  <xs:element name="UpdateTimestamp" type="SaHpiTimeT"/>
+  <xs:element name="CurrentTime" type="SaHpiTimeT"/>
+  <xs:element name="Enabled" type="SaHpiBoolT"/>
+  <xs:element name="OverflowFlag" type="SaHpiBoolT"/>
+  <xs:element name="OverflowResetable" type="SaHpiBoolT"/>
+  <xs:element name="OverflowAction" type="SaHpiEventLogOverflowActionT"/>
+  <xs:element name="Capabilities" type="SaHpiEventLogCapabilitiesT"/>
+  <xs:element name="Entry" type="EventLogEntry" minOccurs="0" maxOccurs="unbounded"/>
  </xs:sequence>
 </xs:complexType>
 

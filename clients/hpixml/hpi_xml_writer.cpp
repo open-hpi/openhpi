@@ -322,7 +322,7 @@ static Flags::Names NamesSaHpiSensorOptionalDataT =
     /* bit 2,  0x00000004 */  "OEM",
     /* bit 3,  0x00000008 */  "PREVIOUS_STATE",
     /* bit 4,  0x00000010 */  "CURRENT_STATE",
-    /* bit 5,  0x00000020 */  "SENSOR_SPECIFIC", 
+    /* bit 5,  0x00000020 */  "SENSOR_SPECIFIC",
     /* bit 6,  0x00000040 */  0,
     /* bit 7,  0x00000080 */  0,
     /* bit 8,  0x00000100 */  0,
@@ -441,7 +441,7 @@ static Flags::Names NamesSaHpiCapabilitiesT =
     /* bit 13, 0x00002000 */  "AGGREGATE_STATUS",
     /* bit 14, 0x00004000 */  "DIMI",
     /* bit 15, 0x00008000 */  "EVT_DEASSERTS",
-    /* bit 16, 0x00010000 */  "FUMI",                  
+    /* bit 16, 0x00010000 */  "FUMI",
     /* bit 17, 0x00020000 */  0,
     /* bit 18, 0x00040000 */  0,
     /* bit 19, 0x00080000 */  0,
@@ -666,26 +666,54 @@ void cHpiXmlWriter::EndInstrumentNode()
     cXmlWriter::EndNode( "Instrument" );
 }
 
-void cHpiXmlWriter::BeginEventLogNode()
+void cHpiXmlWriter::BeginEventLogNode( SaHpiResourceIdT rid,
+                                       const SaHpiEventLogInfoT& info,
+                                       const SaHpiEventLogCapabilitiesT& caps )
 {
-    cXmlWriter::BeginNode( "EventLog" );
+    if ( rid == SAHPI_UNSPECIFIED_RESOURCE_ID ) {
+        cXmlWriter::BeginNode( "DomainEventLog" );
+    } else {
+        cXmlWriter::BeginNode( "EventLog" );
+    }
+
+    NodeSaHpiUint32T( "Entries", info.Entries );
+    NodeSaHpiUint32T( "Size", info.Size );
+    NodeSaHpiUint32T( "UserEventMaxSize", info.UserEventMaxSize );
+    NodeSaHpiTimeT( "UpdateTimestamp", info.UpdateTimestamp );
+    NodeSaHpiTimeT( "CurrentTime", info.CurrentTime );
+    NodeSaHpiBoolT( "Enabled", info.Enabled );
+    NodeSaHpiBoolT( "OverflowFlag", info.OverflowFlag );
+    NodeSaHpiBoolT( "OverflowResetable", info.OverflowResetable );
+    NodeSaHpiEventLogOverflowActionT( "OverflowAction", info.OverflowAction );
+    NodeSaHpiEventLogCapabilitiesT( "Capabilities", caps );
 }
 
-void cHpiXmlWriter::EndEventLogNode()
+void cHpiXmlWriter::EndEventLogNode( SaHpiResourceIdT rid )
 {
-    cXmlWriter::EndNode( "EventLog" );
+    if ( rid == SAHPI_UNSPECIFIED_RESOURCE_ID ) {
+        cXmlWriter::EndNode( "DomainEventLog" );
+    } else {
+        cXmlWriter::EndNode( "EventLog" );
+    }
 }
 
-void cHpiXmlWriter::BeginDomainEventLogNode()
+void cHpiXmlWriter::LogEntryNode( const SaHpiEventLogEntryT& entry,
+                                  const SaHpiRdrT& rdr,
+                                  const SaHpiRptEntryT& rpte )
 {
-    cXmlWriter::BeginNode( "DomainEventLog" );
+    cXmlWriter::BeginNode( "Entry" );
+    NodeSaHpiTimeT( "Timestamp", entry.Timestamp );
+    NodeSaHpiEventT( "Event", entry.Event );
+    if ( rdr.RdrType != SAHPI_NO_RECORD ) {
+        NodeSaHpiRdrT( "Rdr", rdr );
+    }
+    if ( rpte.ResourceId != SAHPI_UNSPECIFIED_RESOURCE_ID ) {
+        if ( rpte.ResourceCapabilities != 0 ) {
+            NodeSaHpiRptEntryT( "RptEntry", rpte );
+        }
+    }
+    cXmlWriter::EndNode( "Entry" );
 }
-
-void cHpiXmlWriter::EndDomainEventLogNode()
-{
-    cXmlWriter::EndNode( "DomainEventLog" );
-}
-
 
 void cHpiXmlWriter::BeginDatNode( const SaHpiDomainInfoT& di )
 {
@@ -1899,6 +1927,234 @@ void cHpiXmlWriter::NodeSaHpiRdrT(
     }
     cXmlWriter::EndNode( "RdrTypeUnion" );
     NodeSaHpiTextBufferT( "IdString", x.IdString );
+    cXmlWriter::EndNode( name );
+}
+
+void cHpiXmlWriter::NodeSaHpiResourceEventT(
+        const char * name,
+        const SaHpiResourceEventT& x )
+{
+    cXmlWriter::BeginNode( name );
+    NodeSaHpiResourceEventTypeT( "ResourceEventType", x.ResourceEventType );
+    cXmlWriter::EndNode( name );
+}
+
+void cHpiXmlWriter::NodeSaHpiDomainEventT(
+        const char * name,
+        const SaHpiDomainEventT& x )
+{
+    cXmlWriter::BeginNode( name );
+    NodeSaHpiDomainEventTypeT( "Type", x.Type );
+    NodeSaHpiDomainIdT( "DomainId", x.DomainId );
+    cXmlWriter::EndNode( name );
+}
+
+void cHpiXmlWriter::NodeSaHpiSensorEventT(
+        const char * name,
+        const SaHpiSensorEventT& x )
+{
+    cXmlWriter::BeginNode( name );
+    NodeSaHpiSensorNumT( "SensorNum", x.SensorNum );
+    NodeSaHpiSensorTypeT( "SensorType", x.SensorType );
+    NodeSaHpiEventCategoryT( "EventCategory", x.EventCategory );
+    NodeSaHpiBoolT( "Assertion", x.Assertion );
+    NodeSaHpiEventStateT( "EventState", x.EventState );
+    NodeSaHpiSensorOptionalDataT( "OptionalDataPresent", x.OptionalDataPresent );
+    if ( x.OptionalDataPresent & SAHPI_SOD_TRIGGER_READING ) {
+        NodeSaHpiSensorReadingT( "TriggerReading", x.TriggerReading );
+    }
+    if ( x.OptionalDataPresent & SAHPI_SOD_TRIGGER_THRESHOLD ) {
+        NodeSaHpiSensorReadingT( "TriggerThreshold", x.TriggerThreshold );
+    }
+    if ( x.OptionalDataPresent & SAHPI_SOD_PREVIOUS_STATE ) {
+        NodeSaHpiEventStateT( "PreviousState", x.PreviousState );
+    }
+    if ( x.OptionalDataPresent & SAHPI_SOD_CURRENT_STATE ) {
+        NodeSaHpiEventStateT( "CurrentState", x.CurrentState );
+    }
+    if ( x.OptionalDataPresent & SAHPI_SOD_OEM ) {
+        NodeSaHpiUint32T( "Oem", x.Oem );
+    }
+    if ( x.OptionalDataPresent & SAHPI_SOD_SENSOR_SPECIFIC ) {
+        NodeSaHpiUint32T( "SensorSpecific", x.SensorSpecific );
+    }
+    cXmlWriter::EndNode( name );
+}
+
+void cHpiXmlWriter::NodeSaHpiSensorEnableChangeEventT(
+        const char * name,
+        const SaHpiSensorEnableChangeEventT& x )
+{
+    cXmlWriter::BeginNode( name );
+    NodeSaHpiSensorNumT( "SensorNum", x.SensorNum );
+    NodeSaHpiSensorTypeT( "SensorType", x.SensorType );
+    NodeSaHpiEventCategoryT( "EventCategory", x.EventCategory );
+    NodeSaHpiBoolT( "SensorEnable", x.SensorEnable );
+    NodeSaHpiBoolT( "SensorEventEnable", x.SensorEventEnable );
+    NodeSaHpiEventStateT( "AssertEventMask", x.AssertEventMask );
+    NodeSaHpiEventStateT( "DeassertEventMask", x.DeassertEventMask );
+    NodeSaHpiSensorEnableOptDataT( "OptionalDataPresent", x.OptionalDataPresent );
+    if ( x.OptionalDataPresent & SAHPI_SEOD_CURRENT_STATE ) {
+        NodeSaHpiEventStateT( "CurrentState", x.CurrentState );
+    }
+    if ( x.OptionalDataPresent & SAHPI_SEOD_ALARM_STATES ) {
+        NodeSaHpiEventStateT( "CriticalAlarms", x.CriticalAlarms );
+        NodeSaHpiEventStateT( "MajorAlarms", x.MajorAlarms );
+        NodeSaHpiEventStateT( "MinorAlarms", x.MinorAlarms );
+    }
+    cXmlWriter::EndNode( name );
+}
+
+void cHpiXmlWriter::NodeSaHpiHotSwapEventT(
+        const char * name,
+        const SaHpiHotSwapEventT& x )
+{
+    cXmlWriter::BeginNode( name );
+    NodeSaHpiHsStateT( "HotSwapState", x.HotSwapState );
+    NodeSaHpiHsStateT( "PreviousHotSwapState", x.PreviousHotSwapState );
+    NodeSaHpiHsCauseOfStateChangeT( "CauseOfStateChange", x.CauseOfStateChange );
+    cXmlWriter::EndNode( name );
+}
+
+void cHpiXmlWriter::NodeSaHpiWatchdogEventT(
+        const char * name,
+        const SaHpiWatchdogEventT& x )
+{
+    cXmlWriter::BeginNode( name );
+    NodeSaHpiWatchdogNumT( "WatchdogNum", x.WatchdogNum );
+    NodeSaHpiWatchdogActionEventT( "WatchdogAction", x.WatchdogAction );
+    NodeSaHpiWatchdogPretimerInterruptT( "WatchdogPreTimerAction",
+                                         x.WatchdogPreTimerAction );
+    NodeSaHpiWatchdogTimerUseT( "WatchdogUse", x.WatchdogUse );
+    cXmlWriter::EndNode( name );
+}
+
+void cHpiXmlWriter::NodeSaHpiHpiSwEventT(
+        const char * name,
+        const SaHpiHpiSwEventT& x )
+{
+    cXmlWriter::BeginNode( name );
+    NodeSaHpiManufacturerIdT( "MId", x.MId );
+    NodeSaHpiSwEventTypeT( "Type", x.Type );
+    NodeSaHpiTextBufferT( "EventData", x.EventData );
+    cXmlWriter::EndNode( name );
+}
+
+void cHpiXmlWriter::NodeSaHpiOemEventT(
+        const char * name,
+        const SaHpiOemEventT& x )
+{
+    cXmlWriter::BeginNode( name );
+    NodeSaHpiManufacturerIdT( "MId", x.MId );
+    NodeSaHpiTextBufferT( "OemEventData", x.OemEventData );
+    cXmlWriter::EndNode( name );
+}
+
+void cHpiXmlWriter::NodeSaHpiUserEventT(
+        const char * name,
+        const SaHpiUserEventT& x )
+{
+    cXmlWriter::BeginNode( name );
+    NodeSaHpiTextBufferT( "UserEventData", x.UserEventData );
+    cXmlWriter::EndNode( name );
+}
+
+void cHpiXmlWriter::NodeSaHpiDimiEventT(
+        const char * name,
+        const SaHpiDimiEventT& x )
+{
+    cXmlWriter::BeginNode( name );
+    NodeSaHpiDimiNumT( "DimiNum", x.DimiNum );
+    NodeSaHpiDimiTestNumT( "TestNum", x.TestNum );
+    NodeSaHpiDimiTestRunStatusT( "DimiTestRunStatus", x.DimiTestRunStatus );
+    NodeSaHpiDimiTestPercentCompletedT( "DimiTestPercentCompleted",
+                                        x.DimiTestPercentCompleted );
+    cXmlWriter::EndNode( name );
+}
+
+void cHpiXmlWriter::NodeSaHpiDimiUpdateEventT(
+        const char * name,
+        const SaHpiDimiUpdateEventT& x )
+{
+    cXmlWriter::BeginNode( name );
+    NodeSaHpiDimiNumT( "DimiNum", x.DimiNum );
+    cXmlWriter::EndNode( name );
+}
+
+void cHpiXmlWriter::NodeSaHpiFumiEventT(
+        const char * name,
+        const SaHpiFumiEventT& x )
+{
+    cXmlWriter::BeginNode( name );
+    NodeSaHpiFumiNumT( "FumiNum", x.FumiNum );
+    NodeSaHpiUint8T( "BankNum", x.BankNum );
+    NodeSaHpiFumiUpgradeStatusT( "UpgradeStatus", x.UpgradeStatus );
+    cXmlWriter::EndNode( name );
+}
+
+void cHpiXmlWriter::NodeSaHpiEventT(
+    const char * name,
+    const SaHpiEventT& x )
+{
+    cXmlWriter::BeginNode( name );
+    NodeSaHpiResourceIdT( "Source", x.Source );
+    NodeSaHpiEventTypeT( "EventType", x.EventType );
+    NodeSaHpiTimeT( "Timestamp", x.Timestamp );
+    NodeSaHpiSeverityT( "Severity", x.Severity );
+    cXmlWriter::BeginNode( "EventDataUnion" );
+    switch ( x.EventType ) {
+        case SAHPI_ET_RESOURCE:
+            NodeSaHpiResourceEventT( "ResourceEvent",
+                                     x.EventDataUnion.ResourceEvent );
+            break;
+        case SAHPI_ET_DOMAIN:
+            NodeSaHpiDomainEventT( "DomainEvent",
+                                   x.EventDataUnion.DomainEvent );
+            break;
+        case SAHPI_ET_SENSOR:
+            NodeSaHpiSensorEventT( "SensorEvent",
+                                   x.EventDataUnion.SensorEvent );
+            break;
+        case SAHPI_ET_SENSOR_ENABLE_CHANGE:
+            NodeSaHpiSensorEnableChangeEventT( "SensorEnableChangeEvent",
+                                               x.EventDataUnion.SensorEnableChangeEvent );
+            break;
+        case SAHPI_ET_HOTSWAP:
+            NodeSaHpiHotSwapEventT( "HotSwapEvent",
+                                    x.EventDataUnion.HotSwapEvent );
+            break;
+        case SAHPI_ET_WATCHDOG:
+            NodeSaHpiWatchdogEventT( "WatchdogEvent",
+                                     x.EventDataUnion.WatchdogEvent );
+            break;
+        case SAHPI_ET_HPI_SW:
+            NodeSaHpiHpiSwEventT( "HpiSwEvent",
+                                  x.EventDataUnion.HpiSwEvent );
+            break;
+        case SAHPI_ET_OEM:
+            NodeSaHpiOemEventT( "OemEvent",
+                                x.EventDataUnion.OemEvent );
+            break;
+        case SAHPI_ET_USER:
+            NodeSaHpiUserEventT( "UserEvent",
+                                 x.EventDataUnion.UserEvent );
+            break;
+        case SAHPI_ET_DIMI:
+            NodeSaHpiDimiEventT( "DimiEvent",
+                                 x.EventDataUnion.DimiEvent );
+            break;
+        case SAHPI_ET_DIMI_UPDATE:
+            NodeSaHpiDimiUpdateEventT( "DimiUpdateEvent",
+                                       x.EventDataUnion.DimiUpdateEvent );
+            break;
+        case SAHPI_ET_FUMI:
+            NodeSaHpiFumiEventT( "FumiEvent",
+                                 x.EventDataUnion.FumiEvent );
+            break;
+        default:
+            break;
+    }
+    cXmlWriter::EndNode( "EventDataUnion" );
     cXmlWriter::EndNode( name );
 }
 
