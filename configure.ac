@@ -254,11 +254,16 @@ if PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig pkg-config --atleas
 fi
 
 AC_ARG_ENABLE([ipmi],
-    [  --enable-ipmi           build openipmi plugin [[default=no]]],
+    [  --enable-ipmi           build openipmi plugin [[deprecated, default=no]]],
     [if test "x$enableval" = "xyes"; then
         if test "x$have_openipmi" = "xyes"; then
             AC_SUBST(IPMI,ipmi)
 	    AC_SUBST(WITH_IPMI,1)
+            AC_MSG_WARN([
+*** The ipmi plugin is deprecated. Please consider to replace it 
+*** by using the ipmidirect plugin
+        ])
+
         else
             OH_CHECK_FAIL(OpenIPMI,libOpenIPMI-devel,http://openipmi.sf.net,
                          Can not build IPMI support without OpenIPMI >= 1.4.20)
