@@ -1,17 +1,25 @@
 This is an implementation of the Service Availability Forum's 
-Hardware Platform Interface B.03.01 specification.
+Hardware Platform Interface B.03 specification.
 
 The following components are supported:
 * OpenHPI base library
-* OpenHPI utility library
+* OpenHPI utility functions
 * OpenHPI Daemon
+* HPI Client programs and HPI shell
+
 * Simulator Plugin
-* SNMP BladeCenter/RSA Plugin
-* IPMI Plugin
+* Dynamic Simulator Plugin
+* slave Plugin
 * IMPI Direct Plugin
-* iLO2 RIBCL Plug-in
+* SNMP BladeCenter/RSA Plugin
+* iLO2 RIBCL Plugin
 * SOAP/XML BladeSystem c-Class Plugin
-* HPI Clients
+* rtas Plugin
+* sysfs Plugin
+* watchdog Plugin
+
+NOTE: The ipmi plugin is still provided with this release, but 
+will not be maintained any longer. Please use ipmidirect instead.
 
 Feedback, as always, is welcome and encouraged:
 openhpi-devel@lists.sourceforge.net
@@ -30,9 +38,6 @@ pkgconfig (may be called pkg-config depending on distro)
 
 The follow libraries are needed to build certain plugins
 
-ipmi plugin
-  OpenIPMI >= 1.4.20 (http://openipmi.sf.net)
-
 sysfs plugin
   libsysfs =< 1.3
 
@@ -42,6 +47,10 @@ snmp_bc plugin
 oa_soap plugin
   libssl >= 0.9.7
   libxml2
+
+ipmi plugin
+  OpenIPMI >= 1.4.20 (http://openipmi.sf.net)
+
 
 ---------------------------------------------------------
 RPM BUILD NOTE
@@ -96,8 +105,9 @@ you set $sysconfdir when you ran ./configure as shown above.
 
 FOR SUBVERSION EXTRACTS
 
-svn co https://svn.sourceforge.net/svnroot/openhpi/openhpi/trunk openhpi
+svn co https://openhpi.svn.sf.net/svnroot/openhpi/openhpi/trunk mydir
 
+It will extract OpenHPI trunk to mydir.
 First time after extracting the code:
 run ./bootstrap
 
@@ -122,24 +132,109 @@ make maintainer-clean
 ---------------------------------------------------------
 Active Plug-ins
 ---------------------------------------------------------
-simulator - plugin for use in testing
-ipmi - OpenIPMI based plugin
-ipmidirect - IPMI plugin that talks to device driver directly
-snmp_bc - IBM BladeCenter/RSA plugin (uses snmp)
-watchdog - Linux watchdog device interface
-sysfs - Linux sysfs plugin (LM sensors and I2C devices exported in 
-        sysfs requires kernel 2.6 or >= 2.5.72)
-ilo2_ribcl - HP ProLiant Rack Mount Server plug-in
-oa_soap - HP BladeSystem c-Class plugin
+simulator -         plugin for simple testing. It uses a static database 
+                    for hardware configuration.
+dynamic_simulator - plugin for advanced testing. It uses a configuration file 
+                    to simulate any hardware.
+slave -             allows to aggregate resources from different domains (slave domains)
+                    and to provide aggregated resources as part of the one domain (master domain).
+ipmidirect -        IPMI plugin that directly uses ipmi protocol to ipmi 
+                    infrastructure, e.g. chassis managers.
+snmp_bc -           IBM BladeCenter/RSA plugin (uses snmp)
+ilo2_ribcl -        HP ProLiant Rack Mount Server plug-in
+oa_soap -           HP BladeSystem c-Class plugin
+rtas -              Run-Time Abstraction Services (RTAS) plug-in
+sysfs -             Linux sysfs plugin (LM sensors and I2C devices exported in 
+                    sysfs requires kernel 2.6 or >= 2.5.72)
+watchdog -          Linux watchdog device interface
+
 
 For information on recent changes, see the changelogs at
+http://openhpi.org
 http://openhpi.sf.net
+
+---------------------------------------------------------
+CLIENT PROGRAMS
+---------------------------------------------------------
+
+Openhpi provides a set of client programs, that can be use as examples for 
+typical HPI usage. They also help testing when invoked from a command line, 
+or could even be called by applications.
+
+The hpi_shell provides are command shell for calling HPI functions 
+interactively.
+
+The following client programs are provided:
+
+hpialarms -      show Alarm Control management instruments.
+hpidomain -      show information about domains or set the domain tag.
+hpiel -          displays HPI event log entries
+hpievents -      polls for events
+hpifan -         show Fan Control management instruments
+hpigensimdata -  generate data file for dynamic simulator plugin
+hpiinv -         show inventory records for hardware resources
+hpionIBMblade -  display and manage resources of an IBM Blade with 
+                 Basedboard Management Controller (BMC)
+hpipower -       Invoke HPI Power Management APIs
+hpireset -       Invoke HPI Reset Management APIs
+hpisensor -      display sensor info for all resources with Sensor Capability
+hpisettime -     Invoke Event Log clock APIs.
+hpithres -       display sensor thresholds and sensor info.
+hpitop -         display highlevel topology for a managed openHPI complex.
+hpitree -        show in details the resources (rpt's) and resources' 
+                 manamegement instruments (rdr's) data structures
+hpiwdt -         read and enables the watchdog timer.
+
+ohdomainlist -   show information about domains on the level of the openhpi 
+                 base library
+ohhandler -      uses the openhpi additional interfaces to control openhpi 
+                 configuration. That is plugins can be loaded, plugin instances
+                 (handlers) created, unloaded or their configuration displayed.
+ohparam -        control openhpi configuration parameters
+
+hpi_shell -      allows a user to interactively perform a number of HPI 
+                 operations in a command shell with prompting.
+
+---------------------------------------------------------
+HPI EXTENSIONS
+---------------------------------------------------------
+
+OpenHPI provides a small set of functions in addition to the SAF standard.
+Mainly they are needed because of the OpenHPI architecture:
+- manage plugins
+- manage OpenHPI configuration dynamically
+
+* oHpiVersionGet
+* oHpiHandlerCreate 
+* oHpiHandlerDestroy 
+* oHpiHandlerInfo 
+* oHpiHandlerGetNext
+* oHpiHandlerFind
+* oHpiHandlerRetry 
+* oHpiGlobalParamGet 
+* oHpiGlobalParamSet
+* oHpiInjectEvent 
+* oHpiDomainAdd 
+* oHpiDomainAddById 
+* oHpiDomainEntryGet 
+* oHpiDomainEntryGetByDomainId 
+
+Please find more information in the inline documentation in files:
+include/oHpi.h  - function declarations
+baselib/ohpi.c  - function implementation in Base Library
+openhpid/ohpi.c - function implementation in OpenHPI Daemon
 
 ---------------------------------------------------------
 FOR MORE INFO
 ---------------------------------------------------------
 
-For more information please see the project webiste at 
+Please refer also to README.daemon.
+
+Please find more documentation in the docs subdirectory and in the 
+man pages (openhpi, openhpid, clients).
+
+For more information please see the project webiste at:
+http://openhpi.org
 http://openhpi.sourceforge.net
 
 Also visit SAForum's website at http://www.saforum.org
