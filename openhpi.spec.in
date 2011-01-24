@@ -94,7 +94,7 @@ Requires: openhpi = %{version} popt
 
 %if 0%{?with_ipmi}
 %package ipmi
-Summary: OpenHPI plugin for OpenIPMI
+Summary: OpenHPI plugin for OpenIPMI (deprecated)
 Group: System/Monitoring
 BuildRequires: OpenIPMI-devel
 Requires: openhpi = %{version} OpenIPMI
@@ -193,7 +193,8 @@ They lso serve as examples to developers of HPI API usage.
 %description ipmi
 This OpenHPI plugin uses OpenIPMI to connect to IPMI-enabled hardware
 locally or over the network. Its focus is wide, created to support
-any generic hardware topology that uses IPMI.
+any generic hardware topology that uses IPMI. This plugin is not maintained
+any more; it is recommended to use ipmidirect plugin instead.
 %endif
 
 %if 0%{?with_ipmidirect}
@@ -204,8 +205,7 @@ locally or over the network. Its focus is to support ATCA-type chassis.
 
 %if 0%{?with_rtas}
 %description rtas
-OpenHPI plugin for reading sensor and vpd information
-from IBM PPC systems.
+Run-Time Abstraction Services (RTAS) plug-in
 %endif
 
 %if 0%{?with_simulator}
@@ -254,8 +254,10 @@ using an XML-encoded SOAP interface.
 
 %if 0%{?with_slave}
 %description slave
-OpenHPI plug-in that connects to a specified OpenHPI daemon and
-represents the remote daemon resources at its owns.
+OpenHPI plug-in that allows to aggregate resources from different domains 
+(slave domains) and to provide aggregated resources as part of the one domain 
+(master domain).
+
 %endif
 
 ###################################################
