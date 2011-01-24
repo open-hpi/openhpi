@@ -33,7 +33,7 @@ autoconf >= 2.57
 automake >= 1.8
 gcc      >= 3.2.0
 uuid.h      (may be found in e2fsprogs-devel or uuid-dev)
-glib2    >= 2.2
+glib2    >= 2.12
 pkgconfig (may be called pkg-config depending on distro)
 
 The follow libraries are needed to build certain plugins
