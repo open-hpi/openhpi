@@ -1,6 +1,7 @@
 /*      -*- linux-c -*-
  *
  * Copyright (C) Copyright Nokia Siemens Networks 2010
+ * (C) Copyright Ulrich Kleber 2011
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,16 +19,10 @@
  *	openHPI complex
  *
  * Changes:
+ *    20/01/2011  ulikleber  Refactoring to use glib for option parsing and
+ *                           introduce common options for all clients
  *
  */
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <getopt.h>
-#include <SaHpi.h> 
-#include <oh_utils.h>
-#include <oHpi.h>
 
 #include "oh_clients.h"
 
@@ -44,8 +39,14 @@ static SaErrorT set_domaintag(SaHpiSessionIdT sessionid,
 /* 
  * Globals for this driver
  */
-int fdebug     = 0;
-int fverbose   = 0;
+static gchar *f_domtag = NULL;
+static oHpiCommonOptionsT copt;
+
+static GOptionEntry my_options[] =
+{
+  { "tag",  't', 0, G_OPTION_ARG_STRING, &f_domtag,  "Set domain tag to the specified string", "tttt" },
+  { NULL }
+};
 
 
 /* 
@@ -55,79 +56,40 @@ int
 main(int argc, char **argv)
 {
 	SaErrorT 	rv = SA_OK;
-	
-	SaHpiDomainIdT domainid = SAHPI_UNSPECIFIED_DOMAIN_ID;
 	SaHpiSessionIdT sessionid;
-	SaHpiBoolT printusage = FALSE;
 	SaHpiTextBufferT domtag;
 	int c;
+        GError *error = NULL;
+        GOptionContext *context;
+
 	oh_init_textbuffer(&domtag);
 	    
 	oh_prog_version(argv[0], OH_SVN_REV);
-	while ( (c = getopt( argc, argv,"D:t:vx?")) != EOF ) {
-		switch(c) {
-			case 'D':
-                                if (optarg) {
-                                        domainid = atoi(optarg);
-                                }
-				else printusage = TRUE;
-                                break;
-			case 't':
-                                if (optarg) {
-                                        oh_append_textbuffer(&domtag, optarg);
-                                }
-				else printusage = TRUE;
-                                break;
 
-			case 'x': fdebug = 1; break;
-			case 'v': fverbose = 1; break;
-			default: printusage = TRUE; break;
-		}
-	}
-	if (printusage == TRUE)
-	{
-		printf("\n\tUsage: %s [-option]\n\n", argv[0]);
-		printf("\t      (No Option) Display domain topology via "
-				"default domain: drt and headers\n");	
-		printf("\t           -D nn  Select domain id nn\n");
-		printf("\t           -v     Display in verbose mode including "
-				"domain info for directly related domains\n");
-		printf("\t           -x     Display debug messages\n");
-		printf("\n\n\n\n");
+        context = g_option_context_new ("- Display info about domains or set domain tag");
+        g_option_context_add_main_entries (context, my_options, NULL);
+
+        if (!ohc_option_parse(&argc, argv, 
+                context, &copt, 
+                OHC_ALL_OPTIONS 
+                    - OHC_ENTITY_PATH_OPTION, //TODO: Feature 880127?
+                error)) { 
+                g_print ("option parsing failed: %s\n", error->message);
 		exit(1);
 	}
- 
-	if (fdebug) {
-		if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) 
-			printf("saHpiSessionOpen\n");
-		else printf("saHpiSessionOpen to domain %u\n",domainid);
-	}
-        rv = saHpiSessionOpen(domainid,&sessionid,NULL);
-	if (rv != SA_OK) {
-		printf("saHpiSessionOpen returns %s\n",oh_lookup_error(rv));
-		exit(-1);
-	}
-	if (fdebug)
-	       	printf("saHpiSessionOpen returns with SessionId %u\n", 
-			sessionid);
 
-	/*
-	 * Resource discovery ------ do we need it?
-	 *
-	if (fdebug) printf("saHpiDiscover\n");
-	rv = saHpiDiscover(sessionid);
-	if (rv != SA_OK) {
-		printf("saHpiDiscover returns %s\n",oh_lookup_error(rv));
-		exit(-1);
-	} */
+        rv = ohc_session_open_by_option ( &copt, &sessionid);
+	if (rv != SA_OK) exit(-1);
 
-	if (domtag.DataLength>0){
-		if (fdebug) printf ("Let's go change the tag\n");
+	if (f_domtag){
+		oh_append_textbuffer(&domtag, f_domtag);
+                if (copt.debug) printf ("Let's go change the tag"
+                                        "to %s\n",f_domtag);
 		set_domaintag(sessionid, domtag);
 	}
 
 
-	if (fdebug) printf ("Let's go and list the domains!\n");
+	if (copt.debug) printf ("Let's go and list the domains!\n");
 
 	show_domain(sessionid);
 
@@ -152,7 +114,7 @@ SaErrorT show_domain(SaHpiSessionIdT sessionid)
 	SaHpiDomainIdT relateddomainid = SAHPI_UNSPECIFIED_DOMAIN_ID;
 	SaHpiSessionIdT relatedsessionid;
 
-	if (fdebug) printf("saHpiDomainInfoGet\n");
+	if (copt.debug) printf("saHpiDomainInfoGet\n");
 	rv = saHpiDomainInfoGet(sessionid,&domaininfo);
 	if (rv!=SA_OK) {
 		printf("saHpiDomainInfoGet failed with returncode %s\n",
@@ -166,14 +128,14 @@ SaErrorT show_domain(SaHpiSessionIdT sessionid)
 	/* walk the DRT */
 	drtentryid = SAHPI_FIRST_ENTRY;
 	do {
-	   if (fdebug) printf("saHpiDrtEntryGet\n");
+	   if (copt.debug) printf("saHpiDrtEntryGet\n");
 	   rv = saHpiDrtEntryGet(sessionid,
 			drtentryid,&nextdrtentryid,&drtentry);
-	   if ((rv != SA_OK && rv != SA_ERR_HPI_NOT_PRESENT) || fdebug) 
+	   if ((rv != SA_OK && rv != SA_ERR_HPI_NOT_PRESENT) || copt.debug) 
 		       	printf("DrtEntryGet returns %s\n",oh_lookup_error(rv));
 		
 	   if (rv == SA_OK ) {
-		if (fverbose) {
+		if (copt.verbose) {
 		    /* display the domaininfo for that related domain */
 		    relateddomainid = drtentry.DomainId;
         	    rv = saHpiSessionOpen(relateddomainid,
@@ -186,7 +148,7 @@ SaErrorT show_domain(SaHpiSessionIdT sessionid)
 				relateddomainid,oh_lookup_error(rv));
 			continue;
 		    }
-		    if (fdebug) {
+		    if (copt.debug) {
 			printf("saHpiSessionOpen returns with SessionId %u\n", 
 				relatedsessionid);
 			printf("saHpiDomainInfoGet for related domain %u\n",
@@ -208,7 +170,7 @@ SaErrorT show_domain(SaHpiSessionIdT sessionid)
 		    }
 
 		    rv = saHpiSessionClose(relatedsessionid);
-		    if (fdebug) 
+		    if (copt.debug) 
 			printf("saHpiSessionClose returns %s\n",
 				oh_lookup_error(rv));
 
@@ -308,7 +270,7 @@ static SaErrorT set_domaintag(SaHpiSessionIdT sessionid,
 	SaHpiDomainInfoT domaininfo;
 
 
-	if (fdebug) printf("saHpiDomainInfoGet\n");
+	if (copt.debug) printf("saHpiDomainInfoGet\n");
 	rv = saHpiDomainInfoGet(sessionid,&domaininfo);
 	if (rv!=SA_OK) {
 		printf("saHpiDomainInfoGet failed with returncode %s\n",
@@ -321,9 +283,10 @@ static SaErrorT set_domaintag(SaHpiSessionIdT sessionid,
 	printf("\n");
 
 	rv = saHpiDomainTagSet (sessionid, &domtag);
-	if (rv!=SA_OK || fdebug)
+	if (rv!=SA_OK)
 		printf("saHpiDomainTagSet failed with returncode %s. "
 			"Tag not changed.\n",oh_lookup_error(rv));
+        else if (copt.debug) printf("saHpiDomainTagSet completed.\n");
 	
 	return rv;
 }

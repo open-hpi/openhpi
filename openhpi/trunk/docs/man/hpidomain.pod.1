@@ -16,11 +16,16 @@ Option -t allows to change the domain tag.
 
 =over 2
 
- (No Option) Display domain info
- -D nn   Select domain id nn
- -v      Verbose: Display domain info for all domains found in DRT
- -t tag  Set domain tag to the specified string
- -x      Display debug messages
+(No Option) Display domain info
+
+Help Options:
+  -h, --help          Show help options
+
+Application Options:
+  -t, --tag=tttt      Set domain tag to the specified string
+  -D, --domain=nn     Select domain id nn
+  -X, --debug         Display debug messages
+  -V, --verbose       Verbose mode
 
 =back
 
@@ -30,7 +35,7 @@ Option -t allows to change the domain tag.
          hpialarms      hpigensimdata  hpireset       hpitop
          hpiel          hpiinv         hpisensor      hpitree
          hpievents      hpionIBMblade  hpisettime     hpiwdt
-         hpifan         hpipower       hpithres
+         hpifan         hpipower       hpithres       hpixml
          ohdomainlist   ohhandler      ohparam
 
 

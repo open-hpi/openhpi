@@ -17,18 +17,23 @@ If no domain is selected, hpitop displays information using a session with the d
 
 =over 2
 
- (No Option) Display system topology via default domain: rpt & rdr headers
- -D nn  Select domain id nn
- -r     Display only rpts
- -s     Display only sensors
- -c     Display only controls
- -w     Display only watchdogs
- -i     Display only inventories
- -a     Display only annunciators
- -f     Display only fumis
- -d     Display only dimis
- -n nn  Display only resource nn and its topology
- -x     Display debug messages
+(No Option) Display system topology via default domain: rpt & rdr headers
+
+Help Options:
+  -h, --help             Show help options
+
+Application Options:
+  -r, --rpts             Display only rpts
+  -s, --sensors          Display only sensors
+  -c, --controls         Display only controls
+  -w, --watchdogs        Display only watchdogs
+  -i, --inventories      Display only inventories
+  -a, --annunciators     Display only annunciators
+  -f, --fumis            Display only fumis
+  -d, --dimis            Display only dimis
+  -n, --resource=nn      Display only resource nn and its topology
+  -D, --domain=nn        Select domain id nn
+  -X, --debug            Display debug messages
 
 =back
 
@@ -38,7 +43,7 @@ If no domain is selected, hpitop displays information using a session with the d
          hpialarms      hpifan         hpipower       hpithres
          hpidomain      hpigensimdata  hpireset       hpitree
          hpiel          hpiiinv        hpisensor      hpiwdt
-         hpievents      hpionIBMblade  hpisettime
+         hpievents      hpionIBMblade  hpisettime     hpixml
          ohdomainlist   ohhandler      ohparam
 
 
