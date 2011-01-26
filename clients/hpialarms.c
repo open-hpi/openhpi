@@ -2,6 +2,7 @@
  * Copyright (c) 2003 Intel Corporation.
  * (C) Copyright IBM Corp 2007
  * (C) Copyright Nokia Siemens Networks 2010
+ * (C) Copyright Ulrich Kleber 2011
  *
  * 04/15/03 Andy Cress - created
  * 04/17/03 Andy Cress - mods for resourceid, first good run
@@ -13,6 +14,8 @@
  * 10/13/04 Andy Cress - v1.2 add ifdefs for HPI_A & HPI_B, added -d/raw
  * < ...for more changes look at svn logs... >
  * 09/06/2010  ulikleber  New option -D to select domain
+ * 20/01/2011  ulikleber  Refactoring to use glib for option parsing and
+ *                        introduce common options for all clients
  *
  * Author(s):
  * 	Andy Cress <andrew.r.cress@intel.com>
@@ -47,12 +50,6 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *M*/
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <getopt.h>
-#include <SaHpi.h>
-#include <oHpi.h>
-
 #include "oh_clients.h"
 
 #define OH_SVN_REV "$Revision$"
@@ -61,29 +58,32 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define SAHPI_OEM_ALARM_LED 0x10
 #define SAHPI_OEM_DISK_LED 0x20
 
-char fdebug = 0;
-char *states[3] = {"off", "ON ", "unknown" };
-uchar fsetid = 0;
-uchar fid = 0;
+static char *states[3] = {"off", "ON ", "unknown" };
+static gint fid = -1;      // set chassis id 
 #define NLEDS  6
-struct { 
-   uchar fset;
-   uchar val;
-} leds[NLEDS] = {  /* rdr.RdrTypeUnion.CtrlRec.Oem is an index for this */
-{/*pwr*/ 0, 0},
-{/*crt*/ 0, 0},
-{/*maj*/ 0, 0},
-{/*min*/ 0, 0},
-{/*diska*/ 0, 0},
-{/*diskb*/ 0, 0} };
+static gint leds[NLEDS] = {  /* rdr.RdrTypeUnion.CtrlRec.Oem is an index for this */
+/*pwr*/ -1, /*crt*/ -1, /*maj*/ -1, /*min*/ -1, /*diska*/ -1, /*diskb*/ -1};
+static gboolean fall = FALSE;
+static oHpiCommonOptionsT copt;
+
+static GOptionEntry my_options[] =
+{
+  { "critical",  'c', 0, G_OPTION_ARG_INT,  &leds[1],  "Set critical alarm on|off",       "1|0" },
+  { "major",     'm', 0, G_OPTION_ARG_INT,  &leds[2],  "Set major alarm on|off",          "1|0" },
+  { "minor",     'n', 0, G_OPTION_ARG_INT,  &leds[3],  "Set minor alarm on|off",          "1|0" },
+  { "diska",     'a', 0, G_OPTION_ARG_INT,  &leds[4],  "Set diska alarm on|off",          "1|0" },
+  { "diskb",     'b', 0, G_OPTION_ARG_INT,  &leds[5],  "Set diskb alarm on|off",          "1|0" },
+  { "power",     'p', 0, G_OPTION_ARG_INT,  &leds[0],  "Set power alarm on|off",          "1|0" },
+  { "chassisid", 'i', 0, G_OPTION_ARG_INT,  &fid,      "Set chassis id on for n seconds", "n"  },
+  { "all",       'o', 0, G_OPTION_ARG_NONE, &fall,     "Set all alarms off",               NULL },  
+  { NULL }
+};
 
 
 int
 main(int argc, char **argv)
 {
-  int c;
   SaErrorT rv;
-  SaHpiDomainIdT domainid = SAHPI_UNSPECIFIED_DOMAIN_ID;
   SaHpiSessionIdT sessionid;
   SaHpiRptEntryT rptentry;
   SaHpiEntryIdT rptentryid;
@@ -95,89 +95,36 @@ main(int argc, char **argv)
   SaHpiCtrlTypeT  ctltype;
   SaHpiCtrlNumT   ctlnum;
   SaHpiCtrlStateT ctlstate;
-  int raw_val = 0;
-  int j;
-  uchar b = 0;
-  SaHpiBoolT printusage = FALSE;
+  //int raw_val = 0;  Option d for raw alarm byte not implemented
+  int b, j;
+  GError *error = NULL;
+  GOptionContext *context;
 
   oh_prog_version(argv[0], OH_SVN_REV);
-  while ( (c = getopt( argc, argv,"D:rxa:b:c:m:n:p:i:d:o?")) != EOF )
-     switch(c) {
-        case 'D':
-                  if (optarg) domainid = atoi(optarg);
-		  else printusage = TRUE;
-                  break;  
-	case 'c': b = atoi(optarg);      /* set crit alarm value */
-		  leds[1].fset = 1; 
-		  leds[1].val = b;
-                  break;
-	case 'm': b = atoi(optarg);      /* set major alarm value */
-		  leds[2].fset = 1; 
-		  leds[2].val = b;
-                  break;
-	case 'n': b = atoi(optarg);      /* set minor alarm value */
-		  leds[3].fset = 1; 
-		  leds[3].val = b;
-                  break;
-	case 'a': b = atoi(optarg);      /* set disk a fault led */
-		  leds[4].fset = 1; 
-		  leds[4].val = b;
-                  break;
-	case 'b': b = atoi(optarg);      /* set disk b fault led */
-		  leds[5].fset = 1; 
-		  leds[5].val = b;
-                  break;
-	case 'p': b = atoi(optarg);      /* set power alarm value */
-		  leds[0].fset = 1; 
-		  leds[0].val = b;
-                  break;
-	case 'i': fid = atoi(optarg);     /* set chassis id on/off */
-		  fsetid = 1;
-                  break;
-	case 'd': raw_val = atoi(optarg);  /* set raw alarm byte  */
-                  break;
-	case 'o': fsetid=1; fid=0; 	  /* set all alarms off */
-		  for (j = 0; j < NLEDS; j++) { 
-			leds[j].fset = 1; 
-			leds[j].val = 0; 
-		  }
-                  break;
-	case 'x': fdebug = 1;     break;  /* debug messages */
-	default:  printusage = TRUE;
-     }
-     if (printusage) {
-                printf("Usage: %s [-a -b -c -i -m -n -p -o -x]\n", argv[0]);
-                printf(" where -D domain id Selects the domain\n");
-                printf("       -c1  sets Critical Alarm on\n");
-                printf("       -c0  sets Critical Alarm off\n");
-                printf("       -m1  sets Major Alarm on\n");
-                printf("       -m0  sets Major Alarm off\n");
-                printf("       -n1  sets Minor Alarm on\n");
-                printf("       -n0  sets Minor Alarm off\n");
-                printf("       -p1  sets Power Alarm on\n");
-                printf("       -p0  sets Power Alarm off\n");
-                printf("       -i5  sets Chassis ID on for 5 sec\n");
-                printf("       -i0  sets Chassis ID off\n");
-                printf("       -a1  sets Disk A fault on\n");
-                printf("       -a0  sets Disk A fault off\n");
-                printf("       -b1  sets Disk B fault on\n");
-                printf("       -b0  sets Disk B fault off\n");
-                printf("       -d[byte] sets raw Alarm byte\n");
-                printf("       -o   sets all Alarms off\n");
-                printf("       -x   show eXtra debug messages\n");
+
+  context = g_option_context_new ("- Control alarm management instruments");
+  g_option_context_add_main_entries (context, my_options, NULL);
+
+  if (!ohc_option_parse(&argc, argv, 
+                context, &copt, 
+                OHC_ALL_OPTIONS 
+                    - OHC_ENTITY_PATH_OPTION //TODO: Feature 880127 ?
+                    - OHC_VERBOSE_OPTION,    // no verbose mode implemented
+                error)) { 
+                g_print ("option parsing failed: %s\n", error->message);
 		exit(1);
-     }
-  if (fdebug) {
-	if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) printf("saHpiSessionOpen\n");
-		else printf("saHpiSessionOpen to domain %u\n",domainid);
 	}
-  rv = saHpiSessionOpen(domainid,&sessionid,NULL);
-  if (rv != SA_OK) {
-	printf("saHpiSessionOpen error %d\n",rv);
-	exit(-1);
-	}
+
+  if (fall) { /* set all alarms off */
+        fid=0;
+        for (j = 0; j < NLEDS; j++) leds[j] = 0; 
+  }
+
+  rv = ohc_session_open_by_option ( &copt, &sessionid);
+  if (rv != SA_OK) exit(-1);
+
   rv = saHpiDiscover(sessionid);
-  if (fdebug) printf("saHpiDiscover complete, rv = %d\n",rv);
+  if (copt.debug) printf("saHpiDiscover complete, rv = %d\n",rv);
 
   /* walk the RPT list */
   rptentryid = SAHPI_FIRST_ENTRY;
@@ -194,7 +141,7 @@ main(int argc, char **argv)
 	 * a DataLength of zero here (for processor, bios).
 	 * rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0;
 	 */
-	//if (fdebug) 
+	//if (copt.debug) 
 	   printf("rptentry[%u] resourceid=%u tlen=%u tag: %s\n",
 		entryid, resourceid, rptentry.ResourceTag.DataLength, 
 		rptentry.ResourceTag.Data);
@@ -202,22 +149,22 @@ main(int argc, char **argv)
 	{
 		rv = saHpiRdrGet(sessionid,resourceid,
 				entryid,&nextentryid, &rdr);
-  		if (fdebug) printf("saHpiRdrGet[%u] rv = %d\n",entryid,rv);
+  		if (copt.debug) printf("saHpiRdrGet[%u] rv = %d\n",entryid,rv);
 		if (rv == SA_OK) {
 		   if (rdr.RdrType == SAHPI_CTRL_RDR) { 
 			/*type 1 includes alarm LEDs*/
 			ctlnum = rdr.RdrTypeUnion.CtrlRec.Num;
 			rdr.IdString.Data[rdr.IdString.DataLength] = 0;
-			if (fdebug) printf("Ctl[%u]: %u %u %s\n",
+			if (copt.debug) printf("Ctl[%u]: %u %u %s\n",
 				ctlnum, rdr.RdrTypeUnion.CtrlRec.Type,
 				rdr.RdrTypeUnion.CtrlRec.OutputType,
 				rdr.IdString.Data);
 			rv = saHpiControlTypeGet(sessionid,resourceid,
 					ctlnum,&ctltype);
-  			if (fdebug) printf("saHpiControlTypeGet[%u] rv = %d, type = %u\n",ctlnum,rv,ctltype);
+  			if (copt.debug) printf("saHpiControlTypeGet[%u] rv = %d, type = %u\n",ctlnum,rv,ctltype);
 			rv = saHpiControlGet(sessionid, resourceid, ctlnum,
 					NULL, &ctlstate);
-  			if (fdebug) 
+  			if (copt.debug) 
 			   printf("saHpiControlStateGet[%u] rv = %d v = %x\n",
 				ctlnum,rv,ctlstate.StateUnion.Digital);
 			printf("RDR[%u]: ctltype=%u:%u oem=%02x %s  \t",
@@ -238,7 +185,7 @@ main(int argc, char **argv)
 			if (rdr.RdrTypeUnion.CtrlRec.Type == SAHPI_CTRL_TYPE_ANALOG &&
 			    rdr.RdrTypeUnion.CtrlRec.OutputType == SAHPI_CTRL_LED) {
 			    /* This is a Chassis Identify */
-			    if (fsetid) {
+			    if (fid>=0) {
 				printf("Setting ID led to %u sec\n", fid);
 				ctlstate.Type = SAHPI_CTRL_TYPE_ANALOG;
 				ctlstate.StateUnion.Analog = fid;
@@ -253,16 +200,16 @@ main(int argc, char **argv)
 			    rdr.RdrTypeUnion.CtrlRec.OutputType == SAHPI_CTRL_LED) {
 				/* this is an alarm LED */
 				b = (uchar)rdr.RdrTypeUnion.CtrlRec.Oem & 0x0f;
-				if ((b < NLEDS) && leds[b].fset) {
-				   printf("Setting alarm led %u to %u\n",b,leds[b].val);
-				   if (leds[b].val == 0) 
+				if ((b < NLEDS) && leds[b]>=0) {
+				   printf("Setting alarm led %u to %u\n",b,leds[b]);
+				   if (leds[b] == 0) 
 					ctlstate.StateUnion.Digital = SAHPI_CTRL_STATE_OFF;
 				   else 
 					ctlstate.StateUnion.Digital = SAHPI_CTRL_STATE_ON;
 				   rv = saHpiControlSet(sessionid, resourceid,
 						ctlnum, SAHPI_CTRL_MODE_MANUAL,
 						&ctlstate);
-  				   /* if (fdebug)  */
+  				   /* if (copt.debug)  */
 					printf("saHpiControlStateSet[%u] rv = %d\n",ctlnum,rv);
 				}
 			}
@@ -271,9 +218,9 @@ main(int argc, char **argv)
 			    rdr.RdrTypeUnion.CtrlRec.OutputType == SAHPI_CTRL_LED) {
 				/* this is a disk LED */
 				b = (uchar)rdr.RdrTypeUnion.CtrlRec.Oem & 0x0f;
-				if ((b < NLEDS) && leds[b].fset) {
-				   printf("Setting disk led %u to %u\n",b,leds[b].val);
-				   if (leds[b].val == 0) 
+				if ((b < NLEDS) && leds[b]>=0) {
+				   printf("Setting disk led %u to %u\n",b,leds[b]);
+				   if (leds[b] == 0) 
 					ctlstate.StateUnion.Digital = SAHPI_CTRL_STATE_OFF;
 				   else 
 					ctlstate.StateUnion.Digital = SAHPI_CTRL_STATE_ON;

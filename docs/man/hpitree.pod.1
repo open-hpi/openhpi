@@ -18,19 +18,24 @@ If no domain is selected, hpitop displays information using a session with the d
 
 =over 2
 
- (No Option) Display all rpts and rdrs
- -D nn  Select domain id nn
- -a     Display all rpts and rdrs
- -c     Display only controls
- -d     Display rdr records
- -i     Display only inventories
- -o     Display system overview: rpt & rdr headers
- -r     Display only rpts
- -s     Display only sensors
- -w     Display only watchdog
- -n nn  Select particular resource id to display
-        (Used with [-cdirs] options)
- -x     Display debug messages
+(No Option) Display all rpts and rdrs
+
+Help Options:
+  -h, --help            Show help options
+
+Application Options:
+  -a, --all             Display all rpts and rdrs (default)
+  -c, --controls        Display only controls
+  -d, --rdrs            Display rdr records
+  -i, --inventories     Display only inventories
+  -r, --rpts            Display only rpts
+  -s, --sensors         Display only sensors
+  -w, --watchdogs       Display only watchdogs
+  -o, --overview        Display system overview: rpt & rdr headers
+  -n, --resource        Select particular resource id to display
+			(Used with [-cdirs] options)
+  -D, --domain=nn       Select domain id nn
+  -X, --debug           Display debug messages
 
 =back
 
@@ -40,7 +45,7 @@ If no domain is selected, hpitop displays information using a session with the d
          hpialarms      hpifan         hpipower       hpithres
          hpidomain      hpigensimdata  hpireset       hpitop
          hpiel          hpiiinv        hpisensor      hpiwdt
-         hpievents      hpionIBMblade  hpisettime
+         hpievents      hpionIBMblade  hpisettime     hpixml
          ohdomainlist   ohhandler      ohparam
 
 
