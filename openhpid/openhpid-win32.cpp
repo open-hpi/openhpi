@@ -139,7 +139,7 @@ int main(int argc, char *argv[])
     int  port                 = OPENHPI_DEFAULT_DAEMON_PORT;
     unsigned int sock_timeout = 0;  // unlimited
     int  max_threads          = -1; // unlimited
-    bool runasdaemon          = true;
+    //bool runasdaemon          = true;
 
     /* get the command line options */
     int c;
@@ -174,7 +174,7 @@ int main(int argc, char *argv[])
                 }
                 break;
             case 'n':
-                runasdaemon = false;
+                //runasdaemon = false;
                 break;
             case '?':
             default:

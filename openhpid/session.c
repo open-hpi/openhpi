@@ -386,7 +386,6 @@ SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
 SaErrorT oh_destroy_session(SaHpiSessionIdT sid)
 {
         struct oh_session *session = NULL;
-        SaHpiDomainIdT did;
         gpointer event = NULL;
         int i, len;
 
@@ -402,7 +401,6 @@ SaErrorT oh_destroy_session(SaHpiSessionIdT sid)
         oh_sessions.list = g_slist_remove(oh_sessions.list, session);
         g_hash_table_remove(oh_sessions.table, &(session->id));
         g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */
-        did = session->did;
 
         /* Finalize session */
         len = g_async_queue_length(session->eventq);

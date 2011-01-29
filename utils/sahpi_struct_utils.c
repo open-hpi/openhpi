@@ -18,6 +18,7 @@
  */
 
 #include <glib.h>
+#include <inttypes.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -403,13 +404,13 @@ SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT reading,
         switch(reading.Type) {
         case SAHPI_SENSOR_READING_TYPE_INT64:
                 snprintf(text, SAHPI_MAX_TEXT_BUFFER_LENGTH,
-                         "%lld", reading.Value.SensorInt64);
+                         "%" PRId64, (int64_t)reading.Value.SensorInt64);
                 err = oh_append_textbuffer(&working, text);
                 if (err) { return(err); }
                 break;
         case SAHPI_SENSOR_READING_TYPE_UINT64:
                 snprintf(text, SAHPI_MAX_TEXT_BUFFER_LENGTH,
-                         "%llu", reading.Value.SensorUint64);
+                         "%" PRIu64, (uint64_t)reading.Value.SensorUint64);
                 err = oh_append_textbuffer(&working, text);
                 if (err) { return(err); }
                 break;
@@ -517,7 +518,6 @@ SaErrorT oh_encode_sensorreading(SaHpiTextBufferT *buffer,
         char  numstr[SAHPI_MAX_TEXT_BUFFER_LENGTH];
         int   i, j, skip;
         int   found_sign, found_number, found_float, in_number;
-        int   is_percent = 0;
         SaHpiFloat64T num_float64 = 0.0;
         SaHpiInt64T   num_int64 = 0;
         SaHpiUint64T  num_uint64 = 0;
@@ -548,9 +548,15 @@ SaErrorT oh_encode_sensorreading(SaHpiTextBufferT *buffer,
          */
 
         /* Skip any characters before an '=' sign */
-        char *skipstr = strchr((char *)buffer->Data, '=');
-        if (skipstr) skip = (long int)skipstr - (long int)(buffer->Data) + 1;
-        else skip = 0;
+        for (skip = 0; skip < buffer->DataLength; ++skip) {
+            if (buffer->Data[skip] == '=') {
+                ++skip;
+                break;
+            }
+        }
+        if (skip >= buffer->DataLength) {
+            skip = 0;
+        }
 
         j = found_sign = in_number = found_number = found_float = 0;
         for (i=skip; i<buffer->DataLength && !found_number; i++) {
@@ -592,12 +598,6 @@ SaErrorT oh_encode_sensorreading(SaHpiTextBufferT *buffer,
         }
 
         if (found_number || in_number) { /* in_number means string ended in a digit character */
-                for (j=i-1; j<buffer->DataLength; j++) {
-                        if (buffer->Data[j] == '%') {
-                                is_percent = 1;
-                                break;
-                        }
-                }
                 found_number = 1;
         }
 
@@ -3499,7 +3499,6 @@ static SaErrorT oh_build_event_hpi_sw(oh_big_textbuffer *buffer, const SaHpiEven
 {
         char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
         SaHpiTextBufferT tmpbuffer;
-        SaErrorT err;
 
         if ( !buffer || !event) {
                 return(SA_ERR_HPI_INVALID_PARAMS);
@@ -3511,7 +3510,7 @@ static SaErrorT oh_build_event_hpi_sw(oh_big_textbuffer *buffer, const SaHpiEven
         offsets++;
 
         oh_append_offset(buffer, offsets);
-        err = oh_decode_manufacturerid(event->EventDataUnion.HpiSwEvent.MId, &tmpbuffer);
+        oh_decode_manufacturerid(event->EventDataUnion.HpiSwEvent.MId, &tmpbuffer);
         snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ManufacturerId: %s\n", tmpbuffer.Data);
         oh_append_bigtext(buffer, str);
 
@@ -3539,7 +3538,6 @@ static SaErrorT oh_build_event_hpi_sw(oh_big_textbuffer *buffer, const SaHpiEven
 static SaErrorT oh_build_event_oem(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets)
 {
         char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
-        SaErrorT err;
         SaHpiTextBufferT tmpbuffer;
 
         if ( !buffer || !event) {
@@ -3552,7 +3550,7 @@ static SaErrorT oh_build_event_oem(oh_big_textbuffer *buffer, const SaHpiEventT 
         offsets++;
 
         oh_append_offset(buffer, offsets);
-        err = oh_decode_manufacturerid(event->EventDataUnion.OemEvent.MId, &tmpbuffer);
+        oh_decode_manufacturerid(event->EventDataUnion.OemEvent.MId, &tmpbuffer);
         snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ManufacturerId: %s\n", tmpbuffer.Data);
         oh_append_bigtext(buffer, str);
 

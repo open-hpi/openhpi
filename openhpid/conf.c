@@ -264,7 +264,7 @@ static int process_handler_token (GScanner* oh_scanner)
 
         data_access_lock();
 
-        if (g_scanner_get_next_token(oh_scanner) != HPI_CONF_TOKEN_HANDLER) {
+        if (g_scanner_get_next_token(oh_scanner) != (int)HPI_CONF_TOKEN_HANDLER) {
                 CRIT("Processing handler: Unexpected token.");
                 data_access_unlock();
                 return -1;
@@ -381,7 +381,7 @@ free_table:
 static int process_global_token(GScanner *scanner)
 {
         char *name = NULL, *value = NULL;
-        guint current_token;
+        int current_token;
 
         data_access_lock();
 
@@ -513,11 +513,11 @@ int oh_load_config (char *filename, struct oh_parsed_config *config)
                 g_scanner_scope_add_symbol(
                         oh_scanner, 0,
                         oh_conf_tokens[i].name,
-                        (void *)((unsigned long)oh_conf_tokens[i].token));
+                        GUINT_TO_POINTER(oh_conf_tokens[i].token));
         }
 
         while (!done) {
-                guint my_token;
+                int my_token;
                 my_token = g_scanner_peek_next_token (oh_scanner);
                 /*DBG("token: %d", my_token);*/
                 switch (my_token)
