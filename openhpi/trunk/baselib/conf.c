@@ -309,8 +309,8 @@ static GScannerConfig oh_scanner_conf = {
                 FALSE                   /* scope_0_fallback */,
 };
 
-static GTokenType get_next_good_token(GScanner *oh_scanner) {
-        GTokenType next_token;
+static int get_next_good_token(GScanner *oh_scanner) {
+        int next_token;
 
         next_token = g_scanner_get_next_token(oh_scanner);
         while (next_token != G_TOKEN_RIGHT_CURLY &&
@@ -342,12 +342,13 @@ static int process_domain_token (GScanner *oh_scanner)
         char host[SAHPI_MAX_TEXT_BUFFER_LENGTH];
         unsigned int port;
 
-        GTokenType next_token;
+        int next_token;
 
         host[0] = '\0';
         port = OPENHPI_DEFAULT_DAEMON_PORT;
 
-        if (g_scanner_get_next_token(oh_scanner) != HPI_CLIENT_CONF_TOKEN_DOMAIN) {
+        next_token = g_scanner_get_next_token(oh_scanner);
+        if (next_token != HPI_CLIENT_CONF_TOKEN_DOMAIN) {
                 CRIT("Processing domain: Expected a domain token");
                 return -1;
         }
@@ -467,7 +468,7 @@ static int load_client_config(const char *filename)
                 g_scanner_scope_add_symbol(
                         oh_scanner, 0,
                         ohc_conf_tokens[i].name,
-                        (void *)((unsigned long)ohc_conf_tokens[i].token));
+                        GUINT_TO_POINTER(ohc_conf_tokens[i].token));
         }
 
         while (!done) {

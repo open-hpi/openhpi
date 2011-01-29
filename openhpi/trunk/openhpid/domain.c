@@ -168,7 +168,7 @@ static void update_drt(SaHpiDomainIdT target_id,
                 gen_domain_event(target_id, subject_id, SAHPI_TRUE);
         } else {
                 GSList *node = NULL, *savenode = NULL;
-                int child_count = 0, peer_count = 0, is_peer = 0;
+                int child_count = 0, peer_count = 0;
                 
                 for (node = domain->drt.list;
                      node || savenode;
@@ -180,7 +180,6 @@ static void update_drt(SaHpiDomainIdT target_id,
                         else child_count++;
                         
                         if (drtentry->DomainId == subject_id && !found) {
-                                is_peer = drtentry->IsPeer;
                                 savenode = node->next;
                                 domain->drt.list =
                                         g_slist_delete_link(domain->drt.list,
