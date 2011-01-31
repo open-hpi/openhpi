@@ -93,7 +93,7 @@ int main(int argc, char **argv)
         int                 option;
 	SaHpiDomainIdT domainid = SAHPI_UNSPECIFIED_DOMAIN_ID;
         SaHpiSessionIdT     SessionId;
-        SaErrorT            Status, Clean_Up_Status;
+        SaErrorT            Status;
         SaHpiEntryIdT       RptEntry, RptNextEntry;
         SaHpiRptEntryT      Report;
         SaHpiInt32T         Index, EntityElement;
@@ -376,7 +376,7 @@ int main(int argc, char **argv)
         }
         HPI_POWER_DEBUG_PRINT("6.0 Clean up");
         /* clean up */
-        Clean_Up_Status = saHpiSessionClose(SessionId);
+        saHpiSessionClose(SessionId);
 
         //Free all of the Allocations for the Computer data
         Computer = ComputerListHead;

@@ -36,12 +36,12 @@ static void Usage(char *pname)
                 printf("Usage: %s [-D <n> ] [ -r -d -w -c -n -o -s -x]\n", pname);
                 printf(" where -D <n> Select domain\n");
                 printf("       -r  hard resets the system\n");
-                printf("       -d  powers Down the system\n");
+      //          printf("       -d  powers Down the system\n");
                 printf("       -w  warm resets the system\n");
-                printf("       -c  power cycles the system\n");
-                printf("       -n  sends NMI to the system\n");
-                printf("       -o  soft-shutdown OS\n");
-                printf("       -s  reboots to Service Partition\n");
+      //          printf("       -c  power cycles the system\n");
+      //          printf("       -n  sends NMI to the system\n");
+      //          printf("       -o  soft-shutdown OS\n");
+      //          printf("       -s  reboots to Service Partition\n");
                 printf("       -x  show eXtra debug messages\n");
 }
 
@@ -60,13 +60,13 @@ main(int argc, char **argv)
   SaHpiEntryIdT entryid;
   SaHpiResourceIdT resourceid;
   SaHpiResetActionT action = -1;
-  uchar breset;
-  uchar bopt;
-  uchar fshutdown = 0;
+  //uchar breset;        not really implemented that way!
+  //uchar bopt;          not really implemented that way!
+  //uchar fshutdown = 0; not really implemented that way!
  
   oh_prog_version(argv[0], OH_SVN_REV);
-  breset = 3; /* hard reset as default */
-  bopt = 0;    /* Boot Options default */
+  //breset = 3; /* hard reset as default */
+  //bopt = 0;    /* Boot Options default */
   while ( (c = getopt( argc, argv,"D:rdwconsxq?")) != EOF )
      switch(c) {
           case 'D':
@@ -76,9 +76,9 @@ main(int argc, char **argv)
 		     Usage(argv[0]);
                 }
                 break;
-          case 'd': breset = 0;     break;  /* power down */
+    //      case 'd': breset = 0;     break;  /* power down */
           case 'r':
-		breset = 3;
+    //    	breset = 3;
 	      	action = SAHPI_COLD_RESET;
      		break;  /* hard reset */
 	  case 'w':
@@ -86,15 +86,15 @@ main(int argc, char **argv)
 		break;
           case 'x': fdebug = 1;     break;  /* debug messages */
           case 'q': fdebug = 42;    break;  /* just for testing, will exit before any reset */
-          case 'c': breset = 2;     break;  /* power cycle */
-          case 'o': fshutdown = 1;  break;  /* shutdown OS */
-          case 'n': breset = 4;     break;  /* interrupt (NMI) */
-          case 's': bopt   = 1;     break;  /* hard reset to svc part */
+    //      case 'c': breset = 2;     break;  /* power cycle */
+    //      case 'o': fshutdown = 1;  break;  /* shutdown OS */
+    //      case 'n': breset = 4;     break;  /* interrupt (NMI) */
+    //      case 's': bopt   = 1;     break;  /* hard reset to svc part */
           default:
 		Usage(argv[0]);
                 exit(1);
   }
-  if (fshutdown) breset = 5;     /* soft shutdown option */
+    // if (fshutdown) breset = 5;     /* soft shutdown option */
 
   if (fdebug) {
 	if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) printf("saHpiSessionOpen\n");

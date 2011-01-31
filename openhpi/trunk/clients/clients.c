@@ -54,11 +54,12 @@ static GOptionEntry entity_path_option[] =
   { NULL }
 };
 
-static GOptionEntry host_option[] =
-{
-  { "host",         'N', 0, G_OPTION_ARG_STRING, &optdaemon,  "Connect to daemon host:port", "\"host<:port>\"" },
-  { NULL }
-};
+// Preparation for option -N / --host (Features 2726603 & 3129972 & 3129967)
+//static GOptionEntry host_option[] =
+//{
+//  { "host",         'N', 0, G_OPTION_ARG_STRING, &optdaemon,  "Connect to daemon host:port", "\"host<:port>\"" },
+//  { NULL }
+//};
 
 
 
