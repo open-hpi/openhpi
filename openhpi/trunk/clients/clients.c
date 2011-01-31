@@ -115,8 +115,8 @@ gboolean ohc_option_parse(int *argc, char *argv[],
            exit (1);
    }
 
-   common_options->withentitypath = (strnlen(optep,1) > 0);
-   common_options->withdaemonhost = (strnlen(optdaemon,1) > 0);
+   common_options->withentitypath = (optep[0] != '\0');
+   common_options->withdaemonhost = (optdaemon[0] != '\0');
 
    if (optdebug && optverbose) {
       g_print("Parsing of options completed. Common options:\n --debug --verbose");
