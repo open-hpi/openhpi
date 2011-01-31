@@ -134,10 +134,10 @@ static void print_value(SaHpiSensorReadingT *item, char *mes)
 		return;
 	switch (item->Type) {
 		case SAHPI_SENSOR_READING_TYPE_INT64:
-			printf("%lld %s\n", item->Value.SensorInt64, mes);
+			printf("%" PRId64 " %s\n", (int64_t) item->Value.SensorInt64, mes);
 			return;
 		case SAHPI_SENSOR_READING_TYPE_UINT64:
-			printf("%llu %s\n", item->Value.SensorUint64, mes);
+			printf("%" PRIu64 " %s\n", (uint64_t) item->Value.SensorUint64, mes);
 			return;
 		case SAHPI_SENSOR_READING_TYPE_FLOAT64:
 			printf("%10.3f %s\n", item->Value.SensorFloat64, mes);
@@ -368,7 +368,8 @@ static int get_number(char *mes, int *res)
 
 	printf("%s", mes);
 	ret = fgets(buf, READ_BUF_SIZE, stdin);
-	return (sscanf(buf, "%d", res));
+	if (ret) return (sscanf(buf, "%d", res));
+        else return -1;
 }
 
 static void set_thres_value(SaHpiSensorReadingT *R, double val)

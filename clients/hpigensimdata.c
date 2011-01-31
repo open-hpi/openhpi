@@ -1715,10 +1715,12 @@ static void print_sensor_reading(FILE *out, int offset, SaHpiSensorReadingT val)
       fprintf(out, "%sType=%u\n",offSet[myoffset], val.Type);
       switch( val.Type ) {
          case SAHPI_SENSOR_READING_TYPE_INT64:
-            fprintf(out, "%svalue.SensorInt64=%lld\n", offSet[myoffset], val.Value.SensorInt64);
+            fprintf(out, "%svalue.SensorInt64=%" PRId64 "\n", offSet[myoffset], 
+                          (int64_t) val.Value.SensorInt64);
             break;
          case SAHPI_SENSOR_READING_TYPE_UINT64:
-            fprintf(out, "%svalue.SensorUint64=%llu\n", offSet[myoffset], val.Value.SensorUint64);
+            fprintf(out, "%svalue.SensorUint64=%" PRIu64 "\n", offSet[myoffset], 
+                          (uint64_t) val.Value.SensorUint64);
             break;
          case SAHPI_SENSOR_READING_TYPE_FLOAT64:
             fprintf(out, "%svalue.SensorFloat64=%lf\n", offSet[myoffset], val.Value.SensorFloat64);

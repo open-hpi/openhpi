@@ -84,7 +84,7 @@ int main(int argc, char **argv)
 	SaHpiEntryIdT rptentryid;
 	SaHpiEntryIdT nextrptentryid;
 	SaHpiResourceIdT resourceid;
-	SaHpiEventLogEntryIdT entryid;
+        // SaHpiEventLogEntryIdT entryid;
 	SaHpiTimeT oldtime;
 	SaHpiTimeT newtime;
 	SaHpiTimeT readbacktime;
@@ -204,7 +204,7 @@ int main(int argc, char **argv)
 	newtime = (SaHpiTimeT) mktime(&new_tm_time) * 1000000000;
 
 	if (fdebug) {
-		printf("New date and time in SaHpiTimeT %lli\n\n", (long long int)newtime);
+		printf("New date and time in SaHpiTimeT %" PRId64 "\n\n", (int64_t)newtime);
 		if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) printf("saHpiSessionOpen\n");
 		else printf("saHpiSessionOpen to domain %u\n",domainid);
 	}
@@ -248,7 +248,7 @@ int main(int argc, char **argv)
 			printf ("Read-Back-Check event log time: %s\n", buffer.Data);
 
                 }
-                entryid = SAHPI_OLDEST_ENTRY;
+                // entryid = SAHPI_OLDEST_ENTRY;
                 rptentryid = nextrptentryid;
 	} 
         

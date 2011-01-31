@@ -111,7 +111,8 @@ int main(int argc, char **argv)
 	} else
 		timeout = (SaHpiTimeoutT) SAHPI_TIMEOUT_IMMEDIATE;
 
-	printf("************** timeout:[%lld] ****************\n", timeout);    
+	printf("************** timeout:[%" PRId64 "] ****************\n", 
+                (uint64_t) timeout);    
 
 	if (fdebug) {
 		if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) printf("saHpiSessionOpen\n");

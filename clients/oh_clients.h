@@ -23,6 +23,7 @@
 #ifndef __OH_CLIENTS_H
 #define __OH_CLIENTS_H
 
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

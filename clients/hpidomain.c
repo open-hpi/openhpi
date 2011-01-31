@@ -58,7 +58,6 @@ main(int argc, char **argv)
 	SaErrorT 	rv = SA_OK;
 	SaHpiSessionIdT sessionid;
 	SaHpiTextBufferT domtag;
-	int c;
         GError *error = NULL;
         GOptionContext *context;
 
