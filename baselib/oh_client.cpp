@@ -49,26 +49,67 @@ GStaticRecMutex ohc_lock = G_STATIC_REC_MUTEX_INIT;
 #define client_err(cmd, str) err("%s: %s\n", cmd, str)
 
 #define SendRecv(sid, cmd) \
-    if (pinst->WriteMsg(request)) { \
-        client_err(cmd, "WriteMsg failed\n"); \
-        g_free(request); \
-        if (sid) { \
-            oh_close_connx(sid); \
-        } else { \
-            oh_delete_connx(pinst); \
+    { \
+        SaErrorT send_recv_rv = DoSendRecv(cmd, pinst, sid, request, reply); \
+        if (send_recv_rv != SA_OK) { \
+            g_free(request); \
+            return send_recv_rv; \
         } \
-        return SA_ERR_HPI_NO_RESPONSE; \
-    } \
-    if (pinst->ReadMsg(reply)) { \
-        client_err(cmd, "Read failed\n"); \
-        g_free(request); \
-        if (sid) { \
-            oh_close_connx(sid); \
-        } else { \
-            oh_delete_connx(pinst); \
-        } \
-        return SA_ERR_HPI_NO_RESPONSE; \
     }
+
+
+/*----------------------------------------------------------------------------*/
+/* DoSendRecv                                                                 */
+/*----------------------------------------------------------------------------*/
+
+static SaErrorT DoSendRecv( const char *cmd,
+                            pcstrmsock pinst,
+                            SaHpiSessionIdT sid,
+                            const void *request,
+                            char *reply )
+{
+    static const unsigned int ATTEMPTS = 2;
+    static const gulong NEXT_ATTEMPT_TIMEOUT = 2 * G_USEC_PER_SEC;
+    cMessageHeader header = pinst->header;
+
+    bool failed = true;
+    for (unsigned int attempt = 0; (attempt < ATTEMPTS) && failed; ++attempt) {
+        if (attempt > 0) {
+            SaHpiDomainIdT ldid;
+            SaHpiSessionIdT ldsid;
+            g_usleep(NEXT_ATTEMPT_TIMEOUT);
+            client_dbg(cmd, "Re-trying\n");
+            SaErrorT rv = oh_get_connx(sid, &ldsid, &pinst, &ldid);
+            failed = (rv != SA_OK);
+            if (failed) {
+                client_err(cmd, "oh_get_connx failed\n");
+                continue;
+            }
+            pinst->MessageHeaderInit(eMhMsg, 0, header.m_id, header.m_len);
+        }
+        failed = pinst->WriteMsg(request);
+        if (!failed) {
+            failed = pinst->ReadMsg(reply);
+            if (failed) {
+                client_err(cmd, "ReadMsg failed\n");
+            }
+        } else {
+            client_err(cmd, "WriteMsg failed\n");
+        }
+        if (failed) {
+            if (sid) {
+                oh_close_connx(sid);
+            } else {
+                oh_delete_connx(pinst);
+                break;
+            }
+        }
+    }
+
+    return failed ? SA_ERR_HPI_NO_RESPONSE : SA_OK;
+}
+
+
 
 /*----------------------------------------------------------------------------*/
 /* Utility functions                                                          */
