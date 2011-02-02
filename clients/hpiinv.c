@@ -5,6 +5,7 @@
  * Copyright (c) 2003-2005 by Intel Corp.
  * (C) Copyright IBM Corp. 2004
  * (C) Copyright Nokia Siemens Networks 2010
+ * (C) Copyright Ulrich Kleber 2011
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,19 +28,12 @@
  *   2/09/05  ARCress re-merged with hpifru.c, adding IdrFieldSet,
  *            generalized for other HPI libraris also.
  *  09/06/10  ulikleber  New option -D to select domain
+ *  20/01/11  ulikleber  Refactoring to use glib for option parsing and
+ *                       introduce common options for all clients
  */
 #define OPENHPI_USED  1
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <getopt.h>
-#include <SaHpi.h>
-
 #include "oh_clients.h"
-#ifdef OPENHPI_USED
-#include <oh_utils.h>
-#endif
 
 #define OH_SVN_REV "$Revision$"
 
@@ -54,16 +48,24 @@ char *chasstypes[NCT] = {
 	"Buss Expansion Chassis", "Peripheral Chassis", "RAID Chassis", 
 	"Rack-Mount Chassis", "New"
 };
-int fasset = 0;
-int fverbose = 0;
-int foundasset = 0;
-int fdebug = 0;
-int fzdebug = 0;
+static gchar *fatag = NULL;
+static oHpiCommonOptionsT copt;
+
+static GOptionEntry my_options[] =
+{
+  { "asset-tag",  'a', 0, G_OPTION_ARG_STRING, &fatag,  "Set the asset tag to the specified string", "tag" },
+  { NULL }
+};
+
+
+
+
 int i,j,k = 0;
 SaHpiUint32T buffersize;
 SaHpiUint32T actualsize;
 char inbuff[2048];
 char outbuff[1024];
+int foundasset = 0;
 SaHpiIdrAreaHeaderT  *inv;
 SaHpiIdrFieldTypeT chasstype;  
 SaHpiTextBufferT *strptr;
@@ -175,7 +177,7 @@ fixstr(SaHpiTextBufferT *strptr, char *outstr)
 	if (datalen != 0) {
 		strncpy ((char *)outstr, (char *)strptr->Data, datalen);
 		outstr[datalen] = 0;
-		if (fdebug) { 
+		if (copt.debug) { 
 		  printf("TextBuffer len=%u, dtype=%x lang=%u: %s\n",
 			strptr->DataLength,strptr->DataType,strptr->Language,
 			strptr->Data );
@@ -293,7 +295,7 @@ static void print_epath(SaHpiEntityPathT *epath, int len)
    char *pstr;
 
 #ifdef OPENHPI_USED
-   if (fverbose) {
+   if (copt.verbose) {
 	oh_print_ep(epath, len);
    } else 
 #endif
@@ -320,11 +322,11 @@ static void print_idrinfo(SaHpiIdrInfoT *idrInfo,int len);
 static void print_idrinfo(SaHpiIdrInfoT *idrInfo,int len)
 {
 #ifdef OPENHPI_USED
-   if (fverbose) {
+   if (copt.verbose) {
 	oh_print_idrinfo(idrInfo, len);
    } else 
 #endif
-   {  /* don't need to show this if not fverbose */
+   {  /* don't need to show this if not verbose */
    }
 }
 
@@ -333,7 +335,7 @@ static void print_idrareaheader(SaHpiIdrAreaHeaderT *areaHeader, int len)
 {
    int i;
 #ifdef OPENHPI_USED
-   if (fverbose) {
+   if (copt.verbose) {
 	oh_print_idrareaheader(areaHeader, len);
    } else
 #endif
@@ -354,7 +356,7 @@ static void print_idrfield(SaHpiIdrFieldT *field, int len)
 	int i;
 
 #ifdef OPENHPI_USED
-   if (fverbose) {
+   if (copt.verbose) {
 	oh_print_idrfield(field, len);
    } else 
 #endif
@@ -418,7 +420,7 @@ int walkInventory(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 						areaHeader.AreaId, fieldType,
 						fieldId, &nextFieldId,
 						&thisField);
-			if (fdebug) 
+			if (copt.debug) 
 				printf("saHpiIdrFieldGet[%x] rv = %d type=%u\n",
 					idrInfo->IdrId,rvField,
 					thisField.Type);
@@ -457,9 +459,7 @@ int walkInventory(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 int
 main(int argc, char **argv)
 {
-  int c;
   SaErrorT rv,rv_rdr;
-  SaHpiDomainIdT domainid = SAHPI_UNSPECIFIED_DOMAIN_ID;
   SaHpiSessionIdT sessionid;
   SaHpiDomainInfoT rptinfo;
   SaHpiRptEntryT rptentry;
@@ -473,58 +473,38 @@ main(int argc, char **argv)
   SaHpiIdrIdT 	idrid;
   int invfound = 0;
   int nloops = 0;
-  SaHpiBoolT printusage = FALSE;
+  GError *error = NULL;
+  GOptionContext *context;
 
   oh_prog_version(argv[0], OH_SVN_REV);
   atag.tlen = 0;
 
-  while ( (c = getopt( argc, argv,"D:a:vxz?")) != EOF )
-  switch(c) {
-    case 'D':
-          if (optarg) domainid = atoi(optarg);
-          else printusage = TRUE;
-          break;  
-    case 'z': fzdebug = 1; /* fall thru to include next setting */
-    case 'x': fdebug = 1; break;
-    case 'v': fverbose = 1; break;
-    case 'a':
-          fasset = 1;
-          if (optarg) {
-	    atag.tag  = (char *)strdup(optarg);
-	    atag.tlen = strlen(optarg);
-	  }
-          else printusage = TRUE;
-          break;
-    default: printusage = TRUE;
+  context = g_option_context_new ("- Shows resources' inventory records");
+  g_option_context_add_main_entries (context, my_options, NULL);
+
+  if (!ohc_option_parse(&argc, argv, 
+                context, &copt, 
+                OHC_ALL_OPTIONS 
+                    - OHC_ENTITY_PATH_OPTION, //TODO: Feature 880127?
+                error)) { 
+                g_print ("option parsing failed: %s\n", error->message);
+		exit(1);
   }
-  if (printusage) {
-          printf("Usage: %s [-x] [-a asset_tag]\n", argv[0]);
-          printf("   -D domainid   Selects the domain\n");
-          printf("   -a tag        Sets the asset tag\n");
-          printf("   -v            Use verbose output mode\n");
-          printf("   -x            Display debug messages\n");
-          printf("   -z            Display extra debug messages\n");
-          exit(1);
+  if (fatag) {
+     atag.tag  = (char *)strdup(fatag);
+     atag.tlen = strlen(fatag);
   }
 
 	/* compile error */
 //  inv = (SaHpiIdrAreaHeaderT *)&inbuff[0];
   inv = (SaHpiIdrAreaHeaderT *)(void *)&inbuff[0];
 
-  if (fdebug) {
-     if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) printf("saHpiSessionOpen\n");
-     else printf("saHpiSessionOpen to domain %u\n",domainid);
-  }
-  rv = saHpiSessionOpen(domainid,&sessionid,NULL);
-  if (fdebug) printf("saHpiSessionOpen rv = %d sessionid = %u\n",rv,sessionid);
-  if (rv != SA_OK) {
-    printf("saHpiSessionOpen error %d\n",rv);
-    exit(-1);
-  }
- 
+  rv = ohc_session_open_by_option ( &copt, &sessionid);
+  if (rv != SA_OK) exit(-1);
+
   rv = saHpiDomainInfoGet(sessionid,&rptinfo);
-  if (fdebug) printf("saHpiDomainInfoGet rv = %d\n",rv);
-  // if (fdebug) printf("RptInfo: UpdateCount = %x, UpdateTime = %lx\n",
+  if (copt.debug) printf("saHpiDomainInfoGet rv = %d\n",rv);
+  // if (copt.debug) printf("RptInfo: UpdateCount = %x, UpdateTime = %lx\n",
   //      rptinfo.UpdateCount, (unsigned long)rptinfo.UpdateTimestamp);
 
   while (!invfound && (nloops < 7)) 
@@ -535,9 +515,9 @@ main(int argc, char **argv)
      * This should not apply to other well-behaved plugins.
      */
     nloops++;
-    if (fdebug) printf("Starting Discovery, pass %u ...\n",nloops);
+    if (copt.debug) printf("Starting Discovery, pass %u ...\n",nloops);
     rv = saHpiDiscover(sessionid);
-    if (fdebug) printf("saHpiDiscover rv = %d\n",rv);
+    if (copt.debug) printf("saHpiDiscover rv = %d\n",rv);
     if (rv != SA_OK) {
         printf("saHpiDiscover error %d\n",rv);
         break;
@@ -558,7 +538,7 @@ main(int argc, char **argv)
       /* walk the RDR list for this RPT entry */
       entryid = SAHPI_FIRST_ENTRY;
       resourceid = rptentry.ResourceId;
-      if (fdebug) printf("rptentry[%u] resourceid=%d\n", rptentryid,resourceid);
+      if (copt.debug) printf("rptentry[%u] resourceid=%d\n", rptentryid,resourceid);
       if (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)
       {
         printf("Resource[%u] Tag: %s \thas inventory capability\n", rptentryid,tagstr);
@@ -566,10 +546,10 @@ main(int argc, char **argv)
 	while ((rv_rdr == SA_OK) && (entryid != SAHPI_LAST_ENTRY))
 	{
           rv_rdr = saHpiRdrGet(sessionid,resourceid, entryid,&nextentryid, &rdr);
-  	  if (fdebug) printf("saHpiRdrGet[%u] rv = %d\n",entryid,rv_rdr);
+  	  if (copt.debug) printf("saHpiRdrGet[%u] rv = %d\n",entryid,rv_rdr);
 	  if (rv_rdr == SA_OK)
 	  {
-  	    if (fdebug) printf("Rdr[%u] type = %u tag = %s\n",entryid,
+  	    if (copt.debug) printf("Rdr[%u] type = %u tag = %s\n",entryid,
 				rdr.RdrType,rdr.IdString.Data);
 	    if (rdr.RdrType == SAHPI_INVENTORY_RDR)
 	    { 
@@ -578,7 +558,7 @@ main(int argc, char **argv)
 	      rdr.IdString.Data[rdr.IdString.DataLength] = 0;	    
 	      idrid = rdr.RdrTypeUnion.InventoryRec.IdrId;
 	      buffersize = sizeof(inbuff);
-	      if (fdebug) {
+	      if (copt.debug) {
 		 printf("Rdr[%x] is inventory, IdrId=%x\n",rdr.RecordId,idrid);
 		 printf("Inv BufferSize=%u\n", buffersize);
 	      }
@@ -590,18 +570,18 @@ main(int argc, char **argv)
 		if (rv_rdr != SA_OK) {
 		   printf("IDR Info error: rv_rdr = %d\n",rv_rdr);
 		} else {  /* idrInfo is ok */
-		   if (fdebug) printf("IDR Info: ok \n");
+		   if (copt.debug) printf("IDR Info: ok \n");
 		   print_epath(&rptentry.ResourceEntity, 1);
 	           printf("RDR[%x]: Inventory, IdrId=%x %s\n",rdr.RecordId,
 			idrid,rdr.IdString.Data);
 		   print_idrinfo(&idrInfo,4);
 		   rv_rdr = walkInventory(sessionid, resourceid, &idrInfo);
-		   if (fdebug) printf("walkInventory rv_rdr = %d\n",rv_rdr);
+		   if (copt.debug) printf("walkInventory rv_rdr = %d\n",rv_rdr);
 		}
 		
 		if (!ent_writable(&rptentry.ResourceEntity,&idrInfo))
 			foundasset = 0;
-		if ((fasset == 1) && (foundasset == 1)) {
+		if ((fatag) && (foundasset == 1)) {
 			SaHpiIdrFieldT  atagField;
 			atagField.Type = SAHPI_IDR_FIELDTYPE_ASSET_TAG;
 			atagField.ReadOnly = SAHPI_FALSE;
@@ -620,22 +600,22 @@ main(int argc, char **argv)
 			if (rv_rdr == SA_OK) {
 			   printf ("Good write - re-reading!\n");
 			   rv_rdr = walkInventory(sessionid, resourceid, &idrInfo);
-			   if (fdebug) printf("walkInventory rv_rdr = %d\n",rv_rdr);
+			   if (copt.debug) printf("walkInventory rv_rdr = %d\n",rv_rdr);
 			} /* Good write - re-read */
-		   }  /*endif fasset*/
+		   }  /*endif foundasset*/
   		}  /*endif RDR tag ok*/
 	      } /* Inventory Data Records - Type 3 */ 
-	      else if (fdebug) printf("rdr type = %u\n", rdr.RdrType);
+	      else if (copt.debug) printf("rdr type = %u\n", rdr.RdrType);
 	    }  /*endif RdrGet ok*/
 	    entryid = nextentryid;
           } /*end while rdr*/
         } /*endif rpt invent capab*/
         else 
-	  if (fdebug) printf("Resource[%u] Tag: %s\n", rptentryid,tagstr);
+	  if (copt.debug) printf("Resource[%u] Tag: %s\n", rptentryid,tagstr);
       }  /*endif rpt ok*/
       rptentryid = nextrptentryid;
   }  /*end rpt loop */
-    if (fdebug) printf("loop %u inventory found = %d\n",nloops,invfound);
+    if (copt.debug) printf("loop %u inventory found = %d\n",nloops,invfound);
   }  /*end while no inv */
   rv = saHpiSessionClose(sessionid);
   exit(0);

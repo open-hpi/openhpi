@@ -4,9 +4,8 @@ hpiel - An openhpi sample application that displays HPI event log entries.
 
 =head1 SYNOPSIS 
 
-hpiel [-D domain] [-d] [-e entitypath] [-c -p -r -x -v -h ]
-
-hpiel [--Domain="domainid"] [--del] [-entitypath="entitypath"] [--clear --resource --rdr --xml --verbose --help]
+ hpiel [-D nn] [-d] [-e entitypath] [-c -p -r -x -v -h ]
+ hpiel [--Domain=nn] [--del] [--entitypath="entitypath"] [--clear --resource --rdr --xml --verbose --help]
 
 =head1 DESCRIPTION
 
@@ -19,18 +18,17 @@ If no domain is selected, hpiel uses a session with the default domain. The sele
 
 =over 2
 
- --Domain="<arg>", -D "<arg>"           select domain id
- --del, -d	display domain event log entries 
- --entitypath="<arg>", -e "<arg>"	display resource event log entries
-                                        (e.g. -e "{SYSTEM_CHASSIS,2}{SBC_BLADE,5}")
- --clear, -c	clear log before reading event log entries
- --resource, -p	pull resource info along with log entry
- --rdr, -r	pull RDR info along with log entry
- --xml, -x	print output in xml format (not implemented)
- --verbose, -v	print debug messages
- --help, -h	print this usage message
+  -h, --help                    Show help options
+  -d, --del                     Display domain event log entries
+  -c, --clear                   Clear log before reading event log entries
+  -p, --resource                Pull resource info along with log entry
+  -r, --rdr                     Pull RDR info along with log entry
+  -D, --domain=nn               Select domain id nn
+  -X, --debug                   Display debug messages
+  -E, --entity-path="epath"     Use entity path epath and display resource
+                                event log entries.
 
- If neither -d or -e "<arg>" are specified, event log entries will be shown
+If neither -d or -E "<arg>" are specified, event log entries will be shown
 for all supporting resources by default.
 
 =back
@@ -69,7 +67,7 @@ SaErrorT SAHPI_API saHpiEventLogClear (
          hpialarms      hpigensimdata  hpireset       hpitop
          hpidomain      hpiinv         hpisensor      hpitree
          hpievents      hpionIBMblade  hpisettime     hpiwdt
-         hpifan         hpipower       hpithres
+         hpifan         hpipower       hpithres       hpixml
          ohdomainlist   ohhandler      ohparam
 
 

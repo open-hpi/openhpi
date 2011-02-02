@@ -2,6 +2,7 @@
  *
  * (C) Copyright IBM Corp. 2003, 2004, 2007
  * (C) Copyright Nokia Siemens Networks 2010
+ * (C) Copyright Ulrich Kleber 2011
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -20,15 +21,9 @@
  *			    added -d option for call saHpiDiscover after saHpiSubscribe
  *     11/17/2004 kouzmich  linux style and checking timeout error
  *     09/06/2010 ulikleber New option -D to select domain
+ *     01/02/2011 ulikleber Refactoring to use glib for option parsing and
+ *                          introduce common options for all clients
  */
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <getopt.h>
-#include <string.h>
-
-#include <SaHpi.h>
-#include <oh_utils.h>
 
 #include "oh_clients.h"
 
@@ -36,24 +31,23 @@
 
 #define HPI_NSEC_PER_SEC 1000000000LL
 
-int fdebug = 0;
-SaHpiDomainIdT domainid = SAHPI_UNSPECIFIED_DOMAIN_ID;
+static gchar *timeout_str    = NULL;
+static gboolean do_discover_after_subscribe = FALSE;
+static oHpiCommonOptionsT copt;
 
-static void Usage(char **argv)
+static GOptionEntry my_options[] =
 {
-	printf("Usage %s [-D <value>] [-t <value> | SAHPI_TIMEOUT_BLOCK | BLOCK] [-d] [-x]\n",argv[0]);
-	printf("	where:	-D <value> - select domain id\n");
-	printf("                -t <value> - wait <value> seconds for event;\n");
-	printf("		-t SAHPI_TIMEOUT_BLOCK or BLOCK - infinite wait\n");
-	printf("		-d - call saHpiDiscover() after saHpiSubscribe()\n");
-	printf("		-x - displays eXtra debug messages\n");
-}
+  { "timeout", 't', 0, G_OPTION_ARG_STRING, &timeout_str, "Wait n seconds for event or infinite wait",
+                                                      "n|BLOCK|SAHPI_TIMEOUT_BLOCK" },
+  { "discover", 'd', 0, G_OPTION_ARG_NONE, &do_discover_after_subscribe,      "Call saHpiDiscover() after saHpiSubscribe()",
+                                                      NULL },
+  { NULL }
+};
+
 
 int main(int argc, char **argv)
 {
-	int c, test_fail = 0, wait = 0;
-	char *timeout_str= (char *)NULL;
-	int do_discover_after_subscribe = 0;
+	int test_fail = 0, wait = 0;
 	SaErrorT rv;
 	SaHpiSessionIdT sessionid;
 	SaHpiDomainInfoT domainInfo;
@@ -65,42 +59,32 @@ int main(int argc, char **argv)
 	SaHpiRdrT rdr;
 	SaHpiTimeoutT timeout; 
 	SaHpiEventT event;
+        GError *error = NULL;
+        GOptionContext *context;
 
 	memset(&rptentry, 0, sizeof(rptentry));
 
 	oh_prog_version(argv[0], OH_SVN_REV);
 
-	while ( (c = getopt( argc, argv,"D:t:xd?")) != EOF ) {
-		switch(c) {
-                        case 'D':
-                                if (optarg) domainid = atoi(optarg);
-                                else {
-                                        printf("hpievents: option requires an argument -- D");
-					Usage(argv);
-					exit(1);
-                                }
-                                break;
-			case 't':
-				if (optarg) timeout_str = optarg;
-                                else {
-                                        printf("hpievents: option requires an argument -- t");
-					Usage(argv);
-					exit(1);
-                                }
-				break;
-			case 'd': 
-				do_discover_after_subscribe = 1; 
-				break;
-			case 'x': 
-				fdebug = 1; 
-				break;
-			default:
-				Usage(argv);
-				exit(1);
-		}
-	}
+        context = g_option_context_new ("- Poll for HPI events");
+        g_option_context_add_main_entries (context, my_options, NULL);
 
-	if (timeout_str != (char *)NULL) {
+        if (!ohc_option_parse(&argc, argv, 
+                context, &copt, 
+                OHC_ALL_OPTIONS 
+                    - OHC_ENTITY_PATH_OPTION //TODO: Feature 880127
+                    - OHC_VERBOSE_OPTION,    // no verbose mode implemented
+                error)) { 
+                g_print ("option parsing failed: %s\n", error->message);
+		exit(1);
+	}
+ 
+	if (timeout_str) {
+		int i = 0;
+		while (i < 20 && timeout_str[i] != '\0') {
+			timeout_str[i] = toupper((char) timeout_str[i]);
+			i++;
+		}
 		if ((strcmp(timeout_str, "SAHPI_TIMEOUT_BLOCK") == 0) ||
 		    (strcmp(timeout_str, "BLOCK") == 0)) {
 			timeout = SAHPI_TIMEOUT_BLOCK;
@@ -114,22 +98,11 @@ int main(int argc, char **argv)
 	printf("************** timeout:[%" PRId64 "] ****************\n", 
                 (uint64_t) timeout);    
 
-	if (fdebug) {
-		if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) printf("saHpiSessionOpen\n");
-		else printf("saHpiSessionOpen to domain %u\n",domainid);
-	}
-
-	rv = saHpiSessionOpen(domainid, &sessionid, NULL);
-	if (rv != SA_OK) {
-		if (rv == SA_ERR_HPI_ERROR) 
-			printf("saHpiSessionOpen: error %d, SpiLibd not running\n", rv);
-		else
-			printf("saHpiSessionOpen: %s\n", oh_lookup_error(rv));
-		exit(-1);
-	}
+        rv = ohc_session_open_by_option ( &copt, &sessionid);
+	if (rv != SA_OK) exit(-1);
  
 	if (!do_discover_after_subscribe) {
-        	if (fdebug) printf("saHpiDiscover\n");
+        	if (copt.debug) printf("saHpiDiscover\n");
         	rv = saHpiDiscover(sessionid);
         	if (rv != SA_OK) {
         		printf("saHpiDiscover: %s\n", oh_lookup_error(rv));
@@ -137,7 +110,7 @@ int main(int argc, char **argv)
         	}
         }
 	
-        if (fdebug) printf( "Subscribe to events\n");
+        if (copt.debug) printf( "Subscribe to events\n");
         rv = saHpiSubscribe( sessionid );
 	if (rv != SA_OK) {
 		printf("saHpiSubscribe: %s\n", oh_lookup_error(rv));
@@ -145,7 +118,7 @@ int main(int argc, char **argv)
 	}
 
 	if (do_discover_after_subscribe) {
-		if (fdebug) printf("saHpiDiscover after saHpiSubscribe\n");
+		if (copt.debug) printf("saHpiDiscover after saHpiSubscribe\n");
 		rv = saHpiDiscover(sessionid);
 		if (rv != SA_OK) {
 			printf("saHpiDiscover after saHpiSubscribe: %s\n", oh_lookup_error(rv));
@@ -155,7 +128,7 @@ int main(int argc, char **argv)
 
 	rv = saHpiDomainInfoGet(sessionid, &domainInfo);
 
-	if (fdebug) printf("saHpiDomainInfoGet %s\n", oh_lookup_error(rv));
+	if (copt.debug) printf("saHpiDomainInfoGet %s\n", oh_lookup_error(rv));
 	printf("DomainInfo: UpdateCount = %u, UpdateTime = %lx\n",
 		domainInfo.RptUpdateCount, (unsigned long)domainInfo.RptUpdateTimestamp);
 
@@ -165,23 +138,23 @@ int main(int argc, char **argv)
 		printf("**********************************************\n");
 
 		rv = saHpiRptEntryGet(sessionid, rptentryid, &nextrptentryid, &rptentry);
-		if (fdebug) printf("saHpiRptEntryGet %s\n", oh_lookup_error(rv));
+		if (copt.debug) printf("saHpiRptEntryGet %s\n", oh_lookup_error(rv));
 
 		if (rv == SA_OK) {
 			resourceid = rptentry.ResourceId;
-			if (fdebug)
+			if (copt.debug)
 				printf("RPT %x capabilities = %x\n", resourceid,
 					rptentry.ResourceCapabilities);
 
 			if ( (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG)) {
 				/* Using EventLogInfo to build up event queue - for now */
 				rv = saHpiEventLogInfoGet(sessionid, resourceid, &info);
-				if (fdebug) 
+				if (copt.debug) 
 					printf("saHpiEventLogInfoGet %s\n", oh_lookup_error(rv));
 				if (rv == SA_OK) 
 					oh_print_eventloginfo(&info, 4);
 			} else {
-				if (fdebug) 
+				if (copt.debug) 
 					printf("RPT doesn't have SEL\n");
 			}
 
@@ -238,7 +211,7 @@ int main(int argc, char **argv)
 		printf("	Test FAILED.\n");
 
 	/* Unsubscribe to future events */
-	if (fdebug) printf( "Unsubscribe\n");
+	if (copt.debug) printf( "Unsubscribe\n");
 	rv = saHpiUnsubscribe( sessionid );
 
 	rv = saHpiSessionClose(sessionid);

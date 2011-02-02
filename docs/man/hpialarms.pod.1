@@ -4,7 +4,9 @@ hpialarms - A openhpi sample application that shows "Alarm Control" management i
 
 =head1 SYNOPSIS 
 
-hpialarms [-D -a -b -c -i -m -n -p -o -x]
+ hpialarms [-D id][-a 1|0][-b 1|0][-c 1|0][-m 1|0][-n 1|0][-p 1|0][-i n][-o][-X]
+ hpialarms [--domain=id][--diska=1|0][--diskb=1|0][--critical=1|0][--major=1|0]
+           [--minor=1|0][--power=1|0][--chassisid=n][--all][-debug]
 
 =head1 DESCRIPTION
 
@@ -12,7 +14,6 @@ hpialarms walks the RPT (Resource Presence Table) for resources that have
 "Alarm Control" management instruments (SAHPI_CTRL_LED).
 
 If no domain is selected, hpialarms uses a session with the default domain. The selected domain id must be configured via the openhpidclient.conf file specified in the environment.
-
 
 =head1 OPTIONS
 

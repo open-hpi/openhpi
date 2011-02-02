@@ -2,6 +2,7 @@
  *
  * (C) Copyright IBM Corp. 2004-2006
  * (C) Copyright Nokia Siemens Networks 2010
+ * (C) Copyright Ulrich Kleber 2011
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,22 +17,16 @@
  *
  * Changes:
  *      09/06/2010  ulikleber  New option -D to select domain
+ *      20/01/2011  ulikleber  Refactoring to use glib for option parsing and
+ *                             introduce common options for all clients
  */
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <glib.h>
-#include <getopt.h>
-#include <SaHpi.h>
-#include <oh_utils.h>
 
 #include "oh_clients.h"
 
 #define OH_SVN_REV "$Revision$"
 
 #define  MAX_MANAGED_SYSTEMS 80
-#define  HPI_POWER_DEBUG_PRINT(a) if(DebugPrints==TRUE)printf(a)
+#define  HPI_POWER_DEBUG_PRINT(a) if(copt.debug==TRUE)printf(a)
 
 typedef struct COMPUTER_DATA_
 {
@@ -41,6 +36,23 @@ typedef struct COMPUTER_DATA_
         SaHpiRdrT            ResDataRec;
         char                 NameStr[80];//Text Name for the computer or plade
 } COMPUTER_DATA;
+
+static gboolean f_down       = FALSE;
+static gboolean f_up         = FALSE;
+static gboolean f_reset      = FALSE;
+static gboolean f_unattended = FALSE;
+static gint f_blade          = 0;   
+static oHpiCommonOptionsT copt;
+
+static GOptionEntry my_options[] =
+{
+  { "power-down", 'd', 0, G_OPTION_ARG_NONE, &f_down,       "Power down target object", NULL },
+  { "power-up",   'p', 0, G_OPTION_ARG_NONE, &f_up,         "Power on target object",   NULL },
+  { "reset",      'r', 0, G_OPTION_ARG_NONE, &f_reset,      "Reset target object",      NULL },
+  { "unattended", 'u', 0, G_OPTION_ARG_NONE, &f_unattended, "Unattended",               NULL },
+  { "blade",      'b', 0, G_OPTION_ARG_INT,  &f_blade,      "Specify blade n (1...n)",  "n" },
+  { NULL }
+};
 
 
 /* Utility function to work with SaHpiTextBufferT */
@@ -61,125 +73,75 @@ void UsageMessage(char *ProgramName);
  *  main
  *
  *  Hpi Power Utility Entry point routine
- *
- *  Parameters:
- *     int - argc,
- *     char pointer pointer - argv
- *  Program Command line Arguments:
- *         'd' power down
- *         'p' power up
- *         'r' hard reset
- *         'u' unattended
- *         'b:n' Blade number
- *         '?' useage - help
- *         'x' debug messages
- *       Reserved Platform Specific for future use:
- *         'c' 'o' 'n' 's'
  ************************************************/
 
 int main(int argc, char **argv)
 {
-        SaHpiInt32T         ComputerNumber;  //0..n-1
-        SaHpiInt32T         SelectedSystem;  //0..n-1
-        SaHpiPowerStateT    Action;
+        SaHpiInt32T         ComputerNumber = 0;  //0..n-1
+        SaHpiInt32T         SelectedSystem = 0;  //0..n-1
+        SaHpiPowerStateT    Action = 255;  //set it out of range to stand for status;
         COMPUTER_DATA       *ComputerPtr;
-        SaHpiBoolT          BladeSelected;
-        SaHpiBoolT          MultipleBlades;
-        SaHpiBoolT          ActionSelected;
-        SaHpiBoolT          PrintUsage;
-        SaHpiBoolT          DebugPrints;
+        SaHpiBoolT          BladeSelected  = FALSE;
+        SaHpiBoolT          MultipleBlades = FALSE;
+        SaHpiBoolT          ActionSelected = FALSE;
         GSList*             Computer;
         GSList*             ComputerListHead;
-        int                 option;
-	SaHpiDomainIdT domainid = SAHPI_UNSPECIFIED_DOMAIN_ID;
         SaHpiSessionIdT     SessionId;
         SaErrorT            Status;
-        SaHpiEntryIdT       RptEntry, RptNextEntry;
+        SaHpiEntryIdT       RptEntry = SAHPI_FIRST_ENTRY;
+        SaHpiEntryIdT       RptNextEntry;
         SaHpiRptEntryT      Report;
         SaHpiInt32T         Index, EntityElement;
-        SaHpiPowerStateT  PowerState;
+        SaHpiPowerStateT    PowerState;
         char                PowerStateString[3][7]={"off\0","on\0","cycled\0"};
+        GError              *error = NULL;
+        GOptionContext      *context;
 
         /*
         // Print out the Program name and Version
         */
         oh_prog_version(argv[0], OH_SVN_REV);
 
-        /* Set Program Defaults */
-        ComputerNumber = 0;
-        SelectedSystem = 0;
-        Action = 255;  //set it out of range to stand for status
-        BladeSelected  = FALSE;
-        MultipleBlades = FALSE;
-        ActionSelected = FALSE;
-        PrintUsage     = FALSE;
-        DebugPrints    = FALSE;
-        RptEntry       = SAHPI_FIRST_ENTRY;
 
         /* Parse out option instructions */
-        while (1)
-        {
-                option = getopt(argc, argv, "D:dpruxb:");
-                if ((option == EOF) || (PrintUsage == TRUE))
-                {
-                        break;  //break out of the while loop
-                }
+        context = g_option_context_new ("- Exercise HPI Power Management APIs");
+        g_option_context_add_main_entries (context, my_options, NULL);
 
-                switch (option)
-                {
-                case 'D':
-                        if (optarg) domainid = atoi(optarg);
-                        else {
-                                 printf("hpipower: option requires an argument -- D");
-                                 PrintUsage = TRUE;
-                        }
-                        break;
-                case 'd':
-                        Action = SAHPI_POWER_OFF;
-                        ActionSelected = TRUE;
-                        break;
-                case 'p':
-                        Action = SAHPI_POWER_ON;
-                        ActionSelected = TRUE;
-                        break;
-                case 'r':
-                        Action = SAHPI_POWER_CYCLE;
-                        ActionSelected = TRUE;
-                        break;
-                case 'u':
-                        BladeSelected = TRUE;
-                        ActionSelected = TRUE;
-                        break;
-                case 'x':
-                        DebugPrints = TRUE;
-                        break;
-                case 'b':
-                        if (*optarg == 0)
-                        {
-                                printf("hpipower: option requires an argument -- b");
-                                PrintUsage = TRUE;
-                                break;  //no argument
-                        }
-                        SelectedSystem = atoi(optarg) - 1;  //Normalizing to 0...n-1
-                        if ((SelectedSystem > MAX_MANAGED_SYSTEMS) ||
-                            (SelectedSystem < 0))
-                        {
-                                //Argument is out of Range
-                                PrintUsage = TRUE;
-                        }
-                        BladeSelected = TRUE;
-                        break;
-                default:
-                        PrintUsage = TRUE;
-                        break;
-                }  //end of switch statement
-        } //end of argument parsing while loop
-
-        if (PrintUsage == TRUE)
-        {
-                UsageMessage(argv[0]);
-                exit(1);   //When we exit here, there is nothing to clean up
+        if (!ohc_option_parse(&argc, argv, 
+                context, &copt, 
+                OHC_ALL_OPTIONS 
+                    - OHC_ENTITY_PATH_OPTION //TODO: Feature 880127
+                    - OHC_VERBOSE_OPTION,    // no verbose mode implemented
+                error)) { 
+                g_print ("option parsing failed: %s\n", error->message);
+		exit(1);
+	}
+        if (f_down) {
+            Action = SAHPI_POWER_OFF;
+            ActionSelected = TRUE;
+        } 
+        if (f_up) {
+            Action = SAHPI_POWER_ON;
+            ActionSelected = TRUE;
+        } 
+        if (f_reset) {
+            Action = SAHPI_POWER_CYCLE;
+            ActionSelected = TRUE;
+        } 
+        if (f_unattended) {
+            BladeSelected = TRUE;
+            ActionSelected = TRUE;
+        } 
+        if (f_blade > 0) {
+            BladeSelected = TRUE;
+            SelectedSystem = f_blade - 1;  //Normalizing to 0...n-1
+            if ((SelectedSystem > MAX_MANAGED_SYSTEMS) ||
+                (SelectedSystem < 0)) {
+               printf("hpipower: blade number out of range");
+               exit(1);   //When we exit here, there is nothing to clean up
+            }
         }
+
 
         /* Initialize the first of a list of computers */
 
@@ -194,13 +156,9 @@ int main(int argc, char **argv)
 
         /* Initialize HPI domain and session */
         HPI_POWER_DEBUG_PRINT("2.1 Initalizing HPI Session\n");
-        Status = saHpiSessionOpen(domainid,
-                                  &SessionId,
-                                  NULL);
-
+        Status = ohc_session_open_by_option ( &copt, &SessionId);
         if (Status == SA_OK)
         {
-                if (domainid!=SAHPI_UNSPECIFIED_DOMAIN_ID) printf("Session opened to HPI domain %u\n",domainid);
                 /* Find all of the individual systems */
                 // regenerate the Resource Presence Table(RPT)
                 HPI_POWER_DEBUG_PRINT("2.2 Hpi Discovery\n");
@@ -399,20 +357,5 @@ int main(int argc, char **argv)
         return(Status);
 }
 
-
-void UsageMessage(char *ProgramName)
-{
-        printf("%s usage: \n\r",ProgramName);
-        printf("\n %s [Ddprubx]\n\r",ProgramName);
-        printf("     -D <n>  Specify domain \n\r");
-        printf("     -d  power down target object \n\r");
-        printf("     -p  power on target object \n\r");
-        printf("     -r  reset target object \n\r");
-        printf("     -u  unattended  \n\r");
-        printf("     -b <n>  Specify blade <n> (1...n) \n\r");
-        printf("     -x  debug messages \n\r");
-        printf("\n");
-        return;
-}
 
 /* end hpipower.c */

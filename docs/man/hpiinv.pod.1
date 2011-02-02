@@ -4,7 +4,8 @@ hpiinv - An openhpi sample application that shows resources' inventory records.
 
 =head1 SYNOPSIS 
 
-hpiinv [-D domain] [-vxz] [-a asset_tag]
+ hpiinv [-D nn] [-V] [ -X] [-a tag]
+ hpiinv [--domain=nn] [--verbose] [--debug] [--asset-tag=tag]
 
 =head1 DESCRIPTION
 
@@ -16,11 +17,11 @@ If no domain is selected, hpiinv uses a session with the default domain. The sel
 
 =over 2
 
- -D domainid  Select the domain
- -a tag       Sets the asset tag
- -v           Use verbose output mode
- -x           Display debug messages
- -z           Display extra debug messages
+  -h, --help              Show help options
+  -a, --asset-tag=tag     Set the asset tag to the specified string
+  -D, --domain=nn         Select domain id nn
+  -X, --debug             Display debug messages
+  -V, --verbose           Verbose mode
 
 =back
 
@@ -29,19 +30,13 @@ If no domain is selected, hpiinv uses a session with the default domain. The sel
 For generic OpenHPI, there is *no* additional environment variable required.
 For some devices; sahalee, mBMC; BMCONLY flag needs to be set for additional device characterization based on rdr.IdString.Data.
 
-=over 2
-BMCONLY
-LENGTH_BAD
-
-=back
-
 =head1 SEE ALSO
 
          hpi_shell
          hpialarms      hpifan         hpireset       hpitop
          hpidomain      hpigensimdata  hpisensor      hpitree
          hpiel          hpionIBMblade  hpisettime     hpiwdt
-         hpievents      hpipower       hpithres
+         hpievents      hpipower       hpithres       hpixml
          ohdomainlist   ohhandler      ohparam
 
 

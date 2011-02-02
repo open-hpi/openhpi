@@ -4,7 +4,8 @@ hpievents - An openhpi sample application that polls for events.
 
 =head1 SYNOPSIS 
 
-hpievents [ -D <value> ][ -t <value> ] [ -d -x ]
+ hpievents [ -D <value> ] [ -t BLOCK|SAHPI_TIMEOUT_BLOCK|n ] [ -d -x -h ]
+ hpievents [--domain=nn] [--timeout=BLOCK|SAHPI_TIMEOUT_BLOCK|n ] [--discover] [--debug] [--help]
 
 =head1 DESCRIPTION
 
@@ -17,11 +18,11 @@ If no domain is selected, hpievents polls for events in the default domain. The 
 
 =over 2
  
- where:  -D <value> - select domain id
-         -t <value> - wait <value> seconds for event;
-         -t SAHPI_TIMEOUT_BLOCK or BLOCK - infinite wait
-         -d - call saHpiDiscover() after saHpiSubscribe()
-         -x - displays eXtra debug messages
+  -h, --help                                    Show help options
+  -t, --timeout=n|BLOCK|SAHPI_TIMEOUT_BLOCK     Wait n seconds for event or infinite wait
+  -d, --discover                                Call saHpiDiscover() after saHpiSubscribe()
+  -D, --domain=nn                               Select domain id nn
+  -X, --debug                                   Display debug messages
 
 =back
 
@@ -54,7 +55,7 @@ SaErrorT SAHPI_API saHpiEventGet (
          hpialarms      hpigensimdata  hpireset       hpitop
          hpidomain      hpiinv         hpisensor      hpitree
          hpiel          hpionIBMblade  hpisettime     hpiwdt
-         hpifan         hpipower       hpithres
+         hpifan         hpipower       hpithres       hpixml
          ohdomainlist   ohhandler      ohparam
 
  

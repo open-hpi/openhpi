@@ -1,10 +1,11 @@
 =head1 NAME
 
-hpireset - This sample openhpi application excercises HPI Reset Management APIs. 
+hpireset - This sample openhpi application exercises HPI Reset Management APIs. 
 
 =head1 SYNOPSIS 
 
-hpireset [-D id] [-r -d -w -c -n -o -s -x]
+ hpireset [-D nn] [-r -w -h -X]
+ hpireset [--domain nn] [--hard --warm --help --debug]
 
 =head1 DESCRIPTION
 
@@ -17,15 +18,12 @@ If no domain is selected, hpireset uses a session with the default domain. The s
 
 =over 2
 
- -D <id> select the domain id
- -r      hard resets the system
- -d      powers down the system
- -w      warm resets the system 
- -c      power cycles the system
- -n      sends NMI to the system
- -o      soft-shutdown OS
- -s      reboots to Service Partition
- -x      show eXtra debug messages
+  -h, --help          Show help options
+  -r, --hard          hard resets the system
+  -w, --warm          warm resets the system
+  -D, --domain=nn     Select domain id nn
+  -X, --debug         Display debug messages
+
 
 =back
 
@@ -35,7 +33,7 @@ If no domain is selected, hpireset uses a session with the default domain. The s
          hpialarms      hpifan         hpipower       hpitop
          hpidomain      hpigensimdata  hpisensor      hpitree
          hpiel          hpiiinv        hpisettime     hpiwdt
-         hpievents      hpionIBMblade  hpithres
+         hpievents      hpionIBMblade  hpithres       hpixml
          ohdomainlist   ohhandler      ohparam
 
 

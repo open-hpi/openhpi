@@ -118,7 +118,7 @@ static GOptionEntry my_options[] =
   // Annunciators not implemented
 
   { "resource",     'n', 0, G_OPTION_ARG_INT,  &resourceid, "Select particular resource id to display\n\t\t\t"
-                                                            "(Used with [-cdirs] options)",              NULL },
+                                                            "(Used with [-cdirs] options)",              "nn" },
   { NULL }
 };
 

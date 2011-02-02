@@ -14,7 +14,7 @@
  * 10/13/04 Andy Cress - v1.2 add ifdefs for HPI_A & HPI_B, added -d/raw
  * < ...for more changes look at svn logs... >
  * 09/06/2010  ulikleber  New option -D to select domain
- * 20/01/2011  ulikleber  Refactoring to use glib for option parsing and
+ * 01/02/2011  ulikleber  Refactoring to use glib for option parsing and
  *                        introduce common options for all clients
  *
  * Author(s):
