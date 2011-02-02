@@ -30,7 +30,6 @@
 #define  uchar  unsigned char
 static gboolean f_hard   = TRUE;  // hard reset as default 
 static gboolean f_warm   = FALSE; 
-static gint resourceid = 0;   
 static oHpiCommonOptionsT copt;
 
 static GOptionEntry my_options[] =
@@ -48,7 +47,6 @@ static GOptionEntry my_options[] =
 int
 main(int argc, char **argv)
 {
-  int c;
   int is_reset = 0;
   SaErrorT rv;
   SaHpiSessionIdT sessionid;
