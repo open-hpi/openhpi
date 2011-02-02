@@ -65,6 +65,9 @@ private:
 
 private:
 
+    static const size_t RPC_ATTEMPTS = 2;
+    static const gulong NEXT_RPC_ATTEMPT_TIMEOUT = 2 * G_USEC_PER_SEC;
+
     // data
     SaHpiDomainIdT  m_did;
     SaHpiSessionIdT m_remote_sid;
@@ -120,12 +123,6 @@ SaErrorT cSession::DoRpc( uint32_t id,
         return SA_ERR_HPI_UNSUPPORTED_API;
     }
 
-    cClientStreamSock * sock;
-    rv = GetSock( sock );
-    if ( rv != SA_OK ) {
-        return rv;
-    }
-
     char data[dMaxPayloadLength];
     uint32_t data_len;
     uint8_t  rp_type;
@@ -133,14 +130,33 @@ SaErrorT cSession::DoRpc( uint32_t id,
     int      rp_byte_order;
 
     data_len = HpiMarshalRequest( hm, data, iparams.const_array );
-    bool rc = sock->WriteMsg( eMhMsg, id, data, data_len );
-    if ( rc ) {
-        rc = sock->ReadMsg( rp_type, rp_id, data, data_len, rp_byte_order );
+
+    bool rc = false;
+    for ( size_t attempt = 0; attempt < RPC_ATTEMPTS; ++attempt ) {
+        if ( attempt > 0 ) {
+            DBG( "Session: RPC request %u, Attempt %u\n", id, (unsigned int)attempt );
+        }
+        cClientStreamSock * sock;
+        rv = GetSock( sock );
+        if ( rv != SA_OK ) {
+            return rv;
+        }
+
+        rc = sock->WriteMsg( eMhMsg, id, data, data_len );
+        if ( rc ) {
+            rc = sock->ReadMsg( rp_type, rp_id, data, data_len, rp_byte_order );
+            if ( rc ) {
+                break;
+            }
+        }
+
+        g_static_private_set( &m_sockets, 0, 0 ); // close socket
+        g_usleep( NEXT_RPC_ATTEMPT_TIMEOUT );
     }
     if ( !rc ) {
-        g_static_private_set( &m_sockets, 0, 0 ); // close socket
         return SA_ERR_HPI_NO_RESPONSE;
     }
+
     oparams.SetFirst( &rv );
     int mr = HpiDemarshalReply( rp_byte_order, hm, data, oparams.array );
 
