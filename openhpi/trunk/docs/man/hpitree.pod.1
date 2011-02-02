@@ -5,7 +5,9 @@ and resources' manamegement instruments (rdr's) data structures of the managed o
 
 =head1 SYNOPSIS 
 
-hpitree [-D id] [-acdiorsw -n resource -x]
+ hpitree [-D nn] [-acdiorsw ] [-n nn] [-x]
+ hpitree [--domain=nn] [--all] [--controls] [--rdrs] [--inventories] [--rpts]
+         [--sensors] [--watchdogs] [--overview] [--resource=nn] [--debug]
 
 =head1 DESCRIPTION
 
@@ -32,7 +34,7 @@ Application Options:
   -s, --sensors         Display only sensors
   -w, --watchdogs       Display only watchdogs
   -o, --overview        Display system overview: rpt & rdr headers
-  -n, --resource        Select particular resource id to display
+  -n, --resource=nn     Select particular resource id to display
 			(Used with [-cdirs] options)
   -D, --domain=nn       Select domain id nn
   -X, --debug           Display debug messages

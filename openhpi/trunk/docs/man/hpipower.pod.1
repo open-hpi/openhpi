@@ -1,10 +1,11 @@
 =head1 NAME
 
-hpipower - This sample openhpi application excercises HPI Power Management APIs. 
+hpipower - This sample openhpi application exercises HPI Power Management APIs. 
 
 =head1 SYNOPSIS 
 
-hpipower [ -D <value> ] [ -d -p -r -b -x ] [ -u <value> ]
+ hpipower [ -D nn ] [ -d -p -r -u -x -h] [ -b n ]
+ hpipower [--domain nn] [--power-down --power-up --reset --unattended --debug --help] [--blade n ]
 
 =head1 DESCRIPTION
 
@@ -17,13 +18,14 @@ If no domain is selected, hpievents polls for events in the default domain. The 
 
 =over 2
 
- -D <value>  Specify domain id
- -d          power down target object
- -p          power on target object
- -r          reset target object
- -u          unattended
- -b <n>      Specify blade <n> (1...n)
- -x          debug messages
+  -h, --help           Show help options
+  -d, --power-down     Power down target object
+  -p, --power-up       Power on target object
+  -r, --reset          Reset target object
+  -u, --unattended     Unattended
+  -b, --blade=n        Specify blade n (1...n)
+  -D, --domain=nn      Select domain id nn
+  -X, --debug          Display debug messages
 
 =back
 
@@ -33,7 +35,7 @@ If no domain is selected, hpievents polls for events in the default domain. The 
          hpialarms      hpifan         hpireset       hpitop
          hpidomain      hpigensimdata  hpisensor      hpitree
          hpiel          hpiiinv        hpisettime     hpiwdt
-         hpievents      hpionIBMblade  hpithres
+         hpievents      hpionIBMblade  hpithres       hpixml
          ohdomainlist   ohhandler      ohparam
 
 

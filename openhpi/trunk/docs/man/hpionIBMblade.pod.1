@@ -4,7 +4,8 @@ hpionIBMblade - An openhpi sample application that shows how two (2) openhpi plu
 
 =head1 SYNOPSIS 
 
-hpionIBMblade [ -x ]
+ hpionIBMblade [-D nn] [ -X ]
+ hpionIBMblade [--domain nn] [ --debug ]
 
 
 =head1 DESCRIPTION
@@ -24,7 +25,9 @@ Management Controller (BMC)
 
 =over 2
 
--x  Display debug messages.
+  -h, --help          Show help options
+  -D, --domain=nn     Select domain id nn
+  -X, --debug         Display debug messages
 
 =back
 
@@ -54,7 +57,7 @@ Management Controller (BMC)
          hpialarms      hpifan         hpireset       hpitop
          hpidomain      hpigensimdata  hpisensor      hpitree
          hpiel          hpiiinv        hpisettime     hpiwdt
-         hpievents      hpipower       hpithres
+         hpievents      hpipower       hpithres       hpixml
          ohdomainlist   ohhandler      ohparam
 
 
@@ -63,4 +66,5 @@ Management Controller (BMC)
 Authors of this man page:
 
  Peter D Phan (pdphan@users.sourceforge.net)
+ Ulrich Kleber (ulikleber@users.sourceforge.net)
 

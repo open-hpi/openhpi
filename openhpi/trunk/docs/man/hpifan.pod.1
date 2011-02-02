@@ -4,7 +4,8 @@ hpifan - An openhpi sample application that shows "Fan Control" management instr
 
 =head1 SYNOPSIS 
 
-hpifan [-D domainid] [-h] [-s fan_speed_level]
+ hpifan [-D nn] [-h] [-s auto|nn] [X]
+ hpifan [--domain=nn] [--help] [--speed=auto|nn] [--debug]
 
 =head1 DESCRIPTION
 
@@ -17,10 +18,11 @@ If no domain is selected, hpifan uses a session to the default domain. The selec
 
 =over 2
 
- -D <domainid> select domain id
- -s <speed>    set fan speed for ALL fans.
-               <speed> is a number or "auto" for setting fan in auto mode
- -h            help
+  -h, --help              Show help options
+  -s, --speed=auto|nn     Set fan speed for ALL fans in domain
+                          (Speed is a number or "auto" for setting fan in auto mode)
+  -D, --domain=nn         Select domain id nn
+  -X, --debug             Display debug messages
 
 =back
 
@@ -30,7 +32,7 @@ If no domain is selected, hpifan uses a session to the default domain. The selec
          hpialarms      hpigensimdata  hpireset       hpitop
          hpidomain      hpiinv         hpisensor      hpitree
          hpiel          hpionIBMblade  hpisettime     hpiwdt
-         hpievents      hpipower       hpithres
+         hpievents      hpipower       hpithres       hpixml
          ohdomainlist   ohhandler      ohparam
 
  

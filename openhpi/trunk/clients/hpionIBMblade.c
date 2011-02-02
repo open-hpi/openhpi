@@ -2,6 +2,8 @@
  *
  * Copyright (c) 2003 by Intel Corp.
  *               2006 by IBM Corp.
+ * (C) Copyright Ulrich Kleber 2011
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
@@ -57,18 +59,10 @@
  * 10/13/2006  pdphan     Copy from kouzmich's hpithres.c to hpionIBMblade.c
  * 			  Add functions specifically for 
  *                          an IBM blade with Baseboard Management Controller (BMC)      
+ * 20/01/2011  ulikleber  Refactoring to use glib for option parsing and
+ *                          introduce common options for all clients,
+ *                          e.g. --domain and --host
  */
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <getopt.h>
-
-#include <glib.h>
-
-#include <SaHpi.h>
-#include <oh_utils.h>
-#include <oHpi.h>
 
 #include "oh_clients.h"
 
@@ -138,8 +132,7 @@ Rpt_t	*Rpts;
 int	nrpts = 0;
 long int blade_slot = 0;
 
-int	fdebug = 0;
-
+static oHpiCommonOptionsT copt;
 SaHpiSessionIdT		sessionid;
 
 static void *resize_array(void *Ar, int item_size, int *last_num, int add_num)
@@ -232,13 +225,13 @@ static int select_ep(Rpt_t *Rpt)
 			     Rpt->Rpt.ResourceId,
 			     &this_handler_id);
 	if (rv) {
-		if (fdebug) printf("oHpiHandlerFind returns %s\n", oh_lookup_error(rv)); 
+		if (copt.debug) printf("oHpiHandlerFind returns %s\n", oh_lookup_error(rv)); 
 		return(0);
 	}
 	
 	rv = oHpiHandlerInfo(sessionid, this_handler_id, &handler_info, config);
 	if (rv) {
-		if (fdebug) printf("oHpiHandlerInfo returns %s\n", oh_lookup_error(rv));
+		if (copt.debug) printf("oHpiHandlerInfo returns %s\n", oh_lookup_error(rv));
 		return(0);
 	}
 	
@@ -588,7 +581,7 @@ static void mod_sen(void)
 			NULL, NULL, NULL);
 		if (rv == SA_OK)
 			break;
-		if (fdebug) printf("sleep before saHpiEventGet\n");
+		if (copt.debug) printf("sleep before saHpiEventGet\n");
 		g_usleep(G_USEC_PER_SEC);
 	};
 	saHpiSensorThresholdsGet(sessionid, Rpt->Rpt.ResourceId,
@@ -898,39 +891,41 @@ static SaErrorT hpiIBMspecial_find_blade_slot(void)
 								
 int main(int argc, char **argv)
 {
-	int		c, i;
+	int		i;
 	SaErrorT	rv;
 	char		buf[READ_BUF_SIZE];
 	char		*S;
+        GError          *error = NULL;
+        GOptionContext  *context;
 
 	oh_prog_version(argv[0], OH_SVN_REV);
-	while ( (c = getopt( argc, argv,"x?")) != EOF )
-		switch(c)  {
-			case 'x':
-				fdebug = 1;
-				break;
-			default:
-				printf("Usage: %s [-x]\n", argv[0]);
-				printf("   -x  Display debug messages\n");
-				return(1);
-		}
 
+        context = g_option_context_new ("- Shows how to use two (2) openhpi "
+                      "plugins to display and manage resources of an IBM Blade "
+                      "with Basedboard Management Controller (BMC)");
+
+        if (!ohc_option_parse(&argc, argv, 
+                context, &copt, 
+                OHC_ALL_OPTIONS 
+                    - OHC_ENTITY_PATH_OPTION // not implemented
+                    - OHC_VERBOSE_OPTION,    // no verbose mode implemented
+                error)) { 
+                g_print ("option parsing failed: %s\n", error->message);
+		exit(1);
+	}
+ 
 	rv = hpiIBMspecial_find_blade_slot();
 	if (rv != SA_OK) {
 		printf("ipmitool can not find slot number in which this blade resides.\n");
 		return(-1);
 	}
 
-	rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sessionid, NULL);
+        rv = ohc_session_open_by_option ( &copt, &sessionid);
+	if (rv != SA_OK) exit(-1);
 
-	if (rv != SA_OK) {
-		printf("saHpiSessionOpen: %s\n", oh_lookup_error(rv));
-		return(-1);
-	}
- 
 	rv = saHpiDiscover(sessionid);
 
-	if (fdebug) printf("saHpiDiscover: %s\n", oh_lookup_error(rv));
+	if (copt.debug) printf("saHpiDiscover: %s\n", oh_lookup_error(rv));
 
 	rv = saHpiSubscribe(sessionid);
 	if (rv != SA_OK) {
@@ -954,4 +949,4 @@ int main(int argc, char **argv)
 	rv = saHpiSessionClose(sessionid);
 	return(0);
 }
- /* end hpthres.c */
+ /* end hpionIBMblade.c */
