@@ -4,7 +4,8 @@ hpithres -  This sample openhpi application interactively displays sensors and s
 
 =head1 SYNOPSIS 
 
-hpithres [-D domain] [-x]
+ hpithres [-D nn] [-X] [-h]
+ hpithres [--domain=nn] [--debug] [--help]
 
 =head1 DESCRIPTION
 
@@ -16,8 +17,9 @@ If no domain is selected, hpiel uses a session with the default domain. The sele
 
 =over 2
 
--D domainid  Select domain
--x           Display debug messages
+  -h, --help          Show help options
+  -D, --domain=nn     Select domain id nn
+  -X, --debug         Display debug messages
 
 =back
 
@@ -27,7 +29,7 @@ If no domain is selected, hpiel uses a session with the default domain. The sele
          hpialarms      hpifan         hpipower       hpitop
          hpidomain      hpigensimdata  hpireset       hpitree
          hpiel          hpiiinv        hpisensor      hpiwdt
-         hpievents      hpionIBMblade  hpisettime
+         hpievents      hpionIBMblade  hpisettime     hpixml
          ohdomainlist   ohhandler      ohparam
 
 

@@ -4,7 +4,8 @@ hpisettime - This sample openhpi application excercises Event Log clock APIs.
 
 =head1 SYNOPSIS 
 
-hpisettime [-D domainid] -d mm/dd/yyyy -t HH:MM:SS [-x]
+ hpisettime [-D nn] -d mm/dd/yyyy -t HH:MM:SS [-X] [-h]
+ hpisettime [--domain=nn] --date=mm/dd/yyyy --time=HH:MM:SS [--debug] [--help]
 
 =head1 DESCRIPTION
 
@@ -16,10 +17,11 @@ If no domain is selected, hpisettime uses a session with the default domain. The
 
 =over 2
 
- -D domainid     select domain
- -d date         in mm/dd/yyyy format
- -t time of day  in 24-hr format
- -x              displays eXtra debug messages
+  -h, --help                Show help options
+  -d, --date=mm/dd/yyyy     New date
+  -t, --time=24:12:60       New time of day in 24-hr format
+  -D, --domain=nn           Select domain id nn
+  -X, --debug               Display debug messages
 
 =back
 

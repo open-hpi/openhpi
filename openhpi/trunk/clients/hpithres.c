@@ -2,6 +2,7 @@
  *
  * Copyright (c) 2003 by Intel Corp.
  * (C) Copyright Nokia Siemens Networks 2010
+ * (C) Copyright Ulrich Kleber 2011
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -21,16 +22,10 @@
  * 11/03/2004  kouzmich   porting to HPI B
  * 11/25/2004  kouzmich   changed as new threshold client (first release)
  * 09/06/2010  ulikleber  New option -D to select domain
+ * 01/02/2011  ulikleber  Refactoring to use glib for option parsing and
+ *                        introduce common options for all clients
+ *
  */
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <getopt.h>
-
-#include <SaHpi.h>
-#include <glib.h>
-#include <oh_utils.h>
 
 #include "oh_clients.h"
 
@@ -98,9 +93,7 @@ Commands_def_t	Coms[] = {
 Rpt_t	*Rpts;
 int	nrpts = 0;
 
-int	fdebug = 0;
-
-SaHpiDomainIdT 		domainid = SAHPI_UNSPECIFIED_DOMAIN_ID;	
+static oHpiCommonOptionsT copt;
 SaHpiSessionIdT		sessionid;
 
 static void *resize_array(void *Ar, int item_size, int *last_num, int add_num)
@@ -507,7 +500,7 @@ static void mod_sen(void)
 			NULL, NULL, NULL);
 		if (rv == SA_OK)
 			break;
-		if (fdebug) printf("sleep before saHpiEventGet\n");
+		if (copt.debug) printf("sleep before saHpiEventGet\n");
 		g_usleep(G_USEC_PER_SEC);
 	};
 	saHpiSensorThresholdsGet(sessionid, Rpt->Rpt.ResourceId,
@@ -645,45 +638,33 @@ static int parse_command(char *Str)
 	
 int main(int argc, char **argv)
 {
-	int		c, i;
+	int		i;
 	SaErrorT	rv;
 	char		buf[READ_BUF_SIZE];
 	char		*S;
-	SaHpiBoolT 	printusage = FALSE;
+        GError          *error = NULL;
+        GOptionContext  *context;
 
 	oh_prog_version(argv[0], OH_SVN_REV);
-	while ( (c = getopt( argc, argv,"D:x?")) != EOF )
-		switch(c)  {
-			case 'D':
-                                if (optarg) domainid = atoi(optarg);
-				else printusage = TRUE;
-                                break;
-			case 'x':
-				fdebug = 1;
-				break;
-			default: printusage = TRUE;
-	}
-	if (printusage) {
-		printf("Usage: %s [-D domain] [-x]\n", argv[0]);
-		printf("   -D domainid  Select domain\n");
-		printf("   -x           Display debug messages\n");
-		return(1);
-	}
-	
-	if (fdebug) {
-		if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) printf("saHpiSessionOpen\n");
-		else printf("saHpiSessionOpen to domain %u\n",domainid);
-	}
-        rv = saHpiSessionOpen(domainid,&sessionid,NULL);
 
-	if (rv != SA_OK) {
-		printf("saHpiSessionOpen: %s\n", oh_lookup_error(rv));
-		return(-1);
+        context = g_option_context_new ("- Display sensors and sensor info");
+
+        if (!ohc_option_parse(&argc, argv, 
+                context, &copt, 
+                OHC_ALL_OPTIONS 
+                    - OHC_ENTITY_PATH_OPTION //TODO: Feature 880127
+                    - OHC_VERBOSE_OPTION,    // no verbose mode implemented
+                error)) { 
+                g_print ("option parsing failed: %s\n", error->message);
+		exit(1);
 	}
  
+        rv = ohc_session_open_by_option ( &copt, &sessionid);
+	if (rv != SA_OK) exit(-1);
+	
 	rv = saHpiDiscover(sessionid);
 
-	if (fdebug) printf("saHpiDiscover: %s\n", oh_lookup_error(rv));
+	if (copt.debug) printf("saHpiDiscover: %s\n", oh_lookup_error(rv));
 
 	rv = saHpiSubscribe(sessionid);
 	if (rv != SA_OK) {
