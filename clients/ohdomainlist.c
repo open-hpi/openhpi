@@ -1,6 +1,7 @@
 /*      -*- linux-c -*-
  *
  * Copyright (C) Copyright Nokia Siemens Networks 2010
+ * (C) Copyright Ulrich Kleber 2011
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,16 +19,10 @@
  *	openHPI complex
  *
  * Changes:
+ *     03/02/2011  ulikleber  Refactoring to use glib for option parsing and
+ *                            introduce common options for all clients
  *
  */
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <getopt.h>
-#include <SaHpi.h> 
-#include <oHpi.h>
-#include <oh_utils.h>
 
 #include "oh_clients.h"
 
@@ -42,9 +37,7 @@ static SaErrorT print_domaininfo(SaHpiDomainInfoT info, int shift);
 /* 
  * Globals for this driver
  */
-int fdebug     = 0;
-int fverbose   = 0;
-
+static oHpiCommonOptionsT copt;
 
 /* 
  * Main                
@@ -52,27 +45,25 @@ int fverbose   = 0;
 int
 main(int argc, char **argv)
 {
-	SaHpiBoolT printusage = FALSE;
-	int c;
-	    
-	oh_prog_version(argv[0], OH_SVN_REV);
-	while ( (c = getopt( argc, argv,"vx?")) != EOF ) {
-		switch(c) {
-			case 'x': fdebug = 1; break;
-			case 'v': fverbose = 1; break;
-			default: printusage = TRUE; break;
-		}
-	}
-	if (printusage == TRUE)
-	{
-		printf("\n\tUsage: %s [-option]\n\n", argv[0]);
-		printf("\t      (No Option) Display domains known to baselib \n");	
-		printf("\t           -v     Display in verbose mode including "
-				"domain info for directly related domains\n");
-		printf("\t           -x     Display debug messages\n");
-		printf("\n\n\n\n");
+        GError *error = NULL;
+        GOptionContext *context;
+
+        oh_prog_version(argv[0], OH_SVN_REV);
+
+        context = g_option_context_new ("- Show information about domains"
+                              " on the level of the openhpi base library.");
+
+        if (!ohc_option_parse(&argc, argv, 
+                context, &copt, 
+                OHC_ALL_OPTIONS 
+                    - OHC_ENTITY_PATH_OPTION // not applicable
+                    - OHC_DOMAIN_OPTION,     // not applicable
+                error)) { 
+                g_print ("option parsing failed: %s\n", error->message);
+                g_option_context_free (context);
 		exit(1);
 	}
+        g_option_context_free (context);
  
 	show_domains();
 
@@ -97,17 +88,17 @@ SaErrorT show_domains(void)
 	/* walk the Domain Table */
 	domainentryid = SAHPI_FIRST_ENTRY;
 	do {
-	   if (fdebug) printf("oHpiDomainEntryGet called with entry=%u\n",
+	   if (copt.debug) printf("oHpiDomainEntryGet called with entry=%u\n",
                                         domainentryid);
 	   rv = oHpiDomainEntryGet(
               domainentryid,&nextdomainentryid,&domainentry);
 
-	   if ((rv != SA_OK) || fdebug) 
+	   if ((rv != SA_OK) || copt.debug) 
               printf("oHpiDomainEntryGet returns %s\n", 
                         oh_lookup_error(rv));
 		
 	   if (rv == SA_OK ) {
-              if (fdebug) printf("oHpiDomainEntryGet provides domainid=%u,"
+              if (copt.debug) printf("oHpiDomainEntryGet provides domainid=%u,"
                                    " nextentryid=%u\n", 
                                    domainentry.id, nextdomainentryid);
 
@@ -116,7 +107,7 @@ SaErrorT show_domains(void)
                                           domainentry.port,
                                           domainentry.id);
 
-		if (fverbose) {
+		if (copt.verbose) {
 		    /* display the domaininfo for that related domain */
 		    relateddomainid = domainentry.id;
         	    rv = saHpiSessionOpen(relateddomainid,
@@ -126,7 +117,7 @@ SaErrorT show_domains(void)
 				relateddomainid);
 			continue;
 		    }
-		    if (fdebug) {
+		    if (copt.debug) {
 			printf("saHpiSessionOpen returns with SessionId %u\n", 
 				relatedsessionid);
 			printf("saHpiDomainInfoGet for domain %u\n",
@@ -138,7 +129,7 @@ SaErrorT show_domains(void)
 			printf("\nDomaininfo of domain %u cannot be "
                                 "retrieved.\n",
 				relateddomainid);
-                        if (fdebug)
+                        if (copt.debug)
 			   printf("saHpiDomainInfoGet for domain "
 				"%u failed with returncode %s\n",
 				relateddomainid, oh_lookup_error(rv));
@@ -149,7 +140,7 @@ SaErrorT show_domains(void)
 		    }
 
 		    rv = saHpiSessionClose(relatedsessionid);
-		    if (fdebug) 
+		    if (copt.debug) 
 			printf("saHpiSessionClose returns %s\n",
 				oh_lookup_error(rv));
 

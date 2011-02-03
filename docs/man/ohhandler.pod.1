@@ -4,13 +4,16 @@ ohhandler - An openhpi sample application that uses the openhpi additional inter
 
 =head1 SYNOPSIS 
 
- ohhandler [-D domain] [-x] list
- ohhandler [-D domain] [-x] info    <handler-id>
- ohhandler [-D domain] [-x] destroy <handler-id>
- ohhandler [-D domain] [-x] getnext <handler-id>
- ohhandler [-D domain] [-x] find    <resource-id>
- ohhandler [-D domain] [-x] retry   <handler-id>
- ohhandler [-D domain] [-x] create  plugin <plugin-name> <configuration-parameters>
+ ohhandler [-D nn] [-X] command <specific arguments>
+ ohhandler [--domain nn] [--debug] command <specific arguments>
+
+ ohhandler [-D nn] [-x] list
+ ohhandler [-D nn] [-x] info    <handler-id>
+ ohhandler [-D nn] [-x] destroy <handler-id>
+ ohhandler [-D nn] [-x] getnext <handler-id>
+ ohhandler [-D nn] [-x] find    <resource-id>
+ ohhandler [-D nn] [-x] retry   <handler-id>
+ ohhandler [-D nn] [-x] create  plugin <plugin-name> <configuration-parameters>
 
 =head1 DESCRIPTION
 
@@ -39,19 +42,21 @@ If no domain is selected, ohhandler uses the default domain. The selected domain
 
 =over 2
 
- -D <domainid> select domain id
- -x            display debug messages.
- -h            help
+  -h, --help          Show help options
+  -D, --domain=nn     Select domain id nn
+  -X, --debug         Display debug messages
 
 =back
 
 =head1 SEE ALSO
 
          hpi_shell
-         hpialarms      hpigensimdata  hpireset       hpitop
-         hpidomain      hpiinv         hpisensor      hpitree
-         hpiel          hpionIBMblade  hpisettime     hpiwdt
-         hpievents      hpipower       hpithres
+
+         hpialarms      hpifan         hpipower       hpithres
+         hpidomain      hpigensimdata  hpireset       hpitop
+         hpiel          hpiiinv        hpisensor      hpitree
+         hpievents      hpionIBMblade  hpisettime     hpiwdt
+         hpixml
          ohdomainlist   ohparam
 
  
