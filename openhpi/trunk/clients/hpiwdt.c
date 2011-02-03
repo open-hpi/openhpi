@@ -2,6 +2,7 @@
  *
  * Copyright (c) 2004 by Intel Corp.
  * (C) Copyright Nokia Siemens Networks 2010
+ * (C) Copyright Ulrich Kleber 2011
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -19,6 +20,9 @@
  * 10/13/04  kouzmich  - porting to HPI B
  * 12/02/04 Andy Cress - v1.1 fixed domain/RPT loop, added some decoding
  * 09/06/2010 ulikleber New option -D to select domain
+ * 01/02/2011 ulikleber Refactoring to use glib for option parsing and
+ *                      introduce common options for all clients
+ *
  */
 /* 
  * This tool reads and enables the watchdog timer via HPI.
@@ -29,13 +33,6 @@
  * set up to keep resetting the timer at regular intervals, or it
  * will reset your system.
  */
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <getopt.h>
-#include <SaHpi.h>
-#include <oHpi.h>
 
 #include "oh_clients.h"
 
@@ -48,7 +45,21 @@ char *usedesc[NUSE] = {"reserved", "BIOS FRB2", "BIOS/POST",
 #define NACT  5
 char *actions[NACT] = {"No action", "Hard Reset", "Power down",
 		    "Power cycle", "Reserved" };
-char fdebug = 0;
+
+static gboolean fenable    = FALSE;
+static gboolean fdisable = FALSE;
+static gboolean freset     = FALSE;
+static gint     ftimeout   = 0;
+static oHpiCommonOptionsT copt;
+
+static GOptionEntry my_options[] =
+{
+  { "enable",  'e', 0, G_OPTION_ARG_NONE, &fenable,  "enables the watchdog timer",  NULL },
+  { "disable", 'd', 0, G_OPTION_ARG_NONE, &fdisable, "disables the watchdog timer", NULL },
+  { "reset",   'r', 0, G_OPTION_ARG_NONE, &freset,   "resets the watchdog timer",   NULL },
+  { "timeout", 't', 0, G_OPTION_ARG_INT,  &ftimeout, "sets timeout to n seconds",   "n" },
+  { NULL }
+};
 
 static void
 show_wdt(SaHpiWatchdogNumT  wdnum, SaHpiWatchdogT *wdt)
@@ -92,9 +103,7 @@ show_wdt(SaHpiWatchdogNumT  wdnum, SaHpiWatchdogT *wdt)
 int
 main(int argc, char **argv)
 {
-  int c;
   SaErrorT rv;
-  SaHpiDomainIdT domainid = SAHPI_UNSPECIFIED_DOMAIN_ID;
   SaHpiSessionIdT sessionid;
   SaHpiDomainInfoT domainInfo;
   SaHpiRptEntryT rptentry;
@@ -103,63 +112,35 @@ main(int argc, char **argv)
   SaHpiResourceIdT resourceid;
   SaHpiWatchdogNumT  wdnum;
   SaHpiWatchdogT     wdt;
-  int t = 0;
-  char freset = 0;
-  char fenable = 0;
-  char fdisable = 0;
-  SaHpiBoolT printusage = FALSE;
+  GError *error = NULL;
+  GOptionContext *context;
 
   oh_prog_version(argv[0], OH_SVN_REV);
-  while ( (c = getopt( argc, argv,"D:dert:x?")) != EOF )
-     switch(c) {
-	case 'D':
-		if (optarg) domainid = atoi(optarg);
-		else printusage = TRUE;
-		break;
-	case 'r':       /* reset wdt */
-		freset = 1;
-                break;
-	case 'e':       /* disable wdt */
-		fenable = 1;
-                break;
-	case 'd':       /* disable wdt */
-		fdisable = 1;
-                break;
-	case 't':       /* timeout (enable implied) */
-		if (optarg) {
-			t = atoi(optarg);
-			fenable = 1;
-		}
-		else printusage = TRUE;
-                break;
-	case 'x': fdebug = 1;     break;  /* debug messages */
-	default: printusage = TRUE;
-	}
-	if (printusage) {
-                printf("Usage: %s [-derx -t sec]\n", argv[0]);
-                printf(" where -D domainid   Selects the domain\n");
-                printf("       -e            enables the watchdog timer\n");
-                printf("       -d            disables the watchdog timer\n");
-                printf("       -r            resets the watchdog timer\n");
-                printf("       -t N          sets timeout to N seconds\n");
-                printf("       -x            show eXtra debug messages\n");
+
+  context = g_option_context_new ("- Read and Enables the watchdog timer.");
+  g_option_context_add_main_entries (context, my_options, NULL);
+
+  if (!ohc_option_parse(&argc, argv, 
+                context, &copt, 
+                OHC_ALL_OPTIONS 
+                    - OHC_ENTITY_PATH_OPTION //TODO: Feature 880127
+                    - OHC_VERBOSE_OPTION,    // no verbose mode implemented
+                error)) { 
+                g_print ("option parsing failed: %s\n", error->message);
+                g_option_context_free (context);
 		exit(1);
-	}
-  if (t == 0) t = 120;
-  
-  if (fdebug) {
-	if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) printf("saHpiSessionOpen\n");
-	else printf("saHpiSessionOpen to domain %u\n",domainid);
   }
-  rv = saHpiSessionOpen(domainid,&sessionid,NULL);
-  if (rv != SA_OK) {
-        printf("saHpiSessionOpen error %d\n",rv);
-	exit(-1);
-	}
+  g_option_context_free (context);
+  if (ftimeout == 0) ftimeout = 120;
+  else fenable = TRUE;
+  
+  rv = ohc_session_open_by_option ( &copt, &sessionid);
+  if (rv != SA_OK) exit(-1);
+
   rv = saHpiDiscover(sessionid);
-  if (fdebug) printf("saHpiDiscover rv = %d\n",rv);
+  if (copt.debug) printf("saHpiDiscover rv = %d\n",rv);
   rv = saHpiDomainInfoGet(sessionid, &domainInfo);
-  if (fdebug) printf("saHpiDomainInfoGet rv = %d\n",rv);
+  if (copt.debug) printf("saHpiDomainInfoGet rv = %d\n",rv);
   printf("DomainInfo: UpdateCount = %x, UpdateTime = %lx\n",
        domainInfo.RptUpdateCount, (unsigned long)domainInfo.RptUpdateTimestamp);
 
@@ -173,7 +154,7 @@ main(int argc, char **argv)
 	/* handle WDT for this RPT entry */
 	resourceid = rptentry.ResourceId;
 	rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0;
-	if (fdebug)
+	if (copt.debug)
 	   printf("rptentry[%u] resourceid=%u capab=%x tag: %s\n",
 		rptentryid, resourceid, rptentry.ResourceCapabilities, 
 		rptentry.ResourceTag.Data);
@@ -183,7 +164,7 @@ main(int argc, char **argv)
 
 	   wdnum = SAHPI_DEFAULT_WATCHDOG_NUM;
 	   rv = saHpiWatchdogTimerGet(sessionid,resourceid,wdnum,&wdt);
-	   if (fdebug) printf("saHpiWatchdogTimerGet rv = %d\n",rv);
+	   if (copt.debug) printf("saHpiWatchdogTimerGet rv = %d\n",rv);
 	   if (rv != 0) {
 		printf("saHpiWatchdogTimerGet error = %d\n",rv);
 		rv = 0;
@@ -204,27 +185,27 @@ main(int argc, char **argv)
 	      wdt.PresentCount = 120000; /*msec*/
 
 	      rv = saHpiWatchdogTimerSet(sessionid,resourceid,wdnum,&wdt);
-	      if (fdebug) printf("saHpiWatchdogTimerSet rv = %d\n",rv);
+	      if (copt.debug) printf("saHpiWatchdogTimerSet rv = %d\n",rv);
 	      if (rv == 0) show_wdt(wdnum,&wdt);
 	   } else if (fenable) {
 	      printf("Enabling watchdog timer ...\n");
 	      /* hard reset action, no pretimeout, clear SMS/OS when done */
-	      /* use t for timeout */
+	      /* use ftimeout for timeout */
 	      wdt.TimerUse = SAHPI_WTU_SMS_OS;    /* 1=FRB2 2=POST 3=OSLoad 4=SMS_OS 5=OEM */
 	      wdt.TimerAction = SAHPI_WAE_RESET; /* 0=none 1=reset 2=powerdown 3=powercycle */
 	      wdt.PretimerInterrupt = SAHPI_WPI_NMI; /* 0=none 1=SMI 2=NMI 3=message */
-	      wdt.PreTimeoutInterval = (t / 2) * 1000; /*msec*/
-	      wdt.InitialCount = t * 1000; /*msec*/
-	      wdt.PresentCount = t * 1000; /*msec*/
+	      wdt.PreTimeoutInterval = (ftimeout / 2) * 1000; /*msec*/
+	      wdt.InitialCount = ftimeout * 1000; /*msec*/
+	      wdt.PresentCount = ftimeout * 1000; /*msec*/
 
 	      rv = saHpiWatchdogTimerSet(sessionid,resourceid,wdnum,&wdt);
-	      if (fdebug) printf("saHpiWatchdogTimerSet rv = %d\n",rv);
+	      if (copt.debug) printf("saHpiWatchdogTimerSet rv = %d\n",rv);
 	      if (rv == 0) show_wdt(wdnum,&wdt);
 	   }
 	   if (freset && !fdisable) {
 	      printf("Resetting watchdog timer ...\n");
 	      rv = saHpiWatchdogTimerReset(sessionid,resourceid,wdnum);
-	      if (fdebug) printf("saHpiWatchdogTimerReset rv = %d\n",rv);
+	      if (copt.debug) printf("saHpiWatchdogTimerReset rv = %d\n",rv);
 	   }
 	} /*watchdog capability*/
 	rptentryid = nextrptentryid;  /* get next RPT (usu only one anyway) */

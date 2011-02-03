@@ -95,8 +95,10 @@ int main(int argc, char **argv)
                     - OHC_VERBOSE_OPTION,    // no verbose mode implemented
                 gerror)) { 
                 g_print ("option parsing failed: %s\n", gerror->message);
+                g_option_context_free (context);
 		exit(1);
 	}
+        g_option_context_free (context);
 
         /* Program really begins here - all options parsed at this point */
         error = ohc_session_open_by_option ( &copt, &sid);

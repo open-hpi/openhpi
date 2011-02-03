@@ -147,8 +147,10 @@ main(int argc, char **argv)
                     - OHC_VERBOSE_OPTION,    // no verbose mode implemented
                 error)) { 
                 g_print ("option parsing failed: %s\n", error->message);
+                g_option_context_free (context);
 		exit(1);
 	}
+        g_option_context_free (context);
  
 	if (f_rpt || f_sensor || f_inv || f_ctrl || f_rdr || f_wdog) 
            f_listall = TRUE;

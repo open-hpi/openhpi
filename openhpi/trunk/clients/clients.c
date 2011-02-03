@@ -27,8 +27,8 @@
 static gint     optdid                           = SAHPI_UNSPECIFIED_DOMAIN_ID;
 static gboolean optdebug                         = FALSE;
 static gboolean optverbose                       = FALSE;
-static gchar    *optep        = "";
-static gchar    *optdaemon    = "";    
+static gchar    *optep        = NULL;
+static gchar    *optdaemon    = NULL;    
 
 static GOptionEntry domain_option[] =
 {
@@ -116,8 +116,8 @@ gboolean ohc_option_parse(int *argc, char *argv[],
            exit (1);
    }
 
-   common_options->withentitypath = (optep[0] != '\0');
-   common_options->withdaemonhost = (optdaemon[0] != '\0');
+   common_options->withentitypath = (optep != NULL);
+   common_options->withdaemonhost = (optdaemon != NULL);
 
    if (optdebug && optverbose) {
       g_print("Parsing of options completed. Common options:\n --debug --verbose");
@@ -162,6 +162,9 @@ gboolean ohc_option_parse(int *argc, char *argv[],
          g_print(" port=%u\n",common_options->daemonport);
       }
    }
+
+   g_free (optep);
+   g_free (optdaemon);
    return TRUE;
 }
 

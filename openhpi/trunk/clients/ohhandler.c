@@ -1,6 +1,7 @@
 /*      -*- linux-c -*-
  *
  * Copyright (C) Copyright Nokia Siemens Networks 2010
+ * (C) Copyright Ulrich Kleber 2011
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,20 +19,37 @@
  *     using the OpenHPI extensions as described in ohpi.c 
  *
  * Changes:
+ *     03/02/2011  ulikleber  Refactoring to use glib for option parsing and
+ *                            introduce common options for all clients
  *
  */
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <getopt.h>
-#include <SaHpi.h> 
-#include <oh_utils.h>
-#include <oHpi.h>
 
 #include "oh_clients.h"
 
 #define OH_SVN_REV "$Revision: 7133 $"
+
+#define OHHANDLER_HELP \
+    "Command list                                                   \n" \
+    "         List the handlers loaded in specified domain          \n\n" \
+    "Command info <handler-id>                                      \n" \
+    "         Display info about handler <handler-id>               \n\n" \
+    "Command destroy <handler-id>                                   \n" \
+    "         Unload handler <handler-id> and delete its config     \n\n" \
+    "Command getnext <handler-id>                                   \n" \
+    "         Find next valid handler id from <handler-id>          \n\n" \
+    "Command find <resource-id>                                     \n" \
+    "         Find the right handler for a resource id              \n\n" \
+    "Command retry <handler-id>                                     \n" \
+    "         Retry loading of handler <handler-id>                 \n\n" \
+    "Command create plugin <name> <params>                          \n" \
+    "         Create handler with the specified parameters.         \n" \
+    "         Pairs of strings in commandline like in openhpi.conf. \n" \
+    "         Keyword plugin to select type of handler.             \n" \
+    "         Entity root and other complex strings must be         \n" \
+    "         enclosed in \".                                       \n" \
+    "     Example:                                                  \n" \
+    "         ohhandler create plugin libsimulator " \
+             "entity_root \"{SYSTEM_CHASSIS,1}\" name sim\n"
 
 /********************************************/ 
 /* Function prototypes                      */
@@ -48,8 +66,7 @@ static SaErrorT exechandlerlist(void);
 /********************************************/ 
 /* Globals                                  */
 /********************************************/
-int fdebug     = 0;
-SaHpiDomainIdT domainid = SAHPI_UNSPECIFIED_DOMAIN_ID;
+static oHpiCommonOptionsT copt;
 SaHpiSessionIdT sessionid;
 
 
@@ -60,11 +77,12 @@ int
 main(int argc, char **argv)
 {
    SaErrorT    rv = SA_OK;
-   
    oHpiHandlerIdT handlerid = 0;
    SaHpiResourceIdT resid = 0;
    SaHpiBoolT printusage = FALSE;
    int i=1;
+   GError *error = NULL;
+   GOptionContext *context;
 
    enum cmdT {eUndefined,
       eHandlerCreate, 
@@ -77,14 +95,25 @@ main(int argc, char **argv)
        
    oh_prog_version(argv[0], OH_SVN_REV);
 
-   while (i<argc && !printusage && cmd!=eHandlerCreate) {
-      if (strcmp(argv[i],"-D")==0) {
-         if (++i<argc) domainid = atoi(argv[i]);
-         else printusage = TRUE;
-      }
-      else if (strcmp(argv[i],"-x")==0) fdebug=1;
+   /* Parse common options */
+   context = g_option_context_new ("command [specific arguments] - "
+                        "Control openhpi plugin instances (handlers).\n\n"
+                        OHHANDLER_HELP );
 
-      else if (strcmp(argv[i],"create")==0) {
+   if (!ohc_option_parse(&argc, argv, 
+                context, &copt, 
+                OHC_ALL_OPTIONS 
+                    - OHC_ENTITY_PATH_OPTION // not applicable
+                    - OHC_VERBOSE_OPTION,    // no verbose mode
+                error)) { 
+       g_print ("option parsing failed: %s\n", error->message);
+       printusage = TRUE;
+   }
+   g_option_context_free (context);
+
+   /* Parse ohparam specific commands */
+   while (i<argc && !printusage && cmd!=eHandlerCreate) {
+      if (strcmp(argv[i],"create")==0) {
          cmd=eHandlerCreate;
          // exechandlercreate will do the remaining reading of 
          // parameters itself 
@@ -145,51 +174,18 @@ main(int argc, char **argv)
    if (printusage == TRUE || cmd == eUndefined)
    {
       printf("\n");
-      printf("Usage: %s [-D domain] [-x] command [specific arguments]\n\n",
+      printf("Usage: %s [-D nn] [-X] command [specific arguments]\n\n",
          argv[0]);
-      printf("      -D nn  Select domain id nn (not supported yet by oh-functions)\n");
-      printf("      -x     Display debug messages\n");
-      printf("\n");
-      printf("    ohhander [-D domain] [-x] list\n");
-      printf("             List the handlers loaded in specified domain\n\n");
-      printf("    ohhander [-D domain] [-x] info <handler-id>\n");
-      printf("             Display info about handler <handler-id> \n\n");
-      printf("    ohhander [-D domain] [-x] destroy <handler-id>\n");
-      printf("             Unload handler <handler-id> and delete its config \n\n");
-      printf("    ohhander [-D domain] [-x] getnext <handler-id>\n");
-      printf("             Find next valid handler id from <handler-id> \n\n");
-      printf("    ohhander [-D domain] [-x] find <resource-id>\n");
-      printf("             Find the right handler for a resource id \n\n");
-      printf("    ohhander [-D domain] [-x] retry <handler-id>\n");
-      printf("             Retry loading of handler <handler-id> \n\n");
-      printf("    ohhander [-D domain] [-x] create plugin <name> <params>\n");
-      printf("             Create handler with the specified parameters.\n");
-      printf("             Pairs of strings in commandline like in openhpi.conf.\n");
-      printf("             Keyword plugin to select type of handler.\n");
-      printf("             Entity root and other complex strings must be \n");
-      printf("             enclosed in \".\n");
-      printf("     example:\n");
-      printf("             ohhandler create plugin libsimulator "
-             "entity_root \"{SYSTEM_CHASSIS,1}\" name sim\n");
-
-      printf("\n\n");
+      printf(OHHANDLER_HELP"\n");
+      printf("    Options:                                      \n");
+      printf("      -h, --help          Show help options       \n");
+      printf("      -D, --domain=nn     Select domain id nn     \n");
+      printf("      -X, --debug         Display debug messages  \n\n");
       exit(1);
    }
 
-   if (fdebug) {
-      if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) 
-         printf("saHpiSessionOpen\n");
-      else printf("saHpiSessionOpen to domain %u\n",domainid);
-   }
-        rv = saHpiSessionOpen(domainid,&sessionid,NULL);
-   if (rv != SA_OK) {
-      printf("saHpiSessionOpen returns %d (%s)\n",
-         rv, oh_lookup_error(rv));
-      exit(-1);
-   }
-   if (fdebug)
-             printf("saHpiSessionOpen returns with SessionId %u\n", 
-         sessionid);
+   rv = ohc_session_open_by_option ( &copt, &sessionid);
+   if (rv != SA_OK) exit(-1);
 
    switch (cmd){
                 case eHandlerCreate: break; //already done
@@ -214,14 +210,14 @@ main(int argc, char **argv)
                 case eUndefined:   break; //already done
    }
 
-   if (fdebug) {
+   if (copt.debug) {
       printf("Internal processing returns %d (%s)\n",
          rv, oh_lookup_error(rv));
       printf("Calling saHpiSessionClose for session %u\n",sessionid);
    }
 
    rv = saHpiSessionClose(sessionid);
-   if (fdebug) {
+   if (copt.debug) {
        printf("saHpiSessionClose returns %d (%s)\n",
           rv, oh_lookup_error(rv));
    }     
@@ -240,7 +236,7 @@ static SaErrorT exechandlercreate (int argc, char **argv, int i)
       g_str_hash, g_str_equal, g_free, g_free);
    SaHpiBoolT pluginnamegiven = SAHPI_FALSE;
 
-   if (fdebug) printf ("createhandler started\n");
+   if (copt.debug) printf ("createhandler started\n");
 
    while (i<argc){
       if (strcmp(argv[i],"-f")==0) {
@@ -252,7 +248,7 @@ static SaErrorT exechandlercreate (int argc, char **argv, int i)
          g_hash_table_insert( createparams,
             g_strdup( argv[i-1] ), 
             g_strdup( argv[i] ));
-          if (fdebug) printf ("Pair of arguments: %s - %s\n",
+          if (copt.debug) printf ("Pair of arguments: %s - %s\n",
             g_strdup( argv[i-1] ), 
             g_strdup( argv[i] ));
       }
@@ -266,22 +262,10 @@ static SaErrorT exechandlercreate (int argc, char **argv, int i)
       return (SA_ERR_HPI_INVALID_PARAMS);
    }
 
-   if (fdebug) {
-      if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID)
-         printf("saHpiSessionOpen\n");
-      else printf("saHpiSessionOpen to domain %u\n",domainid);
-   }
-   rv = saHpiSessionOpen(domainid,&sessionid,NULL);
-   if (rv != SA_OK) {
-      printf("saHpiSessionOpen returns %d (%s)\n",
-             rv, oh_lookup_error(rv));
-      return (SA_ERR_HPI_INVALID_PARAMS);
-   }
-   if (fdebug)
-      printf("saHpiSessionOpen returns with SessionId %u\n",
-             sessionid);
+   rv = ohc_session_open_by_option ( &copt, &sessionid);
+   if (rv != SA_OK) exit(-1);
 
-   if (fdebug) printf ("Calling oHpiHandlerCreate!\n");
+   if (copt.debug) printf ("Calling oHpiHandlerCreate!\n");
    rv = oHpiHandlerCreate(sessionid, createparams, &handlerid );
 
    if ( rv != SA_OK ) {
@@ -304,12 +288,12 @@ static SaErrorT exechandlercreate (int argc, char **argv, int i)
 static SaErrorT exechandlerdestroy(oHpiHandlerIdT handlerid)
 {
    SaErrorT rv = SA_OK;
-   if (fdebug) printf("Go and unload handler %u in domain %u\n", 
-            handlerid, domainid);
+   if (copt.debug) printf("Go and unload handler %u in domain %u\n", 
+            handlerid, copt.domainid);
    
    rv = oHpiHandlerDestroy ( sessionid, handlerid );
 
-   if (fdebug) printf("oHpiHandlerDestroy returned %d (%s)\n", 
+   if (copt.debug) printf("oHpiHandlerDestroy returned %d (%s)\n", 
          rv, oh_lookup_error(rv));
 
    if (rv==SA_OK) {
@@ -317,11 +301,11 @@ static SaErrorT exechandlerdestroy(oHpiHandlerIdT handlerid)
       return rv;
    }
    else if (rv==SA_ERR_HPI_NOT_PRESENT) {
-      if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) 
+      if (copt.domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) 
          printf("Handler %u is not existing in default domain.\n",
                 handlerid);
       else printf("Handler %u is not existing in domain %u.\n",
-                handlerid, domainid);
+                handlerid, copt.domainid);
       return rv;
    }
    else printf("\nHandler %u couldn't be unloaded, Returncode %d (%s)\n", 
@@ -350,16 +334,16 @@ SaErrorT exechandlerinfo(oHpiHandlerIdT handlerid)
                         g_str_hash, g_str_equal,
                         g_free, g_free );
 
-   if (fdebug) printf("Go and display handler info for %u\n", handlerid);
+   if (copt.debug) printf("Go and display handler info for %u\n", handlerid);
    
    rv = oHpiHandlerInfo ( sessionid, handlerid, &handlerinfo, handlerconfig );
 
    if (rv==SA_ERR_HPI_NOT_PRESENT) {
-      if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) 
+      if (copt.domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) 
          printf("Handler %u is not existing in default domain.\n",
                 handlerid);
       else printf("Handler %u is not existing in domain %u.\n",
-                handlerid, domainid);
+                handlerid, copt.domainid);
       g_hash_table_destroy(handlerconfig);
       return SA_OK;
    }
@@ -369,9 +353,9 @@ SaErrorT exechandlerinfo(oHpiHandlerIdT handlerid)
       g_hash_table_destroy(handlerconfig);
       return rv;
    }
-   if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) 
+   if (copt.domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) 
       printf("\n\nInfo for handler %u in default domain:\n\n",handlerid);
-   else printf("\n\nInfo for handler %u in domain %u:\n\n",handlerid, domainid);
+   else printf("\n\nInfo for handler %u in domain %u:\n\n",handlerid, copt.domainid);
    printf("Plugin name: %s\n",handlerinfo.plugin_name);
 
    printf("Root ");
@@ -397,12 +381,12 @@ static SaErrorT exechandlergetnext(oHpiHandlerIdT handlerid)
    SaErrorT rv = SA_OK;
    oHpiHandlerIdT nexthandlerid;
 
-   if (fdebug) printf("Go and get next handler from %u in domain %u\n",
-                      handlerid, domainid);
+   if (copt.debug) printf("Go and get next handler from %u in domain %u\n",
+                      handlerid, copt.domainid);
 
    rv = oHpiHandlerGetNext ( sessionid, handlerid, &nexthandlerid );
 
-   if (fdebug) printf("oHpiHandlerGetNext returned %d (%s)\n",
+   if (copt.debug) printf("oHpiHandlerGetNext returned %d (%s)\n",
                       rv, oh_lookup_error(rv));
 
    if (rv==SA_OK) {
@@ -410,11 +394,11 @@ static SaErrorT exechandlergetnext(oHpiHandlerIdT handlerid)
              handlerid, nexthandlerid);
    }
    else if (rv==SA_ERR_HPI_NOT_PRESENT) {
-      if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) 
+      if (copt.domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) 
          printf("No next Handler found from %u in default domain.\n",
                         handlerid);
       else printf("No next Handler found from %u in domain %u.\n",
-                        handlerid, domainid);
+                        handlerid, copt.domainid);
    }
    else printf("\noHpiHandlerGetNext returned %d (%s)\n",
                rv, oh_lookup_error(rv));
@@ -429,13 +413,13 @@ static SaErrorT exechandlerfind(SaHpiResourceIdT resid)
    SaErrorT rv = SA_OK;
    oHpiHandlerIdT handlerid;
 
-   if (fdebug) printf("Go and find handler for resource %u in domain "
+   if (copt.debug) printf("Go and find handler for resource %u in domain "
                       "%u using session %u\n",
-                      resid, domainid, sessionid);
+                      resid, copt.domainid, sessionid);
 
    rv = oHpiHandlerFind ( sessionid, resid, &handlerid );
 
-   if (fdebug) printf("oHpiHandlerFind returned %d (%s)\n",
+   if (copt.debug) printf("oHpiHandlerFind returned %d (%s)\n",
                       rv, oh_lookup_error(rv));
 
    if (rv==SA_OK) {
@@ -443,11 +427,11 @@ static SaErrorT exechandlerfind(SaHpiResourceIdT resid)
              resid, handlerid);
    }
    else if (rv==SA_ERR_HPI_NOT_PRESENT) {
-      if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) 
+      if (copt.domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) 
          printf("No Handler found for resource %u in default domain.\n",
                       resid);
       else printf("No Handler found for resource %u in domain %u.\n",
-                      resid, domainid);
+                      resid, copt.domainid);
    }
    else printf("\noHpiHandlerFind returned %d (%s)\n",
                rv, oh_lookup_error(rv));
@@ -461,8 +445,8 @@ static SaErrorT exechandlerretry(oHpiHandlerIdT handlerid)
 {
    SaErrorT rv = SA_OK;
 
-   if (fdebug) printf("Go and retry loading handler %u in domain %u\n", 
-                      handlerid, domainid);
+   if (copt.debug) printf("Go and retry loading handler %u in domain %u\n", 
+                      handlerid, copt.domainid);
 
    rv = oHpiHandlerRetry ( sessionid, handlerid );
 
@@ -471,11 +455,11 @@ static SaErrorT exechandlerretry(oHpiHandlerIdT handlerid)
                         rv, oh_lookup_error(rv));
       return rv;
    }
-   if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) 
+   if (copt.domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) 
       printf("\nHandler %u in default domain successfully re-loaded.\n",
                         handlerid);
    else printf("\nHandler %u in domain %u successfully re-loaded.\n",
-                        handlerid, domainid);
+                        handlerid, copt.domainid);
    return rv;
 }
 
@@ -490,13 +474,13 @@ static SaErrorT exechandlerlist()
    oHpiHandlerInfoT handlerinfo;
    GHashTable *config = 0;
 
-   if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) 
+   if (copt.domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) 
       printf("Handlers defined in default domain:\n");
-   else printf("Handlers defined in Domain %u:\n",domainid);
+   else printf("Handlers defined in Domain %u:\n",copt.domainid);
    while (rv==SA_OK) {
       rv = oHpiHandlerGetNext ( sessionid, handlerid, &nexthandlerid );
 
-      if (fdebug) printf("oHpiHandlerGetNext (%u) returned %d (%s)\n",
+      if (copt.debug) printf("oHpiHandlerGetNext (%u) returned %d (%s)\n",
                       handlerid, rv, oh_lookup_error(rv));
 
       if (rv==SA_OK) {

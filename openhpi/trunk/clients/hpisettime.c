@@ -59,6 +59,9 @@ static GOptionEntry my_options[] =
   { NULL }
 };
 
+#define EXIT1 g_free(findate);g_free(fintime);exit(1);
+
+
 int main(int argc, char **argv)
 {
 	int month, day, year;
@@ -90,28 +93,30 @@ int main(int argc, char **argv)
                     - OHC_VERBOSE_OPTION,      // no verbose mode
                 error)) { 
                 g_print ("option parsing failed: %s\n", error->message);
-		exit(1);
+                g_option_context_free (context);
+		EXIT1;
 	}
+        g_option_context_free (context);
 
 	if ( !findate || !fintime) {
 		printf("Please enter date and time to be set.\n");
-		exit(1);
+		EXIT1;
 	}
 
 	if (findate) {
 		if (copt.debug) printf("New date to be set: %s\n",findate);
 	        if (sscanf(findate,"%2d/%2d/%4d", &month, &day, &year) != 3) {
 			printf("%s: Invalid date\n", argv[0]);
-			exit(1);
+			EXIT1;
 		}
 		/* check month, day and year for correctness */
 		if ((month < 1) || (month > 12)) {
 			printf("%s: Month out of range: (%d)\n", argv[0], month);
-			exit(1);
+			EXIT1;
 		};
 		if (year < 1900) {
 			printf("%s: Year out of range: (%d)\n", argv[0], year);
-			exit(1);
+			EXIT1;
 		};
 		month--;
 		if (month == 1) {
@@ -121,7 +126,7 @@ int main(int argc, char **argv)
 		};
 		if ((day < 1) || (day > day_array[month])) {
 			printf("%s: Day out of range: (%d)\n", argv[0], day);
-			exit(1);
+			EXIT1;
 		};
 
 		new_tm_time.tm_mon = month;
@@ -134,20 +139,20 @@ int main(int argc, char **argv)
 	        if (sscanf(fintime,"%2d:%2d:%2d",
                   &new_tm_time.tm_hour, &new_tm_time.tm_min, &new_tm_time.tm_sec) != 3) {
 			printf("%s: Invalid time\n", argv[0]);
-			exit(1);
+			EXIT1;
 		}
 		/* check hours, minutes and seconds for correctness */
 		if ((new_tm_time.tm_hour < 0) || (new_tm_time.tm_hour > 24)) {
 			printf("%s: Hours out of range: (%d)\n", argv[0], new_tm_time.tm_hour);
-			exit(1);
+			EXIT1;
 		};
 		if ((new_tm_time.tm_min < 0) || (new_tm_time.tm_min > 60)) {
 			printf("%s: Minutes out of range: (%d)\n", argv[0], new_tm_time.tm_min);
-			exit(1);
+			EXIT1;
 		};
 		if ((new_tm_time.tm_sec < 0) || (new_tm_time.tm_sec > 60)) {
 			printf("%s: Seconds out of range: (%d)\n", argv[0], new_tm_time.tm_sec);
-			exit(1);
+			EXIT1;
 		}
 	}
 
@@ -161,7 +166,7 @@ int main(int argc, char **argv)
            printf("New date and time in SaHpiTimeT %" PRId64 "\n\n", (int64_t)newtime);
 
         rv = ohc_session_open_by_option ( &copt, &sessionid);
-	if (rv != SA_OK) exit(-1);
+	if (rv != SA_OK) EXIT1;
 
 	rv = saHpiDiscover(sessionid);
 	if (copt.debug) printf("saHpiDiscover %s\n", oh_lookup_error(rv));
@@ -199,7 +204,10 @@ int main(int argc, char **argv)
 	} 
         
         rv = saHpiSessionClose(sessionid);
-        
+
+        g_free(findate);
+        g_free(fintime);
+   
         return(0);
 }
  

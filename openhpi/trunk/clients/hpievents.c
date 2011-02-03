@@ -76,8 +76,10 @@ int main(int argc, char **argv)
                     - OHC_VERBOSE_OPTION,    // no verbose mode implemented
                 error)) { 
                 g_print ("option parsing failed: %s\n", error->message);
+                g_option_context_free (context);
 		exit(1);
 	}
+        g_option_context_free (context);
  
 	if (timeout_str) {
 		int i = 0;
@@ -92,6 +94,7 @@ int main(int argc, char **argv)
 			wait = atoi(timeout_str);
                 	timeout = (SaHpiTimeoutT)(wait * HPI_NSEC_PER_SEC);
 		}
+                g_free (timeout_str);
 	} else
 		timeout = (SaHpiTimeoutT) SAHPI_TIMEOUT_IMMEDIATE;
 

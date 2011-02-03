@@ -4,8 +4,10 @@ ohparam - An openhpi sample application that uses the openhpi additional interfa
 
 =head1 SYNOPSIS 
 
- ohparam [-D domain] [-x] get
- ohparam [-D domain] [-x] set <paramname newvalue>
+ ohparam [-D nn] [-X] get
+ ohparam [-D nn] [-X] set <paramname newvalue>
+ ohparam [--domain nn] [--debug] get
+ ohparam [--domain nn] [--debug] set <paramname newvalue>
 
 =head1 DESCRIPTION
 
@@ -15,23 +17,44 @@ ohparam set will change the given global configuration parameters of the openhpi
 
 If no domain is selected, ohparam uses the default domain. The selected domain id must be configured via the openhpidclient.conf file specified in the environment.
 
+=head1 COMMANDS
+
+=over 2
+
+ Command get: display info about all global parameters  
+         no specific arguments                         
+
+ Command set:                                           
+         one of the daemon's global parameters:        
+         (without the OPENHPI prefix)                  
+           ON_EP, LOG_ON_SEV, EVT_QUEUE_LIMIT,         
+           DEL_SIZE_LIMIT, DEL_SAVE                    
+           DAT_SIZE_LIMIT, DAT_USER_LIMIT, DAT_SAVE    
+           PATH, VARPATH, CONF                         
+         and the desired new value. Example:           
+           ohparam set DEL_SIZE_LIMIT 20000            
+
+=back
+
 =head1 OPTIONS
 
 =over 2
 
- -D <domainid> select domain id
- -x            display debug messages.
- -h            help
+  -h, --help          Show help options
+  -D, --domain=nn     Select domain id nn
+  -X, --debug         Display debug messages
 
 =back
 
 =head1 SEE ALSO
 
          hpi_shell
-         hpialarms      hpigensimdata  hpireset       hpitop
-         hpidomain      hpiinv         hpisensor      hpitree
-         hpiel          hpionIBMblade  hpisettime     hpiwdt
-         hpievents      hpipower       hpithres
+
+         hpialarms      hpifan         hpipower       hpithres
+         hpidomain      hpigensimdata  hpireset       hpitop
+         hpiel          hpiiinv        hpisensor      hpitree
+         hpievents      hpionIBMblade  hpisettime     hpiwdt
+         hpixml
          ohdomainlist   ohhandler
 
  

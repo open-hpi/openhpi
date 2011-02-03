@@ -72,8 +72,11 @@ main(int argc, char **argv)
                     - OHC_VERBOSE_OPTION,    // no verbose mode implemented
                 error)) { 
                 g_print ("option parsing failed: %s\n", error->message);
+                g_option_context_free (context);
 		exit(1);
-	}
+  }
+  g_option_context_free (context);
+
   if (f_warm) action = SAHPI_WARM_RESET;
 
   rv = ohc_session_open_by_option ( &copt, &sessionid);

@@ -488,11 +488,14 @@ main(int argc, char **argv)
                     - OHC_ENTITY_PATH_OPTION, //TODO: Feature 880127?
                 error)) { 
                 g_print ("option parsing failed: %s\n", error->message);
+                g_option_context_free (context);
 		exit(1);
   }
+  g_option_context_free (context);
   if (fatag) {
      atag.tag  = (char *)strdup(fatag);
      atag.tlen = strlen(fatag);
+     g_free(fatag);
   }
 
 	/* compile error */
@@ -581,7 +584,7 @@ main(int argc, char **argv)
 		
 		if (!ent_writable(&rptentry.ResourceEntity,&idrInfo))
 			foundasset = 0;
-		if ((fatag) && (foundasset == 1)) {
+		if ((atag.tlen > 0) && (foundasset == 1)) {
 			SaHpiIdrFieldT  atagField;
 			atagField.Type = SAHPI_IDR_FIELDTYPE_ASSET_TAG;
 			atagField.ReadOnly = SAHPI_FALSE;

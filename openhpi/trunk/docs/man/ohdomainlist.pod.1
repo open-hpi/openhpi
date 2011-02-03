@@ -5,7 +5,8 @@ level of the openhpi base library.
 
 =head1 SYNOPSIS 
 
-hpidomain [-D id] [-t tag] [-v -x]
+ hpidomain [-h -V -X]
+ hpidomain [--help] [--verbose] [--debug]
 
 =head1 DESCRIPTION
 
@@ -19,11 +20,14 @@ variable.
 Dynamic changes of the domain list done using the oHpiDomainAdd and oHpiDomainAddById
 API are valid only for the life-time of the client library.
 
+=head1 OPTIONS
+
 =over 2
 
  (No Option) Display domain info
- -v      Verbose: Display domain info for all domains found in DRT
- -x      Display debug messages
+  -h, --help        Show help options
+  -X, --debug       Display debug messages
+  -V, --verbose     Verbose mode
 
 =back
 
@@ -35,7 +39,7 @@ API are valid only for the life-time of the client library.
          hpidomain      hpigensimdata  hpireset       hpitop
          hpiel          hpiiinv        hpisensor      hpitree
          hpievents      hpionIBMblade  hpisettime     hpiwdt
-
+         hpixml
          ohhandler      ohparam
 
 
