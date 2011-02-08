@@ -24,6 +24,7 @@
 #include <oHpi.h>
 
 #include <oh_error.h>
+#include <strmsock.h>
 
 #include "init.h"
 #include "server.h"
@@ -57,6 +58,9 @@ void display_help(void)
     printf("   -n            Forces the code to run as a foreground process\n");
     printf("                 and NOT as a daemon. The default is to run as\n");
     printf("                 a daemon. The option is optional.\n\n");
+    printf("   -4            The daemon will try to bind IPv4 socket.\n");
+    printf("   -6            The daemon will try to bind IPv6 socket.\n");
+    printf("   -4 -6         The daemon will try to bind IPv4 or IPv6 socket.\n");
     printf("A typical invocation might be\n\n");
     printf("   openhpid.exe -c C:\\openhpi.conf\n\n");
 }
@@ -128,6 +132,8 @@ int main(int argc, char *argv[])
     struct option options[] = {
         {"verbose",   no_argument,       0, 'v'},
         {"nondaemon", no_argument,       0, 'n'},
+        {"ipv4",      no_argument,       0, '4'},
+        {"ipv6",      no_argument,       0, '6'},
         {"cfg",       required_argument, 0, 'c'},
         {"port",      required_argument, 0, 'p'},
         {"timeout",   required_argument, 0, 's'},
@@ -140,11 +146,12 @@ int main(int argc, char *argv[])
     unsigned int sock_timeout = 0;  // unlimited
     int  max_threads          = -1; // unlimited
     //bool runasdaemon          = true;
+    int ipvflags              = 0;
 
     /* get the command line options */
     int c;
     while (1) {
-        c = getopt_long(argc, argv, "nvc:p:f:s:t:", options, 0);
+        c = getopt_long(argc, argv, "nv46c:p:f:s:t:", options, 0);
         /* detect when done scanning options */
         if (c == -1) {
             break;
@@ -157,7 +164,7 @@ int main(int argc, char *argv[])
                 setenv("OPENHPI_CONF", optarg);
                 cfgfile = g_strdup(optarg);
                 break;
-            case 'p':
+            case 'P':
                 setenv("OPENHPI_DAEMON_PORT", optarg);
                 port = atoi(optarg);
                 break;
@@ -176,6 +183,12 @@ int main(int argc, char *argv[])
             case 'n':
                 //runasdaemon = false;
                 break;
+            case '4':
+                ipvflags |= FlagIPv4;
+                break;
+            case '6':
+                ipvflags |= FlagIPv6;
+                break;
             case '?':
             default:
                 /* they obviously need it */
@@ -187,6 +200,10 @@ int main(int argc, char *argv[])
         CRIT("Unknown command line option specified. Exiting.");
         display_help();
         exit(-1);
+    }
+
+    if (ipvflags == 0) {
+        ipvflags = FlagIPv4;
     }
 
     // see if we have a valid configuration file
@@ -205,8 +222,12 @@ int main(int argc, char *argv[])
     INFO("%s version %s started.", argv[0], VERSION);
     INFO("OPENHPI_CONF = %s.", cfgfile);
     INFO("OPENHPI_DAEMON_PORT = %u.", port);
+    INFO("Enabled IP versions:%s%s\n",
+         (ipvflags & FlagIPv4) ? " IPv4" : "",
+         (ipvflags & FlagIPv6) ? " IPv6" : "");
 
-    bool rc = oh_server_run(port, sock_timeout, max_threads);
+
+    bool rc = oh_server_run(ipvflags, port, sock_timeout, max_threads);
     if (!rc) {
         return 9;
     }

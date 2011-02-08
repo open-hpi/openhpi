@@ -75,13 +75,14 @@ static void dehash_handler_cfg(gpointer key, gpointer value, gpointer data)
 /* HPI Server Interface                                               */
 /*--------------------------------------------------------------------*/
 
-bool oh_server_run( uint16_t port,
+bool oh_server_run( int ipvflags,
+                    uint16_t port,
                     unsigned int sock_timeout,
                     int max_threads )
 {
     // create the server socket
     cServerStreamSock ssock;
-    if (!ssock.Create(port)) {
+    if (!ssock.Create(ipvflags, port)) {
         CRIT("Error creating server socket. Exiting.");
         return false;
     }

@@ -19,8 +19,11 @@
 
 #include <stdint.h>
 
+#include <strmsock.h>
 
-bool oh_server_run( uint16_t port,
+
+bool oh_server_run( int ipvflags,
+                    uint16_t port,
                     unsigned int sock_timeout,
                     int max_threads );
 
