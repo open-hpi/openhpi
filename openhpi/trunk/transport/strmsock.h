@@ -33,6 +33,16 @@
 
 
 /***************************************************************
+ * IPv4 / IPv6
+ **************************************************************/
+typedef enum
+{
+    FlagIPv4   = 1,
+    FlagIPv6   = 2
+} IPvFlags;
+
+
+/***************************************************************
  * Message Header
  **************************************************************/
 typedef struct
@@ -152,7 +162,7 @@ public:
     explicit cServerStreamSock();
     ~cServerStreamSock();
 
-    bool Create( uint16_t port );
+    bool Create( int ipvflags, uint16_t port );
 
     cStreamSock * Accept();
 

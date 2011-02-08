@@ -19,6 +19,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <list>
+
 #ifdef _WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -64,13 +66,12 @@ static void Finalize( void )
 /***************************************************************
  * Helper functions
  **************************************************************/
-static void SelectAddresses( int hintflags,
+static void SelectAddresses( int ipvflags,
+                             int hintflags,
                              const char * node,
                              uint16_t port,
-                             struct addrinfo * & selected )
+                             std::list<struct addrinfo *>& selected )
 {
-    selected = 0;
-
     struct addrinfo hints;
     memset( &hints, 0, sizeof(hints) );
     hints.ai_flags    = hintflags;
@@ -88,36 +89,19 @@ static void SelectAddresses( int hintflags,
         return;
     }
 
-    struct addrinfo * in = 0;
-    struct addrinfo * in_tail = 0;
-    struct addrinfo * out = 0;
-    struct addrinfo * out_tail = 0;
-    for ( struct addrinfo * item = items; item != 0; item = item->ai_next ) {
-        if ( ( item->ai_family == AF_INET ) || ( item->ai_family == AF_INET6 ) ) {
-            if ( in_tail ) {
-                in_tail->ai_next = item;
-                in_tail = item;
-            } else {
-                in = in_tail = item;
-            }
+    for ( struct addrinfo * item = items; item != 0; ) {
+        struct addrinfo * next = item->ai_next;
+        item->ai_next = 0;
+        if ( ( ipvflags & FlagIPv4 ) && ( item->ai_family == AF_INET ) ) {
+            selected.push_back( item );
+        } else if ( ( ipvflags & FlagIPv6 ) && ( item->ai_family == AF_INET6 ) ) {
+            selected.push_back( item );
         } else {
-            if ( out_tail ) {
-                out_tail->ai_next = item;
-                out_tail = item;
-            } else {
-                out = out_tail = item;
-            }
+            freeaddrinfo( item );
         }
-    }
-    if ( in_tail ) {
-        in_tail->ai_next = 0;
-    }
-    if ( out_tail ) {
-        out_tail->ai_next = 0;
-        freeaddrinfo( out );
-    }
 
-    selected = in;
+        item = next;
+    }
 }
 
 
@@ -325,23 +309,20 @@ cClientStreamSock::~cClientStreamSock()
 
 bool cClientStreamSock::Create( const char * host, uint16_t port )
 {
-    struct addrinfo * infos;
-    SelectAddresses( 0, host, port, infos );
-    if ( infos == 0 ) {
-        CRIT( "failed to find sockaddr." );
-        return false;
-    }
-
     bool connected = false;
     struct addrinfo * info;
-    for ( info = infos; info != 0; info = info->ai_next ) {
-        connected = Create( info );
-        if ( connected ) {
-            break;
-        }
-    }
+    std::list<struct addrinfo *> infos;
 
-    freeaddrinfo( infos );
+    SelectAddresses( FlagIPv4 | FlagIPv6, 0, host, port, infos );
+
+    while ( !infos.empty() ) {
+        info = *infos.begin();
+        if ( !connected ) {
+            connected = Create( info );
+        }
+        freeaddrinfo( info );
+        infos.pop_front();
+    }
 
     return connected;
 }
@@ -422,25 +403,22 @@ cServerStreamSock::~cServerStreamSock()
     // empty
 }
 
-bool cServerStreamSock::Create( uint16_t port )
+bool cServerStreamSock::Create( int ipvflags, uint16_t port )
 {
-    struct addrinfo * infos;
-    SelectAddresses( AI_PASSIVE, 0, port, infos );
-    if ( infos == 0 ) {
-        CRIT( "failed to find sockaddr." );
-        return false;
-    }
-
     bool bound = false;
     struct addrinfo * info;
-    for ( info = infos; info != 0; info = info->ai_next ) {
-        bound = Create( info );
-        if ( bound ) {
-            break;
-        }
-    }
+    std::list<struct addrinfo *> infos;
 
-    freeaddrinfo( infos );
+    SelectAddresses( ipvflags, AI_PASSIVE, 0, port, infos );
+
+    while ( !infos.empty() ) {
+        info = *infos.begin();
+        if ( !bound ) {
+            bound = Create( info );
+        }
+        freeaddrinfo( info );
+        infos.pop_front();
+    }
 
     return bound;
 }
