@@ -203,3 +203,16 @@ handler libsimulator {
 ##        logfile_max = "5"
 #}
 
+## Section for slave plugin
+#handler libslave {
+#        # Optional.
+#        # Entity path that will be added to slave daemon resources' entity paths.
+#        # Default value is empty.
+#        entity_root = "{RACK,1}"
+#        # Mandatory. Address of slave OpenHPI daemon.
+#        host = "192.168.1.42"
+#        # Optional. Port of slave OpenHPI daemon.
+#        # Default value is 4743
+#        #port = "4743"
+#}
+
