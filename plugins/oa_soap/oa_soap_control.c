@@ -213,9 +213,9 @@ SaErrorT oa_soap_get_control_state(void *oh_handler,
         SaHpiCtrlStateT ctrl_state;
         SaHpiCtrlRecDigitalT *digital = NULL;
         SaHpiCtrlRecT *ctrl = NULL;
-	SaHpiCtrlStateDigitalT control_digital_state;
-	SaHpiCtrlStateDiscreteT control_discrete_state;
-	SaHpiCtrlStateAnalogT control_analog_state;
+	SaHpiCtrlStateDigitalT control_digital_state = 0;
+	SaHpiCtrlStateDiscreteT control_discrete_state = 0;
+	SaHpiCtrlStateAnalogT control_analog_state = 0;
 
         if (oh_handler == NULL || mode == NULL || state == NULL) {
                 err("Invalid parameter.");
