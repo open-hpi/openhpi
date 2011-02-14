@@ -66,6 +66,9 @@ Build instructions:
 - Run "make -f Makefile.mingw32".
 - Run "make -f Makefile.mingw32 out".
 - The openhpi-${VERSION}-win32-${ARCH} sub-directory will contain all produced stuff.
+- For gcc4-based compiler (i.e. mingw-w64.sourceforge.net ) you need to copy more libs:
+-- libgcc_s_*.dll
+-- libstdc++-*.dll
 - Optional step - strip produced exe and dll files.
 
 ========================================================================
