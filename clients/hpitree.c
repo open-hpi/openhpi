@@ -146,9 +146,8 @@ main(int argc, char **argv)
                     - OHC_ENTITY_PATH_OPTION //TODO: Feature 880127?
                     - OHC_VERBOSE_OPTION,    // no verbose mode implemented
                 error)) { 
-                g_print ("option parsing failed: %s\n", error->message);
                 g_option_context_free (context);
-		exit(1);
+		return 1;
 	}
         g_option_context_free (context);
  
@@ -156,7 +155,7 @@ main(int argc, char **argv)
            f_listall = TRUE;
 
         rv = ohc_session_open_by_option ( &copt, &sessionid);
-	if (rv != SA_OK) exit(-1);
+	if (rv != SA_OK) return rv;
 
 	/*
 	 * Resource discovery
@@ -165,7 +164,7 @@ main(int argc, char **argv)
 	rv = saHpiDiscover(sessionid);
 	if (rv != SA_OK) {
 		printf("saHpiDiscover returns %s\n",oh_lookup_error(rv));
-		exit(-1);
+		return rv;
 	}
 
 	printf("Discovery done\n");
@@ -173,7 +172,7 @@ main(int argc, char **argv)
 
 	rv = saHpiSessionClose(sessionid);
 	
-	exit(0);
+	return 0;
 }
 
 

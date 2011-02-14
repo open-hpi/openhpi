@@ -12,6 +12,7 @@ INCLUDES		= -I$(top_srcdir)/include -I$(top_srcdir)/utils
 
 INCLUDES 		+= -I$(top_srcdir)/openhpid \
 			   -I$(top_srcdir)/marshal \
+			   -I$(top_srcdir)/clients \
 			   -DCLIENT
 COMMONLIBS		= $(top_builddir)/transport/libopenhpitransport.la \
 			   $(top_builddir)/utils/libopenhpiutils.la \
@@ -31,7 +32,8 @@ hpi_shell_SOURCES =  \
     sensor.c \
     service.c \
     session.c \
-    show.c
+    show.c \
+    $(top_srcdir)/clients/clients.c
 
 
 hpi_shell_LDADD   = $(COMMONLIBS)

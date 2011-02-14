@@ -31,7 +31,7 @@
 #define err(format, ...) \
         do { \
                 if (copt.debug) { \
-                        fprintf(stderr, format "\n", ## __VA_ARGS__); \
+                        CRIT(format "\n", ## __VA_ARGS__); \
                 } \
         } while(0)
 
@@ -40,7 +40,7 @@
                 if (error) { \
 			copt.debug = TRUE; \
                         err(msg, oh_lookup_error(error)); \
-                        exit(-1); \
+                        return error; \
                 } \
         } while(0)
 
@@ -95,14 +95,12 @@ int main(int argc, char **argv)
                     - OHC_VERBOSE_OPTION,    // no verbose mode implemented
                 gerror)) { 
                 g_print ("option parsing failed: %s\n", gerror->message);
-                g_option_context_free (context);
-		exit(1);
+		return 1;
 	}
         g_option_context_free (context);
 
         /* Program really begins here - all options parsed at this point */
         error = ohc_session_open_by_option ( &copt, &sid);
-	if (error != SA_OK) exit(-1);
         show_error_quit("saHpiSessionOpen() returned %s. Exiting.\n");
 
         error = saHpiDiscover(sid);
@@ -122,11 +120,11 @@ int main(int argc, char **argv)
                 error = harvest_sels(sid, &dinfo);
         }
 
-        if (error) err("An error happened. Gathering event log entries returned %s",
+        if (error) CRIT("Gathering event log entries returned %s",
                        oh_lookup_error(error));
 
         error = saHpiSessionClose(sid);
-        if (error) err("saHpiSessionClose() returned %s.",
+        if (error) CRIT("saHpiSessionClose() returned %s.",
                        oh_lookup_error(error));
 
         return error;

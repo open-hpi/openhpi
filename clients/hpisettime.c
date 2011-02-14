@@ -59,7 +59,7 @@ static GOptionEntry my_options[] =
   { NULL }
 };
 
-#define EXIT1 g_free(findate);g_free(fintime);exit(1);
+#define EXIT1 g_free(findate);g_free(fintime);return 1;
 
 
 int main(int argc, char **argv)

@@ -126,16 +126,15 @@ main(int argc, char **argv)
                     - OHC_ENTITY_PATH_OPTION //TODO: Feature 880127
                     - OHC_VERBOSE_OPTION,    // no verbose mode implemented
                 error)) { 
-                g_print ("option parsing failed: %s\n", error->message);
                 g_option_context_free (context);
-		exit(1);
+		return 1;
   }
   g_option_context_free (context);
   if (ftimeout == 0) ftimeout = 120;
   else fenable = TRUE;
   
   rv = ohc_session_open_by_option ( &copt, &sessionid);
-  if (rv != SA_OK) exit(-1);
+  if (rv != SA_OK) return rv;
 
   rv = saHpiDiscover(sessionid);
   if (copt.debug) printf("saHpiDiscover rv = %d\n",rv);
@@ -214,7 +213,7 @@ main(int argc, char **argv)
  
   rv = saHpiSessionClose(sessionid);
 
-  exit(0);
+  return 0;
 }
  
 /* end hpiwdt.c */

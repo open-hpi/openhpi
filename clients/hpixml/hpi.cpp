@@ -18,6 +18,7 @@
 
 #include <oh_error.h>
 #include <oh_utils.h>
+#include <oh_clients.h>
 
 #include "hpi.h"
 #include "hpi_xml_writer.h"
@@ -374,10 +375,10 @@ static void DumpDat( cHpiXmlWriter& writer,
 /***************************************************
  * class cHpi
  ***************************************************/
-cHpi::cHpi( SaHpiDomainIdT did )
+cHpi::cHpi( oHpiCommonOptionsT copt )
     : m_initialized( false ),
       m_opened( false ),
-      m_did( did ),
+      m_copt( copt ),
       m_sid( 0 )
 {
     // empty
@@ -404,9 +405,10 @@ bool cHpi::Open()
         }
         m_initialized = true;
     }
-    rv = saHpiSessionOpen( m_did, &m_sid, 0 );
+
+    rv = ohc_session_open_by_option ( &m_copt, &m_sid);
     if ( rv != SA_OK ) {
-        CRIT( "saHpiSessionOpen returned %s", oh_lookup_error( rv ) );
+        CRIT( "saHpiSessionOpen returned %s", oh_lookup_error( rv ) ); 
         return false;
     }
     m_opened = true;

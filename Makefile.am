@@ -52,7 +52,7 @@ EXTRA_DIST              = openhpi.spec.in \
 	mingw32/openhpi.windows.libraries.manifest \
 	mingw32/openhpi.windows.plugins.manifest \
 	mingw32/openhpid.manifest \
-        $(shell find $(srcdir)/include -name '*.h')
+        $(shell find $(srcdir)/include -name '*.h') 
 
 AUTOMAKE_OPTIONS        = foreign
 
@@ -112,7 +112,8 @@ include_HEADERS = $(top_srcdir)/include/SaHpi.h \
                   $(top_srcdir)/utils/uid_utils.h \
                   $(top_srcdir)/utils/epath_utils.h \
                   $(top_srcdir)/utils/el_utils.h \
-                  $(top_srcdir)/utils/event_utils.h
+                  $(top_srcdir)/utils/event_utils.h \
+                  $(top_srcdir)/clients/oh_clients.h
 
 docsdir=$(datadir)/doc/$(PACKAGE_NAME)-$(VERSION)
 docs_DATA = README README.daemon COPYING

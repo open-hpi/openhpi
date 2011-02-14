@@ -1,6 +1,7 @@
 /*      -*- linux-c -*-
  *
  * Copyright (c) 2004 by Intel Corp.
+ * (C) Copyright Ulrich Kleber 2011
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,6 +17,8 @@
  *	11.30.2004 - Kouzmich: porting to HPI-B
  *  28.10.2010 - Anton Pak: fixed -c command line argument
  *  28.10.2010 - Anton Pak: added -D command line argument
+ *  10.02.2011 - Ulrich Kleber: Refactoring to use glib for option parsing and
+ *                           introduce common options for all clients
  *
  */
 
@@ -24,57 +27,56 @@
 #include <string.h>
 #include <getopt.h>
 #include "hpi_cmd.h"
+#include <oh_clients.h>
+
+#define OH_SVN_REV "$Revision$"
 
 int	debug_flag = 0;
+static gchar *f_cmdfile = NULL;
+static gboolean f_events = FALSE;
+static oHpiCommonOptionsT copt;
+
+static GOptionEntry my_options[] =
+{
+  { "cmdfile", 'f', 0, G_OPTION_ARG_FILENAME, &f_cmdfile, "Execute command file",                        "filename"   },
+  { "events",  'e', 0, G_OPTION_ARG_NONE,     &f_events,  "Show short events, discover after subscribe", NULL },
+  { NULL }
+};
+
 
 int main(int argc, char **argv)
 {
-	int	c, eflag = 0;
-    SaHpiBoolT printusage = SAHPI_FALSE;
-    SaHpiDomainIdT domainId = SAHPI_UNSPECIFIED_DOMAIN_ID;
+        GError *error = NULL;
+        GOptionContext *context;
 
-	while ( (c = getopt( argc, argv,"D:c:ef:xn:?")) != EOF ) {
-		switch(c)  {
-            case 'D':
-                if (optarg) {
-                    domainId = atoi(optarg);
-                } else {
-                    printusage = SAHPI_TRUE;
-                }
-                break;
-			case 'c':
-				setenv("OPENHPICLIENT_CONF", optarg, 1);
-				break;
-			case 'e':
-				eflag = 1;
-				break;
-			case 'f':
-				open_file(optarg);
-				break;
-			case 'x':
-				debug_flag = 1;
-				break;
-            case 'n':
-                setenv("OPENHPI_DAEMON_HOST", optarg, 1);
-                break;
-			default:
-                printusage = SAHPI_TRUE;
-		}
-    }
+	oh_prog_version(argv[0], OH_SVN_REV);
 
-    if (printusage != SAHPI_FALSE) {
-        printf("Usage: %s [-c <cfgfile>][-e][-f <file>][-n <hostname>]\n", argv[0]);
-        printf("   -D <did> - select domain id\n");
-        printf("   -c <cfgfile> - use passed file as client configuration file\n");
-        printf("   -e - show short events, discover after subscribe\n");
-        printf("   -f <file> - execute command file\n");
-        printf("   -x - display debug messages\n");
-        printf("   -n <hostname> - use passed hostname as OpenHPI daemon host\n");
-        return 1;
-    }
+        context = g_option_context_new ("- Allows a user to interactively "
+                                        "perform a number of HPI operations");
+        g_option_context_add_main_entries (context, my_options, NULL);
+
+        if (!ohc_option_parse(&argc, argv, 
+                context, &copt, 
+                OHC_ALL_OPTIONS 
+                    - OHC_ENTITY_PATH_OPTION // not applicable
+                    - OHC_VERBOSE_OPTION,    // no verbose mode implemented
+                error)) { 
+                g_print ("option parsing failed: %s\n", error->message);
+                g_option_context_free (context);
+		exit(1);
+	}
+        if (copt.debug) debug_flag = 1;
+        g_option_context_free (context);
+        if (f_cmdfile) {
+                open_file ( f_cmdfile );
+                g_free ( f_cmdfile );
+        }
 
 	domainlist = (GSList *)NULL;
-	if (open_session(domainId, eflag) == -1)
+	if (open_session(copt.domainid, f_events) == -1) 
+                    //TODO For complete implementation of -N option, need to call 
+                    //TODO ohAddDomain to get the domain Id.
+                                                 
 		return(1);
 	cmd_shell();
 	close_session();

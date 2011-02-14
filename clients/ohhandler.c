@@ -106,7 +106,6 @@ main(int argc, char **argv)
                     - OHC_ENTITY_PATH_OPTION // not applicable
                     - OHC_VERBOSE_OPTION,    // no verbose mode
                 error)) { 
-       g_print ("option parsing failed: %s\n", error->message);
        printusage = TRUE;
    }
    g_option_context_free (context);
@@ -118,8 +117,8 @@ main(int argc, char **argv)
          // exechandlercreate will do the remaining reading of 
          // parameters itself 
          rv = exechandlercreate (argc, argv, ++i);
-         if (rv == SA_OK) exit (0);
-         if (rv != SA_ERR_HPI_INVALID_PARAMS) exit (1);
+         if (rv == SA_OK) return 0;
+         if (rv != SA_ERR_HPI_INVALID_PARAMS) return 1;
          printusage = TRUE;
       }
 
@@ -165,10 +164,10 @@ main(int argc, char **argv)
 
    if (cmd == eHandlerCreate) {
       rv = exechandlercreate (argc, argv, i);
-      if (rv == SA_OK) exit (0);
+      if (rv == SA_OK) return 0;
       if (rv == SA_ERR_HPI_INVALID_PARAMS)
          printusage = TRUE;
-      else exit (1);
+      else return 1;
    }
 
    if (printusage == TRUE || cmd == eUndefined)
@@ -181,11 +180,11 @@ main(int argc, char **argv)
       printf("      -h, --help          Show help options       \n");
       printf("      -D, --domain=nn     Select domain id nn     \n");
       printf("      -X, --debug         Display debug messages  \n\n");
-      exit(1);
+      return 1;
    }
 
    rv = ohc_session_open_by_option ( &copt, &sessionid);
-   if (rv != SA_OK) exit(-1);
+   if (rv != SA_OK) return rv;
 
    switch (cmd){
                 case eHandlerCreate: break; //already done
@@ -222,7 +221,7 @@ main(int argc, char **argv)
           rv, oh_lookup_error(rv));
    }     
        
-   exit(0);
+   return 0;
 }
 
 /********************************************/ 
@@ -263,7 +262,7 @@ static SaErrorT exechandlercreate (int argc, char **argv, int i)
    }
 
    rv = ohc_session_open_by_option ( &copt, &sessionid);
-   if (rv != SA_OK) exit(-1);
+   if (rv != SA_OK) return rv;
 
    if (copt.debug) printf ("Calling oHpiHandlerCreate!\n");
    rv = oHpiHandlerCreate(sessionid, createparams, &handlerid );
@@ -271,6 +270,7 @@ static SaErrorT exechandlercreate (int argc, char **argv, int i)
    if ( rv != SA_OK ) {
       printf("oHpiHandlerCreate returned %d (%s)\n",
          rv, oh_lookup_error(rv));
+      saHpiSessionClose(sessionid);
       return(rv);
    }
    

@@ -17,6 +17,7 @@
 #define HPI_H_EC5AF80F_A79B_49D7_8371_F71504C426A6
 
 #include <SaHpi.h>
+#include <oh_clients.h>
 
 
 class cHpiXmlWriter;
@@ -28,7 +29,7 @@ class cHpi
 {
 public:
 
-    explicit cHpi( SaHpiDomainIdT did );
+    explicit cHpi( oHpiCommonOptionsT copt );
     ~cHpi();
 
     bool Open();
@@ -45,7 +46,7 @@ private:
 
     bool            m_initialized;
     bool            m_opened;
-    SaHpiDomainIdT  m_did;
+    oHpiCommonOptionsT m_copt;
     SaHpiSessionIdT m_sid;
 };
 

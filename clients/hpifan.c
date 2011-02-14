@@ -242,9 +242,8 @@ main( int argc, char *argv[] )
                     - OHC_ENTITY_PATH_OPTION //TODO: Feature 880127
                     - OHC_VERBOSE_OPTION,    // no verbose mode implemented
                 error)) { 
-                g_print ("option parsing failed: %s\n", error->message);
                 g_option_context_free (context);
-		exit(1);
+		return 1;
 	}
         g_option_context_free (context);
  
@@ -257,16 +256,16 @@ main( int argc, char *argv[] )
            } else {
               new_speed = atoi( f_speed );
               if (new_speed == 0) {
-                 g_print ("please enter a valid speed: \"auto\" or a number.\n");
+                 CRIT ("please enter a valid speed: \"auto\" or a number.\n");
                  g_free (f_speed);
-                 exit(1);
+                 return 1;
               }
            }
            g_free(f_speed);
         }
 
         rv = ohc_session_open_by_option ( &copt, &sessionid);
-	if (rv != SA_OK) exit(-1);
+	if (rv != SA_OK) return rv;
 
 	/*
 	 * Resource discovery
@@ -274,8 +273,8 @@ main( int argc, char *argv[] )
 	if (copt.debug) printf("saHpiDiscover\n");
 	rv = saHpiDiscover(sessionid);
         if ( rv != SA_OK ) {
-                printf( "saHpiDiscover: %s\n", oh_lookup_error( rv ) );
-                return 1;
+                CRIT( "saHpiDiscover: %s\n", oh_lookup_error( rv ) );
+                return rv;
         }
 	if (copt.debug) printf("Discovery done\n");
 
@@ -283,7 +282,7 @@ main( int argc, char *argv[] )
 
         rv = saHpiSessionClose( sessionid );
         if ( rv != SA_OK )
-                printf( "saHpiSessionClose: %s\n", oh_lookup_error( rv ) );
+                CRIT( "saHpiSessionClose: %s\n", oh_lookup_error( rv ) );
 
         return  rc;
 }

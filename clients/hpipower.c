@@ -113,9 +113,8 @@ int main(int argc, char **argv)
                     - OHC_ENTITY_PATH_OPTION //TODO: Feature 880127
                     - OHC_VERBOSE_OPTION,    // no verbose mode implemented
                 error)) { 
-                g_print ("option parsing failed: %s\n", error->message);
                 g_option_context_free (context);
-		exit(1);
+		return 1;
 	}
         g_option_context_free (context);
         if (f_down) {
@@ -139,8 +138,8 @@ int main(int argc, char **argv)
             SelectedSystem = f_blade - 1;  //Normalizing to 0...n-1
             if ((SelectedSystem > MAX_MANAGED_SYSTEMS) ||
                 (SelectedSystem < 0)) {
-               printf("hpipower: blade number out of range");
-               exit(1);   //When we exit here, there is nothing to clean up
+               CRIT("hpipower: blade number out of range");
+               return 1;   //When we exit here, there is nothing to clean up
             }
         }
 

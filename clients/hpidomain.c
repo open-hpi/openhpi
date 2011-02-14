@@ -73,16 +73,15 @@ main(int argc, char **argv)
                 OHC_ALL_OPTIONS 
                     - OHC_ENTITY_PATH_OPTION, //TODO: Feature 880127?
                 error)) { 
-                g_print ("option parsing failed: %s\n", error->message);
                 g_option_context_free (context);
-		exit(1);
+		return 1;
 	}
         g_option_context_free (context);
 
         rv = ohc_session_open_by_option ( &copt, &sessionid);
 	if (rv != SA_OK) {
            g_free(f_domtag);
-           exit(-1);
+           return rv;
         }
 
 	if (f_domtag){
@@ -100,7 +99,7 @@ main(int argc, char **argv)
 
 	rv = saHpiSessionClose(sessionid);
 	
-	exit(0);
+	return 0;
 }
 
 

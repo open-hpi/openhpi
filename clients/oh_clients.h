@@ -33,13 +33,20 @@
 
 #include <oHpi.h>
 #include <oh_utils.h>
+#include <oh_error.h>
 
-#define OHC_ALL_OPTIONS        (SaHpiUint8T) 0x01F
+#define OHC_ALL_OPTIONS        (SaHpiUint8T) 0x03F
 #define OHC_DEBUG_OPTION       (SaHpiUint8T) 0x001
 #define OHC_DOMAIN_OPTION      (SaHpiUint8T) 0x002
 #define OHC_VERBOSE_OPTION     (SaHpiUint8T) 0x004
 #define OHC_ENTITY_PATH_OPTION (SaHpiUint8T) 0x008
 #define OHC_HOST_OPTION        (SaHpiUint8T) 0x010
+#define OHC_CLIENTCONF_OPTION  (SaHpiUint8T) 0x020
+#define OHC_SESSION_OPTIONS    (SaHpiUint8T) 0x032  // -D -N and -C
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct {
         gboolean         debug;
@@ -50,6 +57,7 @@ typedef struct {
         gboolean         withdaemonhost;
         SaHpiTextBufferT daemonhost;
         SaHpiUint16T     daemonport;
+        SaHpiTextBufferT clientconf;
 } oHpiCommonOptionsT;
 
 void oh_prog_version(const char *prog_name, const char *svn_rev_str);
@@ -64,6 +72,10 @@ SaErrorT ohc_session_open_by_option (
                       oHpiCommonOptionsT *opt,
                       SaHpiSessionIdT    *SessionId);
 
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* __OH_CLIENTS_H  */
 
