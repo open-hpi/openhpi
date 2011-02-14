@@ -15,10 +15,9 @@ SRC := alarm.c \
        session.c \
        threaded.c \
        server.cpp \
-       openhpid-win32.cpp \
-       manifest.rc
+       openhpid-win32.cpp
 
-OBJ := $(patsubst %.rc, %.o, $(patsubst %.c, %.o, $(patsubst %.cpp, %.o, ${SRC} ) ) )
+OBJ := $(patsubst %.c, %.o, $(patsubst %.cpp, %.o, ${SRC} ) )
 
 DEFS := -DG_LOG_DOMAIN=\"openhpid\"
 
@@ -35,9 +34,6 @@ CPPFLAGS += ${DEFS} ${INCLUDES}
 .PHONY: all clean
 
 all : ${TARGET}
-
-manifest.o: manifest.rc
-	${RC} -i $^ -o $@
 
 ${TARGET} : ${OBJ}
 	${CXX} -o $@ $^ ${LIBS}

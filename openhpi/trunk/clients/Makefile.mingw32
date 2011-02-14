@@ -37,12 +37,9 @@ CPPFLAGS += ${DEFS} ${INCLUDES}
 
 all : ${TARGETS}
 
-manifest.o: manifest.rc
-	${RC} -i $^ -o $@
-
-%.exe : %.o clients.o manifest.o
+%.exe : %.o clients.o
 	${CXX} -o $@ $^ ${LIBS} 
 
 clean:
-	rm -f ${OBJS} ${TARGETS} manifest.o clients.o
+	rm -f ${OBJS} ${TARGETS} clients.o
 
