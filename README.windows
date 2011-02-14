@@ -68,7 +68,7 @@ Build instructions:
    point to valid directories with glib headers and libraries.
 - Run "make -f Makefile.mingw32".
 - Run "make -f Makefile.mingw32 out".
-- The bin sub-directory will contain all produced stuff.
+- The openhpi-${VERSION}-win32 sub-directory will contain all produced stuff.
 - Optional step - strip produced exe and dll files.
 
 ========================================================================
@@ -141,7 +141,7 @@ before running openhpid.exe.
 The uid map file will be used for persistent
 resource id <-> entity path mapping.
 
-NB: Flags -v is for verbose messages and can be omitted.
+NB: -v is optional flag for verbose messages.
 
 ========================================================================
 Troubleshouting:

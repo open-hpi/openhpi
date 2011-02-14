@@ -47,11 +47,8 @@ EXTRA_DIST              = openhpi.spec.in \
 	README.windows \
 	Makefile.mingw32 \
 	Makefile.mingw32.def \
-	mingw32/app.manifest \
 	mingw32/config.h \
-	mingw32/openhpi.windows.libraries.manifest \
-	mingw32/openhpi.windows.plugins.manifest \
-	mingw32/openhpid.manifest \
+	mingw32/openhpi.conf.example \
         $(shell find $(srcdir)/include -name '*.h') 
 
 AUTOMAKE_OPTIONS        = foreign

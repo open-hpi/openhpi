@@ -1,3 +1,7 @@
+############################################################################
+ARCH := x86
+#ARCH := amd64
+
 VERSION := 2.17.0
 
 ############################################################################
@@ -6,7 +10,6 @@ TOOLCHAIN_PATH := /home/avpak/usr/cross/mingw32
 CC  := ${TOOLCHAIN_PATH}/bin/i386-mingw32-gcc
 CXX := ${TOOLCHAIN_PATH}/bin/i386-mingw32-g++
 AS  := ${TOOLCHAIN_PATH}/bin/i386-mingw32-as
-RC  := ${TOOLCHAIN_PATH}/bin/i386-mingw32-windres
 
 GLIB_DIR := /home/avpak/usr/cross/mingw32/i386-mingw32/glib-2.0
 

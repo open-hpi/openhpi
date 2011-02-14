@@ -69,6 +69,20 @@ static GOptionEntry clientconf_option[] =
 };
 
 
+#ifdef _WIN32
+/*--------------------------------------------------------------------*/
+/* Function: setenv                                                   */
+/*--------------------------------------------------------------------*/
+static int setenv(const char * var, const char * val, int overwrite)
+{
+    static const size_t BUFSIZE = 1024;
+    char buf[BUFSIZE];
+    snprintf(buf, BUFSIZE, "%s=%s", var, val);
+    return _putenv(buf);
+}
+#endif /* _WIN32 */
+
+
 void oh_prog_version(const char *prog_name, const char *svn_rev_str)
 {
 	SaHpiUint32T ohpi_major = oHpiVersionGet() >> 48;
