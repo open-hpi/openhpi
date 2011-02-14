@@ -21,16 +21,14 @@ This package provides windows version of
 -- hpitop.exe
 -- hpitree.exe
 -- hpiwdt.exe
+-- hpixml.exe
 -- ohdomainlist.exe
 -- ohhandler.exe
 -- ohparam.exe
 - OpenHPI daemon as a console Windows application (openhpid.exe)
 -- Slave plug-in (libslave.dll)
 
-libopenhpi.dll, libopenhpiutils.dll, libopenhpimarshal.dll,
-libopenhpitransport.dll constitute
-private side-by-side assembly openhpi.windows.libraries.
-And the assembly also includes necessary glib2 libraries:
+The package also provides necessary glib2 libraries:
 - libglib-2.0-0.dll
 - libgthread-2.0-0.dll
 - libgmodule-2.0-0.dll
@@ -40,9 +38,7 @@ http://www.gtk.org/download-windows.html and were included
 without any change.
 NB: glib2 is distributed under LGPL2 license.
 
-libslave.dll constitutes private side-by-side assembly
-openhpi.windows.plugins. It is planned to use this assembly
-for OpenHPI daemon plug-ins.
+The package can include additional auxiliary libraries.
 
 ========================================================================
 Dependencies:
@@ -63,12 +59,13 @@ Build instructions:
 - Get archive with glib2 for windows and unpack it somewhere.
 - Enter OpenHPI source tree root directory.
 - Modify Makefile.mingw32.def:
--- TOOLCHAIN_PATH in order that CC, CXX, AS and RC point to correct files.
+-- ARCH in order to point architecture for produced binaries
+-- TOOLCHAIN_PATH in order that CC, CXX and AS point to correct files.
 -- GLIB_DIR: in order that GLIB_INCLUDES and GLIB_LIBS
    point to valid directories with glib headers and libraries.
 - Run "make -f Makefile.mingw32".
 - Run "make -f Makefile.mingw32 out".
-- The openhpi-${VERSION}-win32 sub-directory will contain all produced stuff.
+- The openhpi-${VERSION}-win32-${ARCH} sub-directory will contain all produced stuff.
 - Optional step - strip produced exe and dll files.
 
 ========================================================================
@@ -98,13 +95,8 @@ For MSVC:
 - Command example "lib /machine:i386 /def:libopenhpi.def"
 - Point produced import library in Project settings
 
-For application running and distribution there are two ways:
-- you can copy assembly openhpi.windows.libraries dir
-  to application dir and put copy app.manifest as
-  your_application_name.exe.manifest into application dir.
-  Or embed this manifest to your application.
-- get necessary libraries from assembly openhpi.windows.libraries
-  assembly dir and copy them to your application dir.
+For application running and distribution::
+- copy necessary libraries to your application dir.
 
 And see Client Usage instructions about configuring OpenHPI daemon address
 to connect.

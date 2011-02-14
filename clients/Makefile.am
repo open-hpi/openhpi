@@ -8,7 +8,7 @@ INCLUDES             = @OPENHPI_INCLUDES@
 SUBDIRS = hpixml
 DIST_SUBDIRS = hpixml
 
-EXTRA_DIST       = Makefile.mingw32 manifest.rc
+EXTRA_DIST       = Makefile.mingw32
 
 COMMONLIBS	     = $(top_builddir)/baselib/libopenhpi.la
 
