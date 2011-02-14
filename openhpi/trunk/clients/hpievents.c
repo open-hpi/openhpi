@@ -75,9 +75,8 @@ int main(int argc, char **argv)
                     - OHC_ENTITY_PATH_OPTION //TODO: Feature 880127
                     - OHC_VERBOSE_OPTION,    // no verbose mode implemented
                 error)) { 
-                g_print ("option parsing failed: %s\n", error->message);
                 g_option_context_free (context);
-		exit(1);
+		return 1;
 	}
         g_option_context_free (context);
  
@@ -102,30 +101,30 @@ int main(int argc, char **argv)
                 (uint64_t) timeout);    
 
         rv = ohc_session_open_by_option ( &copt, &sessionid);
-	if (rv != SA_OK) exit(-1);
+	if (rv != SA_OK) return -1;
  
 	if (!do_discover_after_subscribe) {
         	if (copt.debug) printf("saHpiDiscover\n");
         	rv = saHpiDiscover(sessionid);
         	if (rv != SA_OK) {
-        		printf("saHpiDiscover: %s\n", oh_lookup_error(rv));
-        		exit(-1);
+        		CRIT("saHpiDiscover: %s\n", oh_lookup_error(rv));
+        		return rv;
         	}
         }
 	
         if (copt.debug) printf( "Subscribe to events\n");
         rv = saHpiSubscribe( sessionid );
 	if (rv != SA_OK) {
-		printf("saHpiSubscribe: %s\n", oh_lookup_error(rv));
-		exit(-1);
+		CRIT("saHpiSubscribe: %s\n", oh_lookup_error(rv));
+		return rv;
 	}
 
 	if (do_discover_after_subscribe) {
 		if (copt.debug) printf("saHpiDiscover after saHpiSubscribe\n");
 		rv = saHpiDiscover(sessionid);
 		if (rv != SA_OK) {
-			printf("saHpiDiscover after saHpiSubscribe: %s\n", oh_lookup_error(rv));
-			exit(-1);
+			CRIT("saHpiDiscover after saHpiSubscribe: %s\n", oh_lookup_error(rv));
+			return rv;
 		}
 	}
 

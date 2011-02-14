@@ -1,6 +1,7 @@
 /*      -*- c++ -*-
  *
  * Copyright (c) 2011 by Pigeon Point Systems.
+ * (C) Copyright Ulrich Kleber 2011
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -11,6 +12,11 @@
  *
  * Authors:
  *     Anton Pak <avpak@pigeonpoint.com>
+ *     Ulrich Kleber <ulikleber@users.sourceforge.net>
+ *
+ * Changes:
+ *     09/02/2011  ulikleber  Use glib for option parsing and common
+ *                            options for all clients
  *
  */
 
@@ -23,6 +29,20 @@
 #include "hpi.h"
 #include "hpi_xml_writer.h"
 #include "schema.h"
+#include <oh_clients.h>
+
+static gboolean f_indent    = FALSE;
+static gboolean f_xsd       = FALSE;
+static gboolean f_use_names = FALSE;
+static oHpiCommonOptionsT copt;
+
+static GOptionEntry my_options[] =
+{
+  { "indent", 'i', 0, G_OPTION_ARG_NONE, &f_indent,    "Use indentation",                                    NULL },
+  { "text",   't', 0, G_OPTION_ARG_NONE, &f_use_names, "Use enum and flag text names instead of raw values", NULL },
+  { "xsd",    's', 0, G_OPTION_ARG_NONE, &f_xsd,       "Show XML schema",                                    NULL },
+ { NULL }
+};
 
 
 /***************************************************
@@ -31,50 +51,28 @@
 int main( int argc, char * argv[] )
 {
     int  indent_step = 0;
-    bool use_names = false;
 
-    SaHpiDomainIdT did = SAHPI_UNSPECIFIED_DOMAIN_ID;
+    GError *error = NULL;
+    GOptionContext *context;
+	    
+    context = g_option_context_new ("- Display system view in XML");
+    g_option_context_add_main_entries (context, my_options, NULL);
 
-    int c;
-    bool print_usage = false;
-    bool print_xsd = false;
-    while ( ( c = getopt( argc, argv,"D:its") ) != EOF ) {
-        switch( c ) {
-            case 'D':
-                if ( optarg ) {
-                    did = atoi( optarg );
-                } else {
-                    print_usage = true;
-                }
-                break;
-            case 'i':
-                indent_step = 1;
-                break;
-            case 't':
-                use_names = true;
-                break;
-            case 's':
-                print_xsd = true;
-                break;
-            default:
-                print_usage = true;
-                break;
-        }
-    }
-    if ( optind < argc ) {
-        print_usage = true;
-    }
-    if ( print_usage ) {
-        printf( "Usage: %s [-option]\n\n", argv[0] );
-        printf( "    (No Option) Work with default domain\n" );
-        printf( "    -D nn  Select domain id nn\n" );
-        printf( "    -i     Use indentation\n" );
-        printf( "    -t     Use enum and flag text names instead of raw values\n" );
-        printf( "    -s     Show XML schema\n" );
-        printf( "\n" );
-        return 1;
-    }
-    if ( print_xsd ) {
+    if (!ohc_option_parse(&argc, argv, 
+                context, &copt, 
+                OHC_ALL_OPTIONS 
+                    - OHC_ENTITY_PATH_OPTION //TODO: Feature 880127?
+                    - OHC_VERBOSE_OPTION     // no verbose mode implemented
+                    - OHC_DEBUG_OPTION,      // no debug option implemented
+                error)) { 
+                CRIT ("option parsing failed: %s\n", error->message);
+                g_option_context_free (context);
+		return 1;
+	}
+        g_option_context_free (context);
+    if (f_indent) indent_step = 1;
+
+    if ( f_xsd ) {
         for ( char * p = &schema_begin; p < &schema_end; ++p ) {
             fwrite( p, 1, 1, stdout );
         }
@@ -83,12 +81,12 @@ int main( int argc, char * argv[] )
 
     bool rc;
 
-    cHpi hpi( did );
+    cHpi hpi( copt );
     rc = hpi.Open();
     if ( !rc ) {
         return 1;
     }
-    cHpiXmlWriter writer( indent_step, use_names );
+    cHpiXmlWriter writer( indent_step, f_use_names );
     rc = hpi.Dump( writer );
     if ( !rc ) {
         CRIT( "Failed to produce XML" );

@@ -146,11 +146,11 @@ main(int argc, char **argv)
       printf("      -h, --help          Show help options       \n");
       printf("      -D, --domain=nn     Select domain id nn     \n");
       printf("      -X, --debug         Display debug messages  \n\n");
-      exit(1);
+      return 1;
    }
 
    rv = ohc_session_open_by_option ( &copt, &sessionid);
-   if (rv != SA_OK) exit(-1);
+   if (rv != SA_OK) return -1;
 
    switch (cmd){
       case eGlobalParamGet:
@@ -166,11 +166,11 @@ main(int argc, char **argv)
 
    if (rv == SA_OK) {
       rv = saHpiSessionClose(sessionid);
-      exit(0);
+      return 0;
    }
    printf("Param set failed with returncode %d (%s)\n",
          rv, oh_lookup_error(rv));
-   exit(-1);
+   return rv;
 
 }
 

@@ -312,9 +312,8 @@ int main(int argc, char **argv) {
                     - OHC_VERBOSE_OPTION     // no verbose mode 
                     - OHC_DEBUG_OPTION,      // no debug mode 
                 error)) { 
-                g_print ("option parsing failed: %s\n", error->message);
                 GFREE
-		exit(1);
+		return 1;
 	}
         GFREE
 
@@ -323,7 +322,7 @@ int main(int argc, char **argv) {
 		if (outfile == NULL) {
 			fprintf(stderr, "\n%s couldn't be opened for writing.\n", g_file);
                         GFREE
-			exit(1);
+			return 1;
 		}
 	}
 
@@ -341,7 +340,7 @@ int main(int argc, char **argv) {
 			fprintf(stderr, "\nUnknown mode %s.\n", g_mode);
                         if (g_file)	fclose(outfile);
                         GFREE
-			exit (1);
+			return 1;
 		}
 	}
  
@@ -362,7 +361,7 @@ int main(int argc, char **argv) {
 	if (rv != SA_OK) {
                 if (g_file)	fclose(outfile);
                 GFREE
-		exit(-1);
+		return rv;
         }
 
 	/*
@@ -373,14 +372,14 @@ int main(int argc, char **argv) {
 		printf("saHpiDiscover returns %s\n",oh_lookup_error(rv));
                 if (g_file)	fclose(outfile);
                 GFREE
-		exit(-1);
+		return rv;
 	}
 	print_resources(outfile, 0, sessionid, (SaHpiResourceIdT) g_resourceid);
 
 	rv = saHpiSessionClose(sessionid);
 	if (g_file)	fclose(outfile);
 	GFREE	
-	exit(0);
+	return 0;
 }
 
 

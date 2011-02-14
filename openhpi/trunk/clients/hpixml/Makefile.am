@@ -20,7 +20,8 @@ hpixml_SOURCES = \
     schema.h \
     schema.S \
     xml_writer.cpp \
-    xml_writer.h
+    xml_writer.h \
+    $(top_srcdir)/clients/clients.c
 
 hpixml_LDADD   = $(top_builddir)/baselib/libopenhpi.la
 

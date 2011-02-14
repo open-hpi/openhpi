@@ -487,9 +487,8 @@ main(int argc, char **argv)
                 OHC_ALL_OPTIONS 
                     - OHC_ENTITY_PATH_OPTION, //TODO: Feature 880127?
                 error)) { 
-                g_print ("option parsing failed: %s\n", error->message);
                 g_option_context_free (context);
-		exit(1);
+		return 1;
   }
   g_option_context_free (context);
   if (fatag) {
@@ -503,7 +502,7 @@ main(int argc, char **argv)
   inv = (SaHpiIdrAreaHeaderT *)(void *)&inbuff[0];
 
   rv = ohc_session_open_by_option ( &copt, &sessionid);
-  if (rv != SA_OK) exit(-1);
+  if (rv != SA_OK) return rv;
 
   rv = saHpiDomainInfoGet(sessionid,&rptinfo);
   if (copt.debug) printf("saHpiDomainInfoGet rv = %d\n",rv);
@@ -621,6 +620,6 @@ main(int argc, char **argv)
     if (copt.debug) printf("loop %u inventory found = %d\n",nloops,invfound);
   }  /*end while no inv */
   rv = saHpiSessionClose(sessionid);
-  exit(0);
+  return 0;
 }
  /* end hpifru.c */

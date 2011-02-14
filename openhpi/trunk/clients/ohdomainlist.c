@@ -57,17 +57,16 @@ main(int argc, char **argv)
                 context, &copt, 
                 OHC_ALL_OPTIONS 
                     - OHC_ENTITY_PATH_OPTION // not applicable
-                    - OHC_DOMAIN_OPTION,     // not applicable
+                    - OHC_SESSION_OPTIONS,   // not applicable
                 error)) { 
-                g_print ("option parsing failed: %s\n", error->message);
                 g_option_context_free (context);
-		exit(1);
+		return 1;
 	}
         g_option_context_free (context);
  
 	show_domains();
 
-	exit(0);
+	return 0;
 }
 
 

@@ -29,6 +29,7 @@ static gboolean optdebug                         = FALSE;
 static gboolean optverbose                       = FALSE;
 static gchar    *optep        = NULL;
 static gchar    *optdaemon    = NULL;    
+static gchar    *optcfgfile   = NULL;    
 
 static GOptionEntry domain_option[] =
 {
@@ -55,12 +56,17 @@ static GOptionEntry entity_path_option[] =
 };
 
 // Preparation for option -N / --host (Features 2726603 & 3129972 & 3129967)
-//static GOptionEntry host_option[] =
-//{
-//  { "host",         'N', 0, G_OPTION_ARG_STRING, &optdaemon,  "Connect to daemon host:port", "\"host<:port>\"" },
-//  { NULL }
-//};
+static GOptionEntry host_option[] =
+{
+  { "host",         'N', 0, G_OPTION_ARG_STRING, &optdaemon,  "Connect to daemon host:port", "\"host<:port>\"" },
+  { NULL }
+};
 
+static GOptionEntry clientconf_option[] =
+{
+  { "cfgfile",      'C', 0, G_OPTION_ARG_FILENAME, &optcfgfile, "Use passed file as client configuration file", "\"file\"" },
+  { NULL }
+};
 
 
 void oh_prog_version(const char *prog_name, const char *svn_rev_str)
@@ -74,15 +80,17 @@ void oh_prog_version(const char *prog_name, const char *svn_rev_str)
         strncpy(svn_rev, svn_rev_str, SAHPI_MAX_TEXT_BUFFER_LENGTH);
         svn_rev[strlen(svn_rev_str)-2] = '\0';
 
-        printf("%s (rev %s) - This program came with OpenHPI %u.%u.%u\n",
-               prog_name, svn_rev+11, ohpi_major, ohpi_minor, ohpi_patch);
+        // Revision not printed here any more
+        //printf("%s (rev %s) - This program came with OpenHPI %u.%u.%u\n",
+        //       prog_name, svn_rev+11, ohpi_major, ohpi_minor, ohpi_patch);
+        printf("%s - This program came with OpenHPI %u.%u.%u\n",
+               prog_name, ohpi_major, ohpi_minor, ohpi_patch);
         hpiver = saHpiVersionGet();
         printf("SAF HPI Version %c.0%d.0%d\n\n",
                (hpiver >> 16) + ('A' - 1),
                (hpiver & 0x0000FF00) >> 8,
                hpiver & 0x000000FF);
 }
-
 
 gboolean ohc_option_parse(int *argc, char *argv[],  
                          GOptionContext     *context,
@@ -93,8 +101,8 @@ gboolean ohc_option_parse(int *argc, char *argv[],
    SaErrorT rv = SA_OK;
 
    if (!argc || !argv || !context || !common_options) {
-      g_print ("Internal error. Terminating.\n");
-      exit (1);
+      CRIT ("Internal error. Terminating.\n");
+      return FALSE;
    }
 
    if (optionmask & OHC_DOMAIN_OPTION)
@@ -106,25 +114,28 @@ gboolean ohc_option_parse(int *argc, char *argv[],
    if (optionmask & OHC_ENTITY_PATH_OPTION)
       g_option_context_add_main_entries (context, entity_path_option, NULL);
 // Preparation for option -N / --host (Features 2726603 & 3129972 & 3129967)
-//   if (optionmask & OHC_HOST_OPTION)
-//      g_option_context_add_main_entries (context, host_option, NULL);
+// Preliminary implementation like it was in hpi_shell
+   if (optionmask & OHC_HOST_OPTION)
+      g_option_context_add_main_entries (context, host_option, NULL);
+   if (optionmask & OHC_CLIENTCONF_OPTION)
+      g_option_context_add_main_entries (context, clientconf_option, NULL);
 
    if (!g_option_context_parse (context, argc, &argv, &error)) {
-           g_print ("option parsing failed: %s\n",error->message);
-           // g_print ("\n%s", g_option_context_get_help (context, FALSE, NULL)); 
+           CRIT ("option parsing failed: %s\n",error->message);
+           // CRIT ("\n%s", g_option_context_get_help (context, FALSE, NULL)); 
            // Needs glib-2.14 
-           exit (1);
+           return FALSE;
    }
 
    common_options->withentitypath = (optep != NULL);
    common_options->withdaemonhost = (optdaemon != NULL);
 
    if (optdebug && optverbose) {
-      g_print("Parsing of options completed. Common options:\n --debug --verbose");
-      if (optdid >= 0)                    g_print(" --domain=%u ",optdid);
-      if (common_options->withentitypath) g_print(" --entity-path=%s ",optep);
-      if (common_options->withdaemonhost) g_print(" --daemon=%s ",optdaemon);
-      g_print("\n");
+      DBG("Parsing of options completed. Common options:\n --debug --verbose");
+      if (optdid >= 0)                    DBG(" --domain=%u ",optdid);
+      if (common_options->withentitypath) DBG(" --entity-path=%s ",optep);
+      if (common_options->withdaemonhost) DBG(" --daemon=%s ",optdaemon);
+      DBG("\n");
    }
 
    /* prepare output */
@@ -136,35 +147,44 @@ gboolean ohc_option_parse(int *argc, char *argv[],
    if (common_options->withentitypath) {
       rv = oh_encode_entitypath(optep, &common_options->entitypath);
       if (error) {
-         g_print("Invalid entity path: %s\n"
+         CRIT ("Invalid entity path: %s\n"
               "oh_encode_entitypath() returned %s \n",
               optep, oh_lookup_error(rv));
-              exit (1);
+              return FALSE;
       }
       if (optdebug && optverbose) {
-         g_print("Entity Path encoded successfully: ");
+         DBG("Entity Path encoded successfully: ");
          oh_print_ep(&common_options->entitypath, 0);
-         g_print("\n");
+         DBG("\n");
       }
    }
-  
+
    oh_init_textbuffer(&common_options->daemonhost);
    if (common_options->withdaemonhost) {
       char *colon=strchr(optdaemon, ':');
       if (colon!=NULL) {
          *colon = '\0';
          common_options->daemonport = atoi(++colon);
+         setenv("OPENHPI_DAEMON_PORT", colon, 1);  
       } else common_options->daemonport = OPENHPI_DEFAULT_DAEMON_PORT;
+      setenv("OPENHPI_DAEMON_HOST", optdaemon, 1);  // copied from hpi_shell
       rv = oh_append_textbuffer(&common_options->daemonhost, optdaemon);
       if (optdebug && optverbose) {
-         g_print("Daemon host:port scanned successfully: host=");
+         DBG("Daemon host:port scanned successfully: host=");
          oh_print_text(&common_options->daemonhost);
-         g_print(" port=%u\n",common_options->daemonport);
+         DBG(" port=%u\n",common_options->daemonport);
       }
+   }
+
+   oh_init_textbuffer(&common_options->clientconf);
+   if (optcfgfile) {
+      rv = oh_append_textbuffer(&common_options->daemonhost, optcfgfile);
+      setenv("OPENHPICLIENT_CONF", optcfgfile, 1);  // copied from hpi_shell
    }
 
    g_free (optep);
    g_free (optdaemon);
+   g_free (optcfgfile);
    return TRUE;
 }
 
@@ -172,7 +192,7 @@ SaErrorT ohc_session_open_by_option (
                       oHpiCommonOptionsT *opt,
                       SaHpiSessionIdT    *sessionid)
 {
-   // TODO implement -N option
+   // TODO correctly implement -N / -C option
    SaErrorT rv = SA_OK;
 
    if (opt->debug) {
