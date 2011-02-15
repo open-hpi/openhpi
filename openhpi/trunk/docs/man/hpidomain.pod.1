@@ -5,8 +5,9 @@ It can also set the domain tag.
 
 =head1 SYNOPSIS 
 
- hpidomain [-D id] [-t tttt] [-V -X -h]
- hpidomain [--domain=id] [--tag=tttt] [--verbose] [--debug] [--help]
+ hpidomain [-D id] [-N host[:port]] [-C <cfgfile>] [-t tttt] [-V -X -h]
+ hpidomain [--domain=id]  [--host=host[:port]] [--cfgfile=file] 
+           [--tag=tttt] [--verbose] [--debug] [--help]
 
 =head1 DESCRIPTION
 
@@ -21,13 +22,16 @@ Option -t allows to change the domain tag.
 (No Option) Display domain info
 
 Help Options:
-  -h, --help          Show help options
+  -h, --help                   Show help options
 
 Application Options:
-  -t, --tag=tttt      Set domain tag to the specified string
-  -D, --domain=nn     Select domain id nn
-  -X, --debug         Display debug messages
-  -V, --verbose       Verbose mode
+  -t, --tag=tttt               Set domain tag to the specified string
+  -D, --domain=nn              Select domain id nn
+  -X, --debug                  Display debug messages
+  -V, --verbose                Verbose mode
+  -N, --host="host<:port>"     Connect to daemon host:port
+  -C, --cfgfile="file"         Use passed file as client configuration file
+
 
 =back
 

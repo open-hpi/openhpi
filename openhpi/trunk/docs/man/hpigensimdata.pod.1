@@ -4,8 +4,9 @@ hpigensimdata - A openhpi client application supplementing the dynamic simulator
 
 =head1 SYNOPSIS 
 
- hpigensimdata [-D nn] [-r res_id] [-f filename] [-m UPD|INIT] [-h]
- hpigensimdata [--domain=nn] [--resource=res_id] [--file=filename] [--mode=UPD|INIT] [--help]
+ hpigensimdata [-D nn] [-N host[:port]] [-C <cfgfile>] [-r res_id] [-f filename] [-m UPD|INIT] [-h]
+ hpigensimdata [--domain=nn] [--host=host[:port]] [--cfgfile=file] 
+               [--resource=res_id] [--file=filename] [--mode=UPD|INIT] [--help]
 
 =head1 DESCRIPTION
 
@@ -24,11 +25,16 @@ If no file name is specified, the data is displayed on console.
 
 =over 2
 
-  -h, --help                Show help options
-  -r, --resource=res_id     Select particular resource id for an update file
-  -f, --file=filename       Name of the file to be generated
-  -m, --mode=UPD|INIT       Write update or initial file
-  -D, --domain=nn           Select domain id nn
+Help Options:
+  -h, --help                   Show help options
+
+Application Options:
+  -r, --resource=res_id        Select particular resource id for an update file
+  -f, --file=filename          Name of the file to be generated
+  -m, --mode=UPD|INIT          Write update or initial file
+  -D, --domain=nn              Select domain id nn
+  -N, --host="host<:port>"     Connect to daemon host:port
+  -C, --cfgfile="file"         Use passed file as client configuration file
 
 =back
 

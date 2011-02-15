@@ -5,8 +5,8 @@ and resources' manamegement instruments (rdr's) data structures of the managed o
 
 =head1 SYNOPSIS 
 
- hpitree [-D nn] [-acdiorsw ] [-n nn] [-x] [-h]
- hpitree [--domain=nn] [--all] [--controls] [--rdrs] [--inventories] [--rpts]
+ hpitree [-D nn] [-N host[:port]] [-C <cfgfile>] [-acdiorsw ] [-n nn] [-x] [-h]
+ hpitree [--domain=nn] [--host=host[:port]] [--cfgfile=file] [--all] [--controls] [--rdrs] [--inventories] [--rpts]
          [--sensors] [--watchdogs] [--overview] [--resource=nn] [--debug] [--help]
 
 =head1 DESCRIPTION
@@ -23,21 +23,24 @@ If no domain is selected, hpitop displays information using a session with the d
 (No Option) Display all rpts and rdrs
 
 Help Options:
-  -h, --help            Show help options
+  -h, --help                   Show help options
 
 Application Options:
-  -a, --all             Display all rpts and rdrs (default)
-  -c, --controls        Display only controls
-  -d, --rdrs            Display rdr records
-  -i, --inventories     Display only inventories
-  -r, --rpts            Display only rpts
-  -s, --sensors         Display only sensors
-  -w, --watchdogs       Display only watchdogs
-  -o, --overview        Display system overview: rpt & rdr headers
-  -n, --resource=nn     Select particular resource id to display
-			(Used with [-cdirs] options)
-  -D, --domain=nn       Select domain id nn
-  -X, --debug           Display debug messages
+  -a, --all                    Display all rpts and rdrs (default)
+  -c, --controls               Display only controls
+  -d, --rdrs                   Display rdr records
+  -i, --inventories            Display only inventories
+  -r, --rpts                   Display only rpts
+  -s, --sensors                Display only sensors
+  -w, --watchdogs              Display only watchdogs
+  -o, --overview               Display system overview: rpt & rdr headers
+  -n, --resource=nn            Select particular resource id to display
+                               (Used with [-cdirs] options)
+  -D, --domain=nn              Select domain id nn
+  -X, --debug                  Display debug messages
+  -N, --host="host<:port>"     Connect to daemon host:port
+  -C, --cfgfile="file"         Use passed file as client configuration file
+
 
 =back
 

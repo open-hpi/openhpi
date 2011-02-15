@@ -4,8 +4,9 @@
 
 =head1 SYNOPSIS 
 
- hpisensor [-D nn] [-t -r -s -X -h] [-E epath]
- hpisensor [--domain=nn] [--threshold --range --eventstate --debug --help] [--entity-path="epath"]
+ hpisensor [-D nn] [-N host[:port]] [-C <cfgfile>] [-t -r -s -X -h] [-E epath]
+ hpisensor [--domain=nn] [--host=host[:port]] [--cfgfile=file]
+           [--threshold --range --eventstate --debug --help] [--entity-path="epath"]
 
 =head1 DESCRIPTION
 
@@ -19,13 +20,19 @@ If no domain is selected, hpisensor uses a session with the default domain. The 
 
 =over 2
 
+Help Options:
   -h, --help                    Show help options
+
+Application Options:
   -t, --threshold               Show Thresholds also
   -r, --range                   Show Range values also
   -s, --eventstate              Show EventState also
   -D, --domain=nn               Select domain id nn
   -X, --debug                   Display debug messages
   -E, --entity-path="epath"     Use entity path epath
+  -N, --host="host<:port>"      Connect to daemon host:port
+  -C, --cfgfile="file"          Use passed file as client configuration file
+
 
 =back
 

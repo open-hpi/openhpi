@@ -4,8 +4,9 @@ hpipower - This sample openhpi application exercises HPI Power Management APIs.
 
 =head1 SYNOPSIS 
 
- hpipower [ -D nn ] [ -d -p -r -u -X -h] [ -b n ]
- hpipower [--domain=nn] [--power-down --power-up --reset --unattended --debug --help] [--blade=n ]
+ hpipower [ -D nn ] [-N host[:port]] [-C <cfgfile>] [ -d -p -r -u -X -h] [ -b n ]
+ hpipower [--domain=nn] [--host=host[:port]] [--cfgfile=file] 
+          [--power-down --power-up --reset --unattended --debug --help] [--blade=n ]
 
 =head1 DESCRIPTION
 
@@ -18,14 +19,19 @@ If no domain is selected, hpievents polls for events in the default domain. The 
 
 =over 2
 
-  -h, --help           Show help options
-  -d, --power-down     Power down target object
-  -p, --power-up       Power on target object
-  -r, --reset          Reset target object
-  -u, --unattended     Unattended
-  -b, --blade=n        Specify blade n (1...n)
-  -D, --domain=nn      Select domain id nn
-  -X, --debug          Display debug messages
+Help Options:
+  -h, --help                   Show help options
+
+Application Options:
+  -d, --power-down             Power down target object
+  -p, --power-up               Power on target object
+  -r, --reset                  Reset target object
+  -u, --unattended             Unattended
+  -b, --blade=n                Specify blade n (1...n)
+  -D, --domain=nn              Select domain id nn
+  -X, --debug                  Display debug messages
+  -N, --host="host<:port>"     Connect to daemon host:port
+  -C, --cfgfile="file"         Use passed file as client configuration file
 
 =back
 
