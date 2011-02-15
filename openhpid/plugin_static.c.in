@@ -1,6 +1,6 @@
-/*      -*- c++ -*-
+/*      -*- linux-c -*-
  *
- * Copyright (C) 2011, Pigeon Point Systems
+ * Copyright (c) 2003 by FORCE Computers.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -9,22 +9,18 @@
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
- * Author(s):
- *      Anton Pak <anton.pak@pigeonpoint.com>
+ * Authors:
+ *     Thomas Kanngieser
  */
 
-#ifndef SCHEMA_H_EC5AF80F_A79B_49D7_8371_F71504C426A6
-#define SCHEMA_H_EC5AF80F_A79B_49D7_8371_F71504C426A6
+#include "oh_plugin.h"
 
 
-extern "C"
+@STATIC_PLUGIN_EXTERN@
+
+
+struct oh_static_plugin static_plugins[] =
 {
-
-extern char schema_begin;
-extern char schema_end;
-
+  @STATIC_PLUGIN@
+  { 0, 0 } /* end mark */
 };
-
-
-#endif /* SCHEMA_H_EC5AF80F_A79B_49D7_8371_F71504C426A6 */
-

@@ -22,7 +22,7 @@
 #include <unistd.h>
 
 #include <SaHpi.h>
-#include <oh_error.h>
+#include <openhpi.h>
 #include <oh_utils.h>
 
 
@@ -40,42 +40,42 @@ int main(int argc, char **argv)
         el = oh_el_create(5);
 
         if(el == NULL) {
-                CRIT("el pointer == NULL.");
+                err("ERROR: el pointer == NULL.");
                 return 1;
         }
 
         if(el->info.Enabled != TRUE) {
-                CRIT("el->info.Enabled invalid.");
+                err("ERROR: el->info.Enabled invalid.");
                 return 1;
         }
 
         if(el->info.OverflowFlag != FALSE) {
-                CRIT("el->info.OverflowFlag invalid.");
+                err("ERROR: el->info.OverflowFlag invalid.");
                 return 1;
         }
 
         if(el->info.UpdateTimestamp != SAHPI_TIME_UNSPECIFIED) {
-                CRIT("el->info.UpdateTimestamp invalid.");
+                err("ERROR: el->info.UpdateTimestamp invalid.");
                 return 1;
         }
 
         if(el->basetime != 0) {
-                CRIT("el->basetime invalid.");
+                err("ERROR: el->basetime invalid.");
                 return 1;
         }
 
         if(el->nextid != SAHPI_OLDEST_ENTRY + 1) {
-                CRIT("el->nextid invalid.");
+                err("ERROR: el->nextid invalid.");
                 return 1;
         }
 
         if(el->info.Size != 5) {
-                CRIT("el->info.Size invalid.");
+                err("ERROR: el->info.Size invalid.");
                 return 1;
         }
 
         if(el->list != NULL) {
-                CRIT("el->list invalid.");
+                err("ERROR: el->list invalid.");
                 return 1;
         }
 

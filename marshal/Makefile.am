@@ -19,10 +19,6 @@ DIST_SUBDIRS 		= t
 
 MAINTAINERCLEANFILES 	= Makefile.in *~
 
-AM_CPPFLAGS = -DG_LOG_DOMAIN=\"marshal\"
-
-EXTRA_DIST = Makefile.mingw32
-
 INCLUDES 		= @OPENHPI_INCLUDES@
 # just to clear LIBS
 LIBS			=
@@ -31,16 +27,15 @@ LIBS			=
 lib_LTLIBRARIES = libopenhpimarshal.la
 
 libopenhpimarshal_la_SOURCES    = \
-    marshal_hpi.c \
-    marshal_hpi.h \
-    marshal_hpi_types.c \
-    marshal_hpi_types.h \
-    marshal.c \
-    marshal.h
+	marshal_hpi.h \
+	marshal_hpi.c \
+	marshal_hpi_types.h \
+	marshal_hpi_types.c \
+	marshal.h \
+        marshal.c
 
 # we need glib-2.0 for gmalloc
-libopenhpimarshal_la_LDFLAGS = -version-info @HPI_LIB_VERSION@
-libopenhpimarshal_la_LIBADD  = @GLIB_ONLY_LIBS@
+libopenhpimarshal_la_LDFLAGS= -version-info @HPI_LIB_VERSION@ @GLIB_ONLY_LIBS@
 
 clean-local:
 	rm -f *~ core core.*

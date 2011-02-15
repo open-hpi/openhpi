@@ -26,6 +26,7 @@
 
 #include <oHpi.h>
 #include <oh_error.h>
+#include <oh_event.h>
 #include <oh_utils.h>
 
 #include "handler.h"
@@ -87,15 +88,15 @@ bool cHandler::Init()
     SaHpiDomainIdT did;
     SaErrorT rv = Abi()->oHpiDomainAdd( &m_host, m_port, &did );
     if ( rv != SA_OK ) {
-        CRIT( "oHpiDomainAdd failed with rv = %d", rv );
+        err( "Slave: oHpiDomainAdd failed with rv = %d\n", rv );
         return false;
     }
+    dbg( "XXX: Domain %u is created\n", m_did );
     m_did = did;
-    DBG( "Domain %u is created", m_did );
 
     rc = StartThread();
     if ( !rc ) {
-        CRIT( "cannot start thread" );
+        err( "Slave: cannot start thread\n" );
         return false;
     }
 
@@ -105,7 +106,7 @@ bool cHandler::Init()
 bool cHandler::WaitForDiscovery()
 {
     while ( m_startup_discovery_status == StartupDiscoveryUncompleted ) {
-        g_usleep( (gulong)( DiscoveryStatusCheckInterval / 1000ULL ) );
+        usleep( (useconds_t)( DiscoveryStatusCheckInterval / 1000ULL ) );
     }
 
     return ( m_startup_discovery_status == StartupDiscoveryDone );
@@ -187,7 +188,7 @@ void cHandler::ThreadProc()
             }
         }
         if ( !m_stop ) {
-            g_usleep( (gulong)( OpenSessionRetryInterval / 1000ULL ) );
+            usleep( (useconds_t)( OpenSessionRetryInterval / 1000ULL ) );
         }
     }
 }
@@ -195,7 +196,7 @@ void cHandler::ThreadProc()
 bool cHandler::OpenSession()
 {
     if ( m_sid != InvalidSessionId ) {
-        CRIT( "Session is already open" );
+        err( "Slave: Session is already open\n" );
         return true;
     }
 
@@ -204,16 +205,16 @@ bool cHandler::OpenSession()
     SaHpiSessionIdT sid;
     rv = Abi()->saHpiSessionOpen( m_did, &sid, 0 );
     if ( rv != SA_OK ) {
-        CRIT( "saHpiSessionOpen failed with rv = %d", rv );
+        err( "Slave: saHpiSessionOpen failed with rv = %d\n", rv );
         return false;
     }
 
     rv = Abi()->saHpiSubscribe( sid );
     if ( rv != SA_OK ) {
-        CRIT( "saHpiSubscribe failed with rv = %d", rv );
+        err( "Slave: saHpiSubscribe failed with rv = %d\n", rv );
         rv = Abi()->saHpiSessionClose( m_sid );
         if ( rv != SA_OK ) {
-            CRIT( "saHpiSessionClose failed with rv = %d", rv );
+            err( "Slave: saHpiSessionClose failed with rv = %d\n", rv );
         }
         return false;
     }
@@ -233,7 +234,7 @@ bool cHandler::CloseSession()
 
     rv = Abi()->saHpiSessionClose( m_sid );
     if ( rv != SA_OK ) {
-        CRIT( "saHpiSessionClose failed with rv = %d", rv );
+        err( "Slave: saHpiSessionClose failed with rv = %d\n", rv );
     }
     m_sid = InvalidSessionId;
 
@@ -247,7 +248,7 @@ bool cHandler::Discover()
 
     rv = Abi()->saHpiDiscover( m_sid );
     if ( rv != SA_OK ) {
-        CRIT( "saHpiDiscover failed with rv = %d", rv );
+        err( "Slave: saHpiDiscover failed with rv = %d\n", rv );
         return false;
     }
 
@@ -273,12 +274,12 @@ void cHandler::RemoveAllResources()
     std::vector<ResourceMapEntry> entries;
     TakeEntriesAway( entries );
     for ( unsigned int i = 0, n = entries.size(); i < n; ++i ) {
-        struct oh_event * e = g_new0( struct oh_event, 1 );
+        struct oh_event * e = casted_g_malloc0<struct oh_event>();
         e->event.Source = entries[i].slave_rid;
         e->resource.ResourceCapabilities = 0;
         SaHpiEventT& he = e->event;
         he.EventType = SAHPI_ET_RESOURCE;
-        he.Severity = SAHPI_MAJOR;
+        he.Severity = SAHPI_MAJOR; // TODO
         SaHpiResourceEventT& re = he.EventDataUnion.ResourceEvent;
         re.ResourceEventType = SAHPI_RESE_RESOURCE_REMOVED;
    
@@ -288,8 +289,8 @@ void cHandler::RemoveAllResources()
 
 bool cHandler::ReceiveEvent( struct oh_event *& e )
 {
-    e = g_new0( struct oh_event, 1 );
-    SaHpiRdrT * rdr = g_new0( SaHpiRdrT, 1 );
+    e = casted_g_malloc0<struct oh_event>();
+    SaHpiRdrT * rdr = casted_g_malloc0<SaHpiRdrT>();
     e->rdrs = g_slist_append( e->rdrs, rdr );
 
     SaErrorT rv = Abi()->saHpiEventGet( m_sid,
@@ -302,7 +303,7 @@ bool cHandler::ReceiveEvent( struct oh_event *& e )
         oh_event_free( e, 0 );
         e = 0;
         if ( rv != SA_ERR_HPI_TIMEOUT ) {
-            CRIT( "saHpiEventGet failed with rv = %d", rv );
+            err( "Slave: saHpiEventGet failed with rv = %d\n", rv );
             return false;
         }
         return true;
@@ -340,7 +341,7 @@ void cHandler::HandleEvent( struct oh_event * e )
     struct oh_event * e_update = 0;
     if ( !is_leaving ) {
         if ( ( !is_known ) || is_update ) {
-            e_update = g_new0( struct oh_event, 1 );
+            e_update = casted_g_malloc0<struct oh_event>();
             e_update->event.Source = slave_rid;
             e_update->resource = e->resource;
         }
@@ -370,7 +371,7 @@ SaHpiUint32T cHandler::GetRptUpdateCounter() const
     if ( rv == SA_OK ) {
         return di.RptUpdateCount;
     } else {
-        CRIT( "saHpiDomainInfoGet failed with rv = %d", rv );
+        err( "Slave: saHpiDomainInfoGet failed with rv = %d\n", rv );
         return 0;
     }
 }
@@ -383,7 +384,7 @@ SaHpiUint32T cHandler::GetRdrUpdateCounter( SaHpiResourceIdT slave_rid ) const
     if ( rv == SA_OK ) {
         return cnt;
     } else {
-        CRIT( "saHpiRdrUpdateCountGet failed with rv = %d", rv );
+        err( "Slave: saHpiRdrUpdateCountGet failed with rv = %d\n", rv );
         return 0;
     }
 }
@@ -399,13 +400,13 @@ bool cHandler::FetchRptAndRdrs( std::queue<struct oh_event *>& events ) const
         SaHpiUint32T cnt = GetRptUpdateCounter();
         SaHpiEntryIdT id, next_id;
         for ( id = SAHPI_FIRST_ENTRY; id != SAHPI_LAST_ENTRY; id = next_id ) {
-            struct oh_event * e = g_new0( struct oh_event, 1 );
+            struct oh_event * e = casted_g_malloc0<struct oh_event>();
             SaErrorT rv = Abi()->saHpiRptEntryGet( m_sid,
                                                    id,
                                                    &next_id,
                                                    &e->resource );
             if ( rv != SA_OK ) {
-                CRIT( "saHpiRptEntryGet failed with rv = %d", rv );
+                err( "Slave: saHpiRptEntryGet failed with rv = %d\n", rv );
                 break;
             }
             e->event.Source = e->resource.ResourceId;
@@ -439,7 +440,7 @@ bool cHandler::FetchRdrs( struct oh_event * e ) const
         SaHpiUint32T cnt = GetRdrUpdateCounter( slave_rid );
         SaHpiEntryIdT id, next_id;
         for ( id = SAHPI_FIRST_ENTRY; id != SAHPI_LAST_ENTRY; id = next_id ) {
-            SaHpiRdrT * rdr = g_new0( SaHpiRdrT, 1 );
+            SaHpiRdrT * rdr = casted_g_malloc0<SaHpiRdrT>();
             SaErrorT rv = Abi()->saHpiRdrGet( m_sid,
                                               slave_rid,
                                               id,
@@ -447,7 +448,7 @@ bool cHandler::FetchRdrs( struct oh_event * e ) const
                                               rdr );
             if ( rv != SA_OK ) {
                 g_free( rdr );
-                CRIT( "saHpiRdrGet failed with rv = %d", rv );
+                err( "Slave: saHpiRdrGet failed with rv = %d\n", rv );
                 break;
             }
             e->rdrs = g_slist_append( e->rdrs, rdr );

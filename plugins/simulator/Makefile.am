@@ -19,8 +19,6 @@ SUBDIRS = t
 
 MAINTAINERCLEANFILES 	= Makefile.in
 
-AM_CPPFLAGS = -DG_LOG_DOMAIN=\"sim\"
-
 INCLUDES		= @OPENHPI_INCLUDES@
 
 pkglib_LTLIBRARIES	= libsimulator.la

@@ -1,7 +1,6 @@
 /*      -*- linux-c -*-
  *
  * (C) Copyright IBM Corp. 2004
- * (C) Copyright Pigeon Point Systems. 2010
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,119 +15,98 @@
  *
  */
 
+
 #ifndef STRMSOCK_H_INCLUDED
+
 #define STRMSOCK_H_INCLUDED
 
-#include <stdint.h>
-#include <stddef.h>
-
-#ifdef _WIN32
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#else
-#include <netdb.h>
-#include <sys/socket.h>
 #include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+
+
+#ifndef TRUE
+#define TRUE 1
+#endif
+#ifndef FALSE
+#define FALSE 0
 #endif
 
+ // current version
+#define dMhVersion 1
 
-/***************************************************************
- * IPv4 / IPv6
- **************************************************************/
-typedef enum
-{
-    FlagIPv4   = 1,
-    FlagIPv6   = 2
-} IPvFlags;
-
-
-/***************************************************************
- * Message Header
- **************************************************************/
-typedef struct
-{
-	uint8_t	 type;
-    uint8_t  flags; // bits 0-3 : flags, bit 4-7 : OpenHPI RPC version
-	uint32_t id;
-	uint32_t len;
-} MessageHeader;
-
-const uint8_t eMhMsg   = 1;
-const uint8_t eMhError = 2;
+#define dMhGetVersion(flags) (((flags)>>4) & 0x7)
 
 // message flags
 // if bit is set the byte order is Little Endian
-const uint8_t dMhEndianBit  = 1;
-const uint8_t dMhRpcVersion = 1;
+#define dMhEndianBit	1
 
+#define dMhRequest   0
+#define dMhReply     1
+#define dMhError     2  // only valid on server replies
 
-const size_t dMaxMessageLength = 0xFFFF;
-const size_t dMaxPayloadLength = dMaxMessageLength - sizeof(MessageHeader);
+// max message length including header
+#define dMaxMessageLength 0xffff
 
-
-/***************************************************************
- * Base Stream Socket class
- **************************************************************/
-class cStreamSock
+// cMessageHeader::m_type
+typedef enum
 {
-protected:
+	eMhMsg = 1,
+	eMhError,  // for reply message header only!
+} tMessageType;
 
-#ifdef _WIN32
-    typedef SOCKET SockFdT;
-    static const SockFdT InvalidSockFd = INVALID_SOCKET;
-#else
-    typedef int SockFdT;
-    static const SockFdT InvalidSockFd = -1;
-#endif
+// NOTE!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//
+// The following structure definition will need to be changed if all clients
+// and deamons do not have a homogenious word size (all 32-bit or all 64-bit).
+// The fix is to probably define them using GLIB types to force all the
+// structure member values to use a fixed bit size no matter what the
+// architecture word size is.
+typedef struct
+{
+	unsigned char	m_type;
+	unsigned char	m_flags; // bit 0-3 flags, bit 4-7 version
+	unsigned int	m_id;
+	unsigned int	m_len;
+} cMessageHeader;
 
-public:
+// The Stream Sockets class
+class strmsock
+{
+	protected:
+	int		s;		 // the client socket handle
+	unsigned long	ulBufSize;	// the read buffer size
+	int		domain;		// the socket domain
+	int		type;		// the socket type
+	int		protocol;	// the socket protocol
+	bool		fOpen;		// open connection indicator
 
-    explicit cStreamSock( SockFdT sockfd = InvalidSockFd );
-    virtual ~cStreamSock();
-
-    bool ReadMsg( uint8_t& type,
-                  uint32_t& id,
-                  void * payload,
-                  uint32_t& payload_len,
-                  int& payload_byte_order );
-
-    bool WriteMsg( uint8_t type,
-                   uint32_t id,
-                   const void * payload,
-                   uint32_t payload_len );
-
-protected:
-
-    SockFdT SockFd() const
-    {
-        return m_sockfd;
-    }
-
-    bool Create( const struct addrinfo * ainfo );
-    bool Close();
-
-private:
-
-    cStreamSock( const cStreamSock& );
-    cStreamSock& operator =( const cStreamSock& );
-
-private:
-
-    SockFdT m_sockfd;
+	public:
+	virtual		~strmsock		() { };
+	virtual void	Close			(void);
+	virtual int	GetErrcode		(void);
+	virtual void	SetDomain		(int);
+	virtual void	SetProtocol		(int);
+	virtual void	SetType			(int);
+	virtual void	SetReadTimeout          (int);
+	virtual void	MessageHeaderInit	(tMessageType, unsigned char,
+		   				 unsigned int, unsigned int);
+        virtual bool	WriteMsg		(const void *request);
+	virtual bool	ReadMsg		        (char *);
+        cMessageHeader	header;	        // message header
+	int		errcode;       	// errno contents
+    int remote_byte_order;
 };
+typedef strmsock *pstrmsock;
 
-
-/***************************************************************
- * Client Stream Socket class
- **************************************************************/
-class cClientStreamSock : public cStreamSock
+// the Client Stream Sockets class
+class cstrmsock : public strmsock
 {
-public:
-
-    explicit cClientStreamSock();
-    ~cClientStreamSock();
-
-    bool Create( const char * host, uint16_t port );
+	public:
+	cstrmsock		*next;
+	cstrmsock		();
+	~cstrmsock		();
+	bool Open		(const char *, unsigned short);
 
     /***********************
      * TCP Keep-Alive
@@ -142,38 +120,28 @@ public:
     bool EnableKeepAliveProbes( int keepalive_time,
                                 int keepalive_intvl,
                                 int keepalive_probes );
-
-private:
-
-    cClientStreamSock( const cClientStreamSock& );
-    cClientStreamSock& operator =( const cClientStreamSock& );
-
-    bool Create( const struct addrinfo * ainfo );
 };
+typedef cstrmsock *pcstrmsock;
 
-
-/***************************************************************
- * Server Stream Socket class
- **************************************************************/
-class cServerStreamSock : public cStreamSock
+// the Server Stream Sockets class
+class sstrmsock : public strmsock
 {
-public:
+	protected:
+	char	acHostName[256];	 // host name
+	int	ss;			// the server socket handle
+	int	backlog;		// listen queue size
+	struct	sockaddr_in addr;	// address structure
+	bool	fOpenS;		 	// TRUE = valid server socket
 
-    explicit cServerStreamSock();
-    ~cServerStreamSock();
-
-    bool Create( int ipvflags, uint16_t port );
-
-    cStreamSock * Accept();
-
-private:
-
-    cServerStreamSock( const cServerStreamSock& );
-    cServerStreamSock& operator =( const cServerStreamSock& );
-
-    bool Create( const struct addrinfo * ainfo );
+	public:
+	sstrmsock		();
+	sstrmsock		(const sstrmsock&);
+	~sstrmsock		();
+	void    CloseSrv       	(void);
+	bool    Create		(int);
+	bool    Accept		(void);
 };
+typedef sstrmsock *psstrmsock;
 
 
 #endif  // STRMSOCK_H_INCLUDED__
-

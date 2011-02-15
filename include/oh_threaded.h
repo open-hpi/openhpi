@@ -1,7 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2004-2006
- * (C) Copyright Pigeon Point Systems. 2010
+ * (C) Copyright IBM Corp. 2005-2006
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -11,31 +10,28 @@
  * full licensing terms.
  *
  * Author(s):
- *      Sean Dague <sdague@users.sf.net>
- *	    Renier Morales <renier@openhpi.org>
- *      Anton Pak <anton.pak@pigeonpoint.com>
+ *      Renier Morales <renier@openhpi.org>
  *
  */
 
-#ifndef __OH_EVENT_H
-#define __OH_EVENT_H
+#ifndef __OH_THREADED_H
+#define __OH_THREADED_H
 
-#include <oh_utils.h>
+#include <SaHpi.h>
+#include <glib.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern oh_evt_queue * oh_process_q;
+int oh_threaded_init(void);
+int oh_threaded_start(void);
+int oh_threaded_final(void);
 
-/* function definitions */
-int oh_event_init(void);
-SaErrorT oh_harvest_events(void);
-SaErrorT oh_process_events(void);
+void oh_wake_discovery_thread(SaHpiBoolT wait);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __OH_EVENT_H */
-
+#endif /* __OH_THREADED_H */

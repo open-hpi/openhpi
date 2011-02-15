@@ -10,14 +10,12 @@
 
 MAINTAINERCLEANFILES 	= Makefile.in
 
-AM_CPPFLAGS = -DG_LOG_DOMAIN=\"ssl\"
-
 INCLUDES		= @OPENHPI_INCLUDES@
 
 lib_LTLIBRARIES		= libopenhpi_ssl.la
 
-libopenhpi_ssl_la_SOURCES = oh_ssl.c oh_ssl.h
+EXTRA_DIST = oh_ssl.h
 
-libopenhpi_ssl_la_LDFLAGS = -version-info @HPI_LIB_VERSION@
-libopenhpi_ssl_la_LIBADD  = @CRYPTO_LIB@
+libopenhpi_ssl_la_SOURCES = oh_ssl.c
 
+libopenhpi_ssl_la_LDFLAGS = -version-info @HPI_LIB_VERSION@ @CRYPTO_LIB@

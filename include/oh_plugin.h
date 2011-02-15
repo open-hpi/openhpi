@@ -17,8 +17,6 @@
 #define __OH_PLUGIN_H
 
 #include <glib.h>
-#include <gmodule.h>
-
 #include <oh_handler.h>
 
 #ifdef __cplusplus
@@ -35,7 +33,7 @@ struct oh_plugins {
 struct oh_plugin {
         char *name; /* Name of plugin preceded by 'lib' (e.g. "libdummy"). */
         /* handle returned by lt_dlopenext or 0 for static plugins */
-        GModule *dl_handle;
+        void *dl_handle;
         struct oh_abi_v2 *abi; /* pointer to associated plugin interface */
         int handler_count; /* How many handlers use this plugin */
 

@@ -44,12 +44,7 @@ EXTRA_DIST              = openhpi.spec.in \
 	simulation.data.example \
 	openhpiclient.conf.example \
 	README.daemon \
-	README.windows \
-	Makefile.mingw32 \
-	Makefile.mingw32.def \
-	mingw32/config.h \
-	mingw32/openhpi.conf.example \
-        $(shell find $(srcdir)/include -name '*.h') 
+        $(shell find $(srcdir)/include -name '*.h')
 
 AUTOMAKE_OPTIONS        = foreign
 
@@ -60,7 +55,7 @@ MOSTLYCLEANFILES        = tags
 
 
 SUBDIRS                 = utils scripts @SSLDIR@ @SNMPDIR@ transport marshal baselib @ENABLED_DIRS@ plugins docs hpi_shell
-DIST_SUBDIRS            = utils scripts ssl snmp transport marshal baselib openhpid plugins docs clients cpp hpi_shell
+DIST_SUBDIRS            = utils scripts snmp ssl transport marshal baselib openhpid plugins docs clients cpp hpi_shell
 
 
 DISTCHECK_CONFIGURE_FLAGS = --with-initdir=prefix
@@ -108,9 +103,7 @@ include_HEADERS = $(top_srcdir)/include/SaHpi.h \
                   $(top_srcdir)/utils/sahpi_time_utils.h \
                   $(top_srcdir)/utils/uid_utils.h \
                   $(top_srcdir)/utils/epath_utils.h \
-                  $(top_srcdir)/utils/el_utils.h \
-                  $(top_srcdir)/utils/event_utils.h \
-                  $(top_srcdir)/clients/oh_clients.h
+                  $(top_srcdir)/utils/el_utils.h
 
 docsdir=$(datadir)/doc/$(PACKAGE_NAME)-$(VERSION)
 docs_DATA = README README.daemon COPYING

@@ -16,10 +16,6 @@
 
 MAINTAINERCLEANFILES 	= Makefile.in *~
 
-EXTRA_DIST = Makefile.mingw32
-
-AM_CPPFLAGS = -DG_LOG_DOMAIN=\"transport\"
-
 INCLUDES 		= @OPENHPI_INCLUDES@
 # just to clear LIBS
 LIBS			=
@@ -28,8 +24,8 @@ LIBS			=
 lib_LTLIBRARIES = libopenhpitransport.la
 
 libopenhpitransport_la_SOURCES    = \
-	strmsock.cpp \
-	strmsock.h
+	strmsock.h \
+	strmsock.cpp
 
 libopenhpitransport_la_LDFLAGS= -version-info @HPI_LIB_VERSION@
 

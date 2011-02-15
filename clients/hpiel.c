@@ -2,7 +2,6 @@
  *
  * (C) Copyright IBM Corp 2006
  * (C) Copyright Nokia Siemens Networks 2010
- * (C) Copyright Ulrich Kleber 2011
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -20,54 +19,51 @@
  *
  * Changes:
  *    09/06/2010  ulikleber  New option -D to select domain
- *    01/02/2011  ulikleber  Refactoring to use glib for option parsing and
- *                           introduce common options for all clients
  */
 
-#include "oh_clients.h"
+#include <stdlib.h>
+#include <string.h>
+#include <getopt.h>
+
+
+#include <SaHpi.h>
+#include <oHpi.h>
+#include <oh_utils.h>
+#include <oh_clients.h>
 
 #define OH_SVN_REV "$Revision$"
 
 #define err(format, ...) \
         do { \
-                if (copt.debug) { \
-                        CRIT(format "\n", ## __VA_ARGS__); \
+                if (opts.dbg) { \
+                        fprintf(stderr, format "\n", ## __VA_ARGS__); \
                 } \
         } while(0)
 
 #define show_error_quit(msg) \
         do { \
                 if (error) { \
-			copt.debug = TRUE; \
+			opts.dbg = 1; \
                         err(msg, oh_lookup_error(error)); \
-                        return error; \
+                        exit(-1); \
                 } \
         } while(0)
 
 /* Globals */
 static struct hpiel_opts {
-        gboolean  del;        /* Domain Event Log option. */
-        gboolean  clear;      /* Clear the event log before traversing it. */
-        gboolean  resource;   /* Get resource along with event log entry. */
-        gboolean  rdr;        /* Get RDR along with event log entry. */
-} opts = { FALSE, FALSE, FALSE, FALSE };
-static oHpiCommonOptionsT copt;
-
-static GOptionEntry my_options[] =
-{
-  { "del",      'd', 0, G_OPTION_ARG_NONE, &opts.del,      "Display domain event log entries",           NULL },
-  { "clear",    'c', 0, G_OPTION_ARG_NONE, &opts.clear,    "Clear log before reading event log entries", NULL },
-  { "resource", 'p', 0, G_OPTION_ARG_NONE, &opts.resource, "Pull resource info along with log entry",    NULL },
-  { "rdr",      'r', 0, G_OPTION_ARG_NONE, &opts.rdr,      "Pull RDR info along with log entry",         NULL },
-  { NULL }
-};
-
+        int  del;        /* Domain Event Log option. */
+        char *ep;       /* Resource Event Log option. */
+        int  clear;      /* Clear the event log before traversing it. */
+        int  resource;   /* Get resource along with event log entry. */
+        int  rdr;        /* Get RDR along with event log entry. */
+        int  dbg;        /* Display debug messages. */
+} opts = { 0, NULL, 0, 0, 0, 0 };
 
 SaHpiDomainIdT domainid = SAHPI_UNSPECIFIED_DOMAIN_ID;
 
 /* Prototypes */
-SaErrorT parse_options(int argc, char ***argv);
-SaErrorT harvest_sels(SaHpiSessionIdT sid, SaHpiDomainInfoT *dinfo);
+SaErrorT parse_options(int argc, char ***argv, struct hpiel_opts *opts);
+SaErrorT harvest_sels(SaHpiSessionIdT sid, SaHpiDomainInfoT *dinfo, char *ep);
 SaErrorT display_el(SaHpiSessionIdT sid, SaHpiResourceIdT rid, SaHpiTextBufferT *tag);
 
 int main(int argc, char **argv)
@@ -75,32 +71,18 @@ int main(int argc, char **argv)
         SaErrorT error = SA_OK;
         SaHpiSessionIdT sid;
         SaHpiDomainInfoT dinfo;
-        GError *gerror = NULL;
-        GOptionContext *context;
 
         /* Print version strings */
 	oh_prog_version(argv[0], OH_SVN_REV);
 
         /* Parsing options */
-        context = g_option_context_new ("- Displays HPI event log entries\n"
-                       "Option E (entity-path) displays resource event log entries.\n"
-                       "If neither -d or -E \"<arg>\" are specified, "
-                       "event log entries will be shown\n" 
-                       "for all supporting resources by default."); 
-        g_option_context_add_main_entries (context, my_options, NULL);
-
-        if (!ohc_option_parse(&argc, argv, 
-                context, &copt, 
-                OHC_ALL_OPTIONS 
-                    - OHC_VERBOSE_OPTION,    // no verbose mode implemented
-                gerror)) { 
-                g_print ("option parsing failed: %s\n", gerror->message);
-		return 1;
-	}
-        g_option_context_free (context);
+        if (parse_options(argc, &argv, &opts)) {
+                fprintf(stderr, "There was an error parsing the options. Exiting.\n");
+                exit(-1);
+        }
 
         /* Program really begins here - all options parsed at this point */
-        error = ohc_session_open_by_option ( &copt, &sid);
+        error = saHpiSessionOpen(domainid, &sid, NULL);
         show_error_quit("saHpiSessionOpen() returned %s. Exiting.\n");
 
         error = saHpiDiscover(sid);
@@ -109,39 +91,135 @@ int main(int argc, char **argv)
         error = saHpiDomainInfoGet(sid, &dinfo);
         show_error_quit("saHpiDomainInfoGet() returned %s. Exiting.\n");
 
-        printf("Domain Info: UpdateCount = %u, UpdateTime = %lx\n",
-      	       dinfo.RptUpdateCount, (unsigned long)dinfo.RptUpdateTimestamp);
+        if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID)
+		printf("Domain Info: UpdateCount = %u, UpdateTime = %lx\n",
+        	       dinfo.RptUpdateCount, (unsigned long)dinfo.RptUpdateTimestamp);
+	else	printf("Domain Info: DomainId = %u, UpdateCount = %u, UpdateTime = %lx\n",
+                       domainid, dinfo.RptUpdateCount, (unsigned long)dinfo.RptUpdateTimestamp);
 
-        if (copt.withentitypath) { /* Entity path specified */
-                error = harvest_sels(sid, &dinfo);  
+        if (opts.ep) { /* Entity path specified */
+                error = harvest_sels(sid, &dinfo, opts.ep);
         } else if (opts.del) { /* Domain event log specified */
                 error = display_el(sid, SAHPI_UNSPECIFIED_RESOURCE_ID, &dinfo.DomainTag);
         } else { /* Else, show SELs of all supporting resources */
-                error = harvest_sels(sid, &dinfo);
+                error = harvest_sels(sid, &dinfo, NULL);
         }
 
-        if (error) CRIT("Gathering event log entries returned %s",
+        if (error) err("An error happened. Gathering event log entries returned %s",
                        oh_lookup_error(error));
 
         error = saHpiSessionClose(sid);
-        if (error) CRIT("saHpiSessionClose() returned %s.",
+        if (error) err("saHpiSessionClose() returned %s.",
                        oh_lookup_error(error));
 
         return error;
 }
 
-SaErrorT harvest_sels(SaHpiSessionIdT sid, SaHpiDomainInfoT *dinfo)
+#define print_usage_quit() \
+        do { \
+                printf("\nUsage:\n" \
+                       "  hpiel - Displays HPI event log entries.\n\n" \
+                       "    --Domain=\"<arg>\", -D \"<arg>\"         select domain id\n" \
+                       "    --del, -d                        display domain event log entries\n" \
+                       "    --entitypath=\"<arg>\", -e \"<arg>\"     display resource event log entries\n" \
+                       "            (e.g. -e \"{SYSTEM_CHASSIS,2}{SBC_BLADE,5}\")\n" \
+                       "    --clear, -c                      clear log before reading event log entries\n" \
+                       "    --resource, -p                   pull resource info along with log entry\n" \
+                       "    --rdr, -r                        pull RDR info along with log entry\n" \
+                       "    --xml, -x                        print output in xml format (not implemented)\n" \
+                       "    --verbose, -v                    print debug messages\n" \
+                       "    --help, -h                       print this usage message\n" \
+                       "\n    If neither -d or -e \"<arg>\" are specified, event log entries will be shown\n" \
+                       "    for all supporting resources by default.\n\n"); \
+                exit(0); \
+        } while(0)
+
+SaErrorT parse_options(int argc, char ***argv, struct hpiel_opts *opts)
+{
+        static struct option long_options[] = {
+                {"Domain",     required_argument, 0, 'D'},
+                {"del",        no_argument,       0, 'd'},
+                {"entitypath", required_argument, 0, 'e'},
+                {"clear",      no_argument,       0, 'c'},
+                {"resource",   no_argument,       0, 'p'},
+                {"rdr",        no_argument,       0, 'r'},
+                {"verbose",    no_argument,       0, 'v'},
+                {"help",       no_argument,       0, 'h'},
+                {0, 0, 0, 0}
+        };
+        int c, option_index = 0;
+
+        while ((c = getopt_long(argc, *argv, "D:de:cprvh", long_options, &option_index)) != -1) {
+                switch(c) {
+                        case 'D':
+                                if (optarg) domainid = atoi(optarg);
+                                else {
+                                        printf("hpiel: option requires an argument -- D");
+                                        print_usage_quit();
+                                }
+                                break;
+
+                        case 'd':
+                                opts->del = 1;
+                                break;
+                        case 'e':
+                                if (optarg) opts->ep = strdup(optarg);
+                                else {
+                                        printf("hpiel: option requires an argument -- e");
+                                        print_usage_quit();
+                                }
+                                break;
+                        case 'c':
+                                opts->clear = 1;
+                                break;
+                        case 'p':
+                                opts->resource = 1;
+                                break;
+                        case 'r':
+                                opts->rdr = 1;
+                                break;
+                        case 'v':
+                                opts->dbg = 1;
+                                break;
+                        case 'h':
+                                print_usage_quit();
+                                break;
+                        case '?':
+                                printf("extraneous option found, %d\n", optopt);
+                                print_usage_quit();
+                                break;
+                        default:
+                                printf("Found bad option %d.\n", c);
+                                print_usage_quit();
+                                break;
+                }
+        }
+
+        return 0;
+}
+
+SaErrorT harvest_sels(SaHpiSessionIdT sid, SaHpiDomainInfoT *dinfo, char *ep)
 {
         SaErrorT error = SA_OK;
         SaHpiRptEntryT rptentry;
         SaHpiEntryIdT entryid, nextentryid;
         SaHpiResourceIdT rid;
         oh_big_textbuffer bigbuf;
+        SaHpiEntityPathT entitypath;
         SaHpiBoolT found_entry = SAHPI_FALSE;
 
         if (!sid || !dinfo) {
                 err("Invalid parameters in havest_sels()\n");
                 return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        if (opts.ep && ep) {
+                error = oh_encode_entitypath(ep, &entitypath);
+                if (error) {
+                        err("oh_encode_entitypath() returned %s from %s\n",
+                            oh_lookup_error(error), ep);
+                        return error;
+                }
         }
 
         entryid = SAHPI_FIRST_ENTRY;
@@ -150,8 +228,8 @@ SaErrorT harvest_sels(SaHpiSessionIdT sid, SaHpiDomainInfoT *dinfo)
 
                 err("saHpiRptEntryGet() returned %s\n", oh_lookup_error(error));
                 if (error == SA_OK) {
-                        if (copt.withentitypath) {
-                                if (!oh_cmp_ep(&copt.entitypath, &rptentry.ResourceEntity)) {
+                        if (opts.ep && ep) {
+                                if (!oh_cmp_ep(&entitypath, &rptentry.ResourceEntity)) {
                                         entryid = nextentryid;
                                         continue;
                                 }
@@ -176,18 +254,15 @@ SaErrorT harvest_sels(SaHpiSessionIdT sid, SaHpiDomainInfoT *dinfo)
 
                         error = display_el(sid, rid, &rptentry.ResourceTag);
 
-                        if (copt.withentitypath) return SA_OK;
+                        if (opts.ep && ep) return SA_OK;
                 }
 
                 entryid = nextentryid;
         }
 
         if (!found_entry) {
-                if (copt.withentitypath) {
-                       fprintf(stderr,   //cannot use err macro here
-                                  "Could not find resource matching ");
-                       oh_fprint_ep(stderr, &copt.entitypath, 0);
-                       fprintf(stderr,"\n");
+                if (opts.ep && ep) {
+                        err("Could not find resource matching %s\n", ep);
                 } else {
                         err("No resources supporting event logs were found.\n");
                 }

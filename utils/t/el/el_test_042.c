@@ -20,6 +20,7 @@
 #include <string.h>
 
 #include <SaHpi.h>
+#include <openhpi.h>
 #include <oh_utils.h>
 #include <el_utils.h>
 
@@ -46,7 +47,7 @@ int main(int argc, char **argv)
 
 	retc = oh_el_timeset(el, timestamp + 20);
 	if (retc != SA_OK){
-		CRIT("oh_el_timeset failed");
+		err("ERROR: oh_el_timeset failed");
 		return 1;
 	}
 
@@ -54,7 +55,7 @@ int main(int argc, char **argv)
         /* close el without saving to file*/
         retc = oh_el_close(el);
         if (retc != SA_OK) {
-                CRIT("oh_el_close on el failed.");
+                err("ERROR: oh_el_close on el failed.");
                 return 1;
         }
 

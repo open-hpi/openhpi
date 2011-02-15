@@ -23,7 +23,6 @@
 #include <unistd.h>
 #include <glib.h>
 #include <SaHpi.h>
-#include <oh_error.h>
 #include "new_sim_file.h"
 #include "new_sim_file_util.h"
 #include "new_sim_file_rdr.h"
@@ -38,6 +37,9 @@
 #include "new_sim_entity.h"
 #include "new_sim_utils.h"
 #include "new_sim_log.h"
+#include <oh_plugin.h>
+#include <oh_error.h>
+#include <oh_lock.h>
 
 #define GEN_SIM_DATA_VERSION 0.901
 

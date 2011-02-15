@@ -17,18 +17,8 @@
 #define __SNMP_BC_PLUGIN_H
 
 /* Order is important */
-#include <glib.h>
-
-#include <SaHpi.h>
+#include <openhpi.h>
 #include <SaHpiBladeCenter.h>
-
-#include <oh_domain.h>
-#include <oh_error.h>
-#include <oh_handler.h>
-#include <oh_plugin.h>
-#include <oh_session.h>
-#include <oh_utils.h>
-
 #include <snmp_utils.h>
 
 #include <snmp_bc.h>

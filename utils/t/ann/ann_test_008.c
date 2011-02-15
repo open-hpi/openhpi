@@ -21,7 +21,7 @@
 #include <unistd.h>
 
 #include <SaHpi.h>
-#include <oh_error.h>
+#include <openhpi.h>
 #include <oh_utils.h>
 
 
@@ -69,7 +69,7 @@ int main(int argc, char **argv)
 
         rc = oh_announcement_close(ann);
         if(rc != SA_OK) {
-                CRIT("on_announcement_close returned %d.", rc);
+                err("ERROR: on_announcement_close returned %d.", rc);
                 return 1;
         }
 

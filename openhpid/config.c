@@ -19,16 +19,14 @@
  *     Bryan Sutula <sutula@users.sourceforge.net>
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-
-#include <config.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <oh_config.h>
 #include <oh_plugin.h>
 #include <oh_error.h>
-
-#include "conf.h"
-#include "lock.h"
+#include <oh_lock.h>
+#include <config.h>
 
 /*
  * Global Parameters
@@ -59,10 +57,10 @@ static struct {
         SaHpiUint32T dat_size_limit;
         SaHpiUint32T dat_user_limit;
         SaHpiBoolT dat_save;
-        char path[OH_PATH_PARAM_MAX_LENGTH];
-        char varpath[OH_PATH_PARAM_MAX_LENGTH];
-        char conf[OH_PATH_PARAM_MAX_LENGTH];
-        char client_conf[OH_PATH_PARAM_MAX_LENGTH];	
+        char path[OH_MAX_TEXT_BUFFER_LENGTH];
+        char varpath[OH_MAX_TEXT_BUFFER_LENGTH];
+        char conf[OH_MAX_TEXT_BUFFER_LENGTH];
+        char client_conf[OH_MAX_TEXT_BUFFER_LENGTH];	
         SaHpiBoolT unconfigured;
         unsigned char read_env;
         GStaticRecMutex lock;
@@ -197,23 +195,23 @@ static void process_global_param(const char *name, char *value)
                 }
         } else if (!strcmp("OPENHPI_PATH", name)) {
                 g_static_rec_mutex_lock(&global_params.lock);
-                memset(global_params.path, 0, OH_PATH_PARAM_MAX_LENGTH);
-                strncpy(global_params.path, value, OH_PATH_PARAM_MAX_LENGTH-1);
+                memset(global_params.path, 0, OH_MAX_TEXT_BUFFER_LENGTH);
+                strncpy(global_params.path, value, OH_MAX_TEXT_BUFFER_LENGTH-1);
                 g_static_rec_mutex_unlock(&global_params.lock);
         } else if (!strcmp("OPENHPI_VARPATH", name)) {
                 g_static_rec_mutex_lock(&global_params.lock);
-                memset(global_params.varpath, 0, OH_PATH_PARAM_MAX_LENGTH);
-                strncpy(global_params.varpath, value, OH_PATH_PARAM_MAX_LENGTH-1);
+                memset(global_params.varpath, 0, OH_MAX_TEXT_BUFFER_LENGTH);
+                strncpy(global_params.varpath, value, OH_MAX_TEXT_BUFFER_LENGTH-1);
                 g_static_rec_mutex_unlock(&global_params.lock);
         } else if (!strcmp("OPENHPI_CONF", name)) {
                 g_static_rec_mutex_lock(&global_params.lock);
-                memset(global_params.conf, 0, OH_PATH_PARAM_MAX_LENGTH);
-                strncpy(global_params.conf, value, OH_PATH_PARAM_MAX_LENGTH-1);
+                memset(global_params.conf, 0, OH_MAX_TEXT_BUFFER_LENGTH);
+                strncpy(global_params.conf, value, OH_MAX_TEXT_BUFFER_LENGTH-1);
                 g_static_rec_mutex_unlock(&global_params.lock);
         } else if (!strcmp("OPENHPICLIENT_CONF", name)) {
                 g_static_rec_mutex_lock(&global_params.lock);
-                memset(global_params.client_conf, 0, OH_PATH_PARAM_MAX_LENGTH);
-                strncpy(global_params.client_conf, value, OH_PATH_PARAM_MAX_LENGTH-1);
+                memset(global_params.client_conf, 0, OH_MAX_TEXT_BUFFER_LENGTH);
+                strncpy(global_params.client_conf, value, OH_MAX_TEXT_BUFFER_LENGTH-1);
                 g_static_rec_mutex_unlock(&global_params.lock);
         } else if (!strcmp("OPENHPI_UNCONFIGURED", name)) {
                 if (!strcmp("YES", value)) {
@@ -222,7 +220,7 @@ static void process_global_param(const char *name, char *value)
                         global_params.unconfigured = SAHPI_FALSE;
                 }
 	} else {
-                CRIT("ERROR. Invalid global parameter %s in config file", name);
+                err("ERROR. Invalid global parameter %s in config file", name);
         }
 
         return;
@@ -264,15 +262,15 @@ static int process_handler_token (GScanner* oh_scanner)
 
         data_access_lock();
 
-        if (g_scanner_get_next_token(oh_scanner) != (int)HPI_CONF_TOKEN_HANDLER) {
-                CRIT("Processing handler: Unexpected token.");
+        if (g_scanner_get_next_token(oh_scanner) != HPI_CONF_TOKEN_HANDLER) {
+                err("Processing handler: Unexpected token.");
                 data_access_unlock();
                 return -1;
         }
 
         /* Get the plugin type and store in Hash Table */
         if (g_scanner_get_next_token(oh_scanner) != G_TOKEN_STRING) {
-                CRIT("Processing handler: Expected string token.");
+                err("Processing handler: Expected string token.");
                 data_access_unlock();
                 return -1;
         } else {
@@ -288,14 +286,14 @@ static int process_handler_token (GScanner* oh_scanner)
 
         /* Check for Left Brace token type. If we have it, then continue parsing. */
         if (g_scanner_get_next_token(oh_scanner) != G_TOKEN_LEFT_CURLY) {
-                CRIT("Processing handler: Expected left curly token.");
+                err("Processing handler: Expected left curly token.");
                 goto free_table;
         }
 
         while (!found_right_curly) {
                 /* get key token in key\value pair set (e.g. key = value) */
                 if (g_scanner_get_next_token(oh_scanner) != G_TOKEN_STRING) {
-                        CRIT("Processing handler: Expected string token.");
+                        err("Processing handler: Expected string token.");
                         goto free_table;
                 } else {
                         tablekey = g_strdup(oh_scanner->value.v_string);
@@ -303,7 +301,7 @@ static int process_handler_token (GScanner* oh_scanner)
 
                 /* Check for the equal sign next. If we have it, continue parsing */
                 if (g_scanner_get_next_token(oh_scanner) != G_TOKEN_EQUAL_SIGN) {
-                        CRIT("Processing handler: Expected equal sign token.");
+                        err("Processing handler: Expected equal sign token.");
                         goto free_table_and_key;
                 }
 
@@ -314,18 +312,20 @@ static int process_handler_token (GScanner* oh_scanner)
                 if (g_scanner_peek_next_token(oh_scanner) != G_TOKEN_INT &&
                     g_scanner_peek_next_token(oh_scanner) != G_TOKEN_FLOAT &&
                     g_scanner_peek_next_token(oh_scanner) != G_TOKEN_STRING) {
-                        CRIT("Processing handler: Expected string, integer, or float token.");
+                        err("Processing handler: Expected string, integer, or float token.");
                         goto free_table_and_key;
                 } else { /* The type of token tells us how to fetch the value from oh_scanner */
                         gpointer value = NULL;
                         int current_token = g_scanner_get_next_token(oh_scanner);
 
                         if (current_token == G_TOKEN_INT) {
-                                gulong *value_int = g_new0(gulong, 1);
+                                gulong *value_int =
+                                        (gulong *)g_malloc(sizeof(gulong));
                                 *value_int = oh_scanner->value.v_int;
                                 value = (gpointer)value_int;
                         } else if (current_token == G_TOKEN_FLOAT) {
-                                gdouble *value_float = g_new0(gdouble, 1);
+                                gdouble *value_float =
+                                        (gdouble *)g_malloc(sizeof(gdouble));
                                 *value_float = oh_scanner->value.v_float;
                                 value = (gpointer)value_float;
                         } else {
@@ -335,7 +335,7 @@ static int process_handler_token (GScanner* oh_scanner)
                         }
 
                         if (value == NULL) {
-                                CRIT("Processing handler:"
+                                err("Processing handler:"
                                     " Unable to allocate memory for value."
                                     " Token Type: %d",
                                     current_token);
@@ -381,33 +381,33 @@ free_table:
 static int process_global_token(GScanner *scanner)
 {
         char *name = NULL, *value = NULL;
-        int current_token;
+        guint current_token;
 
         data_access_lock();
 
         /* Get the global parameter name */
         current_token = g_scanner_get_next_token(scanner);
         if (current_token != G_TOKEN_STRING) {
-                CRIT("Processing global: Expected string token. Got %d",
+                err("Processing global: Expected string token. Got %d",
                     current_token);
                 goto quit;
         }
 
         name = g_strdup(scanner->value.v_string);
         if (!name) {
-                CRIT("Unable to allocate for global param name.");
+                err("Unable to allocate for global param name.");
                 goto quit;
         }
 
         current_token = g_scanner_get_next_token(scanner);
         if (current_token != G_TOKEN_EQUAL_SIGN) {
-                CRIT("Did not get expected '=' token. Got %d", current_token);
+                err("Did not get expected '=' token. Got %d", current_token);
                 goto free_and_quit;
         }
 
         current_token = g_scanner_get_next_token(scanner);
         if (current_token != G_TOKEN_STRING && current_token != G_TOKEN_INT) {
-                CRIT("Did not get expected string value for global parameter."
+                err("Did not get expected string value for global parameter."
                     " Got %d", current_token);
                 goto free_and_quit;
         }
@@ -427,7 +427,7 @@ static int process_global_token(GScanner *scanner)
         }
 
         if (!value) {
-                CRIT("Unable to allocate for global param value.");
+                err("Unable to allocate for global param value.");
                 goto free_and_quit;
         }
 
@@ -458,7 +458,7 @@ static void scanner_msg_handler (GScanner *scanner, gchar *message, gboolean is_
 {
         g_return_if_fail (scanner != NULL);
 
-        CRIT("%s:%d: %s%s\n",
+        err("%s:%d: %s%s\n",
             scanner->input_name ? scanner->input_name : "<memory>",
             scanner->line, is_error ? "error: " : "", message );
 }
@@ -475,51 +475,46 @@ static void scanner_msg_handler (GScanner *scanner, gchar *message, gboolean is_
  **/
 int oh_load_config (char *filename, struct oh_parsed_config *config)
 {
-        FILE * fp;
-        int i;
+        int oh_conf_file, i;
         GScanner *oh_scanner;
         int done = 0;
         int num_tokens = sizeof(oh_conf_tokens) / sizeof(oh_conf_tokens[0]);
 
         if (!filename || !config) {
-                CRIT("Error. Invalid parameters");
+                err("Error. Invalid parameters");
                 return -1;
         }
 
         handler_configs = NULL;
         oh_scanner = g_scanner_new(&oh_scanner_config);
         if (!oh_scanner) {
-                CRIT("Couldn't allocate g_scanner for file parsing");
+                err("Couldn't allocate g_scanner for file parsing");
                 return -2;
         }
 
         oh_scanner->msg_handler = scanner_msg_handler;
         oh_scanner->input_name = filename;
 
-        fp = fopen(filename, "r");
-        if (!fp) {
-                CRIT("Configuration file '%s' could not be opened", filename);
+        oh_conf_file = open(filename, O_RDONLY);
+        if (oh_conf_file < 0) {
+                err("Configuration file '%s' could not be opened", filename);
                 g_scanner_destroy(oh_scanner);
                 return -4;
         }
 
-#ifdef _WIN32
-        g_scanner_input_file(oh_scanner, _fileno(fp));
-#else
-        g_scanner_input_file(oh_scanner, fileno(fp));
-#endif
+        g_scanner_input_file(oh_scanner, oh_conf_file);
 
         for (i = 0; i < num_tokens; i++) {
                 g_scanner_scope_add_symbol(
                         oh_scanner, 0,
                         oh_conf_tokens[i].name,
-                        GUINT_TO_POINTER(oh_conf_tokens[i].token));
+                        (void *)((unsigned long)oh_conf_tokens[i].token));
         }
 
         while (!done) {
-                int my_token;
+                guint my_token;
                 my_token = g_scanner_peek_next_token (oh_scanner);
-                /*DBG("token: %d", my_token);*/
+                /*dbg("token: %d", my_token);*/
                 switch (my_token)
                 {
                 case G_TOKEN_EOF:
@@ -542,13 +537,17 @@ int oh_load_config (char *filename, struct oh_parsed_config *config)
 
         read_globals_from_env(1);
 
-        fclose(fp);
+        if (close(oh_conf_file) != 0) {
+                err("Couldn't close file '%s'.", filename);
+                g_scanner_destroy(oh_scanner);
+                return -5;
+        }
 
         done = oh_scanner->parse_errors;
 
         g_scanner_destroy(oh_scanner);
 
-        DBG("Done processing conf file. Parse errors: %d", done);
+        dbg("Done processing conf file.\nNumber of parse errors:%d", done);
 
         config->handler_configs = handler_configs;
 
@@ -580,11 +579,11 @@ SaErrorT oh_process_config(struct oh_parsed_config *config)
 
 		error = oh_create_handler(handler_config, &hid);
                 if (error == SA_OK) {
-                        DBG("Loaded handler for plugin %s",
+                        dbg("Loaded handler for plugin %s",
                             (char *)g_hash_table_lookup(handler_config, "plugin"));
                         config->handlers_loaded++;
                 } else {
-                        CRIT("Couldn't load handler for plugin %s",
+                        err("Couldn't load handler for plugin %s",
                             (char *)g_hash_table_lookup(handler_config, "plugin"));
                         if (hid == 0) g_hash_table_destroy(handler_config);
                 }
@@ -612,11 +611,11 @@ int oh_get_global_param(struct oh_global_param *param)
         if (!param || !(param->type)) {
 
             if (!param) {
-                CRIT("ERROR. Invalid parameters param NULL");
+                err("ERROR. Invalid parameters param NULL");
             }
 
             if (!param->type) {
-                CRIT("ERROR. Invalid parameters param->type NULL");
+                err("ERROR. Invalid parameters param->type NULL");
             }
 
                 return -1;
@@ -655,35 +654,35 @@ int oh_get_global_param(struct oh_global_param *param)
                         g_static_rec_mutex_lock(&global_params.lock);
                         strncpy(param->u.path,
                                 global_params.path,
-                                OH_PATH_PARAM_MAX_LENGTH);
+                                OH_MAX_TEXT_BUFFER_LENGTH);
                         g_static_rec_mutex_unlock(&global_params.lock);
                         break;
                 case OPENHPI_VARPATH:
                         g_static_rec_mutex_lock(&global_params.lock);
                         strncpy(param->u.varpath,
                                 global_params.varpath,
-                                OH_PATH_PARAM_MAX_LENGTH);
+                                OH_MAX_TEXT_BUFFER_LENGTH);
                         g_static_rec_mutex_unlock(&global_params.lock);
                         break;
                 case OPENHPI_CONF:
                         g_static_rec_mutex_lock(&global_params.lock);
                         strncpy(param->u.conf,
                                 global_params.conf,
-                                OH_PATH_PARAM_MAX_LENGTH);
+                                OH_MAX_TEXT_BUFFER_LENGTH);
                         g_static_rec_mutex_unlock(&global_params.lock);
                         break;
                 case OPENHPICLIENT_CONF:
                         g_static_rec_mutex_lock(&global_params.lock);
                         strncpy(param->u.conf,
                                 global_params.client_conf,
-                                OH_PATH_PARAM_MAX_LENGTH);
+                                OH_MAX_TEXT_BUFFER_LENGTH);
                         g_static_rec_mutex_unlock(&global_params.lock);
                         break;
                 case OPENHPI_UNCONFIGURED:
                         param->u.unconfigured = global_params.unconfigured;
                         break;
                default:
-                        CRIT("ERROR. Invalid global parameter %d!", param->type);
+                        err("ERROR. Invalid global parameter %d!", param->type);
                         return -2;
         }
 
@@ -699,7 +698,7 @@ int oh_get_global_param(struct oh_global_param *param)
 int oh_set_global_param(struct oh_global_param *param)
 {
         if (!param || !(param->type)) {
-                CRIT("ERROR. Invalid parameters");
+                err("ERROR. Invalid parameters");
                 return -1;
         }
 
@@ -734,41 +733,41 @@ int oh_set_global_param(struct oh_global_param *param)
                         break;
                 case OPENHPI_PATH:
                         g_static_rec_mutex_lock(&global_params.lock);
-                        memset(global_params.path, 0, OH_PATH_PARAM_MAX_LENGTH);
+                        memset(global_params.path, 0, OH_MAX_TEXT_BUFFER_LENGTH);
                         strncpy(global_params.path,
                                 param->u.path,
-                                OH_PATH_PARAM_MAX_LENGTH-1);
+                                OH_MAX_TEXT_BUFFER_LENGTH-1);
                         g_static_rec_mutex_unlock(&global_params.lock);
                         break;
                 case OPENHPI_VARPATH:
                         g_static_rec_mutex_lock(&global_params.lock);
-                        memset(global_params.varpath, 0, OH_PATH_PARAM_MAX_LENGTH);
+                        memset(global_params.varpath, 0, OH_MAX_TEXT_BUFFER_LENGTH);
                         strncpy(global_params.varpath,
                                 param->u.varpath,
-                                OH_PATH_PARAM_MAX_LENGTH-1);
+                                OH_MAX_TEXT_BUFFER_LENGTH-1);
                         g_static_rec_mutex_unlock(&global_params.lock);
                         break;
                 case OPENHPI_CONF:
                         g_static_rec_mutex_lock(&global_params.lock);
-                        memset(global_params.conf, 0, OH_PATH_PARAM_MAX_LENGTH);
+                        memset(global_params.conf, 0, OH_MAX_TEXT_BUFFER_LENGTH);
                         strncpy(global_params.conf,
                                 param->u.conf,
-                                OH_PATH_PARAM_MAX_LENGTH-1);
+                                OH_MAX_TEXT_BUFFER_LENGTH-1);
                         g_static_rec_mutex_unlock(&global_params.lock);
                         break;
                 case OPENHPICLIENT_CONF:
                         g_static_rec_mutex_lock(&global_params.lock);
-                        memset(global_params.conf, 0, OH_PATH_PARAM_MAX_LENGTH);
+                        memset(global_params.conf, 0, OH_MAX_TEXT_BUFFER_LENGTH);
                         strncpy(global_params.client_conf,
                                 param->u.conf,
-                                OH_PATH_PARAM_MAX_LENGTH-1);
+                                OH_MAX_TEXT_BUFFER_LENGTH-1);
                         g_static_rec_mutex_unlock(&global_params.lock);
                         break;			
                 case OPENHPI_UNCONFIGURED:
                         global_params.unconfigured = param->u.unconfigured;
                         break;
                 default:
-                        CRIT("ERROR. Invalid global parameter %d!", param->type);
+                        err("ERROR. Invalid global parameter %d!", param->type);
                         return -2;
         }
 

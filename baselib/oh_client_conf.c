@@ -18,17 +18,19 @@
  */
 
 #include <stdlib.h>
-#include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <string.h>
 
 #include <oHpi.h>
-
 #include <config.h>
+#include <oh_domain.h>
 #include <oh_error.h>
 
-#include "conf.h"
-#include "init.h"
-#include "lock.h"
+#include "oh_client.h"
+#include "oh_client_conf.h"
 
 
 static GHashTable *ohc_domains = NULL;
@@ -41,15 +43,15 @@ static void extract_keys(gpointer key, gpointer val, gpointer user_data);
 static gint compare_keys(const gint *a, const gint *b);
 
 
-void ohc_conf_init(void)
+void oh_client_conf_init(void)
 {
 
-    ohc_lock();
+    g_static_rec_mutex_lock(&ohc_lock);
 
     // Create domain table
     if (!ohc_domains) { // Create domain table
         char * config_file;
-        const struct ohc_domain_conf *default_conf;
+        const struct oh_domain_conf *default_conf;
 
         ohc_domains = g_hash_table_new_full(g_int_hash,
                                             g_int_equal,
@@ -65,7 +67,7 @@ void ohc_conf_init(void)
         }
 
         /* Check to see if a default domain exists, if not, add it */
-        default_conf = ohc_get_domain_conf(OH_DEFAULT_DOMAIN_ID);
+        default_conf = oh_get_domain_conf(OH_DEFAULT_DOMAIN_ID);
         if (default_conf == NULL) {
             const char *host, *portstr;
             unsigned short port;
@@ -86,24 +88,24 @@ void ohc_conf_init(void)
         }
     }
 
-    ohc_unlock();
+    g_static_rec_mutex_unlock(&ohc_lock);
 }
 
-const struct ohc_domain_conf * ohc_get_domain_conf(SaHpiDomainIdT did)
+const struct oh_domain_conf * oh_get_domain_conf(SaHpiDomainIdT did)
 {
-    struct ohc_domain_conf *dc;
-    ohc_lock();
-    dc = (struct ohc_domain_conf *)g_hash_table_lookup(ohc_domains, &did);
-    ohc_unlock();
+    struct oh_domain_conf *dc;
+    g_static_rec_mutex_lock(&ohc_lock);
+    dc = (struct oh_domain_conf *)g_hash_table_lookup(ohc_domains, &did);
+    g_static_rec_mutex_unlock(&ohc_lock);
 
     return dc;
 }
 
-SaErrorT ohc_add_domain_conf(const char *host,
-                             unsigned short port,
-                             SaHpiDomainIdT *did)
+SaErrorT oh_add_domain_conf(const char *host,
+                            unsigned short port,
+                            SaHpiDomainIdT *did)
 {
-    ohc_lock();
+    g_static_rec_mutex_lock(&ohc_lock);
 
     // get all known domain ids and sort them
     GList *keys = 0;
@@ -125,50 +127,50 @@ SaErrorT ohc_add_domain_conf(const char *host,
     g_list_free(keys);
 
     if (prev_did == SAHPI_UNSPECIFIED_DOMAIN_ID) {
-        ohc_unlock();
+        g_static_rec_mutex_unlock(&ohc_lock);
         return SA_ERR_HPI_OUT_OF_SPACE;
     }
     if ((prev_did + 1) == SAHPI_UNSPECIFIED_DOMAIN_ID) {
-        ohc_unlock();
+        g_static_rec_mutex_unlock(&ohc_lock);
         return SA_ERR_HPI_OUT_OF_SPACE;
     }
 
     *did = prev_did + 1;
     add_domain_conf(*did, host, port);
 
-    ohc_unlock();
+    g_static_rec_mutex_unlock(&ohc_lock);
 
     return SA_OK;
 }
 
-SaErrorT ohc_add_domain_conf_by_id(SaHpiDomainIdT did,
-                                   const char *host,
-                                   unsigned short port)
+SaErrorT oh_add_domain_conf_by_id(SaHpiDomainIdT did,
+                                  const char *host,
+                                  unsigned short port)
 {
     if (did==SAHPI_UNSPECIFIED_DOMAIN_ID || 
         did==OH_DEFAULT_DOMAIN_ID)
        return SA_ERR_HPI_INVALID_PARAMS;
 
-    ohc_lock();
+    g_static_rec_mutex_lock(&ohc_lock);
 
     // check new did against all known domain ids 
-    if (ohc_get_domain_conf(did) != NULL) {
-        ohc_unlock();
+    if (oh_get_domain_conf(did) != NULL) {
+        g_static_rec_mutex_unlock(&ohc_lock);
         return SA_ERR_HPI_DUPLICATE;
     }
     
     add_domain_conf(did, host, port);
-    ohc_unlock();
+    g_static_rec_mutex_unlock(&ohc_lock);
     return SA_OK;
 }
 
-const struct ohc_domain_conf * ohc_get_next_domain_conf(SaHpiEntryIdT entry_id,
-                                                        SaHpiEntryIdT *next_entry_id)
+const struct oh_domain_conf * oh_get_next_domain_conf(SaHpiEntryIdT entry_id,
+                                                     SaHpiEntryIdT *next_entry_id)
 {
-    struct ohc_domain_conf *dc;
+    struct oh_domain_conf *dc;
     int did, nextdid = SAHPI_UNSPECIFIED_DOMAIN_ID;
 
-    ohc_lock();
+    g_static_rec_mutex_lock(&ohc_lock);
 
     // get all known domain ids and sort them
     GList *keys = 0;
@@ -181,7 +183,7 @@ const struct ohc_domain_conf * ohc_get_next_domain_conf(SaHpiEntryIdT entry_id,
     else // EntryId already must be a valid domain id
        did = (SaHpiDomainIdT) entry_id;
 
-    dc = (struct ohc_domain_conf *)g_hash_table_lookup(ohc_domains, &did);
+    dc = (struct oh_domain_conf *)g_hash_table_lookup(ohc_domains, &did);
 
     if (dc != NULL) { 
        // search first domain id > did
@@ -198,7 +200,7 @@ const struct ohc_domain_conf * ohc_get_next_domain_conf(SaHpiEntryIdT entry_id,
     else *next_entry_id = SAHPI_LAST_ENTRY;
 
     g_list_free(keys);
-    ohc_unlock();
+    g_static_rec_mutex_unlock(&ohc_lock);
 
     return dc;
 }
@@ -238,7 +240,7 @@ struct tokens {
         guint token;
 };
 
-static struct tokens ohc_conf_tokens[] = {
+static struct tokens oh_client_conf_tokens[] = {
         {
                 .name = "domain",
                 .token = HPI_CLIENT_CONF_TOKEN_DOMAIN
@@ -309,8 +311,8 @@ static GScannerConfig oh_scanner_conf = {
                 FALSE                   /* scope_0_fallback */,
 };
 
-static int get_next_good_token(GScanner *oh_scanner) {
-        int next_token;
+static GTokenType get_next_good_token(GScanner *oh_scanner) {
+        GTokenType next_token;
 
         next_token = g_scanner_get_next_token(oh_scanner);
         while (next_token != G_TOKEN_RIGHT_CURLY &&
@@ -327,9 +329,9 @@ static void add_domain_conf(SaHpiDomainIdT did,
                             const char *host,
                             unsigned short port)
 {
-    struct ohc_domain_conf *domain_conf;
+    struct oh_domain_conf *domain_conf;
 
-    domain_conf = g_new0(struct ohc_domain_conf, 1);
+    domain_conf = g_malloc0(sizeof(struct oh_domain_conf));
     domain_conf->did = did;
     strncpy(domain_conf->host, host, SAHPI_MAX_TEXT_BUFFER_LENGTH);
     domain_conf->port = port;
@@ -342,14 +344,13 @@ static int process_domain_token (GScanner *oh_scanner)
         char host[SAHPI_MAX_TEXT_BUFFER_LENGTH];
         unsigned int port;
 
-        int next_token;
+        GTokenType next_token;
 
         host[0] = '\0';
         port = OPENHPI_DEFAULT_DAEMON_PORT;
 
-        next_token = g_scanner_get_next_token(oh_scanner);
-        if (next_token != HPI_CLIENT_CONF_TOKEN_DOMAIN) {
-                CRIT("Processing domain: Expected a domain token");
+        if (g_scanner_get_next_token(oh_scanner) != HPI_CLIENT_CONF_TOKEN_DOMAIN) {
+                err("Processing domain: Expected a domain token");
                 return -1;
         }
 
@@ -357,20 +358,22 @@ static int process_domain_token (GScanner *oh_scanner)
         next_token = g_scanner_get_next_token(oh_scanner);
         if (next_token == HPI_CLIENT_CONF_TOKEN_DEFAULT) {
                 did = OH_DEFAULT_DOMAIN_ID;
+                dbg("Processing domain: Found default domain definition");
         } else if (next_token == G_TOKEN_INT) {
                 if (oh_scanner->value.v_int == 0) { // Domain Id of 0 is invalid
-                        CRIT("Processing domain: A domain id of 0 is invalid");
+                        err("Processing domain: A domain id of 0 is invalid");
                         return -2;
                 }
                 did = (SaHpiDomainIdT)oh_scanner->value.v_int;
+                dbg("Processing domain: Found domain definition");
         } else {
-                CRIT("Processing domain: Expected int or string ('default') token");
+                err("Processing domain: Expected int or string ('default') token");
                 return -3;
         }
 
         /* Check for Left Brace token type. If we have it, then continue parsing. */
         if (g_scanner_get_next_token(oh_scanner) != G_TOKEN_LEFT_CURLY) {
-                CRIT("Processing domain: Expected left curly token.");
+                err("Processing domain: Expected left curly token.");
                 return -10;
         }
 
@@ -379,12 +382,12 @@ static int process_domain_token (GScanner *oh_scanner)
                 if (next_token == HPI_CLIENT_CONF_TOKEN_HOST) {
                         next_token = g_scanner_get_next_token(oh_scanner);
                         if (next_token != G_TOKEN_EQUAL_SIGN) {
-                                CRIT("Processing domain: Expected equal sign");
+                                err("Processing domain: Expected equal sign");
                                 return -10;
                         }
                         next_token = g_scanner_get_next_token(oh_scanner);
                         if (next_token != G_TOKEN_STRING) {
-                                CRIT("Processing domain: Expected a string");
+                                err("Processing domain: Expected a string");
                                 return -10;
                         }
                         if (host[0] == '\0') {
@@ -393,27 +396,27 @@ static int process_domain_token (GScanner *oh_scanner)
                 } else if (next_token == HPI_CLIENT_CONF_TOKEN_PORT) {
                         next_token = g_scanner_get_next_token(oh_scanner);
                         if (next_token != G_TOKEN_EQUAL_SIGN) {
-                                CRIT("Processing domain: Expected equal sign");
+                                err("Processing domain: Expected equal sign");
                                 return -10;
                         }
                         next_token = g_scanner_get_next_token(oh_scanner);
                         if (next_token != G_TOKEN_INT) {
-                                CRIT("Processing domain: Expected an integer");
+                                err("Processing domain: Expected an integer");
                                 return -10;
                         }
                         port = oh_scanner->value.v_int;
                 } else {
-                        CRIT("Processing domain: Should not get here!");
+                        err("Processing domain: Should not get here!");
                         return -10;
                 }
                 next_token = g_scanner_get_next_token(oh_scanner);
         }
 
         if (next_token == G_TOKEN_EOF) {
-                CRIT("Processing domain: Expected a right curly");
+                err("Processing domain: Expected a right curly");
                 return -10;
         } else if (host[0] == '\0') {
-                CRIT("Processing domain: Did not find the host parameter");
+                err("Processing domain: Did not find the host parameter");
                 return -10;
         }
 
@@ -426,54 +429,51 @@ static void scanner_msg_handler (GScanner *scanner, gchar *message, gboolean is_
 {
         g_return_if_fail (scanner != NULL);
 
-        CRIT("%s:%d: %s%s\n",
+        err("%s:%d: %s%s\n",
             scanner->input_name ? scanner->input_name : "<memory>",
             scanner->line, is_error ? "error: " : "", message );
 }
 
 static int load_client_config(const char *filename)
 {
-        int i, done = 0;
+        int oh_client_conf_file, i, done = 0;
         GScanner *oh_scanner;
-        int num_tokens = sizeof(ohc_conf_tokens) / sizeof(ohc_conf_tokens[0]);
+        int num_tokens = sizeof(oh_client_conf_tokens) / sizeof(oh_client_conf_tokens[0]);
 
         if (!filename) {
-                CRIT("Error. Invalid parameters");
+                err("Error. Invalid parameters");
                 return -1;
         }
 
         oh_scanner = g_scanner_new(&oh_scanner_conf);
         if (!oh_scanner) {
-                CRIT("Couldn't allocate g_scanner for file parsing");
+                err("Couldn't allocate g_scanner for file parsing");
                 return -2;
         }
 
         oh_scanner->msg_handler = scanner_msg_handler;
         oh_scanner->input_name = filename;
 
-        FILE * fp = fopen(filename, "r");
-        if (!fp) {
-                CRIT("Client configuration file '%s' could not be opened", filename);
+        oh_client_conf_file = open(filename, O_RDONLY);
+        if (oh_client_conf_file < 0) {
+                err("Client configuration file '%s' could not be opened", filename);
                 g_scanner_destroy(oh_scanner);
                 return -3;
         }
 
-#ifdef _WIN32
-        g_scanner_input_file(oh_scanner, _fileno(fp));
-#else
-        g_scanner_input_file(oh_scanner, fileno(fp));
-#endif
+        g_scanner_input_file(oh_scanner, oh_client_conf_file);
 
         for (i = 0; i < num_tokens; i++) {
                 g_scanner_scope_add_symbol(
                         oh_scanner, 0,
-                        ohc_conf_tokens[i].name,
-                        GUINT_TO_POINTER(ohc_conf_tokens[i].token));
+                        oh_client_conf_tokens[i].name,
+                        (void *)((unsigned long)oh_client_conf_tokens[i].token));
         }
 
         while (!done) {
                 guint my_token;
                 my_token = g_scanner_peek_next_token(oh_scanner);
+                /*dbg("token: %d", my_token);*/
                 switch (my_token)
                 {
                 case G_TOKEN_EOF:
@@ -491,11 +491,17 @@ static int load_client_config(const char *filename)
                 }
         }
 
-        fclose(fp);
+        if (close(oh_client_conf_file) != 0) {
+                err("Couldn't close file '%s'.", filename);
+                g_scanner_destroy(oh_scanner);
+                return -4;
+        }
 
         done = oh_scanner->parse_errors;
 
         g_scanner_destroy(oh_scanner);
+
+        dbg("Done processing conf file.\nNumber of parse errors:%d", done);
 
         return 0;
 }

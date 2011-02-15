@@ -2,7 +2,6 @@
  *
  * Copyright (c) 2003 by Intel Corp.
  * (C) Copyright Nokia Siemens Networks 2010
- * (C) Copyright Ulrich Kleber 2011
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -22,12 +21,17 @@
  * 11/03/2004  kouzmich   porting to HPI B
  * 11/25/2004  kouzmich   changed as new threshold client (first release)
  * 09/06/2010  ulikleber  New option -D to select domain
- * 01/02/2011  ulikleber  Refactoring to use glib for option parsing and
- *                        introduce common options for all clients
- *
  */
 
-#include "oh_clients.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <getopt.h>
+
+#include <SaHpi.h>
+#include <oh_utils.h>
+#include <oh_clients.h>
 
 #define OH_SVN_REV "$Revision$"
 
@@ -93,7 +97,9 @@ Commands_def_t	Coms[] = {
 Rpt_t	*Rpts;
 int	nrpts = 0;
 
-static oHpiCommonOptionsT copt;
+int	fdebug = 0;
+
+SaHpiDomainIdT 		domainid = SAHPI_UNSPECIFIED_DOMAIN_ID;	
 SaHpiSessionIdT		sessionid;
 
 static void *resize_array(void *Ar, int item_size, int *last_num, int add_num)
@@ -127,10 +133,10 @@ static void print_value(SaHpiSensorReadingT *item, char *mes)
 		return;
 	switch (item->Type) {
 		case SAHPI_SENSOR_READING_TYPE_INT64:
-			printf("%" PRId64 " %s\n", (int64_t) item->Value.SensorInt64, mes);
+			printf("%lld %s\n", item->Value.SensorInt64, mes);
 			return;
 		case SAHPI_SENSOR_READING_TYPE_UINT64:
-			printf("%" PRIu64 " %s\n", (uint64_t) item->Value.SensorUint64, mes);
+			printf("%llu %s\n", item->Value.SensorUint64, mes);
 			return;
 		case SAHPI_SENSOR_READING_TYPE_FLOAT64:
 			printf("%10.3f %s\n", item->Value.SensorFloat64, mes);
@@ -361,8 +367,7 @@ static int get_number(char *mes, int *res)
 
 	printf("%s", mes);
 	ret = fgets(buf, READ_BUF_SIZE, stdin);
-	if (ret) return (sscanf(buf, "%d", res));
-        else return -1;
+	return (sscanf(buf, "%d", res));
 }
 
 static void set_thres_value(SaHpiSensorReadingT *R, double val)
@@ -500,8 +505,8 @@ static void mod_sen(void)
 			NULL, NULL, NULL);
 		if (rv == SA_OK)
 			break;
-		if (copt.debug) printf("sleep before saHpiEventGet\n");
-		g_usleep(G_USEC_PER_SEC);
+		if (fdebug) printf("sleep before saHpiEventGet\n");
+		sleep(1);
 	};
 	saHpiSensorThresholdsGet(sessionid, Rpt->Rpt.ResourceId,
 		Rdr->Rdr.RdrTypeUnion.SensorRec.Num, &thres);
@@ -638,39 +643,50 @@ static int parse_command(char *Str)
 	
 int main(int argc, char **argv)
 {
-	int		i;
+	int		c, i;
 	SaErrorT	rv;
 	char		buf[READ_BUF_SIZE];
 	char		*S;
-        GError          *error = NULL;
-        GOptionContext  *context;
+	SaHpiBoolT 	printusage = FALSE;
 
 	oh_prog_version(argv[0], OH_SVN_REV);
-
-        context = g_option_context_new ("- Display sensors and sensor info");
-
-        if (!ohc_option_parse(&argc, argv, 
-                context, &copt, 
-                OHC_ALL_OPTIONS 
-                    - OHC_ENTITY_PATH_OPTION //TODO: Feature 880127
-                    - OHC_VERBOSE_OPTION,    // no verbose mode implemented
-                error)) { 
-                g_option_context_free (context);
-		return 1;
+	while ( (c = getopt( argc, argv,"D:x?")) != EOF )
+		switch(c)  {
+			case 'D':
+                                if (optarg) domainid = atoi(optarg);
+				else printusage = TRUE;
+                                break;
+			case 'x':
+				fdebug = 1;
+				break;
+			default: printusage = TRUE;
 	}
-        g_option_context_free (context);
- 
-        rv = ohc_session_open_by_option ( &copt, &sessionid);
-	if (rv != SA_OK) return rv;
+	if (printusage) {
+		printf("Usage: %s [-D domain] [-x]\n", argv[0]);
+		printf("   -D domainid  Select domain\n");
+		printf("   -x           Display debug messages\n");
+		return(1);
+	}
 	
+	if (fdebug) {
+		if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) printf("saHpiSessionOpen\n");
+		else printf("saHpiSessionOpen to domain %u\n",domainid);
+	}
+        rv = saHpiSessionOpen(domainid,&sessionid,NULL);
+
+	if (rv != SA_OK) {
+		printf("saHpiSessionOpen: %s\n", oh_lookup_error(rv));
+		return(-1);
+	}
+ 
 	rv = saHpiDiscover(sessionid);
 
-	if (copt.debug) printf("saHpiDiscover: %s\n", oh_lookup_error(rv));
+	if (fdebug) printf("saHpiDiscover: %s\n", oh_lookup_error(rv));
 
 	rv = saHpiSubscribe(sessionid);
 	if (rv != SA_OK) {
 		printf( "saHpiSubscribe error %d\n",rv);
-		return rv;
+		return(-1);
 	}	
 	
 	/* make the RPT list */

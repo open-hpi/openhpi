@@ -20,6 +20,7 @@
 #include <string.h>
 
 #include <SaHpi.h>
+#include <openhpi.h>
 #include <oh_utils.h>
 #include <el_utils.h>
 
@@ -49,7 +50,7 @@ int main(int argc, char **argv)
 
         retc = oh_el_info(el, &info);
         if (retc == SA_OK) {
-                CRIT("oh_el_info failed.");
+                err("ERROR: oh_el_info failed.");
                 return 1;
         }
 

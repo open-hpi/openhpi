@@ -15,7 +15,10 @@
  *      Renier Morales <renier@openhpi.org>
  */
 
-#include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <string.h>
 
 #include <SaHpi.h>
@@ -27,7 +30,7 @@ oh_el *oh_el_create(SaHpiUint32T size)
 {
         oh_el *el;
 
-        el = g_new0(oh_el, 1);
+        el = (oh_el *) g_malloc0(sizeof(oh_el));
         if (el != NULL) {
 		el->basetime = 0;
 		el->sysbasetime = 0;
@@ -80,7 +83,7 @@ SaErrorT oh_el_append(oh_el *el,
         }
 
         /* alloc the new entry */
-        entry = g_new0(oh_el_entry, 1);
+        entry = (oh_el_entry *) g_malloc0(sizeof(oh_el_entry));
         if (entry == NULL) {
                 el->info.OverflowFlag = TRUE;
                 return SA_ERR_HPI_OUT_OF_SPACE;
@@ -145,7 +148,7 @@ SaErrorT oh_el_prepend(oh_el *el,
         }
 
         /* alloc the new entry */
-        entry = g_new0(oh_el_entry, 1);
+        entry = (oh_el_entry *) g_malloc0(sizeof(oh_el_entry));
         if (entry == NULL) {
                 el->info.OverflowFlag = TRUE;
                 return SA_ERR_HPI_OUT_OF_SPACE;
@@ -319,28 +322,35 @@ SaErrorT oh_el_overflowset(oh_el *el, SaHpiBoolT flag)
 /* write a EL entry list to a file */
 SaErrorT oh_el_map_to_file(oh_el *el, char *filename)
 {
-        FILE *fp;
+        int file;
         GList *node = NULL;
 
         if (el == NULL || filename == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        fp = fopen(filename, "wb");
-        if (!fp) {
-                CRIT("EL file '%s' could not be opened", filename);
+#ifdef _WIN32
+        file = open(filename, O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR);
+#else
+        file = open(filename, O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRGRP);
+#endif /* _WIN32 */
+        if (file < 0) {
+                err("EL file '%s' could not be opened", filename);
                 return SA_ERR_HPI_ERROR;
         }
         
 	for (node = el->list; node; node = node->next) {
-                if (fwrite((void *)node->data, sizeof(oh_el_entry), 1, fp) != 1) {
-			CRIT("Couldn't write to file '%s'.", filename);
-			fclose(fp);
+                if (write(file, (void *)node->data, sizeof(oh_el_entry)) != sizeof(oh_el_entry)) {
+			err("Couldn't write to file '%s'.", filename);
+			close(file);
                 	return SA_ERR_HPI_ERROR;
 		}
         }
 
-        fclose(fp);
+        if (close(file) != 0) {
+                err("Couldn't close file '%s'.", filename);
+                return SA_ERR_HPI_ERROR;
+        }
 
         return SA_OK;
 }
@@ -349,7 +359,7 @@ SaErrorT oh_el_map_to_file(oh_el *el, char *filename)
 /* read a EL entry list from a file */
 SaErrorT oh_el_map_from_file(oh_el *el, char *filename)
 {
-        FILE *fp;
+        int file;
         oh_el_entry entry;
 
         /* check el params and state */
@@ -359,22 +369,25 @@ SaErrorT oh_el_map_from_file(oh_el *el, char *filename)
                 return SA_ERR_HPI_INVALID_REQUEST;
         }
 
-        fp = fopen(filename, "rb");
-        if (!fp) {
-                CRIT("EL file '%s' could not be opened", filename);
+        file = open(filename, O_RDONLY);
+        if (file < 0) {
+                err("EL file '%s' could not be opened", filename);
                 return SA_ERR_HPI_ERROR;
         }
 
         oh_el_clear(el); // ensure list is empty
-        while (fread(&entry, sizeof(oh_el_entry), 1, fp) == 1) {
-		oh_el_entry *elentry = g_new0(oh_el_entry, 1);
+        while (read(file, &entry, sizeof(oh_el_entry)) == sizeof(oh_el_entry)) {
+		oh_el_entry *elentry = (oh_el_entry *)g_malloc0(sizeof(oh_el_entry));
 		el->nextid = entry.event.EntryId;
 		el->nextid++;
 		*elentry = entry;
 		el->list = g_list_append(el->list, elentry);
         }
 
-        fclose(fp);
+        if (close(file) != 0) {
+                err("Couldn't close file '%s'.", filename);
+                return SA_ERR_HPI_ERROR;
+        }
 
         return SA_OK;
 }

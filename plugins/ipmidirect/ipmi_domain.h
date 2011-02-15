@@ -33,8 +33,7 @@ extern "C" {
 #include "SaHpi.h"
 }
 
-#include <oh_error.h>
-#include <oh_handler.h>
+#include <openhpi.h>
 #include <oh_utils.h>
 
 #ifndef dIpmiCon_h

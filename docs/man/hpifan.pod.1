@@ -4,8 +4,7 @@ hpifan - An openhpi sample application that shows "Fan Control" management instr
 
 =head1 SYNOPSIS 
 
- hpifan [-D nn] [-N host[:port]] [-C <cfgfile>] [-h] [-s auto|nn] [-X]
- hpifan [--domain=nn] [--host=host[:port]] [--cfgfile=file] [--help] [--speed=auto|nn] [--debug]
+hpifan [-D domainid] [-h] [-s fan_speed_level]
 
 =head1 DESCRIPTION
 
@@ -18,17 +17,10 @@ If no domain is selected, hpifan uses a session to the default domain. The selec
 
 =over 2
 
-Help Options:
-  -h, --help                   Show help options
-
-Application Options:
-  -s, --speed=auto|nn          Set fan speed for ALL fans in domain
-                      speed is a number or "auto" for setting fan in auto mode
-  -D, --domain=nn              Select domain id nn
-  -X, --debug                  Display debug messages
-  -N, --host="host<:port>"     Connect to daemon host:port
-  -C, --cfgfile="file"         Use passed file as client configuration file
-
+ -D <domainid> select domain id
+ -s <speed>    set fan speed for ALL fans.
+               <speed> is a number or "auto" for setting fan in auto mode
+ -h            help
 
 =back
 
@@ -38,7 +30,7 @@ Application Options:
          hpialarms      hpigensimdata  hpireset       hpitop
          hpidomain      hpiinv         hpisensor      hpitree
          hpiel          hpionIBMblade  hpisettime     hpiwdt
-         hpievents      hpipower       hpithres       hpixml
+         hpievents      hpipower       hpithres
          ohdomainlist   ohhandler      ohparam
 
  

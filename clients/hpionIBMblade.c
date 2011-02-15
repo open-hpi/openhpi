@@ -2,8 +2,6 @@
  *
  * Copyright (c) 2003 by Intel Corp.
  *               2006 by IBM Corp.
- * (C) Copyright Ulrich Kleber 2011
- *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
@@ -59,12 +57,19 @@
  * 10/13/2006  pdphan     Copy from kouzmich's hpithres.c to hpionIBMblade.c
  * 			  Add functions specifically for 
  *                          an IBM blade with Baseboard Management Controller (BMC)      
- * 20/01/2011  ulikleber  Refactoring to use glib for option parsing and
- *                          introduce common options for all clients,
- *                          e.g. --domain and --host
  */
 
-#include "oh_clients.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <getopt.h>
+
+#include <SaHpi.h>
+#include <oh_utils.h>
+#include <oh_config.h>
+#include <oHpi.h>
+#include <oh_clients.h>
 
 #define OH_SVN_REV "$Revision: 6412 $"
 
@@ -132,7 +137,8 @@ Rpt_t	*Rpts;
 int	nrpts = 0;
 long int blade_slot = 0;
 
-static oHpiCommonOptionsT copt;
+int	fdebug = 0;
+
 SaHpiSessionIdT		sessionid;
 
 static void *resize_array(void *Ar, int item_size, int *last_num, int add_num)
@@ -166,10 +172,10 @@ static void print_value(SaHpiSensorReadingT *item, char *mes)
 		return;
 	switch (item->Type) {
 		case SAHPI_SENSOR_READING_TYPE_INT64:
-			printf("%" PRId64 " %s\n", (int64_t) item->Value.SensorInt64, mes);
+			printf("%lld %s\n", item->Value.SensorInt64, mes);
 			return;
 		case SAHPI_SENSOR_READING_TYPE_UINT64:
-			printf("%" PRIu64 " %s\n", (uint64_t) item->Value.SensorUint64, mes);
+			printf("%llu %s\n", item->Value.SensorUint64, mes);
 			return;
 		case SAHPI_SENSOR_READING_TYPE_FLOAT64:
 			printf("%10.3f %s\n", item->Value.SensorFloat64, mes);
@@ -225,13 +231,13 @@ static int select_ep(Rpt_t *Rpt)
 			     Rpt->Rpt.ResourceId,
 			     &this_handler_id);
 	if (rv) {
-		if (copt.debug) printf("oHpiHandlerFind returns %s\n", oh_lookup_error(rv)); 
+		if (fdebug) printf("oHpiHandlerFind returns %s\n", oh_lookup_error(rv)); 
 		return(0);
 	}
 	
-	rv = oHpiHandlerInfo(sessionid, this_handler_id, &handler_info, config);
+	rv = oHpiHandlerInfo(sessionid, this_handler_id, &handler_info, &config);
 	if (rv) {
-		if (copt.debug) printf("oHpiHandlerInfo returns %s\n", oh_lookup_error(rv));
+		if (fdebug) printf("oHpiHandlerInfo returns %s\n", oh_lookup_error(rv));
 		return(0);
 	}
 	
@@ -438,12 +444,11 @@ static void show_sens(char *S)
 static int get_number(char *mes, int *res)
 {
 	char	buf[READ_BUF_SIZE];
-	char    *ret ;
+	char    *ret;
 
 	printf("%s", mes);
 	ret = fgets(buf, READ_BUF_SIZE, stdin);
-	if (ret) return (sscanf(buf, "%d", res));
-        else return -1;
+	return (sscanf(buf, "%d", res));
 }
 
 static void set_thres_value(SaHpiSensorReadingT *R, double val)
@@ -581,8 +586,8 @@ static void mod_sen(void)
 			NULL, NULL, NULL);
 		if (rv == SA_OK)
 			break;
-		if (copt.debug) printf("sleep before saHpiEventGet\n");
-		g_usleep(G_USEC_PER_SEC);
+		if (fdebug) printf("sleep before saHpiEventGet\n");
+		sleep(1);
 	};
 	saHpiSensorThresholdsGet(sessionid, Rpt->Rpt.ResourceId,
 		Rdr->Rdr.RdrTypeUnion.SensorRec.Num, &thres);
@@ -891,47 +896,44 @@ static SaErrorT hpiIBMspecial_find_blade_slot(void)
 								
 int main(int argc, char **argv)
 {
-	int		i;
+	int		c, i;
 	SaErrorT	rv;
 	char		buf[READ_BUF_SIZE];
 	char		*S;
-        GError          *error = NULL;
-        GOptionContext  *context;
 
 	oh_prog_version(argv[0], OH_SVN_REV);
+	while ( (c = getopt( argc, argv,"x?")) != EOF )
+		switch(c)  {
+			case 'x':
+				fdebug = 1;
+				break;
+			default:
+				printf("Usage: %s [-x]\n", argv[0]);
+				printf("   -x  Display debug messages\n");
+				return(1);
+		}
 
-        context = g_option_context_new ("- Shows how to use two (2) openhpi "
-                      "plugins to display and manage resources of an IBM Blade "
-                      "with Basedboard Management Controller (BMC)");
-
-        if (!ohc_option_parse(&argc, argv, 
-                context, &copt, 
-                OHC_ALL_OPTIONS 
-                    - OHC_ENTITY_PATH_OPTION // not implemented
-                    - OHC_VERBOSE_OPTION,    // no verbose mode implemented
-                error)) { 
-                g_option_context_free (context);
-		return 1;
-	}
-        g_option_context_free (context);
- 
 	rv = hpiIBMspecial_find_blade_slot();
 	if (rv != SA_OK) {
 		printf("ipmitool can not find slot number in which this blade resides.\n");
 		return(-1);
 	}
 
-        rv = ohc_session_open_by_option ( &copt, &sessionid);
-	if (rv != SA_OK) return rv;
+	rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sessionid, NULL);
 
+	if (rv != SA_OK) {
+		printf("saHpiSessionOpen: %s\n", oh_lookup_error(rv));
+		return(-1);
+	}
+ 
 	rv = saHpiDiscover(sessionid);
 
-	if (copt.debug) printf("saHpiDiscover: %s\n", oh_lookup_error(rv));
+	if (fdebug) printf("saHpiDiscover: %s\n", oh_lookup_error(rv));
 
 	rv = saHpiSubscribe(sessionid);
 	if (rv != SA_OK) {
 		printf( "saHpiSubscribe error %d\n",rv);
-		return rv;
+		return(-1);
 	}	
 	
 	/* make the RPT list */
@@ -950,4 +952,4 @@ int main(int argc, char **argv)
 	rv = saHpiSessionClose(sessionid);
 	return(0);
 }
- /* end hpionIBMblade.c */
+ /* end hpthres.c */

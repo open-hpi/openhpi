@@ -39,8 +39,6 @@ MAINTAINERCLEANFILES 	= Makefile.in *~
 
 CLEANFILES		= @CLEANFILES@ $(MOSTLYCLEANFILES)
 
-AM_CPPFLAGS = -DG_LOG_DOMAIN=\"t\"
-
 INCLUDES		= @OPENHPI_INCLUDES@ -I$(top_srcdir)/plugins/ipmidirect
 
 

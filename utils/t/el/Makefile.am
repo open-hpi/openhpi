@@ -28,8 +28,6 @@ MOSTLYCLEANFILES     = $(shell ls *data) $(REMOTE_SOURCES) @TEST_CLEAN@
 
 CLEANFILES           = $(top_builddir)/src/t/el/elTest.data
 
-AM_CPPFLAGS = -DG_LOG_DOMAIN=\"t\"
-
 INCLUDES             = @OPENHPI_INCLUDES@
 
 $(REMOTE_SOURCES):

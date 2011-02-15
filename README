@@ -33,7 +33,7 @@ autoconf >= 2.57
 automake >= 1.8
 gcc      >= 3.2.0
 uuid.h      (may be found in e2fsprogs-devel or uuid-dev)
-glib2    >= 2.12
+glib2    >= 2.2
 pkgconfig (may be called pkg-config depending on distro)
 
 The follow libraries are needed to build certain plugins
@@ -184,7 +184,6 @@ hpitop -         display highlevel topology for a managed openHPI complex.
 hpitree -        show in details the resources (rpt's) and resources' 
                  manamegement instruments (rdr's) data structures
 hpiwdt -         read and enables the watchdog timer.
-hpixml -         display system view in XML
 
 ohdomainlist -   show information about domains on the level of the openhpi 
                  base library
@@ -229,7 +228,7 @@ openhpid/ohpi.c - function implementation in OpenHPI Daemon
 FOR MORE INFO
 ---------------------------------------------------------
 
-Please refer also to README.daemon and README.windows.
+Please refer also to README.daemon.
 
 Please find more documentation in the docs subdirectory and in the 
 man pages (openhpi, openhpid, clients).

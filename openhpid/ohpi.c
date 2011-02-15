@@ -20,20 +20,17 @@
 #include <string.h>
 
 #include <oHpi.h>
-
-#include <config.h>
-
-#include <oh_domain.h>
-#include <oh_error.h>
+#include <oh_config.h>
+#include <oh_init.h>
 #include <oh_plugin.h>
+#include <oh_event.h>
+#include <oh_domain.h>
 #include <oh_session.h>
 #include <oh_utils.h>
+#include <oh_error.h>
+#include <oh_lock.h>
 #include <sahpimacros.h>
-
-#include "conf.h"
-#include "event.h"
-#include "init.h"
-#include "lock.h"
+#include <config.h>
 
 
 /**
@@ -129,44 +126,6 @@ SaErrorT SAHPI_API oHpiHandlerDestroy (
 
         if (error == SA_OK)
            if (oh_destroy_handler(id)) error = SA_ERR_HPI_ERROR;
-
-        if (error == SA_OK) {
-            // Remove all handler remaing resources from the Domain RPT
-            SaHpiRptEntryT *rpte;
-            SaHpiResourceIdT rid;
-            GSList *events = 0;
-
-            rid = SAHPI_FIRST_ENTRY;
-            while ((rpte = oh_get_resource_next(&(d->rpt), rid)) != 0) {
-                const void * data;
-                data = oh_get_resource_data(&(d->rpt), rpte->ResourceId);
-                if (data) {
-                    const unsigned int hid = *(const unsigned int*)(data);
-                    if (hid == id) {
-                        struct oh_event * e = g_new0(struct oh_event, 1);
-                        e->hid = id;
-                        e->resource = *rpte;
-                        e->rdrs = 0;
-                        e->rdrs_to_remove = 0;
-                        e->event.Source = rpte->ResourceId;
-                        e->event.EventType = SAHPI_ET_RESOURCE;
-                        oh_gettimeofday(&e->event.Timestamp);
-                        e->event.Severity = SAHPI_MAJOR;
-                        e->event.EventDataUnion.ResourceEvent.ResourceEventType
-                            = SAHPI_RESE_RESOURCE_REMOVED;
-                        events = g_slist_prepend(events, e);
-                    }
-                }
-                rid = rpte->ResourceId;
-            }
-
-            GSList *iter = events;
-            while (iter) {
-                oh_evt_queue_push(oh_process_q, iter->data);
-                iter = g_slist_next(iter);
-            }
-            g_slist_free(events);
-        }
    
         oh_release_domain(d); /* Unlock domain */
         return error;
@@ -217,6 +176,7 @@ SaErrorT SAHPI_API oHpiHandlerInfo (
 
         h = oh_get_handler(id);
         if (!h) {
+                err("Handler %d not found.", id);
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_NOT_PRESENT;
         }
@@ -322,6 +282,7 @@ SaErrorT SAHPI_API oHpiHandlerFind (
         hid = (unsigned int *)oh_get_resource_data(&d->rpt, rid);
 
         if (hid == NULL) {
+                err("No such Resource Id %d in Domain %d", rid, did);
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_INVALID_RESOURCE;
         }
@@ -374,7 +335,7 @@ SaErrorT SAHPI_API oHpiHandlerRetry (
 		return SA_OK;
 	}
 
-	h->hnd = h->abi->open(h->config, h->id, oh_process_q);
+	h->hnd = h->abi->open(h->config, h->id, &oh_process_q);
 	if (h->hnd == NULL) error = SA_ERR_HPI_INTERNAL_ERROR;
 	else error = SA_OK;
 
@@ -406,6 +367,7 @@ SaErrorT SAHPI_API oHpiGlobalParamGet (
         if (sid == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
         if (!param || !param->Type) {
+                err("Invalid parameters. oHpiGlobalParamGet()");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
         
@@ -452,6 +414,7 @@ SaErrorT SAHPI_API oHpiGlobalParamSet (
         if (sid == 0)
 		return SA_ERR_HPI_INVALID_SESSION;
         if (!param || !param->Type) {
+                err("Invalid parameters. oHpiGlobalParamSet()");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
         
@@ -514,18 +477,23 @@ SaErrorT SAHPI_API oHpiInjectEvent (
 	SaErrorT error = SA_OK;
 
         if (sid == 0){
+		err("Invalid session id %d passed",sid);
 		return SA_ERR_HPI_INVALID_SESSION;
         }
 	if (id == 0) {
+		err("Invalid handler id %d passed",id);
 		return SA_ERR_HPI_INVALID_PARAMS;
 	} 
         if (!event) {
+		err("Invalid NULL event passed");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
         if (!rpte) {
+		err("Invalid NULL rpte passed");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
         if (!rdr) {
+		err("Invalid NULL rdr passed");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
@@ -547,6 +515,9 @@ SaErrorT SAHPI_API oHpiInjectEvent (
         }
 
 	error = inject_event(h->hnd, event, rpte, rdr);
+        if (error) {
+                err("Event injection into handler %d failed", id);
+        }
 
         oh_release_handler(h);
         oh_release_domain(d); /* Unlock domain */

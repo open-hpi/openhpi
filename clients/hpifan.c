@@ -3,7 +3,6 @@
  *
  * Copyright (c) 2003,2004 by FORCE Computers
  * (C) Copyright Nokia Siemens Networks 2010
- * (C) Copyright Ulrich Kleber 2011
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -19,27 +18,70 @@
  * Changes:
  *     10/13/2004  kouzmich   porting to HPI B
  *     09/06/2010  ulikleber  New option -D to select domain
- *     01/02/2011  ulikleber  Refactoring to use glib for option parsing and
- *                            introduce common options for all clients
  *
  */
 
-#include "oh_clients.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <getopt.h>
+
+#include <SaHpi.h>
+#include <oh_utils.h>
+#include <oh_clients.h>
 
 #define OH_SVN_REV "$Revision$"
 
 static SaHpiBoolT set_new = SAHPI_FALSE;
 static SaHpiCtrlModeT new_mode = SAHPI_CTRL_MODE_MANUAL;
 static int new_speed = -1;
-static gchar *f_speed = NULL;
-static oHpiCommonOptionsT copt;
+SaHpiDomainIdT domainid = SAHPI_UNSPECIFIED_DOMAIN_ID;
 
-static GOptionEntry my_options[] =
+
+static int
+usage( char *progname )
 {
-  { "speed", 's', 0, G_OPTION_ARG_STRING, &f_speed, "Set fan speed for ALL fans in domain\n"
-    "                      speed is a number or \"auto\" for setting fan in auto mode", "auto|nn" },
-  { NULL }
-};
+        fprintf( stderr, "usage: %s [-D domainid] [-h] [-s fan_speed_level]\n", progname );
+        fprintf( stderr, "\t\t -D domainid  select the domain to work on\n" );
+        fprintf( stderr, "\t\t -h           help\n" );
+        fprintf( stderr, "\t\t -s speed     set fan speed for ALL fans in domain\n" );
+        fprintf( stderr, "\t\t speed is a number or \"auto\" for setting fan in auto mode\n" );
+
+        return 1;
+}
+
+
+static void
+display_textbuffer( SaHpiTextBufferT string )
+{
+        int i;
+        switch( string.DataType ) {
+        case SAHPI_TL_TYPE_BINARY:
+                for( i = 0; i < string.DataLength; i++ )
+                        printf( "%x", string.Data[i] );
+                break;
+        case SAHPI_TL_TYPE_BCDPLUS:
+                 for( i = 0; i < string.DataLength; i++ )
+                        printf( "%c", string.Data[i] );
+                break;
+       case SAHPI_TL_TYPE_ASCII6:
+                 for( i = 0; i < string.DataLength; i++ )
+                        printf( "%c", string.Data[i] );
+                break;
+       case SAHPI_TL_TYPE_UNICODE:
+                for( i = 0; i < string.DataLength; i++ )
+                        printf( "%c", string.Data[i] );
+                break;
+	case SAHPI_TL_TYPE_TEXT:
+                for( i = 0; i < string.DataLength; i++ )
+                        printf( "%c", string.Data[i] );
+                break;
+        default:
+                printf("Invalid string data type=%u", string.DataType );
+        }
+}
+
 
 static SaErrorT
 get_fan_speed( SaHpiSessionIdT session_id,
@@ -49,8 +91,6 @@ get_fan_speed( SaHpiSessionIdT session_id,
 	       SaHpiCtrlModeT *mode )
 {
         SaHpiCtrlStateT state;
-
-	if (copt.debug) printf("get fan speed for resource %u, control %u\n", resource_id, ctrl_num);
 
         SaErrorT rv = saHpiControlGet( session_id, resource_id, ctrl_num, mode, &state );
 
@@ -82,7 +122,6 @@ set_fan_speed( SaHpiSessionIdT session_id,
         state.Type = SAHPI_CTRL_TYPE_ANALOG;
         state.StateUnion.Analog = speed;
 
-	if (copt.debug) printf("set fan speed for resource %u, control %u\n", resource_id, ctrl_num);
         rv = saHpiControlSet( session_id, resource_id, ctrl_num, mode, &state );
 
         if ( rv != SA_OK ) {
@@ -103,7 +142,7 @@ do_fan( SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id,
 	SaHpiCtrlModeT ctrl_mode;
 
         printf( "\tfan: num %u, id ", ctrl_rec->Num );
-        oh_print_text ( &rdr->IdString );
+        display_textbuffer( rdr->IdString );
         printf( "\n" );
 
         if ( ctrl_rec->Type != SAHPI_CTRL_TYPE_ANALOG ) {
@@ -226,63 +265,71 @@ discover_domain( SaHpiSessionIdT session_id )
 int
 main( int argc, char *argv[] )
 {
+        int c;
+        int help = 0;
         SaErrorT rv;
-        SaHpiSessionIdT sessionid;
-        GError *error = NULL;
-        GOptionContext *context;
 
         oh_prog_version(argv[0], OH_SVN_REV);
 
-        context = g_option_context_new ("- Show \"Fan Control\" management instruments");
-        g_option_context_add_main_entries (context, my_options, NULL);
+        while( (c = getopt( argc, argv,"D:hs:") ) != -1 )
+                switch( c ) {
+                case 'D':
+                        if (optarg) domainid = atoi(optarg);
+                        else {
+                                printf("hpifan: option requires an argument -- D");
+                                help = 1;
+                        }
+                        break;
+                case 'h': 
+                        help = 1;
+                        break;
 
-        if (!ohc_option_parse(&argc, argv, 
-                context, &copt, 
-                OHC_ALL_OPTIONS 
-                    - OHC_ENTITY_PATH_OPTION //TODO: Feature 880127
-                    - OHC_VERBOSE_OPTION,    // no verbose mode implemented
-                error)) { 
-                g_option_context_free (context);
-		return 1;
-	}
-        g_option_context_free (context);
- 
-        if (f_speed) {
-           set_new = SAHPI_TRUE;
-           if ( strcmp( f_speed, "auto" ) == 0 ) {
-              new_mode = SAHPI_CTRL_MODE_AUTO;
-           } else if ( strcmp( f_speed, "0" ) == 0 ) {
-              new_speed = 0;
-           } else {
-              new_speed = atoi( f_speed );
-              if (new_speed == 0) {
-                 CRIT ("please enter a valid speed: \"auto\" or a number.\n");
-                 g_free (f_speed);
-                 return 1;
-              }
-           }
-           g_free(f_speed);
-        }
+                case 's':
+                        if (optarg) {
+                                set_new = SAHPI_TRUE;
+                                if ( strcmp( optarg, "auto" ) == 0 ) {
+                                       new_mode = SAHPI_CTRL_MODE_AUTO;
+                                } else {
+                                       new_speed = atoi( optarg );
+                                }
+                        } else {
+                                printf("hpifan: option requires an argument -- s");
+                                help = 1;
+                        }
+                        break;
+                 
+                default:
+                        fprintf( stderr, "unknown option %s !\n",
+                                 argv[optind] );
+                        help = 1;
+                }
+  
+        if ( help )
+                return usage(argv[0]);
 
-        rv = ohc_session_open_by_option ( &copt, &sessionid);
-	if (rv != SA_OK) return rv;
-
-	/*
-	 * Resource discovery
-	 */
-	if (copt.debug) printf("saHpiDiscover\n");
-	rv = saHpiDiscover(sessionid);
+        SaHpiSessionIdT sessionid;
+	rv = saHpiSessionOpen(domainid, &sessionid, NULL);
         if ( rv != SA_OK ) {
-                CRIT( "saHpiDiscover: %s\n", oh_lookup_error( rv ) );
-                return rv;
+                printf( "saHpiSessionOpen: %s\n", oh_lookup_error( rv ) );
+                return 1;
         }
-	if (copt.debug) printf("Discovery done\n");
+	if (domainid!=SAHPI_UNSPECIFIED_DOMAIN_ID) 
+	     printf("HPI Session to domain %u\n",domainid);
+
+
+        rv = saHpiDiscover( sessionid );
+
+        if ( rv != SA_OK ) {
+                printf( "saHpiDiscover: %s\n", oh_lookup_error( rv ) );
+                return 1;
+        }
 
         int rc = discover_domain( sessionid );
 
         rv = saHpiSessionClose( sessionid );
+
         if ( rv != SA_OK )
-                CRIT( "saHpiSessionClose: %s\n", oh_lookup_error( rv ) );
+                printf( "saHpiSessionClose: %s\n", oh_lookup_error( rv ) );
 
         return  rc;
 }

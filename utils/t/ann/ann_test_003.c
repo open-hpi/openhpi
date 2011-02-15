@@ -21,7 +21,7 @@
 #include <unistd.h>
 
 #include <SaHpi.h>
-#include <oh_error.h>
+#include <openhpi.h>
 #include <oh_utils.h>
 
 
@@ -68,12 +68,12 @@ int main(int argc, char **argv)
         rc = oh_announcement_append(ann, &announ);
 
         if(ann->nextId != SAHPI_OLDEST_ENTRY + 4) {
-                CRIT("ann->nextId invalid.");
+                err("ERROR: ann->nextId invalid.");
                 return 1;
         }
 
         if(ann->annentries == NULL) {
-                CRIT("ann->annentries invalid.");
+                err("ERROR: ann->annentries invalid.");
                 return 1;
         }
 

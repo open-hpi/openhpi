@@ -4,8 +4,7 @@ hpiinv - An openhpi sample application that shows resources' inventory records.
 
 =head1 SYNOPSIS 
 
- hpiinv [-D nn] [-N host[:port]] [-C <cfgfile>] [-V] [ -X] [-a tag] [-h]
- hpiinv [--domain=nn] [--host=host[:port]] [--cfgfile=file] [--verbose] [--debug] [--asset-tag=tag] [--help]
+hpiinv [-D domain] [-vxz] [-a asset_tag]
 
 =head1 DESCRIPTION
 
@@ -17,16 +16,11 @@ If no domain is selected, hpiinv uses a session with the default domain. The sel
 
 =over 2
 
-Help Options:
-  -h, --help                   Show help options
-
-Application Options:
-  -a, --asset-tag=tag          Set the asset tag to the specified string
-  -D, --domain=nn              Select domain id nn
-  -X, --debug                  Display debug messages
-  -V, --verbose                Verbose mode
-  -N, --host="host<:port>"     Connect to daemon host:port
-  -C, --cfgfile="file"         Use passed file as client configuration file
+ -D domainid  Select the domain
+ -a tag       Sets the asset tag
+ -v           Use verbose output mode
+ -x           Display debug messages
+ -z           Display extra debug messages
 
 =back
 
@@ -35,13 +29,19 @@ Application Options:
 For generic OpenHPI, there is *no* additional environment variable required.
 For some devices; sahalee, mBMC; BMCONLY flag needs to be set for additional device characterization based on rdr.IdString.Data.
 
+=over 2
+BMCONLY
+LENGTH_BAD
+
+=back
+
 =head1 SEE ALSO
 
          hpi_shell
          hpialarms      hpifan         hpireset       hpitop
          hpidomain      hpigensimdata  hpisensor      hpitree
          hpiel          hpionIBMblade  hpisettime     hpiwdt
-         hpievents      hpipower       hpithres       hpixml
+         hpievents      hpipower       hpithres
          ohdomainlist   ohhandler      ohparam
 
 

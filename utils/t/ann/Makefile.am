@@ -25,8 +25,6 @@ REMOTE_SOURCES       = announcement_utils.c \
 
 MOSTLYCLEANFILES     = $(shell ls *data) $(REMOTE_SOURCES) @TEST_CLEAN@
 
-AM_CPPFLAGS = -DG_LOG_DOMAIN=\"t\"
-
 INCLUDES             = @OPENHPI_INCLUDES@
 
 $(REMOTE_SOURCES):

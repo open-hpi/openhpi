@@ -15,11 +15,7 @@
 
 MAINTAINERCLEANFILES = Makefile.in
 
-AM_CPPFLAGS = -DG_LOG_DOMAIN=\"slave\"
-
 INCLUDES = @OPENHPI_INCLUDES@
-
-EXTRA_DIST = Makefile.mingw32
 
 pkglib_LTLIBRARIES = libslave.la
 
@@ -31,10 +27,9 @@ libslave_la_SOURCES = baselib.cpp \
                       resourcemap.cpp \
                       resourcemap.h \
                       slave.cpp \
-                      slave.h \
                       util.cpp \
                       util.h
 
+libslave_la_LIBADD =  -ldl
 libslave_la_LDFLAGS = -module -version-info @HPI_LIB_VERSION@
-libslave_la_LIBADD  = @GMODULE_ONLY_LIBS@
 

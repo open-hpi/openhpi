@@ -20,6 +20,7 @@
 #include <string.h>
 
 #include <SaHpi.h>
+#include <openhpi.h>
 #include <oh_utils.h>
 #include <el_utils.h>
 
@@ -47,7 +48,7 @@ int main(int argc, char **argv)
         /* save the EL to file */
         retc = oh_el_map_to_file(el, "./elTest.data");
         if (retc == SA_OK) {
-                CRIT("oh_el_map_to_file failed.");
+                err("ERROR: oh_el_map_to_file failed.");
                 return 1;
         }
 	

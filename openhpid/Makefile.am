@@ -17,8 +17,6 @@
 
 MAINTAINERCLEANFILES 	= Makefile.in *~
 
-AM_CPPFLAGS = -DG_LOG_DOMAIN=\"openhpid\"
-
 INCLUDES 		= \
 	@OPENHPI_INCLUDES@  -I$(top_srcdir)/transport -I$(top_srcdir)/marshal @OH_SSL_INCLUDES@
 
@@ -26,45 +24,35 @@ SUBDIRS = t
 DIST_SUBDIRS = t
 
 EXTRA_DIST		= \
-    openhpid.sh.in \
-    Makefile.mingw32 \
-    openhpid-win32.cpp
+	openhpid.sh.in
 
 # daemon library
 noinst_LTLIBRARIES      = libopenhpidaemon.la
-libopenhpidaemon_la_SOURCES        = \
-    alarm.c \
-    alarm.h \
-    conf.c \
-    conf.h \
-    domain.c \
-    event.c \
-    event.h \
-    hotswap.c \
-    hotswap.h \
-    init.c \
-    init.h \
-    lock.c \
-    lock.h \
-    ohpi.c \
-    plugin.c \
-    safhpi.c \
-    session.c \
-    threaded.c \
-    threaded.h
+libopenhpidaemon_la_SOURCES        = config.c \
+                                     domain.c \
+                                     event.c \
+                                     threaded.c \
+                                     alarm.c \
+                                     hotswap.c \
+                                     lock.c \
+                                     plugin.c \
+									 plugin_static.c \
+                                     init.c \
+                                     safhpi.c \
+                                     session.c \
+                                     ohpi.c
 
-libopenhpidaemon_la_LIBADD         = $(top_builddir)/utils/libopenhpiutils.la \
-                                     @GMODULE_ONLY_LIBS@
+libopenhpidaemon_la_LIBADD         = $(top_builddir)/utils/libopenhpiutils.la
 
 if HAVE_OPENSSL
 libopenhpidaemon_la_LIBADD += $(top_builddir)/$(SSLDIR)/libopenhpi_ssl.la
 endif
-libopenhpidaemon_la_LDFLAGS   = @HPI_LIB_VERSION@
+libopenhpidaemon_la_LDFLAGS   = -version-info @HPI_LIB_VERSION@
 
 # daemon
 sbin_PROGRAMS           = openhpid
 
-openhpid_SOURCES        = server.cpp server.h openhpid-posix.cpp
+openhpid_SOURCES        = openhpid.cpp
 
 openhpid_LDADD         = libopenhpidaemon.la \
 		                 $(top_builddir)/marshal/libopenhpimarshal.la \
@@ -72,7 +60,7 @@ openhpid_LDADD         = libopenhpidaemon.la \
 
 openhpid_LDFLAGS        = -export-dynamic
 
-# this is defined with ./configure --disable-dynamic-daemon
+# this is defined with ./configure --disable-dynamicdaemon
 if OPENHPID_STATIC
 openhpid_LDFLAGS        += -static
 else

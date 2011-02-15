@@ -134,7 +134,7 @@ static void lock_function(int mode, int type, const char * file, int line)
 			mutexes = (GMutex **)g_malloc0(CRYPTO_num_locks() *
 						       sizeof(GMutex *));
 			if (! mutexes) {
-				CRIT("out of memory");
+				err("out of memory");
 				g_static_mutex_unlock(&ssl_mutexes);
 				return;
 			}
@@ -181,7 +181,7 @@ static struct CRYPTO_dynlock_value *dyn_create_function(const char *file,
 		value->mutex = g_mutex_new();
 	}
 	else {
-		CRIT("out of memory");
+		err("out of memory");
 	}
 
 	return(value);
@@ -318,7 +318,7 @@ int		oh_ssl_init(void)
 
 		/* Initialize the SSL library */
 		if (! SSL_library_init()) {
-			CRIT("SSL_library_init() failed");
+			err("SSL_library_init() failed");
 			return(-1);
 		}
 
@@ -329,7 +329,7 @@ int		oh_ssl_init(void)
 
 		/* Set up multi-thread protection functions */
 		if (thread_setup() ) {
-			CRIT("SSL multi-thread protection setup call failed");
+			err("SSL multi-thread protection setup call failed");
 			return(-1);
 		}
 
@@ -360,14 +360,14 @@ SSL_CTX         *oh_ssl_ctx_init()
 
         ctx = SSL_CTX_new(SSLv23_client_method());
         if (ctx == NULL) {
-                CRIT("SSL_CTX_new() failed");
+                err("SSL_CTX_new() failed");
                 return(NULL);
         }
 
         SSL_CTX_set_options(ctx, SSL_OP_TLS_ROLLBACK_BUG | SSL_OP_ALL);
 
         if (! SSL_CTX_set_default_verify_paths(ctx)) {
-                CRIT("SSL_CTX_set_default_verify_paths() failed");
+                err("SSL_CTX_set_default_verify_paths() failed");
                 return(NULL);
         }
 
@@ -386,7 +386,7 @@ SSL_CTX         *oh_ssl_ctx_init()
 int             oh_ssl_ctx_free(SSL_CTX *ctx)
 {
         if (ctx == NULL) {
-                CRIT("unexpected NULL ctx pointer");
+                err("unexpected NULL ctx pointer");
                 return(-1);
         }
 
@@ -419,22 +419,22 @@ BIO             *oh_ssl_connect(char *hostname, SSL_CTX *ctx, long timeout)
         int             err;
 
         if (hostname == NULL) {
-                CRIT("NULL hostname in oh_ssl_connect()");
+                err("NULL hostname in oh_ssl_connect()");
                 return(NULL);
         }
         if (ctx == NULL) {
-                CRIT("NULL ctx in oh_ssl_connect()");
+                err("NULL ctx in oh_ssl_connect()");
                 return(NULL);
         }
         if (timeout < 0) {
-                CRIT("inappropriate timeout in oh_ssl_connect()");
+                err("inappropriate timeout in oh_ssl_connect()");
                 return(NULL);
         }
 
         /* Start with a new SSL BIO */
         bio = BIO_new_ssl_connect(ctx);
         if (bio == NULL) {
-                CRIT("BIO_new_ssl_connect() failed");
+                err("BIO_new_ssl_connect() failed");
                 return(NULL);
         }
 
@@ -447,7 +447,7 @@ BIO             *oh_ssl_connect(char *hostname, SSL_CTX *ctx, long timeout)
         /* Set up SSL session parameters */
         BIO_get_ssl(bio, &ssl);
         if (ssl == NULL) {
-                CRIT("BIO_get_ssl() failed");
+                err("BIO_get_ssl() failed");
                 BIO_free_all(bio);
                 return(NULL);
         }
@@ -461,8 +461,8 @@ BIO             *oh_ssl_connect(char *hostname, SSL_CTX *ctx, long timeout)
                         break;          /* Connection established */
                 }
                 if (! BIO_should_retry(bio)) { /* Hard error? */
-                        CRIT("BIO_do_connect() failed");
-                        CRIT("SSL error: %s",
+                        err("BIO_do_connect() failed");
+                        err("SSL error: %s",
                             ERR_reason_error_string(ERR_get_error()));
                         BIO_free_all(bio);
                         return(NULL);
@@ -475,7 +475,7 @@ BIO             *oh_ssl_connect(char *hostname, SSL_CTX *ctx, long timeout)
                  */
                 fd = BIO_get_fd(bio, NULL);
                 if (fd == -1) {
-                        CRIT("BIO isn't initialized in oh_ssl_connect()");
+                        err("BIO isn't initialized in oh_ssl_connect()");
                         BIO_free_all(bio);
                         return(NULL);
                 }
@@ -508,12 +508,12 @@ BIO             *oh_ssl_connect(char *hostname, SSL_CTX *ctx, long timeout)
 
                 /* Evaluate select() return code */
                 if (err < 0) {
-                        CRIT("error during select()");
+                        err("error during select()");
                         BIO_free_all(bio);
                         return(NULL);
                 }
                 if (err == 0) {
-                        CRIT("connection timeout to %s", hostname);
+                        err("connection timeout to %s", hostname);
                         BIO_free_all(bio);
                         return(NULL);   /* Timeout */
                 }
@@ -543,7 +543,7 @@ int             oh_ssl_disconnect(BIO *bio, enum OH_SSL_SHUTDOWN_TYPE shutdown)
         int             ret;
 
         if (bio == NULL) {
-                CRIT("NULL bio in oh_ssl_disconnect()");
+                err("NULL bio in oh_ssl_disconnect()");
                 return(-1);
         }
 
@@ -552,23 +552,23 @@ int             oh_ssl_disconnect(BIO *bio, enum OH_SSL_SHUTDOWN_TYPE shutdown)
          */
         BIO_get_ssl(bio, &ssl);
         if (ssl == NULL) {
-                CRIT("BIO_get_ssl() failed");
+                err("BIO_get_ssl() failed");
                 return(-1);
         }
         ret = SSL_shutdown(ssl);
         if (ret == -1) {
-                CRIT("SSL_shutdown() failed");
+                err("SSL_shutdown() failed");
                 /* Continuing on to free BIO memory */
         }
         else if ((ret == 0) && (shutdown == OH_SSL_BI)) {
                 /* Still need stage 2 shutdown (see SSL_shutdown() man page) */
                 ret = SSL_shutdown(ssl);
                 if (ret == -1) {
-                        CRIT("SSL_shutdown() failed");
+                        err("SSL_shutdown() failed");
                         /* Continuing on to free BIO memory */
                 }
                 else if (ret == 0) {
-                        CRIT("stage 2 of SSL_shutdown() failed");
+                        err("stage 2 of SSL_shutdown() failed");
                         /* Continuing on to free BIO memory */
                 }
         }
@@ -614,33 +614,33 @@ int             oh_ssl_read(BIO *bio, char *buf, int size, long timeout)
         int             fd;
 
         if (bio == NULL) {
-                CRIT("NULL bio in oh_ssl_read()");
+                err("NULL bio in oh_ssl_read()");
                 return(-1);
         }
         if (buf == NULL) {
-                CRIT("NULL buf in oh_ssl_read()");
+                err("NULL buf in oh_ssl_read()");
                 return(-1);
         }
         if (size <= 0) {
-                CRIT("inappropriate size in oh_ssl_read()");
+                err("inappropriate size in oh_ssl_read()");
                 return(-1);
         }
         if (timeout < 0) {
-                CRIT("inappropriate timeout in oh_ssl_read()");
+                err("inappropriate timeout in oh_ssl_read()");
                 return(-1);
         }
 
         /* Get underlying file descriptor, needed for select call */
         fd = BIO_get_fd(bio, NULL);
         if (fd == -1) {
-                CRIT("BIO doesn't seem to be initialized in oh_ssl_read()");
+                err("BIO doesn't seem to be initialized in oh_ssl_read()");
                 return(-1);
         }
 
         /* We also need the SSL connection pointer */
         BIO_get_ssl(bio, &ssl);
         if (ssl == NULL) {
-                CRIT("BIO_get_ssl() failed");
+                err("BIO_get_ssl() failed");
                 return(-1);
         }
 
@@ -679,7 +679,7 @@ int             oh_ssl_read(BIO *bio, char *buf, int size, long timeout)
 
                 /* Evaluate select() return code */
                 if (err < 0) {
-                        CRIT("error during select()");
+                        err("error during select()");
                         return(-1);
                 }
                 if (err == 0) {
@@ -712,7 +712,7 @@ int             oh_ssl_read(BIO *bio, char *buf, int size, long timeout)
                                 break;
                         default:
                                 /* Some other sort of error */
-                                CRIT("error %d from SSL_read", bytes);
+                                err("error %d from SSL_read", bytes);
                                 return(-1);
                 }
         }
@@ -755,33 +755,33 @@ int             oh_ssl_write(BIO *bio, char *buf, int size, long timeout)
         int             sent;
 
         if (bio == NULL) {
-                CRIT("NULL bio in oh_ssl_write()");
+                err("NULL bio in oh_ssl_write()");
                 return(-1);
         }
         if (buf == NULL) {
-                CRIT("NULL buf in oh_ssl_write()");
+                err("NULL buf in oh_ssl_write()");
                 return(-1);
         }
         if (size <= 0) {
-                CRIT("inappropriate size in oh_ssl_write()");
+                err("inappropriate size in oh_ssl_write()");
                 return(-1);
         }
         if (timeout < 0) {
-                CRIT("inappropriate timeout in oh_ssl_write()");
+                err("inappropriate timeout in oh_ssl_write()");
                 return(-1);
         }
 
         /* Get underlying file descriptor, needed for select call */
         fd = BIO_get_fd(bio, NULL);
         if (fd == -1) {
-                CRIT("BIO doesn't seem to be initialized in oh_ssl_write()");
+                err("BIO doesn't seem to be initialized in oh_ssl_write()");
                 return(-1);
         }
 
         /* We also need the SSL connection pointer */
         BIO_get_ssl(bio, &ssl);
         if (ssl == NULL) {
-                CRIT("BIO_get_ssl() failed");
+                err("BIO_get_ssl() failed");
                 return(-1);
         }
 
@@ -819,7 +819,7 @@ int             oh_ssl_write(BIO *bio, char *buf, int size, long timeout)
 
                 /* Evaluate select() return code */
                 if (err < 0) {
-                        CRIT("error during select()");
+                        err("error during select()");
                         return(-1);
                 }
                 if (err == 0) {
@@ -842,7 +842,7 @@ int             oh_ssl_write(BIO *bio, char *buf, int size, long timeout)
                                 /* Connection was closed.  Since we're trying
                                  * to write, this is an error condition.
                                  */
-                                CRIT("remote host unexpectedly closed"
+                                err("remote host unexpectedly closed"
                                     " the connection");
                                 return(-1);
                         case SSL_ERROR_WANT_READ:
@@ -853,7 +853,7 @@ int             oh_ssl_write(BIO *bio, char *buf, int size, long timeout)
                                 break;
                         default:
                                 /* Some other sort of error */
-                                CRIT("error %d from SSL_write", bytes);
+                                err("error %d from SSL_write", bytes);
                                 return(-1);
                 }
         }

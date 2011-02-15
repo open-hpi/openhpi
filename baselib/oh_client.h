@@ -1,6 +1,7 @@
-/*      -*- c -*-
+/*      -*- linux-c -*-
  *
- * (C) Copyright Nokia Siemens Networks 2010
+ * (C) Copyright IBM Corp. 2004-2008
+ * (C) Copyright Pigeon Point Systems. 2010
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -10,24 +11,29 @@
  * full licensing terms.
  *
  * Author(s):
+ *      W. David Ashley <dashley@us.ibm.com>
+ *      Renier Morales <renier@openhpi.org>
  *      Anton Pak <anton.pak@pigeonpoint.com>
  *
  */
 
+#ifndef __OH_CLIENT_H
+#define __OH_CLIENT_H
+
 #include <glib.h>
 
-#include "lock.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+extern GStaticRecMutex ohc_lock;
+
+void oh_client_init(void);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 
-static GStaticRecMutex ohc_main_lock = G_STATIC_REC_MUTEX_INIT;
-
-void ohc_lock( void )
-{
-    g_static_rec_mutex_lock(&ohc_main_lock);
-}
-
-void ohc_unlock( void )
-{
-    g_static_rec_mutex_unlock(&ohc_main_lock);
-}
+#endif /* __OH_CLIENT_H */
 
