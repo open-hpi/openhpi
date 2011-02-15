@@ -5,9 +5,9 @@ hpitop - A openhpi sample application that displays highlevel topology for a man
 
 =head1 SYNOPSIS 
 
- hpitop [-D nn] [-rscwiafd] [-n nn] [-X] [-h]
- hpitop [--domain=nn] [--rpts] [--sensors] [--controls] [--watchdogs]
-        [--inventories] [--annunciators] [--fumis] [--dimis] 
+ hpitop [-D nn] [-N host[:port]] [-C <cfgfile>] [-rscwiafd] [-n nn] [-X] [-h]
+ hpitop [--domain=nn] [--host=host[:port]] [--cfgfile=file] [--rpts] [--sensors]
+        [--controls] [--watchdogs] [--inventories] [--annunciators] [--fumis] [--dimis] 
         [--resource=nn] [--debug] [--help]
 
 =head1 DESCRIPTION
@@ -23,20 +23,23 @@ If no domain is selected, hpitop displays information using a session with the d
 (No Option) Display system topology via default domain: rpt & rdr headers
 
 Help Options:
-  -h, --help             Show help options
+  -h, --help                   Show help options
 
 Application Options:
-  -r, --rpts             Display only rpts
-  -s, --sensors          Display only sensors
-  -c, --controls         Display only controls
-  -w, --watchdogs        Display only watchdogs
-  -i, --inventories      Display only inventories
-  -a, --annunciators     Display only annunciators
-  -f, --fumis            Display only fumis
-  -d, --dimis            Display only dimis
-  -n, --resource=nn      Display only resource nn and its topology
-  -D, --domain=nn        Select domain id nn
-  -X, --debug            Display debug messages
+  -r, --rpts                   Display only rpts
+  -s, --sensors                Display only sensors
+  -c, --controls               Display only controls
+  -w, --watchdogs              Display only watchdogs
+  -i, --inventories            Display only inventories
+  -a, --annunciators           Display only annunciators
+  -f, --fumis                  Display only fumis
+  -d, --dimis                  Display only dimis
+  -n, --resource=nn            Display only resource nn and its topology
+  -D, --domain=nn              Select domain id nn
+  -X, --debug                  Display debug messages
+  -N, --host="host<:port>"     Connect to daemon host:port
+  -C, --cfgfile="file"         Use passed file as client configuration file
+
 
 =back
 

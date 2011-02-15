@@ -4,8 +4,9 @@ hpiwdt -  This sample openhpi application reads and enables the watchdog timer.
 
 =head1 SYNOPSIS 
 
- hpiwdt [-D nn] [-der -t sec] [-X] [-h]
- hpiwdt [--domain=nn] [--disable][--enable][--reset][--timout n] [--debug] [--help]
+ hpiwdt [-D nn] [-N host[:port]] [-C <cfgfile>] [-der -t sec] [-X] [-h]
+ hpiwdt [--domain=nn] [--host=host[:port]] [--cfgfile=file]
+        [--disable][--enable][--reset][--timout n] [--debug] [--help]
 
 =head1 DESCRIPTION
 
@@ -18,13 +19,19 @@ If no domain is selected, hpiwdt uses a session with the default domain. The sel
 
 =over 2
 
-  -h, --help          Show help options
-  -e, --enable        enables the watchdog timer
-  -d, --disable       disables the watchdog timer
-  -r, --reset         resets the watchdog timer
-  -t, --timeout=n     sets timeout to n seconds
-  -D, --domain=nn     Select domain id nn
-  -X, --debug         Display debug messages
+Help Options:
+  -h, --help                   Show help options
+
+Application Options:
+  -e, --enable                 enables the watchdog timer
+  -d, --disable                disables the watchdog timer
+  -r, --reset                  resets the watchdog timer
+  -t, --timeout=n              sets timeout to n seconds
+  -D, --domain=nn              Select domain id nn
+  -X, --debug                  Display debug messages
+  -N, --host="host<:port>"     Connect to daemon host:port
+  -C, --cfgfile="file"         Use passed file as client configuration file
+
 
 =back
 

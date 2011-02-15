@@ -5,7 +5,8 @@ hpi_shell - An openhpi sample application that allows a user to interactively pe
 
 =head1 SYNOPSIS 
 
-hpi_shell [-D id] [-c <cfgfile>] [-e] [-f <file>] [-n <hostname>]
+ hpi_shell [-D nn] [-N host[:port]] [-C <cfgfile>] [-e] [-f <file>] [-X] [-h]
+ hpi_shell [--domain=nn] [--host=host[:port]] [--cfgfile=file] [--events] [--cmdfile=filename] [--debug] [--help]
 
 =head1 DESCRIPTION
 
@@ -20,13 +21,16 @@ Once in hpi_shell, use the "help" command for a list of commands, or
 
 =over 2
 
- -D nn  Select domain id nn
- -c     Use the specified openhpi client config file
- -e     Show short events, discover after subscribe
- -f     Read commands from "file" rather than standard input
- -n     Connect to the OpenHPI daemon on "hostname" rather than the
- 	one running on the local host
- -x	Produce extra debugging output
+Help Options:
+  -h, --help                   Show help options
+
+Application Options:
+  -f, --cmdfile=filename       Execute command file
+  -e, --events                 Show short events, discover after subscribe
+  -D, --domain=nn              Select domain id nn
+  -X, --debug                  Display debug messages
+  -N, --host="host<:port>"     Connect to daemon host:port
+  -C, --cfgfile="file"         Use passed file as client configuration file
 
 =back
 
@@ -36,6 +40,7 @@ Once in hpi_shell, use the "help" command for a list of commands, or
   hpidomain      hpigensimdata  hpireset       hpitop         
   hpiel          hpiinv         hpisensor      hpitree        
   hpievents      hpionIBMblade  hpisettime     hpiwdt
+  hpixml
   ohdomainlist   ohhandler      ohparam
 
 
@@ -44,3 +49,5 @@ Once in hpi_shell, use the "help" command for a list of commands, or
 Author(s) of this man page:
 
   Bryan Sutula (sutula@users.sourceforge.net)
+  Ulrich Kleber (ulikleber@users.sourceforge.net)
+

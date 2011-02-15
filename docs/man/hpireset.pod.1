@@ -4,8 +4,8 @@ hpireset - This sample openhpi application exercises HPI Reset Management APIs.
 
 =head1 SYNOPSIS 
 
- hpireset [-D nn] [-r -w -h -X]
- hpireset [--domain nn] [--hard --warm --help --debug]
+ hpireset [-D nn] [-N host[:port]] [-C <cfgfile>] [-r -w -h -X]
+ hpireset [--domain nn] [--host=host[:port]] [--cfgfile=file] [--hard --warm --help --debug]
 
 =head1 DESCRIPTION
 
@@ -18,11 +18,16 @@ If no domain is selected, hpireset uses a session with the default domain. The s
 
 =over 2
 
-  -h, --help          Show help options
-  -r, --hard          hard resets the system
-  -w, --warm          warm resets the system
-  -D, --domain=nn     Select domain id nn
-  -X, --debug         Display debug messages
+Help Options:
+  -h, --help                   Show help options
+
+Application Options:
+  -r, --hard                   hard resets the system
+  -w, --warm                   warm resets the system
+  -D, --domain=nn              Select domain id nn
+  -X, --debug                  Display debug messages
+  -N, --host="host<:port>"     Connect to daemon host:port
+  -C, --cfgfile="file"         Use passed file as client configuration file
 
 
 =back

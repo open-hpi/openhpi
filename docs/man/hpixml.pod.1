@@ -4,7 +4,8 @@ hpxml - An openhpi sample application that displays system view in XML.
 
 =head1 SYNOPSIS 
 
-hpixml [-D domain] [-s] [-i -t ]
+ hpixml [-D nn] [-s] [-i -t ] [-N host[:port]] [-C=file] [-h]
+ hpixml [--domain=nn] [--xsd] [--indent --text ] [--host=host[:port]] [--cfgfile=file] [--help]
 
 =head1 DESCRIPTION
 
@@ -17,11 +18,16 @@ If no domain is selected, hpixml uses a session with the default domain. The sel
 
 =over 2
 
- -D	"<arg>"	select domain id
- -s		display XML schema instead of XML
- -i		use indentation when displaying XML
- -t		use text names intsead of integer values when displaying enum and flag data
+Help Options:
+  -h, --help                   Show help options
 
+Application Options:
+  -i, --indent                 Use indentation
+  -t, --text                   Use enum and flag text names instead of raw values
+  -s, --xsd                    Show XML schema
+  -D, --domain=nn              Select domain id nn
+  -N, --host="host<:port>"     Connect to daemon host:port
+  -C, --cfgfile="file"         Use passed file as client configuration file
 
 =back
 
@@ -40,4 +46,5 @@ If no domain is selected, hpixml uses a session with the default domain. The sel
 Authors of this man page:
 
  Anton Pak (anton.pak@pigeonpoint.com)
+ Ulrich Kleber (ulikleber@users.sourceforge.net)
 

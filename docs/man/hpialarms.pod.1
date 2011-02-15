@@ -4,9 +4,11 @@ hpialarms - A openhpi sample application that shows "Alarm Control" management i
 
 =head1 SYNOPSIS 
 
- hpialarms [-D id][-a 1|0][-b 1|0][-c 1|0][-m 1|0][-n 1|0][-p 1|0][-i n][-o][-X][-h]
- hpialarms [--domain=id][--diska=1|0][--diskb=1|0][--critical=1|0][--major=1|0]
-           [--minor=1|0][--power=1|0][--chassisid=n][--all][--debug][--help]
+ hpialarms [-D id] [-N host[:port]] [-C <cfgfile>]
+           [-a 1|0][-b 1|0][-c 1|0][-m 1|0][-n 1|0][-p 1|0][-i n][-o][-X][-h]
+ hpialarms [--domain=id] [--host=host[:port]] [--cfgfile=file] 
+           [--diska=1|0] [--diskb=1|0] [--critical=1|0] [--major=1|0]
+           [--minor=1|0] [--power=1|0] [--chassisid=n] [--all] [--debug] [--help]
 
 =head1 DESCRIPTION
 
@@ -22,20 +24,21 @@ If no domain is selected, hpialarms uses a session with the default domain. The 
 (No Option) Display alarm states
 
 Help Options:
-  -h, --help             Show help options
+  -h, --help                   Show help options
 
 Application Options:
-  -c, --critical=1|0     Set critical alarm on|off
-  -m, --major=1|0        Set major alarm on|off
-  -n, --minor=1|0        Set minor alarm on|off
-  -a, --diska=1|0        Set diska alarm on|off
-  -b, --diskb=1|0        Set diskb alarm on|off
-  -p, --power=1|0        Set power alarm on|off
-  -i, --chassisid=n      Set chassis id on for n seconds
-  -o, --all              Set all alarms off
-  -D, --domain=nn        Select domain id nn
-  -X, --debug            Display debug messages
-
+  -c, --critical=1|0           Set critical alarm on|off
+  -m, --major=1|0              Set major alarm on|off
+  -n, --minor=1|0              Set minor alarm on|off
+  -a, --diska=1|0              Set diska alarm on|off
+  -b, --diskb=1|0              Set diskb alarm on|off
+  -p, --power=1|0              Set power alarm on|off
+  -i, --chassisid=n            Set chassis id on for n seconds
+  -o, --all                    Set all alarms off
+  -D, --domain=nn              Select domain id nn
+  -X, --debug                  Display debug messages
+  -N, --host="host<:port>"     Connect to daemon host:port
+  -C, --cfgfile="file"         Use passed file as client configuration file
 
 =back
 

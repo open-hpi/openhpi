@@ -4,8 +4,8 @@ ohhandler - An openhpi sample application that uses the openhpi additional inter
 
 =head1 SYNOPSIS 
 
- ohhandler [-D nn] [-X] command <specific arguments>
- ohhandler [--domain nn] [--debug] command <specific arguments>
+ ohhandler [-D nn] [-N host[:port]] [-C <cfgfile>] [-X] command <specific arguments>
+ ohhandler [--domain nn] [--host=host[:port]] [--cfgfile=file] [--debug] command <specific arguments>
 
  ohhandler [-D nn] [-x] list
  ohhandler [-D nn] [-x] info    <handler-id>
@@ -42,9 +42,15 @@ If no domain is selected, ohhandler uses the default domain. The selected domain
 
 =over 2
 
-  -h, --help          Show help options
-  -D, --domain=nn     Select domain id nn
-  -X, --debug         Display debug messages
+Help Options:
+  -h, --help                   Show help options
+
+Application Options:
+  -D, --domain=nn              Select domain id nn
+  -X, --debug                  Display debug messages
+  -N, --host="host<:port>"     Connect to daemon host:port
+  -C, --cfgfile="file"         Use passed file as client configuration file
+
 
 =back
 
