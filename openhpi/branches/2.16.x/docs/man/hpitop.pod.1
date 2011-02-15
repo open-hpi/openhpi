@@ -1,0 +1,51 @@
+=head1 NAME
+
+
+hpitop - A openhpi sample application that displays highlevel topology for a managed openHPI complex.
+
+=head1 SYNOPSIS 
+
+hpitop [-D id] [-rscwiafd -n resource -x]
+
+=head1 DESCRIPTION
+
+hpitop walks the Resource Present Table (RPT) of the managed openHPI complex and displays all the resources and resources' management instruments. 
+
+If no domain is selected, hpitop displays information using a session with the default domain. The selected domain id must be configured via the openhpidclient.conf file specified in the environment.
+
+=head1 OPTIONS
+
+=over 2
+
+ (No Option) Display system topology via default domain: rpt & rdr headers
+ -D nn  Select domain id nn
+ -r     Display only rpts
+ -s     Display only sensors
+ -c     Display only controls
+ -w     Display only watchdogs
+ -i     Display only inventories
+ -a     Display only annunciators
+ -f     Display only fumis
+ -d     Display only dimis
+ -n nn  Display only resource nn and its topology
+ -x     Display debug messages
+
+=back
+
+=head1 SEE ALSO
+ 
+         hpi_shell
+         hpialarms      hpifan         hpipower       hpithres
+         hpidomain      hpigensimdata  hpireset       hpitree
+         hpiel          hpiiinv        hpisensor      hpiwdt
+         hpievents      hpionIBMblade  hpisettime
+         ohdomainlist   ohhandler      ohparam
+
+
+=head1 AUTHORS
+
+Authors of this man page:
+
+ Peter D Phan (pdphan@users.sourceforge.net)
+ Ulrich Kleber (ulikleber@users.sourceforge.net)
+
