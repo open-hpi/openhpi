@@ -958,16 +958,16 @@ static ret_code_t wdt_get(void)
         };
         printf("  Timer Use: %s", str);
         switch (watchdog.TimerAction) {
-                case SAHPI_WAE_NO_ACTION:
+                case SAHPI_WA_NO_ACTION:
                         str = "NO_ACTION"; break;
-                case SAHPI_WAE_RESET:
+                case SAHPI_WA_RESET:
                         str = "RESET"; break;
-                case SAHPI_WAE_POWER_DOWN:
+                case SAHPI_WA_POWER_DOWN:
                         str = "POWER_DOWN"; break;
-                case SAHPI_WAE_POWER_CYCLE:
+                case SAHPI_WA_POWER_CYCLE:
                         str = "POWER_CYCLE"; break;
-                case SAHPI_WAE_TIMER_INT:
-                        str = "TIMER_INT"; break;
+                //case SAHPI_WAE_TIMER_INT:           
+                //        str = "TIMER_INT"; break;
                 default: str = "Unknown"; break;
         };
         printf("  Action: %s", str);

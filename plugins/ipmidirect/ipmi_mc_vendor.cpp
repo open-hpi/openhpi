@@ -502,7 +502,7 @@ cIpmiMcVendor::CreateEntityPath( cIpmiDomain *domain, unsigned int mc_addr, unsi
   if ( instance >= 0x60 )
        instance -= 0x60;
 
-  switch (type)
+  switch ((tIpmiEntityId)type)
   {
     default:
         break;
