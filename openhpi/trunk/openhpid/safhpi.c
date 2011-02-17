@@ -305,10 +305,6 @@ SaErrorT SAHPI_API saHpiResourceSeveritySet(
         SAHPI_IN SaHpiResourceIdT ResourceId,
         SAHPI_IN SaHpiSeverityT   Severity)
 {
-        /* this requires a new abi call to push down to the plugin */
-        int (*set_res_sev)(void *hnd, SaHpiResourceIdT id,
-                             SaHpiSeverityT sev);
-
         SaHpiDomainIdT did;
         struct oh_handler *h = NULL;
         struct oh_domain *d = NULL;
@@ -329,14 +325,9 @@ SaErrorT SAHPI_API saHpiResourceSeveritySet(
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        set_res_sev = h ? h->abi->set_resource_severity : NULL;
-
-        if (!set_res_sev) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        if ((error = set_res_sev(h->hnd, ResourceId, Severity)) != SA_OK) {
+        OH_CALL_ABI(h, set_resource_severity, SA_ERR_HPI_INVALID_CMD, error,
+                    ResourceId, Severity);
+        if (error != SA_OK) {
                 oh_release_handler(h);
                 return error;
         }
@@ -366,9 +357,6 @@ SaErrorT SAHPI_API saHpiResourceTagSet(
         SAHPI_IN SaHpiTextBufferT *ResourceTag)
 {
         SaErrorT rv;
-        SaErrorT (*set_res_tag)(void *hnd, SaHpiResourceIdT id,
-                                SaHpiTextBufferT *ResourceTag);
-
         SaHpiDomainIdT did;
         struct oh_handler *h = NULL;
         struct oh_domain *d = NULL;
@@ -383,14 +371,8 @@ SaErrorT SAHPI_API saHpiResourceTagSet(
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        set_res_tag = h ? h->abi->set_resource_tag : NULL;
-
-        if (!set_res_tag) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        rv = set_res_tag(h->hnd, ResourceId, ResourceTag);
+        OH_CALL_ABI(h, set_resource_tag, SA_ERR_HPI_INVALID_CMD, rv,
+                    ResourceId, ResourceTag);
         if (rv != SA_OK) {
                 oh_release_handler(h);
                 return rv;
@@ -638,10 +620,6 @@ SaErrorT SAHPI_API saHpiResourceFailedRemove (
         SaHpiRptEntryT saved_res;
         struct oh_event *e = NULL;
         SaHpiHsStateT hsstate;
-        SaErrorT (*get_hotswap_state)(void *hnd, SaHpiResourceIdT rid,
-                                      SaHpiHsStateT *state);
-        SaErrorT (*resource_failed_remove)(void *hnd, SaHpiResourceIdT rid);
-                                     
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
@@ -668,27 +646,26 @@ SaErrorT SAHPI_API saHpiResourceFailedRemove (
         oh_release_domain(d);
         hid = h->id;
 
-       	resource_failed_remove = h ? h->abi->resource_failed_remove : NULL;
-        if (resource_failed_remove) {
-	        error = resource_failed_remove(h->hnd, ResourceId);
+        if (h && h->abi->resource_failed_remove) {
+                OH_CALL_ABI(h, resource_failed_remove, SA_ERR_HPI_INTERNAL_ERROR, error,
+                            ResourceId);
        	        oh_release_handler(h);
 	        return error;
-       	}
+        }
 
 	/* If the resource_failed_remove ABI is not defined, then remove the
 	 * resource from rptcache */
         if (rpte->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP) {
-        	get_hotswap_state = h ? h->abi->get_hotswap_state : NULL;
-	        if (!get_hotswap_state) {
+                OH_CALL_ABI(h, get_hotswap_state, SA_ERR_HPI_INTERNAL_ERROR, error,
+                            ResourceId, &hsstate);
+	        if (error != SA_OK) {
         	        oh_release_handler(h);
-                	return SA_ERR_HPI_INTERNAL_ERROR;
-        	}
-        
-	        error = get_hotswap_state(h->hnd, ResourceId, &hsstate);
-        	oh_release_handler(h);
-	        if (error != SA_OK) return error;
-	} else 
+                        return error;
+                }
+	} else { 
 		hsstate = SAHPI_HS_STATE_ACTIVE;
+        }
+        oh_release_handler(h);
         
         e = g_new0(struct oh_event, 1);
         e->hid = hid;
@@ -719,7 +696,6 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet (
         SAHPI_OUT SaHpiEventLogInfoT *Info)
 {
         SaErrorT rv;
-        SaErrorT (*get_func) (void *, SaHpiResourceIdT, SaHpiEventLogInfoT *);
         SaHpiRptEntryT *res;
         struct oh_handler *h = NULL;
         struct oh_domain *d = NULL;
@@ -752,14 +728,8 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet (
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        get_func = h ? h->abi->get_el_info : NULL;
-
-        if (!get_func) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        rv = get_func(h->hnd, ResourceId, Info);
+        OH_CALL_ABI(h, get_el_info, SA_ERR_HPI_INVALID_CMD, rv,
+                    ResourceId, Info);
         oh_release_handler(h);
 
         return rv;
@@ -771,8 +741,6 @@ SaErrorT SAHPI_API saHpiEventLogCapabilitiesGet (
     SAHPI_OUT SaHpiEventLogCapabilitiesT  *EventLogCapabilities)
 {
         SaErrorT error;
-        SaErrorT (*get_el_caps) (void *, SaHpiResourceIdT,
-                                 SaHpiEventLogCapabilitiesT *);
         SaHpiRptEntryT *rpte = NULL;
         struct oh_handler *h = NULL;
         struct oh_domain *d = NULL;
@@ -804,15 +772,8 @@ SaErrorT SAHPI_API saHpiEventLogCapabilitiesGet (
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        get_el_caps = h ? h->abi->get_el_caps : NULL;
-
-        if (!get_el_caps) {                
-                oh_release_handler(h);
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
-
-        error = get_el_caps(h->hnd, ResourceId,
-                            EventLogCapabilities);
+        OH_CALL_ABI(h, get_el_caps, SA_ERR_HPI_INTERNAL_ERROR, error,
+                    ResourceId, EventLogCapabilities);
         oh_release_handler(h);        
 
         return error;
@@ -829,14 +790,6 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
         SAHPI_INOUT SaHpiRptEntryT        *RptEntry)
 {
         SaErrorT rv;
-        SaErrorT (*get_el_entry)(void *hnd, SaHpiResourceIdT id,
-                                SaHpiEventLogEntryIdT current,
-                                SaHpiEventLogEntryIdT *prev,
-                                SaHpiEventLogEntryIdT *next,
-                                SaHpiEventLogEntryT *entry,
-                                SaHpiRdrT  *rdr,
-                                SaHpiRptEntryT  *rptentry);
-
         SaHpiRptEntryT *res;
         struct oh_handler *h;
         struct oh_domain *d;
@@ -880,17 +833,9 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        get_el_entry = h ? h->abi->get_el_entry : NULL;
-
-        if (!get_el_entry) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        rv = get_el_entry(h->hnd, ResourceId,
-                          EntryId, PrevEntryId,
-                          NextEntryId, EventLogEntry,
-                          Rdr, RptEntry);
+        OH_CALL_ABI(h, get_el_entry, SA_ERR_HPI_INVALID_CMD, rv, 
+                    ResourceId, EntryId, PrevEntryId, NextEntryId,
+                    EventLogEntry, Rdr, RptEntry);
         oh_release_handler(h);
 
         return rv;
@@ -904,8 +849,6 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
         SaErrorT rv;
         SaHpiEventLogInfoT info;
         SaHpiEventLogCapabilitiesT caps;
-        SaErrorT (*add_el_entry)(void *hnd, SaHpiResourceIdT id,
-                                  const SaHpiEventT *Event);
         SaHpiRptEntryT *res;
         struct oh_handler *h;
         struct oh_domain *d;
@@ -985,15 +928,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        add_el_entry = h ? h->abi->add_el_entry : NULL;
-
-        if (!add_el_entry) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        rv = add_el_entry(h->hnd, ResourceId, EvtEntry);
-
+        OH_CALL_ABI(h, add_el_entry, SA_ERR_HPI_INVALID_CMD, rv, ResourceId, EvtEntry);
         oh_release_handler(h);
 
         return rv;
@@ -1005,7 +940,6 @@ SaErrorT SAHPI_API saHpiEventLogClear (
 {
         SaErrorT rv;
         SaHpiEventLogCapabilitiesT caps;
-        SaErrorT (*clear_el)(void *hnd, SaHpiResourceIdT id);
         SaHpiRptEntryT *res;
         struct oh_handler *h;
         struct oh_domain *d;
@@ -1053,13 +987,7 @@ SaErrorT SAHPI_API saHpiEventLogClear (
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        clear_el = h ? h->abi->clear_el : NULL;
-        if (!clear_el) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        rv = clear_el(h->hnd, ResourceId);
+        OH_CALL_ABI(h, clear_el, SA_ERR_HPI_INVALID_CMD, rv, ResourceId);
         oh_release_handler(h);
 
         return rv;
@@ -1097,7 +1025,6 @@ SaErrorT SAHPI_API saHpiEventLogTimeSet (
 {
         SaErrorT rv;
         SaHpiEventLogCapabilitiesT caps;
-        SaErrorT (*set_el_time)(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time);
         SaHpiRptEntryT *res;
         struct oh_handler *h;
         struct oh_domain *d;
@@ -1148,14 +1075,7 @@ SaErrorT SAHPI_API saHpiEventLogTimeSet (
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        set_el_time = h ? h->abi->set_el_time : NULL;
-
-        if (!set_el_time) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        rv = set_el_time(h->hnd, ResourceId, Time);
+        OH_CALL_ABI(h, set_el_time, SA_ERR_HPI_INVALID_CMD, rv, ResourceId, Time);
         oh_release_handler(h);
 
         return rv;
@@ -1197,7 +1117,6 @@ SaErrorT SAHPI_API saHpiEventLogStateSet (
         SaHpiDomainIdT did;
         SaHpiRptEntryT *res;
         SaHpiEventLogCapabilitiesT caps;
-        SaErrorT (*set_el_state)(void *hnd, SaHpiResourceIdT id, SaHpiBoolT e);
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
@@ -1240,14 +1159,7 @@ SaErrorT SAHPI_API saHpiEventLogStateSet (
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        set_el_state = h ? h->abi->set_el_state : NULL;
-
-        if (!set_el_state) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        rv = set_el_state(h->hnd, ResourceId, Enable);
+        OH_CALL_ABI(h, set_el_state, SA_ERR_HPI_INVALID_CMD, rv, ResourceId, Enable);
         oh_release_handler(h);
 
         return rv;
@@ -1263,7 +1175,6 @@ SaErrorT SAHPI_API saHpiEventLogOverflowReset (
         SaHpiRptEntryT *res;
         SaErrorT rv = SA_OK;
         SaHpiEventLogCapabilitiesT caps;
-        SaErrorT (*reset_el_overflow)(void *hnd, SaHpiResourceIdT id);
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
@@ -1305,14 +1216,7 @@ SaErrorT SAHPI_API saHpiEventLogOverflowReset (
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        reset_el_overflow = h ? h->abi->reset_el_overflow : NULL;
-
-        if (!reset_el_overflow) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        rv = reset_el_overflow(h->hnd, ResourceId);
+        OH_CALL_ABI(h, reset_el_overflow, SA_ERR_HPI_INVALID_CMD, rv, ResourceId);
         oh_release_handler(h);
 
         return rv;
@@ -1903,9 +1807,6 @@ SaErrorT SAHPI_API saHpiSensorReadingGet (
         SAHPI_INOUT SaHpiEventStateT    *EventState)
 {
         SaErrorT rv;
-        SaErrorT (*get_func) (void *, SaHpiResourceIdT, SaHpiSensorNumT,
-                              SaHpiSensorReadingT *, SaHpiEventStateT *);
-
         struct oh_handler *h;
         SaHpiRptEntryT *res;
         SaHpiRdrT *rdr;
@@ -1932,14 +1833,8 @@ SaErrorT SAHPI_API saHpiSensorReadingGet (
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        get_func = h ? h->abi->get_sensor_reading : NULL;
-
-        if (!get_func) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        rv = get_func(h->hnd, ResourceId, SensorNum, Reading, EventState);
+        OH_CALL_ABI(h, get_sensor_reading, SA_ERR_HPI_INVALID_CMD, rv,
+                    ResourceId, SensorNum, Reading, EventState);
 
 	/* If the Reading->IsSupported is set to False, then Reading->Type and
 	 * Reading->Value fields are not valid. Hence, these two fields may not
@@ -1965,8 +1860,6 @@ SaErrorT SAHPI_API saHpiSensorThresholdsGet (
         SAHPI_IN SaHpiSensorThresholdsT *SensorThresholds)
 {
         SaErrorT rv;
-        SaErrorT (*get_func) (void *, SaHpiResourceIdT, SaHpiSensorNumT,
-                              SaHpiSensorThresholdsT *);
         SaHpiRptEntryT *res;
         SaHpiRdrT *rdr_cur;
         SaHpiSensorThdDefnT *thd;
@@ -2006,14 +1899,8 @@ SaErrorT SAHPI_API saHpiSensorThresholdsGet (
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        get_func = h ? h->abi->get_sensor_thresholds : NULL;
-
-        if (!get_func) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        rv = get_func(h->hnd, ResourceId, SensorNum, SensorThresholds);
+        OH_CALL_ABI(h, get_sensor_thresholds, SA_ERR_HPI_INVALID_CMD, rv,
+                    ResourceId, SensorNum, SensorThresholds);
         oh_release_handler(h);
 
         return rv;
@@ -2026,8 +1913,6 @@ SaErrorT SAHPI_API saHpiSensorThresholdsSet (
         SAHPI_IN  SaHpiSensorThresholdsT *SensorThresholds)
 {
         SaErrorT rv;
-        SaErrorT (*set_func) (void *, SaHpiResourceIdT, SaHpiSensorNumT,
-                              const SaHpiSensorThresholdsT *);
         SaHpiRptEntryT *res;
         SaHpiRdrT *rdr;
         struct oh_handler *h;
@@ -2094,13 +1979,8 @@ SaErrorT SAHPI_API saHpiSensorThresholdsSet (
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        set_func = h ? h->abi->set_sensor_thresholds : NULL;
-        if (!set_func) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        rv = set_func(h->hnd, ResourceId, SensorNum, SensorThresholds);
+        OH_CALL_ABI(h, set_sensor_thresholds, SA_ERR_HPI_INVALID_CMD, rv,
+                    ResourceId, SensorNum, SensorThresholds);
         oh_release_handler(h);
 
         return rv;
@@ -2157,10 +2037,6 @@ SaErrorT SAHPI_API saHpiSensorEnableGet (
         SAHPI_OUT SaHpiBoolT       *SensorEnabled)
 {
         SaErrorT rv;
-        SaErrorT (*get_sensor_enable)(void *hnd, SaHpiResourceIdT,
-                                      SaHpiSensorNumT,
-                                      SaHpiBoolT *enable);
-
         SaHpiRptEntryT *res;
         SaHpiRdrT *rdr_cur;
         struct oh_handler *h;
@@ -2192,13 +2068,8 @@ SaErrorT SAHPI_API saHpiSensorEnableGet (
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        get_sensor_enable = h ? h->abi->get_sensor_enable : NULL;
-        if (!get_sensor_enable) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        rv = get_sensor_enable(h->hnd, ResourceId, SensorNum, SensorEnabled);
+        OH_CALL_ABI(h, get_sensor_enable, SA_ERR_HPI_INVALID_CMD, rv,
+                    ResourceId, SensorNum, SensorEnabled);
         oh_release_handler(h);
 
         return rv;
@@ -2211,9 +2082,6 @@ SaErrorT SAHPI_API saHpiSensorEnableSet (
         SAHPI_IN SaHpiBoolT       SensorEnabled)
 {
         SaErrorT rv;
-        SaErrorT (*set_sensor_enable)(void *hnd, SaHpiResourceIdT,
-                                      SaHpiSensorNumT,
-                                      SaHpiBoolT enable);
         SaHpiRptEntryT *res;
         SaHpiRdrT *rdr_cur;
         struct oh_handler *h;
@@ -2246,13 +2114,8 @@ SaErrorT SAHPI_API saHpiSensorEnableSet (
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        set_sensor_enable = h ? h->abi->set_sensor_enable : NULL;
-        if (!set_sensor_enable) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        rv = set_sensor_enable(h->hnd, ResourceId, SensorNum, SensorEnabled);
+        OH_CALL_ABI(h, set_sensor_enable, SA_ERR_HPI_INVALID_CMD, rv,
+                    ResourceId, SensorNum, SensorEnabled);
         oh_release_handler(h);
         if (rv == SA_OK) {
                 oh_detect_sensor_enable_alarm(did, ResourceId,
@@ -2269,10 +2132,6 @@ SaErrorT SAHPI_API saHpiSensorEventEnableGet (
         SAHPI_OUT SaHpiBoolT       *SensorEventsEnabled)
 {
         SaErrorT rv;
-        SaErrorT (*get_sensor_event_enables)(void *hnd, SaHpiResourceIdT,
-                                             SaHpiSensorNumT,
-                                             SaHpiBoolT *enables);
-
         SaHpiRptEntryT *res;
         SaHpiRdrT *rdr_cur;
         struct oh_handler *h;
@@ -2304,13 +2163,8 @@ SaErrorT SAHPI_API saHpiSensorEventEnableGet (
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        get_sensor_event_enables = h ? h->abi->get_sensor_event_enables : NULL;
-        if (!get_sensor_event_enables) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        rv = get_sensor_event_enables(h->hnd, ResourceId, SensorNum, SensorEventsEnabled);
+        OH_CALL_ABI(h, get_sensor_event_enables, SA_ERR_HPI_INVALID_CMD, rv,
+                    ResourceId, SensorNum, SensorEventsEnabled);
         oh_release_handler(h);
 
         return rv;
@@ -2323,9 +2177,6 @@ SaErrorT SAHPI_API saHpiSensorEventEnableSet (
         SAHPI_IN SaHpiBoolT       SensorEventsEnabled)
 {
         SaErrorT rv;
-        SaErrorT (*set_sensor_event_enables)(void *hnd, SaHpiResourceIdT,
-                                             SaHpiSensorNumT,
-                                             const SaHpiBoolT enables);
         SaHpiRptEntryT *res;
         SaHpiRdrT *rdr_cur;
         struct oh_handler *h;
@@ -2361,14 +2212,8 @@ SaErrorT SAHPI_API saHpiSensorEventEnableSet (
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        set_sensor_event_enables = h ? h->abi->set_sensor_event_enables : NULL;
-        if (!set_sensor_event_enables) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        rv = set_sensor_event_enables(h->hnd, ResourceId,
-                                      SensorNum, SensorEventsEnabled);
+        OH_CALL_ABI(h, set_sensor_event_enables, SA_ERR_HPI_INVALID_CMD, rv,
+                    ResourceId, SensorNum, SensorEventsEnabled);
         oh_release_handler(h);
         if (rv == SA_OK) {
                 oh_detect_sensor_enable_alarm(did, ResourceId,
@@ -2386,10 +2231,6 @@ SaErrorT SAHPI_API saHpiSensorEventMasksGet (
         SAHPI_INOUT SaHpiEventStateT      *DeassertEventMask)
 {
         SaErrorT rv;
-        SaErrorT (*get_sensor_event_masks)(void *hnd, SaHpiResourceIdT,
-                                           SaHpiSensorNumT,
-                                           SaHpiEventStateT   *AssertEventMask,
-                                           SaHpiEventStateT   *DeassertEventMask);
         SaHpiRptEntryT *res;
         SaHpiRdrT *rdr_cur;
         struct oh_handler *h;
@@ -2419,14 +2260,8 @@ SaErrorT SAHPI_API saHpiSensorEventMasksGet (
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        get_sensor_event_masks = h ? h->abi->get_sensor_event_masks : NULL;
-        if (!get_sensor_event_masks) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        rv = get_sensor_event_masks(h->hnd, ResourceId, SensorNum,
-                                    AssertEventMask, DeassertEventMask);
+        OH_CALL_ABI(h, get_sensor_event_masks, SA_ERR_HPI_INVALID_CMD, rv,
+                    ResourceId, SensorNum, AssertEventMask, DeassertEventMask);
         oh_release_handler(h);
 
         return rv;
@@ -2441,11 +2276,6 @@ SaErrorT SAHPI_API saHpiSensorEventMasksSet (
         SAHPI_IN  SaHpiEventStateT                DeassertEventMask)
 {
         SaErrorT rv;
-        SaErrorT (*set_sensor_event_masks)(void *hnd, SaHpiResourceIdT,
-                                           SaHpiSensorNumT,
-                                           SaHpiSensorEventMaskActionT   Action,
-                                           SaHpiEventStateT   AssertEventMask,
-                                           SaHpiEventStateT   DeassertEventMask);
         SaHpiRptEntryT *res;
         SaHpiRdrT *rdr_cur;
         struct oh_handler *h;
@@ -2502,16 +2332,8 @@ SaErrorT SAHPI_API saHpiSensorEventMasksSet (
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        set_sensor_event_masks = h ? h->abi->set_sensor_event_masks : NULL;
-        if (!set_sensor_event_masks) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        rv = set_sensor_event_masks(h->hnd, ResourceId, SensorNum,
-                                    Action,
-                                    AssertEventMask,
-                                    DeassertEventMask);
+        OH_CALL_ABI(h, set_sensor_event_masks, SA_ERR_HPI_INVALID_CMD, rv,
+                    ResourceId, SensorNum, Action, AssertEventMask, DeassertEventMask);
         oh_release_handler(h);
 
         if (rv == SA_OK) {
@@ -2577,8 +2399,6 @@ SaErrorT SAHPI_API saHpiControlGet (
         SAHPI_INOUT SaHpiCtrlStateT  *CtrlState)
 {
         SaErrorT rv;
-        SaErrorT (*get_func)(void *, SaHpiResourceIdT, SaHpiCtrlNumT,
-                             SaHpiCtrlModeT *, SaHpiCtrlStateT *);
         SaHpiRptEntryT *res;
         SaHpiRdrT *rdr;
         struct oh_handler *h = NULL;
@@ -2623,13 +2443,8 @@ SaErrorT SAHPI_API saHpiControlGet (
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        get_func = h ? h->abi->get_control_state : NULL;
-        if (!get_func) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        rv = get_func(h->hnd, ResourceId, CtrlNum, CtrlMode, CtrlState);
+        OH_CALL_ABI(h, get_control_state, SA_ERR_HPI_INVALID_CMD, rv,
+                    ResourceId, CtrlNum, CtrlMode, CtrlState);
         oh_release_handler(h);
 
         return rv;
@@ -2736,7 +2551,6 @@ SaErrorT SAHPI_API saHpiIdrInfoGet(
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
         struct oh_handler *h = NULL;
-        SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiIdrInfoT *);
 
         if (IdrInfo == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -2761,14 +2575,8 @@ SaErrorT SAHPI_API saHpiIdrInfoGet(
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        set_func = h ? h->abi->get_idr_info : NULL;
-        if (!set_func) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        /* Access Inventory Info from plugin */
-        rv = set_func(h->hnd, ResourceId, IdrId, IdrInfo);
+        OH_CALL_ABI(h, get_idr_info, SA_ERR_HPI_INVALID_CMD, rv,
+                    ResourceId, IdrId, IdrInfo);
         oh_release_handler(h);
 
         return rv;
@@ -2790,8 +2598,6 @@ SaErrorT SAHPI_API saHpiIdrAreaHeaderGet(
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
         struct oh_handler *h;
-        SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiIdrAreaTypeT,
-                              SaHpiEntryIdT, SaHpiEntryIdT *,  SaHpiIdrAreaHeaderT *);
 
         if ( ((AreaType < SAHPI_IDR_AREATYPE_INTERNAL_USE) ||
              ((AreaType > SAHPI_IDR_AREATYPE_PRODUCT_INFO) &&
@@ -2822,14 +2628,8 @@ SaErrorT SAHPI_API saHpiIdrAreaHeaderGet(
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        set_func = h ? h->abi->get_idr_area_header : NULL;
-        if (!set_func) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        /* Access Inventory Info from plugin */
-        rv = set_func(h->hnd, ResourceId, IdrId, AreaType, AreaId, NextAreaId, Header);
+        OH_CALL_ABI(h, get_idr_area_header, SA_ERR_HPI_INVALID_CMD, rv,
+                    ResourceId, IdrId, AreaType, AreaId, NextAreaId, Header);
         oh_release_handler(h);
 
         return rv;
@@ -2848,8 +2648,6 @@ SaErrorT SAHPI_API saHpiIdrAreaAdd(
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
         struct oh_handler *h;
-        SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiIdrAreaTypeT,
-                                SaHpiEntryIdT *);
 
         if (!oh_lookup_idrareatype(AreaType) ||
             AreaId == NULL)   {
@@ -2877,14 +2675,8 @@ SaErrorT SAHPI_API saHpiIdrAreaAdd(
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        set_func = h ? h->abi->add_idr_area : NULL;
-        if (!set_func) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        /* Access Inventory Info from plugin */
-        rv = set_func(h->hnd, ResourceId, IdrId, AreaType, AreaId);
+        OH_CALL_ABI(h, add_idr_area, SA_ERR_HPI_INVALID_CMD, rv,
+                    ResourceId, IdrId, AreaType, AreaId);
         oh_release_handler(h);
 
         return rv;
@@ -2906,22 +2698,6 @@ SaErrorT SAHPI_API saHpiIdrAreaAddById(
         SaHpiIdrInfoT info;
         SaHpiIdrAreaHeaderT header;
         SaHpiEntryIdT next;
-        SaErrorT (*add_idr_area_id)(void *,
-                                    SaHpiResourceIdT,
-                                    SaHpiIdrIdT,
-                                    SaHpiIdrAreaTypeT,
-                                    SaHpiEntryIdT);
-        SaErrorT (*get_idr_info)(void *hnd,
-                                 SaHpiResourceIdT rid,
-                                 SaHpiIdrIdT idrid,
-                                 SaHpiIdrInfoT *idrinfo);
-        SaErrorT (*get_idr_area_header)(void *hnd,
-                                        SaHpiResourceIdT rid,
-                                        SaHpiIdrIdT idrid,
-                                        SaHpiIdrAreaTypeT areatype,
-                                        SaHpiEntryIdT areaid,
-                                        SaHpiEntryIdT *nextareaid,
-                                        SaHpiIdrAreaHeaderT *header);
 
         if (!oh_lookup_idrareatype(AreaType) ||
             AreaId == SAHPI_LAST_ENTRY)   {                
@@ -2951,12 +2727,8 @@ SaErrorT SAHPI_API saHpiIdrAreaAddById(
         oh_release_domain(d); /* Unlock domain */
         
         /* Check if IDR is read-only */
-        get_idr_info = h ? h->abi->get_idr_info : NULL;
-        if (!get_idr_info) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
-        error = get_idr_info(h->hnd, ResourceId, IdrId, &info);
+        OH_CALL_ABI(h, get_idr_info, SA_ERR_HPI_INTERNAL_ERROR, error,
+                    ResourceId, IdrId, &info);
         if (error != SA_OK) {
                 oh_release_handler(h);
                 return SA_ERR_HPI_NOT_PRESENT;
@@ -2966,24 +2738,15 @@ SaErrorT SAHPI_API saHpiIdrAreaAddById(
         }
 
         /* Check if the AreaId requested already exists */
-        get_idr_area_header = h ? h->abi->get_idr_area_header : NULL;
-        if (!get_idr_area_header) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
-        error = get_idr_area_header(h->hnd, ResourceId, IdrId, AreaType,
-                                    AreaId, &next, &header);
+        OH_CALL_ABI(h, get_idr_area_header, SA_ERR_HPI_INTERNAL_ERROR, error,
+                    ResourceId, IdrId, AreaType, AreaId, &next, &header);
         if (error == SA_OK) {
                 oh_release_handler(h);
                 return SA_ERR_HPI_DUPLICATE;
         }
 
-        add_idr_area_id = h ? h->abi->add_idr_area_id : NULL;
-        if (!add_idr_area_id) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
-        error = add_idr_area_id(h->hnd, ResourceId, IdrId, AreaType, AreaId);
+        OH_CALL_ABI(h, add_idr_area_id, SA_ERR_HPI_INTERNAL_ERROR, error,
+                    ResourceId, IdrId, AreaType, AreaId);
         oh_release_handler(h);
 
         return error;
@@ -3001,7 +2764,6 @@ SaErrorT SAHPI_API saHpiIdrAreaDelete(
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
         struct oh_handler *h;
-        SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiEntryIdT);
 
         if (AreaId == SAHPI_LAST_ENTRY)   {
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -3026,14 +2788,8 @@ SaErrorT SAHPI_API saHpiIdrAreaDelete(
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        set_func = h ? h->abi->del_idr_area : NULL;
-        if (!set_func) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        /* Access Inventory Info from plugin */
-        rv = set_func(h->hnd, ResourceId, IdrId, AreaId);
+        OH_CALL_ABI(h, del_idr_area, SA_ERR_HPI_INVALID_CMD, rv,
+                    ResourceId, IdrId, AreaId);
         oh_release_handler(h);
 
         return rv;
@@ -3055,9 +2811,6 @@ SaErrorT SAHPI_API saHpiIdrFieldGet(
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
         struct oh_handler *h;
-        SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiIdrIdT,
-                             SaHpiEntryIdT, SaHpiIdrFieldTypeT, SaHpiEntryIdT,
-                             SaHpiEntryIdT *, SaHpiIdrFieldT * );
 
         if (!Field ||
             !oh_lookup_idrfieldtype(FieldType) ||
@@ -3086,15 +2839,8 @@ SaErrorT SAHPI_API saHpiIdrFieldGet(
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        set_func = h ? h->abi->get_idr_field : NULL;
-        if (!set_func) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        /* Access Inventory Info from plugin */
-        rv = set_func(h->hnd, ResourceId, IdrId, AreaId,
-                      FieldType, FieldId, NextFieldId, Field);
+        OH_CALL_ABI(h, get_idr_field, SA_ERR_HPI_INVALID_CMD, rv,
+                    ResourceId, IdrId, AreaId, FieldType, FieldId, NextFieldId, Field);
         oh_release_handler(h);
 
         return rv;
@@ -3112,7 +2858,6 @@ SaErrorT SAHPI_API saHpiIdrFieldAdd(
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
         struct oh_handler *h;
-        SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiIdrIdT,  SaHpiIdrFieldT * );
 
         if (!Field)   {
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -3143,14 +2888,8 @@ SaErrorT SAHPI_API saHpiIdrFieldAdd(
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        set_func = h ? h->abi->add_idr_field : NULL;
-        if (!set_func) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        /* Access Inventory Info from plugin */
-        rv = set_func(h->hnd, ResourceId, IdrId, Field);
+        OH_CALL_ABI(h, add_idr_field, SA_ERR_HPI_INVALID_CMD, rv,
+                    ResourceId, IdrId, Field);
         oh_release_handler(h);
 
         return rv;
@@ -3171,25 +2910,6 @@ SaErrorT SAHPI_API saHpiIdrFieldAddById(
         SaHpiEntryIdT nextid;
         SaHpiIdrAreaHeaderT header;
         SaHpiIdrFieldT field;
-        SaErrorT (*add_idr_field_id)(void *,
-                                     SaHpiResourceIdT,
-                                     SaHpiIdrIdT,
-                                     SaHpiIdrFieldT *);
-        SaErrorT (*get_idr_area_header)(void *hnd,
-                                        SaHpiResourceIdT rid,
-                                        SaHpiIdrIdT idrid,
-                                        SaHpiIdrAreaTypeT areatype,
-                                        SaHpiEntryIdT areaid,
-                                        SaHpiEntryIdT *nextareaid,
-                                        SaHpiIdrAreaHeaderT *header);
-        SaErrorT (*get_idr_field)(void *hnd,
-                                  SaHpiResourceIdT rid,
-                                  SaHpiIdrIdT idrid,
-                                  SaHpiEntryIdT areaid,
-                                  SaHpiIdrFieldTypeT fieldtype,
-                                  SaHpiEntryIdT fieldid,
-                                  SaHpiEntryIdT *nextfieldid,
-                                  SaHpiIdrFieldT *field);
 
         if (!Field)   {                
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -3225,15 +2945,9 @@ SaErrorT SAHPI_API saHpiIdrFieldAddById(
         oh_release_domain(d); /* Unlock domain */
         
         /* Check if AreaId specified in Field exists */
-        get_idr_area_header = h ? h->abi->get_idr_area_header : NULL;
-        if (!get_idr_area_header) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
-        error = get_idr_area_header(h->hnd, ResourceId, IdrId,
-                                    SAHPI_IDR_AREATYPE_UNSPECIFIED,
-                                    Field->AreaId,
-                                    &nextid, &header);
+        OH_CALL_ABI(h, get_idr_area_header, SA_ERR_HPI_INTERNAL_ERROR, error,
+                    ResourceId, IdrId, SAHPI_IDR_AREATYPE_UNSPECIFIED,
+                    Field->AreaId, &nextid, &header);
         if (error != SA_OK) {
                 oh_release_handler(h);
                 return SA_ERR_HPI_NOT_PRESENT;
@@ -3243,26 +2957,18 @@ SaErrorT SAHPI_API saHpiIdrFieldAddById(
         }
         /* Check if FieldId requested does not already exists */
         if ( Field->FieldId != SAHPI_FIRST_ENTRY ) {
-           get_idr_field = h ? h->abi->get_idr_field : NULL;
-           if (!get_idr_field) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INTERNAL_ERROR;
-           }
-           error = get_idr_field(h->hnd, ResourceId, IdrId, Field->AreaId,
-                                         SAHPI_IDR_FIELDTYPE_UNSPECIFIED,
-                                         Field->FieldId, &nextid, &field);
+           OH_CALL_ABI(h, get_idr_field, SA_ERR_HPI_INTERNAL_ERROR, error,
+                       ResourceId, IdrId, Field->AreaId,
+                       SAHPI_IDR_FIELDTYPE_UNSPECIFIED,
+                       Field->FieldId, &nextid, &field);
            if (error == SA_OK) {
                 oh_release_handler(h);
                 return SA_ERR_HPI_DUPLICATE;
            }
         }        
         /* All checks done. Pass call down to plugin */
-        add_idr_field_id = h ? h->abi->add_idr_field_id : NULL;
-        if (!add_idr_field_id) {
-                oh_release_handler(h);                
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }                
-        error = add_idr_field_id(h->hnd, ResourceId, IdrId, Field);
+        OH_CALL_ABI(h, add_idr_field_id, SA_ERR_HPI_INTERNAL_ERROR, error,
+                    ResourceId, IdrId, Field);
         oh_release_handler(h);
 
         return error;
@@ -3280,7 +2986,6 @@ SaErrorT SAHPI_API saHpiIdrFieldSet(
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
         struct oh_handler *h;
-        SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiIdrFieldT * );
 
         if (!Field)   {
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -3309,14 +3014,8 @@ SaErrorT SAHPI_API saHpiIdrFieldSet(
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        set_func = h ? h->abi->set_idr_field : NULL;
-        if (!set_func) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        /* Access Inventory Info from plugin */
-        rv = set_func(h->hnd, ResourceId, IdrId, Field);
+        OH_CALL_ABI(h, set_idr_field, SA_ERR_HPI_INVALID_CMD, rv,
+                    ResourceId, IdrId, Field);
         oh_release_handler(h);
 
         return rv;
@@ -3335,7 +3034,6 @@ SaErrorT SAHPI_API saHpiIdrFieldDelete(
         SaHpiDomainIdT did;
         struct oh_handler *h;
         struct oh_domain *d = NULL;
-        SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiEntryIdT, SaHpiEntryIdT );
 
         if (FieldId == SAHPI_LAST_ENTRY || AreaId == SAHPI_LAST_ENTRY)   {
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -3360,14 +3058,8 @@ SaErrorT SAHPI_API saHpiIdrFieldDelete(
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        set_func = h ? h->abi->del_idr_field : NULL;
-        if (!set_func) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        /* Access Inventory Info from plugin */
-        rv = set_func(h->hnd, ResourceId, IdrId, AreaId, FieldId);
+        OH_CALL_ABI(h, del_idr_field, SA_ERR_HPI_INVALID_CMD, rv,
+                    ResourceId, IdrId, AreaId, FieldId);
         oh_release_handler(h);
 
         return rv;
@@ -3388,7 +3080,6 @@ SaErrorT SAHPI_API saHpiWatchdogTimerGet (
         SAHPI_OUT SaHpiWatchdogT    *Watchdog)
 {
         SaErrorT rv;
-        SaErrorT (*get_func)(void *, SaHpiResourceIdT, SaHpiWatchdogNumT, SaHpiWatchdogT *);
         SaHpiRptEntryT *res;
         struct oh_handler *h;
         struct oh_domain *d = NULL;
@@ -3409,13 +3100,8 @@ SaErrorT SAHPI_API saHpiWatchdogTimerGet (
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        get_func = h ? h->abi->get_watchdog_info : NULL;
-        if (!get_func) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        rv = get_func(h->hnd, ResourceId, WatchdogNum, Watchdog);
+        OH_CALL_ABI(h, get_watchdog_info, SA_ERR_HPI_INVALID_CMD, rv,
+                    ResourceId, WatchdogNum, Watchdog);
         oh_release_handler(h);
 
         return rv;
@@ -3428,7 +3114,6 @@ SaErrorT SAHPI_API saHpiWatchdogTimerSet (
         SAHPI_IN SaHpiWatchdogT    *Watchdog)
 {
         SaErrorT rv;
-        SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiWatchdogNumT, SaHpiWatchdogT *);
         SaHpiRptEntryT *res;
         struct oh_handler *h;
         struct oh_domain *d = NULL;
@@ -3458,13 +3143,8 @@ SaErrorT SAHPI_API saHpiWatchdogTimerSet (
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        set_func = h ? h->abi->set_watchdog_info : NULL;
-        if (!set_func) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        rv = set_func(h->hnd, ResourceId, WatchdogNum, Watchdog);
+        OH_CALL_ABI(h, set_watchdog_info, SA_ERR_HPI_INVALID_CMD, rv,
+                    ResourceId, WatchdogNum, Watchdog);
         oh_release_handler(h);
 
         return rv;
@@ -3476,7 +3156,6 @@ SaErrorT SAHPI_API saHpiWatchdogTimerReset (
         SAHPI_IN SaHpiWatchdogNumT WatchdogNum)
 {
         SaErrorT rv;
-        SaErrorT (*reset_func)(void *, SaHpiResourceIdT, SaHpiWatchdogNumT);
         SaHpiRptEntryT *res;
         struct oh_handler *h;
         struct oh_domain *d = NULL;
@@ -3495,13 +3174,8 @@ SaErrorT SAHPI_API saHpiWatchdogTimerReset (
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        reset_func = h ? h->abi->reset_watchdog : NULL;
-        if (!reset_func) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        rv = reset_func(h->hnd, ResourceId, WatchdogNum);
+        OH_CALL_ABI(h, reset_watchdog, SA_ERR_HPI_INVALID_CMD, rv,
+                    ResourceId, WatchdogNum);
         oh_release_handler(h);
 
         return rv;
@@ -3522,9 +3196,6 @@ SaErrorT SAHPI_API saHpiAnnunciatorGetNext(
         SAHPI_INOUT SaHpiAnnouncementT      *Announcement)
 {
 
-        SaErrorT (*ann_func)(void *, SaHpiResourceIdT,
-                             SaHpiAnnunciatorNumT, SaHpiSeverityT,
-                             SaHpiBoolT, SaHpiAnnouncementT *);
         SaErrorT rv;
         SaHpiRptEntryT *res;
         SaHpiRdrT *rdr;
@@ -3559,17 +3230,9 @@ SaErrorT SAHPI_API saHpiAnnunciatorGetNext(
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d);
 
-        /* talk to the plugin */
-        ann_func = h ? h->abi->get_next_announce : NULL;
-        if (!ann_func) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        rv = ann_func(h->hnd, ResourceId,
-                      AnnunciatorNum, Severity,
-                      UnacknowledgedOnly,
-                      Announcement);
+        OH_CALL_ABI(h, get_next_announce, SA_ERR_HPI_INVALID_CMD, rv,
+                    ResourceId, AnnunciatorNum, Severity, UnacknowledgedOnly,
+                    Announcement);
         oh_release_handler(h);
 
         return rv;
@@ -3582,8 +3245,6 @@ SaErrorT SAHPI_API saHpiAnnunciatorGet(
         SAHPI_IN SaHpiEntryIdT              EntryId,
         SAHPI_OUT SaHpiAnnouncementT        *Announcement)
 {
-        SaErrorT (*ann_func)(void *, SaHpiResourceIdT,
-                             SaHpiAnnunciatorNumT, SaHpiEntryIdT, SaHpiAnnouncementT *);
         SaErrorT rv;
         SaHpiRptEntryT *res;
         SaHpiRdrT *rdr;
@@ -3619,16 +3280,8 @@ SaErrorT SAHPI_API saHpiAnnunciatorGet(
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d);
 
-        /* talk to the plugin */
-        ann_func = h ? h->abi->get_announce : NULL;
-        if (!ann_func) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        rv = ann_func(h->hnd, ResourceId,
-                      AnnunciatorNum, EntryId,
-                      Announcement);
+        OH_CALL_ABI(h, get_announce, SA_ERR_HPI_INVALID_CMD, rv,
+                    ResourceId, AnnunciatorNum, EntryId, Announcement);
         oh_release_handler(h);
 
         return rv;
@@ -3641,8 +3294,6 @@ SaErrorT SAHPI_API saHpiAnnunciatorAcknowledge(
         SAHPI_IN SaHpiEntryIdT              EntryId,
         SAHPI_IN SaHpiSeverityT             Severity)
 {
-        SaErrorT (*ann_func)(void *, SaHpiResourceIdT,
-                             SaHpiAnnunciatorNumT, SaHpiEntryIdT, SaHpiSeverityT);
         SaErrorT rv;
         SaHpiRptEntryT *res;
         SaHpiRdrT *rdr;
@@ -3677,16 +3328,8 @@ SaErrorT SAHPI_API saHpiAnnunciatorAcknowledge(
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d);
 
-        /* talk to the plugin */
-        ann_func = h ? h->abi->ack_announce : NULL;
-        if (!ann_func) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        rv = ann_func(h->hnd, ResourceId,
-                      AnnunciatorNum, EntryId,
-                      Severity);
+        OH_CALL_ABI(h, ack_announce, SA_ERR_HPI_INVALID_CMD, rv,
+                    ResourceId, AnnunciatorNum, EntryId, Severity);
         oh_release_handler(h);
 
         return rv;
@@ -3698,8 +3341,6 @@ SaErrorT SAHPI_API saHpiAnnunciatorAdd(
         SAHPI_IN SaHpiAnnunciatorNumT       AnnunciatorNum,
         SAHPI_INOUT SaHpiAnnouncementT      *Announcement)
 {
-        SaErrorT (*ann_func)(void *, SaHpiResourceIdT,
-                             SaHpiAnnunciatorNumT, SaHpiAnnouncementT *);
         SaErrorT rv;
         SaHpiRptEntryT *res;
         SaHpiRdrT *rdr;
@@ -3753,15 +3394,8 @@ SaErrorT SAHPI_API saHpiAnnunciatorAdd(
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d);
 
-        /* talk to the plugin */
-        ann_func = h ? h->abi->add_announce : NULL;
-        if (!ann_func) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        rv = ann_func(h->hnd, ResourceId,
-                      AnnunciatorNum, Announcement);
+        OH_CALL_ABI(h, add_announce, SA_ERR_HPI_INVALID_CMD, rv,
+                    ResourceId, AnnunciatorNum, Announcement);
         oh_release_handler(h);
 
         return rv;
@@ -3774,8 +3408,6 @@ SaErrorT SAHPI_API saHpiAnnunciatorDelete(
         SAHPI_IN SaHpiEntryIdT              EntryId,
         SAHPI_IN SaHpiSeverityT             Severity)
 {
-        SaErrorT (*ann_func)(void *, SaHpiResourceIdT,
-                             SaHpiAnnunciatorNumT, SaHpiEntryIdT, SaHpiSeverityT);
         SaErrorT rv;
         SaHpiRptEntryT *res;
         SaHpiRdrT *rdr;
@@ -3824,16 +3456,8 @@ SaErrorT SAHPI_API saHpiAnnunciatorDelete(
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d);
 
-        /* talk to the plugin */
-        ann_func = h ? h->abi->del_announce : NULL;
-        if (!ann_func) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        rv = ann_func(h->hnd, ResourceId,
-                      AnnunciatorNum, EntryId,
-                      Severity);
+        OH_CALL_ABI(h, del_announce, SA_ERR_HPI_INVALID_CMD, rv,
+                    ResourceId, AnnunciatorNum, EntryId, Severity);
         oh_release_handler(h);
 
         return rv;
@@ -3845,8 +3469,6 @@ SaErrorT SAHPI_API saHpiAnnunciatorModeGet(
         SAHPI_IN SaHpiAnnunciatorNumT       AnnunciatorNum,
         SAHPI_OUT SaHpiAnnunciatorModeT     *Mode)
 {
-        SaErrorT (*ann_func)(void *, SaHpiResourceIdT,
-                             SaHpiAnnunciatorNumT, SaHpiAnnunciatorModeT *);
         SaErrorT rv;
         SaHpiRptEntryT *res;
         SaHpiRdrT *rdr;
@@ -3879,14 +3501,8 @@ SaErrorT SAHPI_API saHpiAnnunciatorModeGet(
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d);
 
-        /* talk to the plugin */
-        ann_func = h ? h->abi->get_annunc_mode : NULL;
-        if (!ann_func) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        rv = ann_func(h->hnd, ResourceId, AnnunciatorNum, Mode);
+        OH_CALL_ABI(h, get_annunc_mode, SA_ERR_HPI_INVALID_CMD, rv,
+                    ResourceId, AnnunciatorNum, Mode);
         oh_release_handler(h);
 
         return rv;
@@ -3898,8 +3514,6 @@ SaErrorT SAHPI_API saHpiAnnunciatorModeSet(
         SAHPI_IN SaHpiAnnunciatorNumT       AnnunciatorNum,
         SAHPI_IN SaHpiAnnunciatorModeT      Mode)
 {
-        SaErrorT (*ann_func)(void *, SaHpiResourceIdT,
-                             SaHpiAnnunciatorNumT, SaHpiAnnunciatorModeT);
         SaErrorT rv;
         SaHpiRptEntryT *res;
         SaHpiRdrT *rdr;
@@ -3940,14 +3554,8 @@ SaErrorT SAHPI_API saHpiAnnunciatorModeSet(
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d);
 
-        /* talk to the plugin */
-        ann_func = h ? h->abi->set_annunc_mode : NULL;
-        if (!ann_func) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        rv = ann_func(h->hnd, ResourceId, AnnunciatorNum, Mode);
+        OH_CALL_ABI(h, set_annunc_mode, SA_ERR_HPI_INVALID_CMD, rv,
+                    ResourceId, AnnunciatorNum, Mode);
         oh_release_handler(h);
 
         return rv;
@@ -5501,8 +5109,6 @@ SaErrorT SAHPI_API saHpiHotSwapPolicyCancel (
         struct oh_handler *h;
         struct oh_domain *d = NULL;
         SaHpiTimeoutT timeout;
-        SaErrorT (*hotswap_policy_cancel)(void *hnd, SaHpiResourceIdT,
-                                          SaHpiTimeoutT timeout);
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
@@ -5531,14 +5137,10 @@ SaErrorT SAHPI_API saHpiHotSwapPolicyCancel (
         timeout = d->ai_timeout;
         oh_release_domain(d); /* Unlock domain */
 
-        hotswap_policy_cancel = h ? h->abi->hotswap_policy_cancel : NULL;
-        if (hotswap_policy_cancel) {
-                error = hotswap_policy_cancel(h->hnd, ResourceId, timeout);
-        } else {
-                error = SA_OK;
-        }
-
+        OH_CALL_ABI(h, hotswap_policy_cancel, SA_OK, error,
+                    ResourceId, timeout);
         oh_release_handler(h);
+
         return error;
 }
 
@@ -5547,9 +5149,6 @@ SaErrorT SAHPI_API saHpiResourceActiveSet (
         SAHPI_IN SaHpiResourceIdT ResourceId)
 {
         SaErrorT error;
-        SaErrorT (*set_hotswap_state)(void *hnd, SaHpiResourceIdT,
-                                      SaHpiHsStateT state);
-
         SaHpiRptEntryT *res;
         struct oh_handler *h;
         SaHpiDomainIdT did;
@@ -5580,13 +5179,8 @@ SaErrorT SAHPI_API saHpiResourceActiveSet (
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        set_hotswap_state = h ? h->abi->set_hotswap_state : NULL;
-        if (!set_hotswap_state) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        error = set_hotswap_state(h->hnd, ResourceId, SAHPI_HS_STATE_ACTIVE);
+        OH_CALL_ABI(h, set_hotswap_state, SA_ERR_HPI_INVALID_CMD, error,
+                    ResourceId, SAHPI_HS_STATE_ACTIVE);
         oh_release_handler(h);
 
 
@@ -5598,8 +5192,6 @@ SaErrorT SAHPI_API saHpiResourceInactiveSet (
         SAHPI_IN SaHpiResourceIdT ResourceId)
 {
         SaErrorT error;
-        SaErrorT (*set_hotswap_state)(void *hnd, SaHpiResourceIdT rid,
-                                      SaHpiHsStateT state);
         SaHpiRptEntryT *res;
         struct oh_handler *h;
         SaHpiDomainIdT did;
@@ -5630,13 +5222,8 @@ SaErrorT SAHPI_API saHpiResourceInactiveSet (
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        set_hotswap_state = h ? h->abi->set_hotswap_state : NULL;
-        if (!set_hotswap_state) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        error = set_hotswap_state(h->hnd, ResourceId, SAHPI_HS_STATE_INACTIVE);
+        OH_CALL_ABI(h, set_hotswap_state, SA_ERR_HPI_INVALID_CMD, error,
+                    ResourceId, SAHPI_HS_STATE_INACTIVE);
         oh_release_handler(h);
 
         return error;
@@ -5738,7 +5325,8 @@ SaErrorT SAHPI_API saHpiAutoInsertTimeoutSet(
                 }
 
                 if (h->abi->set_autoinsert_timeout) {
-                        error = h->abi->set_autoinsert_timeout(h->hnd, Timeout);
+                        OH_CALL_ABI(h, set_autoinsert_timeout, SA_ERR_HPI_INTERNAL_ERROR,
+                                    error, Timeout);
                 }
                 oh_release_handler(h);
 
@@ -5754,10 +5342,6 @@ SaErrorT SAHPI_API saHpiAutoExtractTimeoutGet(
         SAHPI_IN  SaHpiResourceIdT ResourceId,
         SAHPI_OUT SaHpiTimeoutT    *Timeout)
 {
-        SaErrorT (*get_autoextract_timeout)(void *hnd,
-                                            SaHpiResourceIdT id,
-                                            SaHpiTimeoutT *timeout);
-
         SaHpiRptEntryT *res;
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
@@ -5781,13 +5365,8 @@ SaErrorT SAHPI_API saHpiAutoExtractTimeoutGet(
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock Domain */
 
-        get_autoextract_timeout = h ? h->abi->get_autoextract_timeout : NULL;
-        if (!get_autoextract_timeout) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        error = get_autoextract_timeout(h->hnd, ResourceId, Timeout);
+        OH_CALL_ABI(h, get_autoextract_timeout, SA_ERR_HPI_INVALID_CMD, error,
+                    ResourceId, Timeout);
         oh_release_handler(h);
 
         return error;
@@ -5798,10 +5377,6 @@ SaErrorT SAHPI_API saHpiAutoExtractTimeoutSet(
         SAHPI_IN SaHpiResourceIdT ResourceId,
         SAHPI_IN SaHpiTimeoutT    Timeout)
 {
-        SaErrorT (*set_autoextract_timeout)(void *hnd,
-                                            SaHpiResourceIdT id,
-                                            SaHpiTimeoutT timeout);
-
         SaHpiRptEntryT *res;
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
@@ -5826,13 +5401,8 @@ SaErrorT SAHPI_API saHpiAutoExtractTimeoutSet(
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock Domain */
 
-        set_autoextract_timeout = h ? h->abi->set_autoextract_timeout : NULL;
-        if (!set_autoextract_timeout) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        error = set_autoextract_timeout(h->hnd, ResourceId, Timeout);
+        OH_CALL_ABI(h, set_autoextract_timeout, SA_ERR_HPI_INVALID_CMD, error,
+                    ResourceId, Timeout);
         oh_release_handler(h);
 
         return error;
@@ -5844,8 +5414,6 @@ SaErrorT SAHPI_API saHpiHotSwapStateGet (
         SAHPI_OUT SaHpiHsStateT    *State)
 {
         SaErrorT rv;
-        SaErrorT (*get_hotswap_state)(void *hnd, SaHpiResourceIdT rid,
-                                      SaHpiHsStateT *state);
         SaHpiRptEntryT *res;
         struct oh_handler *h;
         SaHpiDomainIdT did;
@@ -5868,13 +5436,8 @@ SaErrorT SAHPI_API saHpiHotSwapStateGet (
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        get_hotswap_state = h ? h->abi->get_hotswap_state : NULL;
-        if (!get_hotswap_state) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        rv = get_hotswap_state(h->hnd, ResourceId, State);
+        OH_CALL_ABI(h, get_hotswap_state, SA_ERR_HPI_INVALID_CMD, rv,
+                    ResourceId, State);
         oh_release_handler(h);
 
         return rv;
@@ -5886,9 +5449,6 @@ SaErrorT SAHPI_API saHpiHotSwapActionRequest (
         SAHPI_IN SaHpiHsActionT   Action)
 {
         SaErrorT rv;
-        SaErrorT (*request_hotswap_action)(void *hnd, SaHpiResourceIdT rid,
-                                           SaHpiHsActionT act);
-
         SaHpiRptEntryT *res;
         struct oh_handler *h;
         SaHpiDomainIdT did;
@@ -5926,13 +5486,8 @@ SaErrorT SAHPI_API saHpiHotSwapActionRequest (
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        request_hotswap_action = h ? h->abi->request_hotswap_action : NULL;
-        if (!request_hotswap_action) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        rv = request_hotswap_action(h->hnd, ResourceId, Action);
+        OH_CALL_ABI(h, request_hotswap_action, SA_ERR_HPI_INVALID_CMD, rv,
+                    ResourceId, Action);
         oh_release_handler(h);
 
         oh_wake_event_thread(SAHPI_TRUE);
@@ -5946,8 +5501,6 @@ SaErrorT SAHPI_API saHpiHotSwapIndicatorStateGet (
         SAHPI_OUT SaHpiHsIndicatorStateT *State)
 {
         SaErrorT rv;
-        SaErrorT (*get_indicator_state)(void *hnd, SaHpiResourceIdT id,
-                                        SaHpiHsIndicatorStateT *state);
         SaHpiRptEntryT *res;
         struct oh_handler *h;
         SaHpiDomainIdT did;
@@ -5975,13 +5528,8 @@ SaErrorT SAHPI_API saHpiHotSwapIndicatorStateGet (
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        get_indicator_state = h ? h->abi->get_indicator_state : NULL;
-        if (!get_indicator_state) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        rv = get_indicator_state(h->hnd, ResourceId, State);
+        OH_CALL_ABI(h, get_indicator_state, SA_ERR_HPI_INVALID_CMD, rv,
+                    ResourceId, State);
         oh_release_handler(h);
 
         return rv;
@@ -5993,8 +5541,6 @@ SaErrorT SAHPI_API saHpiHotSwapIndicatorStateSet (
         SAHPI_IN SaHpiHsIndicatorStateT State)
 {
         SaErrorT rv;
-        SaErrorT (*set_indicator_state)(void *hnd, SaHpiResourceIdT id,
-                                        SaHpiHsIndicatorStateT state);
         SaHpiRptEntryT *res;
         struct oh_handler *h;
         SaHpiDomainIdT did;
@@ -6022,13 +5568,8 @@ SaErrorT SAHPI_API saHpiHotSwapIndicatorStateSet (
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        set_indicator_state = h ? h->abi->set_indicator_state : NULL;
-        if (!set_indicator_state) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        rv = set_indicator_state(h->hnd, ResourceId, State);
+        OH_CALL_ABI(h, set_indicator_state, SA_ERR_HPI_INVALID_CMD, rv,
+                    ResourceId, State);
         oh_release_handler(h);
 
         return rv;
@@ -6046,7 +5587,6 @@ SaErrorT SAHPI_API saHpiParmControl (
         SAHPI_IN SaHpiParmActionT Action)
 {
         SaErrorT rv;
-        SaErrorT (*control_parm)(void *, SaHpiResourceIdT, SaHpiParmActionT);
         SaHpiRptEntryT *res;
         struct oh_handler *h;
         SaHpiDomainIdT did;
@@ -6069,13 +5609,8 @@ SaErrorT SAHPI_API saHpiParmControl (
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        control_parm = h ? h->abi->control_parm : NULL;
-        if (!control_parm) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        rv = control_parm(h->hnd, ResourceId, Action);
+        OH_CALL_ABI(h, control_parm, SA_ERR_HPI_INVALID_CMD, rv,
+                    ResourceId, Action);
         oh_release_handler(h);
 
         return rv;
@@ -6093,7 +5628,6 @@ SaErrorT SAHPI_API saHpiResourceLoadIdGet (
     SAHPI_OUT SaHpiLoadIdT         *LoadId)
 {
         SaErrorT error;
-        SaErrorT (*load_id_get)(void *, SaHpiResourceIdT, SaHpiLoadIdT *);
         SaHpiRptEntryT *rpte;
         struct oh_handler *h = NULL;
         SaHpiDomainIdT did;
@@ -6116,14 +5650,8 @@ SaErrorT SAHPI_API saHpiResourceLoadIdGet (
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
         
-        load_id_get = h ? h->abi->load_id_get : NULL;
-        if (!load_id_get) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
-
-        error = load_id_get(h->hnd, ResourceId, LoadId);
-        
+        OH_CALL_ABI(h, load_id_get, SA_ERR_HPI_INTERNAL_ERROR, error,
+                    ResourceId, LoadId);
         oh_release_handler(h);
         
         return error;
@@ -6135,7 +5663,6 @@ SaErrorT SAHPI_API saHpiResourceLoadIdSet (
     SAHPI_IN  SaHpiLoadIdT         *LoadId) 
 {
         SaErrorT error;
-        SaErrorT (*load_id_set)(void *, SaHpiResourceIdT, SaHpiLoadIdT *);
         SaHpiRptEntryT *rpte;
         struct oh_handler *h = NULL;
         SaHpiDomainIdT did;
@@ -6159,14 +5686,8 @@ SaErrorT SAHPI_API saHpiResourceLoadIdSet (
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
         
-        load_id_set = h ? h->abi->load_id_set : NULL;
-        if (!load_id_set) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
-
-        error = load_id_set(h->hnd, ResourceId, LoadId);
-        
+        OH_CALL_ABI(h, load_id_set, SA_ERR_HPI_INTERNAL_ERROR, error,
+                    ResourceId, LoadId);
         oh_release_handler(h);
         
         return error;
@@ -6185,8 +5706,6 @@ SaErrorT SAHPI_API saHpiResourceResetStateGet (
         SAHPI_OUT SaHpiResetActionT *ResetAction)
 {
         SaErrorT rv;
-        SaErrorT (*get_func)(void *, SaHpiResourceIdT, SaHpiResetActionT *);
-
         SaHpiRptEntryT *res;
         struct oh_handler *h;
         SaHpiDomainIdT did;
@@ -6209,13 +5728,8 @@ SaErrorT SAHPI_API saHpiResourceResetStateGet (
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        get_func = h ? h->abi->get_reset_state : NULL;
-        if (!get_func) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        rv = get_func(h->hnd, ResourceId, ResetAction);
+        OH_CALL_ABI(h, get_reset_state, SA_ERR_HPI_INVALID_CMD, rv,
+                    ResourceId, ResetAction);
         oh_release_handler(h);
 
         return rv;
@@ -6227,7 +5741,6 @@ SaErrorT SAHPI_API saHpiResourceResetStateSet (
         SAHPI_IN SaHpiResetActionT ResetAction)
 {
         SaErrorT rv;
-        SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiResetActionT);
         SaHpiRptEntryT *res;
         struct oh_handler *h;
         SaHpiDomainIdT did;
@@ -6250,13 +5763,8 @@ SaErrorT SAHPI_API saHpiResourceResetStateSet (
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        set_func = h ? h->abi->set_reset_state : NULL;
-        if (!set_func) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        rv = set_func(h->hnd, ResourceId, ResetAction);
+        OH_CALL_ABI(h, set_reset_state, SA_ERR_HPI_INVALID_CMD, rv,
+                    ResourceId, ResetAction);
         oh_release_handler(h);
 
         return rv;
@@ -6274,8 +5782,6 @@ SaErrorT SAHPI_API saHpiResourcePowerStateGet (
         SAHPI_OUT SaHpiPowerStateT *State)
 {
         SaErrorT rv;
-        SaErrorT (*get_power_state)(void *hnd, SaHpiResourceIdT id,
-                                    SaHpiPowerStateT *state);
         SaHpiRptEntryT *res;
         struct oh_handler *h;
         SaHpiDomainIdT did;
@@ -6298,13 +5804,8 @@ SaErrorT SAHPI_API saHpiResourcePowerStateGet (
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        get_power_state = h ? h->abi->get_power_state : NULL;
-        if (!get_power_state) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        rv = get_power_state(h->hnd, ResourceId, State);
+        OH_CALL_ABI(h, get_power_state, SA_ERR_HPI_INVALID_CMD, rv,
+                    ResourceId, State);
         oh_release_handler(h);
 
         return rv;
@@ -6316,8 +5817,6 @@ SaErrorT SAHPI_API saHpiResourcePowerStateSet (
         SAHPI_IN SaHpiPowerStateT State)
 {
         SaErrorT rv;
-        SaErrorT (*set_power_state)(void *hnd, SaHpiResourceIdT id,
-                                    SaHpiPowerStateT state);
         SaHpiRptEntryT *res;
         struct oh_handler *h;
         SaHpiDomainIdT did;
@@ -6340,13 +5839,8 @@ SaErrorT SAHPI_API saHpiResourcePowerStateSet (
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        set_power_state = h ? h->abi->set_power_state : NULL;
-        if (!set_power_state) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        rv = set_power_state(h->hnd, ResourceId, State);
+        OH_CALL_ABI(h, set_power_state, SA_ERR_HPI_INVALID_CMD, rv,
+                    ResourceId, State);
         oh_release_handler(h);
 
         return rv;
