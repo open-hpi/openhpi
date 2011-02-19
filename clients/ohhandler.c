@@ -93,12 +93,16 @@ main(int argc, char **argv)
       eHandlerRetry,
       eHandlerList} cmd=eUndefined;
        
-   oh_prog_version(argv[0], OH_SVN_REV);
+   /* Print version strings */
+   oh_prog_version(argv[0]);
 
-   /* Parse common options */
-   context = g_option_context_new ("command [specific arguments] - "
-                        "Control openhpi plugin instances (handlers).\n\n"
-                        OHHANDLER_HELP );
+   /* Parsing options */
+   static char usetext[]="command [specific arguments] - "
+                         "Control openhpi plugin instances (handlers).\n  "
+                         OH_SVN_REV "\n\n" OHHANDLER_HELP ;
+
+   OHC_PREPARE_REVISION(usetext);
+   context = g_option_context_new (usetext);
 
    if (!ohc_option_parse(&argc, argv, 
                 context, &copt, 

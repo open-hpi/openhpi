@@ -48,10 +48,15 @@ main(int argc, char **argv)
         GError *error = NULL;
         GOptionContext *context;
 
-        oh_prog_version(argv[0], OH_SVN_REV);
+        /* Print version strings */
+	oh_prog_version(argv[0]);
 
-        context = g_option_context_new ("- Show information about domains"
-                              " on the level of the openhpi base library.");
+        /* Parsing options */
+        static char usetext[]="- Show information about domains"
+                              " on the level of the openhpi base library.\n  "
+                              OH_SVN_REV; 
+        OHC_PREPARE_REVISION(usetext);
+        context = g_option_context_new (usetext);
 
         if (!ohc_option_parse(&argc, argv, 
                 context, &copt, 

@@ -20,6 +20,8 @@
  *
  */
 
+#define OH_SVN_REV "$Revision: 7281 $"
+
 #include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -56,6 +58,12 @@ int main( int argc, char * argv[] )
     GOptionContext *context;
 	    
     context = g_option_context_new ("- Display system view in XML");
+    /* Parsing options */
+    static char usetext[]="- Display system view in XML.\n  "
+                          OH_SVN_REV; 
+    OHC_PREPARE_REVISION(usetext);
+
+    context = g_option_context_new (usetext);
     g_option_context_add_main_entries (context, my_options, NULL);
 
     if (!ohc_option_parse(&argc, argv, 

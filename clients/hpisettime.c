@@ -81,9 +81,14 @@ int main(int argc, char **argv)
         GError *error = NULL;
         GOptionContext *context;
 
-	oh_prog_version(argv[0], OH_SVN_REV);
-        
-        context = g_option_context_new ("- Exercises Event Log clock APIs.");
+        /* Print version strings */
+	oh_prog_version(argv[0]);
+
+        /* Parsing options */
+        static char usetext[]="- Exercises Event Log clock APIs.\n  "
+                              OH_SVN_REV; 
+        OHC_PREPARE_REVISION(usetext);
+        context = g_option_context_new (usetext);
         g_option_context_add_main_entries (context, my_options, NULL);
 
         if (!ohc_option_parse(&argc, argv, 

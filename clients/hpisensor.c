@@ -216,9 +216,14 @@ int main(int argc, char **argv)
         GError *error = NULL;
         GOptionContext *context;
                 
-	oh_prog_version(argv[0], OH_SVN_REV);
-        
-        context = g_option_context_new ("- Display sensor info for resources with Sensor Capability");
+        /* Print version strings */
+	oh_prog_version(argv[0]);
+
+        /* Parsing options */
+        static char usetext[]="- Display sensor info for resources with Sensor Capability\n  "
+                              OH_SVN_REV; 
+        OHC_PREPARE_REVISION(usetext);
+        context = g_option_context_new (usetext);
         g_option_context_add_main_entries (context, my_options, NULL);
 
         if (!ohc_option_parse(&argc, argv, 
