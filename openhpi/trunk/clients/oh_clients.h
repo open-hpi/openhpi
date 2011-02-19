@@ -44,6 +44,13 @@
 #define OHC_CLIENTCONF_OPTION  (SaHpiUint8T) 0x020
 #define OHC_SESSION_OPTIONS    (SaHpiUint8T) 0x032  // -D -N and -C
 
+//Macro to replace $ with () in OH_SVN_REV string for print
+#define OHC_PREPARE_REVISION(txt)  \
+        char *dollar=strchr(txt, '$'); \
+        if (dollar!=NULL) *dollar = '(';   \
+        dollar=strchr(txt, '$');       \
+        if (dollar!=NULL) *dollar = ')';
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -60,7 +67,7 @@ typedef struct {
         SaHpiTextBufferT clientconf;
 } oHpiCommonOptionsT;
 
-void oh_prog_version(const char *prog_name, const char *svn_rev_str);
+void oh_prog_version(const char *prog_name);
 
 gboolean ohc_option_parse(int *argc, char *argv[],  
                           GOptionContext     *context,

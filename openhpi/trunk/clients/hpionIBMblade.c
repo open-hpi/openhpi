@@ -898,11 +898,16 @@ int main(int argc, char **argv)
         GError          *error = NULL;
         GOptionContext  *context;
 
-	oh_prog_version(argv[0], OH_SVN_REV);
+        /* Print version strings */
+	oh_prog_version(argv[0]);
 
-        context = g_option_context_new ("- Shows how to use two (2) openhpi "
-                      "plugins to display and manage resources of an IBM Blade "
-                      "with Basedboard Management Controller (BMC)");
+        /* Parsing options */
+        static char usetext[]="- Shows how to use two (2) openhpi\n  "
+                      "plugins to display and manage resources of an IBM Blade\n  "
+                      "with Basedboard Management Controller (BMC)\n  "
+                      OH_SVN_REV; 
+        OHC_PREPARE_REVISION(usetext);
+        context = g_option_context_new (usetext);
 
         if (!ohc_option_parse(&argc, argv, 
                 context, &copt, 

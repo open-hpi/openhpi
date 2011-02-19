@@ -298,11 +298,17 @@ int main(int argc, char **argv) {
         GOptionContext *context;
 	
 	confdata.mode = MODE_INIT;
-	oh_prog_version(argv[0], OH_SVN_REV);
-	
-        context = g_option_context_new ("- Version " GEN_SIM_DATA_VERSION
+
+        /* Print version strings */
+	oh_prog_version(argv[0]);
+
+        /* Parsing options */
+        static char usetext[]="- Version " GEN_SIM_DATA_VERSION
 		"\nThe client will print all HPI information in a format that can be parsed by Dynamic"
-                "\nSimulator plugin.");
+                "\nSimulator plugin.\n"
+                OH_SVN_REV; 
+        OHC_PREPARE_REVISION(usetext);
+        context = g_option_context_new (usetext);
         g_option_context_add_main_entries (context, my_options, NULL);
 
         if (!ohc_option_parse(&argc, argv, 

@@ -75,12 +75,16 @@ main(int argc, char **argv)
       eGlobalParamGet,
       eGlobalParamSet} cmd=eUndefined;
        
-   oh_prog_version(argv[0], OH_SVN_REV);
+   /* Print version strings */
+   oh_prog_version(argv[0]);
 
-   /* Parse common options */
-   context = g_option_context_new ("command [specific arguments] - "
-                        "Control openhpi configuration parameters.\n\n"
-                        OHPARAM_HELP );
+   /* Parsing options */
+   static char usetext[]="command [specific arguments] - "
+                         "Control openhpi configuration parameters.\n  "
+                         OH_SVN_REV "\n\n" OHPARAM_HELP ;
+
+   OHC_PREPARE_REVISION(usetext);
+   context = g_option_context_new (usetext);
 
    if (!ohc_option_parse(&argc, argv, 
                 context, &copt, 

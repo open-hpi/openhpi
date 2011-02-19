@@ -49,10 +49,15 @@ int main(int argc, char **argv)
         GError *error = NULL;
         GOptionContext *context;
 
-	oh_prog_version(argv[0], OH_SVN_REV);
+        /* Print version strings */
+        oh_prog_version(argv[0]);
 
-        context = g_option_context_new ("- Allows a user to interactively "
-                                        "perform a number of HPI operations");
+        /* Parsing options */
+        static char usetext[]="- Allows a user to interactively "
+                              "perform a number of HPI operations\n  "
+                              OH_SVN_REV; 
+        OHC_PREPARE_REVISION(usetext);
+        context = g_option_context_new (usetext);
         g_option_context_add_main_entries (context, my_options, NULL);
 
         if (!ohc_option_parse(&argc, argv, 
