@@ -35,6 +35,11 @@ INCLUDES                = @OPENHPI_INCLUDES@
 
 pkglib_LTLIBRARIES      = libdyn_simulator.la
 
+EXTRA_DIST = \
+             doc.html.tgz \
+             Doxyfile \
+             README
+             
 libdyn_simulator_la_SOURCES= \
 		array.h \
 		new_sim.h \
