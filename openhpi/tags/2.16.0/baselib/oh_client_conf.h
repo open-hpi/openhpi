@@ -1,0 +1,55 @@
+/*      -*- linux-c -*-
+ *
+ * (C) Copyright IBM Corp. 2008
+ * (C) Copyright Pigeon Point Systems. 2010
+ * (C) Copyright Nokia Siemens Networks 2010
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
+ * file and program are licensed under a BSD style license.  See
+ * the Copying file included with the OpenHPI distribution for
+ * full licensing terms.
+ *
+ * Author(s):
+ *      Renier Morales <renier@openhpi.org>
+ *      Anton Pak <anton.pak@pigeonpoint.com>
+ *      Ulrich Kleber <ulikleber@users.sourceforge.net>
+ *
+ */
+
+#ifndef __OH_CLIENT_CONF_H
+#define __OH_CLIENT_CONF_H
+
+#include <glib.h>
+#include <SaHpi.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+struct oh_domain_conf {
+        SaHpiDomainIdT did;
+        char host[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+        unsigned short port;
+};
+
+
+void oh_client_conf_init(void);
+const struct oh_domain_conf * oh_get_domain_conf(SaHpiDomainIdT did);
+const struct oh_domain_conf * oh_get_next_domain_conf(SaHpiEntryIdT entry_id,
+                                                      SaHpiEntryIdT *next_entry_id);
+
+SaErrorT oh_add_domain_conf(const char *host,
+                            unsigned short port,
+                            SaHpiDomainIdT *did);
+SaErrorT oh_add_domain_conf_by_id(SaHpiDomainIdT did,
+                                  const char *host,
+                                  unsigned short port);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
+
+#endif /* __OH_CLIENT_CONF_H */
+

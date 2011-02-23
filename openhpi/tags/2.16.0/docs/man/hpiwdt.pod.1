@@ -1,0 +1,45 @@
+=head1 NAME
+
+hpiwdt -  This sample openhpi application reads and enables the watchdog timer. 
+
+=head1 SYNOPSIS 
+
+hpiwdt [-D domain] [-derx -t sec]
+
+=head1 DESCRIPTION
+
+hpiwdt reads and enables the watchdog timer. 
+
+If no domain is selected, hpiwdt uses a session with the default domain. The selected domain id must be configured via the openhpidclient.conf file specified in the environment.
+
+
+=head1 OPTIONS
+
+=over 2
+
+ -D domainid  selects the domain
+ -e           enables the watchdog timer
+ -d           disables the watchdog timer
+ -r           resets the watchdog timer
+ -t N         sets timeout to N seconds
+ -x           show eXtra debug messages
+
+=back
+
+=head1 SEE ALSO
+
+         hpi_shell
+         hpialarms      hpifan         hpipower       hpithres
+         hpidomain      hpigensimdata  hpireset       hpitop
+         hpiel          hpiiinv        hpisensor      hpitree
+         hpievents      hpionIBMblade  hpisettime    
+         ohdomainlist   ohhandler      ohparam
+
+
+=head1 AUTHORS
+
+Authors of this man page:
+
+ Peter D Phan (pdphan@users.sourceforge.net)
+ Ulrich Kleber (ulikleber@users.sourceforge.net)
+
