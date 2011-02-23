@@ -22,7 +22,6 @@
 #include <SaHpiAtca.h>
 #include <announcement_utils.h>
 #include <el_utils.h>
-#include <event_utils.h>
 #include <sahpi_struct_utils.h>
 #include <epath_utils.h>
 #include <rpt_utils.h>

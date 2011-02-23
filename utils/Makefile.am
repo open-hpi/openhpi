@@ -31,8 +31,6 @@
 
 MAINTAINERCLEANFILES = Makefile.in
 
-AM_CPPFLAGS = -DG_LOG_DOMAIN=\"utils\"
-
 GENERATED_HEADER_FILES = \
 			sahpi_enum_utils.h \
 			sahpixtca_enum_utils.h \
@@ -47,7 +45,17 @@ GENERATED_SRC_FILES = \
 
 GENERATED_FILES = $(GENERATED_HEADER_FILES) $(GENERATED_SRC_FILES)
 
-EXTRA_DIST = Makefile.mingw32
+EXTRA_DIST = \
+		$(GENERATED_HEADER_FILES) \
+		announcement_utils.h \
+		el_utils.h \
+		epath_utils.h \
+		oh_utils.h \
+		rpt_utils.h \
+		sahpi_event_utils.h \
+		sahpi_struct_utils.h \
+		sahpi_time_utils.h \
+		uid_utils.h
 
 MOSTLYCLEANFILES = @TEST_CLEAN@
 # FIXME:: Add when we can auto-generate files for SMP systems
@@ -65,27 +73,15 @@ lib_LTLIBRARIES = libopenhpiutils.la
 
 # Generated files (e.g.sahpi_enum_utils.c) must be listed first
 libopenhpiutils_la_SOURCES = \
-    $(GENERATED_SRC_FILES) \
-    $(GENERATED_HEADER_FILES) \
-    announcement_utils.c \
-    announcement_utils.h \
-    el_utils.c \
-    el_utils.h \
-    event_utils.c \
-    event_utils.h \
-    epath_utils.c \
-    epath_utils.h \
-    oh_utils.h \
-    rpt_utils.c \
-    rpt_utils.h \
-    sahpi_event_utils.c \
-    sahpi_event_utils.h \
-    sahpi_struct_utils.c \
-    sahpi_struct_utils.h \
-    sahpi_time_utils.c \
-    sahpi_time_utils.h \
-    uid_utils.c \
-    uid_utils.h
+			$(GENERATED_SRC_FILES) \
+			announcement_utils.c \
+			el_utils.c \
+			epath_utils.c \
+			rpt_utils.c \
+			sahpi_event_utils.c \
+			sahpi_struct_utils.c \
+			sahpi_time_utils.c \
+			uid_utils.c
 
 libopenhpiutils_la_LDFLAGS = -version-info @HPI_LIB_VERSION@
 libopenhpiutils_la_LIBADD =

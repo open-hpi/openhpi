@@ -27,6 +27,7 @@
 #include <ctype.h>
 #include <unistd.h>
 #include <config.h>
+#include <oh_config.h>
 #include <oHpi.h>
 #include <hpi_ui.h>
 #include "hpi_cmd.h"
@@ -902,7 +903,7 @@ static ret_code_t show_ver(void)
 {
    SaHpiVersionT ver = saHpiVersionGet();
 
-   printf("\nPackage version: %s\n", VERSION);
+   printf("\nPackage version: %s\n", PACKAGE_VERSION);
    printf("HPI specification version: SAI_HPI-%c.%02d.%02d\n\n",
    	  ('A' + (ver >> 16) -1), (ver >> 8) & 0xFF, (ver) & 0xFF);
 
@@ -958,16 +959,16 @@ static ret_code_t wdt_get(void)
         };
         printf("  Timer Use: %s", str);
         switch (watchdog.TimerAction) {
-                case SAHPI_WA_NO_ACTION:
+                case SAHPI_WAE_NO_ACTION:
                         str = "NO_ACTION"; break;
-                case SAHPI_WA_RESET:
+                case SAHPI_WAE_RESET:
                         str = "RESET"; break;
-                case SAHPI_WA_POWER_DOWN:
+                case SAHPI_WAE_POWER_DOWN:
                         str = "POWER_DOWN"; break;
-                case SAHPI_WA_POWER_CYCLE:
+                case SAHPI_WAE_POWER_CYCLE:
                         str = "POWER_CYCLE"; break;
-                //case SAHPI_WAE_TIMER_INT:           
-                //        str = "TIMER_INT"; break;
+                case SAHPI_WAE_TIMER_INT:
+                        str = "TIMER_INT"; break;
                 default: str = "Unknown"; break;
         };
         printf("  Action: %s", str);
@@ -1522,7 +1523,7 @@ const char exechelp[] = "exec: execute external program\n"
 const char fumiblockhelp[] = "fumi: FUMI command block\n"
                         "Usage: fumi [<FumiId>]\n"
                         "       FumiId:: <resourceId> <FumiNum>\n";
-const char helphelp[] = "help: help information for hpi_shell commands\n"
+const char helphelp[] = "help: help information for OpenHPI commands\n"
                         "Usage: help [optional commands]";
 const char historyhelp[] = "history: show input commands history\n"
                         "Usage: history";

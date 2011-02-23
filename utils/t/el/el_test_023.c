@@ -20,6 +20,7 @@
 #include <string.h>
 
 #include <SaHpi.h>
+#include <openhpi.h>
 #include <oh_utils.h>
 #include <el_utils.h>
 
@@ -45,7 +46,7 @@ int main(int argc, char **argv)
 
 	retc = oh_el_clear(el);
         if (retc == SA_OK) {
-                CRIT("el clear failed.");
+                err("ERROR: el clear failed.");
                 return 1;
         }
 

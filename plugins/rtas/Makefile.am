@@ -15,8 +15,6 @@
 
 MAINTAINERCLEANFILES 	= Makefile.in
 
-AM_CPPFLAGS = -DG_LOG_DOMAIN=\"rtas\"
-
 INCLUDES		= @OPENHPI_INCLUDES@ 
 
 pkglib_LTLIBRARIES	= librtas2hpi.la 

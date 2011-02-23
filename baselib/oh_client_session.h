@@ -17,25 +17,30 @@
  *
  */
 
-#ifndef __BASELIB_SESSION_H
-#define __BASELIB_SESSION_H
+#ifndef __OH_CLIENT_SESSION_H
+#define __OH_CLIENT_SESSION_H
 
-#include <stdint.h>
+#include <strmsock.h>
 
+#include <glib.h>
 #include <SaHpi.h>
 
-#include <oh_rpc_params.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
+void oh_client_session_init(void);
 
-void ohc_sess_init();
-SaErrorT ohc_sess_open( SaHpiDomainIdT did, SaHpiSessionIdT& sid );
-SaErrorT ohc_sess_close( SaHpiSessionIdT sid );
-SaErrorT ohc_sess_close_all();
-SaErrorT ohc_sess_rpc( uint32_t id,
-                       SaHpiSessionIdT sid,
-                       ClientRpcParams& iparams,
-                       ClientRpcParams& oparams );
-SaErrorT ohc_sess_get_did( SaHpiSessionIdT sid, SaHpiDomainIdT& did );
+SaErrorT oh_create_connx(SaHpiDomainIdT, pcstrmsock *);
+void oh_delete_connx(pcstrmsock);
+SaErrorT oh_close_connx(SaHpiSessionIdT);
+SaErrorT oh_get_connx(SaHpiSessionIdT, SaHpiSessionIdT *, pcstrmsock *, SaHpiDomainIdT *);
 
-#endif /* __BASELIB_SESSION_H */
+SaHpiSessionIdT oh_open_session(SaHpiDomainIdT, SaHpiSessionIdT, pcstrmsock);
+SaErrorT oh_close_session(SaHpiSessionIdT);
 
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
+
+#endif /* __OH_CLIENT_SESSION_H */

@@ -13,6 +13,7 @@
  *      Steve Sherman <stevees@us.ibm.com>
  */
 
+#include <openhpi.h>
 #include <snmp_utils.h>
 #include <snmp_bc_plugin.h>
 #include <sim_init.h>

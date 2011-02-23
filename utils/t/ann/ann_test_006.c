@@ -21,7 +21,7 @@
 #include <unistd.h>
 
 #include <SaHpi.h>
-#include <oh_error.h>
+#include <openhpi.h>
 #include <oh_utils.h>
 
 
@@ -69,17 +69,17 @@ int main(int argc, char **argv)
 
         rc = oh_announcement_ack(ann, 2, SAHPI_MAJOR);
         if(rc != SA_OK) {
-                CRIT("on_announcement_ack returned %d.", rc);
+                err("ERROR: on_announcement_ack returned %d.", rc);
                 return 1;
         }
 
         rc = oh_announcement_get(ann, 2, &announ);
         if(rc != SA_OK) {
-                CRIT("on_announcement_get returned %d.", rc);
+                err("ERROR: on_announcement_get returned %d.", rc);
                 return 1;
         }
         if(announ.Acknowledged != TRUE) {
-                CRIT("announ.Acknowledged invalid");
+                err("ERROR: announ.Acknowledged invalid");
                 return 1;
         }
 

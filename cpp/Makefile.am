@@ -18,8 +18,6 @@ DIST_SUBDIRS            = t
 
 MAINTAINERCLEANFILES 	= Makefile.in
 
-AM_CPPFLAGS = -DG_LOG_DOMAIN=\"cpp\"
-
 INCLUDES		= @OPENHPI_INCLUDES@
 
 includedir=$(base_includedir)/openhpi

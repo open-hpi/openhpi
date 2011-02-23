@@ -14,7 +14,5 @@
  *      David Ashley<dashley@us.ibm.com>
  */
 
-#include <oh_error.h>
-
 int el_compare(oh_el *el1, oh_el *el2);
 

@@ -17,6 +17,8 @@
 #ifndef __OH_DOMAIN_H
 #define __OH_DOMAIN_H
 
+#define OH_DEFAULT_DOMAIN_ID 0
+
 #include <SaHpi.h>
 #include <glib.h>
 #include <oh_utils.h>

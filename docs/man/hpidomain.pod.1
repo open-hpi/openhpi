@@ -5,33 +5,22 @@ It can also set the domain tag.
 
 =head1 SYNOPSIS 
 
- hpidomain [-D id] [-N host[:port]] [-C <cfgfile>] [-t tttt] [-V -X -h]
- hpidomain [--domain=id]  [--host=host[:port]] [--cfgfile=file] 
-           [--tag=tttt] [--verbose] [--debug] [--help]
+hpidomain [-D id] [-t tag] [-v -x]
 
 =head1 DESCRIPTION
 
 hpidomain displays the domain info for the specified domain.
 If no domain is selected, hpidomain works with the default domain.
-
-In verbose mode, it walks the DRT and displays domaininfo for all directly related domains.
+In verbose mode, it walks the DRT and displays domaininfo for all directly related domains
 Option -t allows to change the domain tag.
 
 =over 2
 
-(No Option) Display domain info
-
-Help Options:
-  -h, --help                   Show help options
-
-Application Options:
-  -t, --tag=tttt               Set domain tag to the specified string
-  -D, --domain=nn              Select domain id nn
-  -X, --debug                  Display debug messages
-  -V, --verbose                Verbose mode
-  -N, --host="host<:port>"     Connect to daemon host:port
-  -C, --cfgfile="file"         Use passed file as client configuration file
-
+ (No Option) Display domain info
+ -D nn   Select domain id nn
+ -v      Verbose: Display domain info for all domains found in DRT
+ -t tag  Set domain tag to the specified string
+ -x      Display debug messages
 
 =back
 
@@ -41,7 +30,7 @@ Application Options:
          hpialarms      hpigensimdata  hpireset       hpitop
          hpiel          hpiinv         hpisensor      hpitree
          hpievents      hpionIBMblade  hpisettime     hpiwdt
-         hpifan         hpipower       hpithres       hpixml
+         hpifan         hpipower       hpithres
          ohdomainlist   ohhandler      ohparam
 
 

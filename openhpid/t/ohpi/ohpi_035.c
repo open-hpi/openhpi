@@ -13,7 +13,6 @@
  *     Renier Morales <renier@openhpi.org>
  */
  
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <SaHpi.h>

@@ -21,7 +21,7 @@
 #include <unistd.h>
 
 #include <SaHpi.h>
-#include <oh_error.h>
+#include <openhpi.h>
 #include <oh_utils.h>
 
 
@@ -70,12 +70,12 @@ int main(int argc, char **argv)
         rc = oh_announcement_get(ann, 2, &announ);
 
         if(announ.EntryId != 2) {
-                CRIT("announ.EntryId invalid.");
+                err("ERROR: announ.EntryId invalid.");
                 return 1;
         }
 
         if(announ.Severity != SAHPI_MAJOR) {
-                CRIT("announ.Severity invalid.");
+                err("ERROR: announ.Severity invalid.");
                 return 1;
         }
 

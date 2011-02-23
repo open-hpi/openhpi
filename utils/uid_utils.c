@@ -17,7 +17,11 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <glib.h>
 #include <config.h>
@@ -61,13 +65,12 @@ static GStaticMutex oh_uid_lock = G_STATIC_MUTEX_INIT;
 static GHashTable *oh_ep_table;
 static GHashTable *oh_resource_id_table;
 static guint       resource_id;
-static char * oh_uid_map_file = 0;
 static int initialized = FALSE;
 
 
 /* use to build memory resident map table from file */
 static int uid_map_from_file(void);
-static int build_uid_map_data(FILE *fp);
+static int build_uid_map_data(int file);
 
 /* used by oh_uid_remove() */
 static void write_ep_xref(gpointer key, gpointer value, gpointer file);
@@ -131,42 +134,22 @@ gboolean oh_entity_path_equal(gconstpointer a, gconstpointer b)
  **/
 SaErrorT oh_uid_initialize(void)
 {
+        SaErrorT rval = SA_OK;
+
         uid_lock(&oh_uid_lock);
         if (!initialized) {
-                int cc;
-                const char * uid_map_file = 0;
-
                 /* initialize hash tables */
                 oh_ep_table = g_hash_table_new(oh_entity_path_hash, oh_entity_path_equal);
                 oh_resource_id_table = g_hash_table_new(g_int_hash, g_int_equal);
                 initialized = TRUE;
                 resource_id = 1;
 
-                /* determine if we can use map file */
-                uid_map_file = (char *)getenv("OPENHPI_UID_MAP");
-                if (uid_map_file == 0) {
-                        uid_map_file = OH_DEFAULT_UID_MAP;
-                }
-                if ((uid_map_file == 0) || (strlen(uid_map_file) == 0)) {
-                        WARN( "UID Map file will not be used." );
-                        WARN( "Resource Id will not be persistent." );
-                } else {
-                        oh_uid_map_file = g_strdup(uid_map_file);
-                        INFO( "Using UID Map file %s.", oh_uid_map_file );
-                }
-
                 /* initialize uid map */
-                cc = uid_map_from_file();
-                if (cc != 0) {
-                        g_free(oh_uid_map_file);
-                        oh_uid_map_file = 0;
-                        WARN( "Disabling using UID Map file." );
-                        WARN( "Resource Id will not be persistent." );
-                }
+                rval = uid_map_from_file();
         }
         uid_unlock(&oh_uid_lock);
 
-        return 0;
+        return rval;
 }
 
 SaHpiBoolT oh_uid_is_initialized()
@@ -197,6 +180,9 @@ SaHpiUint32T oh_uid_from_entity_path(SaHpiEntityPathT *ep)
 
         EP_XREF *ep_xref;
 
+        char *uid_map_file;
+        int file;
+
         SaHpiEntityPathT entitypath;
 
         if (!ep) return 0;
@@ -211,15 +197,15 @@ SaHpiUint32T oh_uid_from_entity_path(SaHpiEntityPathT *ep)
         /* previously assigned uid      */
         ep_xref = (EP_XREF *)g_hash_table_lookup (oh_ep_table, key);
         if (ep_xref) {
-                /*DBG("Entity Path already assigned uid. Use oh_uid_lookup().");*/
+                /*dbg("Entity Path already assigned uid. Use oh_uid_lookup().");*/
                 uid_unlock(&oh_uid_lock);
                 return ep_xref->resource_id;
         }
 
         /* allocate storage for EP cross reference data structure*/
-        ep_xref = g_new0(EP_XREF, 1);
+        ep_xref = (EP_XREF *)g_malloc0(sizeof(EP_XREF));
         if(!ep_xref) {
-                CRIT("malloc failed");
+                err("malloc failed");
                 uid_unlock(&oh_uid_lock);
                 return 0;
         }
@@ -242,24 +228,27 @@ SaHpiUint32T oh_uid_from_entity_path(SaHpiEntityPathT *ep)
         g_hash_table_insert(oh_resource_id_table, key, value);
 
         /* save newly created ep xref (iud/resource_id) to map file */
-        if (oh_uid_map_file) {
-                FILE * fp;
-                fp = fopen(oh_uid_map_file, "r+b");
-                if (fp) {
-                        fseek(fp, 0, SEEK_END);
-                        if (fwrite(ep_xref, sizeof(EP_XREF), 1, fp) == 1) {
-                                fseek(fp, 0, SEEK_SET);
-                                if (fwrite(&resource_id, sizeof(resource_id), 1, fp) != 1) {
-                			CRIT("write resource_id failed");
-                                        ruid = 0;
-                		}
-        		} else {
-        			CRIT("write ep_xref failed");
-                                ruid = 0;
-                        }
-                        fclose(fp);
-                }
+        uid_map_file = (char *)getenv("OPENHPI_UID_MAP");
+        if (uid_map_file == NULL) {
+                uid_map_file = OH_DEFAULT_UID_MAP;
         }
+
+        file = open(uid_map_file, O_WRONLY);
+        if (file >= 0) {
+                lseek(file, 0, SEEK_END);
+                if (write(file,ep_xref, sizeof(EP_XREF)) != sizeof(EP_XREF)) {
+			err("write ep_xref failed");
+			close(file);
+			return 0;
+		}
+                lseek(file, 0, SEEK_SET);
+                if (write(file, &resource_id, sizeof(resource_id)) != sizeof(resource_id)) {
+			err("write resource_id failed");
+			close(file);
+			return 0;
+		}
+        }
+        close(file);
 
         uid_unlock(&oh_uid_lock);
 
@@ -291,16 +280,18 @@ SaErrorT oh_uid_remove(SaHpiUint32T uid)
         uid_lock(&oh_uid_lock);
         ep_xref = (EP_XREF *)g_hash_table_lookup (oh_resource_id_table, key);
         if(!ep_xref) {
+                err("error freeing oh_resource_id_table");
                 uid_unlock(&oh_uid_lock);
-                return SA_ERR_HPI_NOT_PRESENT;
+                return SA_ERR_HPI_ERROR;
         }
 
         /* check netry exist in oh_resource_id_table */
         key = (gpointer)&ep_xref->entity_path;
         ep_xref = (EP_XREF *)g_hash_table_lookup (oh_ep_table, key);
         if(!ep_xref) {
+                err("error freeing oh_resource_id_table");
                 uid_unlock(&oh_uid_lock);
-                return SA_ERR_HPI_NOT_PRESENT;
+                return SA_ERR_HPI_ERROR;
         }
 
         g_hash_table_remove(oh_resource_id_table, &ep_xref->resource_id);
@@ -339,6 +330,7 @@ SaHpiUint32T oh_uid_lookup(SaHpiEntityPathT *ep)
         uid_lock(&oh_uid_lock);
         ep_xref = (EP_XREF *)g_hash_table_lookup (oh_ep_table, key);
         if(!ep_xref) {
+                err("error looking up EP to get uid");
                 uid_unlock(&oh_uid_lock);
                 return 0;
         }
@@ -370,8 +362,9 @@ SaErrorT oh_entity_path_lookup(SaHpiUint32T id, SaHpiEntityPathT *ep)
         uid_lock(&oh_uid_lock);
         ep_xref = (EP_XREF *)g_hash_table_lookup (oh_resource_id_table, key);
         if(!ep_xref) {
+                err("error looking up EP to get uid");
                 uid_unlock(&oh_uid_lock);
-                return SA_ERR_HPI_NOT_PRESENT;
+                return SA_ERR_HPI_ERROR ;
         }
 
         memcpy(ep, &ep_xref->entity_path, sizeof(SaHpiEntityPathT));
@@ -390,33 +383,43 @@ SaErrorT oh_entity_path_lookup(SaHpiUint32T id, SaHpiEntityPathT *ep)
  **/
 SaErrorT oh_uid_map_to_file(void)
 {
-        FILE *fp;
+        char *uid_map_file;
+        int file;
 
-        if (!oh_uid_map_file) {
-                return SA_OK;
+        uid_map_file = (char *)getenv("OPENHPI_UID_MAP");
+
+        if (uid_map_file == NULL) {
+                uid_map_file = OH_DEFAULT_UID_MAP;
         }
 
         uid_lock(&oh_uid_lock);
 
-        fp = fopen(oh_uid_map_file, "wb");
-        if(!fp) {
-                CRIT("Configuration file '%s' could not be opened", oh_uid_map_file);
+#ifdef _WIN32
+        file = open(uid_map_file, O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR);
+#else
+        file = open(uid_map_file, O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRGRP);
+#endif /* _WIN32 */
+        if(file < 0) {
+                err("Configuration file '%s' could not be opened", uid_map_file);
                 uid_unlock(&oh_uid_lock);
                 return SA_ERR_HPI_ERROR;
         }
 
         /* write resource id */
-        if (fwrite((void *)&resource_id, sizeof(resource_id), 1, fp) != 1) {
-		CRIT("write resource_id failed");
-		fclose(fp);
-                uid_unlock(&oh_uid_lock);
+        if (write(file, (void *)&resource_id, sizeof(resource_id)) != sizeof(resource_id)) {
+		err("write resource_id failed");
+		close(file);
 		return SA_ERR_HPI_ERROR;
 	}
 
         /* write all EP_XREF data records */
-        g_hash_table_foreach(oh_resource_id_table, write_ep_xref, fp);
+        g_hash_table_foreach(oh_resource_id_table, write_ep_xref, &file);
 
-        fclose(fp);
+        if(close(file) != 0) {
+                err("Couldn't close file '%s'.", uid_map_file);
+                uid_unlock(&oh_uid_lock);
+                return SA_ERR_HPI_ERROR;
+        }
 
         uid_unlock(&oh_uid_lock);
 
@@ -430,10 +433,10 @@ SaErrorT oh_uid_map_to_file(void)
  *
  * Return value: None (void).
  */
-static void write_ep_xref(gpointer key, gpointer value, gpointer fp)
+static void write_ep_xref(gpointer key, gpointer value, gpointer file)
 {
-        if (fwrite(value, sizeof(EP_XREF), 1, (FILE *)fp) != 1) {
-		CRIT("write EP_XREF failed");
+        if (write(*(int *)file, value, sizeof(EP_XREF)) != sizeof(EP_XREF)) {
+		err("write EP_XREF failed");
 	}
 }
 
@@ -447,29 +450,36 @@ static void write_ep_xref(gpointer key, gpointer value, gpointer fp)
  */
 static gint uid_map_from_file()
 {
-        FILE *fp;
+        char *uid_map_file;
+        int file;
         int rval;
 
-        if (!oh_uid_map_file) {
-                return 0;
-        }
-         fp = fopen(oh_uid_map_file, "rb");
-         if(!fp) {
+         /* initialize uid map file */
+         uid_map_file = (char *)getenv("OPENHPI_UID_MAP");
+         if (uid_map_file == NULL) {
+                 uid_map_file = OH_DEFAULT_UID_MAP;
+         }
+         file = open(uid_map_file, O_RDONLY);
+         if(file < 0) {
                  /* create map file with resource id initial value */
-                 CRIT("Configuration file '%s' does not exist, initializing", oh_uid_map_file);
-                 fp = fopen(oh_uid_map_file, "wb");
-                 if(!fp) {
-                         CRIT("Could not initialize uid map file, %s", oh_uid_map_file );
+                 err("Configuration file '%s' does not exist, initializing", uid_map_file);
+#ifdef _WIN32
+                 file = open(uid_map_file, O_RDWR|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR);
+#else
+                 file = open(uid_map_file, O_RDWR|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRGRP);
+#endif /* _WIN32 */
+                 if(file < 0) {
+                         err("Could not initialize uid map file, %s", uid_map_file );
                                          return -1;
                  }
                  /* write initial uid value */
-                 if(fwrite(&resource_id, sizeof(resource_id), 1, fp) != 1 ) {
-                         CRIT("failed to write uid, on uid map file initialization");
-                         fclose(fp);
+                 if( write(file,(void *)&resource_id, sizeof(resource_id)) < 0 ) {
+                         err("failed to write uid, on uid map file initialization");
+                         close(file);
                          return -1;
                  }
-                 if(fclose(fp) != 0) {
-                         CRIT("Couldn't close file '%s'.during uid map file initialization", oh_uid_map_file);
+                 if(close(file) != 0) {
+                         err("Couldn't close file '%s'.during uid map file initialization", uid_map_file);
                          return -1;
                  }
                  /* return from successful initialization, from newly created uid map file */
@@ -477,14 +487,13 @@ static gint uid_map_from_file()
          }
 
          /* read uid/resouce_id highest count from uid map file */
-         if (fread(&resource_id, sizeof(resource_id), 1, fp) != 1) {
-                 CRIT("error setting uid from existing uid map file");
-                fclose(fp);
+         if (read(file,&resource_id, sizeof(resource_id)) != sizeof(resource_id)) {
+                 err("error setting uid from existing uid map file");
                  return -1;
          }
 
-         rval = build_uid_map_data(fp);
-         fclose(fp);
+         rval = build_uid_map_data(file);
+         close(file);
 
          if (rval < 0)
                 return -1;
@@ -502,17 +511,20 @@ static gint uid_map_from_file()
  *
  * Return value: success 0, error -1.
  */
-static gint build_uid_map_data(FILE *fp)
+static gint build_uid_map_data(int file)
 {
+        int rval;
         EP_XREF *ep_xref;
         EP_XREF ep_xref1;
         gpointer value;
         gpointer key;
 
-        while (fread(&ep_xref1, sizeof(EP_XREF), 1, fp) == 1) {
+        rval = read(file, &ep_xref1, sizeof(EP_XREF));
+
+        while ( (rval != EOF) && (rval == sizeof(EP_XREF)) ) {
 
                 /* copy read record from ep_xref1 to malloc'd ep_xref */
-                ep_xref = g_new0(EP_XREF, 1);
+                ep_xref = (EP_XREF *)g_malloc0(sizeof(EP_XREF));
                 if (!ep_xref)
                         return -1;
                 memcpy(ep_xref, &ep_xref1, sizeof(EP_XREF));
@@ -526,10 +538,14 @@ static gint build_uid_map_data(FILE *fp)
                 /* resource id based key */
                 key = (gpointer)&ep_xref->resource_id;
                 g_hash_table_insert(oh_resource_id_table, key, value);
+
+                rval = read(file, &ep_xref1, sizeof(EP_XREF));
         }
 
-        if ((feof(fp) == 0) || (ferror(fp) != 0)) {
-                CRIT("error building ep xref from map file");
+        /* TODO thought EOF would return -1, its not so check other way */
+        /* if (rval != EOF), rval of 0 seems to be EOF */
+        if ( (rval > 0)  && (rval < sizeof(EP_XREF)) ) {
+                err("error building ep xref from map file");
                 return -1;
         }
         return 0;

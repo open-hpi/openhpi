@@ -19,7 +19,7 @@
 
 #include <SaHpi.h>
 #include <oh_domain.h>
-#include <oh_utils.h>
+#include <oh_event.h>
 
 #ifdef __cplusplus
 extern "C" {

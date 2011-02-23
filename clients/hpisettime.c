@@ -3,7 +3,6 @@
  *
  * (C) Copyright IBM Corp 2003,2004
  * (C) Copyright Nokia Siemens Networks 2010
- * (C) Copyright Ulrich Kleber 2011
  *
  * Authors:  
  *     Peter D.Phan pdphan@users.sourceforge.net
@@ -16,8 +15,6 @@
  *			    check month, day, year, hours, minutes and seconds
  *			    for correctness
  *     07/06/2010 ulikleber  New option -D to select domain
- *     20/01/2011 ulikleber  Refactoring to use glib for option parsing and
- *                           introduce common options for all clients
  */
 /*
 Redistribution and use in source and binary forms, with or without 
@@ -44,84 +41,117 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "oh_clients.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <getopt.h>
+#include <string.h>
+#include <time.h>
+
+#include <SaHpi.h>
+#include <oh_utils.h>
+#include <oh_clients.h>
 
 #define OH_SVN_REV "$Revision$"
 
-static gchar *findate = NULL;
-static gchar *fintime = NULL;
-static oHpiCommonOptionsT copt;
+int fdebug = 0;
+int findate = 0;
+int fintime = 0;
 
-static GOptionEntry my_options[] =
+static void usage(char **argv)
 {
-  { "date",  'd', 0, G_OPTION_ARG_STRING, &findate,  "New date", "mm/dd/yyyy" },
-  { "time",  't', 0, G_OPTION_ARG_STRING, &fintime,  "New time of day in 24-hr format", "24:12:60" },
-  { NULL }
-};
+	printf("Usage\n\t%s -d mm/dd/yyyy -t HH:MM:SS [-x]\n",argv[0]);
+	printf("\twhere -D domainid    selects the domain\n");
+	printf("\t      -d date        in mm/dd/yyyy format\n");
+	printf("\t      -t time of day in 24-hr format\n");
+	printf("\t      -x             displays eXtra debug messages\n");
 
-#define EXIT1 g_free(findate);g_free(fintime);return 1;
-
+	return;
+}
 
 int main(int argc, char **argv)
 {
-	int month, day, year;
+	int c, month, day, year;
+	char i_newdate[20];
+	char i_newtime[20];
 	int day_array[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 	struct tm  new_tm_time;
 	SaErrorT rv;
+	SaHpiDomainIdT domainid = SAHPI_UNSPECIFIED_DOMAIN_ID;
 	SaHpiSessionIdT sessionid;
 	SaHpiDomainInfoT domainInfo;
 	SaHpiRptEntryT rptentry;
 	SaHpiEntryIdT rptentryid;
 	SaHpiEntryIdT nextrptentryid;
 	SaHpiResourceIdT resourceid;
+	SaHpiEventLogEntryIdT entryid;
 	SaHpiTimeT oldtime;
 	SaHpiTimeT newtime;
 	SaHpiTimeT readbacktime;
 	SaHpiTextBufferT buffer;
-        GError *error = NULL;
-        GOptionContext *context;
 
-        /* Print version strings */
-	oh_prog_version(argv[0]);
-
-        /* Parsing options */
-        static char usetext[]="- Exercises Event Log clock APIs.\n  "
-                              OH_SVN_REV; 
-        OHC_PREPARE_REVISION(usetext);
-        context = g_option_context_new (usetext);
-        g_option_context_add_main_entries (context, my_options, NULL);
-
-        if (!ohc_option_parse(&argc, argv, 
-                context, &copt, 
-                OHC_ALL_OPTIONS 
-                    - OHC_ENTITY_PATH_OPTION   // not applicable
-                    - OHC_VERBOSE_OPTION,      // no verbose mode
-                error)) { 
-                g_print ("option parsing failed: %s\n", error->message);
-                g_option_context_free (context);
-		EXIT1;
+	oh_prog_version(argv[0], OH_SVN_REV);
+        
+	while ( (c = getopt( argc, argv,"D:d:t:x")) != EOF )
+	{
+		switch(c) {
+			case 'D':
+                                if (optarg) domainid = atoi(optarg);
+				else {
+					usage(argv);
+					exit(1);
+				}
+                                break;
+			case 'd': 
+				if (optarg) {
+					findate = 1;
+					strcpy(i_newdate, optarg);
+				}
+				else {
+					usage(argv);
+					exit(1);
+				}
+				break;
+			case 't': 
+				if (optarg) {
+					fintime = 1;
+					strcpy(i_newtime, optarg);
+				}
+				else {
+					usage(argv);
+					exit(1);
+				}
+				break;
+			case 'x':
+				fdebug = 1;
+				break;
+			default:
+				usage(argv);
+				exit(1);
+		}
 	}
-        g_option_context_free (context);
-
+	
 	if ( !findate || !fintime) {
-		printf("Please enter date and time to be set.\n");
-		EXIT1;
+		usage(argv);
+		exit(1);
 	}
 
 	if (findate) {
-		if (copt.debug) printf("New date to be set: %s\n",findate);
-	        if (sscanf(findate,"%2d/%2d/%4d", &month, &day, &year) != 3) {
+		if (fdebug) printf("New date to be set: %s\n",i_newdate);
+	        if (sscanf(i_newdate,"%2d/%2d/%4d", &month, &day, &year) != 3) {
 			printf("%s: Invalid date\n", argv[0]);
-			EXIT1;
+			usage(argv);
+			exit(1);
 		}
 		/* check month, day and year for correctness */
 		if ((month < 1) || (month > 12)) {
 			printf("%s: Month out of range: (%d)\n", argv[0], month);
-			EXIT1;
+			usage(argv);
+			exit(1);
 		};
 		if (year < 1900) {
 			printf("%s: Year out of range: (%d)\n", argv[0], year);
-			EXIT1;
+			usage(argv);
+			exit(1);
 		};
 		month--;
 		if (month == 1) {
@@ -131,7 +161,8 @@ int main(int argc, char **argv)
 		};
 		if ((day < 1) || (day > day_array[month])) {
 			printf("%s: Day out of range: (%d)\n", argv[0], day);
-			EXIT1;
+			usage(argv);
+			exit(1);
 		};
 
 		new_tm_time.tm_mon = month;
@@ -140,43 +171,55 @@ int main(int argc, char **argv)
 	}
 
 	if (fintime) {
-		if (copt.debug)  printf("New time to be set:  %s\n",fintime);
-	        if (sscanf(fintime,"%2d:%2d:%2d",
+		if (fdebug)  printf("New time to be set:  %s\n",i_newtime);
+	        if (sscanf(i_newtime,"%2d:%2d:%2d",
                   &new_tm_time.tm_hour, &new_tm_time.tm_min, &new_tm_time.tm_sec) != 3) {
 			printf("%s: Invalid time\n", argv[0]);
-			EXIT1;
+			usage(argv);
+			exit(1);
 		}
 		/* check hours, minutes and seconds for correctness */
 		if ((new_tm_time.tm_hour < 0) || (new_tm_time.tm_hour > 24)) {
 			printf("%s: Hours out of range: (%d)\n", argv[0], new_tm_time.tm_hour);
-			EXIT1;
+			usage(argv);
+			exit(1);
 		};
 		if ((new_tm_time.tm_min < 0) || (new_tm_time.tm_min > 60)) {
 			printf("%s: Minutes out of range: (%d)\n", argv[0], new_tm_time.tm_min);
-			EXIT1;
+			usage(argv);
+			exit(1);
 		};
 		if ((new_tm_time.tm_sec < 0) || (new_tm_time.tm_sec > 60)) {
 			printf("%s: Seconds out of range: (%d)\n", argv[0], new_tm_time.tm_sec);
-			EXIT1;
+			usage(argv);
+			exit(1);
 		}
 	}
 
-	if (copt.debug) printf("Values passed to mktime():\n\tmon %d\n\tday %d\n\tyear %d\n\tHH %d\n\tMM %d\n\tSS %d\n",
+	if (fdebug) printf("Values passed to mktime():\n\tmon %d\n\tday %d\n\tyear %d\n\tHH %d\n\tMM %d\n\tSS %d\n",
 			new_tm_time.tm_mon, new_tm_time.tm_mday, new_tm_time.tm_year,
 			new_tm_time.tm_hour, new_tm_time.tm_min, new_tm_time.tm_sec);
 
 	newtime = (SaHpiTimeT) mktime(&new_tm_time) * 1000000000;
 
-	if (copt.debug) 
-           printf("New date and time in SaHpiTimeT %" PRId64 "\n\n", (int64_t)newtime);
-
-        rv = ohc_session_open_by_option ( &copt, &sessionid);
-	if (rv != SA_OK) EXIT1;
-
+	if (fdebug) {
+		printf("New date and time in SaHpiTimeT %lli\n\n", (long long int)newtime);
+		if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) printf("saHpiSessionOpen\n");
+		else printf("saHpiSessionOpen to domain %u\n",domainid);
+	}
+	rv = saHpiSessionOpen(domainid,&sessionid,NULL);
+	if (rv != SA_OK) {
+		if (rv == SA_ERR_HPI_ERROR) 
+			printf("saHpiSessionOpen: error %d, SpiLibd not running\n",rv);
+		else
+			printf("saHpiSessionOpen: %s\n", oh_lookup_error(rv));
+		exit(-1);
+	}
+ 
 	rv = saHpiDiscover(sessionid);
-	if (copt.debug) printf("saHpiDiscover %s\n", oh_lookup_error(rv));
+	if (fdebug) printf("saHpiDiscover %s\n", oh_lookup_error(rv));
 	rv = saHpiDomainInfoGet(sessionid, &domainInfo);
-	if (copt.debug) printf("saHpiDomainInfoGet %s\n", oh_lookup_error(rv));
+	if (fdebug) printf("saHpiDomainInfoGet %s\n", oh_lookup_error(rv));
 	printf("DomainInfo: RptUpdateCount = %u, RptUpdateTimestamp = %lx\n",
 		domainInfo.RptUpdateCount, (unsigned long)domainInfo.RptUpdateTimestamp);
         
@@ -185,10 +228,10 @@ int main(int argc, char **argv)
 	while ((rv == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY))
 	{
                 rv = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
-                if (copt.debug) printf("saHpiRptEntryGet %s\n", oh_lookup_error(rv));
+                if (fdebug) printf("saHpiRptEntryGet %s\n", oh_lookup_error(rv));
                 if ((rv == SA_OK) && (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG)) {
                         resourceid = rptentry.ResourceId;
-                        if (copt.debug) printf("RPT %x capabilities = %x\n", resourceid,
+                        if (fdebug) printf("RPT %x capabilities = %x\n", resourceid,
                                            rptentry.ResourceCapabilities);
 			rv = saHpiEventLogTimeGet(sessionid, resourceid, &oldtime);
 			oh_decode_time(oldtime, &buffer);
@@ -204,15 +247,12 @@ int main(int argc, char **argv)
 			printf ("Read-Back-Check event log time: %s\n", buffer.Data);
 
                 }
-                // entryid = SAHPI_OLDEST_ENTRY;
+                entryid = SAHPI_OLDEST_ENTRY;
                 rptentryid = nextrptentryid;
 	} 
         
         rv = saHpiSessionClose(sessionid);
-
-        g_free(findate);
-        g_free(fintime);
-   
+        
         return(0);
 }
  

@@ -13,20 +13,19 @@
  * Authors:
  *     Louis Zhuang <louis.zhuang@linux.intel.com>
  */
+#include <oh_lock.h>
 
-#include <glib.h>
+int oh_will_block = 0;
+int lockcount = 0;
 
-#include "lock.h"
+/* multi-threading support, use Posix mutex for data access */
+/* initialize mutex used for data locking */
+#include <glib/gthread.h>
 
-static GStaticRecMutex oh_main_lock = G_STATIC_REC_MUTEX_INIT;
+GStaticRecMutex oh_main_lock = G_STATIC_REC_MUTEX_INIT;
 
-void data_access_lock(void)
+int data_access_block_times(void)
 {
-    g_static_rec_mutex_lock(&oh_main_lock);
-}
-
-void data_access_unlock(void)
-{
-    g_static_rec_mutex_unlock(&oh_main_lock);
+        return(oh_will_block);
 }
 

@@ -15,24 +15,18 @@
  *
  */
 
-#include <glib.h>
-
-#include <oHpi.h>
-
 #include <config.h>
-#include <oh_domain.h>
-#include <oh_error.h>
-#ifndef _WIN32
+#include <oh_init.h>
 #include <oh_ssl.h>
-#endif /* _WIN32 */
+#include <oh_config.h>
 #include <oh_plugin.h>
+#include <oh_domain.h>
 #include <oh_session.h>
+#include <oh_threaded.h>
+#include <oh_error.h>
+#include <oh_lock.h>
 #include <oh_utils.h>
 
-#include "conf.h"
-#include "init.h"
-#include "lock.h"
-#include "threaded.h"
 
 /**
  * oh_init
@@ -47,10 +41,6 @@ int oh_init(void)
         struct oh_global_param unconf_param = { .type = OPENHPI_UNCONFIGURED };
         SaErrorT rval;
 
-        if (g_thread_supported() == FALSE) {
-            g_thread_init(0);
-        }
-
         data_access_lock();
         if (initialized) { /* Don't initialize more than once */
         	data_access_unlock();
@@ -62,7 +52,7 @@ int oh_init(void)
 #ifdef HAVE_OPENSSL
 	/* Initialize SSL library */
 	if (oh_ssl_init()) {
-                CRIT("SSL library intialization failed.");
+                err("SSL library intialization failed.");
                 data_access_unlock();
 		return SA_ERR_HPI_OUT_OF_MEMORY; /* Most likely */
 	}
@@ -73,7 +63,7 @@ int oh_init(void)
         rval = oh_load_config(config_param.u.conf, &config);
         /* Don't error out if there is no conf file */
         if (rval < 0 && rval != -4) {
-                CRIT("Can not load config.");
+                err("Can not load config.");
                 data_access_unlock();
                 return SA_ERR_HPI_NOT_PRESENT;
         }
@@ -83,7 +73,7 @@ int oh_init(void)
 	 */
 	oh_get_global_param(&unconf_param);
 	if (unconf_param.u.unconfigured) {
-                CRIT("OpenHPI is not configured.  See openhpi.conf file.");
+                err("OpenHPI is not configured.  See openhpi.conf file.");
                 data_access_unlock();
                 return SA_ERR_HPI_ERROR;
 	}
@@ -91,23 +81,23 @@ int oh_init(void)
         /* Initialize uid_utils */
         rval = oh_uid_initialize();
         if( (rval != SA_OK) && (rval != SA_ERR_HPI_ERROR) ) {
-                CRIT("Unique ID intialization failed.");
+                err("Unique ID intialization failed.");
                 data_access_unlock();
                 return rval;
         }
-        DBG("Initialized UID.");
+        dbg("Initialized UID.");
 
         /* Initialize handler table */
         oh_handlers.table = g_hash_table_new(g_int_hash, g_int_equal);
-        DBG("Initialized handler table");
+        dbg("Initialized handler table");
 
         /* Initialize domain table */
         oh_domains.table = g_hash_table_new(g_int_hash, g_int_equal);
-        DBG("Initialized domain table");
+        dbg("Initialized domain table");
 
         /* Initialize session table */
         oh_sessions.table = g_hash_table_new(g_int_hash, g_int_equal);
-        DBG("Initialized session table");
+        dbg("Initialized session table");
 
         /* Load plugins, create handlers and domains */
         oh_process_config(&config);
@@ -120,7 +110,7 @@ int oh_init(void)
 	                      SAHPI_DOMAIN_CAP_AUTOINSERT_READ_ONLY,
 	                      SAHPI_TIMEOUT_IMMEDIATE)) {
 	        data_access_unlock();
-		CRIT("Could not create first domain!");
+		err("Could not create first domain!");
 		return SA_ERR_HPI_ERROR;
        }
 
@@ -135,10 +125,10 @@ int oh_init(void)
          * all of them failed to load, Then return with an error.
          */
         if (config.handlers_defined > 0 && config.handlers_loaded == 0) {
-                WARN("Warning: Handlers were defined, but none loaded.");
+                warn("Warning: Handlers were defined, but none loaded.");
         } else if (config.handlers_defined > 0 &&
                    config.handlers_loaded < config.handlers_defined) {
-                WARN("*Warning*: Not all handlers defined loaded."
+                warn("*Warning*: Not all handlers defined loaded."
                      " Check previous messages.");
         }
 
@@ -147,13 +137,13 @@ int oh_init(void)
 
         initialized = 1;
         data_access_unlock();
-	DBG("OpenHPI has been initialized");
+	dbg("OpenHPI has been initialized");
 
         /* infrastructure initialization has completed at this point */
 
         /* Check if there are any handlers loaded */
         if (config.handlers_defined == 0) {
-                WARN("*Warning*: No handler definitions found in config file."
+                warn("*Warning*: No handler definitions found in config file."
                      " Check configuration file %s and previous messages",
                      config_param.u.conf);
         }
@@ -162,7 +152,8 @@ int oh_init(void)
          * HACK: wait a second before returning
          * to give the threads time to populate the RPT
          */
-        g_usleep(G_USEC_PER_SEC);
+        struct timespec waittime = { .tv_sec = 1, .tv_nsec = 1000L};
+        nanosleep(&waittime, NULL);
 
         /* Do not use SA_OK here in case it is ever changed to something
          * besides zero, The runtime stuff depends on zero being returned here

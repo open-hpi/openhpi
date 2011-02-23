@@ -2,7 +2,6 @@
  *
  * Copyright (c) 2003 by Intel Corp.
  * (C) Copyright Nokia Siemens Networks 2010
- * (C) Copyright Ulrich Kleber 2011
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,37 +17,40 @@
  * Changes:
  *     10/13/2004  kouzmich   porting to HPI B
  *     09/06/2010  ulikleber  New option -D to select domain
- *     20/01/2011  ulikleber  Refactoring to use glib for option parsing and
- *                            introduce common options for all clients
- *
  */
 
-#include "oh_clients.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <getopt.h>
+#include <SaHpi.h>
+#include <oh_clients.h>
 
 #define OH_SVN_REV "$Revision$"
 
 #define  uchar  unsigned char
-static gboolean f_hard   = TRUE;  // hard reset as default 
-static gboolean f_warm   = FALSE; 
-static oHpiCommonOptionsT copt;
+char fdebug = 0;
 
-static GOptionEntry my_options[] =
+static void Usage(char *pname)
 {
-  { "hard",             'r', 0, G_OPTION_ARG_NONE, &f_hard, "hard resets the system",       NULL },
-//{ "power-down",       'd', 0, G_OPTION_ARG_NONE, &f_,     "powers Down the system",       NULL },
-  { "warm",             'w', 0, G_OPTION_ARG_NONE, &f_warm, "warm resets the system",       NULL },
-//{ "power-cycle",      'c', 0, G_OPTION_ARG_NONE, &f_,     "power cycles the system",      NULL },
-//{ "nmi",              'n', 0, G_OPTION_ARG_NONE, &f_,     "sends NMI to the system",      NULL },
-//{ "soft-shutdown",    'o', 0, G_OPTION_ARG_NONE, &f_,     "soft-shutdown OS",             NULL },
-//{ "service-partition",'s', 0, G_OPTION_ARG_NONE, &f_,     "reboots to Service Partition", NULL },
-  { NULL }
-};
+                printf("Usage: %s [-D <n> ] [ -r -d -w -c -n -o -s -x]\n", pname);
+                printf(" where -D <n> Select domain\n");
+                printf("       -r  hard resets the system\n");
+                printf("       -d  powers Down the system\n");
+                printf("       -w  warm resets the system\n");
+                printf("       -c  power cycles the system\n");
+                printf("       -n  sends NMI to the system\n");
+                printf("       -o  soft-shutdown OS\n");
+                printf("       -s  reboots to Service Partition\n");
+                printf("       -x  show eXtra debug messages\n");
+}
 
 int
 main(int argc, char **argv)
 {
+  int c;
   int is_reset = 0;
   SaErrorT rv;
+  SaHpiDomainIdT domainid = SAHPI_UNSPECIFIED_DOMAIN_ID;
   SaHpiSessionIdT sessionid;
   SaHpiDomainInfoT domainInfo;
   SaHpiRptEntryT rptentry;
@@ -56,40 +58,60 @@ main(int argc, char **argv)
   SaHpiEntryIdT nextrptentryid;
   SaHpiEntryIdT entryid;
   SaHpiResourceIdT resourceid;
-  SaHpiResetActionT action = SAHPI_COLD_RESET; // hard reset as default 
-  GError *error = NULL;
-  GOptionContext *context;
+  SaHpiResetActionT action = -1;
+  uchar breset;
+  uchar bopt;
+  uchar fshutdown = 0;
  
-  /* Print version strings */
-  oh_prog_version(argv[0]);
-
-  /* Parsing options */
-  static char usetext[]="- Exercise HPI Reset Management APIs\n  "
-                        OH_SVN_REV; 
-  OHC_PREPARE_REVISION(usetext);
-  context = g_option_context_new (usetext);
-  g_option_context_add_main_entries (context, my_options, NULL);
-
-  if (!ohc_option_parse(&argc, argv, 
-                context, &copt, 
-                OHC_ALL_OPTIONS 
-                    - OHC_ENTITY_PATH_OPTION //TODO: Feature 880127?
-                    - OHC_VERBOSE_OPTION,    // no verbose mode implemented
-                error)) { 
-                g_option_context_free (context);
-		return 1;
+  oh_prog_version(argv[0], OH_SVN_REV);
+  breset = 3; /* hard reset as default */
+  bopt = 0;    /* Boot Options default */
+  while ( (c = getopt( argc, argv,"D:rdwconsxq?")) != EOF )
+     switch(c) {
+          case 'D':
+                if (optarg) domainid = atoi(optarg);
+                else {
+                     printf("hpipower: option requires an argument -- D");
+		     Usage(argv[0]);
+                }
+                break;
+          case 'd': breset = 0;     break;  /* power down */
+          case 'r':
+		breset = 3;
+	      	action = SAHPI_COLD_RESET;
+     		break;  /* hard reset */
+	  case 'w':
+		action = SAHPI_WARM_RESET;
+		break;
+          case 'x': fdebug = 1;     break;  /* debug messages */
+          case 'q': fdebug = 42;    break;  /* just for testing, will exit before any reset */
+          case 'c': breset = 2;     break;  /* power cycle */
+          case 'o': fshutdown = 1;  break;  /* shutdown OS */
+          case 'n': breset = 4;     break;  /* interrupt (NMI) */
+          case 's': bopt   = 1;     break;  /* hard reset to svc part */
+          default:
+		Usage(argv[0]);
+                exit(1);
   }
-  g_option_context_free (context);
+  if (fshutdown) breset = 5;     /* soft shutdown option */
 
-  if (f_warm) action = SAHPI_WARM_RESET;
-
-  rv = ohc_session_open_by_option ( &copt, &sessionid);
-  if (rv != SA_OK) return rv;
-
+  if (fdebug) {
+	if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) printf("saHpiSessionOpen\n");
+	else printf("saHpiSessionOpen to domain %u\n",domainid);
+  }
+  rv = saHpiSessionOpen(domainid, &sessionid, NULL);
+  if (rv != SA_OK) {
+        if (rv == SA_ERR_HPI_ERROR)
+           printf("saHpiSessionOpen: error %d, SpiLibd not running\n",rv);
+        else
+	   printf("saHpiSessionOpen error %d\n",rv);
+	exit(-1);
+	}
+ 
   rv = saHpiDiscover(sessionid);
-  if (copt.debug) printf("saHpiDiscover rv = %d\n",rv);
+  if (fdebug) printf("saHpiDiscover rv = %d\n",rv);
   rv = saHpiDomainInfoGet(sessionid, &domainInfo);
-  if (copt.debug) printf("saHpiDomainInfoGet rv = %d\n",rv);
+  if (fdebug) printf("saHpiDomainInfoGet rv = %d\n",rv);
   printf("RptInfo: UpdateCount = %x, UpdateTime = %lx\n",
          domainInfo.RptUpdateCount, (unsigned long)domainInfo.RptUpdateTimestamp);
 
@@ -109,6 +131,9 @@ main(int argc, char **argv)
 		entryid,resourceid, rptentry.ResourceTag.Data);
         if (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_RESET) {
 		is_reset = 1;
+
+		/* Allow debugging the beginning of program without reset */
+		if (fdebug == 42) exit (42);
 
 		rv1 = saHpiResourceResetStateSet(sessionid, 
 	     		resourceid, action);

@@ -42,7 +42,7 @@ int main (int argc, char **argv) {
          * oh_encode_entitypath - All blanks testcase
          ********************************************/
 	test_string = "       ";
-	expected_err = SA_OK;
+	expected_err = SA_ERR_HPI_INVALID_DATA;
 
 	err = oh_encode_entitypath(test_string, &ep);
 	if (err != expected_err) {

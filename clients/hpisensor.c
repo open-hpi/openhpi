@@ -3,7 +3,6 @@
  * Copyright (c) 2003 by Intel Corp.
  * (C) Copyright IBM Corp. 2004 
  * (C) Copyright Nokia Siemens Networks 2010
- * (C) Copyright Ulrich Kleber 2011
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -21,26 +20,23 @@
  *	09/08/04 pdphan@users.sf.net Add sensor number to the display.
  *      01/06/05 arcress  reduce number of display lines per sensor
  *      09/06/10 ulikleber New option -D to select domain
- *      02/02/11 ulikleber Refactoring to use glib for option parsing and
- *                         introduce common options for all clients
  */
 
-#include "oh_clients.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <getopt.h>
+#include <string.h>
+
+#include <SaHpi.h>
+#include <oh_utils.h>
+#include <oh_clients.h>
 
 #define OH_SVN_REV "$Revision$"
 
-static gboolean fshowthr   = FALSE;
-static gboolean fshowrange = FALSE;
-static gboolean fshowstate = FALSE;
-static oHpiCommonOptionsT copt;
-
-static GOptionEntry my_options[] =
-{
-  { "threshold",  't', 0, G_OPTION_ARG_NONE, &fshowthr,   "Show Thresholds also",   NULL },
-  { "range",      'r', 0, G_OPTION_ARG_NONE, &fshowrange, "Show Range values also", NULL },
-  { "eventstate", 's', 0, G_OPTION_ARG_NONE, &fshowstate, "Show EventState also",   NULL },
-  { NULL }
-};
+int fdebug = 0;
+int fshowthr = 0;
+int fshowrange = 0;
+int fshowstate = 0;
 
 static void ShowSensor(SaHpiSessionIdT sessionid,
                        SaHpiResourceIdT resourceid,
@@ -203,7 +199,10 @@ static void ShowSensor(SaHpiSessionIdT sessionid,
 
 int main(int argc, char **argv)
 {
+        int c;
+        char *ep_string = NULL;
         SaErrorT rv;
+        SaHpiDomainIdT domainid = SAHPI_UNSPECIFIED_DOMAIN_ID;
         SaHpiDomainInfoT dinfo;
         SaHpiSessionIdT sessionid;
         SaHpiRptEntryT rptentry;
@@ -213,40 +212,59 @@ int main(int argc, char **argv)
         SaHpiEntryIdT nextentryid;
         SaHpiResourceIdT resourceid;
         SaHpiRdrT rdr;
-        GError *error = NULL;
-        GOptionContext *context;
+        SaHpiEntityPathT ep_target;
+        SaHpiBoolT printusage = FALSE;
                 
-        /* Print version strings */
-	oh_prog_version(argv[0]);
-
-        /* Parsing options */
-        static char usetext[]="- Display sensor info for resources with Sensor Capability\n  "
-                              OH_SVN_REV; 
-        OHC_PREPARE_REVISION(usetext);
-        context = g_option_context_new (usetext);
-        g_option_context_add_main_entries (context, my_options, NULL);
-
-        if (!ohc_option_parse(&argc, argv, 
-                context, &copt, 
-                OHC_ALL_OPTIONS 
-                    - OHC_VERBOSE_OPTION,    // no verbose mode implemented
-                error)) { 
-                g_option_context_free (context);
-		return 1;
-	}
-        g_option_context_free (context);
-
-        rv = ohc_session_open_by_option ( &copt, &sessionid);
-	if (rv != SA_OK) return rv;
-
+	oh_prog_version(argv[0], OH_SVN_REV);
         
-        if (copt.debug) printf("Starting Discovery ...\n");
+        while ( (c = getopt( argc, argv,"D:rtse:x?")) != EOF )
+                switch(c) {
+		case 'D': if (optarg) domainid = atoi(optarg);
+			  else printusage = TRUE;
+                          break;
+                case 't': fshowthr = 1; break;
+                case 'r': fshowrange = 1; break;
+                case 's': fshowstate = 1; break;		
+                case 'x': fdebug = 1; break;
+                case 'e':
+                        if (optarg) {
+				ep_string = (char *)strdup(optarg);
+                        }
+		        else printusage = TRUE;
+			oh_encode_entitypath(ep_string, &ep_target);
+                        break;
+                default: printusage = TRUE;
+		}
+
+	if (printusage) {
+                        printf("Usage %s [-D -t -r -s -x -e]\n", argv[0]);
+                        printf("where -D id = select domain\n");
+                        printf("      -t = show Thresholds also\n");
+                        printf("      -r = show Range values also\n");
+                        printf("      -s = show EventState also\n");			
+                        printf("      -e entity path = limit to a single entity\n");
+                        printf("      -x = show eXtra debug messages\n");
+                        exit(1);
+        }
+                
+  	if (fdebug) {
+ 		if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) printf("saHpiSessionOpen\n");
+ 		else printf("saHpiSessionOpen to domain %u\n",domainid);
+ 	}
+        rv = saHpiSessionOpen(domainid,&sessionid,NULL);
+        if (rv != SA_OK) {
+                printf("saHpiSessionOpen: %s\n", oh_lookup_error(rv));
+                exit(-1);
+        }
+        
+        if (fdebug) printf("Starting Discovery ...\n");
         rv = saHpiDiscover(sessionid);
-        if (copt.debug) printf("saHpiResourcesDiscover %s\n", oh_lookup_error(rv));
+        if (fdebug) printf("saHpiResourcesDiscover %s\n", oh_lookup_error(rv));
+        
         
         rv = saHpiDomainInfoGet(sessionid,&dinfo);
 
-        if (copt.debug) printf("saHpiDomainInfoGet %s\n", oh_lookup_error(rv));
+        if (fdebug) printf("saHpiDomainInfoGet %s\n", oh_lookup_error(rv));
         
         printf("RptInfo: UpdateCount = %u, UpdateTime = %lx\n",
                dinfo.RptUpdateCount, (unsigned long)dinfo.RptUpdateTimestamp);
@@ -256,14 +274,13 @@ int main(int argc, char **argv)
         while ((rv == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY))
         {
                 rv = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
-                if (copt.debug) printf("saHpiRptEntryGet %s\n", oh_lookup_error(rv));
+                if (fdebug) printf("saHpiRptEntryGet %s\n", oh_lookup_error(rv));
                                                 
                 if (rv == SA_OK) {
                         /* Walk the RDR list for this RPT entry */
 
                         /* Filter by entity path if specified */
-                        if (copt.withentitypath && 
-                            !oh_cmp_ep(&copt.entitypath, &(rptentry.ResourceEntity))) {
+                        if (ep_string && !oh_cmp_ep(&ep_target,&(rptentry.ResourceEntity))) {
                                 rptentryid = nextrptentryid;
                                 continue;
                         }
@@ -278,7 +295,7 @@ int main(int argc, char **argv)
                         {
                                 rv = saHpiRdrGet(sessionid,resourceid,
                                                  entryid,&nextentryid, &rdr);
-                                if (copt.debug) printf("saHpiRdrGet[%u] rv = %d\n",entryid,rv);
+                                if (fdebug) printf("saHpiRdrGet[%u] rv = %d\n",entryid,rv);
                                 if (rv == SA_OK) {
                                         rdr.IdString.Data[rdr.IdString.DataLength] = 0;
                                         if (rdr.RdrType == SAHPI_SENSOR_RDR) {
@@ -307,6 +324,7 @@ int main(int argc, char **argv)
         
         rv = saHpiSessionClose(sessionid);
         
+        exit(0);
         return(0);
 }
  

@@ -19,8 +19,7 @@
  *     Renier Morales <renier@openhpi.org>
  */
 
-#include "hotswap.h"
-
+#include <oh_hotswap.h>
 
 SaHpiTimeoutT get_hotswap_auto_insert_timeout(struct oh_domain *d)
 {

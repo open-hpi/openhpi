@@ -4,8 +4,7 @@ hpionIBMblade - An openhpi sample application that shows how two (2) openhpi plu
 
 =head1 SYNOPSIS 
 
- hpionIBMblade [-D nn] [-N host[:port]] [-C <cfgfile>] [ -X ] [ -h ]
- hpionIBMblade [--domain nn] [--host=host[:port]] [--cfgfile=file] [--debug] [--help]
+hpionIBMblade [ -x ]
 
 
 =head1 DESCRIPTION
@@ -25,15 +24,7 @@ Management Controller (BMC)
 
 =over 2
 
-Help Options:
-  -h, --help                   Show help options
-
-Application Options:
-  -D, --domain=nn              Select domain id nn
-  -X, --debug                  Display debug messages
-  -N, --host="host<:port>"     Connect to daemon host:port
-  -C, --cfgfile="file"         Use passed file as client configuration file
-
+-x  Display debug messages.
 
 =back
 
@@ -63,7 +54,7 @@ Application Options:
          hpialarms      hpifan         hpireset       hpitop
          hpidomain      hpigensimdata  hpisensor      hpitree
          hpiel          hpiiinv        hpisettime     hpiwdt
-         hpievents      hpipower       hpithres       hpixml
+         hpievents      hpipower       hpithres
          ohdomainlist   ohhandler      ohparam
 
 
@@ -72,5 +63,4 @@ Application Options:
 Authors of this man page:
 
  Peter D Phan (pdphan@users.sourceforge.net)
- Ulrich Kleber (ulikleber@users.sourceforge.net)
 

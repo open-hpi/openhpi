@@ -19,7 +19,7 @@
  */
 
 #include "ipmi.h"
-#include <oh_utils.h>
+#include <oh_domain.h>
 #include <netdb.h>
 
 /* Watchdog definitions */

@@ -4,14 +4,11 @@
 
 =head1 SYNOPSIS 
 
- hpisensor [-D nn] [-N host[:port]] [-C <cfgfile>] [-t -r -s -X -h] [-E epath]
- hpisensor [--domain=nn] [--host=host[:port]] [--cfgfile=file]
-           [--threshold --range --eventstate --debug --help] [--entity-path="epath"]
+hpisensor [-D domain] [-t -r -x] [-e entitypath]
 
 =head1 DESCRIPTION
 
-hpisensor displays sensor info for all resources with Sensor Capability.
-Option -E (entity-path) restricts the output on the specified entity-path.
+hpisensor displays sensor info for all resources with Sensor Capability .
 
 If no domain is selected, hpisensor uses a session with the default domain. The selected domain id must be configured via the openhpidclient.conf file specified in the environment.
 
@@ -20,19 +17,12 @@ If no domain is selected, hpisensor uses a session with the default domain. The 
 
 =over 2
 
-Help Options:
-  -h, --help                    Show help options
-
-Application Options:
-  -t, --threshold               Show Thresholds also
-  -r, --range                   Show Range values also
-  -s, --eventstate              Show EventState also
-  -D, --domain=nn               Select domain id nn
-  -X, --debug                   Display debug messages
-  -E, --entity-path="epath"     Use entity path epath
-  -N, --host="host<:port>"      Connect to daemon host:port
-  -C, --cfgfile="file"          Use passed file as client configuration file
-
+ -D domain id    select Domain id
+ -t              show Thresholds also
+ -r              show Range values also
+ -s              show EventState also
+ -e entity path  limit to a single entity
+ -x              show eXtra debug messages
 
 =back
 
@@ -42,7 +32,7 @@ Application Options:
          hpialarms      hpifan         hpipower       hpitop
          hpidomain      hpigensimdata  hpireset       hpitree
          hpiel          hpiiinv        hpisettime     hpiwdt
-         hpievents      hpionIBMblade  hpithres       hpixml
+         hpievents      hpionIBMblade  hpithres
          ohdomainlist   ohhandler      ohparam
  
 

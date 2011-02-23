@@ -18,8 +18,6 @@
 
 #include <string>
 
-#include <gmodule.h>
-
 #include <SaHpi.h>
 
 
@@ -1144,7 +1142,7 @@ protected:
 
 private:
 
-    GModule * m_handle;
+    void * m_handle;
     BaseLibAbi m_abi;
 };
 

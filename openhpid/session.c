@@ -15,16 +15,12 @@
  */
 
 #include <string.h>
-
-#include <oHpi.h>
-
-#include <oh_domain.h>
-#include <oh_error.h>
-#include <oh_session.h>
 #include <oh_utils.h>
-
-#include "conf.h"
-#include "lock.h"
+#include <oh_error.h>
+#include <oh_lock.h>
+#include <oh_session.h>
+#include <oh_domain.h>
+#include <oh_config.h>
 
 struct oh_session_table oh_sessions = {
         .table = NULL,
@@ -250,7 +246,6 @@ SaErrorT oh_queue_session_event(SaHpiSessionIdT sid,
         struct oh_session *session = NULL;
         struct oh_event *qevent = NULL;
         struct oh_global_param param = {.type = OPENHPI_EVT_QUEUE_LIMIT };
-        SaHpiBoolT nolimit = SAHPI_FALSE;
 
         if (sid < 1 || !event)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -259,9 +254,8 @@ SaErrorT oh_queue_session_event(SaHpiSessionIdT sid,
         if (!qevent)
                 return SA_ERR_HPI_OUT_OF_MEMORY;
 
-        if (oh_get_global_param(&param)) {
-                nolimit = SAHPI_TRUE;
-        }
+        if (oh_get_global_param(&param))
+                param.u.evt_queue_limit = OH_MAX_EVT_QUEUE_LIMIT;
 
         g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
         session = g_hash_table_lookup(oh_sessions.table, &sid);
@@ -271,16 +265,15 @@ SaErrorT oh_queue_session_event(SaHpiSessionIdT sid,
                 return SA_ERR_HPI_INVALID_SESSION;
         }
 
-        if (nolimit == SAHPI_FALSE) {
-                SaHpiSessionIdT tmp_sid;
-                tmp_sid = session->id;
+        if (param.u.evt_queue_limit != OH_MAX_EVT_QUEUE_LIMIT) {
+                SaHpiSessionIdT tmp_sid = session->id;
                 gint qlength = g_async_queue_length(session->eventq);
                 if (qlength > 0 && qlength >= param.u.evt_queue_limit) {
                         /* Don't proceed with event push if queue is overflowed */
                         session->eventq_status = SAHPI_EVT_QUEUE_OVERFLOW;
                         g_static_rec_mutex_unlock(&oh_sessions.lock);
                         oh_event_free(qevent, FALSE);
-                        CRIT("Session %d's queue is out of space; "
+                        err("Session %d's queue is out of space; "
                             "# of events is %d; Max is %d",
                             tmp_sid, qlength, param.u.evt_queue_limit);
                         return SA_ERR_HPI_OUT_OF_SPACE;
@@ -386,6 +379,7 @@ SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
 SaErrorT oh_destroy_session(SaHpiSessionIdT sid)
 {
         struct oh_session *session = NULL;
+        SaHpiDomainIdT did;
         gpointer event = NULL;
         int i, len;
 
@@ -401,6 +395,7 @@ SaErrorT oh_destroy_session(SaHpiSessionIdT sid)
         oh_sessions.list = g_slist_remove(oh_sessions.list, session);
         g_hash_table_remove(oh_sessions.table, &(session->id));
         g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */
+        did = session->did;
 
         /* Finalize session */
         len = g_async_queue_length(session->eventq);
@@ -427,7 +422,7 @@ static void __delete_by_did(gpointer key, gpointer value,
         gpointer event = NULL;
 
         if (!session) {
-                CRIT("Session does not exist!");
+                err("Session does not exist!");
                 return;
         }
 

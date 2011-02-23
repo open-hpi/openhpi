@@ -5,7 +5,7 @@ dnl   various hacks by Sean Dague <http://dague.net/sean> 4/23/03
 
 
 AC_PREREQ(2.57)
-AC_INIT(openhpi, 2.17.0)
+AC_INIT(openhpi, 2.16.0)
 AC_CONFIG_SRCDIR(openhpi.spec.in)
 AM_INIT_AUTOMAKE([1.8])
 
@@ -23,7 +23,7 @@ AH_BOTTOM([#endif /* __OPENHPI_CONFIG_H */])
 # minor version: 11 = 11
 # patch version: 4  = 4
 #
-HPI_LIB_VERSION=19:0:17
+HPI_LIB_VERSION=18:0:16
 HPI_PKG=$PACKAGE_NAME
 HPI_UTIL_PKG=${PACKAGE_NAME}utils
 HPI_CLIENT_PKG=${PACKAGE_NAME}client
@@ -35,7 +35,6 @@ AC_SUBST(ac_configure_args)
 
 dnl Checks for programs
 AC_PROG_CC
-AM_PROG_AS
 AC_LIBTOOL_DLOPEN
 AC_PROG_LIBTOOL
 AC_PROG_LN_S
@@ -97,10 +96,8 @@ AC_MSG_CHECKING(gcc >= 3.2.0)
 OH_CHECK_GCC(3,2,0)
 
 dnl glib 2.x checks
-GLIB_REQUIRED_VERSION=2.12
+GLIB_REQUIRED_VERSION=2.2.0
 GLIB=glib-2.0
-GTHREAD=gthread-2.0
-GMODULE=gmodule-2.0
 
 if pkg-config --atleast-version $GLIB_REQUIRED_VERSION $GLIB; then
    :
@@ -111,12 +108,10 @@ else
 fi
 
 exact_version=`pkg-config --modversion $GLIB`;
-GLIB_CFLAGS=`pkg-config --cflags $GLIB $GTHREAD`
-GLIB_LIBS=`pkg-config --libs $GLIB $GTHREAD`
+GLIB_CFLAGS=`pkg-config --cflags $GLIB gthread-2.0`
+GLIB_LIBS=`pkg-config --libs $GLIB gthread-2.0`
 GLIB_ONLY_CFLAGS=`pkg-config --cflags $GLIB`
 GLIB_ONLY_LIBS=`pkg-config --libs $GLIB`
-GMODULE_ONLY_CFLAGS=`pkg-config --cflags $GMODULE`
-GMODULE_ONLY_LIBS=`pkg-config --libs $GMODULE`
 
 # On some versions of Solaris the pkg-config file for gthread-2.0 contains a
 # compiler option, '-mt', that is incompatible with gcc
@@ -148,9 +143,12 @@ LIBS=$old_libs
 
 AC_SUBST(GLIB_ONLY_CFLAGS)
 AC_SUBST(GLIB_ONLY_LIBS)
-AC_SUBST(GMODULE_ONLY_CFLAGS)
-AC_SUBST(GMODULE_ONLY_LIBS)
 
+
+AC_CHECK_LIB([ltdl], [lt_dlopen], [], [
+    OH_CHECK_FAIL(libltdl,libltdl-devel,,
+        this is required for plugin loading)
+    ])
 
 AC_CHECK_LIB([sysfs], [sysfs_get_mnt_path], [have_sysfs=yes])
 AC_CHECK_HEADER([sysfs/libsysfs.h], [], [have_sysfs=no])
@@ -222,6 +220,10 @@ AC_PATH_PROGS(RPM, rpmbuild)
 
 dnl plugin enablement stanzas
 
+dnl list of static plugins
+STATIC_PLUGIN_LIST=
+STATIC_PLUGIN_EXTRA_LIBS=
+
 AC_CHECK_HEADER([linux/watchdog.h], [have_linux_watchdog_h=yes], [], [#include <linux/types.h>])
 AC_ARG_ENABLE([watchdog],
     [  --enable-watchdog       build watchdog plugin [[default=yes if linux/watchdog.h exists]]],
@@ -264,6 +266,16 @@ AC_ARG_ENABLE([ipmi],
 *** by using the ipmidirect plugin
         ])
 
+        else
+            OH_CHECK_FAIL(OpenIPMI,libOpenIPMI-devel,http://openipmi.sf.net,
+                         Can not build IPMI support without OpenIPMI >= 1.4.20)
+        fi
+    elif test "x$enableval" = "xstatic"; then
+        if test "x$have_openipmi" = "xyes"; then
+            AC_SUBST(IPMI,ipmi)
+	    AC_SUBST(WITH_IPMI,1)
+            STATIC_PLUGIN_LIST="$STATIC_PLUGIN_LIST ipmi"
+            STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS"
         else
             OH_CHECK_FAIL(OpenIPMI,libOpenIPMI-devel,http://openipmi.sf.net,
                          Can not build IPMI support without OpenIPMI >= 1.4.20)
@@ -321,6 +333,10 @@ AC_ARG_ENABLE([ipmidirect],
     [  --enable-ipmidirect     build direct ipmi plugin [[default=yes]]],
     [if test "x$enableval" = "xyes"; then
             AC_SUBST(IPMIDIRECT,ipmidirect)
+     elif test "x$enableval" = "xstatic"; then
+            AC_SUBST(IPMIDIRECT,ipmidirect)
+            STATIC_PLUGIN_LIST="$STATIC_PLUGIN_LIST ipmidirect"
+            STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS $SSL_LIB -luuid -lm -lstdc++"
      fi],
     [AC_SUBST(IPMIDIRECT,ipmidirect)])
 
@@ -416,6 +432,28 @@ AC_ARG_ENABLE([slave],
     [if test "x$enableval" = "xyes"; then
         AC_SUBST(SLAVE,slave)
     fi])
+
+dnl
+dnl create static plugin config
+dnl
+
+STATIC_PLUGIN=
+STATIC_PLUGIN_EXTERN=
+STATIC_PLUGIN_LIBS=
+
+for name in $STATIC_PLUGIN_LIST; do
+        STATIC_PLUGIN="$STATIC_PLUGIN { \"$name\", ${name}_get_interface },";
+        STATIC_PLUGIN_EXTERN="${STATIC_PLUGIN_EXTERN} extern int ${name}_get_interface(void **pp, const uuid_t uuid);";
+        STATIC_PLUGIN_LIBS="$STATIC_PLUGIN_LIBS \$(top_builddir)/plugins/$name/lib${name}.la";
+done
+
+dnl use openhpid/plugin_static.c.in
+AC_SUBST(STATIC_PLUGIN_EXTERN)
+AC_SUBST(STATIC_PLUGIN)
+
+dnl additional libs
+AC_SUBST(STATIC_PLUGIN_LIBS)
+AC_SUBST(STATIC_PLUGIN_EXTRA_LIBS)
 
 dnl setup SNMPFLAGS
 AC_SUBST(SNMPFLAGS)
@@ -590,14 +628,6 @@ CXX_WARNINGS="\
 	-fno-strict-aliasing \
         -Wno-unused-value "
 
-AC_ARG_ENABLE([werror],
-    [  --enable-werror         appends -Werror to CFLAGS and CXXFLAGS [[default=yes]]],
-    [if test "x$enableval" = "xyes"; then
-	CC_WARNINGS="$CC_WARNINGS -Werror"
-	CXX_WARNINGS="$CXX_WARNINGS -Werror"
-    fi],
-    [])
-
 if test -n "`gcc --version | grep ' 3.2'`" ; then
         CC_WARNINGS=`echo $CC_WARNINGS | sed -e 's/-Wno-strict-aliasing//g'`
         CXX_WARNINGS=`echo $CC_WARNINGS | sed -e 's/-Wno-strict-aliasing//g'`
@@ -629,7 +659,7 @@ AM_CONDITIONAL(HAVE_OPENSSL, test x$have_openssl = xyes)
 OH_SSL_INCLUDES="-I\$(top_srcdir)/ssl"
 AC_SUBST(OH_SSL_INCLUDES)
 
-OPENHPI_INCLUDES="-I\$(top_srcdir)/include -I\$(top_srcdir)/utils -I\$(top_builddir)/utils -I\$(top_srcdir)/clients"
+OPENHPI_INCLUDES="-I\$(top_srcdir)/include -I\$(top_srcdir)/utils -I\$(top_builddir)/utils"
 dnl replace common includes here
 AC_SUBST(OPENHPI_INCLUDES)
 
@@ -719,12 +749,12 @@ AC_CONFIG_FILES([openhpi.spec
         docs/man/Makefile
         openhpid/Makefile
         openhpid/openhpid.sh
+        openhpid/plugin_static.c
         openhpid/t/Makefile
         openhpid/t/ohpi/Makefile
         hpi_shell/Makefile
         cpp/Makefile
         cpp/t/Makefile
-        clients/Makefile
-        clients/hpixml/Makefile])
+        clients/Makefile])
 
 AC_OUTPUT

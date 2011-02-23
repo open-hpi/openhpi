@@ -3,7 +3,6 @@
  * Copyright (c) 2003 by Intel Corp.
  * (C) Copyright IBM Corp. 2004, 2005
  * (C) Copyright Nokia Siemens Networks 2010
- * (C) Copyright Ulrich Kleber 2011
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -23,12 +22,17 @@
  * Changes:
  *    09/02/2010  lwetzel    Fixed Bug: ResourceId 255 (0xFF) is a valid ResourceId 
  *    07/06/2010  ulikleber  New option -D to select domain
- *    20/01/2011  ulikleber  Refactoring to use glib for option parsing and
- *                           introduce common options for all clients
  *
  */
 
-#include "oh_clients.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <getopt.h>
+#include <SaHpi.h> 
+#include <oh_utils.h>
+#include <oh_clients.h>
 
 #define OH_SVN_REV "$Revision$"
 
@@ -87,97 +91,116 @@ void show_trailer(char *system);
 #define EPATHSTRING_END_DELIMITER "}"
 #define rpt_startblock "    |\n    +--- "
 #define rdr_startblock "    |    |__ "
-
 /* 
  * Globals for this driver
  */
-static gboolean f_rpt      = FALSE;
-static gboolean f_inv      = FALSE;
-static gboolean f_sensor   = FALSE;
-static gboolean f_wdog     = FALSE;
-static gboolean f_dimi     = FALSE;
-static gboolean f_fumi     = FALSE;
-static gboolean f_ann      = FALSE;
-static gboolean f_ctrl     = FALSE;
-static gboolean f_overview = TRUE;
-static gboolean f_allres   = TRUE;
-static gint resourceid = 0;
-static oHpiCommonOptionsT copt;
-
-static GOptionEntry my_options[] =
-{
-  { "rpts",         'r', 0, G_OPTION_ARG_NONE, &f_rpt,      "Display only rpts",                         NULL },
-  { "sensors",      's', 0, G_OPTION_ARG_NONE, &f_sensor,   "Display only sensors",                      NULL },
-  { "controls",     'c', 0, G_OPTION_ARG_NONE, &f_ctrl,     "Display only controls",                     NULL },
-  { "watchdogs",    'w', 0, G_OPTION_ARG_NONE, &f_wdog,     "Display only watchdogs",                    NULL },
-  { "inventories",  'i', 0, G_OPTION_ARG_NONE, &f_inv,      "Display only inventories",                  NULL },
-  { "annunciators", 'a', 0, G_OPTION_ARG_NONE, &f_ann,      "Display only annunciators",                 NULL },
-  { "fumis",        'f', 0, G_OPTION_ARG_NONE, &f_fumi,     "Display only fumis",                        NULL },
-  { "dimis",        'd', 0, G_OPTION_ARG_NONE, &f_dimi,     "Display only dimis",                        NULL },
-  { "resource",     'n', 0, G_OPTION_ARG_INT,  &resourceid, "Display only resource nn and its topology", "nn" },
-  { NULL }
-};
-
+int fdebug     = 0;
+int f_rpt      = 0;
+int f_inv      = 0;
+int f_sensor   = 0;
+int f_wdog     = 0;
+int f_dimi     = 0;
+int f_fumi     = 0;
+int f_ann      = 0;
+int f_ctrl     = 0;
+int f_overview = 0;
+int f_allres   = 1;
 
 char previous_system[SAHPI_MAX_TEXT_BUFFER_LENGTH] = "";
-
 /* 
  * Main                
  */
 int
 main(int argc, char **argv)
 {
-        SaErrorT rv = SA_OK;
+	SaErrorT 	rv = SA_OK;
+	
+	SaHpiDomainIdT domainid = SAHPI_UNSPECIFIED_DOMAIN_ID;
 	SaHpiSessionIdT sessionid;
-        GError *error = NULL;
-        GOptionContext *context;
+	SaHpiResourceIdT resourceid = 0;
+	SaHpiBoolT printusage = FALSE;
+	int c;
+	    
+	oh_prog_version(argv[0], OH_SVN_REV);
+	while ( (c = getopt( argc, argv,"rsicwadfD:n:x?")) != EOF ) {
+		switch(c) {
+			case 'D':
+                                if (optarg) {
+                                        domainid = atoi(optarg);
+                                }
+				else printusage = TRUE;
+                                break;
 
-        /* Print version strings */
-	oh_prog_version(argv[0]);
+			case 'r': f_rpt     = 1; break;
+			case 's': f_sensor = 1; break;
+			case 'i': f_inv = 1; break;
+			case 'c': f_ctrl = 1; break;
+			case 'w': f_wdog = 1; break;
+			case 'a': f_ann = 1; break;
+			case 'f': f_fumi = 1; break;
+			case 'd': f_dimi = 1; break;
+			case 'n':
+				if (optarg) {
+					resourceid = atoi(optarg);
+					f_allres = 0;
+				}
+				else printusage = TRUE;
+				break;
 
-        /* Parsing options */
-        static char usetext[]="- Display system topology\n  "
-                              OH_SVN_REV; 
-        OHC_PREPARE_REVISION(usetext);
-        context = g_option_context_new (usetext);
-        g_option_context_add_main_entries (context, my_options, NULL);
-
-        if (!ohc_option_parse(&argc, argv, 
-                context, &copt, 
-                OHC_ALL_OPTIONS 
-                    - OHC_ENTITY_PATH_OPTION //TODO: Feature 880127
-                    - OHC_VERBOSE_OPTION,    // no verbose mode implemented
-                error)) { 
-                g_option_context_free (context);
-		return 1;
+			case 'x': fdebug = 1; break;
+			default: printusage = TRUE; break;
+		}
 	}
-        g_option_context_free (context);
-
-        if (f_rpt || f_sensor || f_ctrl || f_wdog || f_inv || 
-                     f_ann || f_fumi || f_dimi || resourceid>0)
-            f_overview = FALSE;
-
+	if (printusage == TRUE)
+	{
+		printf("\n\tUsage: %s [-option]\n\n", argv[0]);
+		printf("\t      (No Option) Display system topology via default domain: rpt & rdr headers\n");	
+		printf("\t           -D nn  Select domain id nn\n");
+		printf("\t           -r     Display only rpts\n");
+		printf("\t           -s     Display only sensors\n");
+		printf("\t           -c     Display only controls\n");
+		printf("\t           -w     Display only watchdogs\n");
+		printf("\t           -i     Display only inventories\n");
+		printf("\t           -a     Display only annunciators\n");
+		printf("\t           -f     Display only fumis\n");
+		printf("\t           -d     Display only dimis\n");
+		printf("\t           -n nn  Display only resource nn and its topology\n");
+		printf("\t           -x     Display debug messages\n");
+		printf("\n\n\n\n");
+		exit(1);
+	}
+ 
+	if (argc == 1)  f_overview = 1;
 	memset (previous_system, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
 
-        rv = ohc_session_open_by_option ( &copt, &sessionid);
-	if (rv != SA_OK) return rv;
+	if (fdebug) {
+		if (domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) printf("saHpiSessionOpen\n");
+		else printf("saHpiSessionOpen to domain %u\n",domainid);
+	}
+        rv = saHpiSessionOpen(domainid,&sessionid,NULL);
+	if (rv != SA_OK) {
+		printf("saHpiSessionOpen returns %s\n",oh_lookup_error(rv));
+		exit(-1);
+	}
+	if (fdebug)
+	       	printf("saHpiSessionOpen returns with SessionId %u\n", sessionid);
 
 	/*
 	 * Resource discovery
 	 */
-	if (copt.debug) printf("saHpiDiscover\n");
+	if (fdebug) printf("saHpiDiscover\n");
 	rv = saHpiDiscover(sessionid);
 	if (rv != SA_OK) {
 		printf("saHpiDiscover returns %s\n",oh_lookup_error(rv));
-		return rv;
+		exit(-1);
 	}
 
-	if (copt.debug)  printf("Discovery done\n");
+	if (fdebug)  printf("Discovery done\n");
 	list_resources(sessionid, resourceid);
 
 	rv = saHpiSessionClose(sessionid);
 	
-	return 0;
+	exit(0);
 }
 
 
@@ -200,15 +223,15 @@ SaErrorT list_resources(SaHpiSessionIdT sessionid,SaHpiResourceIdT resourceid)
 	SaHpiResourceIdT l_resourceid;
 	SaHpiTextBufferT working;
 		
-	oh_init_textbuffer(&working);																	
+	oh_init_textbuffer(&working);																		
 																
 	/* walk the RPT list */
 	rptentryid = SAHPI_FIRST_ENTRY;
 	do {
 		
-		if (copt.debug) printf("saHpiRptEntryGet\n");
+		if (fdebug) printf("saHpiRptEntryGet\n");
 		rvRptGet = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
-		if ((rvRptGet != SA_OK) || copt.debug) 
+		if ((rvRptGet != SA_OK) || fdebug) 
 		       	printf("RptEntryGet returns %s\n",oh_lookup_error(rvRptGet));
 		
 		rv = show_rpt(&rptentry, resourceid);
@@ -224,11 +247,11 @@ SaErrorT list_resources(SaHpiSessionIdT sessionid,SaHpiResourceIdT resourceid)
 			/* walk the RDR list for this RPT entry */
 			entryid = SAHPI_FIRST_ENTRY;			
 
-			if (copt.debug) printf("rptentry[%u] resourceid=%u\n", entryid,resourceid);
+			if (fdebug) printf("rptentry[%u] resourceid=%u\n", entryid,resourceid);
 
 			do {
 				rvRdrGet = saHpiRdrGet(sessionid,l_resourceid, entryid,&nextentryid, &rdr);
-				if (copt.debug) printf("saHpiRdrGet[%u] rv = %s\n",entryid,oh_lookup_error(rvRdrGet));
+				if (fdebug) printf("saHpiRdrGet[%u] rv = %s\n",entryid,oh_lookup_error(rvRdrGet));
 
 
 				if (rvRdrGet == SA_OK)

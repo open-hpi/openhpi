@@ -2,7 +2,6 @@
  * hpigensimdata.c
  *
  * Copyright (c) 2010 by Lars Wetzel
- * (C) Copyright Ulrich Kleber 2011
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -13,7 +12,6 @@
  *
  * Authors:
  *     Lars Wetzel (klw) <larswetzel@users.sourceforge.net>
- *     Ulrich Kleber <ulikleber@users.sourceforge.net>
  * 
  * Changes:
  * 10/02/09 (klw) Release 0.9
@@ -26,15 +24,20 @@
  * - maybe more selection criteria at the command line (eg. only sensor)
  *   depends on user which needs this client for some other reasons
  * 
- * Changes:
- *     01/02/2011  ulikleber  Refactoring to use glib for option parsing and
- *                            introduce common options for all clients
  */
 
-#include "oh_clients.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <getopt.h>
+#include <ctype.h>
+#include <SaHpi.h> 
+#include <oh_utils.h>
+#include <oh_clients.h>
 
 #define OH_SVN_REV "$Revision: 6571 $"
-#define GEN_SIM_DATA_VERSION "0.901000"
+#define GEN_SIM_DATA_VERSION 0.901
 
 #define OFFSET_STEP 3
 #define OFFSET_FILLER ' '
@@ -80,20 +83,8 @@ typedef struct {
 /* 
  * Globals
  */
-static gint g_resourceid = (gint) SAHPI_UNSPECIFIED_RESOURCE_ID;
-static gchar *g_file = NULL;
-static gchar *g_mode = NULL;
-static oHpiCommonOptionsT copt;
-
-static GOptionEntry my_options[] =
-{
-  { "resource", 'r', 0, G_OPTION_ARG_INT,      &g_resourceid, "Select particular resource id for an update file", "res_id"   },
-  { "file",     'f', 0, G_OPTION_ARG_FILENAME, &g_file,       "Name of the file to be generated",                 "filename" },
-  { "mode",     'm', 0, G_OPTION_ARG_STRING,   &g_mode,       "Write update or initial file",                     "UPD|INIT" },
-  { NULL }
-};
-
-#define GFREE g_option_context_free (context);g_free(g_file);g_free(g_mode);
+int g_resource = FALSE;
+int g_file = FALSE;
 
 char offSet[MAX_OFFSETS][MAX_CHAR];
 
@@ -291,63 +282,82 @@ static SaErrorT    print_ep(FILE *out,
  */
 int main(int argc, char **argv) {
 	SaErrorT 	     rv = SA_OK;
+	SaHpiDomainIdT domainid = SAHPI_UNSPECIFIED_DOMAIN_ID;
 	SaHpiSessionIdT  sessionid;
+	SaHpiResourceIdT resourceid = 0;
+	char filename[MAX_CHAR+1];
 	FILE             *outfile = stdout;
+	int              c;
 	ConfigurationDataT confdata;
-        GError *error = NULL;
-        GOptionContext *context;
+	SaHpiBoolT printusage = FALSE;
 	
 	confdata.mode = MODE_INIT;
-
-        /* Print version strings */
-	oh_prog_version(argv[0]);
-
-        /* Parsing options */
-        static char usetext[]="- Version " GEN_SIM_DATA_VERSION
-		"\nThe client will print all HPI information in a format that can be parsed by Dynamic"
-                "\nSimulator plugin.\n"
-                OH_SVN_REV; 
-        OHC_PREPARE_REVISION(usetext);
-        context = g_option_context_new (usetext);
-        g_option_context_add_main_entries (context, my_options, NULL);
-
-        if (!ohc_option_parse(&argc, argv, 
-                context, &copt, 
-                OHC_ALL_OPTIONS 
-                    - OHC_ENTITY_PATH_OPTION //TODO: Feature 880127
-                    - OHC_VERBOSE_OPTION     // no verbose mode 
-                    - OHC_DEBUG_OPTION,      // no debug mode 
-                error)) { 
-                GFREE
-		return 1;
-	}
-        GFREE
-
-	if (g_file) {
-		outfile = fopen(g_file, "w");
-		if (outfile == NULL) {
-			fprintf(stderr, "\n%s couldn't be opened for writing.\n", g_file);
-                        GFREE
-			return 1;
+	oh_prog_version(argv[0], OH_SVN_REV);
+	
+	while ( (c = getopt( argc, argv,"xD:r:f:m:?")) != EOF ) {
+		switch(c) {
+			case 'D':
+				if (optarg) domainid = atoi(optarg);
+				else printusage = TRUE;
+				break;
+			case 'r':
+				if (optarg) {
+					resourceid = atoi(optarg);
+					g_resource = TRUE;
+				} else {
+					fprintf(stderr, "\nResourceid is missing\n");
+					printusage = TRUE;
+				}
+				break;
+			case 'm':
+				if (optarg) {
+					char tmpmode[MAX_SHORT_CHAR+1];
+					int i = 0;
+					while (i < MAX_SHORT_CHAR || optarg[i] != '\0') {
+						tmpmode[i] = toupper((char) optarg[i]);
+						i++;
+					}
+					tmpmode[i] = '\0';
+					if (!strcmp(tmpmode, "UPD")) {
+						confdata.mode = MODE_UPD;
+					} else if (!strcmp(tmpmode, "INIT")) {
+						confdata.mode = MODE_INIT;
+					} else {
+						fprintf(stderr, "\nUnknown mode %s.\n", tmpmode);
+						printusage = TRUE;
+					}
+				}
+				break;
+			case 'f': 
+			    g_file = 1;
+				if (optarg) {
+					strncpy(filename, optarg, MAX_CHAR);
+					filename[MAX_CHAR] = '\0';
+					outfile = fopen(filename, "w");
+					if (outfile == NULL) {
+						fprintf(stderr, "\n%s couldn't be opened for writing.\n", filename);
+						exit(1);
+					}
+					break;
+				}
+			default: printusage = TRUE;
 		}
 	}
-
-	if (g_mode) {
-		int i = 0;
-		while (i < MAX_SHORT_CHAR && g_mode[i] != '\0') {
-			g_mode[i] = toupper((char) g_mode[i]);
-			i++;
-		}
-		if (!strcmp(g_mode, "UPD")) {
-			confdata.mode = MODE_UPD;
-		} else if (!strcmp(g_mode, "INIT")) {
-			confdata.mode = MODE_INIT;
-		} else {
-			fprintf(stderr, "\nUnknown mode %s.\n", g_mode);
-                        if (g_file)	fclose(outfile);
-                        GFREE
-			return 1;
-		}
+	if (printusage == TRUE)
+	{
+		printf("\n %s - Version %.3f\n", argv[0], GEN_SIM_DATA_VERSION);
+		printf("\nThe client will print all HPI information. This information can be parsed by NewSimulator plugin.");
+		printf("\nTo spare some encoding/decoding function, values of enums are printed as int values instead of"
+			           "encode them to ASCII values and decode them afterwards."); 
+		printf("\nSince this client is primarily for the NewSimulator, the output functions don't depend on the"
+		                   "oh_.. - output function. Therefore they can be easily changed without influence on other clients.");    
+		printf("\n\tUsage: %s [-option]\n\n", argv[0]);
+		printf("\t           -D domain_id  Select particular Domain\n");
+		printf("\t           -r res_id     Select particular resource id for an update file\n");
+		printf("\t           -f filename   Name of the file to be generated\n");
+		printf("\t           -m (UPD|INIT) Write update or initial file\n");
+		printf("\n\n\n\n");
+		exit(1);
 	}
  
 	/**
@@ -363,12 +373,11 @@ int main(int argc, char **argv) {
 
 	print_header(outfile, 0, confdata);
 	
-        rv = ohc_session_open_by_option ( &copt, &sessionid);
+        rv = saHpiSessionOpen(domainid,&sessionid,NULL);	
 	if (rv != SA_OK) {
-                if (g_file)	fclose(outfile);
-                GFREE
-		return rv;
-        }
+		printf("saHpiSessionOpen returns %s\n",oh_lookup_error(rv));
+		exit(-1);
+	}
 
 	/*
 	 * Resource discovery
@@ -376,16 +385,14 @@ int main(int argc, char **argv) {
 	rv = saHpiDiscover(sessionid);
 	if (rv != SA_OK) {
 		printf("saHpiDiscover returns %s\n",oh_lookup_error(rv));
-                if (g_file)	fclose(outfile);
-                GFREE
-		return rv;
+		exit(-1);
 	}
-	print_resources(outfile, 0, sessionid, (SaHpiResourceIdT) g_resourceid);
+	print_resources(outfile, 0, sessionid, resourceid);
 
 	rv = saHpiSessionClose(sessionid);
 	if (g_file)	fclose(outfile);
-	GFREE	
-	return 0;
+		
+	exit(0);
 }
 
 
@@ -404,7 +411,7 @@ static void print_header(FILE *out, int offset, ConfigurationDataT data) {
 
    fprintf(out, "%s%s {\n", offSet[myoffset++], CONF_SECTION);
    fprintf(out, "%sMODE=%s\n", offSet[myoffset], strMode);
-   fprintf(out, "%sVERSION=%s\n", offSet[myoffset], GEN_SIM_DATA_VERSION);
+   fprintf(out, "%sVERSION=%f\n", offSet[myoffset], GEN_SIM_DATA_VERSION);
    fprintf(out, "%s}\n", offSet[--myoffset]);	
 }
 
@@ -433,8 +440,7 @@ static SaErrorT print_resources(FILE *out, int offset, SaHpiSessionIdT sessionid
          return rvRptGet;
       }
 		
-      if ((resourceid == SAHPI_UNSPECIFIED_RESOURCE_ID) 
-         || (resourceid == rptentry.ResourceId)) {
+      if ((g_resource == FALSE) || (resourceid == rptentry.ResourceId)) {
       	
          fprintf(out, "%s%s {\n", offSet[myoffset], RPT_SECTION);
          myoffset++;
@@ -1709,12 +1715,10 @@ static void print_sensor_reading(FILE *out, int offset, SaHpiSensorReadingT val)
       fprintf(out, "%sType=%u\n",offSet[myoffset], val.Type);
       switch( val.Type ) {
          case SAHPI_SENSOR_READING_TYPE_INT64:
-            fprintf(out, "%svalue.SensorInt64=%" PRId64 "\n", offSet[myoffset], 
-                          (int64_t) val.Value.SensorInt64);
+            fprintf(out, "%svalue.SensorInt64=%lld\n", offSet[myoffset], val.Value.SensorInt64);
             break;
          case SAHPI_SENSOR_READING_TYPE_UINT64:
-            fprintf(out, "%svalue.SensorUint64=%" PRIu64 "\n", offSet[myoffset], 
-                          (uint64_t) val.Value.SensorUint64);
+            fprintf(out, "%svalue.SensorUint64=%llu\n", offSet[myoffset], val.Value.SensorUint64);
             break;
          case SAHPI_SENSOR_READING_TYPE_FLOAT64:
             fprintf(out, "%svalue.SensorFloat64=%lf\n", offSet[myoffset], val.Value.SensorFloat64);

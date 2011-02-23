@@ -4,8 +4,7 @@ hpithres -  This sample openhpi application interactively displays sensors and s
 
 =head1 SYNOPSIS 
 
- hpithres [-D nn] [-N host[:port]] [-C <cfgfile>] [-X] [-h]
- hpithres [--domain=nn] [--host=host[:port]] [--cfgfile=file] [--debug] [--help]
+hpithres [-D domain] [-x]
 
 =head1 DESCRIPTION
 
@@ -17,15 +16,8 @@ If no domain is selected, hpiel uses a session with the default domain. The sele
 
 =over 2
 
-Help Options:
-  -h, --help                   Show help options
-
-Application Options:
-  -D, --domain=nn              Select domain id nn
-  -X, --debug                  Display debug messages
-  -N, --host="host<:port>"     Connect to daemon host:port
-  -C, --cfgfile="file"         Use passed file as client configuration file
-
+-D domainid  Select domain
+-x           Display debug messages
 
 =back
 
@@ -35,7 +27,7 @@ Application Options:
          hpialarms      hpifan         hpipower       hpitop
          hpidomain      hpigensimdata  hpireset       hpitree
          hpiel          hpiiinv        hpisensor      hpiwdt
-         hpievents      hpionIBMblade  hpisettime     hpixml
+         hpievents      hpionIBMblade  hpisettime
          ohdomainlist   ohhandler      ohparam
 
 

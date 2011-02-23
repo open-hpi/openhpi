@@ -24,16 +24,13 @@
 
 #include <SaHpi.h>
 #include <glib.h>
-
-#define OH_DEFAULT_DOMAIN_ID 0
+#include <oh_utils.h>
 
 #define OPENHPI_DEFAULT_DAEMON_PORT 4743
 #define MAX_PLUGIN_NAME_LENGTH 32
 
 #define OH_SAHPI_INTERFACE_VERSION_MIN_SUPPORTED (SaHpiVersionT)0x020101 /* B.01.01 */
 #define OH_SAHPI_INTERFACE_VERSION_MAX_SUPPORTED SAHPI_INTERFACE_VERSION
-
-#define OH_PATH_PARAM_MAX_LENGTH 2048
 
 #ifdef __cplusplus
 extern "C" {
@@ -86,9 +83,9 @@ typedef union {
         //unsigned char Debug; /* 1 = YES, 0 = NO */
         //unsigned char DebugTrace; /* !0 = YES, 0 = NO */
         //unsigned char DebugLock; /* !0 = YES, 0 = NO */
-        char Path[OH_PATH_PARAM_MAX_LENGTH]; /* Dir path to openhpi plugins */
-        char VarPath[OH_PATH_PARAM_MAX_LENGTH]; /* Dir path for openhpi data */
-        char Conf[OH_PATH_PARAM_MAX_LENGTH]; /* File path of openhpi configuration */
+        char Path[OH_MAX_TEXT_BUFFER_LENGTH]; /* Dir path to openhpi plugins */
+        char VarPath[OH_MAX_TEXT_BUFFER_LENGTH]; /* Dir path for openhpi data */
+        char Conf[OH_MAX_TEXT_BUFFER_LENGTH]; /* File path of openhpi configuration */
 } oHpiGlobalParamUnionT;
 
 typedef struct {
@@ -111,7 +108,7 @@ SaErrorT SAHPI_API oHpiHandlerInfo (
      SAHPI_IN    SaHpiSessionIdT sid,
      SAHPI_IN    oHpiHandlerIdT id, 
      SAHPI_OUT   oHpiHandlerInfoT *info,
-     SAHPI_INOUT GHashTable *conf_params );
+     SAHPI_IN    GHashTable *conf_params );
 SaErrorT SAHPI_API oHpiHandlerGetNext (
      SAHPI_IN    SaHpiSessionIdT sid,
      SAHPI_IN    oHpiHandlerIdT id, 

@@ -20,6 +20,7 @@
 #include <string.h>
 
 #include <SaHpi.h>
+#include <openhpi.h>
 #include <oh_utils.h>
 #include <el_utils.h>
 
@@ -67,7 +68,7 @@ int main(int argc, char **argv)
 
         	retc = oh_el_append(el, &event, NULL, NULL);
         	if (retc != SA_OK) {
-                	CRIT("oh_el_append failed.");
+                	err("ERROR: oh_el_append failed.");
                 	return 1;
         	}       
 	}
@@ -76,20 +77,20 @@ int main(int argc, char **argv)
  	/* clear the el */
 	retc = oh_el_clear(el);
         if (retc != SA_OK) {
-                CRIT("el clear failed.");
+                err("ERROR: el clear failed.");
                 return 1;
         }
 
 	/* verify el list nodes are cleared */
 	if(el->list != NULL){
-		CRIT("el clear failed.");
+		err("ERROR: el clear failed.");
 		return 1;
 	}
 
         /* close el without saving to file*/
         retc = oh_el_close(el);
         if (retc != SA_OK) {
-                CRIT("oh_el_close on el failed.");
+                err("ERROR: oh_el_close on el failed.");
                 return 1;
         }
 
