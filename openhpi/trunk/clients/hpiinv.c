@@ -348,11 +348,41 @@ static void print_idrareaheader(SaHpiIdrAreaHeaderT *areaHeader, int len)
    }
 }
 
+static void print_tb(const SaHpiTextBufferT * tb)
+{
+        size_t i;
+
+        switch (tb->DataType) {
+                case SAHPI_TL_TYPE_UNICODE:
+                        printf("UNICODE: Unsupported output");
+                        return;
+                case SAHPI_TL_TYPE_BCDPLUS:
+                        printf("BCD+ : ");
+                        fwrite(&tb->Data[0], tb->DataLength, 1, stdout);
+                        return;
+                case SAHPI_TL_TYPE_ASCII6:
+                        printf("ASCII6 : ");
+                        fwrite(&tb->Data[0], tb->DataLength, 1, stdout);
+                        return;
+                case SAHPI_TL_TYPE_TEXT:
+                        printf("TEXT : ");
+                        fwrite(&tb->Data[0], tb->DataLength, 1, stdout);
+                        return;
+                case SAHPI_TL_TYPE_BINARY:
+                        printf("BIN :");
+                        for (i = 0; i < tb->DataLength; ++i) {
+                                printf(" %02X", tb->Data[i]);
+                        }
+                        return;
+                default:
+                        printf("???    : ");
+                        return;
+        }
+}
+
 static void print_idrfield(SaHpiIdrFieldT *field, int len);
 static void print_idrfield(SaHpiIdrFieldT *field, int len)
 {
-	SaHpiTextBufferT *strptr;
-	char fieldstr[MAX_STRSIZE];
 	int i;
 
 #ifdef OPENHPI_USED
@@ -365,10 +395,10 @@ static void print_idrfield(SaHpiIdrFieldT *field, int len)
 		if (map_fieldtype[i].type == field->Type) break;
 	}
 	if (i == NFIELDTYP) i--;
-	strptr = &(field->Field);  
-	fixstr(strptr,fieldstr);  /*stringify if needed*/
-	printf("    FieldId[%u] %s : %s\n",
-		field->FieldId,map_fieldtype[i].str ,fieldstr);
+        printf("    FieldId[%d] %s : ",
+                field->FieldId,map_fieldtype[i].str);
+        print_tb(&field->Field);
+        printf("\n");
    }
 }
 
