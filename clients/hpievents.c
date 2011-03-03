@@ -37,8 +37,9 @@ static oHpiCommonOptionsT copt;
 
 static GOptionEntry my_options[] =
 {
-  { "timeout", 't', 0, G_OPTION_ARG_STRING, &timeout_str, "Wait n seconds for event or infinite wait",
-                                                      "n|BLOCK|SAHPI_TIMEOUT_BLOCK" },
+  { "timeout", 't', 0, G_OPTION_ARG_STRING, &timeout_str, "Wait n seconds for event or infinite wait\n"
+"                               (BLOCK or SAHPI_TIMEOUT_BLOCK)",
+                                                      "n|BLOCK" },
   { "discover", 'd', 0, G_OPTION_ARG_NONE, &do_discover_after_subscribe,      "Call saHpiDiscover() after saHpiSubscribe()",
                                                       NULL },
   { NULL }

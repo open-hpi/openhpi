@@ -23,6 +23,9 @@ be defined in the openhpi.conf file or can be loaded dynamically.
 
 Some of OpenHPI's functioning can be changed by setting environment
 variables.  This documents all client environmental settings.
+Client environmental settings are evaluated in the openhpi library that is
+linked to the client. There are other environmental settings for the
+openhpi daemon.
 
 =over 2
 
@@ -35,14 +38,15 @@ during the build process (default /etc/openhpi).
 
 =item B<OPENHPI_DAEMON_HOST>=URL
 
-URL for the host running the daemon. This can be "localhost" (default)
-if the daemon is running on the local host or an ip address.
+URL for the host running the daemon which the client wants to connect to. 
+This can be an ip address or "localhost" (default) if the daemon is running 
+on the same host as the client.
 The variable is only used if no default domain is defined via the client conf 
 file.
 
 =item B<OPENHPI_DAEMON_PORT>=PORT_NUMBER
 
-The port number the host is listening on for clent connections.
+The port number used by the daemon which the client wants to connect to.
 Default port is 4743.
 The variable is only used if no default domain is defined via the client conf 
 file.
@@ -53,7 +57,7 @@ file.
 =head1 HARDWARE SUPPORT
 
 OpenHPI provides a number of plugins that talk to different hardware
-types.  The following is a list of supported plugins.
+types.  The following is a list of plugins provided by the OpenHPI project.
 
 =over 4
 

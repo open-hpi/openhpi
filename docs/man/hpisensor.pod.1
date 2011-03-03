@@ -13,7 +13,7 @@
 hpisensor displays sensor info for all resources with Sensor Capability.
 Option -E (entity-path) restricts the output on the specified entity-path.
 
-If no domain is selected, hpisensor uses a session with the default domain. The selected domain id must be configured via the openhpidclient.conf file specified in the environment.
+If no domain or host is selected, hpisensor uses the default domain as specified in the openhpiclient.conf file.
 
 
 =head1 OPTIONS
@@ -21,17 +21,22 @@ If no domain is selected, hpisensor uses a session with the default domain. The 
 =over 2
 
 Help Options:
-  -h, --help                    Show help options
+  -h, --help                   Show help options
 
 Application Options:
-  -t, --threshold               Show Thresholds also
-  -r, --range                   Show Range values also
-  -s, --eventstate              Show EventState also
-  -D, --domain=nn               Select domain id nn
-  -X, --debug                   Display debug messages
-  -E, --entity-path="epath"     Use entity path epath
-  -N, --host="host<:port>"      Connect to daemon host:port
-  -C, --cfgfile="file"          Use passed file as client configuration file
+  -t, --threshold              Show Thresholds also
+  -r, --range                  Show Range values also
+  -s, --eventstate             Show EventState also
+  -D, --domain=nn              Select domain id nn
+  -X, --debug                  Display debug messages
+  -E, --entity-path="epath"    Use entity path epath
+  -N, --host="host<:port>"     Open session to the domain served by the daemon 
+                               at the specified URL (host:port)
+                               This option overrides the OPENHPI_DAEMON_HOST and
+                               OPENHPI_DAEMON_PORT environment variables.
+  -C, --cfgfile="file"         Use passed file as client configuration file
+                               This option overrides the OPENHPICLIENT_CONf
+                               environment variable.
 
 
 =back
