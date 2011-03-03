@@ -20,19 +20,24 @@ If no domain is selected, hpiel uses a session with the default domain. The sele
 =over 2
 
 Help Options:
-  -h, --help                    Show help options
+  -h, --help                   Show help options
 
 Application Options:
-  -d, --del                     Display domain event log entries
-  -c, --clear                   Clear log before reading event log entries
-  -p, --resource                Pull resource info along with log entry
-  -r, --rdr                     Pull RDR info along with log entry
-  -D, --domain=nn               Select domain id nn
-  -X, --debug                   Display debug messages
-  -E, --entity-path="epath"     Use entity path epath and display resource
-                                event log entries.
-  -N, --host="host<:port>"      Connect to daemon host:port
-  -C, --cfgfile="file"          Use passed file as client configuration file
+  -d, --del                    Display domain event log entries
+  -c, --clear                  Clear log before reading event log entries
+  -p, --resource               Pull resource info along with log entry
+  -r, --rdr                    Pull RDR info along with log entry
+  -D, --domain=nn              Select domain id nn
+  -X, --debug                  Display debug messages
+  -E, --entity-path="epath"    Use entity path epath and display resource
+                               event log entries.
+  -N, --host="host<:port>"     Open session to the domain served by the daemon 
+                               at the specified URL (host:port)
+                               This option overrides the OPENHPI_DAEMON_HOST and
+                               OPENHPI_DAEMON_PORT environment variables.
+  -C, --cfgfile="file"         Use passed file as client configuration file
+                               This option overrides the OPENHPICLIENT_CONf
+                               environment variable.
 
 If neither -d or -E "<arg>" are specified, event log entries will be shown
 for all supporting resources by default.

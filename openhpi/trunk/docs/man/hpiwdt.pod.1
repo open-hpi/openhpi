@@ -12,7 +12,7 @@ hpiwdt -  This sample openhpi application reads and enables the watchdog timer.
 
 hpiwdt reads and enables the watchdog timer. 
 
-If no domain is selected, hpiwdt uses a session with the default domain. The selected domain id must be configured via the openhpidclient.conf file specified in the environment.
+If no domain or host is selected, hpiwdt uses the default domain as specified in the openhpiclient.conf file.
 
 
 =head1 OPTIONS
@@ -29,8 +29,13 @@ Application Options:
   -t, --timeout=n              sets timeout to n seconds
   -D, --domain=nn              Select domain id nn
   -X, --debug                  Display debug messages
-  -N, --host="host<:port>"     Connect to daemon host:port
+  -N, --host="host<:port>"     Open session to the domain served by the daemon 
+                               at the specified URL (host:port)
+                               This option overrides the OPENHPI_DAEMON_HOST and
+                               OPENHPI_DAEMON_PORT environment variables.
   -C, --cfgfile="file"         Use passed file as client configuration file
+                               This option overrides the OPENHPICLIENT_CONf
+                               environment variable.
 
 
 =back

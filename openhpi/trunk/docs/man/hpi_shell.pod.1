@@ -17,6 +17,8 @@ operations on that hardware.
 Once in hpi_shell, use the "help" command for a list of commands, or
 "help command" for details on a particular command.
 
+If no domain or host is selected, ohparam uses the default domain as specified in the openhpiclient.conf file.
+
 =head1 OPTIONS
 
 =over 2
@@ -27,10 +29,15 @@ Help Options:
 Application Options:
   -f, --cmdfile=filename       Execute command file
   -e, --events                 Show short events, discover after subscribe
-  -D, --domain=nn              Select domain id nn
+  -D, --domain=nn              Initially connect to domain id nn
   -X, --debug                  Display debug messages
-  -N, --host="host<:port>"     Connect to daemon host:port
+  -N, --host="host<:port>"     Define a domain at the specified URL (host:port)
+                               and initially connect to that domain
+                               This option overrides the OPENHPI_DAEMON_HOST and
+                               OPENHPI_DAEMON_PORT environment variables.
   -C, --cfgfile="file"         Use passed file as client configuration file
+                               This option overrides the OPENHPICLIENT_CONf
+                               environment variable.
 
 =back
 

@@ -26,8 +26,13 @@ Application Options:
   -w, --warm                   warm resets the system
   -D, --domain=nn              Select domain id nn
   -X, --debug                  Display debug messages
-  -N, --host="host<:port>"     Connect to daemon host:port
+  -N, --host="host<:port>"     Open session to the domain served by the daemon 
+                               at the specified URL (host:port)
+                               This option overrides the OPENHPI_DAEMON_HOST and
+                               OPENHPI_DAEMON_PORT environment variables.
   -C, --cfgfile="file"         Use passed file as client configuration file
+                               This option overrides the OPENHPICLIENT_CONf
+                               environment variable.
 
 
 =back

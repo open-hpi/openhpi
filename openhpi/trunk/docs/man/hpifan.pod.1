@@ -12,7 +12,7 @@ hpifan - An openhpi sample application that shows "Fan Control" management instr
 hpifan walks the RPT (Resource Present Table) for resouces that have 
 "Fan Control" management instruments (SAHPI_CTRL_FAN_SPEED).
 
-If no domain is selected, hpifan uses a session to the default domain. The selected domain id must be configured via the openhpidclient.conf file specified in the environment.
+If no domain or host is selected, hpifan uses the default domain as specified in the openhpiclient.conf file.
 
 =head1 OPTIONS
 
@@ -26,8 +26,13 @@ Application Options:
                       speed is a number or "auto" for setting fan in auto mode
   -D, --domain=nn              Select domain id nn
   -X, --debug                  Display debug messages
-  -N, --host="host<:port>"     Connect to daemon host:port
+  -N, --host="host<:port>"     Open session to the domain served by the daemon 
+                               at the specified URL (host:port)
+                               This option overrides the OPENHPI_DAEMON_HOST and
+                               OPENHPI_DAEMON_PORT environment variables.
   -C, --cfgfile="file"         Use passed file as client configuration file
+                               This option overrides the OPENHPICLIENT_CONf
+                               environment variable.
 
 
 =back

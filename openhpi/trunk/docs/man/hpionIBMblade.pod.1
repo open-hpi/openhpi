@@ -21,6 +21,8 @@ both plugins are combined to show a complete view of the IBM Blade.
  This client application is designed to run **only** inband on an IBM Blade with Basedboard
 Management Controller (BMC) 
 
+If no domain or host is selected, hpionIBMblade uses the default domain as specified in the openhpiclient.conf file.
+
 =head1 OPTIONS
 
 =over 2
@@ -31,8 +33,13 @@ Help Options:
 Application Options:
   -D, --domain=nn              Select domain id nn
   -X, --debug                  Display debug messages
-  -N, --host="host<:port>"     Connect to daemon host:port
+  -N, --host="host<:port>"     Open session to the domain served by the daemon 
+                               at the specified URL (host:port)
+                               This option overrides the OPENHPI_DAEMON_HOST and
+                               OPENHPI_DAEMON_PORT environment variables.
   -C, --cfgfile="file"         Use passed file as client configuration file
+                               This option overrides the OPENHPICLIENT_CONf
+                               environment variable.
 
 
 =back

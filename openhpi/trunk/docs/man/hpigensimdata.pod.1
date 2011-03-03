@@ -20,7 +20,8 @@ influence on other clients.
 
 Please refer to README and detailed documentation with the plugin.
 
-If no domain is selected, hpidomain works with the default domain.
+If no domain or host is selected, ohparam uses the default domain as specified in the openhpiclient.conf file.
+
 If no file name is specified, the data is displayed on console.
 
 =over 2
@@ -33,8 +34,13 @@ Application Options:
   -f, --file=filename          Name of the file to be generated
   -m, --mode=UPD|INIT          Write update or initial file
   -D, --domain=nn              Select domain id nn
-  -N, --host="host<:port>"     Connect to daemon host:port
+  -N, --host="host<:port>"     Open session to the domain served by the daemon 
+                               at the specified URL (host:port)
+                               This option overrides the OPENHPI_DAEMON_HOST and
+                               OPENHPI_DAEMON_PORT environment variables.
   -C, --cfgfile="file"         Use passed file as client configuration file
+                               This option overrides the OPENHPICLIENT_CONf
+                               environment variable.
 
 =back
 

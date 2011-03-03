@@ -61,8 +61,7 @@ main(int argc, char **argv)
         if (!ohc_option_parse(&argc, argv, 
                 context, &copt, 
                 OHC_ALL_OPTIONS 
-                    - OHC_ENTITY_PATH_OPTION // not applicable
-                    - OHC_SESSION_OPTIONS,   // not applicable
+                    - OHC_ENTITY_PATH_OPTION, // not applicable
                 error)) { 
                 g_option_context_free (context);
 		return 1;
