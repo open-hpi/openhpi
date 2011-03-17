@@ -1374,10 +1374,12 @@ SaErrorT SAHPI_API saHpiControlGet(
         memcpy(&state, State, sizeof(SaHpiCtrlStateT));
         if (!oh_lookup_ctrltype(state.Type)) {
             state.Type = SAHPI_CTRL_TYPE_TEXT;
+            state.StateUnion.Text.Line = SAHPI_TLN_ALL_LINES;
         }
     }
     else {
         state.Type = SAHPI_CTRL_TYPE_TEXT;
+        state.StateUnion.Text.Line = SAHPI_TLN_ALL_LINES;
     }
 
     ClientRpcParams iparams(&ResourceId, &CtrlNum, &state);
