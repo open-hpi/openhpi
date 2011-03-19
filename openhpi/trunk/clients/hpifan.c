@@ -50,7 +50,7 @@ get_fan_speed( SaHpiSessionIdT session_id,
 {
         SaHpiCtrlStateT state;
 
-	if (copt.debug) printf("get fan speed for resource %u, control %u\n", resource_id, ctrl_num);
+	if (copt.debug) DBG("get fan speed for resource %u, control %u", resource_id, ctrl_num);
 
         SaErrorT rv = saHpiControlGet( session_id, resource_id, ctrl_num, mode, &state );
 
@@ -82,7 +82,7 @@ set_fan_speed( SaHpiSessionIdT session_id,
         state.Type = SAHPI_CTRL_TYPE_ANALOG;
         state.StateUnion.Analog = speed;
 
-	if (copt.debug) printf("set fan speed for resource %u, control %u\n", resource_id, ctrl_num);
+	if (copt.debug) DBG("set fan speed for resource %u, control %u", resource_id, ctrl_num);
         rv = saHpiControlSet( session_id, resource_id, ctrl_num, mode, &state );
 
         if ( rv != SA_OK ) {
@@ -228,7 +228,6 @@ main( int argc, char *argv[] )
 {
         SaErrorT rv;
         SaHpiSessionIdT sessionid;
-        GError *error = NULL;
         GOptionContext *context;
 
         /* Print version strings */
@@ -244,9 +243,8 @@ main( int argc, char *argv[] )
         if (!ohc_option_parse(&argc, argv, 
                 context, &copt, 
                 OHC_ALL_OPTIONS 
-                    - OHC_ENTITY_PATH_OPTION //TODO: Feature 880127
-                    - OHC_VERBOSE_OPTION,    // no verbose mode implemented
-                error)) { 
+                    - OHC_ENTITY_PATH_OPTION  //TODO: Feature 880127
+                    - OHC_VERBOSE_OPTION )) { // no verbose mode implemented
                 g_option_context_free (context);
 		return 1;
 	}
@@ -275,19 +273,19 @@ main( int argc, char *argv[] )
 	/*
 	 * Resource discovery
 	 */
-	if (copt.debug) printf("saHpiDiscover\n");
+	if (copt.debug) DBG("saHpiDiscover");
 	rv = saHpiDiscover(sessionid);
         if ( rv != SA_OK ) {
-                CRIT( "saHpiDiscover: %s\n", oh_lookup_error( rv ) );
+                CRIT( "saHpiDiscover: %s", oh_lookup_error( rv ) );
                 return rv;
         }
-	if (copt.debug) printf("Discovery done\n");
+	if (copt.debug) DBG("Discovery done");
 
         int rc = discover_domain( sessionid );
 
         rv = saHpiSessionClose( sessionid );
         if ( rv != SA_OK )
-                CRIT( "saHpiSessionClose: %s\n", oh_lookup_error( rv ) );
+                CRIT( "saHpiSessionClose: %s", oh_lookup_error( rv ) );
 
         return  rc;
 }

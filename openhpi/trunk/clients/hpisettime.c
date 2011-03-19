@@ -78,7 +78,6 @@ int main(int argc, char **argv)
 	SaHpiTimeT newtime;
 	SaHpiTimeT readbacktime;
 	SaHpiTextBufferT buffer;
-        GError *error = NULL;
         GOptionContext *context;
 
         /* Print version strings */
@@ -95,32 +94,30 @@ int main(int argc, char **argv)
                 context, &copt, 
                 OHC_ALL_OPTIONS 
                     - OHC_ENTITY_PATH_OPTION   // not applicable
-                    - OHC_VERBOSE_OPTION,      // no verbose mode
-                error)) { 
-                g_print ("option parsing failed: %s\n", error->message);
+                    - OHC_VERBOSE_OPTION )) {      // no verbose mode
                 g_option_context_free (context);
 		EXIT1;
 	}
         g_option_context_free (context);
 
 	if ( !findate || !fintime) {
-		printf("Please enter date and time to be set.\n");
+		CRIT("Please enter date and time to be set.");
 		EXIT1;
 	}
 
 	if (findate) {
 		if (copt.debug) printf("New date to be set: %s\n",findate);
 	        if (sscanf(findate,"%2d/%2d/%4d", &month, &day, &year) != 3) {
-			printf("%s: Invalid date\n", argv[0]);
+			CRIT("%s: Invalid date", argv[0]);
 			EXIT1;
 		}
 		/* check month, day and year for correctness */
 		if ((month < 1) || (month > 12)) {
-			printf("%s: Month out of range: (%d)\n", argv[0], month);
+			CRIT("%s: Month out of range: (%d)", argv[0], month);
 			EXIT1;
 		};
 		if (year < 1900) {
-			printf("%s: Year out of range: (%d)\n", argv[0], year);
+			CRIT("%s: Year out of range: (%d)", argv[0], year);
 			EXIT1;
 		};
 		month--;
@@ -130,7 +127,7 @@ int main(int argc, char **argv)
 				day_array[1] = 29;
 		};
 		if ((day < 1) || (day > day_array[month])) {
-			printf("%s: Day out of range: (%d)\n", argv[0], day);
+			CRIT("%s: Day out of range: (%d)", argv[0], day);
 			EXIT1;
 		};
 
@@ -140,43 +137,44 @@ int main(int argc, char **argv)
 	}
 
 	if (fintime) {
-		if (copt.debug)  printf("New time to be set:  %s\n",fintime);
+		if (copt.debug)  DBG("New time to be set:  %s",fintime);
 	        if (sscanf(fintime,"%2d:%2d:%2d",
                   &new_tm_time.tm_hour, &new_tm_time.tm_min, &new_tm_time.tm_sec) != 3) {
-			printf("%s: Invalid time\n", argv[0]);
+			CRIT("%s: Invalid time", argv[0]);
 			EXIT1;
 		}
 		/* check hours, minutes and seconds for correctness */
 		if ((new_tm_time.tm_hour < 0) || (new_tm_time.tm_hour > 24)) {
-			printf("%s: Hours out of range: (%d)\n", argv[0], new_tm_time.tm_hour);
+			CRIT("%s: Hours out of range: (%d)", argv[0], new_tm_time.tm_hour);
 			EXIT1;
 		};
 		if ((new_tm_time.tm_min < 0) || (new_tm_time.tm_min > 60)) {
-			printf("%s: Minutes out of range: (%d)\n", argv[0], new_tm_time.tm_min);
+			CRIT("%s: Minutes out of range: (%d)", argv[0], new_tm_time.tm_min);
 			EXIT1;
 		};
 		if ((new_tm_time.tm_sec < 0) || (new_tm_time.tm_sec > 60)) {
-			printf("%s: Seconds out of range: (%d)\n", argv[0], new_tm_time.tm_sec);
+			CRIT("%s: Seconds out of range: (%d)", argv[0], new_tm_time.tm_sec);
 			EXIT1;
 		}
 	}
 
-	if (copt.debug) printf("Values passed to mktime():\n\tmon %d\n\tday %d\n\tyear %d\n\tHH %d\n\tMM %d\n\tSS %d\n",
+	if (copt.debug) DBG("Values passed to mktime():\n\tmon %d\n\tday %d\n\tyear %d\n\tHH %d\n\tMM %d\n\tSS %d",
 			new_tm_time.tm_mon, new_tm_time.tm_mday, new_tm_time.tm_year,
 			new_tm_time.tm_hour, new_tm_time.tm_min, new_tm_time.tm_sec);
 
 	newtime = (SaHpiTimeT) mktime(&new_tm_time) * 1000000000;
 
 	if (copt.debug) 
-           printf("New date and time in SaHpiTimeT %" PRId64 "\n\n", (int64_t)newtime);
+           DBG("New date and time in SaHpiTimeT %" PRId64 "\n", (int64_t)newtime);
 
         rv = ohc_session_open_by_option ( &copt, &sessionid);
 	if (rv != SA_OK) EXIT1;
 
+	if (copt.debug) DBG("saHpiDiscover");
 	rv = saHpiDiscover(sessionid);
-	if (copt.debug) printf("saHpiDiscover %s\n", oh_lookup_error(rv));
+	if (copt.debug) DBG("saHpiDiscover %s", oh_lookup_error(rv));
 	rv = saHpiDomainInfoGet(sessionid, &domainInfo);
-	if (copt.debug) printf("saHpiDomainInfoGet %s\n", oh_lookup_error(rv));
+	if (copt.debug) DBG("saHpiDomainInfoGet %s", oh_lookup_error(rv));
 	printf("DomainInfo: RptUpdateCount = %u, RptUpdateTimestamp = %lx\n",
 		domainInfo.RptUpdateCount, (unsigned long)domainInfo.RptUpdateTimestamp);
         
@@ -185,10 +183,10 @@ int main(int argc, char **argv)
 	while ((rv == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY))
 	{
                 rv = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
-                if (copt.debug) printf("saHpiRptEntryGet %s\n", oh_lookup_error(rv));
+                if (copt.debug) DBG("saHpiRptEntryGet %s", oh_lookup_error(rv));
                 if ((rv == SA_OK) && (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG)) {
                         resourceid = rptentry.ResourceId;
-                        if (copt.debug) printf("RPT %x capabilities = %x\n", resourceid,
+                        if (copt.debug) DBG("RPT %x capabilities = %x", resourceid,
                                            rptentry.ResourceCapabilities);
 			rv = saHpiEventLogTimeGet(sessionid, resourceid, &oldtime);
 			oh_decode_time(oldtime, &buffer);
@@ -197,7 +195,7 @@ int main(int argc, char **argv)
 		 	rv = saHpiEventLogTimeSet(sessionid, resourceid, newtime);
 			if (rv != SA_OK) 
 			{
-                		printf("saHpiEventLogTimeSet %s\n", oh_lookup_error(rv));
+                		CRIT("saHpiEventLogTimeSet returned %s", oh_lookup_error(rv));
 			}
 			rv = saHpiEventLogTimeGet(sessionid, resourceid, &readbacktime);
 			oh_decode_time(readbacktime, &buffer);

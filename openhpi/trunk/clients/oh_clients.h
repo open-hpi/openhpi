@@ -72,8 +72,7 @@ void oh_prog_version(const char *prog_name);
 gboolean ohc_option_parse(int *argc, char *argv[],  
                           GOptionContext     *context,
                           oHpiCommonOptionsT *common_options,
-                          SaHpiUint8T        optionmask,
-                          GError             *error);          
+                          SaHpiUint8T        optionmask);
 
 SaErrorT ohc_session_open_by_option (
                       oHpiCommonOptionsT *opt,

@@ -112,7 +112,6 @@ main(int argc, char **argv)
   SaHpiResourceIdT resourceid;
   SaHpiWatchdogNumT  wdnum;
   SaHpiWatchdogT     wdt;
-  GError *error = NULL;
   GOptionContext *context;
 
   /* Print version strings */
@@ -128,9 +127,8 @@ main(int argc, char **argv)
   if (!ohc_option_parse(&argc, argv, 
                 context, &copt, 
                 OHC_ALL_OPTIONS 
-                    - OHC_ENTITY_PATH_OPTION //TODO: Feature 880127
-                    - OHC_VERBOSE_OPTION,    // no verbose mode implemented
-                error)) { 
+                    - OHC_ENTITY_PATH_OPTION  //TODO: Feature 880127
+                    - OHC_VERBOSE_OPTION )) { // no verbose mode implemented
                 g_option_context_free (context);
 		return 1;
   }
@@ -142,9 +140,9 @@ main(int argc, char **argv)
   if (rv != SA_OK) return rv;
 
   rv = saHpiDiscover(sessionid);
-  if (copt.debug) printf("saHpiDiscover rv = %d\n",rv);
+  if (copt.debug) DBG("saHpiDiscover rv = %s",oh_lookup_error(rv));
   rv = saHpiDomainInfoGet(sessionid, &domainInfo);
-  if (copt.debug) printf("saHpiDomainInfoGet rv = %d\n",rv);
+  if (copt.debug) DBG("saHpiDomainInfoGet rv = %s",oh_lookup_error(rv));
   printf("DomainInfo: UpdateCount = %x, UpdateTime = %lx\n",
        domainInfo.RptUpdateCount, (unsigned long)domainInfo.RptUpdateTimestamp);
 
@@ -153,7 +151,7 @@ main(int argc, char **argv)
   while ((rv == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY))
   {
      rv = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
-     if (rv != SA_OK) printf("RptEntryGet: rv = %d\n",rv);
+     if (rv != SA_OK) printf("RptEntryGet: rv = %s\n",oh_lookup_error(rv));
      if (rv == SA_OK) {
 	/* handle WDT for this RPT entry */
 	resourceid = rptentry.ResourceId;
@@ -168,9 +166,9 @@ main(int argc, char **argv)
 
 	   wdnum = SAHPI_DEFAULT_WATCHDOG_NUM;
 	   rv = saHpiWatchdogTimerGet(sessionid,resourceid,wdnum,&wdt);
-	   if (copt.debug) printf("saHpiWatchdogTimerGet rv = %d\n",rv);
+	   if (copt.debug) DBG("saHpiWatchdogTimerGet rv = %s",oh_lookup_error(rv));
 	   if (rv != 0) {
-		printf("saHpiWatchdogTimerGet error = %d\n",rv);
+		printf("saHpiWatchdogTimerGet error = %s\n",oh_lookup_error(rv));
 		rv = 0;
 		rptentryid = nextrptentryid; 
 		continue;
@@ -189,7 +187,7 @@ main(int argc, char **argv)
 	      wdt.PresentCount = 120000; /*msec*/
 
 	      rv = saHpiWatchdogTimerSet(sessionid,resourceid,wdnum,&wdt);
-	      if (copt.debug) printf("saHpiWatchdogTimerSet rv = %d\n",rv);
+	      if (copt.debug) DBG("saHpiWatchdogTimerSet rv = %s",oh_lookup_error(rv));
 	      if (rv == 0) show_wdt(wdnum,&wdt);
 	   } else if (fenable) {
 	      printf("Enabling watchdog timer ...\n");
@@ -203,13 +201,13 @@ main(int argc, char **argv)
 	      wdt.PresentCount = ftimeout * 1000; /*msec*/
 
 	      rv = saHpiWatchdogTimerSet(sessionid,resourceid,wdnum,&wdt);
-	      if (copt.debug) printf("saHpiWatchdogTimerSet rv = %d\n",rv);
+	      if (copt.debug) DBG("saHpiWatchdogTimerSet rv = %s",oh_lookup_error(rv));
 	      if (rv == 0) show_wdt(wdnum,&wdt);
 	   }
 	   if (freset && !fdisable) {
 	      printf("Resetting watchdog timer ...\n");
 	      rv = saHpiWatchdogTimerReset(sessionid,resourceid,wdnum);
-	      if (copt.debug) printf("saHpiWatchdogTimerReset rv = %d\n",rv);
+	      if (copt.debug) DBG("saHpiWatchdogTimerReset rv = %s",oh_lookup_error(rv));
 	   }
 	} /*watchdog capability*/
 	rptentryid = nextrptentryid;  /* get next RPT (usu only one anyway) */

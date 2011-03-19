@@ -45,7 +45,6 @@ static oHpiCommonOptionsT copt;
 int
 main(int argc, char **argv)
 {
-        GError *error = NULL;
         GOptionContext *context;
 
         /* Print version strings */
@@ -61,8 +60,7 @@ main(int argc, char **argv)
         if (!ohc_option_parse(&argc, argv, 
                 context, &copt, 
                 OHC_ALL_OPTIONS 
-                    - OHC_ENTITY_PATH_OPTION, // not applicable
-                error)) { 
+                    - OHC_ENTITY_PATH_OPTION )) { // not applicable
                 g_option_context_free (context);
 		return 1;
 	}
@@ -91,7 +89,7 @@ SaErrorT show_domains(void)
 	/* walk the Domain Table */
 	domainentryid = SAHPI_FIRST_ENTRY;
 	do {
-	   if (copt.debug) printf("oHpiDomainEntryGet called with entry=%u\n",
+	   if (copt.debug) DBG("oHpiDomainEntryGet called with entry=%u",
                                         domainentryid);
 	   rv = oHpiDomainEntryGet(
               domainentryid,&nextdomainentryid,&domainentry);
@@ -101,7 +99,7 @@ SaErrorT show_domains(void)
                         oh_lookup_error(rv));
 		
 	   if (rv == SA_OK ) {
-              if (copt.debug) printf("oHpiDomainEntryGet provides domainid=%u,"
+              if (copt.debug) DBG("oHpiDomainEntryGet provides domainid=%u,"
                                    " nextentryid=%u\n", 
                                    domainentry.id, nextdomainentryid);
 
@@ -121,9 +119,9 @@ SaErrorT show_domains(void)
 			continue;
 		    }
 		    if (copt.debug) {
-			printf("saHpiSessionOpen returns with SessionId %u\n", 
+			DBG("saHpiSessionOpen returns with SessionId %u\n", 
 				relatedsessionid);
-			printf("saHpiDomainInfoGet for domain %u\n",
+			DBG("saHpiDomainInfoGet for domain %u\n",
 				relateddomainid);
 		    }
 		    rv = saHpiDomainInfoGet(relatedsessionid,
@@ -133,7 +131,7 @@ SaErrorT show_domains(void)
                                 "retrieved.\n",
 				relateddomainid);
                         if (copt.debug)
-			   printf("saHpiDomainInfoGet for domain "
+			   DBG("saHpiDomainInfoGet for domain "
 				"%u failed with returncode %s\n",
 				relateddomainid, oh_lookup_error(rv));
 		    }
@@ -144,7 +142,7 @@ SaErrorT show_domains(void)
 
 		    rv = saHpiSessionClose(relatedsessionid);
 		    if (copt.debug) 
-			printf("saHpiSessionClose returns %s\n",
+			DBG("saHpiSessionClose returns %s\n",
 				oh_lookup_error(rv));
 
 		} //verbose

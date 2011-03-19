@@ -26,7 +26,9 @@
 #define OH_SVN_REV "$Revision$"
 
 #define  MAX_MANAGED_SYSTEMS 80
-#define  HPI_POWER_DEBUG_PRINT(a) if(copt.debug==TRUE)printf(a)
+#define  HPI_POWER_DEBUG_PRINT(a) if(copt.debug==TRUE)DBG(a)
+#define  HPI_POWER_DEBUG_PRINT1(a) if(copt.debug==TRUE)printf(a)
+
 
 typedef struct COMPUTER_DATA_
 {
@@ -94,7 +96,6 @@ int main(int argc, char **argv)
         SaHpiInt32T         Index, EntityElement;
         SaHpiPowerStateT    PowerState;
         char                PowerStateString[3][7]={"off\0","on\0","cycled\0"};
-        GError              *error = NULL;
         GOptionContext      *context;
 
         /* Print version strings */
@@ -111,8 +112,7 @@ int main(int argc, char **argv)
                 context, &copt, 
                 OHC_ALL_OPTIONS 
                     - OHC_ENTITY_PATH_OPTION //TODO: Feature 880127
-                    - OHC_VERBOSE_OPTION,    // no verbose mode implemented
-                error)) { 
+                    - OHC_VERBOSE_OPTION )) {    // no verbose mode implemented
                 g_option_context_free (context);
 		return 1;
 	}
@@ -146,33 +146,33 @@ int main(int argc, char **argv)
 
         /* Initialize the first of a list of computers */
 
-        HPI_POWER_DEBUG_PRINT("1.0 Initializing the List Structure for the computers\n");
+        HPI_POWER_DEBUG_PRINT("Initializing the List Structure for the computers");
         Computer = g_slist_alloc();
         ComputerListHead = Computer;
 
-        HPI_POWER_DEBUG_PRINT("1.1 Allocating space for the information on each computer\n");
+        HPI_POWER_DEBUG_PRINT("Allocating space for the information on each computer");
         ComputerPtr = (COMPUTER_DATA*)malloc(sizeof(COMPUTER_DATA));
 
         Computer->data = (gpointer)ComputerPtr;
 
         /* Initialize HPI domain and session */
-        HPI_POWER_DEBUG_PRINT("2.1 Initalizing HPI Session\n");
+        HPI_POWER_DEBUG_PRINT("Initalizing HPI Session");
         Status = ohc_session_open_by_option ( &copt, &SessionId);
         if (Status == SA_OK)
         {
                 /* Find all of the individual systems */
                 // regenerate the Resource Presence Table(RPT)
-                HPI_POWER_DEBUG_PRINT("2.2 Hpi Discovery\n");
+                HPI_POWER_DEBUG_PRINT("Hpi Discovery");
                 Status = saHpiDiscover(SessionId);
         } else {
-                printf("2.1 Initalizing HPI Session FAILED, code %s\n", oh_lookup_error(Status));
+                CRIT("Initalizing HPI Session FAILED, code %s", oh_lookup_error(Status));
                 return -1;
         }
 
-        HPI_POWER_DEBUG_PRINT("3.0 Walking through all of the Report Tables\n");
+        HPI_POWER_DEBUG_PRINT("Walking through all of the Report Tables");
         while ((Status == SA_OK) && (RptEntry != SAHPI_LAST_ENTRY))
         {
-                HPI_POWER_DEBUG_PRINT("@");
+                HPI_POWER_DEBUG_PRINT1("@");
                 Status = saHpiRptEntryGet(SessionId,
                                           RptEntry,
                                           &RptNextEntry,
@@ -181,12 +181,12 @@ int main(int argc, char **argv)
 
                 // Blades will have the first Element of the Entity Path set to SBC_BLADE
                 EntityElement = 0;
-                HPI_POWER_DEBUG_PRINT(".");
+                HPI_POWER_DEBUG_PRINT1(".");
                 if (Report.ResourceCapabilities & SAHPI_CAPABILITY_POWER)
                 {
                         char tagbuf[SAHPI_MAX_TEXT_BUFFER_LENGTH + 1];
 
-                        HPI_POWER_DEBUG_PRINT("#");
+                        HPI_POWER_DEBUG_PRINT1("#");
                         // We have found a Blade
                         ComputerPtr->ResID = Report.ResourceId;
                         /* enumerate this list as created */
@@ -211,15 +211,15 @@ int main(int argc, char **argv)
                 }
         }
 
-        HPI_POWER_DEBUG_PRINT("\n4.0 Generating Listing of options to choose from:\n");
+        HPI_POWER_DEBUG_PRINT("Generating Listing of options to choose from:");
         /* If parsed option does not select blade and
        more than one is found */
         if ((MultipleBlades == TRUE) && (BladeSelected == FALSE) && (Status == SA_OK))
         {
-                HPI_POWER_DEBUG_PRINT("4.1 Printing out a listing of all the blades\n");
+                HPI_POWER_DEBUG_PRINT("Printing out a listing of all the blades");
                 for (Index = 0; Index < ComputerNumber; Index++)
                 {
-                        HPI_POWER_DEBUG_PRINT("$");
+                        HPI_POWER_DEBUG_PRINT1("$");
                         // obtain the information for this computer
                         ComputerPtr = g_slist_nth_data(ComputerListHead, Index);
                         if (ComputerPtr == NULL)
@@ -229,7 +229,7 @@ int main(int argc, char **argv)
                         }
 
                         // retrieve the power status for this computer
-                        HPI_POWER_DEBUG_PRINT("%%");
+                        HPI_POWER_DEBUG_PRINT1("%%");
                         PowerState = 0;
                         Status = saHpiResourcePowerStateGet(SessionId,
                                                             ComputerPtr->ResID,
@@ -258,7 +258,7 @@ int main(int argc, char **argv)
                 BladeSelected = TRUE;
                 SelectedSystem = Index;
         }
-        HPI_POWER_DEBUG_PRINT("4.2 Generating Listing of Actions to choose from\n");
+        HPI_POWER_DEBUG_PRINT("Generating Listing of Actions to choose from");
         /* If action is not selected */
         if ((ActionSelected == FALSE) && (Status == SA_OK))
         {
@@ -288,7 +288,7 @@ int main(int argc, char **argv)
 
         if (Status == SA_OK)
         {
-                HPI_POWER_DEBUG_PRINT("5.0 Executing the command\n\r");
+                HPI_POWER_DEBUG_PRINT("Executing the command");
                 // obtain the information for this computer
                 ComputerPtr = g_slist_nth_data(ComputerListHead, SelectedSystem);
                 if (ComputerPtr == NULL)
@@ -299,7 +299,7 @@ int main(int argc, char **argv)
 
                 if (Action <= SAHPI_POWER_CYCLE)
                 {
-                        HPI_POWER_DEBUG_PRINT("5.1 Setting a New Power State\n\r");
+                        HPI_POWER_DEBUG_PRINT("Setting a New Power State");
                         // Set the new power status for this computer
                         Status = saHpiResourcePowerStateSet(SessionId,
                                                             ComputerPtr->ResID,
@@ -315,7 +315,7 @@ int main(int argc, char **argv)
                 }
                 else   // Report Power status for the system
                 {
-                        HPI_POWER_DEBUG_PRINT("5.2 Getting the Power Status\n\r");
+                        HPI_POWER_DEBUG_PRINT("Getting the Power Status\r");
                         // retrieve the power status for this computer
                         PowerState = 0;
                         Status = saHpiResourcePowerStateGet(SessionId,
@@ -333,7 +333,7 @@ int main(int argc, char **argv)
                                PowerStateString[PowerState]);
                 }
         }
-        HPI_POWER_DEBUG_PRINT("6.0 Clean up");
+        HPI_POWER_DEBUG_PRINT("Clean up");
         /* clean up */
         saHpiSessionClose(SessionId);
 
@@ -351,8 +351,8 @@ int main(int argc, char **argv)
 
         if (Status != SA_OK)
         {
-                HPI_POWER_DEBUG_PRINT("7.0 Reporting Bad Status");
-                printf("Program %s returns with Error = %s\n", argv[0], oh_lookup_error(Status));
+                HPI_POWER_DEBUG_PRINT("Reporting Bad Status");
+                CRIT("Error: %s", oh_lookup_error(Status));
         }
 
         return(Status);

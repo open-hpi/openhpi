@@ -225,13 +225,13 @@ static int select_ep(Rpt_t *Rpt)
 			     Rpt->Rpt.ResourceId,
 			     &this_handler_id);
 	if (rv) {
-		if (copt.debug) printf("oHpiHandlerFind returns %s\n", oh_lookup_error(rv)); 
+		if (copt.debug) DBG("oHpiHandlerFind returns %s", oh_lookup_error(rv)); 
 		return(0);
 	}
 	
 	rv = oHpiHandlerInfo(sessionid, this_handler_id, &handler_info, config);
 	if (rv) {
-		if (copt.debug) printf("oHpiHandlerInfo returns %s\n", oh_lookup_error(rv));
+		if (copt.debug) DBG("oHpiHandlerInfo returns %s", oh_lookup_error(rv));
 		return(0);
 	}
 	
@@ -356,7 +356,7 @@ static void show_reading_value(Rpt_t *Rpt, Rdr_t *R)
 		R->Rdr.RdrTypeUnion.SensorRec.Num, &(R->reading), NULL);
 
 	if (rv != SA_OK) {
-		printf("ERROR: %s\n", oh_lookup_error(rv));
+		CRIT("ERROR: saHpiSensorReadingGet returns %s", oh_lookup_error(rv));
 		return;
 	};
 	k = R->Rdr.RdrTypeUnion.SensorRec.DataFormat.BaseUnits;
@@ -373,7 +373,7 @@ static void show_thresholds(Rpt_t *Rpt, Rdr_t *R)
 	rv = saHpiSensorThresholdsGet(sessionid, Rpt->Rpt.ResourceId,
 		R->Rdr.RdrTypeUnion.SensorRec.Num, &buf);
 	if (rv != SA_OK) {
-		printf("ERROR: %s\n", oh_lookup_error(rv));
+		CRIT("ERROR: saHpiSensorThresholdsGet returns %s\n", oh_lookup_error(rv));
 		return;
 	};
 	printf("  Thresholds:\n");
@@ -572,7 +572,7 @@ static void mod_sen(void)
 	rv = saHpiSensorThresholdsSet(sessionid, Rpt->Rpt.ResourceId,
 		Rdr->Rdr.RdrTypeUnion.SensorRec.Num, &thres);
 	if (rv != SA_OK) {
-		printf("ERROR: saHpiSensorThresholdsSet: %s\n", oh_lookup_error(rv));
+		CRIT("ERROR: saHpiSensorThresholdsSet: %s", oh_lookup_error(rv));
 		return;
 	};
 	Rdr->modify = 1;
@@ -581,7 +581,7 @@ static void mod_sen(void)
 			NULL, NULL, NULL);
 		if (rv == SA_OK)
 			break;
-		if (copt.debug) printf("sleep before saHpiEventGet\n");
+		if (copt.debug) DBG("sleep before saHpiEventGet\n");
 		g_usleep(G_USEC_PER_SEC);
 	};
 	saHpiSensorThresholdsGet(sessionid, Rpt->Rpt.ResourceId,
@@ -895,7 +895,6 @@ int main(int argc, char **argv)
 	SaErrorT	rv;
 	char		buf[READ_BUF_SIZE];
 	char		*S;
-        GError          *error = NULL;
         GOptionContext  *context;
 
         /* Print version strings */
@@ -913,8 +912,7 @@ int main(int argc, char **argv)
                 context, &copt, 
                 OHC_ALL_OPTIONS 
                     - OHC_ENTITY_PATH_OPTION // not implemented
-                    - OHC_VERBOSE_OPTION,    // no verbose mode implemented
-                error)) { 
+                    - OHC_VERBOSE_OPTION )) {    // no verbose mode implemented
                 g_option_context_free (context);
 		return 1;
 	}
@@ -922,7 +920,7 @@ int main(int argc, char **argv)
  
 	rv = hpiIBMspecial_find_blade_slot();
 	if (rv != SA_OK) {
-		printf("ipmitool can not find slot number in which this blade resides.\n");
+		CRIT("ipmitool can not find slot number in which this blade resides.");
 		return(-1);
 	}
 
@@ -931,11 +929,11 @@ int main(int argc, char **argv)
 
 	rv = saHpiDiscover(sessionid);
 
-	if (copt.debug) printf("saHpiDiscover: %s\n", oh_lookup_error(rv));
+	if (copt.debug) DBG("saHpiDiscover: %s", oh_lookup_error(rv));
 
 	rv = saHpiSubscribe(sessionid);
 	if (rv != SA_OK) {
-		printf( "saHpiSubscribe error %d\n",rv);
+		CRIT( "saHpiSubscribe error %d",rv);
 		return rv;
 	}	
 	

@@ -129,7 +129,6 @@ main(int argc, char **argv)
 {
         SaErrorT rv = SA_OK;
 	SaHpiSessionIdT sessionid;
-        GError *error = NULL;
         GOptionContext *context;
 
         /* Print version strings */
@@ -145,9 +144,8 @@ main(int argc, char **argv)
         if (!ohc_option_parse(&argc, argv, 
                 context, &copt, 
                 OHC_ALL_OPTIONS 
-                    - OHC_ENTITY_PATH_OPTION //TODO: Feature 880127
-                    - OHC_VERBOSE_OPTION,    // no verbose mode implemented
-                error)) { 
+                    - OHC_ENTITY_PATH_OPTION  //TODO: Feature 880127
+                    - OHC_VERBOSE_OPTION )) { // no verbose mode implemented
                 g_option_context_free (context);
 		return 1;
 	}
@@ -165,14 +163,14 @@ main(int argc, char **argv)
 	/*
 	 * Resource discovery
 	 */
-	if (copt.debug) printf("saHpiDiscover\n");
+	if (copt.debug) DBG("saHpiDiscover");
 	rv = saHpiDiscover(sessionid);
 	if (rv != SA_OK) {
-		printf("saHpiDiscover returns %s\n",oh_lookup_error(rv));
+		CRIT("saHpiDiscover returns %s",oh_lookup_error(rv));
 		return rv;
 	}
 
-	if (copt.debug)  printf("Discovery done\n");
+	if (copt.debug)  DBG("Discovery done");
 	list_resources(sessionid, resourceid);
 
 	rv = saHpiSessionClose(sessionid);
@@ -206,10 +204,10 @@ SaErrorT list_resources(SaHpiSessionIdT sessionid,SaHpiResourceIdT resourceid)
 	rptentryid = SAHPI_FIRST_ENTRY;
 	do {
 		
-		if (copt.debug) printf("saHpiRptEntryGet\n");
+		if (copt.debug) DBG("saHpiRptEntryGet");
 		rvRptGet = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
 		if ((rvRptGet != SA_OK) || copt.debug) 
-		       	printf("RptEntryGet returns %s\n",oh_lookup_error(rvRptGet));
+		       	DBG("RptEntryGet returns %s",oh_lookup_error(rvRptGet));
 		
 		rv = show_rpt(&rptentry, resourceid);
 						
@@ -224,11 +222,11 @@ SaErrorT list_resources(SaHpiSessionIdT sessionid,SaHpiResourceIdT resourceid)
 			/* walk the RDR list for this RPT entry */
 			entryid = SAHPI_FIRST_ENTRY;			
 
-			if (copt.debug) printf("rptentry[%u] resourceid=%u\n", entryid,resourceid);
+			if (copt.debug) DBG("rptentry[%u] resourceid=%u", entryid,resourceid);
 
 			do {
 				rvRdrGet = saHpiRdrGet(sessionid,l_resourceid, entryid,&nextentryid, &rdr);
-				if (copt.debug) printf("saHpiRdrGet[%u] rv = %s\n",entryid,oh_lookup_error(rvRdrGet));
+				if (copt.debug) DBG("saHpiRdrGet[%u] rv = %s",entryid,oh_lookup_error(rvRdrGet));
 
 
 				if (rvRdrGet == SA_OK)

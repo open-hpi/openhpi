@@ -54,7 +54,6 @@ int main( int argc, char * argv[] )
 {
     int  indent_step = 0;
 
-    GError *error = NULL;
     GOptionContext *context;
 	    
     context = g_option_context_new ("- Display system view in XML");
@@ -71,9 +70,7 @@ int main( int argc, char * argv[] )
                 OHC_ALL_OPTIONS 
                     - OHC_ENTITY_PATH_OPTION //TODO: Feature 880127?
                     - OHC_VERBOSE_OPTION     // no verbose mode implemented
-                    - OHC_DEBUG_OPTION,      // no debug option implemented
-                error)) { 
-                CRIT ("option parsing failed: %s\n", error->message);
+                    - OHC_DEBUG_OPTION )) {      // no debug option implemented
                 g_option_context_free (context);
 		return 1;
 	}

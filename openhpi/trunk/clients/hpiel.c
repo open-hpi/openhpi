@@ -67,7 +67,6 @@ int main(int argc, char **argv)
         SaErrorT error = SA_OK;
         SaHpiSessionIdT sid;
         SaHpiDomainInfoT dinfo;
-        GError *gerror = NULL;
         GOptionContext *context;
 
         /* Print version strings */
@@ -85,9 +84,8 @@ int main(int argc, char **argv)
         if (!ohc_option_parse(&argc, argv, 
                 context, &copt, 
                 OHC_ALL_OPTIONS 
-                    - OHC_VERBOSE_OPTION,    // no verbose mode implemented
-                gerror)) { 
-                g_print ("option parsing failed: %s\n", gerror->message);
+                    - OHC_VERBOSE_OPTION )) {    // no verbose mode implemented
+                g_option_context_free (context);
 		return 1;
 	}
         g_option_context_free (context);
