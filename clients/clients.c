@@ -192,9 +192,9 @@ void oh_prog_version(const char *prog_name)
 gboolean ohc_option_parse(int *argc, char *argv[],  
                          GOptionContext     *context,
                          oHpiCommonOptionsT *common_options,
-                         SaHpiUint8T        optionmask,
-                         GError             *error)
+                         SaHpiUint8T        optionmask )
 {
+   GError *error = NULL;
    SaErrorT rv = SA_OK;
 
    if (!argc || !argv || !context || !common_options) {
@@ -230,7 +230,6 @@ gboolean ohc_option_parse(int *argc, char *argv[],
       if (optdid >= 0)                    DBG(" --domain=%u ",optdid);
       if (common_options->withentitypath) DBG(" --entity-path=%s ",optep);
       if (common_options->withdaemonhost) DBG(" --daemon=%s ",optdaemon);
-      DBG("\n");
    }
 
    /* prepare output */
@@ -241,16 +240,15 @@ gboolean ohc_option_parse(int *argc, char *argv[],
    oh_init_ep(&common_options->entitypath); 
    if (common_options->withentitypath) {
       rv = oh_encode_entitypath(optep, &common_options->entitypath);
-      if (error) {
-         CRIT ("Invalid entity path: %s\n"
-              "oh_encode_entitypath() returned %s \n",
-              optep, oh_lookup_error(rv));
-              return FALSE;
+      if (optdebug) DBG("oh_encode_entitypath returned %s", oh_lookup_error(rv));
+      if (rv) {
+         CRIT ("oh_encode_entitypath() returned %s", oh_lookup_error(rv));
+         CRIT ("Invalid entity path: %s", optep);
+         return FALSE;
       }
       if (optdebug && optverbose) {
          DBG("Entity Path encoded successfully: ");
          oh_print_ep(&common_options->entitypath, 0);
-         DBG("\n");
       }
    }
 
@@ -303,13 +301,13 @@ SaErrorT ohc_session_open_by_option (
    
    rv = saHpiSessionOpen(opt->domainid, sessionid, NULL);
 
-   if (rv != SA_OK || opt->debug) {
-      DBG("saHpiSessionOpen returns %s",oh_lookup_error(rv));
+   if (rv != SA_OK) {
+      CRIT("saHpiSessionOpen returns %s",oh_lookup_error(rv));
       return rv;
    }
 
    if (opt->debug)
-      DBG("saHpiSessionOpen returns with SessionId %u\n", *sessionid);
+      DBG("saHpiSessionOpen returns with SessionId %u", *sessionid);
 
    return SA_OK;
 }

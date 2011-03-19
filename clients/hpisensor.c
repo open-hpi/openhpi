@@ -213,7 +213,6 @@ int main(int argc, char **argv)
         SaHpiEntryIdT nextentryid;
         SaHpiResourceIdT resourceid;
         SaHpiRdrT rdr;
-        GError *error = NULL;
         GOptionContext *context;
                 
         /* Print version strings */
@@ -229,8 +228,7 @@ int main(int argc, char **argv)
         if (!ohc_option_parse(&argc, argv, 
                 context, &copt, 
                 OHC_ALL_OPTIONS 
-                    - OHC_VERBOSE_OPTION,    // no verbose mode implemented
-                error)) { 
+                    - OHC_VERBOSE_OPTION )) {    // no verbose mode implemented
                 g_option_context_free (context);
 		return 1;
 	}
@@ -240,13 +238,13 @@ int main(int argc, char **argv)
 	if (rv != SA_OK) return rv;
 
         
-        if (copt.debug) printf("Starting Discovery ...\n");
+        if (copt.debug) DBG("Starting Discovery ");
         rv = saHpiDiscover(sessionid);
-        if (copt.debug) printf("saHpiResourcesDiscover %s\n", oh_lookup_error(rv));
+        if (copt.debug) DBG("saHpiDiscover returned %s", oh_lookup_error(rv));
         
         rv = saHpiDomainInfoGet(sessionid,&dinfo);
 
-        if (copt.debug) printf("saHpiDomainInfoGet %s\n", oh_lookup_error(rv));
+        if (copt.debug) DBG("saHpiDomainInfoGet returned %s", oh_lookup_error(rv));
         
         printf("RptInfo: UpdateCount = %u, UpdateTime = %lx\n",
                dinfo.RptUpdateCount, (unsigned long)dinfo.RptUpdateTimestamp);
@@ -256,7 +254,7 @@ int main(int argc, char **argv)
         while ((rv == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY))
         {
                 rv = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
-                if (copt.debug) printf("saHpiRptEntryGet %s\n", oh_lookup_error(rv));
+                if (copt.debug) DBG("saHpiRptEntryGet returned %s", oh_lookup_error(rv));
                                                 
                 if (rv == SA_OK) {
                         /* Walk the RDR list for this RPT entry */
@@ -278,7 +276,7 @@ int main(int argc, char **argv)
                         {
                                 rv = saHpiRdrGet(sessionid,resourceid,
                                                  entryid,&nextentryid, &rdr);
-                                if (copt.debug) printf("saHpiRdrGet[%u] rv = %d\n",entryid,rv);
+                                if (copt.debug) DBG("saHpiRdrGet[%u] returned %s",entryid,oh_lookup_error(rv));
                                 if (rv == SA_OK) {
                                         rdr.IdString.Data[rdr.IdString.DataLength] = 0;
                                         if (rdr.RdrType == SAHPI_SENSOR_RDR) {

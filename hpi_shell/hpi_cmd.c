@@ -46,7 +46,6 @@ static GOptionEntry my_options[] =
 
 int main(int argc, char **argv)
 {
-        GError *error = NULL;
         GOptionContext *context;
 
         /* Print version strings */
@@ -64,9 +63,7 @@ int main(int argc, char **argv)
                 context, &copt, 
                 OHC_ALL_OPTIONS 
                     - OHC_ENTITY_PATH_OPTION // not applicable
-                    - OHC_VERBOSE_OPTION,    // no verbose mode implemented
-                error)) { 
-                g_print ("option parsing failed: %s\n", error->message);
+                    - OHC_VERBOSE_OPTION )) {    // no verbose mode implemented
                 g_option_context_free (context);
 		exit(1);
 	}

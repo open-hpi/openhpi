@@ -57,7 +57,6 @@ main(int argc, char **argv)
   SaHpiEntryIdT entryid;
   SaHpiResourceIdT resourceid;
   SaHpiResetActionT action = SAHPI_COLD_RESET; // hard reset as default 
-  GError *error = NULL;
   GOptionContext *context;
  
   /* Print version strings */
@@ -74,8 +73,7 @@ main(int argc, char **argv)
                 context, &copt, 
                 OHC_ALL_OPTIONS 
                     - OHC_ENTITY_PATH_OPTION //TODO: Feature 880127?
-                    - OHC_VERBOSE_OPTION,    // no verbose mode implemented
-                error)) { 
+                    - OHC_VERBOSE_OPTION )) {   // no verbose mode implemented
                 g_option_context_free (context);
 		return 1;
   }
@@ -87,9 +85,9 @@ main(int argc, char **argv)
   if (rv != SA_OK) return rv;
 
   rv = saHpiDiscover(sessionid);
-  if (copt.debug) printf("saHpiDiscover rv = %d\n",rv);
+  if (copt.debug) DBG("saHpiDiscover rv = %d",rv);
   rv = saHpiDomainInfoGet(sessionid, &domainInfo);
-  if (copt.debug) printf("saHpiDomainInfoGet rv = %d\n",rv);
+  if (copt.debug) DBG("saHpiDomainInfoGet rv = %d",rv);
   printf("RptInfo: UpdateCount = %x, UpdateTime = %lx\n",
          domainInfo.RptUpdateCount, (unsigned long)domainInfo.RptUpdateTimestamp);
 

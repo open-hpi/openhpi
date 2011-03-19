@@ -58,7 +58,6 @@ main(int argc, char **argv)
 	SaErrorT 	rv = SA_OK;
 	SaHpiSessionIdT sessionid;
 	SaHpiTextBufferT domtag;
-        GError *error = NULL;
         GOptionContext *context;
 
 	oh_init_textbuffer(&domtag);
@@ -76,8 +75,7 @@ main(int argc, char **argv)
         if (!ohc_option_parse(&argc, argv, 
                 context, &copt, 
                 OHC_ALL_OPTIONS 
-                    - OHC_ENTITY_PATH_OPTION, //TODO: Feature 880127?
-                error)) { 
+                    - OHC_ENTITY_PATH_OPTION)) { //TODO: Feature 880127?
                 g_option_context_free (context);
 		return 1;
 	}
@@ -92,13 +90,13 @@ main(int argc, char **argv)
 	if (f_domtag){
 		oh_append_textbuffer(&domtag, f_domtag);
                 g_free (f_domtag);
-                if (copt.debug) printf ("Let's go change the tag"
-                                        "to %s\n",f_domtag);
+                if (copt.debug) DBG ("Let's go change the tag to %s",
+                                        f_domtag);
 		set_domaintag(sessionid, domtag);
 	}
 
 
-	if (copt.debug) printf ("Let's go and list the domains!\n");
+	if (copt.debug) DBG ("Let's go and list the domains!");
 
 	show_domain(sessionid);
 
@@ -123,10 +121,10 @@ SaErrorT show_domain(SaHpiSessionIdT sessionid)
 	SaHpiDomainIdT relateddomainid = SAHPI_UNSPECIFIED_DOMAIN_ID;
 	SaHpiSessionIdT relatedsessionid;
 
-	if (copt.debug) printf("saHpiDomainInfoGet\n");
+	if (copt.debug) DBG("saHpiDomainInfoGet");
 	rv = saHpiDomainInfoGet(sessionid,&domaininfo);
 	if (rv!=SA_OK) {
-		printf("saHpiDomainInfoGet failed with returncode %s\n",
+		CRIT("saHpiDomainInfoGet failed with returncode %s",
 			oh_lookup_error(rv));
 		return rv;
 	}
@@ -137,11 +135,11 @@ SaErrorT show_domain(SaHpiSessionIdT sessionid)
 	/* walk the DRT */
 	drtentryid = SAHPI_FIRST_ENTRY;
 	do {
-	   if (copt.debug) printf("saHpiDrtEntryGet\n");
+	   if (copt.debug) DBG("saHpiDrtEntryGet");
 	   rv = saHpiDrtEntryGet(sessionid,
 			drtentryid,&nextdrtentryid,&drtentry);
 	   if ((rv != SA_OK && rv != SA_ERR_HPI_NOT_PRESENT) || copt.debug) 
-		       	printf("DrtEntryGet returns %s\n",oh_lookup_error(rv));
+		       	DBG("DrtEntryGet returns %s",oh_lookup_error(rv));
 		
 	   if (rv == SA_OK ) {
 		if (copt.verbose) {
@@ -158,9 +156,9 @@ SaErrorT show_domain(SaHpiSessionIdT sessionid)
 			continue;
 		    }
 		    if (copt.debug) {
-			printf("saHpiSessionOpen returns with SessionId %u\n", 
+			DBG("saHpiSessionOpen returns with SessionId %u", 
 				relatedsessionid);
-			printf("saHpiDomainInfoGet for related domain %u\n",
+			DBG("saHpiDomainInfoGet for related domain %u",
 				relateddomainid);
 		    }
 		    rv = saHpiDomainInfoGet(relatedsessionid,
@@ -180,7 +178,7 @@ SaErrorT show_domain(SaHpiSessionIdT sessionid)
 
 		    rv = saHpiSessionClose(relatedsessionid);
 		    if (copt.debug) 
-			printf("saHpiSessionClose returns %s\n",
+			DBG("saHpiSessionClose returns %s",
 				oh_lookup_error(rv));
 
 		}
@@ -192,9 +190,9 @@ SaErrorT show_domain(SaHpiSessionIdT sessionid)
 	   else if (rv == SA_ERR_HPI_NOT_PRESENT) {
 			if (drtentryid == SAHPI_FIRST_ENTRY)
 				printf("            DRT is empty. \n");
-			else printf("Internal error while walking the DRT\n");
+			else CRIT("Internal error while walking the DRT");
 		}
-		else printf("Internal error while walking the DRT\n");
+		else CRIT("Internal error while walking the DRT");
 
 		drtentryid = nextdrtentryid;
 	} while ((rv == SA_OK) && (drtentryid != SAHPI_LAST_ENTRY));
@@ -279,10 +277,10 @@ static SaErrorT set_domaintag(SaHpiSessionIdT sessionid,
 	SaHpiDomainInfoT domaininfo;
 
 
-	if (copt.debug) printf("saHpiDomainInfoGet\n");
+	if (copt.debug) DBG("saHpiDomainInfoGet");
 	rv = saHpiDomainInfoGet(sessionid,&domaininfo);
 	if (rv!=SA_OK) {
-		printf("saHpiDomainInfoGet failed with returncode %s\n",
+		CRIT("saHpiDomainInfoGet failed with returncode %s",
 			oh_lookup_error(rv));
 		return rv;
 	}
@@ -293,9 +291,9 @@ static SaErrorT set_domaintag(SaHpiSessionIdT sessionid,
 
 	rv = saHpiDomainTagSet (sessionid, &domtag);
 	if (rv!=SA_OK)
-		printf("saHpiDomainTagSet failed with returncode %s. "
-			"Tag not changed.\n",oh_lookup_error(rv));
-        else if (copt.debug) printf("saHpiDomainTagSet completed.\n");
+		CRIT("saHpiDomainTagSet failed with returncode %s. "
+			"Tag not changed.",oh_lookup_error(rv));
+        else if (copt.debug) DBG("saHpiDomainTagSet completed.");
 	
 	return rv;
 }

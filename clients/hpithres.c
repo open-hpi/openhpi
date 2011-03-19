@@ -277,7 +277,7 @@ static void show_reading_value(Rpt_t *Rpt, Rdr_t *R)
 		R->Rdr.RdrTypeUnion.SensorRec.Num, &(R->reading), NULL);
 
 	if (rv != SA_OK) {
-		printf("ERROR: %s\n", oh_lookup_error(rv));
+		CRIT("ERROR: saHpiSensorReadingGet returned %s", oh_lookup_error(rv));
 		return;
 	};
 	k = R->Rdr.RdrTypeUnion.SensorRec.DataFormat.BaseUnits;
@@ -294,7 +294,7 @@ static void show_thresholds(Rpt_t *Rpt, Rdr_t *R)
 	rv = saHpiSensorThresholdsGet(sessionid, Rpt->Rpt.ResourceId,
 		R->Rdr.RdrTypeUnion.SensorRec.Num, &buf);
 	if (rv != SA_OK) {
-		printf("ERROR: %s\n", oh_lookup_error(rv));
+		CRIT("ERROR: saHpiSensorThresholdsGet returned %s", oh_lookup_error(rv));
 		return;
 	};
 	printf("  Thresholds:\n");
@@ -368,7 +368,7 @@ static int get_number(char *mes, int *res)
 static void set_thres_value(SaHpiSensorReadingT *R, double val)
 {
 	if (R->IsSupported == 0) {
-		printf("ERROR: this threshold isn't supported\n");
+		CRIT("ERROR: this threshold isn't supported");
 		return;
 	};
 	R->Value.SensorFloat64 = val;
@@ -388,12 +388,12 @@ static void mod_sen(void)
 
 	i = get_number("RPT number: ", &rpt);
 	if (i != 1) {
-		printf("ERROR: no RPT number\n");
+		CRIT("ERROR: no RPT number");
 		return;
 	};
 	i = find_rpt_by_id(rpt);
 	if (i < 0) {
-		printf("ERROR: invalid RPT number\n");
+		CRIT("ERROR: invalid RPT number");
 		return;
 	};
 	rpt = i;
@@ -401,12 +401,12 @@ static void mod_sen(void)
 	show_sens_for_rpt(Rpt);
 	i = get_number("Sensor number: ", &num);
 	if (i != 1) {
-		printf("ERROR: no Sensor number\n");
+		CRIT("ERROR: no Sensor number");
 		return;
 	};
 	rdr = find_sensor_by_num(Rpt, num);
 	if (rdr < 0) {
-		printf("ERROR: invalid sensor number\n");
+		CRIT("ERROR: invalid sensor number");
 		return;
 	};
 	Rdr = Rpt->rdrs + rdr;
@@ -415,7 +415,7 @@ static void mod_sen(void)
 	rv = saHpiSensorThresholdsGet(sessionid, Rpt->Rpt.ResourceId,
 		Rdr->Rdr.RdrTypeUnion.SensorRec.Num, &thres);
 	if (rv != SA_OK) {
-		printf("ERROR: %s\n", oh_lookup_error(rv));
+		CRIT("ERROR: saHpiSensorThresholdsGet returned %s", oh_lookup_error(rv));
 		return;
 	};
 	printf("  Thresholds:\n");
@@ -428,7 +428,7 @@ static void mod_sen(void)
 	S = fgets(buf, READ_BUF_SIZE, stdin);
 	while (*S == ' ') S++;
 	if (strlen(S) < 2) {
-		printf("ERROR: invalid threshold type: %s\n", S);
+		CRIT("ERROR: invalid threshold type: %s", S);
 		return;
 	};
 
@@ -442,7 +442,7 @@ static void mod_sen(void)
 	if (strncmp(S, "nh", 2) == 0) type = NEG_HYST;
 
 	if (type == UNKNOWN_TYPE) {
-		printf("ERROR: unknown threshold type: %s\n", S);
+		CRIT("ERROR: unknown threshold type: %s", S);
 		return;
 	};
 	
@@ -450,7 +450,7 @@ static void mod_sen(void)
 	S = fgets(buf, READ_BUF_SIZE, stdin);
 	i = sscanf(buf, "%f", &f);
 	if (i == 0) {
-		printf("ERROR: no value\n");
+		CRIT("ERROR: no value");
 		return;
 	};
 	switch (type) {
@@ -479,7 +479,7 @@ static void mod_sen(void)
 			set_thres_value(&(thres.NegThdHysteresis), (double)f);
 			break;
 		default:
-			printf("ERROR: unknown threshold\n");
+			CRIT("ERROR: unknown threshold");
 	};
 	printf("\n  Nem threshold:\n");
 	ShowThres(&thres);
@@ -491,7 +491,7 @@ static void mod_sen(void)
 	rv = saHpiSensorThresholdsSet(sessionid, Rpt->Rpt.ResourceId,
 		Rdr->Rdr.RdrTypeUnion.SensorRec.Num, &thres);
 	if (rv != SA_OK) {
-		printf("ERROR: saHpiSensorThresholdsSet: %s\n", oh_lookup_error(rv));
+		CRIT("ERROR: saHpiSensorThresholdsSet returned %s\n", oh_lookup_error(rv));
 		return;
 	};
 	Rdr->modify = 1;
@@ -500,7 +500,7 @@ static void mod_sen(void)
 			NULL, NULL, NULL);
 		if (rv == SA_OK)
 			break;
-		if (copt.debug) printf("sleep before saHpiEventGet\n");
+		if (copt.debug) DBG("sleep before saHpiEventGet");
 		g_usleep(G_USEC_PER_SEC);
 	};
 	saHpiSensorThresholdsGet(sessionid, Rpt->Rpt.ResourceId,
@@ -642,7 +642,6 @@ int main(int argc, char **argv)
 	SaErrorT	rv;
 	char		buf[READ_BUF_SIZE];
 	char		*S;
-        GError          *error = NULL;
         GOptionContext  *context;
 
         /* Print version strings */
@@ -658,8 +657,7 @@ int main(int argc, char **argv)
                 context, &copt, 
                 OHC_ALL_OPTIONS 
                     - OHC_ENTITY_PATH_OPTION //TODO: Feature 880127
-                    - OHC_VERBOSE_OPTION,    // no verbose mode implemented
-                error)) { 
+                    - OHC_VERBOSE_OPTION )) {    // no verbose mode implemented
                 g_option_context_free (context);
 		return 1;
 	}
@@ -670,11 +668,11 @@ int main(int argc, char **argv)
 	
 	rv = saHpiDiscover(sessionid);
 
-	if (copt.debug) printf("saHpiDiscover: %s\n", oh_lookup_error(rv));
+	if (copt.debug) DBG("saHpiDiscover: %s", oh_lookup_error(rv));
 
 	rv = saHpiSubscribe(sessionid);
 	if (rv != SA_OK) {
-		printf( "saHpiSubscribe error %d\n",rv);
+		CRIT( "saHpiSubscribe error %d",rv);
 		return rv;
 	}	
 	

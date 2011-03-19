@@ -97,7 +97,6 @@ main(int argc, char **argv)
   SaHpiCtrlStateT ctlstate;
   //int raw_val = 0;  Option d for raw alarm byte not implemented
   int b, j;
-  GError *error = NULL;
   GOptionContext *context;
 
   /* Print version strings */
@@ -113,9 +112,8 @@ main(int argc, char **argv)
   if (!ohc_option_parse(&argc, argv, 
                 context, &copt, 
                 OHC_ALL_OPTIONS 
-                    - OHC_ENTITY_PATH_OPTION //TODO: Feature 880127 ?
-                    - OHC_VERBOSE_OPTION,    // no verbose mode implemented
-                error)) { 
+                    - OHC_ENTITY_PATH_OPTION  //TODO: Feature 880127 ?
+                    - OHC_VERBOSE_OPTION )) { // no verbose mode implemented
                 g_option_context_free (context);
 		return 1;
 	}
@@ -130,14 +128,14 @@ main(int argc, char **argv)
   if (rv != SA_OK) return rv;
 
   rv = saHpiDiscover(sessionid);
-  if (copt.debug) printf("saHpiDiscover complete, rv = %d\n",rv);
+  if (copt.debug) DBG("saHpiDiscover complete, rv = %d",rv);
 
   /* walk the RPT list */
   rptentryid = SAHPI_FIRST_ENTRY;
   while ((rv == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY))
   {
      rv = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
-     if (rv != SA_OK) printf("RptEntryGet: rv = %d\n",rv);
+     if (rv != SA_OK) DBG("RptEntryGet: rv = %d\n",rv);
      if (rv == SA_OK) {
 	/* Walk the RDR list for this RPT entry */
 	entryid = SAHPI_FIRST_ENTRY;
@@ -155,23 +153,24 @@ main(int argc, char **argv)
 	{
 		rv = saHpiRdrGet(sessionid,resourceid,
 				entryid,&nextentryid, &rdr);
-  		if (copt.debug) printf("saHpiRdrGet[%u] rv = %d\n",entryid,rv);
+  		if (copt.debug) DBG("saHpiRdrGet[%u] rv = %d",entryid,rv);
 		if (rv == SA_OK) {
 		   if (rdr.RdrType == SAHPI_CTRL_RDR) { 
 			/*type 1 includes alarm LEDs*/
 			ctlnum = rdr.RdrTypeUnion.CtrlRec.Num;
 			rdr.IdString.Data[rdr.IdString.DataLength] = 0;
-			if (copt.debug) printf("Ctl[%u]: %u %u %s\n",
+			if (copt.debug) DBG("Ctl[%u]: %u %u %s",
 				ctlnum, rdr.RdrTypeUnion.CtrlRec.Type,
 				rdr.RdrTypeUnion.CtrlRec.OutputType,
 				rdr.IdString.Data);
 			rv = saHpiControlTypeGet(sessionid,resourceid,
 					ctlnum,&ctltype);
-  			if (copt.debug) printf("saHpiControlTypeGet[%u] rv = %d, type = %u\n",ctlnum,rv,ctltype);
+  			if (copt.debug) DBG("saHpiControlTypeGet[%u] rv = %d, type = %u",
+                                ctlnum,rv,ctltype);
 			rv = saHpiControlGet(sessionid, resourceid, ctlnum,
 					NULL, &ctlstate);
   			if (copt.debug) 
-			   printf("saHpiControlStateGet[%u] rv = %d v = %x\n",
+			   DBG("saHpiControlStateGet[%u] rv = %d v = %x",
 				ctlnum,rv,ctlstate.StateUnion.Digital);
 			printf("RDR[%u]: ctltype=%u:%u oem=%02x %s  \t",
 				rdr.RecordId, 

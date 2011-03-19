@@ -60,7 +60,6 @@ int main(int argc, char **argv)
 	SaHpiRdrT rdr;
 	SaHpiTimeoutT timeout; 
 	SaHpiEventT event;
-        GError *error = NULL;
         GOptionContext *context;
 
 	memset(&rptentry, 0, sizeof(rptentry));
@@ -78,9 +77,8 @@ int main(int argc, char **argv)
         if (!ohc_option_parse(&argc, argv, 
                 context, &copt, 
                 OHC_ALL_OPTIONS 
-                    - OHC_ENTITY_PATH_OPTION //TODO: Feature 880127
-                    - OHC_VERBOSE_OPTION,    // no verbose mode implemented
-                error)) { 
+                    - OHC_ENTITY_PATH_OPTION  //TODO: Feature 880127
+                    - OHC_VERBOSE_OPTION )) { // no verbose mode implemented
                 g_option_context_free (context);
 		return 1;
 	}
@@ -110,33 +108,33 @@ int main(int argc, char **argv)
 	if (rv != SA_OK) return -1;
  
 	if (!do_discover_after_subscribe) {
-        	if (copt.debug) printf("saHpiDiscover\n");
+        	if (copt.debug) DBG("saHpiDiscover");
         	rv = saHpiDiscover(sessionid);
         	if (rv != SA_OK) {
-        		CRIT("saHpiDiscover: %s\n", oh_lookup_error(rv));
+        		CRIT("saHpiDiscover: %s", oh_lookup_error(rv));
         		return rv;
         	}
         }
 	
-        if (copt.debug) printf( "Subscribe to events\n");
+        if (copt.debug) DBG( "Subscribe to events\n");
         rv = saHpiSubscribe( sessionid );
 	if (rv != SA_OK) {
-		CRIT("saHpiSubscribe: %s\n", oh_lookup_error(rv));
+		CRIT("saHpiSubscribe: %s", oh_lookup_error(rv));
 		return rv;
 	}
 
 	if (do_discover_after_subscribe) {
-		if (copt.debug) printf("saHpiDiscover after saHpiSubscribe\n");
+		if (copt.debug) DBG("saHpiDiscover after saHpiSubscribe");
 		rv = saHpiDiscover(sessionid);
 		if (rv != SA_OK) {
-			CRIT("saHpiDiscover after saHpiSubscribe: %s\n", oh_lookup_error(rv));
+			CRIT("saHpiDiscover after saHpiSubscribe: %s", oh_lookup_error(rv));
 			return rv;
 		}
 	}
 
 	rv = saHpiDomainInfoGet(sessionid, &domainInfo);
 
-	if (copt.debug) printf("saHpiDomainInfoGet %s\n", oh_lookup_error(rv));
+	if (copt.debug) DBG("saHpiDomainInfoGet %s", oh_lookup_error(rv));
 	printf("DomainInfo: UpdateCount = %u, UpdateTime = %lx\n",
 		domainInfo.RptUpdateCount, (unsigned long)domainInfo.RptUpdateTimestamp);
 
@@ -146,24 +144,24 @@ int main(int argc, char **argv)
 		printf("**********************************************\n");
 
 		rv = saHpiRptEntryGet(sessionid, rptentryid, &nextrptentryid, &rptentry);
-		if (copt.debug) printf("saHpiRptEntryGet %s\n", oh_lookup_error(rv));
+		if (copt.debug) DBG("saHpiRptEntryGet %s", oh_lookup_error(rv));
 
 		if (rv == SA_OK) {
 			resourceid = rptentry.ResourceId;
 			if (copt.debug)
-				printf("RPT %x capabilities = %x\n", resourceid,
+				DBG("RPT %x capabilities = %x", resourceid,
 					rptentry.ResourceCapabilities);
 
 			if ( (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG)) {
 				/* Using EventLogInfo to build up event queue - for now */
 				rv = saHpiEventLogInfoGet(sessionid, resourceid, &info);
 				if (copt.debug) 
-					printf("saHpiEventLogInfoGet %s\n", oh_lookup_error(rv));
+					DBG("saHpiEventLogInfoGet %s", oh_lookup_error(rv));
 				if (rv == SA_OK) 
 					oh_print_eventloginfo(&info, 4);
 			} else {
 				if (copt.debug) 
-					printf("RPT doesn't have SEL\n");
+					DBG("RPT doesn't have SEL");
 			}
 
 			rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0; 
@@ -219,7 +217,7 @@ int main(int argc, char **argv)
 		printf("	Test FAILED.\n");
 
 	/* Unsubscribe to future events */
-	if (copt.debug) printf( "Unsubscribe\n");
+	if (copt.debug) DBG( "Unsubscribe");
 	rv = saHpiUnsubscribe( sessionid );
 
 	rv = saHpiSessionClose(sessionid);

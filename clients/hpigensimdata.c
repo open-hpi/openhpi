@@ -294,7 +294,6 @@ int main(int argc, char **argv) {
 	SaHpiSessionIdT  sessionid;
 	FILE             *outfile = stdout;
 	ConfigurationDataT confdata;
-        GError *error = NULL;
         GOptionContext *context;
 	
 	confdata.mode = MODE_INIT;
@@ -316,17 +315,15 @@ int main(int argc, char **argv) {
                 OHC_ALL_OPTIONS 
                     - OHC_ENTITY_PATH_OPTION //TODO: Feature 880127
                     - OHC_VERBOSE_OPTION     // no verbose mode 
-                    - OHC_DEBUG_OPTION,      // no debug mode 
-                error)) { 
+                    - OHC_DEBUG_OPTION )) {  // no debug mode 
                 GFREE
 		return 1;
 	}
-        GFREE
 
 	if (g_file) {
 		outfile = fopen(g_file, "w");
 		if (outfile == NULL) {
-			fprintf(stderr, "\n%s couldn't be opened for writing.\n", g_file);
+			CRIT("%s couldn't be opened for writing.", g_file);
                         GFREE
 			return 1;
 		}
@@ -349,7 +346,7 @@ int main(int argc, char **argv) {
 			return 1;
 		}
 	}
- 
+
 	/**
 	 * Initialize the offset strings
 	 **/

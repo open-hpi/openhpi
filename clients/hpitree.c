@@ -98,7 +98,7 @@ static gboolean f_ann      = FALSE;
 static gboolean f_ctrl     = FALSE;
 static gboolean f_overview = FALSE;
 static gboolean f_allres   = TRUE;
-static gint resourceid = 0;   
+static gint f_resourceid = 0;   
 static oHpiCommonOptionsT copt;
 
 static GOptionEntry my_options[] =
@@ -117,7 +117,7 @@ static GOptionEntry my_options[] =
 //  { "annunciators", 'a', 0, G_OPTION_ARG_NONE, &f_ann,      "Display only annunciators",                 NULL },
   // Annunciators not implemented
 
-  { "resource",     'n', 0, G_OPTION_ARG_INT,  &resourceid, "Select particular resource id to display\n\t\t\t"
+  { "resource",     'n', 0, G_OPTION_ARG_INT,  &f_resourceid, "Select particular resource id to display\n\t\t\t"
                                                             "(Used with [-cdirs] options)",              "nn" },
   { NULL }
 };
@@ -131,8 +131,6 @@ main(int argc, char **argv)
 {
 	SaErrorT 	rv = SA_OK;
 	SaHpiSessionIdT sessionid;
-//	SaHpiResourceIdT resourceid = 0;
-        GError *error = NULL;
         GOptionContext *context;
 	    
         /* Print version strings */
@@ -148,9 +146,8 @@ main(int argc, char **argv)
         if (!ohc_option_parse(&argc, argv, 
                 context, &copt, 
                 OHC_ALL_OPTIONS 
-                    - OHC_ENTITY_PATH_OPTION //TODO: Feature 880127?
-                    - OHC_VERBOSE_OPTION,    // no verbose mode implemented
-                error)) { 
+                    - OHC_ENTITY_PATH_OPTION  //TODO: Feature 880127?
+                    - OHC_VERBOSE_OPTION )) { // no verbose mode implemented
                 g_option_context_free (context);
 		return 1;
 	}
@@ -158,6 +155,7 @@ main(int argc, char **argv)
  
 	if (f_rpt || f_sensor || f_inv || f_ctrl || f_rdr || f_wdog) 
            f_listall = TRUE;
+	if (f_resourceid != 0) f_allres = FALSE;
 
         rv = ohc_session_open_by_option ( &copt, &sessionid);
 	if (rv != SA_OK) return rv;
@@ -165,15 +163,15 @@ main(int argc, char **argv)
 	/*
 	 * Resource discovery
 	 */
-	if (copt.debug) printf("saHpiDiscover\n");
+	if (copt.debug) DBG("saHpiDiscover");
 	rv = saHpiDiscover(sessionid);
 	if (rv != SA_OK) {
-		printf("saHpiDiscover returns %s\n",oh_lookup_error(rv));
+		CRIT("saHpiDiscover returns %s",oh_lookup_error(rv));
 		return rv;
 	}
 
 	printf("Discovery done\n");
-	list_resources(sessionid, resourceid);
+	list_resources(sessionid, (SaHpiResourceIdT) f_resourceid);
 
 	rv = saHpiSessionClose(sessionid);
 	
@@ -206,10 +204,10 @@ SaErrorT list_resources(SaHpiSessionIdT sessionid,SaHpiResourceIdT resourceid)
 	rptentryid = SAHPI_FIRST_ENTRY;
 	do {
 		
-		if (copt.debug) printf("saHpiRptEntryGet\n");
+		if (copt.debug) DBG("saHpiRptEntryGet");
 		rvRptGet = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
 		if ((rvRptGet != SA_OK) || copt.debug) 
-		       	printf("RptEntryGet returns %s\n",oh_lookup_error(rvRptGet));
+		       	DBG("RptEntryGet returns %s",oh_lookup_error(rvRptGet));
 		
 		rv = list_rpt(&rptentry, resourceid);
 						
@@ -224,11 +222,11 @@ SaErrorT list_resources(SaHpiSessionIdT sessionid,SaHpiResourceIdT resourceid)
 			/* walk the RDR list for this RPT entry */
 			entryid = SAHPI_FIRST_ENTRY;			
 
-			if (copt.debug) printf("rptentry[%u] resourceid=%u\n", entryid,resourceid);
+			if (copt.debug) DBG("rptentry[%u] resourceid=%u\n", entryid,resourceid);
 
 			do {
 				rvRdrGet = saHpiRdrGet(sessionid,l_resourceid, entryid,&nextentryid, &rdr);
-				if (copt.debug) printf("saHpiRdrGet[%u] rv = %s\n",entryid,oh_lookup_error(rvRdrGet));
+				if (copt.debug) DBG("saHpiRdrGet[%u] rv = %s\n",entryid,oh_lookup_error(rvRdrGet));
 
 
 				if (rvRdrGet == SA_OK)
@@ -382,7 +380,7 @@ SaErrorT walkInventory(	SaHpiSessionIdT sessionid,
 					oh_print_idrfield(&thisField, 12);
 				}
  
-				if (copt.debug) printf("saHpiIdrFieldGet  error %s\n",oh_lookup_error(rvField));
+				if (copt.debug) DBG("saHpiIdrFieldGet  error %s",oh_lookup_error(rvField));
 				fieldId = nextFieldId;
 			} while ((rvField == SA_OK) && (fieldId != SAHPI_LAST_ENTRY));
 		
