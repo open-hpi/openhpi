@@ -120,7 +120,7 @@ static ret_code_t show_test_info( SaHpiSessionIdT sessionId,
         if ( param->ParamName[0] == '\0' ) {
             break;
         }
-        printf( "        Paramerer %d:\n", i );
+        printf( "        Parameter %d:\n", i );
         printf( "            Name: \"%s\"\n", param->ParamName );
         printf( "            Info: %s\n", param->ParamInfo.Data );
         switch ( param->ParamType ) {
@@ -191,8 +191,106 @@ static ret_code_t start_test( SaHpiSessionIdT sessionId,
                             ) 
 {
     SaErrorT rv;
+    SaHpiDimiTestT test;
+    unsigned int i;
+    int cc;
+    SaHpiDimiTestVariableParamsT params[SAHPI_DIMITEST_MAX_PARAMETERS];
+    SaHpiUint8T nparams;
+    int ival;
+    double fval;
+    char buf[SAHPI_MAX_TEXT_BUFFER_LENGTH];
 
-    rv = saHpiDimiTestStart( sessionId, rptid, diminum, testnum, 0, NULL );  
+    rv = saHpiDimiTestInfoGet( sessionId, rptid, diminum, testnum, &test );
+    if ( rv != SA_OK ) {
+        printf( "ERROR!!! saHpiDimiTestInfoGet: %s\n", oh_lookup_error( rv ) );
+        return HPI_SHELL_CMD_ERROR;
+    }
+
+    nparams = 0;
+    for ( i = 0; i < SAHPI_DIMITEST_MAX_PARAMETERS; ++i ) {
+        const SaHpiDimiTestParamsDefinitionT * def = &(test.TestParameters[i]);
+        SaHpiDimiTestVariableParamsT * param = &params[nparams];
+
+        // Trick suggested to point unused params
+        if ( def->ParamName[0] == '\0' ) {
+            break;
+        }
+        printf( "Parameter %d:\n", i );
+        printf( "    Name: \"%s\"\n", def->ParamName );
+        printf( "    Info: %s\n", def->ParamInfo.Data );
+        memcpy( param->ParamName, def->ParamName, SAHPI_DIMITEST_PARAM_NAME_LEN );
+        param->ParamType = def->ParamType;
+        switch ( def->ParamType ) {
+            case SAHPI_DIMITEST_PARAM_TYPE_BOOLEAN:
+                printf( "        Type: boolean\n" );
+                printf( "        Default value: %s\n",
+                        def->DefaultParam.parambool == SAHPI_TRUE ? "true" : "false" );
+                cc = get_string_param( "Boolean Value (true or false) ==> ", buf, sizeof(buf) );
+                if ( cc == 0 ) {
+                    if ( strcasecmp( buf, "true" ) == 0 ) {
+                        param->Value.parambool = SAHPI_TRUE;
+                        ++nparams;
+                        break;
+                    } else if ( strcasecmp( buf, "false" ) == 0 ) {
+                        param->Value.parambool = SAHPI_FALSE;
+                        ++nparams;
+                        break;
+                    }
+                }
+                printf( "Cannot get parameter value. Using default one.\n");
+                break;
+            case SAHPI_DIMITEST_PARAM_TYPE_INT32:
+                printf( "        Type: int32\n" );
+                printf( "        Min value: %d\n", def->MinValue.IntValue );
+                printf( "        Max value: %d\n", def->MaxValue.IntValue );
+                printf( "        Default value: %d\n", def->DefaultParam.paramint );
+                cc = get_int_param( "Integer Value ==> ", &ival );
+                if ( cc == 1 ) {
+                    param->Value.paramint = ival;
+                    ++nparams;
+                    break;
+                }
+                printf( "Cannot get parameter value. Using default one.\n");
+                break;
+            case SAHPI_DIMITEST_PARAM_TYPE_FLOAT64:
+                printf( "        Type: float64\n" );
+                printf( "        Min value: %f\n", def->MinValue.FloatValue );
+                printf( "        Max value: %f\n", def->MaxValue.FloatValue );
+                printf( "        Default value: %f\n", def->DefaultParam.paramfloat );
+                cc = get_string_param( "Float Value ==> ", buf, sizeof(buf) );
+                if ( cc == 0 ) {
+                    cc = sscanf( buf, "%lf", &fval );
+                    if ( cc == 1 ) {
+                        param->Value.paramfloat = fval;
+                        ++nparams;
+                        break;
+                    }
+                }
+                printf( "Cannot get parameter value. Using default one.\n");
+                break;
+            case SAHPI_DIMITEST_PARAM_TYPE_TEXT:
+                printf( "        Type: text\n" );
+                printf( "        Default value: %s\n", def->DefaultParam.paramtext.Data );
+                cc = get_string_param( "Text Value ==> ", buf, sizeof(buf) );
+                if ( cc == 0 ) {
+                    param->Value.paramtext.DataType = SAHPI_TL_TYPE_TEXT;
+                    param->Value.paramtext.Language = SAHPI_LANG_ENGLISH;
+                    param->Value.paramtext.DataLength = strlen(buf);
+                    memcpy( &param->Value.paramtext.Data[0],
+                            &buf[0],
+                            SAHPI_MAX_TEXT_BUFFER_LENGTH );
+                    ++nparams;
+                    break;
+                }
+                printf( "Cannot get parameter value. Using default one.\n");
+                break;
+            default:
+                printf( "        Type: unknown\n" );
+                printf( "Cannot get parameter value. Using default one.\n");
+        }
+    }
+
+    rv = saHpiDimiTestStart( sessionId, rptid, diminum, testnum, nparams, nparams == 0 ? 0 : params );  
     if ( rv != SA_OK ) {
         printf( "ERROR!!! saHpiDimiTestStart: %s\n", oh_lookup_error( rv ) );
         return HPI_SHELL_CMD_ERROR;
@@ -329,7 +427,7 @@ ret_code_t dimi_block( void )
     block_type = DIMI_COM;
     for ( ;; ) {
         int res;
-        term_def_t * term ;
+        term_def_t * term;
         char buf[256];
 
         res = get_new_command( "DIMI block ==> " );
