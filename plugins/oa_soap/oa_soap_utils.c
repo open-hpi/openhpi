@@ -212,7 +212,7 @@ SaErrorT get_oa_state(struct oh_handler_state *oh_handler,
         struct getOaNetworkInfo network_info;
         struct oaNetworkInfo network_info_response;
         enum oaRole oa_role;
-        char active_ip[MAX_URL_LEN], standby_ip[MAX_URL_LEN], url[MAX_URL_LEN];
+        char active_ip[MAX_URL_LEN], standby_ip[MAX_URL_LEN], *url = NULL;  
         char active_fm[MAX_BUF_SIZE], standby_fm[MAX_BUF_SIZE];
         char firmware[MAX_BUF_SIZE];
         char *user_name = NULL, *password = NULL;
@@ -229,8 +229,13 @@ SaErrorT get_oa_state(struct oh_handler_state *oh_handler,
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
 
         /* Create the OA URL */
-        memset(url, 0, MAX_URL_LEN);
-        snprintf(url, strlen(server) + strlen(PORT) + 1, "%s" PORT, server);
+        rv = asprintf(&url, "%s" PORT, server);			   
+        if(rv == -1){
+                free(url);
+                err("Failed to allocate memory for buffer to        \
+                                           hold OA credentials");
+                return SA_ERR_HPI_OUT_OF_MEMORY;
+        }
 
         /* Get the user_name and password from config file */
         user_name = (char *) g_hash_table_lookup(oh_handler->config,
@@ -420,14 +425,27 @@ SaErrorT get_oa_state(struct oh_handler_state *oh_handler,
                 other_oa->oa_status = ACTIVE;
                 other_oa->fm_version = atof(active_fm);
                 strncpy(other_oa->server, active_ip, strlen(active_ip));
-                snprintf(url, strlen(active_ip) + strlen(PORT) + 1,
-                         "%s" PORT, active_ip);
+                rv = asprintf(&url, "%s" PORT, active_ip);		      
+                if (rv == -1){
+                        free(url);
+                        err("Failed to allocate memory for buffer to        \
+                                                 hold OA credentials");
+                        return SA_ERR_HPI_OUT_OF_MEMORY;
+                }
+
         } else {
                 other_oa->oa_status = STANDBY;
                 other_oa->fm_version = atof(standby_fm);
                 strncpy(other_oa->server, standby_ip, strlen(standby_ip));
-                snprintf(url, strlen(standby_ip) + strlen(PORT) + 1,
-                         "%s" PORT, standby_ip);
+                rv = asprintf(&url, "%s" PORT, standby_ip);		      
+                if(rv == -1){
+                       free(url);
+                       err("Failed to allocate memory for buffer to        \
+                                                 hold OA credentials");
+
+                       return SA_ERR_HPI_OUT_OF_MEMORY;
+                }
+
         }
 
         /* Initialize the soap_con for hpi and event thread */
@@ -476,7 +494,7 @@ SaErrorT get_oa_state(struct oh_handler_state *oh_handler,
                         return SA_OK;
                 }
         }
-
+	free(url);
         return SA_OK;
 }
 
@@ -1095,18 +1113,24 @@ void create_oa_connection(struct oa_soap_handler *oa_handler,
 SaErrorT initialize_oa_con(struct oa_info *oa,
                            char *user_name,
                            char *password)
-{
-        char url[MAX_URL_LEN];
-
+{       
+        SaErrorT rv = SA_OK; 
+        char *url = NULL;    		    
+        
         if (oa == NULL || user_name == NULL || password == NULL) {
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
         g_mutex_lock(oa->mutex);
-        memset(url, 0, MAX_URL_LEN);
-        snprintf(url, strlen(oa->server) + strlen(PORT) + 1,
-                 "%s" PORT, oa->server);
+        rv = asprintf(&url, "%s" PORT, oa->server);			
+        if(rv == -1){
+                free(url);
+                err("Failed to allocate memory for buffer to        \
+                                             hold OA credentials");
+                return SA_ERR_HPI_OUT_OF_MEMORY;
+        }
+
 
         oa->hpi_con = soap_open(url, user_name, password,
                                 HPI_CALL_TIMEOUT);
@@ -1129,7 +1153,7 @@ SaErrorT initialize_oa_con(struct oa_info *oa,
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
         g_mutex_unlock(oa->mutex);
-
+	free(url);
         return SA_OK;
 
 }

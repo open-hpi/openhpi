@@ -622,7 +622,7 @@ static int      soap_message(SOAP_CON *connection, char *request,
 {
         int             nbytes;
         int             ret;
-        char            header[OA_SOAP_HEADER_SIZE + 1];
+        char *          header=NULL;                              
         char            response[OA_SOAP_RESP_BUFFER_SIZE];
         xmlParserCtxtPtr parse;
 
@@ -649,8 +649,15 @@ static int      soap_message(SOAP_CON *connection, char *request,
         nbytes = strlen(request);
         if (connection->req_high_water < nbytes)
                 connection->req_high_water = nbytes;
-        snprintf(header, OA_SOAP_HEADER_SIZE, OA_XML_HEADER,
-                 connection->server, nbytes);
+        ret = asprintf(&header, OA_XML_HEADER,			
+                 connection->server, nbytes);			
+        if(ret == -1){
+                free(header);
+                err("Failed to allocate memory for buffer to        \
+                                           hold OA XML header");
+                return(-1);
+        }
+
         /* TODO: On that last line, I think server includes port...fix that,
          * though it doesn't seem to be causing any problems.
          */
@@ -765,7 +772,7 @@ static int      soap_message(SOAP_CON *connection, char *request,
                 xmlFreeParserCtxt(parse);
                 return(-1);
         }
-
+	free(header);
         xmlFreeParserCtxt(parse);
         return(0);
 }
@@ -789,7 +796,8 @@ static int      soap_message(SOAP_CON *connection, char *request,
  **/
 static int      soap_login(SOAP_CON *connection)
 {
-        char            buf[OA_SOAP_LOGIN_SIZE];
+        int             ret = 0;
+        char *          buf = NULL; 			 	
         xmlDocPtr       doc;
         xmlNode         *login_element;
         xmlNode         *fault;
@@ -809,9 +817,16 @@ static int      soap_login(SOAP_CON *connection)
         }
 
         /* Generate login request */
-        snprintf(buf, OA_SOAP_LOGIN_SIZE, OA_XML_LOGIN,
-                 connection->username, connection->password);
+        ret = asprintf(&buf, OA_XML_LOGIN,				 
+                 connection->username, connection->password); 	
+        if(ret == -1){
+                free(buf);
+                err("Failed to allocate memory for buffer to hold    \
+			                      OA login credentials");
+                return -1;
+        }
 
+ 
         /* Perform login request */
         if (soap_message(connection, buf, &doc)) {
                 err("failed to communicate with OA during login");
@@ -831,6 +846,7 @@ static int      soap_login(SOAP_CON *connection)
                         OA_SOAP_SESSIONKEY_SIZE);
                 dbg("Opened session ID %s", connection->session_id);
                 /* Free the XML document */
+                free(buf);
                 xmlFreeDoc(doc);
                 return(0);              /* Normal, successful return */
         }
@@ -851,6 +867,7 @@ static int      soap_login(SOAP_CON *connection)
         else {
                 err("failed to find session ID during OA login");
         }
+        free(buf);
         xmlFreeDoc(doc);
         return(-1);
 }
