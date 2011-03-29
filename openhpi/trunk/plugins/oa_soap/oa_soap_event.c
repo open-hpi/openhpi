@@ -110,7 +110,7 @@ gpointer oa_soap_event_thread(gpointer oa_pointer)
         SaHpiBoolT is_plugin_initialized = SAHPI_FALSE;
         SaHpiBoolT is_discovery_completed = SAHPI_FALSE;
         SaHpiBoolT listen_for_events = SAHPI_TRUE;
-        char *user_name, *password, url[MAX_URL_LEN];
+        char *user_name, *password, *url = NULL;  
 
         if (oa_pointer == NULL) {
                 err("Invalid parameter");
@@ -207,9 +207,14 @@ gpointer oa_soap_event_thread(gpointer oa_pointer)
         /* Ideally, the soap_open should pass in 1st try.
          * If not, try until soap_open succeeds
          */
-        memset(url, 0, MAX_URL_LEN);
-        snprintf(url, strlen(oa->server) + strlen(PORT) + 1,
+        rv = asprintf(&url, 				
                  "%s" PORT, oa->server);
+        if(rv == -1){
+                free(url);
+                err("Failed to allocate memory for buffer to        \
+                                             hold OA credentials");
+                return (gpointer*) SA_ERR_HPI_OUT_OF_MEMORY;
+        } 		
         while (oa->event_con2 == NULL) {
         	OA_SOAP_CHEK_SHUTDOWN_REQ(oa_handler, NULL, NULL, NULL);
                 oa->event_con2 = soap_open(url, user_name, password,
@@ -262,10 +267,16 @@ gpointer oa_soap_event_thread(gpointer oa_pointer)
                                         soap_close(oa->event_con2);
                                         oa->event_con2 = NULL;
                                 }
-                                memset(url, 0, MAX_URL_LEN);
-                                snprintf(url, strlen(oa->server) +
-                                         strlen(PORT) + 1,
-                                        "%s" PORT, oa->server);
+                                rv = asprintf(&url, "%s" PORT, oa->server);  	
+                                if(rv == -1){
+                                        free(url);
+                                        err("Failed to allocate memory for	\
+                                                  buffer to hold OA credentials");
+
+                                        return (gpointer*) SA_ERR_HPI_OUT_OF_MEMORY;
+                                }
+
+
 
                                 /* Ideally, the soap_open should pass in
                                  * 1st try. If not, try until soap_open succeeds
@@ -291,7 +302,7 @@ oa->event_con2 failed\n");
                 } /* end of else (SOAP call failure handling) */
 
         } /* end of 'while(listen_for_events == SAHPI_TRUE)' loop */
-
+	free(url);
         return (gpointer *) SA_OK;
 }
 

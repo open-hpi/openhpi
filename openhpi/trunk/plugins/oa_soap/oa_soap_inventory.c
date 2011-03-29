@@ -1359,8 +1359,7 @@ SaErrorT build_enclosure_inv_rdr(struct oh_handler_state *oh_handler,
         local_inventory->info.area_list = NULL;
         local_inventory->comment =
                 (char *)g_malloc0(strlen(enclosure_inv_str) + 1);
-        snprintf(local_inventory->comment, strlen(enclosure_inv_str) + 1,
-                 "%s", enclosure_inv_str);
+        strcpy(local_inventory->comment, enclosure_inv_str);
 
         /* Create and add product area if resource name and/or manufacturer
          * information exist
@@ -1543,8 +1542,7 @@ SaErrorT build_oa_inv_rdr(struct oh_handler_state *oh_handler,
         local_inventory->info.idr_info.NumAreas = 0;
         local_inventory->info.area_list = NULL;
         local_inventory->comment = (char *)g_malloc0(strlen(oa_inv_str) + 1);
-        snprintf(local_inventory->comment, strlen(oa_inv_str) + 1,
-                 "%s", oa_inv_str);
+        strcpy(local_inventory->comment, oa_inv_str);
 
         /* Create and add product area if resource name and/or manufacturer
          * information exist
@@ -1723,8 +1721,7 @@ SaErrorT build_server_inv_rdr(struct oh_handler_state *oh_handler,
         local_inventory->info.area_list = NULL;
         local_inventory->comment =
                 (char *)g_malloc0(strlen(server_inv_str) + 1);
-        snprintf(local_inventory->comment, strlen(server_inv_str) + 1,
-                 "%s", server_inv_str);
+        strcpy(local_inventory->comment, server_inv_str);
 
         /* Create and add product area if resource name and/or manufacturer
          * information exist
@@ -1908,9 +1905,7 @@ SaErrorT build_inserted_server_inv_rdr(struct oh_handler_state *oh_handler,
         local_inventory->info.area_list = NULL;
         local_inventory->comment =
                 (char *)g_malloc0(strlen(server_inv_str) + 1);
-        snprintf(local_inventory->comment, strlen(server_inv_str) + 1,
-                 "%s", server_inv_str);
-
+	strcpy(local_inventory->comment, server_inv_str);
         *inventory = local_inventory;
         return SA_OK;
 }
@@ -2170,8 +2165,7 @@ SaErrorT build_interconnect_inv_rdr(struct oh_handler_state *oh_handler,
         local_inventory->info.area_list = NULL;
         local_inventory->comment =
                 (char *)g_malloc0(strlen(interconnect_inv_str) + 1);
-        snprintf(local_inventory->comment, strlen(interconnect_inv_str) + 1,
-                 "%s", interconnect_inv_str);
+        strcpy(local_inventory->comment, interconnect_inv_str);
 
         /* Create and add product area if resource name and/or manufacturer
          * information exist
@@ -2335,8 +2329,7 @@ SaErrorT build_fan_inv_rdr(struct oh_handler_state *oh_handler,
         local_inventory->info.idr_info.NumAreas = 0;
         local_inventory->info.area_list = NULL;
         local_inventory->comment = (char *)g_malloc0(strlen(fan_inv_str) + 1);
-        snprintf(local_inventory->comment, strlen(fan_inv_str) + 1,
-                 "%s", fan_inv_str);
+       strcpy(local_inventory->comment, fan_inv_str);		
 
         /* Create and add product area if resource name and/or manufacturer
          * information exist
@@ -2468,8 +2461,9 @@ SaErrorT build_power_inv_rdr(struct oh_handler_state *oh_handler,
         local_inventory->info.idr_info.NumAreas = 0;
         local_inventory->info.area_list = NULL;
         local_inventory->comment = (char *)g_malloc0(strlen(power_inv_str) + 1);
-        snprintf(local_inventory->comment, strlen(power_inv_str) + 1,
-                 "%s", power_inv_str);
+
+        strcpy(local_inventory->comment, power_inv_str);		  
+	
 
         /* Create and add board area if resource part number and/or
          * serial number exist
@@ -4225,7 +4219,7 @@ SaErrorT oa_soap_build_fan_inv(struct oh_handler_state *oh_handler,
 	}
 
 
-	/* Set the product name */
+	/* Set the product name*/
 	oa_soap_inv_set_field(inventory->info.area_list,
 			      SAHPI_IDR_AREATYPE_PRODUCT_INFO,
 			      SAHPI_IDR_FIELDTYPE_PRODUCT_NAME,
