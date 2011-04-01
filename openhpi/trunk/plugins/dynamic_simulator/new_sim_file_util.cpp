@@ -120,6 +120,7 @@ bool NewSimulatorFileUtil::process_textbuffer( NewSimulatorTextBuffer &buffer ) 
       } else {
          err("Processing parse textbuffer: unknow value type %u", cur_token);
          success = false;
+         break;
       }
       
       if (!strcmp( "DataType", field )) {
