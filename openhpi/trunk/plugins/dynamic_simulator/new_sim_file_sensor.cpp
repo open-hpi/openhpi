@@ -721,6 +721,7 @@ bool NewSimulatorFileSensor::process_sensor_thresholds( SaHpiSensorThresholdsT *
  **/
 bool NewSimulatorFileSensor::process_sensor_reading( SaHpiSensorReadingT *sensorreading ) {
    bool success = true;
+   bool negative = false;
    int start = m_depth;
    char *field;
    guint cur_token;
@@ -745,6 +746,7 @@ bool NewSimulatorFileSensor::process_sensor_reading( SaHpiSensorReadingT *sensor
             break;
 
          case G_TOKEN_STRING:
+            negative = false;
             field = g_strdup(m_scanner->value.v_string);
             cur_token = g_scanner_get_next_token(m_scanner);
             
@@ -753,6 +755,11 @@ bool NewSimulatorFileSensor::process_sensor_reading( SaHpiSensorReadingT *sensor
                success = false;
             }
             cur_token = g_scanner_get_next_token(m_scanner);
+            
+            if ( cur_token == '-' ) {
+               negative = !negative;
+               cur_token = g_scanner_get_next_token(m_scanner);	
+            }
             
             if (!strcmp(field, "IsSupported")) {
                if (cur_token == G_TOKEN_INT)
@@ -763,17 +770,23 @@ bool NewSimulatorFileSensor::process_sensor_reading( SaHpiSensorReadingT *sensor
                   sensorreading->Type = (SaHpiSensorReadingTypeT) m_scanner->value.v_int;
             
             } else if (!strcmp(field, "value.SensorInt64")) {
-            	   if (cur_token == G_TOKEN_INT)
+            	   if (cur_token == G_TOKEN_INT) {
                   sensorreading->Value.SensorInt64 = m_scanner->value.v_int;
+                  if (negative)
+                     sensorreading->Value.SensorInt64 = -sensorreading->Value.SensorInt64;
+            	   }
                   
             } else if (!strcmp(field, "value.SensorUint64")) {
                if (cur_token == G_TOKEN_INT)
                   sensorreading->Value.SensorUint64 = m_scanner->value.v_int;
             		
             } else if (!strcmp(field, "value.SensorFloat64")) {
-               if (cur_token == G_TOKEN_FLOAT)
+               if (cur_token == G_TOKEN_FLOAT) {
                   sensorreading->Value.SensorFloat64 = m_scanner->value.v_float;
-            	
+                  if (negative)
+                     sensorreading->Value.SensorFloat64 = -sensorreading->Value.SensorFloat64;
+               }
+               	
             } else if (!strcmp(field, "value.SensorBuffer")) {
             	   if (cur_token == G_TOKEN_STRING)
             	      success = process_hexstring( SAHPI_SENSOR_BUFFER_LENGTH,
