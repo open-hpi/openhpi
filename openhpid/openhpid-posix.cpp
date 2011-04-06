@@ -3,6 +3,7 @@
  * (C) Copyright IBM Corp. 2004-2008
  * (C) Copyright Pigeon Point Systems. 2010
  * (C) Copyright Nokia Siemens Networks 2010
+ * (C) Copyright Ulrich Kleber 2011
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -42,8 +43,50 @@
 #include "server.h"
 
 
+/*--------------------------------------------------------------------*/
+/* Globals                                                            */
+/*--------------------------------------------------------------------*/
+
+static gchar    *cfgfile        = NULL;
+static gboolean verbose_flag    = FALSE;
+static gint     port            = OPENHPI_DEFAULT_DAEMON_PORT;
+static gchar    *portstr        = NULL;
+static gchar    *optpidfile     = NULL; 
+static gint     sock_timeout    = 0;  // unlimited -- TODO: unlimited or 30 minutes default? was unsigned int
+static gint     max_threads     = -1; // unlimited
+static gboolean runasforeground = FALSE;
 static bool daemonized   = false;
-static bool verbose_flag = false;
+static gboolean enableIPv4      = FALSE;
+static gboolean enableIPv6      = FALSE;
+
+static GOptionEntry daemon_options[] =
+{
+  { "cfg",       'c', 0, G_OPTION_ARG_FILENAME, &cfgfile,       "Sets path/name of the configuration file.\n"
+                                    "                            This option is required unless the environment\n"
+                                    "                            variable OPENHPI_CONF has been set to a valid\n"
+                                    "                            configuration file.",                              "conf_file" },
+  { "verbose",   'v', 0, G_OPTION_ARG_NONE,     &verbose_flag,  "This option causes the daemon to display verbose\n"
+                                    "                            messages. This option is optional.",                NULL },
+  { "port",      'p', 0, G_OPTION_ARG_STRING,   &portstr,       "Overrides the default listening port (4743) of\n"
+                                    "                            the daemon. The option is optional.",              "port" },
+  { "pidfile",   'f', 0, G_OPTION_ARG_FILENAME, &optpidfile,    "Overrides the default path/name for the daemon.\n"
+                                    "                            pid file. The option is optional.",                "pidfile" },
+  { "timeout",   's', 0, G_OPTION_ARG_INT,      &sock_timeout,  "Overrides the default socket read timeout of 30\n"
+                                    "                            minutes. The option is optional.",                 "seconds" },
+  { "threads",   't', 0, G_OPTION_ARG_INT,      &max_threads,   "Sets the maximum number of connection threads.\n"
+                                    "                            The default is umlimited. The option is optional.","threads" },
+  { "nondaemon", 'n', 0, G_OPTION_ARG_NONE,   &runasforeground, "Forces the code to run as a foreground process\n"
+                                    "                            and NOT as a daemon. The default is to run as\n"
+                                    "                            a daemon. The option is optional.",                 NULL },
+  { "ipv6",      '6', 0, G_OPTION_ARG_NONE,   &enableIPv6,      "The daemon will try to bind IPv6 socket.",          NULL },
+  { "ipv4",      '4', 0, G_OPTION_ARG_NONE,   &enableIPv4,      "The daemon will try to bind IPv4 socket.\n"
+                                    "                            Can be combined with ipv6 option, to bind IPv4\n"
+                                    "                            or IPv6 socket.",                                   NULL },
+
+  { NULL }
+};
+
+
 
 
 /*--------------------------------------------------------------------*/
@@ -52,31 +95,37 @@ static bool verbose_flag = false;
 
 void display_help(void)
 {
-    printf("Help for openhpid:\n\n");
-    printf("   openhpid -c conf_file [-v] [-p port] [-f pidfile]\n\n");
-    printf("   -c conf_file  Sets path/name of the configuration file.\n");
-    printf("                 This option is required unless the environment\n");
-    printf("                 variable OPENHPI_CONF has been set to a valid\n");
-    printf("                 configuration file.\n");
-    printf("   -v            This option causes the daemon to display verbose\n");
-    printf("                 messages. This option is optional.\n");
-    printf("   -p port       Overrides the default listening port (%d) of\n",
-           OPENHPI_DEFAULT_DAEMON_PORT);
-    printf("                 the daemon. The option is optional.\n");
-    printf("   -f pidfile    Overrides the default path/name for the daemon.\n");
-    printf("                 pid file. The option is optional.\n");
-    printf("   -s seconds    Overrides the default socket read timeout of 30\n");
-    printf("                 minutes. The option is optional.\n");
-    printf("   -t threads    Sets the maximum number of connection threads.\n");
-    printf("                 The default is umlimited. The option is optional.\n");
-    printf("   -n            Forces the code to run as a foreground process\n");
-    printf("                 and NOT as a daemon. The default is to run as\n");
-    printf("                 a daemon. The option is optional.\n\n");
-    printf("   -4            The daemon will try to bind IPv4 socket.\n");
-    printf("   -6            The daemon will try to bind IPv6 socket.\n");
-    printf("   -4 -6         The daemon will try to bind IPv4 or IPv6 socket.\n");
-    printf("A typical invocation might be\n\n");
-    printf("   ./openhpid -c /etc/openhpi/openhpi.conf\n\n");
+    printf("Usage:\n");
+    printf("  openhpid [OPTION...] - HPI instance to which multiple clients can connect.\n\n");
+
+    printf("A typical invocation might be\n");
+    printf("  ./openhpid -c /etc/openhpi/openhpi.conf\n\n");
+
+    printf("Help Options:\n");
+    printf("  -h, --help                Show help options\n\n");
+
+    printf("Application Options:\n");
+    printf("  -c, --cfg=conf_file       Sets path/name of the configuration file.\n");
+    printf("                            This option is required unless the environment\n");
+    printf("                            variable OPENHPI_CONF has been set to a valid\n");
+    printf("                            configuration file.\n");
+    printf("  -v, --verbose             This option causes the daemon to display verbose\n");
+    printf("                            messages. This option is optional.\n");
+    printf("  -p, --port=port           Overrides the default listening port (4743) of\n");
+    printf("                            the daemon. The option is optional.\n");
+    printf("  -f, --pidfile=pidfile     Overrides the default path/name for the daemon.\n");
+    printf("                            pid file. The option is optional.\n");
+    printf("  -s, --timeout=seconds     Overrides the default socket read timeout of 30\n");
+    printf("                            minutes. The option is optional.\n");
+    printf("  -t, --threads=threads     Sets the maximum number of connection threads.\n");
+    printf("                            The default is umlimited. The option is optional.\n");
+    printf("  -n, --nondaemon           Forces the code to run as a foreground process\n");
+    printf("                            and NOT as a daemon. The default is to run as\n");
+    printf("                            a daemon. The option is optional.\n");
+    printf("  -6, --ipv6                The daemon will try to bind IPv6 socket.\n");
+    printf("  -4, --ipv4                The daemon will try to bind IPv4 socket.\n");
+    printf("                            Can be combined with ipv6 option, to bind IPv4\n");
+    printf("                            or IPv6 socket.\n\n");
 }
 
 /*--------------------------------------------------------------------*/
@@ -246,89 +295,43 @@ static bool daemonize(const char *pidfile)
 
 int main(int argc, char *argv[])
 {
+    int ipvflags              = 0;
+    const char *pidfile       = "/var/run/openhpid.pid";
+    GError *error = NULL;
+    GOptionContext *context;
+
     g_log_set_default_handler(log_handler, 0);
 
-    struct option options[] = {
-        {"verbose",   no_argument,       0, 'v'},
-        {"nondaemon", no_argument,       0, 'n'},
-        {"ipv4",      no_argument,       0, '4'},
-        {"ipv6",      no_argument,       0, '6'},
-        {"cfg",       required_argument, 0, 'c'},
-        {"port",      required_argument, 0, 'p'},
-        {"pidfile",   required_argument, 0, 'f'},
-        {"timeout",   required_argument, 0, 's'},
-        {"threads",   required_argument, 0, 't'},
-        {0, 0, 0, 0}
-    };
-
-    char *cfgfile             = 0;
-    int  port                 = OPENHPI_DEFAULT_DAEMON_PORT;
-    const char *pidfile       = "/var/run/openhpid.pid";
-    unsigned int sock_timeout = 0;  // unlimited
-    int  max_threads          = -1; // unlimited
-    bool runasdaemon          = true;
-    int ipvflags              = 0;
 
     /* get the command line options */
-    int c;
-    while (1) {
-        c = getopt_long(argc, argv, "nv46c:p:f:s:t:", options, 0);
-        /* detect when done scanning options */
-        if (c == -1) {
-            break;
-        }
-        switch (c) {
-            case 0:
-                /* no need to do anything here */
-                break;
-            case 'c':
-                setenv("OPENHPI_CONF", optarg, 1);
-                cfgfile = g_strdup(optarg);
-                break;
-            case 'p':
-                setenv("OPENHPI_DAEMON_PORT", optarg, 1);
-                port = atoi(optarg);
-                break;
-            case 'v':
-                verbose_flag = true;
-                break;
-            case 'f':
-                pidfile = g_strdup(optarg);
-                break;
-            case 's':
-                sock_timeout = atoi(optarg);
-                break;
-            case 't':
-                max_threads = atoi(optarg);
-                if (max_threads <= 0) {
-                    max_threads = -1;
-                }
-                break;
-            case 'n':
-                runasdaemon = false;
-                break;
-            case '4':
-                ipvflags |= FlagIPv4;
-                break;
-            case '6':
-                ipvflags |= FlagIPv6;
-                break;
-            case '?':
-            default:
-                /* they obviously need it */
-                display_help();
-                exit(-1);
-        }
-    }
-    if (optind < argc) {
-        CRIT("Unknown command line option specified. Exiting.");
-        display_help();
-        exit(-1);
+    context = g_option_context_new ("- HPI instance to which multiple clients can connect.\n\n"
+                      "A typical invocation might be\n"
+                      "  ./openhpid -c /etc/openhpi/openhpi.conf\n");
+    g_option_context_add_main_entries (context, daemon_options, NULL);
+    if (!g_option_context_parse (context, &argc, &argv, &error)) {
+           CRIT ("option parsing failed: %s",error->message);
+           display_help();
+           exit(-1);
     }
 
-    if (ipvflags == 0) {
-        ipvflags = FlagIPv4;
+    if (portstr) {
+        setenv("OPENHPI_DAEMON_PORT", portstr, 1);
+        port = atoi(portstr);
     }
+    if (cfgfile) setenv("OPENHPI_CONF", cfgfile, 1); 
+
+    if (enableIPv4)    ipvflags |= FlagIPv4;
+    if (enableIPv6)    ipvflags |= FlagIPv6;
+    if (ipvflags == 0) ipvflags = FlagIPv4;
+    if (optpidfile) pidfile = g_strdup(optpidfile);
+
+
+    // see if any invalid parameters are given
+    if (sock_timeout<0) {
+        CRIT("Socket timeout value must be positive. Exiting.");
+        display_help();
+    }
+
 
     // see if we have a valid configuration file
     if ((!cfgfile) || (!g_file_test(cfgfile, G_FILE_TEST_EXISTS))) {
@@ -349,7 +352,7 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-    if (runasdaemon) {
+    if (!runasforeground) {
         if (!daemonize(pidfile)) {
             exit(8);
         }
@@ -362,11 +365,13 @@ int main(int argc, char *argv[])
 
     // announce ourselves
     INFO("%s version %s started.", argv[0], VERSION);
-    INFO("OPENHPI_CONF = %s.", cfgfile);
+    if (cfgfile) INFO("OPENHPI_CONF = %s.", cfgfile);
     INFO("OPENHPI_DAEMON_PORT = %u", port);
     INFO("Enabled IP versions:%s%s\n",
          (ipvflags & FlagIPv4) ? " IPv4" : "",
          (ipvflags & FlagIPv6) ? " IPv6" : "");
+    INFO("Max threads: %d\n", max_threads);
+    INFO("Socket timeout(sec): %d\n", sock_timeout);
 
     bool rc = oh_server_run(ipvflags, port, sock_timeout, max_threads);
     if (!rc) {
