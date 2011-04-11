@@ -276,6 +276,8 @@ bool cStreamSock::Close()
         return true;
     }
 
+    // TODO shutdown
+
     int cc;
 #ifdef _WIN32
     cc = closesocket( m_sockfd );
@@ -403,13 +405,13 @@ cServerStreamSock::~cServerStreamSock()
     // empty
 }
 
-bool cServerStreamSock::Create( int ipvflags, uint16_t port )
+bool cServerStreamSock::Create( int ipvflags, const char * bindaddr, uint16_t port )
 {
     bool bound = false;
     struct addrinfo * info;
     std::list<struct addrinfo *> infos;
 
-    SelectAddresses( ipvflags, AI_PASSIVE, 0, port, infos );
+    SelectAddresses( ipvflags, AI_PASSIVE, bindaddr, port, infos );
 
     while ( !infos.empty() ) {
         info = *infos.begin();

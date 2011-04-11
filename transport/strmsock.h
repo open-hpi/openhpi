@@ -162,7 +162,7 @@ public:
     explicit cServerStreamSock();
     ~cServerStreamSock();
 
-    bool Create( int ipvflags, uint16_t port );
+    bool Create( int ipvflags, const char * bindaddr, uint16_t port );
 
     cStreamSock * Accept();
 
