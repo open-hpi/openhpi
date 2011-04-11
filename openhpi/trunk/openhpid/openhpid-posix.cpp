@@ -49,9 +49,10 @@
 
 static gchar    *cfgfile        = NULL;
 static gboolean verbose_flag    = FALSE;
+static gchar    *bindaddr       = NULL;
 static gint     port            = OPENHPI_DEFAULT_DAEMON_PORT;
 static gchar    *portstr        = NULL;
-static gchar    *optpidfile     = NULL; 
+static gchar    *optpidfile     = NULL;
 static gint     sock_timeout    = 0;  // unlimited -- TODO: unlimited or 30 minutes default? was unsigned int
 static gint     max_threads     = -1; // unlimited
 static gboolean runasforeground = FALSE;
@@ -67,8 +68,13 @@ static GOptionEntry daemon_options[] =
                                     "                            configuration file.",                              "conf_file" },
   { "verbose",   'v', 0, G_OPTION_ARG_NONE,     &verbose_flag,  "This option causes the daemon to display verbose\n"
                                     "                            messages. This option is optional.",                NULL },
+  { "bind",      'b', 0, G_OPTION_ARG_STRING,   &bindaddr,       "Bind address for the daemon socket.\n"
+                                    "                            Also bind address can be specified with\n"
+                                    "                            OPENHPI_DAEMON_BIND_ADDRESS environment variable.\n"
+                                    "                            No bind address is used by default.",              "bind_address" },
   { "port",      'p', 0, G_OPTION_ARG_STRING,   &portstr,       "Overrides the default listening port (4743) of\n"
                                     "                            the daemon. The option is optional.",              "port" },
+
   { "pidfile",   'f', 0, G_OPTION_ARG_FILENAME, &optpidfile,    "Overrides the default path/name for the daemon.\n"
                                     "                            pid file. The option is optional.",                "pidfile" },
   { "timeout",   's', 0, G_OPTION_ARG_INT,      &sock_timeout,  "Overrides the default socket read timeout of 30\n"
@@ -111,6 +117,10 @@ void display_help(void)
     printf("                            configuration file.\n");
     printf("  -v, --verbose             This option causes the daemon to display verbose\n");
     printf("                            messages. This option is optional.\n");
+    printf("  -b, --bind                Sets bind address for the daemon socket.\n");
+    printf("                            Also bind address can be specified with\n");
+    printf("                            OPENHPI_DAEMON_BIND_ADDRESS environment variable.\n");
+    printf("                            No bind address is used by default.\n");
     printf("  -p, --port=port           Overrides the default listening port (4743) of\n");
     printf("                            the daemon. The option is optional.\n");
     printf("  -f, --pidfile=pidfile     Overrides the default path/name for the daemon.\n");
@@ -314,24 +324,42 @@ int main(int argc, char *argv[])
            exit(-1);
     }
 
+    if (cfgfile) {
+        setenv("OPENHPI_CONF", cfgfile, 1);
+    } else {
+        cfgfile = getenv("OPENHPI_CONF");
+    }
+    if (bindaddr) {
+        setenv("OPENHPI_DAEMON_BIND_ADDRESS", bindaddr, 1);
+    } else {
+        bindaddr = getenv("OPENHPI_DAEMON_BIND_ADDRESS");
+    }
     if (portstr) {
         setenv("OPENHPI_DAEMON_PORT", portstr, 1);
+    } else {
+        portstr = getenv("OPENHPI_DAEMON_PORT");
+    }
+    if (portstr) {
         port = atoi(portstr);
     }
-    if (cfgfile) setenv("OPENHPI_CONF", cfgfile, 1); 
-
-    if (enableIPv4)    ipvflags |= FlagIPv4;
-    if (enableIPv6)    ipvflags |= FlagIPv6;
-    if (ipvflags == 0) ipvflags = FlagIPv4;
-    if (optpidfile) pidfile = g_strdup(optpidfile);
-
+    if (enableIPv4) {
+        ipvflags |= FlagIPv4;
+    }
+    if (enableIPv6) {
+        ipvflags |= FlagIPv6;
+    }
+    if (ipvflags == 0) {
+        ipvflags = FlagIPv4;
+    }
+    if (optpidfile) {
+        pidfile = g_strdup(optpidfile);
+    }
 
     // see if any invalid parameters are given
     if (sock_timeout<0) {
         CRIT("Socket timeout value must be positive. Exiting.");
         display_help();
     }
-
 
     // see if we have a valid configuration file
     if ((!cfgfile) || (!g_file_test(cfgfile, G_FILE_TEST_EXISTS))) {
@@ -365,15 +393,20 @@ int main(int argc, char *argv[])
 
     // announce ourselves
     INFO("%s version %s started.", argv[0], VERSION);
-    if (cfgfile) INFO("OPENHPI_CONF = %s.", cfgfile);
-    INFO("OPENHPI_DAEMON_PORT = %u", port);
-    INFO("Enabled IP versions:%s%s\n",
+    if (cfgfile) {
+        INFO("OPENHPI_CONF = %s.", cfgfile);
+    }
+    if (bindaddr) {
+        INFO("OPENHPI_DAEMON_BIND_ADDRESS = %s.", bindaddr);
+    }
+    INFO("OPENHPI_DAEMON_PORT = %u.", port);
+    INFO("Enabled IP versions:%s%s.\n",
          (ipvflags & FlagIPv4) ? " IPv4" : "",
          (ipvflags & FlagIPv6) ? " IPv6" : "");
-    INFO("Max threads: %d\n", max_threads);
-    INFO("Socket timeout(sec): %d\n", sock_timeout);
+    INFO("Max threads: %d.\n", max_threads);
+    INFO("Socket timeout(sec): %d.\n", sock_timeout);
 
-    bool rc = oh_server_run(ipvflags, port, sock_timeout, max_threads);
+    bool rc = oh_server_run(ipvflags, bindaddr, port, sock_timeout, max_threads);
     if (!rc) {
         return 9;
     }

@@ -76,13 +76,14 @@ static void dehash_handler_cfg(gpointer key, gpointer value, gpointer data)
 /*--------------------------------------------------------------------*/
 
 bool oh_server_run( int ipvflags,
+                    const char * bindaddr,
                     uint16_t port,
                     unsigned int sock_timeout,
                     int max_threads )
 {
     // create the server socket
     cServerStreamSock ssock;
-    if (!ssock.Create(ipvflags, port)) {
+    if (!ssock.Create(ipvflags, bindaddr, port)) {
         CRIT("Error creating server socket. Exiting.");
         return false;
     }
