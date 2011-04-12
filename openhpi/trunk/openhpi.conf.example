@@ -19,6 +19,9 @@ OPENHPI_UNCONFIGURED = "YES"
 #OPENHPI_DAT_SAVE = "NO"
 #OPENHPI_PATH = "/usr/local/lib/openhpi:/usr/lib/openhpi"
 #OPENHPI_VARPATH = "/usr/local/var/lib/openhpi"
+#OPENHPI_AUTOINSERT_TIMEOUT = 0
+#OPENHPI_AUTOINSERT_TIMEOUT_READONLY = "NO"
+
 
 ## The default values for each have been selected in the example above (except
 ## for OPENHPI_PATH and OPENHPI_CONF. See below).

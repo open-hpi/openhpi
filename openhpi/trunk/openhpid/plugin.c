@@ -535,6 +535,18 @@ static struct oh_handler *new_handler(GHashTable *handler_config)
         g_static_rec_mutex_init(&handler->lock);
         g_static_rec_mutex_init(&handler->refcount_lock);
 
+        // TODO reimplement to get timeout value from domain
+        // set auto-extract timeout
+        if (handler->abi->set_autoinsert_timeout) {
+                struct oh_global_param param;
+                oh_get_global_param2(OPENHPI_AUTOINSERT_TIMEOUT, &param);
+                SaHpiTimeoutT ai_timeout = param.u.ai_timeout;
+                SaErrorT rv = handler->abi->set_autoinsert_timeout(handler->hnd, ai_timeout);
+                if (rv != SA_OK) {
+                        CRIT("Cannot propagate auto-insert timeout to handler.");
+                }
+        }
+
         return handler;
 cleanexit:
         g_free(handler);

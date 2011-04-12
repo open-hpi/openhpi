@@ -42,9 +42,8 @@
 int oh_init(void)
 {
         static int initialized = 0;
+        struct oh_global_param param;
         struct oh_parsed_config config = { NULL, 0, 0 };
-        struct oh_global_param config_param = { .type = OPENHPI_CONF };
-        struct oh_global_param unconf_param = { .type = OPENHPI_UNCONFIGURED };
         SaErrorT rval;
 
         if (g_thread_supported() == FALSE) {
@@ -59,8 +58,9 @@ int oh_init(void)
 
         /* Initialize thread engine */
         oh_threaded_init();
+
 #ifdef HAVE_OPENSSL
-	/* Initialize SSL library */
+        INFO("Initializing SSL Library.");
 	if (oh_ssl_init()) {
                 CRIT("SSL library intialization failed.");
                 data_access_unlock();
@@ -68,9 +68,9 @@ int oh_init(void)
 	}
 #endif
         /* Set openhpi configuration file location */
-        oh_get_global_param(&config_param);
-
-        rval = oh_load_config(config_param.u.conf, &config);
+        oh_get_global_param2(OPENHPI_CONF, &param);
+        INFO("Loading config file %s.", param.u.conf);
+        rval = oh_load_config(param.u.conf, &config);
         /* Don't error out if there is no conf file */
         if (rval < 0 && rval != -4) {
                 CRIT("Can not load config.");
@@ -81,48 +81,56 @@ int oh_init(void)
 	/* One particular variable, OPENHPI_UNCONFIGURED, can cause us to exit
 	 * immediately, without trying to run the daemon any further.
 	 */
-	oh_get_global_param(&unconf_param);
-	if (unconf_param.u.unconfigured) {
-                CRIT("OpenHPI is not configured.  See openhpi.conf file.");
+	oh_get_global_param2(OPENHPI_UNCONFIGURED, &param);
+	if (param.u.unconfigured != SAHPI_FALSE) {
+                CRIT("OpenHPI is not configured. See config file.");
                 data_access_unlock();
                 return SA_ERR_HPI_ERROR;
 	}
 
         /* Initialize uid_utils */
+        INFO("Initializing UID.");
         rval = oh_uid_initialize();
         if( (rval != SA_OK) && (rval != SA_ERR_HPI_ERROR) ) {
                 CRIT("Unique ID intialization failed.");
                 data_access_unlock();
                 return rval;
         }
-        DBG("Initialized UID.");
 
         /* Initialize handler table */
         oh_handlers.table = g_hash_table_new(g_int_hash, g_int_equal);
-        DBG("Initialized handler table");
 
         /* Initialize domain table */
         oh_domains.table = g_hash_table_new(g_int_hash, g_int_equal);
-        DBG("Initialized domain table");
 
         /* Initialize session table */
         oh_sessions.table = g_hash_table_new(g_int_hash, g_int_equal);
-        DBG("Initialized session table");
 
         /* Load plugins, create handlers and domains */
         oh_process_config(&config);
 
-        /* Create default domain if it does not exist yet. */
-	if (oh_create_domain(OH_DEFAULT_DOMAIN_ID,
-	                     "DEFAULT",
-	                      SAHPI_UNSPECIFIED_DOMAIN_ID,
-	                      SAHPI_UNSPECIFIED_DOMAIN_ID,
-	                      SAHPI_DOMAIN_CAP_AUTOINSERT_READ_ONLY,
-	                      SAHPI_TIMEOUT_IMMEDIATE)) {
+        INFO("Creating default domain.");
+        oh_get_global_param2(OPENHPI_AUTOINSERT_TIMEOUT, &param);
+        SaHpiTimeoutT ai_timeout = param.u.ai_timeout;
+        INFO("Auto-Insert Timeout is %lld nsec.", ai_timeout);
+        oh_get_global_param2(OPENHPI_AUTOINSERT_TIMEOUT_READONLY, &param);
+        SaHpiDomainCapabilitiesT caps = 0;
+        if ( param.u.ai_timeout_readonly != SAHPI_FALSE ) {
+                INFO("Auto-Insert Timeout is READ-ONLY.");
+                caps = SAHPI_DOMAIN_CAP_AUTOINSERT_READ_ONLY;
+        }
+
+	rval = oh_create_domain(OH_DEFAULT_DOMAIN_ID,
+	                        "DEFAULT",
+	                        SAHPI_UNSPECIFIED_DOMAIN_ID,
+	                        SAHPI_UNSPECIFIED_DOMAIN_ID,
+	                        caps,
+	                        ai_timeout);
+        if (rval != SA_OK) {
 	        data_access_unlock();
 		CRIT("Could not create first domain!");
 		return SA_ERR_HPI_ERROR;
-       }
+        }
 
         /*
          * Wipes away configuration lists (plugin_names and handler_configs).
@@ -147,15 +155,14 @@ int oh_init(void)
 
         initialized = 1;
         data_access_unlock();
-	DBG("OpenHPI has been initialized");
+	INFO("OpenHPI has been initialized.");
 
         /* infrastructure initialization has completed at this point */
 
         /* Check if there are any handlers loaded */
         if (config.handlers_defined == 0) {
                 WARN("*Warning*: No handler definitions found in config file."
-                     " Check configuration file %s and previous messages",
-                     config_param.u.conf);
+                     " Check configuration file and previous messages" );
         }
 
         /*

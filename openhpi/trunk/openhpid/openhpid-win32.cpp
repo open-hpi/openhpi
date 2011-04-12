@@ -237,13 +237,8 @@ int main(int argc, char *argv[])
         exit(-1);
     }
 
-    if (oh_init()) { // Initialize OpenHPI
-        CRIT("There was an error initializing OpenHPI. Exiting.");
-        return 8;
-    }
-
     // announce ourselves
-    INFO("%s version %s started.", argv[0], VERSION);
+    INFO("Starting OpenHPI %s.", VERSION);
     if (cfgfile) {
         INFO("OPENHPI_CONF = %s.", cfgfile);
     }
@@ -251,11 +246,16 @@ int main(int argc, char *argv[])
         INFO("OPENHPI_DAEMON_BIND_ADDRESS = %s.", bindaddr);
     }
     INFO("OPENHPI_DAEMON_PORT = %u.", port);
-    INFO("Enabled IP versions:%s%s\n",
+    INFO("Enabled IP versions:%s%s.",
          (ipvflags & FlagIPv4) ? " IPv4" : "",
          (ipvflags & FlagIPv6) ? " IPv6" : "");
-    INFO("Max threads: %d.\n", max_threads);
-    INFO("Socket timeout(sec): %d.\n", sock_timeout);
+    INFO("Max threads: %d.", max_threads);
+    INFO("Socket timeout(sec): %d.", sock_timeout);
+
+    if (oh_init()) { // Initialize OpenHPI
+        CRIT("There was an error initializing OpenHPI. Exiting.");
+        return 8;
+    }
 
     bool rc = oh_server_run(ipvflags, bindaddr, port, sock_timeout, max_threads);
     if (!rc) {
