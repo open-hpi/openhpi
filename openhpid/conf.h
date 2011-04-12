@@ -44,8 +44,9 @@ typedef enum {
         OPENHPI_PATH,
         OPENHPI_VARPATH,
         OPENHPI_CONF, 
-	OPENHPICLIENT_CONF,
-	OPENHPI_UNCONFIGURED
+	OPENHPI_UNCONFIGURED,
+        OPENHPI_AUTOINSERT_TIMEOUT,
+        OPENHPI_AUTOINSERT_TIMEOUT_READONLY
 } oh_global_param_type;
 
 typedef union {
@@ -61,6 +62,8 @@ typedef union {
         char varpath[OH_MAX_TEXT_BUFFER_LENGTH];
         char conf[OH_MAX_TEXT_BUFFER_LENGTH];
 	SaHpiBoolT unconfigured;
+        SaHpiTimeoutT ai_timeout;
+        SaHpiBoolT ai_timeout_readonly;
 } oh_global_param_union;
 
 struct oh_global_param {
@@ -75,7 +78,8 @@ void oh_clean_config(struct oh_parsed_config *config);
 
 /* For handling global parameters */
 int oh_get_global_param(struct oh_global_param *param);
-int oh_set_global_param(struct oh_global_param *param);
+int oh_get_global_param2(oh_global_param_type type, struct oh_global_param *param);
+int oh_set_global_param(const struct oh_global_param *param);
 
 #ifdef __cplusplus
 }
