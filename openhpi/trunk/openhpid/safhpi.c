@@ -5285,10 +5285,6 @@ SaErrorT SAHPI_API saHpiAutoInsertTimeoutSet(
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, domain); /* Lock domain */
 
-        if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_FRU)) {
-                oh_release_domain(d); /* Unlock domain */
-                return SA_ERR_HPI_CAPABILITY;
-        }
         if (domain->capabilities & SAHPI_DOMAIN_CAP_AUTOINSERT_READ_ONLY) {
                 oh_release_domain(domain); /* Unlock domain */
                 return SA_ERR_HPI_READ_ONLY;
