@@ -5115,6 +5115,10 @@ SaErrorT SAHPI_API saHpiHotSwapPolicyCancel (
         OH_GET_DOMAIN(did, d); /* Lock domain */
         OH_RESOURCE_GET_CHECK(d, ResourceId, res);
 
+        if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_FRU)) {
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_CAPABILITY;
+        }
         if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
@@ -5160,6 +5164,10 @@ SaErrorT SAHPI_API saHpiResourceActiveSet (
         OH_GET_DOMAIN(did, d); /* Lock domain */
         OH_RESOURCE_GET_CHECK(d, ResourceId, res);
 
+        if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_FRU)) {
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_CAPABILITY;
+        }
         if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
@@ -5203,6 +5211,10 @@ SaErrorT SAHPI_API saHpiResourceInactiveSet (
         OH_GET_DOMAIN(did, d); /* Lock domain */
         OH_RESOURCE_GET_CHECK(d, ResourceId, res);
 
+        if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_FRU)) {
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_CAPABILITY;
+        }
         if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
@@ -5273,6 +5285,10 @@ SaErrorT SAHPI_API saHpiAutoInsertTimeoutSet(
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, domain); /* Lock domain */
 
+        if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_FRU)) {
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_CAPABILITY;
+        }
         if (domain->capabilities & SAHPI_DOMAIN_CAP_AUTOINSERT_READ_ONLY) {
                 oh_release_domain(domain); /* Unlock domain */
                 return SA_ERR_HPI_READ_ONLY;
@@ -5357,6 +5373,10 @@ SaErrorT SAHPI_API saHpiAutoExtractTimeoutGet(
         OH_GET_DOMAIN(did, d); /* Lock domain */
         OH_RESOURCE_GET_CHECK(d, ResourceId, res);
 
+        if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_FRU)) {
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_CAPABILITY;
+        }
         if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
@@ -5393,6 +5413,10 @@ SaErrorT SAHPI_API saHpiAutoExtractTimeoutSet(
         OH_GET_DOMAIN(did, d); /* Lock domain */
         OH_RESOURCE_GET_CHECK(d, ResourceId, res);
 
+        if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_FRU)) {
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_CAPABILITY;
+        }
         if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
@@ -5428,7 +5452,7 @@ SaErrorT SAHPI_API saHpiHotSwapStateGet (
         OH_GET_DOMAIN(did, d); /* Lock domain */
         OH_RESOURCE_GET_CHECK(d, ResourceId, res);
 
-        if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
+        if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_FRU)) {
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
         }
@@ -5464,6 +5488,10 @@ SaErrorT SAHPI_API saHpiHotSwapActionRequest (
         OH_GET_DOMAIN(did, d); /* Lock domain */
         OH_RESOURCE_GET_CHECK(d, ResourceId, res);
 
+        if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_FRU)) {
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_CAPABILITY;
+        }
         if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
@@ -5515,6 +5543,10 @@ SaErrorT SAHPI_API saHpiHotSwapIndicatorStateGet (
         OH_GET_DOMAIN(did, d); /* Lock domain */
         OH_RESOURCE_GET_CHECK(d, ResourceId, res);
 
+        if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_FRU)) {
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_CAPABILITY;
+        }
         if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
@@ -5555,6 +5587,10 @@ SaErrorT SAHPI_API saHpiHotSwapIndicatorStateSet (
         OH_GET_DOMAIN(did, d); /* Lock domain */
         OH_RESOURCE_GET_CHECK(d, ResourceId, res);
 
+        if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_FRU)) {
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_CAPABILITY;
+        }
         if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
