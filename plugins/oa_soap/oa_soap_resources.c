@@ -7030,7 +7030,7 @@ const SaHpiRptEntryT oa_soap_rpt_arr[] = {
 		.HotSwapCapabilities = 0x0,
 		.ResourceTag.DataType = SAHPI_TL_TYPE_TEXT,
 		.ResourceTag.Language = SAHPI_LANG_ENGLISH,
-		.ResourceTag.DataLength = 22,
+		.ResourceTag.DataLength = 21,
 		.ResourceTag.Data = "Onboard Administrator",
 	},
 	/* OA_SOAP_ENT_PS_SUBSYS */
@@ -7117,7 +7117,7 @@ const SaHpiRptEntryT oa_soap_rpt_arr[] = {
 		.HotSwapCapabilities = 0x0,
 		.ResourceTag.DataType = SAHPI_TL_TYPE_TEXT,
 		.ResourceTag.Language = SAHPI_LANG_ENGLISH,
-		.ResourceTag.DataLength = 18,
+		.ResourceTag.DataLength = 17,
 		.ResourceTag.Data = "Thermal Subsystem",
 	},
 	/* OA_SOAP_ENT_FZ */
@@ -7302,7 +7302,7 @@ const struct oa_soap_inv_rdr oa_soap_inv_arr[] = {
 				SAHPI_DEFAULT_INVENTORY_ID,
 			.IdString.DataType = SAHPI_TL_TYPE_TEXT,
 			.IdString.Language = SAHPI_LANG_ENGLISH,
-			.IdString.DataLength = 22,
+			.IdString.DataLength = 21,
 			.IdString.Data = "Onboard Administrator",
 		},
 	},
