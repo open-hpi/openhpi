@@ -84,7 +84,7 @@ static struct {
         .conf = OH_DEFAULT_CONF,
         .unconfigured = SAHPI_FALSE,
         .ai_timeout = 0,
-        .ai_timeout_readonly = SAHPI_FALSE,
+        .ai_timeout_readonly = SAHPI_TRUE,
         .read_env = 0,
         .lock = G_STATIC_REC_MUTEX_INIT
 };
