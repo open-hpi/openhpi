@@ -396,6 +396,7 @@ static SaErrorT ilo2_ribcl_get_uid_status(ilo2_ribcl_handler_t *hnd,
 {
 	char *uid_cmd;
 	char *response;	/* command response buffer */
+	char *new_response = NULL;
 	int ret;
 	int uid_status = -1;
 
@@ -424,17 +425,33 @@ static SaErrorT ilo2_ribcl_get_uid_status(ilo2_ribcl_handler_t *hnd,
 		return( SA_ERR_HPI_INTERNAL_ERROR);
 	}
 
-	/* Now, parse the response. */
-	ret = ir_xml_parse_uid_status(response, &uid_status,
-			hnd->ilo2_hostport);
+	switch(hnd->ilo_type){
+		case ILO:
+		case ILO2:
+			/* Now, parse the response. */
+			ret = ir_xml_parse_uid_status( response, &uid_status,
+					hnd->ilo2_hostport);
+			break;
+		case ILO3:
+			new_response = ir_xml_decode_chunked(response);
+			/* Now, parse the response. */
+			ret = ir_xml_parse_uid_status(new_response, &uid_status,
+					hnd->ilo2_hostport);
+			break;
+		default:
+			err("ilo2_ribcl_get_uid_status():"
+				"failed to detect ilo type.");
+        }
 	if( ret != RIBCL_SUCCESS){
 		err("ilo2_ribcl_get_uid_status: response parse failed.");
-		free( response); 
+		free( response);
+		free( new_response);
 		return( SA_ERR_HPI_INTERNAL_ERROR);
 	}
 
 	/* We're finished. Free up the temporary response buffer */
 	free( response);
+	free( new_response);
 
 	if(uid_status == ILO2_RIBCL_UID_ON) {
 		*status = SAHPI_CTRL_STATE_ON;
@@ -466,6 +483,7 @@ static SaErrorT ilo2_ribcl_set_uid_status(ilo2_ribcl_handler_t *hnd,
 {
 	char *uid_cmd;
 	char *response;	/* command response buffer */
+	char *new_response = NULL;
 	int ret;
 
 	if((status != SAHPI_CTRL_STATE_OFF) &&
@@ -503,16 +521,33 @@ static SaErrorT ilo2_ribcl_set_uid_status(ilo2_ribcl_handler_t *hnd,
 		return( SA_ERR_HPI_INTERNAL_ERROR);
 	}
 
-	/* Now, parse the response. */
-	ret = ir_xml_parse_status(response, hnd->ilo2_hostport);
+	switch(hnd->ilo_type){
+		case ILO:
+		case ILO2:
+			/* Now, parse the response. */
+			ret = ir_xml_parse_status( response,
+						hnd->ilo2_hostport);
+			break;
+		case ILO3:
+			new_response = ir_xml_decode_chunked(response);
+			/* Now, parse the response. */
+			ret = ir_xml_parse_status(new_response,
+						hnd->ilo2_hostport);
+			break;
+		default:
+			err("ilo2_ribcl_set_uid_status():"
+				"failed to detect ilo type.");
+        }
 	if( ret != RIBCL_SUCCESS){
 		err("ilo2_ribcl_set_uid_status: response parse failed.");
-		free( response); 
+		free( response);
+		free( new_response);
 		return( SA_ERR_HPI_INTERNAL_ERROR);
 	}
 
 	/* We're finished. Free up the temporary response buffer */
 	free( response);
+	free( new_response);
 	return(SA_OK);
 }
 
@@ -534,6 +569,7 @@ static SaErrorT ilo2_ribcl_get_power_saver_status(ilo2_ribcl_handler_t *hnd,
 {
 	char *ps_cmd;
 	char *response;	/* command response buffer */
+	char *new_response = NULL;
 	int ret;
 	int ps_status = -1;
 
@@ -562,17 +598,35 @@ static SaErrorT ilo2_ribcl_get_power_saver_status(ilo2_ribcl_handler_t *hnd,
 		return( SA_ERR_HPI_INTERNAL_ERROR);
 	}
 
-	/* Now, parse the response. */
-	ret = ir_xml_parse_power_saver_status(response, &ps_status,
-			hnd->ilo2_hostport);
+	switch(hnd->ilo_type){
+		case ILO:
+		case ILO2:
+			/* Now, parse the response. */
+			ret = ir_xml_parse_power_saver_status( response, 
+					&ps_status,
+					hnd->ilo2_hostport);
+			break;
+		case ILO3:
+			new_response = ir_xml_decode_chunked(response);
+			/* Now, parse the response. */
+			ret = ir_xml_parse_power_saver_status(new_response, 
+					&ps_status,
+					hnd->ilo2_hostport);
+			break;
+		default:
+			err("ilo2_ribcl_get_power_saver_status():"
+					"failed to detect ilo type.");
+        }
 	if( ret != RIBCL_SUCCESS) {
 		err("ilo2_ribcl_get_power_saver_status: response parse failed.");
 		free( response); 
+		free( new_response);
 		return( SA_ERR_HPI_INTERNAL_ERROR);
 	}
 
 	/* We're finished. Free up the temporary response buffer */
 	free( response);
+	free( new_response);
 
 	if (ps_status >= ILO2_RIBCL_MANUAL_OS_CONTROL_MODE && 
 		ps_status <= ILO2_RIBCL_MANUAL_HIGH_PERF_MODE) {
@@ -603,6 +657,7 @@ static SaErrorT ilo2_ribcl_set_power_saver_status(ilo2_ribcl_handler_t *hnd,
 {
 	char *ps_cmd;
 	char *response;	/* command response buffer */
+	char *new_response = NULL;
 	int ret;
 
 	if((status < ILO2_RIBCL_MANUAL_OS_CONTROL_MODE) ||
@@ -647,11 +702,26 @@ static SaErrorT ilo2_ribcl_set_power_saver_status(ilo2_ribcl_handler_t *hnd,
 		return( SA_ERR_HPI_INTERNAL_ERROR);
 	}
 
-	/* Now, parse the response. */
-	ret = ir_xml_parse_status(response, hnd->ilo2_hostport);
+	switch(hnd->ilo_type){
+		case ILO:
+		case ILO2:
+			/* Now, parse the response. */
+			ret = ir_xml_parse_status(response, hnd->ilo2_hostport);
+			break;
+		case ILO3:
+			new_response = ir_xml_decode_chunked(response);
+			/* Now, parse the response. */
+			ret = ir_xml_parse_status(new_response,
+						hnd->ilo2_hostport);
+			break;
+		default:
+			err("ilo2_ribcl_set_power_saver_status():"
+					"failed to detect ilo type.");
+        }
 	if( ret != RIBCL_SUCCESS){
 		err("ilo2_ribcl_set_power_saver_status: response parse failed.");
 		free( response);
+		free( new_response);
 		/* DL365 G1 doesn't support Power Saver Feature and DL385 G2
 		   supports just the ILO2_RIBCL_MANUAL_LOW_POWER_MODE */  
 		if(ret == RIBCL_UNSUPPORTED) {
@@ -662,6 +732,7 @@ static SaErrorT ilo2_ribcl_set_power_saver_status(ilo2_ribcl_handler_t *hnd,
 
 	/* We're finished. Free up the temporary response buffer */
 	free( response);
+	free( new_response);
 	return(SA_OK);
 }
 
@@ -683,6 +754,7 @@ static SaErrorT ilo2_ribcl_get_auto_power_status(ilo2_ribcl_handler_t *hnd,
 {
 	char *ps_cmd;
 	char *response;	/* command response buffer */
+	char *new_response = NULL;
 	int ret;
 	int ps_status = -1;
 
@@ -710,18 +782,36 @@ static SaErrorT ilo2_ribcl_get_auto_power_status(ilo2_ribcl_handler_t *hnd,
 		free( response);
 		return( SA_ERR_HPI_INTERNAL_ERROR);
 	}
+	switch(hnd->ilo_type){
+		case ILO:
+		case ILO2:
+			/* Now, parse the response. */
+			ret = ir_xml_parse_auto_power_status(response, 
+					&ps_status,
+					hnd->ilo2_hostport);
+			break;
+		case ILO3:
+			new_response = ir_xml_decode_chunked(response);
+			/* Now, parse the response. */
+			ret = ir_xml_parse_auto_power_status(new_response, 
+					&ps_status,
+					hnd->ilo2_hostport);
+			break;
+		default:
+			err("ilo2_ribcl_get_auto_power_status():"
+					"failed to detect ilo type.");
+        }
 
-	/* Now, parse the response. */
-	ret = ir_xml_parse_auto_power_status(response, &ps_status,
-			hnd->ilo2_hostport);
 	if( ret != RIBCL_SUCCESS) {
 		err("ilo2_ribcl_get_auto_power_status: response parse failed.");
 		free( response); 
+		free( new_response);
 		return( SA_ERR_HPI_INTERNAL_ERROR);
 	}
 
 	/* We're finished. Free up the temporary response buffer */
 	free( response);
+	free( new_response);
 
 	if (ps_status >= ILO2_RIBCL_AUTO_POWER_ENABLED && 
 		ps_status <= ILO2_RIBCL_AUTO_POWER_DELAY_60) {
@@ -752,6 +842,7 @@ static SaErrorT ilo2_ribcl_set_auto_power_status(ilo2_ribcl_handler_t *hnd,
 {
 	char *ps_cmd;
 	char *response;	/* command response buffer */
+	char *new_response = NULL;
 	int ret;
 
 	if((status != ILO2_RIBCL_AUTO_POWER_ENABLED) &&
@@ -807,16 +898,32 @@ static SaErrorT ilo2_ribcl_set_auto_power_status(ilo2_ribcl_handler_t *hnd,
 		return( SA_ERR_HPI_INTERNAL_ERROR);
 	}
 
-	/* Now, parse the response. */
-	ret = ir_xml_parse_status(response, hnd->ilo2_hostport);
+	switch(hnd->ilo_type){
+		case ILO:
+		case ILO2:
+			/* Now, parse the response. */
+			ret = ir_xml_parse_status(response, hnd->ilo2_hostport);
+			break;
+		case ILO3:
+			new_response = ir_xml_decode_chunked(response);
+			/* Now, parse the response. */
+			ret = ir_xml_parse_status(new_response, 
+						hnd->ilo2_hostport);
+			break;
+		default:
+			err("ilo2_ribcl_set_auto_power_status():"
+					"failed to detect ilo type.");
+        }
 	if( ret != RIBCL_SUCCESS){
 		err("ilo2_ribcl_set_auto_power_status: response parse failed.");
 		free( response);
+		free( new_response);
 		return( SA_ERR_HPI_INTERNAL_ERROR);
 	}
 
 	/* We're finished. Free up the temporary response buffer */
 	free( response);
+	free( new_response);
 	return(SA_OK);
 }
 

@@ -77,6 +77,7 @@ static xmlChar *ir_xml_smb_get_value( char *, xmlNodePtr);
 static int ir_xml_insert_logininfo( char *, int, char *, char *, char *);
 static int ir_xml_extract_index( char *, char *, int);
 static int ir_xml_replacestr( char **, char *);
+extern int ir_xml_insert_headerinfo( char *, int, char *, char *, char *);
 
 /* Error return values for ir_xml_extract_index */
 #define IR_NO_PREFIX	-1
@@ -107,7 +108,6 @@ char *ir_xml_cmd_templates[] = {
 	[IR_CMD_SERVER_AUTO_PWR_60]	ILO2_RIBCL_SERVER_AUTO_PWR_60,
 	[IR_CMD_SERVER_AUTO_PWR_RANDOM]	ILO2_RIBCL_SERVER_AUTO_PWR_RANDOM
 		};
-
 /**
  * ir_xml_parse_status
  * @ribcl_outbuf: Ptr to a buffer containing the raw output from any RIBCL cmd.
@@ -915,7 +915,7 @@ int ir_xml_build_cmdbufs( ilo2_ribcl_handler_t *handler)
 	for( i =0; i < IR_NUM_COMMANDS; i++){
 		handler->ribcl_xml_cmd[i] = NULL;
 	}
-	
+
 	login = handler->user_name;
 	password = handler->password;
 
@@ -1047,6 +1047,107 @@ static int ir_xml_insert_logininfo( char *dest, int dsize, char *format,
 
 } /* end ir_xml_insert_logininfo() */
 
+
+/**
+ * ir_xml_insert_headerinfo
+ * @dest - ptr to destination buffer for the customized HTTP header.
+ * @dsize - size of the dest buffer, including the terminating null.
+ * @format - A *printf format string containing at least two %s substitutions.
+ * @h_name  - the hostname string
+ * @c_length - Content length in decimal characters.
+ *
+ * This is a stripped down version of the standard snprintf() routine.
+ * It is designed to insert the hostname and content-length
+ * strings into a HTTP header template given by the *'format' parameter.
+ * The resulting customized header string is written to the null 
+ * terminated buffer 'dest'.
+ *
+ * Return value: The number of characters written to the dest buffer, not
+ *               including the terminating null (just like snprintf()) if
+ *               success, -1 if failure.
+ **/
+int ir_xml_insert_headerinfo( char *dest, int dsize, char *format,
+		 char *h_name, char *c_length)
+{
+	enum istates { COPY, INSERT_H_NAME, INSERT_C_LENGTH, COPY_POST };
+	int dcount = 0;
+	enum istates state;
+	char ch;
+	int header_entered = 0;
+	if( dest == NULL || h_name == NULL || c_length == NULL)
+		return -1;
+	state = COPY;
+
+	while( dcount < dsize)
+	{
+		switch( state){
+
+		case COPY:
+			if( (*format == '%') && ( (*(format +1)) == 's')){
+				format += 2;
+				if( header_entered){
+					state = INSERT_C_LENGTH;
+				} else {
+					state = INSERT_H_NAME;
+				}
+			} else {
+				/* Copy from format to dest */
+				ch = *dest++ = *format++;
+				if( ch == '\0'){
+					/* We're done */
+					return( dcount);
+				}
+				dcount++;
+			}
+			break;
+
+		case INSERT_H_NAME:
+			header_entered = 1;
+			if( *h_name != '\0'){
+				*dest++ = *h_name++;
+				dcount++;
+			} else {
+				state = COPY;
+			}
+			break;
+
+                case INSERT_C_LENGTH:
+			if( *c_length != '\0'){
+				*dest++ = *c_length++;
+				dcount++;
+			} else {
+				state = COPY_POST;
+			}
+			break;
+
+                case COPY_POST:
+			/* Copy from format to dest */
+			ch = *dest++ = *format++;
+			if( ch == '\0'){
+				/* We're done */
+				return( dcount);
+			}
+			dcount++;
+			break;
+
+		default:
+			err("ir_xml_insert_logininfo(): Illegal state.");
+			return ( -1);
+			break;
+
+		} /* end switch state */
+
+	} /* end while dcount < dsize */
+
+        /* If we make it here, then we've run out of destination buffer space,
+         * so force a null termination to the destination buffer and return the
+         * number of non-null chars.
+         */
+
+	*(dest -1) = '\0';
+	return( dcount - 1);
+
+} /* end ir_xml_insert_headerinfo() */
 /**
  * ir_xml_free_cmdbufs
  * @handler:  ptr to the ilo2_ribcl plugin private handler.
@@ -1697,7 +1798,11 @@ static int ir_xml_scan_power( ilo2_ribcl_handler_t *ir_handler,
 
 			/* XXX REVISIT - confirm that "Not Installed" is the
 			 * correct string when the power supply is removed. */
-
+			/*The iLO3 output for the power supply has
+			 *a "Power Supplies" label that we don't care
+			 *about, the same is filtered-out here
+			 */
+			if( xmlStrcmp( lbl, (xmlChar *)"Power Supplies") != 0)
 			if( xmlStrcmp( stat, (xmlChar *)"Not Installed") != 0 ){	
 				ret = ir_xml_record_psdata( ir_handler,
 						(char *)lbl, (char *)stat);
@@ -2742,7 +2847,90 @@ static int ir_xml_replacestr( char **ostring, char *nstring)
 	
 } /* end ir_xml_replacestr() */
 
+/**
+ * ir_xml_decode_chunked
+ * @d_response: Pointer to the raw output from RIBCL command.
+ *
+ * Converts a buffer containing the raw output from a RIBCL command
+ * that contains HTTP header and response in 'chunked' transfer encoding
+ * into plain text that can be fed into the parser.
+ * Return value: Ptr to the new buffer on success, or NULL if failure.
+ **/
+char* ir_xml_decode_chunked(char *d_response)
+{
+	int hide = 1;
+	int issizeofchunk = 1;
+	char temp_line[ILO2_RIBCL_HTTP_LINE_MAX];
+	int chunksize;
+	int line_length;
+	int i;
+	int j;
+	char *new_buffer = NULL;
+	new_buffer = malloc(ILO2_RIBCL_DISCOVER_RESP_MAX);
+	if( new_buffer == NULL){
+		err("ir_xml_decode_chunked():"
+			"failed to allocate resp buffer.");
+		return NULL;
+	}
+	memset( new_buffer, '\0', ILO2_RIBCL_DISCOVER_RESP_MAX);
+	j = 0;
+	i = 0;
+	while(1){
+		i=0;
+		memset( temp_line,'\0', ILO2_RIBCL_HTTP_LINE_MAX);
+		while(( temp_line[i++] = *d_response++)!='\n');
+		line_length = strlen( temp_line);
+		if( line_length == 0){
+			break;
+		}
+		if( hide){
+			if( line_length <= 2){
+				hide=0;
+			}
+		} else {
+			if( issizeofchunk){
+                        	        chunksize = hextodec(temp_line);
+                                	issizeofchunk = 0;
+	                                continue;
+                	}
+	                if( chunksize == 0){
+				break;
+			}
+			if( chunksize == line_length){
+				issizeofchunk = 1;
+				hide = 1;
+			} else {
+				if( chunksize > line_length){
+					chunksize -= line_length;
+				} else {
+					issizeofchunk = 1;
+					for( i = 0; i < chunksize ; i++, j++)
+						new_buffer[j] = temp_line[i];
+					continue;
+				}
+			}
+			i = 0;
+			for(i = 0; i < line_length; i++, j++){
+				new_buffer[j] = temp_line[i];
+			}
+		}
+	}
+	new_buffer[++j] = '\0';
+	return new_buffer;
+} /* end ir_xml_decode_chunked() */
 
+/**
+ * hextodec
+ * @hex: string containing hex values.
+ * 
+ * convert the hex ascii charecters to integer value
+ * 
+ * Return value: a long containing the Decimal value
+ **/
+long hextodec(char hex[])
+{
+	return( strtol(hex, NULL, 16));
+}/* end hextodec() */
 
 #ifdef ILO2_RIBCL_DEBUG_SENSORS
 static char *ilo2_ribcl_sval2string[] = {

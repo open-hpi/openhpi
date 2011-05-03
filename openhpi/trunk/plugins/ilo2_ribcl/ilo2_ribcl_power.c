@@ -72,6 +72,7 @@ SaErrorT ilo2_ribcl_get_power_state(void *hnd,
 	SaHpiRptEntryT *rpt;
 	char *grs_cmd;
 	char *response;	/* command response buffer */
+	char *new_response = NULL;
 	int ret;
 	int power_status = -1;
 	ilo2_ribcl_resource_info_t *res_info = NULL;
@@ -131,20 +132,36 @@ SaErrorT ilo2_ribcl_get_power_state(void *hnd,
 		free( response);
 		return( SA_ERR_HPI_INTERNAL_ERROR);
 	}
+	switch(ilo2_ribcl_handler->ilo_type){
+		case ILO:
+		case ILO2:
+			/* Now, parse the response.*/
+			ret = ir_xml_parse_host_power_status(response, 
+					&power_status,
+					ilo2_ribcl_handler->ilo2_hostport);
+			break;
+		case ILO3:
+			new_response = ir_xml_decode_chunked(response);
+			/* Now, parse the response.*/
+			ret = ir_xml_parse_host_power_status(new_response, 
+					&power_status,
+					ilo2_ribcl_handler->ilo2_hostport);
+			break;
+		default:
+			err("ilo2_ribcl_do_discovery():"
+				"failed to detect ilo type.");
+	}
 
-	/* Now, parse the response.
-	 */
-
-	ret = ir_xml_parse_host_power_status(response, &power_status,
-			ilo2_ribcl_handler->ilo2_hostport);
 	if( ret != RIBCL_SUCCESS){
 		err("ilo2_ribcl_get_power_state: response parse failed.");
 		free( response); 
+		free( new_response);
 		return( SA_ERR_HPI_INTERNAL_ERROR);
 	}
 
 	/* We're finished. Free up the temporary response buffer */
 	free( response);
+	free( new_response);
 
 	if(power_status == ILO2_RIBCL_POWER_ON) {
 		*state = SAHPI_POWER_ON;
@@ -191,6 +208,7 @@ SaErrorT ilo2_ribcl_set_power_state(void *hnd,
 	SaHpiRptEntryT *rpt;
 	char *sps_cmd;
 	char *response;	/* command response buffer */
+	char *new_response = NULL;
 	int ret;
 	ilo2_ribcl_resource_info_t *res_info = NULL;
 
@@ -265,15 +283,27 @@ SaErrorT ilo2_ribcl_set_power_state(void *hnd,
 		free( response);
 		return( SA_ERR_HPI_INTERNAL_ERROR);
 	}
-
-	/* Now, parse the response. */
-
-	ret = ir_xml_parse_set_host_power(response,
-			ilo2_ribcl_handler->ilo2_hostport);
-
+	switch(ilo2_ribcl_handler->ilo_type){
+		case ILO:
+		case ILO2:
+			/* Now, parse the response. */
+			ret = ir_xml_parse_set_host_power(response,
+					ilo2_ribcl_handler->ilo2_hostport);
+			break;
+		case ILO3:
+			new_response = ir_xml_decode_chunked(response);
+			/* Now, parse the response. */
+			ret = ir_xml_parse_set_host_power(new_response,
+					ilo2_ribcl_handler->ilo2_hostport);
+			break;
+		default:
+			err("ilo2_ribcl_do_discovery():"
+					"failed to detect ilo type.");
+	}
 	if(ret == -1) {
 		err("ilo2_ribcl_set_power_state: iLO2 returned error.");
 		free( response);
+		free( new_response);
 		return( SA_ERR_HPI_INTERNAL_ERROR);
 	}
 
@@ -333,13 +363,26 @@ SaErrorT ilo2_ribcl_set_power_state(void *hnd,
 			free( response);
 			return( SA_ERR_HPI_INTERNAL_ERROR);
 		}
-
-		/* Now, parse the response. */
-
-		ret = ir_xml_parse_set_host_power(response,
-				ilo2_ribcl_handler->ilo2_hostport);
+		switch(ilo2_ribcl_handler->ilo_type){
+			case ILO:
+			case ILO2:
+				/* Now, parse the response. */
+				ret = ir_xml_parse_set_host_power(response,
+					ilo2_ribcl_handler->ilo2_hostport);
+				break;
+			case ILO3:
+				new_response = ir_xml_decode_chunked(response);
+				/* Now, parse the response. */
+				ret = ir_xml_parse_set_host_power(new_response,
+					ilo2_ribcl_handler->ilo2_hostport);
+				break;
+			default:
+				err("ilo2_ribcl_do_discovery():"
+					"failed to detect ilo type.");
+		}
 
 		free( response);
+		free( new_response);
 
 		if(ret == -1) {
 			err("ilo2_ribcl_set_power_state: iLO2 returned error.");
