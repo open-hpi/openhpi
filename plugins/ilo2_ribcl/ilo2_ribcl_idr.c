@@ -897,7 +897,7 @@ static void ilo2_ribcl_field_catstring( I2R_FieldT *field, char *str)
  *	Field 1: SAHPI_IDR_FIELDTYPE_PRODUCT_NAME "<system product number>"
  *	Field 2: SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER "<system serial numner>" 
  *	Field 3: SAHPI_IDR_FIELDTYPE_MANUFACTURER "Hewlett Packard"
- *	Field 4: SAHPI_IDR_FIELDTYPE_CUSTOM "iLo2_Firmware: <firmware version>"
+ *	Field 4: SAHPI_IDR_FIELDTYPE_CUSTOM "iLO_Firmware: <firmware version>"
  *
  * Return values:
  * None
@@ -929,7 +929,7 @@ void ilo2_ribcl_build_chassis_idr( ilo2_ribcl_handler_t *ir_handler,
 
 	field = &(idr_info->idr_areas[0].area_fields[I2R_CHASSIS_IF_ILO2VERS]);
 	field->field_type = SAHPI_IDR_FIELDTYPE_CUSTOM;
-	ilo2_ribcl_field_catstring( field, "iLo2_Firmware: ");
+	ilo2_ribcl_field_catstring( field, "iLO_Firmware: ");
 	ilo2_ribcl_field_catstring( field, ddata->fwdata.version_string);
 	
 } /* end ilo2_ribcl_build_chassis_idr() */ 

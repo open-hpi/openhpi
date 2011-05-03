@@ -45,7 +45,6 @@
 #include <ilo2_ribcl_xml.h>
 #include <ilo2_ribcl_discover.h>
 #include <ilo2_ribcl_sensor.h>
-
 static SaHpiEntityPathT g_epbase; /* root entity path (from config) */
 
 /*****************************
@@ -83,7 +82,6 @@ void *ilo2_ribcl_open(GHashTable *handler_config,
 	int host_len = 0;
 	int port_len = 0;
 	int temp_len = 0;
-
 #ifdef ILO2_RIBCL_SIMULATE_iLO2_RESPONSE
 	char *d_responsefile;
 	size_t fnamesize;
@@ -218,11 +216,31 @@ void *ilo2_ribcl_open(GHashTable *handler_config,
 	ilo2_ribcl_handler->user_name = ilo2_user_name;
 	ilo2_ribcl_handler->password = ilo2_password;
 
+	/*initialize the ilo_type to NO_ILO*/
+	ilo2_ribcl_handler->ilo_type = NO_ILO;
+
+	/*hostname is needed for the HTTP 1.1 header
+	 *that will be sent to iLO3 prior to RIBCL command
+	 *submission. The max length of the hostname is 
+	 *limited by HOST_NAME_MAX, the gethostname always have a '\0'
+	 *at the end of the name, if hostname exceeds the HOST_NAME_MAX,
+	 *the string is truncated. So it is always made
+	 *sure that the last character is '\0'. Achieved by the following
+	 *statement of the gethostname.
+	 */
+	gethostname(ilo2_ribcl_handler->ir_hostname, HOST_NAME_MAX-1);
+	ilo2_ribcl_handler->ir_hostname[HOST_NAME_MAX] = '\0';
+	
+
+	/*Initialize the test and the iLO3 header pointer to NULL*/
+	ilo2_ribcl_handler->ribcl_xml_test_hdr = NULL;
+	ilo2_ribcl_handler->ribcl_xml_ilo3_hdr = NULL;
+	
 	/* Build the customized RIBCL command strings containing the
 	 * login and password for this ilo2 host */
-
 	if (ir_xml_build_cmdbufs( ilo2_ribcl_handler) != RIBCL_SUCCESS){
-		err("ilo2_ribcl_open(): ir_xml_build_cmdbufs failed to build buffers.");
+		err("ilo2_ribcl_open(): ir_xml_build_cmdbufs"
+				"failed to build buffers.");
 		free(ilo2_ribcl_handler->ilo2_hostport);
 		free(ilo2_ribcl_handler);
 		free(oh_handler->rptcache);
@@ -264,7 +282,6 @@ void *ilo2_ribcl_open(GHashTable *handler_config,
 		free(oh_handler);
 		return(NULL);
 	}
-
 	/* Initialize sensor data */
 	ilo2_ribcl_init_sensor_data( ilo2_ribcl_handler);
 

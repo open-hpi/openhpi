@@ -35,13 +35,14 @@
 #ifndef _INC_ILO2_RIBCL_SSL_H_
 #define _INC_ILO2_RIBCL_SSL_H_
 
+#define ILO_RIBCL_TEST_ILO_RESPONSE_MAX 1024
 #include <ilo2_ribcl.h>
-
 /*
  * This file defines prototypes for the iLO2 RIBCL plug-in iLO2 SSL connection
  * management functions implemented in ilo2_ribcl_ssl.c
  */
 extern int ilo2_ribcl_ssl_send_command(ilo2_ribcl_handler_t *, char *,
 	char *, int);
-
+extern int ilo_ribcl_detect_ilo_type(ilo2_ribcl_handler_t *);
+void itoascii(char *, int);
 #endif /* _INC_ILO2_RIBCL_SSL_H_ */

@@ -52,5 +52,6 @@ extern int ir_xml_parse_auto_power_status(char *, int *, char *);
 extern int ir_xml_parse_discoveryinfo( ilo2_ribcl_handler_t *, char *);
 extern void ir_xml_free_cmdbufs( ilo2_ribcl_handler_t *);
 extern int ir_xml_build_cmdbufs( ilo2_ribcl_handler_t *);
- 
+extern char* ir_xml_decode_chunked( char *);
+extern long hextodec(char *); 
 #endif /* _INC_ILO2_RIBCL_XML_H_ */

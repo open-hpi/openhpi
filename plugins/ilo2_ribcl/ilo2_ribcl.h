@@ -44,6 +44,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <bits/local_lim.h>
 
 #include <SaHpi.h>
 #include <oh_utils.h>
@@ -99,7 +100,7 @@
  * Change to dynamic if need be.
  */
 #define ILO2_RIBCL_BUFFER_LEN	4096 
-
+#define ILO2_RIBCL_HTTP_LINE_MAX 2048
 /*
  * Power and reset status definitions
 */
@@ -107,7 +108,11 @@
 #define ILO2_RIBCL_POWER_ON	1
 #define ILO2_RIBCL_RESET_SUCCESS	1	
 #define ILO2_RIBCL_RESET_FAILED	0	
-
+/*
+ *Moving this definition to this file
+ *from ilo2_ribcl_discover.h file
+ */
+#define ILO2_RIBCL_DISCOVER_RESP_MAX 1024*48
 /*
  * For a oh_set_power_state() call with a state parameter of
  * SAHPI_POWER_CYCLE, we must wait until the server actually powers off
@@ -131,7 +136,11 @@
 */
 #define ILO2_RIBCL_MANAGED_HOTSWAP_CAP_FALSE	0
 
-
+#define NO_ILO	0
+#define ILO	1
+#define ILO2	2
+#define ILO3	3
+#define ILO2_RIBCL_CMD_MAX_LEN 5
 /******************************************************************************
  * The following data structures and macros are used for our implementation
  * of Inventory Data Repositories.
@@ -372,7 +381,8 @@ typedef struct ilo2_ribcl_DiscoveryData {
 typedef struct ilo2_ribcl_handler {
 	char *entity_root;
 	int first_discovery_done;
-
+	int ilo_type;
+	char ir_hostname[HOST_NAME_MAX];
 	/* Storehouse for data obtained during discovery */
 	ilo2_ribcl_DiscoveryData_t DiscoveryData;
 
@@ -395,6 +405,9 @@ typedef struct ilo2_ribcl_handler {
 
 	/* Commands customized with the login and password for this system */
 	char *ribcl_xml_cmd[ IR_NUM_COMMANDS];
+
+	char *ribcl_xml_test_hdr;
+	char *ribcl_xml_ilo3_hdr;
 
 	GSList *eventq;                 /* Event queue cache */
 

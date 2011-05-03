@@ -259,6 +259,7 @@ static SaErrorT ilo2_ribcl_do_discovery( ilo2_ribcl_handler_t *ir_handler)
 	char *discover_cmd;
 	char *d_response;	/* command response buffer */
 	int ret;
+	char *new_buffer=NULL;
 
 	/* Allocate a temporary response buffer. Since the discover
 	 * command should be infrequently run, we dynamically allocate
@@ -294,7 +295,19 @@ static SaErrorT ilo2_ribcl_do_discovery( ilo2_ribcl_handler_t *ir_handler)
 		ret = ilo2_ribcl_getfile( ir_handler->discovery_responsefile,
 			d_response, ILO2_RIBCL_DISCOVER_RESP_MAX);
 	} else {
-
+		if(ir_handler->ilo_type == NO_ILO){
+			ret = ilo_ribcl_detect_ilo_type(ir_handler);
+			if( ret <0){
+				err("ilo2_ribcl_do_discovery():"
+					"could not detect iLO type.");
+				return( SA_ERR_HPI_INTERNAL_ERROR);
+			}
+			/*
+			 *We found the ilo_type in ret
+			 *assign it to the handler here
+			 */
+			ir_handler->ilo_type = ret;
+		}
 		/* Send the command to iLO2 and get the response. */
 		ret = ilo2_ribcl_ssl_send_command( ir_handler, discover_cmd,
 				d_response, ILO2_RIBCL_DISCOVER_RESP_MAX);
@@ -302,6 +315,19 @@ static SaErrorT ilo2_ribcl_do_discovery( ilo2_ribcl_handler_t *ir_handler)
 
 #else /* ILO2_RIBCL_SIMULATE_iLO2_RESPONSE not defined. This the the
 	 normal use, non-testing case. */
+	if(ir_handler->ilo_type == NO_ILO){
+		ret = ilo_ribcl_detect_ilo_type(ir_handler);
+		if( ret <0){
+			err("ilo2_ribcl_do_discovery():"
+				"could not detect iLO type.");
+			return( SA_ERR_HPI_INTERNAL_ERROR);
+		}
+		/*
+		 *We found the ilo_type in ret
+		 *assign it to the handler here
+		 */
+		ir_handler->ilo_type = ret;
+	}
 
 	/* Send the command to iLO2 and get the response. */
 	ret = ilo2_ribcl_ssl_send_command( ir_handler, discover_cmd,
@@ -318,16 +344,39 @@ static SaErrorT ilo2_ribcl_do_discovery( ilo2_ribcl_handler_t *ir_handler)
 	/* Now, parse the response. The information we extract will be
 	 * written into the DiscoveryData element in our private handler
 	 */
+	/*
+	 *switch based on ilo
+	 *
+	 */
+	switch(ir_handler->ilo_type){
 
-	ret = ir_xml_parse_discoveryinfo( ir_handler, d_response);
+		case ILO:
+		case ILO2:
+			ret = ir_xml_parse_discoveryinfo( ir_handler, 
+							d_response);
+			break;
+		case ILO3:
+			new_buffer = ir_xml_decode_chunked(d_response);
+			ret = ir_xml_parse_discoveryinfo( ir_handler, 
+							new_buffer);
+			break;
+		default:
+			err("ilo2_ribcl_do_discovery():"
+				"failed to detect ilo type.");
+	}
 	if( ret != RIBCL_SUCCESS){
 		err("ilo2_ribcl_do_discovery(): response parse failed.");
-		free( d_response); 
+		free( d_response);
+		free( new_buffer);
 		return( SA_ERR_HPI_INTERNAL_ERROR);
 	}
-
 	/* We're finished. Free up the temporary response buffer */
 	free( d_response);
+	/*
+	 * new_buffer will be NULL for ILO2
+	 * it is absolutely fine to free NULL
+	 */
+	free( new_buffer);
 	return( SA_OK);
 	
 } /* end ilo2_ribcl_do_discovery() */

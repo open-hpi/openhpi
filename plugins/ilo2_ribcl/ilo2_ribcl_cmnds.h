@@ -45,6 +45,13 @@
  */
 #define ILO2_RIBCL_XML_HDR      "<?xml version=\"1.0\"?>\r\n"
 
+#define ILO3_RIBCL_XML_HDR	"POST /ribcl HTTP/1.1\r\nHOST: %s\r\n\
+TE: chunked\r\nConnection: Close\r\nContent-length: %s\r\n\r\n"
+#define ILO_RIBCL_XML_TEST_HDR  ILO3_RIBCL_XML_HDR
+
+#define ILO_RIBCL_TEST_ILO	"<RIBCL VERSION=\"2.0\"></RIBCL>\r\n"
+#define ILO_RIBCL_TEST_RESPONSE	"HTTP/1.1 200 OK\r\n"
+
 /* Here are all the RIBCL xml templates for the commands. For each command,
  * we have a format specification string that allows us to insert the
  * login and password strings for individual systems. Also, each command

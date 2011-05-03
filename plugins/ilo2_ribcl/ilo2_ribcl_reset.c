@@ -137,6 +137,7 @@ SaErrorT ilo2_ribcl_set_reset_state(void *hnd,
 	SaHpiRptEntryT *rpt;
 	char *srs_cmd;
 	char *response;	/* command response buffer */
+	char *new_response = NULL;
 	int ret;
 
 	if (!hnd || NULL == oh_lookup_resetaction(act)){
@@ -210,14 +211,26 @@ SaErrorT ilo2_ribcl_set_reset_state(void *hnd,
 		free( response);
 		return( SA_ERR_HPI_INTERNAL_ERROR);
 	}
+	switch(ilo2_ribcl_handler->ilo_type){
+		case ILO:
+		case ILO2:
+			/* Now parse the response.*/
+			ret = ir_xml_parse_reset_server(response,
+					ilo2_ribcl_handler->ilo2_hostport);
+			break;
+		case ILO3:
+			new_response = ir_xml_decode_chunked(response);
+			ret = ir_xml_parse_reset_server(new_response,
+					ilo2_ribcl_handler->ilo2_hostport);
+			break;
+		default:
+			err("ilo2_ribcl_do_discovery():"
+				"failed to detect ilo type.");
+	}
 
-	/* Now, parse the response.
-	 */
-
-	ret = ir_xml_parse_reset_server(response,
-			ilo2_ribcl_handler->ilo2_hostport);
 
 	free( response);
+	free( new_response);
 
 	if(ret == -1) {
 		err("ilo2_ribcl_set_reset_state: iLO2 returned error.");
