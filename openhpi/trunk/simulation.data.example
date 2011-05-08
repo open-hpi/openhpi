@@ -371,7 +371,7 @@ RPT {
                      DataType=3
                      Language=25
                      DataLength=7
-                     Data="Unknwon"
+                     Data="Unknown"
                   }
                }
             }
@@ -1448,7 +1448,7 @@ RPT {
                      DataType=3
                      Language=25
                      DataLength=7
-                     Data="Unknwon"
+                     Data="Unknown"
                   }
                }
             }
