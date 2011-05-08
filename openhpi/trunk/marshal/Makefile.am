@@ -21,7 +21,7 @@ MAINTAINERCLEANFILES 	= Makefile.in *~
 
 AM_CPPFLAGS = -DG_LOG_DOMAIN=\"marshal\"
 
-EXTRA_DIST = Makefile.mingw32
+EXTRA_DIST = Makefile.mingw32 version.rc
 
 INCLUDES 		= @OPENHPI_INCLUDES@
 # just to clear LIBS

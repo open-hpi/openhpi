@@ -16,7 +16,7 @@
 
 MAINTAINERCLEANFILES 	= Makefile.in *~
 
-EXTRA_DIST = Makefile.mingw32
+EXTRA_DIST = Makefile.mingw32 version.rc
 
 AM_CPPFLAGS = -DG_LOG_DOMAIN=\"transport\"
 

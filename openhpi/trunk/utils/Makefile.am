@@ -47,7 +47,7 @@ GENERATED_SRC_FILES = \
 
 GENERATED_FILES = $(GENERATED_HEADER_FILES) $(GENERATED_SRC_FILES)
 
-EXTRA_DIST = Makefile.mingw32
+EXTRA_DIST = Makefile.mingw32 version.rc
 
 MOSTLYCLEANFILES = @TEST_CLEAN@
 # FIXME:: Add when we can auto-generate files for SMP systems

@@ -7,9 +7,10 @@ SRC := conf.c \
        lock.c \
        ohpi.cpp \
        safhpi.cpp \
-       session.cpp
+       session.cpp \
+       version.rc
 
-OBJ := $(patsubst %.c, %.o, $(patsubst %.cpp, %.o, ${SRC}))
+OBJ := $(patsubst %.rc, %.o, $(patsubst %.c, %.o, $(patsubst %.cpp, %.o, ${SRC})))
 
 DEFS := -DG_LOG_DOMAIN=\"baselib\"
 DEFS += -DSAHPI_API="__declspec(dllexport)"
@@ -25,6 +26,7 @@ LIBS += -L ../marshal -lopenhpimarshal
 CPPFLAGS += ${DEFS} ${INCLUDES}
 
 .PHONY: all clean
+.SUFFIXES: .rc
 
 all : ${TARGET}
 
@@ -32,6 +34,9 @@ ${TARGET} : ${OBJ}
 	${CXX} -shared -o $@ $^ ${LIBS} \
     -Wl,--out-implib,${@:.dll=.a} \
     -Wl,--output-def,${@:.dll=.def}
+
+.rc.o:
+	${RC} ${RCFLAGS} $< $@
 
 clean:
 	rm -f ${OBJ} ${TARGET} ${TARGET:.dll=.a} ${TARGET:.dll=.def}
