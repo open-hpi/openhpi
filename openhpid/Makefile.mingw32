@@ -15,9 +15,10 @@ SRC := alarm.c \
        session.c \
        threaded.c \
        server.cpp \
-       openhpid-win32.cpp
+       openhpid-win32.cpp \
+       version.rc
 
-OBJ := $(patsubst %.c, %.o, $(patsubst %.cpp, %.o, ${SRC} ) )
+OBJ := $(patsubst %.rc, %.o, $(patsubst %.c, %.o, $(patsubst %.cpp, %.o, ${SRC})))
 
 DEFS := -DG_LOG_DOMAIN=\"openhpid\"
 
@@ -32,11 +33,15 @@ LIBS += -L ../marshal -lopenhpimarshal
 CPPFLAGS += ${DEFS} ${INCLUDES}
 
 .PHONY: all clean
+.SUFFIXES: .rc
 
 all : ${TARGET}
 
 ${TARGET} : ${OBJ}
 	${CXX} -o $@ $^ ${LIBS}
+
+.rc.o:
+	${RC} ${RCFLAGS} $< $@
 
 clean:
 	rm -f ${OBJ} ${TARGET}

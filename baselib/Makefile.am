@@ -22,7 +22,7 @@ AM_CPPFLAGS = -DG_LOG_DOMAIN=\"baselib\"
 INCLUDES 		= \
 	@OPENHPI_INCLUDES@  -I$(top_srcdir)/transport -I$(top_srcdir)/marshal @OH_SSL_INCLUDES@
 
-EXTRA_DIST	= Makefile.mingw32
+EXTRA_DIST	= Makefile.mingw32 version.rc
 
 lib_LTLIBRARIES	        = libopenhpi.la
 

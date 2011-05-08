@@ -60,7 +60,7 @@ Build instructions:
 - Enter OpenHPI source tree root directory.
 - Modify Makefile.mingw32.def:
 -- ARCH in order to point architecture for produced binaries
--- TOOLCHAIN_PATH in order that CC, CXX and AS point to correct files.
+-- TOOLCHAIN_PATH in order that CC, CXX, AS and RC point to correct files.
 -- GLIB_DIR: in order that GLIB_INCLUDES and GLIB_LIBS
    point to valid directories with glib headers and libraries.
 - Run "make -f Makefile.mingw32".

@@ -14,8 +14,10 @@ SRC := announcement_utils.c \
        sahpi_time_utils.c \
        sahpiatca_enum_utils.c \
        sahpixtca_enum_utils.c \
-       uid_utils.c
-OBJ := $(patsubst %.c, %.o, ${SRC})
+       uid_utils.c \
+       version.rc
+
+OBJ := $(patsubst %.rc, %.o, $(patsubst %.c, %.o, ${SRC}))
 
 DEFS := -DG_LOG_DOMAIN=\"utils\"
 
@@ -26,6 +28,7 @@ LIBS := ${GLIB_LIBS}
 CPPFLAGS += ${DEFS} ${INCLUDES}
 
 .PHONY: all clean
+.SUFFIXES: .rc
 
 all : ${TARGET}
 
@@ -33,6 +36,9 @@ ${TARGET} : ${OBJ}
 	${CC} -shared -o $@ $^ ${LIBS} \
     -Wl,--out-implib,${@:.dll=.a} \
     -Wl,--output-def,${@:.dll=.def}
+
+.rc.o:
+	${RC} ${RCFLAGS} $< $@
 
 clean:
 	rm -f ${OBJ} ${TARGET} ${TARGET:.dll=.a} ${TARGET:.dll=.def}

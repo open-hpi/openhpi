@@ -28,7 +28,8 @@ DIST_SUBDIRS = t
 EXTRA_DIST		= \
     openhpid.sh.in \
     Makefile.mingw32 \
-    openhpid-win32.cpp
+    openhpid-win32.cpp \
+    version.rc
 
 # daemon library
 noinst_LTLIBRARIES      = libopenhpidaemon.la

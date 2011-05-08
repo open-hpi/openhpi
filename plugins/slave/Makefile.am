@@ -19,7 +19,7 @@ AM_CPPFLAGS = -DG_LOG_DOMAIN=\"slave\"
 
 INCLUDES = @OPENHPI_INCLUDES@
 
-EXTRA_DIST = Makefile.mingw32
+EXTRA_DIST = Makefile.mingw32 version.rc
 
 pkglib_LTLIBRARIES = libslave.la
 
