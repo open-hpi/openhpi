@@ -22,7 +22,7 @@ BEGIN
             VALUE "FileDescription",  "OpenHPI Utils Library"
             VALUE "FileVersion",      VERSION
             VALUE "InternalName",     "libopenhpiutils"
-            VALUE "LegalCopyright",   "OpenHPI is distrubuted under BSD license"
+            VALUE "LegalCopyright",   "OpenHPI is distributed under BSD license"
             VALUE "OriginalFilename", "libopenhpiutils.dll"
             VALUE "ProductName",      "OpenHPI"
             VALUE "ProductVersion",   VERSION

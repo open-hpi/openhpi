@@ -22,7 +22,7 @@ BEGIN
             VALUE "FileDescription",  "OpenHPI Transport Library"
             VALUE "FileVersion",      VERSION
             VALUE "InternalName",     "libopenhpitransport"
-            VALUE "LegalCopyright",   "OpenHPI is distrubuted under BSD license"
+            VALUE "LegalCopyright",   "OpenHPI is distributed under BSD license"
             VALUE "OriginalFilename", "libopenhpitransport.dll"
             VALUE "ProductName",      "OpenHPI"
             VALUE "ProductVersion",   VERSION
