@@ -22,7 +22,7 @@ BEGIN
             VALUE "FileDescription",  "OpenHPI Marshal Library"
             VALUE "FileVersion",      VERSION
             VALUE "InternalName",     "libopenhpimarshal"
-            VALUE "LegalCopyright",   "OpenHPI is distrubuted under BSD license"
+            VALUE "LegalCopyright",   "OpenHPI is distributed under BSD license"
             VALUE "OriginalFilename", "libopenhpimarshal.dll"
             VALUE "ProductName",      "OpenHPI"
             VALUE "ProductVersion",   VERSION
