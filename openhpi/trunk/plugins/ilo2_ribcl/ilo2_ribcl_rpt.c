@@ -115,7 +115,7 @@ SaErrorT ilo2_ribcl_set_resource_severity(void *hnd, SaHpiResourceIdT rid,
 	}
 	if (e->resource.ResourceCapabilities & SAHPI_CAPABILITY_FRU) {
 		e->event.EventType = SAHPI_ET_HOTSWAP;
-		e->event.EventDataUnion.HotSwapEvent.HotSwapState = e->event.EventDataUnion.HotSwapEvent.HotSwapState = res_info->fru_cur_state;
+		e->event.EventDataUnion.HotSwapEvent.HotSwapState = res_info->fru_cur_state;
 	} else {
 		e->event.EventType = SAHPI_ET_RESOURCE;
 		e->event.EventDataUnion.ResourceEvent.ResourceEventType =
@@ -201,7 +201,6 @@ SaErrorT ilo2_ribcl_set_resource_tag(void *hnd, SaHpiResourceIdT rid, SaHpiTextB
 	}
 	if (e->resource.ResourceCapabilities & SAHPI_CAPABILITY_FRU) {
 		e->event.EventType = SAHPI_ET_HOTSWAP;
-		e->event.EventDataUnion.HotSwapEvent.HotSwapState =
 		e->event.EventDataUnion.HotSwapEvent.HotSwapState =
 				res_info->fru_cur_state;
 	} else {
