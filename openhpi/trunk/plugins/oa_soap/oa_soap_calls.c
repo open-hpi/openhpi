@@ -1154,6 +1154,11 @@ void    soap_getEventInfo(xmlNode *events, struct eventInfo *result)
         if ((node = soap_walk_tree(events, "enclosureInfo"))) {
                 result->enum_eventInfo = ENCLOSUREINFO;
                 parse_enclosureInfo(node, &(result->eventData.enclosureInfo));
+                if ((node = soap_walk_tree(events, "powerSubsystemInfo"))) {
+                        result->eventData.enclosureInfo.powerType = 
+                                soap_enum(powerSystemType_S,
+                                     soap_tree_value(node, "subsystemType"));
+                }
                 return;
         }
 
@@ -1417,7 +1422,19 @@ int             soap_getBladeMpInfo(SOAP_CON *con,
 int soap_getEnclosureInfo(SOAP_CON *con,
                           struct enclosureInfo *response)
 {
+        xmlNode *node=NULL;
         SOAP_PARM_CHECK_NRQ
+        if (! (ret = soap_request(con, GET_POWER_SUBSYSTEM_INFO))) {
+                node = soap_walk_doc(con->doc,
+                                     "Body:"
+                                     "getPowerSubsystemInfoResponse:"
+                                     "powerSubsystemInfo");
+                response->powerType = soap_enum(powerSystemType_S,
+                                                    soap_tree_value(node,
+                                                    "subsystemType"));
+
+        } 
+	
         if (! (ret = soap_request(con, GET_ENCLOSURE_INFO))) {
                 parse_enclosureInfo(soap_walk_doc(con->doc,
                                                   "Body:"

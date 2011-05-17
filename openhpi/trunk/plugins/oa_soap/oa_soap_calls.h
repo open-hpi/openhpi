@@ -1069,6 +1069,7 @@ struct enclosureInfo
         char *pduPartNumber;
         char *pduSparePartNumber;
         xmlNode *extraData;             /* Items are struct extraDataInfo */
+        int powerType; 
 };
 
 struct oaStatus
