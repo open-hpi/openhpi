@@ -1314,6 +1314,8 @@ SaErrorT build_enclosure_inv_rdr(struct oh_handler_state *oh_handler,
         struct oa_soap_handler *oa_handler = NULL;
         SaHpiResourceIdT resource_id;
         SaHpiRptEntryT *rpt = NULL;
+        char *telco_status = NULL;
+        char *power_type = NULL;
 
         if (oh_handler == NULL || response == NULL || rdr == NULL ||
             inventory == NULL) {
@@ -1451,6 +1453,73 @@ SaErrorT build_enclosure_inv_rdr(struct oh_handler_state *oh_handler,
                                 return rv;
                         }
 
+                        /* Increment the field counter */
+                        local_inventory->info.area_list->idr_area_head.
+                        NumFields++;
+                }
+
+                switch(response->powerType){
+                        case 0: telco_status = "Telco_Status: UNKNOWN";
+                                power_type = "Power_Type: NO_OP";
+                                break;
+                        case 1: telco_status = "Telco_Status: UNKNOWN";
+                                power_type = "Power_Type: UNKNOWN";
+                                break;
+                        case 2: telco_status = "Telco_Status: FALSE";
+                                power_type = "Power_Type: INTERNAL_AC";
+                                break;
+                        case 3: telco_status = "Telco_Status: FALSE";
+                                power_type = "Power_Type: INTERNAL_DC";
+                                break;
+                        case 4: telco_status = "Telco_Status: TRUE";
+                                power_type = "Power_Type: EXTERNAL_DC";
+                                break;
+                        default : telco_status = "Telco_Status: UNKNOWN";
+                                  power_type = "Power_Type: UNKNOWN"; 
+                                  break;
+                }
+
+                /* Add the telco status field if the enclosure hardware info
+                 * is available
+                 */
+                if (telco_status != NULL) {
+                        memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
+                        hpi_field.AreaId = local_inventory->info.area_list->
+                                           idr_area_head.AreaId;
+                        hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
+                        strcpy ((char *)hpi_field.Field.Data, telco_status);
+
+                        rv = idr_field_add(&(local_inventory->info.area_list
+                                           ->field_list),
+                                           &hpi_field);
+                        if (rv != SA_OK) {
+                                err("Add idr field failed");
+                                return rv;
+                        }
+
+                        /* Increment the field counter */
+                        local_inventory->info.area_list->idr_area_head.
+                        NumFields++;
+                }
+
+                /* Add the power type field if the enclosure hardware info
+                 * is available
+                 */
+                if (power_type != NULL) {
+                        memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
+                        hpi_field.AreaId = local_inventory->info.area_list->
+                                           idr_area_head.AreaId;
+                        hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
+                        strcpy ((char *)hpi_field.Field.Data, power_type);
+
+                        rv = idr_field_add(&(local_inventory->info.area_list
+                                           ->field_list),
+                                           &hpi_field);
+                        if (rv != SA_OK) {
+                                err("Add idr field failed");
+                                return rv;
+                        }
+                
                         /* Increment the field counter */
                         local_inventory->info.area_list->idr_area_head.
                         NumFields++;
