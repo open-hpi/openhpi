@@ -342,7 +342,7 @@ SaErrorT NewSimulatorFumi::GetComponentSource( SaHpiBankNumT bank,
                                                SaHpiEntryIdT comp, 
                                                SaHpiEntryIdT &next, 
                                                SaHpiFumiComponentInfoT &inf ) {
-   SaErrorT rv = SA_OK;
+   SaErrorT rv = SA_ERR_HPI_UNSUPPORTED_API;
 
    return rv;
 }
@@ -377,7 +377,7 @@ SaErrorT NewSimulatorFumi::GetComponentTarget( SaHpiBankNumT bank,
                                                SaHpiEntryIdT comp, 
                                                SaHpiEntryIdT &next, 
                                                SaHpiFumiComponentInfoT &inf )  {
-   SaErrorT rv = SA_OK;
+   SaErrorT rv = SA_ERR_HPI_UNSUPPORTED_API;
 
    return rv;
 }
@@ -409,7 +409,7 @@ SaErrorT NewSimulatorFumi::GetTargetLogical( SaHpiFumiLogicalBankInfoT &trg )  {
 SaErrorT NewSimulatorFumi::GetComponentTargetLogical( SaHpiEntryIdT comp, 
                                                       SaHpiEntryIdT &next, 
                                      SaHpiFumiLogicalComponentInfoT &inf ) {
-   SaErrorT rv = SA_OK;
+   SaErrorT rv = SA_ERR_HPI_UNSUPPORTED_API;
 
    return rv;
 }
