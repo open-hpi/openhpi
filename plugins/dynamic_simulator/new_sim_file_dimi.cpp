@@ -355,14 +355,14 @@ bool NewSimulatorFileDimi::process_dimi_test( NewSimulatorDimiTest *dt ) {
             	      }
             	   }
             
-            } else if (!strcmp(field, "	TestReadiness")) {
-               if (cur_token == G_TOKEN_INT)
+            } else if (!strcmp(field, "TestReadiness")) {
+               if (cur_token == G_TOKEN_INT) {
                   dt->SetReadiness( (SaHpiDimiReadyT) m_scanner->value.v_int );
-            
+               } 
             	
             } else {
                // Unknown Token 
-               err("Processing parse dimi test entry: Unknown type field %s", field);
+               err("Processing parse dimi test entry: Unknown type field %s!", field);
                success = false;	
             }
             break;
