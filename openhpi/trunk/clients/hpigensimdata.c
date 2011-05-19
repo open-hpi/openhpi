@@ -2,7 +2,7 @@
  * hpigensimdata.c
  *
  * Copyright (c) 2010 by Lars Wetzel
- * (C) Copyright Ulrich Kleber 2011
+ *           (c) 2011    Ulrich Kleber, Lars Wetzel
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,9 +17,12 @@
  * 
  * Changes:
  * 10/02/09 (klw) Release 0.9
- * 20/04/10 (klw) Fix in fumi data structure FumiNum -> Num
+ * 04/20/10 (klw) Fix in fumi data structure FumiNum -> Num
  *          (klw) Fix in fumi data structure spaces are printed correctly
- * 
+ * 02/01/11 ulikleber  Refactoring to use glib for option parsing and
+ *                     introduce common options for all clients
+ * 05/18/11 (klw) Fix in fumi data encapsulate FUMI_DATA
+ *  
  * Open:
  * - print all events of a system (not clear if necessary) 
  * - check update mode (depends on NewSimulator Fumi implementation)
@@ -38,7 +41,7 @@
 
 #define OFFSET_STEP 3
 #define OFFSET_FILLER ' '
-#define MAX_OFFSETS 10
+#define MAX_OFFSETS 20
 #define MAX_CHAR 256
 #define MAX_SHORT_CHAR 10
 
@@ -731,10 +734,11 @@ static void print_fumi_logical_target_info(FILE *out, int offset, SaHpiSessionId
          rv = saHpiFumiLogicalTargetComponentInfoGet(sessionId, resId, fumi->Num,  
                                                      entry, &next, &cinfo);
          if (rv == SA_OK) {
-            if (!printHeader)
-               fprintf(out,"%s%s={\n",offSet[myoffset++], FUMI_LOG_TARGET);
+            
+            fprintf(out,"%s%s={\n",offSet[myoffset++], FUMI_LOG_TARGET);
             printHeader = TRUE;
             print_fumi_logical_component_info(out, myoffset, cinfo);
+            fprintf(out, "%s}\n", offSet[--myoffset]); // FUMI_TARGET  
          }
          entry = next;
       }
@@ -783,10 +787,11 @@ static void print_fumi_target_info(FILE *out, int offset, SaHpiSessionIdT sessio
          rv = saHpiFumiTargetComponentInfoGet(sessionId, resId, fumi->Num, bnum, 
                                               entry, &next, &cinfo);
          if (rv == SA_OK) {
-            if (!printHeader)
-               fprintf(out,"%s%s={\n",offSet[myoffset++], FUMI_TARGET);
+            
+            fprintf(out,"%s%s={\n",offSet[myoffset++], FUMI_TARGET);
             printHeader = TRUE;
             print_fumi_component_info(out, myoffset, cinfo);
+            fprintf(out, "%s}\n", offSet[--myoffset]); // FUMI_TARGET
          }
          entry = next;
       }
@@ -837,10 +842,11 @@ static void print_fumi_source_info(FILE *out, int offset, SaHpiSessionIdT sessio
          rv = saHpiFumiSourceComponentInfoGet(sessionId, resId, fumi->Num, bnum, 
                                               entry, &next, &cinfo);
          if (rv == SA_OK) {
-            if (!printHeader)
-               fprintf(out,"%s%s={\n",offSet[myoffset++], FUMI_SOURCE);
+            
+            fprintf(out,"%s%s={\n",offSet[myoffset++], FUMI_SOURCE);
             printHeader = TRUE;
             print_fumi_component_info(out, myoffset, cinfo);
+            fprintf(out, "%s}\n", offSet[--myoffset]); // FUMI_SOURCE
          }
          entry = next;
       }
@@ -893,6 +899,7 @@ static void print_fumi_fw_info(FILE *out, int offset, SaHpiFumiFirmwareInstanceI
    fprintf(out, "%sMinorVersion=%u\n", offSet[myoffset], data.MinorVersion);
    fprintf(out, "%sAuxVersion=%u\n", offSet[myoffset], data.AuxVersion);
 }
+
 
 /**
  * Dimi functions
