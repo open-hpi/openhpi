@@ -417,6 +417,13 @@ AC_ARG_ENABLE([slave],
         AC_SUBST(SLAVE,slave)
     fi])
 
+# configure argument for the test_agent plugin
+AC_ARG_ENABLE([test_agent],
+    [  --enable-test_agent      build test_agent plugin [[default=no]]],
+    [if test "x$enableval" = "xyes"; then
+        AC_SUBST(TEST_AGENT,test_agent)
+    fi])
+
 dnl setup SNMPFLAGS
 AC_SUBST(SNMPFLAGS)
 AC_SUBST(SNMPLIBS)
@@ -709,6 +716,7 @@ AC_CONFIG_FILES([openhpi.spec
         plugins/ilo2_ribcl/Makefile
         plugins/oa_soap/Makefile
         plugins/slave/Makefile
+        plugins/test_agent/Makefile
         scripts/Makefile
         scripts/test/Makefile
         snmp/Makefile

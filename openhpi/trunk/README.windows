@@ -27,6 +27,7 @@ This package provides windows version of
 -- ohparam.exe
 - OpenHPI daemon as a console Windows application (openhpid.exe)
 -- Slave plug-in (libslave.dll)
+-- Test Agent plug-in (libtest_agent.dll)
 
 The package also provides necessary glib2 libraries:
 - libglib-2.0-0.dll
@@ -125,7 +126,7 @@ It can exhaust system resources.
 ========================================================================
 Daemon Usage instructions:
 
-Only Slave plug-in is now ported under Windows.
+Only Slave plug-in and Test agent plug-in are now ported under Windows.
 
 - prepare openhpi.conf
 - openhpid.exe -n -v -c "path to openhpi.conf"

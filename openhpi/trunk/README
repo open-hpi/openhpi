@@ -9,7 +9,8 @@ The following components are supported:
 
 * Simulator Plugin
 * Dynamic Simulator Plugin
-* slave Plugin
+* Slave Plugin
+* Test Agent Plugin
 * IMPI Direct Plugin
 * SNMP BladeCenter/RSA Plugin
 * iLO2 RIBCL Plugin
@@ -138,6 +139,7 @@ dynamic_simulator - plugin for advanced testing. It uses a configuration file
                     to simulate any hardware.
 slave -             allows to aggregate resources from different domains (slave domains)
                     and to provide aggregated resources as part of the one domain (master domain).
+test_agent -        plugin for advanced testing. Provides console for runtime configuration.
 ipmidirect -        IPMI plugin that directly uses ipmi protocol to ipmi 
                     infrastructure, e.g. chassis managers.
 snmp_bc -           IBM BladeCenter/RSA plugin (uses snmp)
