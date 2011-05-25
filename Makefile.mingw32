@@ -16,7 +16,8 @@ openhpi_libs := utils \
                 clients \
                 clients/hpixml \
                 openhpid \
-                plugins/slave
+                plugins/slave \
+                plugins/test_agent
 
 .PHONY: all clean $(openhpi_libs)
 
@@ -59,6 +60,7 @@ out: all
 	cp openhpid/openhpid.exe ${progs}
 	mkdir -p ${plugins}
 	cp plugins/slave/libslave.dll ${plugins}
+	cp plugins/test_agent/libtest_agent.dll ${plugins}
 	mkdir -p ${conf}
 	cp mingw32/openhpi.conf.example ${conf}/openhpi.conf
 

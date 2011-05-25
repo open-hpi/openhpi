@@ -42,6 +42,7 @@ RPMFLAGS                = -ba
 EXTRA_DIST              = openhpi.spec.in \
 	openhpi.conf.example \
 	simulation.data.example \
+	test_agent.data.example \
 	openhpiclient.conf.example \
 	README.daemon \
 	README.windows \

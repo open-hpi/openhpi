@@ -219,3 +219,9 @@ handler libsimulator {
 #        #port = "4743"
 #}
 
+## Section for slave plugin
+#handler libtest_agent {
+#    # Mandatory. TCP port for console.
+#    port = "41415"
+#}
+
