@@ -24,8 +24,10 @@
 #include <oh_utils.h>
 
 #include "abi.h"
+#include "area.h"
 #include "control.h"
 #include "handler.h"
+#include "inventory.h"
 #include "resource.h"
 #include "sensor.h"
 #include "utils.h"
@@ -94,6 +96,37 @@ static cSensor * GetSensor( cHandler * h,
         cSensor * sen = r->GetSensor( num );
         if ( sen && sen->IsVisible() ) {
             return sen;
+        }
+    }
+
+    return 0;
+}
+
+static cInventory * GetInventory( cHandler * h,
+                                  SaHpiResourceIdT rid,
+                                  SaHpiIdrIdT num )
+{
+    cResource * r = GetResource( h, rid );
+    if ( r ) {
+        cInventory * inv = r->GetInventory( num );
+        if ( inv && inv->IsVisible() ) {
+            return inv;
+        }
+    }
+
+    return 0;
+}
+
+static cArea * GetArea( cHandler * h,
+                        SaHpiResourceIdT rid,
+                        SaHpiIdrIdT num,
+                        SaHpiEntryIdT id )
+{
+    cInventory * inv = GetInventory( h, rid, num );
+    if ( inv ) {
+        cArea * area = inv->GetArea( id );
+        if ( area && area->IsVisible() ) {
+            return area;
         }
     }
 
@@ -598,8 +631,13 @@ oh_get_idr_info(
     SaHpiIdrInfoT * idrinfo )
 {
     TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cInventory * inv = TA::GetInventory( handler, rid, idrid );
+    if ( !inv ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
 
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    return inv->GetInfo( *idrinfo );
 }
 
 
@@ -617,8 +655,13 @@ oh_get_idr_area_header(
     SaHpiIdrAreaHeaderT * header )
 {
     TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cInventory * inv = TA::GetInventory( handler, rid, idrid );
+    if ( !inv ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
 
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    return inv->GetArea( areatype, areaid, *nextareaid, *header );
 }
 
 
@@ -634,8 +677,13 @@ oh_add_idr_area(
     SaHpiEntryIdT * areaid )
 {
     TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cInventory * inv = TA::GetInventory( handler, rid, idrid );
+    if ( !inv ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
 
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    return inv->AddArea( areatype, *areaid );
 }
 
 
@@ -651,8 +699,13 @@ oh_add_idr_area_id(
     SaHpiEntryIdT areaid )
 {
     TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cInventory * inv = TA::GetInventory( handler, rid, idrid );
+    if ( !inv ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
 
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    return inv->AddAreaById( areaid, areatype );
 }
 
 
@@ -667,8 +720,13 @@ oh_del_idr_area(
     SaHpiEntryIdT areaid )
 {
     TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cInventory * inv = TA::GetInventory( handler, rid, idrid );
+    if ( !inv ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
 
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    return inv->DeleteAreaById( areaid );
 }
 
 
@@ -687,8 +745,13 @@ oh_get_idr_field(
     SaHpiIdrFieldT * field )
 {
     TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cArea * area = TA::GetArea( handler, rid, idrid, areaid );
+    if ( !area ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
 
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    return area->GetField( fieldtype, fieldid, *nextfieldid, *field );
 }
 
 
@@ -703,8 +766,15 @@ oh_add_idr_field(
     SaHpiIdrFieldT * field )
 {
     TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cArea * area = TA::GetArea( handler, rid, idrid, field->AreaId );
+    if ( !area ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
 
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    field->ReadOnly = SAHPI_FALSE;
+
+    return area->AddField( field->Type, field->Field, field->FieldId );
 }
 
 
@@ -719,8 +789,13 @@ oh_add_idr_field_id(
     SaHpiIdrFieldT * field )
 {
     TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cArea * area = TA::GetArea( handler, rid, idrid, field->AreaId );
+    if ( !area ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
 
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    return area->AddFieldById( field->FieldId, field->Type, field->Field );
 }
 
 
@@ -735,8 +810,13 @@ oh_set_idr_field(
     SaHpiIdrFieldT * field )
 {
     TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cArea * area = TA::GetArea( handler, rid, idrid, field->AreaId );
+    if ( !area ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
 
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    return area->SetField( field->FieldId, field->Type, field->Field );
 }
 
 
@@ -752,8 +832,13 @@ oh_del_idr_field(
     SaHpiEntryIdT fieldid )
 {
     TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cArea * area = TA::GetArea( handler, rid, idrid, areaid );
+    if ( !area ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
 
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    return area->DeleteFieldById( fieldid );
 }
 
 

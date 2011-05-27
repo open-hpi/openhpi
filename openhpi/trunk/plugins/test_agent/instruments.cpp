@@ -20,6 +20,7 @@
 #include "codec.h"
 #include "control.h"
 #include "instruments.h"
+#include "inventory.h"
 #include "sensor.h"
 
 
@@ -92,6 +93,10 @@ cInstruments::~cInstruments()
     Deleter<Sensors> sdeleter;
     std::for_each( m_sensors.begin(), m_sensors.end(), sdeleter );
     m_sensors.clear();
+
+    Deleter<Inventories> ideleter;
+    std::for_each( m_invs.begin(), m_invs.end(), ideleter );
+    m_invs.clear();
 }
 
 cControl * cInstruments::GetControl( SaHpiCtrlNumT num ) const
@@ -116,6 +121,17 @@ cSensor * cInstruments::GetSensor( SaHpiSensorNumT num ) const
     return 0;
 }
 
+cInventory * cInstruments::GetInventory( SaHpiIdrIdT num ) const
+{
+    Inventories::const_iterator iter = m_invs.find( num );
+    if ( iter != m_invs.end() ) {
+        cInventory * inv = iter->second;
+        return inv;
+    }
+
+    return 0;
+}
+
 void cInstruments::GetAllInstruments( InstrumentList& all ) const
 {
     InstrumentCollector<Controls> ccollector( all );
@@ -123,12 +139,16 @@ void cInstruments::GetAllInstruments( InstrumentList& all ) const
 
     InstrumentCollector<Sensors> scollector( all );
     std::for_each( m_sensors.begin(), m_sensors.end(), scollector );
+
+    InstrumentCollector<Inventories> icollector( all );
+    std::for_each( m_invs.begin(), m_invs.end(), icollector );
 }
 
 void cInstruments::GetNewNames( cObject::NewNames& names ) const
 {
     names.push_back( cControl::classname + "-XXX" );
     names.push_back( cSensor::classname + "-XXX" );
+    names.push_back( cInventory::classname + "-XXX" );
 }
 
 void cInstruments::GetChildren( cObject::Children& children ) const
@@ -138,26 +158,35 @@ void cInstruments::GetChildren( cObject::Children& children ) const
 
     ObjectCollector<Sensors> scollector( children );
     std::for_each( m_sensors.begin(), m_sensors.end(), scollector );
+
+    ObjectCollector<Inventories> icollector( children );
+    std::for_each( m_invs.begin(), m_invs.end(), icollector );
 }
 
 bool cInstruments::CreateInstrument( const std::string& name )
 {
-    std::string classname;
+    std::string cname;
     SaHpiUint32T num;
-    bool rc = DisassembleNumberedObjectName( name, classname, num );
+    bool rc = DisassembleNumberedObjectName( name, cname, num );
     if ( !rc ) {
         return false;
     }
 
-    if ( classname == cControl::classname ) {
+    if ( cname == cControl::classname ) {
         if ( !GetControl( num ) ) {
             m_controls[num] = new cControl( m_resource, num );
             return true;
         }
     }
-    if ( classname == cSensor::classname ) {
+    if ( cname == cSensor::classname ) {
         if ( !GetSensor( num ) ) {
             m_sensors[num] = new cSensor( m_resource, num );
+            return true;
+        }
+    }
+    if ( cname == cInventory::classname ) {
+        if ( !GetInventory( num ) ) {
+            m_invs[num] = new cInventory( m_resource, num );
             return true;
         }
     }
@@ -187,6 +216,14 @@ bool cInstruments::RemoveInstrument( const std::string& name )
         if ( sen ) {
             m_sensors.erase( num );
             delete sen;
+            return true;
+        }
+    }
+    if ( classname == cInventory::classname ) {
+        cInventory * inv = GetInventory( num );
+        if ( inv ) {
+            m_invs.erase( num );
+            delete inv;
             return true;
         }
     }

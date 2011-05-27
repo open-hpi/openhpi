@@ -64,6 +64,8 @@ struct cConsoleCmd
 /**************************************************************
  * class cConsole
  *************************************************************/
+typedef std::list<std::string> ObjectPath;
+
 class cConsole : private cServer
 {
 public:
@@ -102,11 +104,11 @@ private:
     void SendOK( const std::string& msg );
     void SendERR( const std::string& msg );
     void SendCurrentPath() const;
-    cObject * GetCurrentObject();
+    cObject * GetObject( const ObjectPath& path ) const;
+    cObject * TestAndGetCurrentObject();
+    void MakeNewPath( ObjectPath& path, const std::string& path_str ) const;
 
 private: // data
-
-    typedef std::list<std::string> ObjectPath;
 
     std::vector<cConsoleCmd > m_cmds;
     bool                 m_quit;

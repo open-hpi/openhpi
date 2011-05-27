@@ -557,7 +557,7 @@ SaHpiEventStateT cSensor::CalculateThresholdEventStates() const
 
 void cSensor::CommitChanges()
 {
-    bool send_enable_event = false; 
+    bool send_enable_event = false;
     bool states_changed    = false;
 
     if ( m_enabled != m_new_enabled ) {

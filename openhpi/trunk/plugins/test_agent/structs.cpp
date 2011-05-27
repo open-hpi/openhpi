@@ -356,6 +356,23 @@ static void GetVars( SaHpiSensorRecT& rec, cVars& vars )
          << VAR_END();
 }
 
+void GetVars( SaHpiInventoryRecT& rec, cVars& vars )
+{
+    vars << "Rdr.InventoryRec.IdrId"
+         << dtSaHpiIdrIdT
+         << DATA( rec.IdrId )
+         << READONLY()
+         << VAR_END();
+    vars << "Rdr.InventoryRec.Persistent"
+         << dtSaHpiBoolT
+         << DATA( rec.Persistent )
+         << VAR_END();
+    vars << "Rdr.InventoryRec.Oem"
+         << dtSaHpiUint32T
+         << DATA( rec.Oem )
+         << VAR_END();
+}
+
 void GetVars( SaHpiRdrT& rdr, cVars& vars )
 {
     vars << "Rdr.RdrType"
@@ -376,6 +393,8 @@ void GetVars( SaHpiRdrT& rdr, cVars& vars )
         GetVars( rdr.RdrTypeUnion.CtrlRec, vars );
     } else if ( rdr.RdrType == SAHPI_SENSOR_RDR ) {
         GetVars( rdr.RdrTypeUnion.SensorRec, vars );
+    } else if ( rdr.RdrType == SAHPI_INVENTORY_RDR ) {
+        GetVars( rdr.RdrTypeUnion.InventoryRec, vars );
     }
 
     vars << "Rdr.IdString"

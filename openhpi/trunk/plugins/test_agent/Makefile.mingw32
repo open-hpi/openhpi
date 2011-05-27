@@ -3,12 +3,15 @@ include ../../Makefile.mingw32.def
 TARGET := libtest_agent.dll
 
 SRC := abi.cpp \
+       area.cpp \
        codec.cpp \
        console.cpp \
        control.cpp \
+       field.cpp \
        handler.cpp \
        instrument.cpp \
        instruments.cpp \
+       inventory.cpp \
        object.cpp \
        resource.cpp \
        sensor.cpp \

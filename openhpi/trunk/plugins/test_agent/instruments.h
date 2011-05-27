@@ -35,6 +35,7 @@ namespace TA {
 class cResource;
 class cControl;
 class cSensor;
+class cInventory;
 
 class cInstruments
 {
@@ -42,6 +43,7 @@ public:
 
     cControl * GetControl( SaHpiCtrlNumT num ) const;
     cSensor * GetSensor( SaHpiSensorNumT num ) const;
+    cInventory * GetInventory( SaHpiIdrIdT num ) const;
 
     void GetAllInstruments( InstrumentList& all ) const;
 
@@ -72,6 +74,9 @@ private: // data
 
     typedef std::map<SaHpiSensorNumT, cSensor *> Sensors;
     Sensors m_sensors;
+
+    typedef std::map<SaHpiIdrIdT, cInventory *> Inventories;
+    Inventories m_invs;
 };
 
 
