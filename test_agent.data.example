@@ -20,7 +20,7 @@ set RptEntry.ResourceCapabilities = RESOURCE | FRU | MANAGED_HOTSWAP
 set Visible = TRUE
 cd ..
 
-# create failed resource
+## create failed resource
 #new {SYSTEM_BLADE,4}
 #cd {SYSTEM_BLADE,4}
 #set ResourceFailed = TRUE
@@ -46,13 +46,14 @@ cd ..
 # create just resource
 new {SYSTEM_BLADE,7}
 cd {SYSTEM_BLADE,7}
-set RptEntry.ResourceCapabilities = RESOURCE | MANAGED_HOTSWAP | FRU | POWER | RESET | RDR | CONTROL | SENSOR
+set RptEntry.ResourceCapabilities = RESOURCE | MANAGED_HOTSWAP | FRU | POWER | RESET | RDR | CONTROL | SENSOR | INVENTORY_DATA
 set Visible = TRUE
 
 # create controls
 new ctrl-1
 cd ctrl-1
 set Rdr.CtrlRec.Type = DIGITAL
+set Rdr.CtrlRec.Digital.Default
 set Visible = TRUE
 cd ..
 
@@ -164,5 +165,79 @@ cd sen-8
 set Rdr.SensorRec.Category = THRESHOLD
 set Rdr.SensorRec.ThresholdDefn.WriteThold = 0
 set Visible = TRUE
+cd ..
+
+# create RO inventory
+new inv-1
+cd inv-1
+set ReadOnly = TRUE
+set Visible = TRUE
+#    RO Area
+new area-1
+cd area-1
+set ReadOnly = TRUE
+#        RO Field
+new field-1
+cd field-1
+set ReadOnly = TRUE
+cd ..
+#        RW Field
+new field-2
+cd field-2
+set ReadOnly = FALSE
+cd ..
+cd ..
+#    RW Area
+new area-2
+cd area-2
+set ReadOnly = FALSE
+#        RO Field
+new field-1
+cd field-1
+set ReadOnly = TRUE
+cd ..
+#        RW Field
+new field-2
+cd field-2
+set ReadOnly = FALSE
+cd ..
+cd ..
+cd ..
+
+# create RW inventory
+new inv-2
+cd inv-2
+set ReadOnly = FALSE
+set Visible = TRUE
+#    RO Area
+new area-1
+cd area-1
+set ReadOnly = TRUE
+#        RO Field
+new field-1
+cd field-1
+set ReadOnly = TRUE
+cd ..
+#        RW Field
+new field-2
+cd field-2
+set ReadOnly = FALSE
+cd ..
+cd ..
+#    RW Area
+new area-2
+cd area-2
+set ReadOnly = FALSE
+#        RO Field
+new field-1
+cd field-1
+set ReadOnly = TRUE
+cd ..
+#        RW Field
+new field-2
+cd field-2
+set ReadOnly = FALSE
+cd ..
+cd ..
 cd ..
 
