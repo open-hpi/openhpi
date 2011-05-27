@@ -25,18 +25,24 @@ pkglib_LTLIBRARIES = libtest_agent.la
 
 libtest_agent_la_SOURCES = abi.cpp \
                            abi.h \
+                           area.cpp \
+                           area.h \
                            codec.cpp \
                            codec.h \
                            console.cpp \
                            console.h \
                            control.cpp \
                            control.h \
+                           field.cpp \
+                           field.h \
                            handler.cpp \
                            handler.h \
                            instrument.cpp \
                            instrument.h \
                            instruments.cpp \
                            instruments.h \
+                           inventory.cpp \
+                           inventory.h \
                            object.cpp \
                            object.h \
                            resource.cpp \

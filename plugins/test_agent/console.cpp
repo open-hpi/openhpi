@@ -141,7 +141,7 @@ bool cConsole::Init()
                               &cConsole::CmdLs,
                               0 ) );
     m_cmds.push_back( cConsoleCmd( "cd",
-                              "cd <objname>",
+                              "cd <objname|objpath>",
                               "Enters to the specified object.",
                               &cConsole::CmdCd,
                               1 ) );
@@ -256,7 +256,7 @@ void cConsole::CmdQuit( const cConsoleCmd::Args& args )
 
 void cConsole::CmdLs( const cConsoleCmd::Args& args )
 {
-    cObject * current = GetCurrentObject();
+    cObject * current = TestAndGetCurrentObject();
     if ( !current ) {
         return;
     }
@@ -315,23 +315,18 @@ void cConsole::CmdCd( const cConsoleCmd::Args& args )
 {
     const std::string& name = args[0];
 
-    if ( name == ".." ) {
-        if ( !m_path.empty() ) {
-            m_path.pop_back();
-        }
-    } else {
-        cObject * current = GetCurrentObject();
-        if ( !current ) {
-            return;
-        }
-        cObject * child = current->GetChild( name );
-        if ( child ) {
-            m_path.push_back( name );
-        } else {
-            SendERR( "No such child object." );
-            return;
-        }
+    ObjectPath new_path;
+    MakeNewPath( new_path, name );
+
+    cObject * obj = GetObject( new_path );
+    if ( !obj ) {
+        obj = TestAndGetCurrentObject();
+        SendERR( "No object." );
+        return;
     }
+
+    m_path = new_path;
+
     Send( sepline, sizeof(sepline) );
     Send( "Current object: " );
     SendCurrentPath();
@@ -341,7 +336,7 @@ void cConsole::CmdCd( const cConsoleCmd::Args& args )
 
 void cConsole::CmdNew( const cConsoleCmd::Args& args )
 {
-    cObject * current = GetCurrentObject();
+    cObject * current = TestAndGetCurrentObject();
     if ( !current ) {
         return;
     }
@@ -365,7 +360,7 @@ void cConsole::CmdNew( const cConsoleCmd::Args& args )
 
 void cConsole::CmdRm( const cConsoleCmd::Args& args )
 {
-    cObject * current = GetCurrentObject();
+    cObject * current = TestAndGetCurrentObject();
     if ( !current ) {
         return;
     }
@@ -391,7 +386,7 @@ void cConsole::CmdSet( const cConsoleCmd::Args& args )
 {
     bool rc;
 
-    cObject * current = GetCurrentObject();
+    cObject * current = TestAndGetCurrentObject();
     if ( !current ) {
         return;
     }
@@ -452,35 +447,78 @@ void cConsole::SendCurrentPath() const
     }
 }
 
-cObject * cConsole::GetCurrentObject()
+cObject * cConsole::GetObject( const ObjectPath& path ) const
 {
-    cObject * current = &m_root;
+    cObject * obj = &m_root;
 
-    ObjectPath::iterator iter = m_path.begin();
-    ObjectPath::iterator end  = m_path.end();
+    ObjectPath::const_iterator iter = path.begin();
+    ObjectPath::const_iterator end  = path.end();
     for ( ; iter != end; ++iter ) {
-        cObject * child = current->GetChild( *iter );
+        cObject * child = obj->GetChild( *iter );
         if ( !child ) {
+            obj = 0;
             break;
         }
-        current = child;
+        obj = child;
     }
-    if ( iter != end ) {
-        m_path.erase( iter, m_path.end() );
+
+    return obj;
+}
+
+cObject * cConsole::TestAndGetCurrentObject()
+{
+    cObject * current = GetObject( m_path );
+    if ( current == 0 ) {
         SendERR( "Current object is no longer exists." );
+        while ( ( current == 0 ) && ( !m_path.empty() ) ) {
+            m_path.pop_back();
+            current = GetObject( m_path );
+        }
         Send( "New current object: " );
         SendCurrentPath();
         Send( "\n" );
         current = 0;
     }
 
-    if ( !current ) {
+    if ( current == 0 ) {
         SendERR( "No object." );
     }
 
     return current;
 }
 
+void cConsole::MakeNewPath( ObjectPath& path,
+                            const std::string& path_str ) const
+{
+    std::vector<char> buf( path_str.begin(), path_str.end() );
+    buf.push_back( '\0' );
+
+    ObjectPath tmp;
+    if ( buf[0] != '/' ) {
+        tmp = m_path;
+    }
+
+    char * token = strtok( &buf[0], "/" );
+    while( token ) {
+        std::string stoken( token );
+        if ( ( !stoken.empty() ) && ( stoken != "." ) ) {
+            tmp.push_back( std::string( token ) );
+        }
+        token = strtok( 0, "/" );
+    }
+
+    path.clear();
+    while( !tmp.empty() ) {
+        if ( tmp.front() != ".." ) {
+            path.push_back( tmp.front() );
+        } else {
+            if ( !path.empty() ) {
+                path.pop_back();
+            }
+        }
+        tmp.pop_front();
+    }
+}
 
 }; // namespace TA
 
