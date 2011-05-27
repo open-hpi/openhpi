@@ -2738,11 +2738,13 @@ SaErrorT SAHPI_API saHpiIdrAreaAddById(
         }
 
         /* Check if the AreaId requested already exists */
-        OH_CALL_ABI(h, get_idr_area_header, SA_ERR_HPI_INTERNAL_ERROR, error,
-                    ResourceId, IdrId, AreaType, AreaId, &next, &header);
-        if (error == SA_OK) {
-                oh_release_handler(h);
-                return SA_ERR_HPI_DUPLICATE;
+        if (AreaId != SAHPI_FIRST_ENTRY) {
+                OH_CALL_ABI(h, get_idr_area_header, SA_ERR_HPI_INTERNAL_ERROR, error,
+                            ResourceId, IdrId, AreaType, AreaId, &next, &header);
+                if (error == SA_OK) {
+                        oh_release_handler(h);
+                        return SA_ERR_HPI_DUPLICATE;
+                }
         }
 
         OH_CALL_ABI(h, add_idr_area_id, SA_ERR_HPI_INTERNAL_ERROR, error,
