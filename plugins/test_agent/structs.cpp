@@ -356,7 +356,7 @@ static void GetVars( SaHpiSensorRecT& rec, cVars& vars )
          << VAR_END();
 }
 
-void GetVars( SaHpiInventoryRecT& rec, cVars& vars )
+static void GetVars( SaHpiInventoryRecT& rec, cVars& vars )
 {
     vars << "Rdr.InventoryRec.IdrId"
          << dtSaHpiIdrIdT
@@ -368,6 +368,82 @@ void GetVars( SaHpiInventoryRecT& rec, cVars& vars )
          << DATA( rec.Persistent )
          << VAR_END();
     vars << "Rdr.InventoryRec.Oem"
+         << dtSaHpiUint32T
+         << DATA( rec.Oem )
+         << VAR_END();
+}
+
+static void GetVars( SaHpiWatchdogRecT& rec, cVars& vars )
+{
+    vars << "Rdr.WatchdogRec.WatchdogNum"
+         << dtSaHpiWatchdogNumT
+         << DATA( rec.WatchdogNum )
+         << READONLY()
+         << VAR_END();
+    vars << "Rdr.WatchdogRec.Oem"
+         << dtSaHpiUint32T
+         << DATA( rec.Oem )
+         << VAR_END();
+}
+
+static void GetVars( SaHpiAnnunciatorRecT& rec, cVars& vars )
+{
+    vars << "Rdr.AnnunciatorRec.AnnunciatorNum"
+         << dtSaHpiAnnunciatorNumT
+         << DATA( rec.AnnunciatorNum )
+         << READONLY()
+         << VAR_END();
+    vars << "Rdr.AnnunciatorRec.AnnunciatorType"
+         << dtSaHpiAnnunciatorTypeT
+         << DATA( rec.AnnunciatorType )
+         << VAR_END();
+    vars << "Rdr.AnnunciatorRec.ModeReadOnly"
+         << dtSaHpiBoolT
+         << DATA( rec.ModeReadOnly )
+         << VAR_END();
+    vars << "Rdr.AnnunciatorRec.MaxConditions"
+         << dtSaHpiUint32T
+         << DATA( rec.MaxConditions )
+         << VAR_END();
+    vars << "Rdr.AnnunciatorRec.Oem"
+         << dtSaHpiUint32T
+         << DATA( rec.Oem )
+         << VAR_END();
+}
+
+static void GetVars( SaHpiDimiRecT& rec, cVars& vars )
+{
+    vars << "Rdr.DimiRec.DimiNum"
+         << dtSaHpiDimiNumT
+         << DATA( rec.DimiNum )
+         << READONLY()
+         << VAR_END();
+    vars << "Rdr.DimiRec.Oem"
+         << dtSaHpiUint32T
+         << DATA( rec.Oem )
+         << VAR_END();
+}
+
+static void GetVars( SaHpiFumiRecT& rec, cVars& vars )
+{
+    vars << "Rdr.FumiRec.Num"
+         << dtSaHpiFumiNumT
+         << DATA( rec.Num )
+         << READONLY()
+         << VAR_END();
+    vars << "Rdr.FumiRec.AccessProt"
+         << dtSaHpiFumiProtocolT
+         << DATA( rec.AccessProt )
+         << VAR_END();
+    vars << "Rdr.FumiRec.Capability"
+         << dtSaHpiFumiCapabilityT
+         << DATA( rec.Capability )
+         << VAR_END();
+    vars << "Rdr.FumiRec.NumBanks"
+         << dtSaHpiUint8T
+         << DATA( rec.NumBanks )
+         << VAR_END();
+    vars << "Rdr.FumiRec.Oem"
          << dtSaHpiUint32T
          << DATA( rec.Oem )
          << VAR_END();
@@ -395,6 +471,14 @@ void GetVars( SaHpiRdrT& rdr, cVars& vars )
         GetVars( rdr.RdrTypeUnion.SensorRec, vars );
     } else if ( rdr.RdrType == SAHPI_INVENTORY_RDR ) {
         GetVars( rdr.RdrTypeUnion.InventoryRec, vars );
+    } else if ( rdr.RdrType == SAHPI_WATCHDOG_RDR ) {
+        GetVars( rdr.RdrTypeUnion.WatchdogRec, vars );
+    } else if ( rdr.RdrType == SAHPI_ANNUNCIATOR_RDR ) {
+        GetVars( rdr.RdrTypeUnion.AnnunciatorRec, vars );
+    } else if ( rdr.RdrType == SAHPI_DIMI_RDR ) {
+        GetVars( rdr.RdrTypeUnion.DimiRec, vars );
+    } else if ( rdr.RdrType == SAHPI_FUMI_RDR ) {
+        GetVars( rdr.RdrTypeUnion.FumiRec, vars );
     }
 
     vars << "Rdr.IdString"
@@ -515,6 +599,46 @@ void GetVars( SaHpiSensorThresholdsT& ths, cVars& vars )
     GetVars( "Thresholds.UpCritical", ths.UpCritical, vars );
     GetVars( "Thresholds.PosThdHysteresis", ths.PosThdHysteresis, vars );
     GetVars( "Thresholds.NegThdHysteresis", ths.NegThdHysteresis, vars );
+}
+
+void GetVars( SaHpiWatchdogT& wd, cVars& vars )
+{
+    vars << "Watchdog.Log"
+         << dtSaHpiBoolT
+         << DATA( wd.Log )
+         << VAR_END();
+    vars << "Watchdog.Running"
+         << dtSaHpiBoolT
+         << DATA( wd.Running )
+         << VAR_END();
+    vars << "Watchdog.TimerUse"
+         << dtSaHpiWatchdogTimerUseT
+         << DATA( wd.TimerUse )
+         << VAR_END();
+    vars << "Watchdog.TimerAction"
+         << dtSaHpiWatchdogActionT
+         << DATA( wd.TimerAction )
+         << VAR_END();
+    vars << "Watchdog.PretimerInterrupt"
+         << dtSaHpiWatchdogPretimerInterruptT
+         << DATA( wd.PretimerInterrupt )
+         << VAR_END();
+    vars << "Watchdog.PreTimeoutInterval"
+         << dtSaHpiUint32T
+         << DATA( wd.PreTimeoutInterval )
+         << VAR_END();
+    vars << "Watchdog.TimerUseExpFlags"
+         << dtSaHpiWatchdogExpFlagsT
+         << DATA( wd.TimerUseExpFlags )
+         << VAR_END();
+    vars << "Watchdog.InitialCount"
+         << dtSaHpiUint32T
+         << DATA( wd.InitialCount )
+         << VAR_END();
+    vars << "Watchdog.PresentCount"
+         << dtSaHpiUint32T
+         << DATA( wd.PresentCount )
+         << VAR_END();
 }
 
 

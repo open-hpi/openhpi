@@ -72,6 +72,13 @@ private:
     cInventory( const cInventory& );
     cInventory& operator =( const cInventory& );
 
+private:
+
+    virtual SaHpiCapabilitiesT RequiredResourceCap() const
+    {
+        return SAHPI_CAPABILITY_INVENTORY_DATA;
+    }
+
 private: // data
 
     const SaHpiInventoryRecT& m_rec;

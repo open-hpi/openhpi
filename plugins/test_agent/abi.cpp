@@ -269,8 +269,6 @@ oh_get_el_info(
     SaHpiResourceIdT rid,
     SaHpiEventLogInfoT * info )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -284,8 +282,6 @@ oh_get_el_caps(
     SaHpiResourceIdT rid,
     SaHpiEventLogCapabilitiesT * caps )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -299,8 +295,6 @@ oh_set_el_time(
     SaHpiResourceIdT rid,
     SaHpiTimeT time )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -314,8 +308,6 @@ oh_add_el_entry(
     SaHpiResourceIdT rid,
     const SaHpiEventT * event )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -334,8 +326,6 @@ oh_get_el_entry(
     SaHpiRdrT * rdr,
     SaHpiRptEntryT * rpte )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -348,8 +338,6 @@ oh_clear_el(
     void * hnd,
     SaHpiResourceIdT rid )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -363,8 +351,6 @@ oh_set_el_state(
     SaHpiResourceIdT rid,
     SaHpiBoolT e )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -377,8 +363,6 @@ oh_reset_el_overflow(
     void * hnd,
     SaHpiResourceIdT rid )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -852,8 +836,6 @@ oh_get_watchdog_info(
     SaHpiWatchdogNumT num,
     SaHpiWatchdogT * wdt )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -868,8 +850,6 @@ oh_set_watchdog_info(
     SaHpiWatchdogNumT num,
     SaHpiWatchdogT * wdt )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -883,8 +863,6 @@ oh_reset_watchdog(
     SaHpiResourceIdT rid,
     SaHpiWatchdogNumT num )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -901,8 +879,6 @@ oh_get_next_announce(
     SaHpiBoolT ack,
     SaHpiAnnouncementT * ann )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -918,8 +894,6 @@ oh_get_announce(
     SaHpiEntryIdT annid,
     SaHpiAnnouncementT * ann )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -935,8 +909,6 @@ oh_ack_announce(
     SaHpiEntryIdT annid,
     SaHpiSeverityT sev )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -951,8 +923,6 @@ oh_add_announce(
     SaHpiAnnunciatorNumT num,
     SaHpiAnnouncementT * ann )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -968,8 +938,6 @@ oh_del_announce(
     SaHpiEntryIdT annid,
     SaHpiSeverityT sev )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -984,8 +952,6 @@ oh_get_annunc_mode(
     SaHpiAnnunciatorNumT num,
     SaHpiAnnunciatorModeT * mode )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -1000,8 +966,6 @@ oh_set_annunc_mode(
     SaHpiAnnunciatorNumT num,
     SaHpiAnnunciatorModeT mode )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -1016,8 +980,6 @@ oh_get_dimi_info(
     SaHpiDimiNumT num,
     SaHpiDimiInfoT * info )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -1033,8 +995,6 @@ oh_get_dimi_test(
     SaHpiDimiTestNumT testnum,
     SaHpiDimiTestT * test )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -1050,8 +1010,6 @@ oh_get_dimi_test_ready(
     SaHpiDimiTestNumT testnum,
     SaHpiDimiReadyT * ready )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -1068,8 +1026,6 @@ oh_start_dimi_test(
     SaHpiUint8T numparams,
     SaHpiDimiTestVariableParamsT * paramslist )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -1084,8 +1040,6 @@ oh_cancel_dimi_test(
     SaHpiDimiNumT num,
     SaHpiDimiTestNumT testnum )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -1102,8 +1056,6 @@ oh_get_dimi_test_status(
     SaHpiDimiTestPercentCompletedT * percentcompleted,
     SaHpiDimiTestRunStatusT * runstatus )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -1119,8 +1071,6 @@ oh_get_dimi_test_results(
     SaHpiDimiTestNumT testnum,
     SaHpiDimiTestResultsT * testresults )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -1135,8 +1085,6 @@ oh_get_fumi_spec(
     SaHpiFumiNumT num,
     SaHpiFumiSpecInfoT * specinfo  )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -1151,8 +1099,6 @@ oh_get_fumi_service_impact(
     SaHpiFumiNumT num,
     SaHpiFumiServiceImpactDataT * serviceimpact  )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -1168,8 +1114,6 @@ oh_set_fumi_source(
     SaHpiBankNumT banknum,
     SaHpiTextBufferT * sourceuri )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -1184,8 +1128,6 @@ oh_validate_fumi_source(
     SaHpiFumiNumT num,
     SaHpiBankNumT banknum )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -1201,8 +1143,6 @@ oh_get_fumi_source(
     SaHpiBankNumT banknum,
     SaHpiFumiSourceInfoT * sourceinfo )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -1220,8 +1160,6 @@ oh_get_fumi_source_component(
     SaHpiEntryIdT * nextcompid,
     SaHpiFumiComponentInfoT * compinfo )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -1237,8 +1175,6 @@ oh_get_fumi_target(
     SaHpiBankNumT banknum,
     SaHpiFumiBankInfoT * bankinfo )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -1256,8 +1192,6 @@ oh_get_fumi_target_component(
     SaHpiEntryIdT * nextcompid,
     SaHpiFumiComponentInfoT * compinfo )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -1272,8 +1206,6 @@ oh_get_fumi_logical_target(
     SaHpiFumiNumT num,
     SaHpiFumiLogicalBankInfoT * bankinfo )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -1290,8 +1222,6 @@ oh_get_fumi_logical_target_component(
     SaHpiEntryIdT * nextcompid,
     SaHpiFumiLogicalComponentInfoT * compinfo )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -1305,8 +1235,6 @@ oh_start_fumi_backup(
     SaHpiResourceIdT rid,
     SaHpiFumiNumT num )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -1322,8 +1250,6 @@ oh_set_fumi_bank_order(
     SaHpiBankNumT banknum,
     SaHpiUint32T position )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -1339,8 +1265,6 @@ oh_start_fumi_bank_copy(
     SaHpiBankNumT sourcebanknum,
     SaHpiBankNumT targetbanknum )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -1355,8 +1279,6 @@ oh_start_fumi_install(
     SaHpiFumiNumT num,
     SaHpiBankNumT banknum )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -1372,8 +1294,6 @@ oh_get_fumi_status(
     SaHpiBankNumT banknum,
     SaHpiFumiUpgradeStatusT * status )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -1388,8 +1308,6 @@ oh_start_fumi_verify(
     SaHpiFumiNumT num,
     SaHpiBankNumT banknum )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -1403,8 +1321,6 @@ oh_start_fumi_verify_main(
     SaHpiResourceIdT rid,
     SaHpiFumiNumT num  )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -1419,8 +1335,6 @@ oh_cancel_fumi_upgrade(
     SaHpiFumiNumT num,
     SaHpiBankNumT banknum )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -1435,8 +1349,6 @@ oh_get_fumi_autorollback_disable(
     SaHpiFumiNumT num,
     SaHpiBoolT * disable )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -1451,8 +1363,6 @@ oh_set_fumi_autorollback_disable(
     SaHpiFumiNumT num,
     SaHpiBoolT disable )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -1466,8 +1376,6 @@ oh_start_fumi_rollback(
     SaHpiResourceIdT rid,
     SaHpiFumiNumT num )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -1481,8 +1389,6 @@ oh_activate_fumi(
     SaHpiResourceIdT rid,
     SaHpiFumiNumT num )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -1497,8 +1403,6 @@ oh_start_fumi_activate(
     SaHpiFumiNumT num,
     SaHpiBoolT logical )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -1513,8 +1417,6 @@ oh_cleanup_fumi(
     SaHpiFumiNumT num,
     SaHpiBankNumT banknum )
 {
-    TA::cHandler * handler = TA::GetHandler( hnd );
-
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
 

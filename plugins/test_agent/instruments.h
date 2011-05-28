@@ -36,6 +36,10 @@ class cResource;
 class cControl;
 class cSensor;
 class cInventory;
+class cWatchdog;
+class cAnnunciator;
+class cDimi;
+class cFumi;
 
 class cInstruments
 {
@@ -44,6 +48,11 @@ public:
     cControl * GetControl( SaHpiCtrlNumT num ) const;
     cSensor * GetSensor( SaHpiSensorNumT num ) const;
     cInventory * GetInventory( SaHpiIdrIdT num ) const;
+
+    cWatchdog * GetWatchdog( SaHpiWatchdogNumT num ) const;
+    cAnnunciator * GetAnnunciator( SaHpiAnnunciatorNumT num ) const;
+    cDimi * GetDimi( SaHpiDimiNumT num ) const;
+    cFumi * GetFumi( SaHpiFumiNumT num ) const;
 
     void GetAllInstruments( InstrumentList& all ) const;
 
@@ -77,6 +86,18 @@ private: // data
 
     typedef std::map<SaHpiIdrIdT, cInventory *> Inventories;
     Inventories m_invs;
+
+    typedef std::map<SaHpiWatchdogNumT, cWatchdog *> Watchdogs;
+    Watchdogs m_wdts;
+
+    typedef std::map<SaHpiAnnunciatorNumT, cAnnunciator *> Annunciators;
+    Annunciators m_anns;
+
+    typedef std::map<SaHpiDimiNumT, cDimi *> Dimis;
+    Dimis m_dimis;
+
+    typedef std::map<SaHpiFumiNumT, cFumi *> Fumis;
+    Fumis m_fumis;
 };
 
 

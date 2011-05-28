@@ -32,7 +32,6 @@ namespace TA {
  * class cResource
  *************************************************************/
 class cHandler;
-class cControl;
 
 class cResource : public cObject, public cInstruments, private cTimerCallback
 {
@@ -49,6 +48,7 @@ public:
     SaHpiResourceIdT GetResourceId() const;
     const SaHpiEntityPathT& GetEntityPath() const;
     bool IsFailed() const;
+    void UpdateCaps( SaHpiCapabilitiesT caps );
 
 public:  // HPI interface
 

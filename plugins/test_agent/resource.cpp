@@ -68,7 +68,7 @@ static void MakeDefaultRptEntry( const SaHpiEntityPathT& ep,
     rpte.HotSwapCapabilities    = SAHPI_HS_CAPABILITY_INDICATOR_SUPPORTED;
     rpte.ResourceSeverity       = SAHPI_INFORMATIONAL;
     rpte.ResourceFailed         = SAHPI_FALSE;
-    FormatHpiTextBuffer( rpte.ResourceTag, "res %u", (unsigned int)(rid) );
+    FormatHpiTextBuffer( rpte.ResourceTag, "res-%u", (unsigned int)(rid) );
 }
 
 
@@ -121,6 +121,11 @@ const SaHpiEntityPathT& cResource::GetEntityPath() const
 bool cResource::IsFailed() const
 {
     return m_failed != SAHPI_FALSE;
+}
+
+void cResource::UpdateCaps( SaHpiCapabilitiesT caps )
+{
+    m_rpte.ResourceCapabilities |= caps;
 }
 
 

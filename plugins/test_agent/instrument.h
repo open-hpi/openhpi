@@ -73,6 +73,8 @@ private: // Event generation
 
     void PostUpdateEvent( bool remove = false ) const;
 
+    virtual SaHpiCapabilitiesT RequiredResourceCap() const = 0;
+
 private: // data
 
     cResource& m_resource;

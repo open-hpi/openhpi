@@ -61,6 +61,11 @@ private: // Handling RDR changes
 
 private:
 
+    virtual SaHpiCapabilitiesT RequiredResourceCap() const
+    {
+        return SAHPI_CAPABILITY_CONTROL;
+    }
+
     SaErrorT CheckStateDigital( const SaHpiCtrlStateDigitalT& ds ) const;
     SaErrorT CheckStateAnalog( const SaHpiCtrlStateAnalogT& as ) const;
     SaErrorT CheckStateStream( const SaHpiCtrlStateStreamT& ss ) const;

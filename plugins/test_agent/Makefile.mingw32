@@ -3,10 +3,13 @@ include ../../Makefile.mingw32.def
 TARGET := libtest_agent.dll
 
 SRC := abi.cpp \
+       annunciator.cpp \
        area.cpp \
        codec.cpp \
        console.cpp \
        control.cpp \
+       dimi.cpp \
+       fumi.cpp \
        field.cpp \
        handler.cpp \
        instrument.cpp \
@@ -20,7 +23,8 @@ SRC := abi.cpp \
        timers.cpp \
        utils.cpp \
        vars.cpp \
-       version.rc
+       version.rc \
+       watchdog.cpp
 
 OBJ := $(patsubst %.rc, %.o, $(patsubst %.cpp, %.o, ${SRC}))
 
