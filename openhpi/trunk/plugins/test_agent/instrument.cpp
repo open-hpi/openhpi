@@ -85,6 +85,7 @@ void cInstrument::AfterVisibilityChange()
 {
     if ( IsVisible() ) {
         // Instrument appears
+        m_resource.UpdateCaps( RequiredResourceCap() );
         PostUpdateEvent();
     }
 

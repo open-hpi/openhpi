@@ -4,28 +4,28 @@ new {SYSTEM_BLADE,1}
 cd {SYSTEM_BLADE,1}
 set RptEntry.ResourceCapabilities = RESOURCE
 set Visible = TRUE
-cd ..
+cd /
 
 # create resource with FRU caps
 new {SYSTEM_BLADE,2}
 cd {SYSTEM_BLADE,2}
 set RptEntry.ResourceCapabilities = RESOURCE | FRU
 set Visible = TRUE
-cd ..
+cd /
 
 # create resource with HS caps
 new {SYSTEM_BLADE,3}
 cd {SYSTEM_BLADE,3}
 set RptEntry.ResourceCapabilities = RESOURCE | FRU | MANAGED_HOTSWAP
 set Visible = TRUE
-cd ..
+cd /
 
 ## create failed resource
 #new {SYSTEM_BLADE,4}
 #cd {SYSTEM_BLADE,4}
 #set ResourceFailed = TRUE
 #set Visible = TRUE
-#cd ..
+#cd /
 
 # create resource with HS caps but without HS indicator
 new {SYSTEM_BLADE,5}
@@ -33,7 +33,7 @@ cd {SYSTEM_BLADE,5}
 set RptEntry.ResourceCapabilities = RESOURCE | FRU | MANAGED_HOTSWAP
 set RptEntry.HotSwapCapabilities = 0
 set Visible = TRUE
-cd ..
+cd /
 
 # create resource with HS caps and with read-only AI timeout
 new {SYSTEM_BLADE,6}
@@ -41,12 +41,11 @@ cd {SYSTEM_BLADE,6}
 set RptEntry.ResourceCapabilities = RESOURCE | FRU | MANAGED_HOTSWAP
 set RptEntry.HotSwapCapabilities = AUTOEXTRACT_READ_ONLY
 set Visible = TRUE
-cd ..
+cd /
 
 # create just resource
 new {SYSTEM_BLADE,7}
 cd {SYSTEM_BLADE,7}
-set RptEntry.ResourceCapabilities = RESOURCE | MANAGED_HOTSWAP | FRU | POWER | RESET | RDR | CONTROL | SENSOR | INVENTORY_DATA
 set Visible = TRUE
 
 # create controls
@@ -185,8 +184,7 @@ cd ..
 new field-2
 cd field-2
 set ReadOnly = FALSE
-cd ..
-cd ..
+cd ../../
 #    RW Area
 new area-2
 cd area-2
@@ -200,9 +198,7 @@ cd ..
 new field-2
 cd field-2
 set ReadOnly = FALSE
-cd ..
-cd ..
-cd ..
+cd ../../../
 
 # create RW inventory
 new inv-2
@@ -222,8 +218,7 @@ cd ..
 new field-2
 cd field-2
 set ReadOnly = FALSE
-cd ..
-cd ..
+cd ../../
 #    RW Area
 new area-2
 cd area-2
@@ -237,7 +232,5 @@ cd ..
 new field-2
 cd field-2
 set ReadOnly = FALSE
-cd ..
-cd ..
-cd ..
+cd ../../../
 

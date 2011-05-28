@@ -25,6 +25,8 @@ pkglib_LTLIBRARIES = libtest_agent.la
 
 libtest_agent_la_SOURCES = abi.cpp \
                            abi.h \
+                           annunciator.cpp \
+                           annunciator.h \
                            area.cpp \
                            area.h \
                            codec.cpp \
@@ -33,6 +35,10 @@ libtest_agent_la_SOURCES = abi.cpp \
                            console.h \
                            control.cpp \
                            control.h \
+                           dimi.cpp \
+                           dimi.h \
+                           fumi.cpp \
+                           fumi.h \
                            field.cpp \
                            field.h \
                            handler.cpp \
@@ -58,7 +64,9 @@ libtest_agent_la_SOURCES = abi.cpp \
                            utils.cpp \
                            utils.h \
                            vars.cpp \
-                           vars.h
+                           vars.h \
+                           watchdog.cpp \
+                           watchdog.h
 
 libtest_agent_la_LDFLAGS = -module -version-info @HPI_LIB_VERSION@
 libtest_agent_la_LIBADD  = @GMODULE_ONLY_LIBS@

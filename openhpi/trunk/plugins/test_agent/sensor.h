@@ -70,6 +70,11 @@ private: // Handling RDR changes
 
 private:
 
+    virtual SaHpiCapabilitiesT RequiredResourceCap() const
+    {
+        return SAHPI_CAPABILITY_SENSOR;
+    }
+
     void SendEnableChangeEvent() const;
     void SendEvent( bool assertion, SaHpiEventStateT state ) const;
     SaHpiEventStateT CalculateThresholdEventStates() const;

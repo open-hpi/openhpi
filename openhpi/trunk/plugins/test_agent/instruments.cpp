@@ -17,11 +17,15 @@
 #include <map>
 #include <string>
 
+#include "annunciator.h"
 #include "codec.h"
 #include "control.h"
+#include "dimi.h"
+#include "fumi.h"
 #include "instruments.h"
 #include "inventory.h"
 #include "sensor.h"
+#include "watchdog.h"
 
 
 namespace TA {
@@ -97,6 +101,22 @@ cInstruments::~cInstruments()
     Deleter<Inventories> ideleter;
     std::for_each( m_invs.begin(), m_invs.end(), ideleter );
     m_invs.clear();
+
+    Deleter<Watchdogs> wdeleter;
+    std::for_each( m_wdts.begin(), m_wdts.end(), wdeleter );
+    m_wdts.clear();
+
+    Deleter<Annunciators> adeleter;
+    std::for_each( m_anns.begin(), m_anns.end(), adeleter );
+    m_anns.clear();
+
+    Deleter<Dimis> ddeleter;
+    std::for_each( m_dimis.begin(), m_dimis.end(), ddeleter );
+    m_dimis.clear();
+
+    Deleter<Fumis> fdeleter;
+    std::for_each( m_fumis.begin(), m_fumis.end(), fdeleter );
+    m_fumis.clear();
 }
 
 cControl * cInstruments::GetControl( SaHpiCtrlNumT num ) const
@@ -132,6 +152,50 @@ cInventory * cInstruments::GetInventory( SaHpiIdrIdT num ) const
     return 0;
 }
 
+cWatchdog * cInstruments::GetWatchdog( SaHpiWatchdogNumT num ) const
+{
+    Watchdogs::const_iterator iter = m_wdts.find( num );
+    if ( iter != m_wdts.end() ) {
+        cWatchdog * wdt = iter->second;
+        return wdt;
+    }
+
+    return 0;
+}
+
+cAnnunciator * cInstruments::GetAnnunciator( SaHpiAnnunciatorNumT num ) const
+{
+    Annunciators::const_iterator iter = m_anns.find( num );
+    if ( iter != m_anns.end() ) {
+        cAnnunciator * ann = iter->second;
+        return ann;
+    }
+
+    return 0;
+}
+
+cDimi * cInstruments::GetDimi( SaHpiDimiNumT num ) const
+{
+    Dimis::const_iterator iter = m_dimis.find( num );
+    if ( iter != m_dimis.end() ) {
+        cDimi * dimi = iter->second;
+        return dimi;
+    }
+
+    return 0;
+}
+
+cFumi * cInstruments::GetFumi( SaHpiFumiNumT num ) const
+{
+    Fumis::const_iterator iter = m_fumis.find( num );
+    if ( iter != m_fumis.end() ) {
+        cFumi * fumi = iter->second;
+        return fumi;
+    }
+
+    return 0;
+}
+
 void cInstruments::GetAllInstruments( InstrumentList& all ) const
 {
     InstrumentCollector<Controls> ccollector( all );
@@ -142,6 +206,18 @@ void cInstruments::GetAllInstruments( InstrumentList& all ) const
 
     InstrumentCollector<Inventories> icollector( all );
     std::for_each( m_invs.begin(), m_invs.end(), icollector );
+
+    InstrumentCollector<Watchdogs> wcollector( all );
+    std::for_each( m_wdts.begin(), m_wdts.end(), wcollector );
+
+    InstrumentCollector<Annunciators> acollector( all );
+    std::for_each( m_anns.begin(), m_anns.end(), acollector );
+
+    InstrumentCollector<Dimis> dcollector( all );
+    std::for_each( m_dimis.begin(), m_dimis.end(), dcollector );
+
+    InstrumentCollector<Fumis> fcollector( all );
+    std::for_each( m_fumis.begin(), m_fumis.end(), fcollector );
 }
 
 void cInstruments::GetNewNames( cObject::NewNames& names ) const
@@ -149,6 +225,10 @@ void cInstruments::GetNewNames( cObject::NewNames& names ) const
     names.push_back( cControl::classname + "-XXX" );
     names.push_back( cSensor::classname + "-XXX" );
     names.push_back( cInventory::classname + "-XXX" );
+    names.push_back( cWatchdog::classname + "-XXX" );
+    names.push_back( cAnnunciator::classname + "-XXX" );
+    names.push_back( cDimi::classname + "-XXX" );
+    names.push_back( cFumi::classname + "-XXX" );
 }
 
 void cInstruments::GetChildren( cObject::Children& children ) const
@@ -161,6 +241,18 @@ void cInstruments::GetChildren( cObject::Children& children ) const
 
     ObjectCollector<Inventories> icollector( children );
     std::for_each( m_invs.begin(), m_invs.end(), icollector );
+
+    ObjectCollector<Watchdogs> wcollector( children );
+    std::for_each( m_wdts.begin(), m_wdts.end(), wcollector );
+
+    ObjectCollector<Annunciators> acollector( children );
+    std::for_each( m_anns.begin(), m_anns.end(), acollector );
+
+    ObjectCollector<Dimis> dcollector( children );
+    std::for_each( m_dimis.begin(), m_dimis.end(), dcollector );
+
+    ObjectCollector<Fumis> fcollector( children );
+    std::for_each( m_fumis.begin(), m_fumis.end(), fcollector );
 }
 
 bool cInstruments::CreateInstrument( const std::string& name )
@@ -187,6 +279,30 @@ bool cInstruments::CreateInstrument( const std::string& name )
     if ( cname == cInventory::classname ) {
         if ( !GetInventory( num ) ) {
             m_invs[num] = new cInventory( m_resource, num );
+            return true;
+        }
+    }
+    if ( cname == cWatchdog::classname ) {
+        if ( !GetWatchdog( num ) ) {
+            m_wdts[num] = new cWatchdog( m_resource, num );
+            return true;
+        }
+    }
+    if ( cname == cAnnunciator::classname ) {
+        if ( !GetAnnunciator( num ) ) {
+            m_anns[num] = new cAnnunciator( m_resource, num );
+            return true;
+        }
+    }
+    if ( cname == cDimi::classname ) {
+        if ( !GetDimi( num ) ) {
+            m_dimis[num] = new cDimi( m_resource, num );
+            return true;
+        }
+    }
+    if ( cname == cFumi::classname ) {
+        if ( !GetFumi( num ) ) {
+            m_fumis[num] = new cFumi( m_resource, num );
             return true;
         }
     }
@@ -224,6 +340,38 @@ bool cInstruments::RemoveInstrument( const std::string& name )
         if ( inv ) {
             m_invs.erase( num );
             delete inv;
+            return true;
+        }
+    }
+    if ( classname == cWatchdog::classname ) {
+        cWatchdog * wdt = GetWatchdog( num );
+        if ( wdt ) {
+            m_wdts.erase( num );
+            delete wdt;
+            return true;
+        }
+    }
+    if ( classname == cAnnunciator::classname ) {
+        cAnnunciator * ann = GetAnnunciator( num );
+        if ( ann ) {
+            m_anns.erase( num );
+            delete ann;
+            return true;
+        }
+    }
+    if ( classname == cDimi::classname ) {
+        cDimi * dimi = GetDimi( num );
+        if ( dimi ) {
+            m_dimis.erase( num );
+            delete dimi;
+            return true;
+        }
+    }
+    if ( classname == cFumi::classname ) {
+        cFumi * fumi = GetFumi( num );
+        if ( fumi ) {
+            m_fumis.erase( num );
+            delete fumi;
             return true;
         }
     }
