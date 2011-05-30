@@ -1448,6 +1448,17 @@ static void ToTxt_SaHpiBoolT( const void * src, std::string& txt )
     txt.append( ( x == SAHPI_FALSE ) ? "FALSE" : "TRUE" );
 }
 
+static void ToTxt_SaHpiDomainIdT( const void * src, std::string& txt )
+{
+    SaHpiDomainIdT x = ConstRef<SaHpiDomainIdT>( src );
+    if ( x == SAHPI_UNSPECIFIED_DOMAIN_ID ) {
+        txt.append( "UNSPECIFIED" );
+        return;
+    }
+
+    ToTxt_SaHpiUint32T( src, txt );
+}
+
 static void ToTxt_SaHpiResourceIdT( const void * src, std::string& txt )
 {
     SaHpiResourceIdT x = ConstRef<SaHpiResourceIdT>( src );
@@ -1677,6 +1688,17 @@ static bool FromTxt_SaHpiBoolT( const std::string& txt, void * dst )
     }
 }
 
+static bool FromTxt_SaHpiDomainIdT( const std::string& txt, void * dst )
+{
+    SaHpiDomainIdT& x = Ref<SaHpiDomainIdT>( dst );
+    if ( txt == "UNSPECIFIED" ) {
+        x = SAHPI_UNSPECIFIED_DOMAIN_ID;
+        return true;
+    }
+
+    return FromTxt_SaHpiUint32T( txt, dst );
+}
+
 static bool FromTxt_SaHpiResourceIdT( const std::string& txt, void * dst )
 {
     SaHpiResourceIdT& x = Ref<SaHpiResourceIdT>( dst );
@@ -1899,6 +1921,9 @@ void ToTxt( const Var& var, std::string& txt )
             return;
         case dtSaHpiManufacturerIdT:
             ToTxt_SaHpiUint32T( src, txt );
+            return;
+        case dtSaHpiDomainIdT:
+            ToTxt_SaHpiDomainIdT( src, txt );
             return;
         case dtSaHpiResourceIdT:
             ToTxt_SaHpiResourceIdT( src, txt );
@@ -2202,6 +2227,8 @@ bool FromTxt( const std::string& txt, Var& var )
             return FromTxt_SaHpiBoolT( txt, dst );
         case dtSaHpiManufacturerIdT:
             return FromTxt_SaHpiUint32T( txt, dst );
+        case dtSaHpiDomainIdT:
+            return FromTxt_SaHpiDomainIdT( txt, dst );
         case dtSaHpiResourceIdT:
             return FromTxt_SaHpiResourceIdT( txt, dst );
         case dtSaHpiEntryIdT:

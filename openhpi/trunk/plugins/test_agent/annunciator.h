@@ -29,6 +29,8 @@ namespace TA {
 /**************************************************************
  * class cAnnunciator
  *************************************************************/
+class cAnnouncement;
+
 class cAnnunciator : public cInstrument
 {
 public:
@@ -38,10 +40,28 @@ public:
     explicit cAnnunciator( cResource& resource, SaHpiAnnunciatorNumT num );
     virtual ~cAnnunciator();
 
+public:
+
+    cAnnouncement * GetAnnouncement( SaHpiEntryIdT aid ) const;
+
 public:  // HPI interface
+
+    SaErrorT GetAnnouncement( SaHpiEntryIdT aid, SaHpiAnnouncementT& a ) const;
+    SaErrorT GetNextAnnouncement( SaHpiSeverityT sev,
+                                  SaHpiBoolT only_unack,
+                                  SaHpiAnnouncementT& a ) const;
+    SaErrorT AckAnnouncement( SaHpiEntryIdT aid, SaHpiSeverityT sev );
+    SaErrorT AddAnnouncement( SaHpiAnnouncementT& a );
+    SaErrorT DeleteAnnouncement( SaHpiEntryIdT aid, SaHpiSeverityT sev );
+    SaErrorT GetMode( SaHpiAnnunciatorModeT& mode ) const;
+    SaErrorT SetMode( SaHpiAnnunciatorModeT mode );
 
 protected: // cObject virtual functions
 
+    virtual void GetNewNames( cObject::NewNames& names ) const;
+    virtual bool CreateChild( const std::string& name );
+    virtual bool RemoveChild( const std::string& name );
+    virtual void GetChildren( cObject::Children& children ) const;
     virtual void GetVars( cVars& vars );
 
 private:
@@ -59,6 +79,10 @@ private:
 private: // data
 
     const SaHpiAnnunciatorRecT& m_rec;
+    SaHpiAnnunciatorModeT       m_mode;
+
+    typedef std::list<cAnnouncement *> Announcements;
+    Announcements m_as;
 };
 
 

@@ -24,6 +24,7 @@
 #include <oh_utils.h>
 
 #include "abi.h"
+#include "annunciator.h"
 #include "area.h"
 #include "control.h"
 #include "handler.h"
@@ -127,6 +128,21 @@ static cArea * GetArea( cHandler * h,
         cArea * area = inv->GetArea( id );
         if ( area && area->IsVisible() ) {
             return area;
+        }
+    }
+
+    return 0;
+}
+
+static cAnnunciator * GetAnnunciator( cHandler * h,
+                                      SaHpiResourceIdT rid,
+                                      SaHpiAnnunciatorNumT num )
+{
+    cResource * r = GetResource( h, rid );
+    if ( r ) {
+        cAnnunciator * ann = r->GetAnnunciator( num );
+        if ( ann && ann->IsVisible() ) {
+            return ann;
         }
     }
 
@@ -877,9 +893,16 @@ oh_get_next_announce(
     SaHpiAnnunciatorNumT num,
     SaHpiSeverityT sev,
     SaHpiBoolT ack,
-    SaHpiAnnouncementT * ann )
+    SaHpiAnnouncementT * a )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cAnnunciator * ann = TA::GetAnnunciator( handler, rid, num );
+    if ( !ann ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    return ann->GetNextAnnouncement( sev, ack, *a );
 }
 
 
@@ -891,10 +914,17 @@ oh_get_announce(
     void * hnd,
     SaHpiResourceIdT rid,
     SaHpiAnnunciatorNumT num,
-    SaHpiEntryIdT annid,
-    SaHpiAnnouncementT * ann )
+    SaHpiEntryIdT aid,
+    SaHpiAnnouncementT * a )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cAnnunciator * ann = TA::GetAnnunciator( handler, rid, num );
+    if ( !ann ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    return ann->GetAnnouncement( aid, *a );
 }
 
 
@@ -906,10 +936,17 @@ oh_ack_announce(
     void * hnd,
     SaHpiResourceIdT rid,
     SaHpiAnnunciatorNumT num,
-    SaHpiEntryIdT annid,
+    SaHpiEntryIdT aid,
     SaHpiSeverityT sev )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cAnnunciator * ann = TA::GetAnnunciator( handler, rid, num );
+    if ( !ann ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    return ann->AckAnnouncement( aid, sev );
 }
 
 
@@ -921,9 +958,16 @@ oh_add_announce(
     void * hnd,
     SaHpiResourceIdT rid,
     SaHpiAnnunciatorNumT num,
-    SaHpiAnnouncementT * ann )
+    SaHpiAnnouncementT * a )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cAnnunciator * ann = TA::GetAnnunciator( handler, rid, num );
+    if ( !ann ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    return ann->AddAnnouncement( *a );
 }
 
 
@@ -935,10 +979,17 @@ oh_del_announce(
     void * hnd,
     SaHpiResourceIdT rid,
     SaHpiAnnunciatorNumT num,
-    SaHpiEntryIdT annid,
+    SaHpiEntryIdT aid,
     SaHpiSeverityT sev )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cAnnunciator * ann = TA::GetAnnunciator( handler, rid, num );
+    if ( !ann ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    return ann->DeleteAnnouncement( aid, sev );
 }
 
 
@@ -952,7 +1003,14 @@ oh_get_annunc_mode(
     SaHpiAnnunciatorNumT num,
     SaHpiAnnunciatorModeT * mode )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cAnnunciator * ann = TA::GetAnnunciator( handler, rid, num );
+    if ( !ann ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    return ann->GetMode( *mode );
 }
 
 
@@ -966,7 +1024,14 @@ oh_set_annunc_mode(
     SaHpiAnnunciatorNumT num,
     SaHpiAnnunciatorModeT mode )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cAnnunciator * ann = TA::GetAnnunciator( handler, rid, num );
+    if ( !ann ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    return ann->SetMode( mode );
 }
 
 
