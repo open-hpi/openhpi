@@ -234,3 +234,17 @@ cd field-2
 set ReadOnly = FALSE
 cd ../../../
 
+# create annunciator
+new ann-1
+cd ann-1
+set Visible = TRUE
+cd ..
+
+# create annunciator with AUTO ReadOnly Mode
+new ann-2
+cd ann-2
+set Rdr.AnnunciatorRec.ModeReadOnly = TRUE
+set Mode = AUTO
+set Visible = TRUE
+cd ..
+

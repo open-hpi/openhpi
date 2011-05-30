@@ -25,6 +25,8 @@ pkglib_LTLIBRARIES = libtest_agent.la
 
 libtest_agent_la_SOURCES = abi.cpp \
                            abi.h \
+                           announcement.cpp \
+                           announcement.h \
                            annunciator.cpp \
                            annunciator.h \
                            area.cpp \

@@ -297,22 +297,22 @@ SaErrorT oh_get_next_announce(
     SaHpiAnnunciatorNumT num,
     SaHpiSeverityT sev,
     SaHpiBoolT ack,
-    SaHpiAnnouncementT * ann
+    SaHpiAnnouncementT * a
 );
 
 SaErrorT oh_get_announce(
     void * hnd,
     SaHpiResourceIdT rid,
     SaHpiAnnunciatorNumT num,
-    SaHpiEntryIdT annid,
-    SaHpiAnnouncementT * ann
+    SaHpiEntryIdT aid,
+    SaHpiAnnouncementT * a
 );
 
 SaErrorT oh_ack_announce(
     void * hnd,
     SaHpiResourceIdT rid,
     SaHpiAnnunciatorNumT num,
-    SaHpiEntryIdT annid,
+    SaHpiEntryIdT aid,
     SaHpiSeverityT sev
 );
 
@@ -320,14 +320,14 @@ SaErrorT oh_add_announce(
     void * hnd,
     SaHpiResourceIdT rid,
     SaHpiAnnunciatorNumT num,
-    SaHpiAnnouncementT * ann
+    SaHpiAnnouncementT * a
 );
 
 SaErrorT oh_del_announce(
     void * hnd,
     SaHpiResourceIdT rid,
     SaHpiAnnunciatorNumT num,
-    SaHpiEntryIdT annid,
+    SaHpiEntryIdT aid,
     SaHpiSeverityT sev
 );
 

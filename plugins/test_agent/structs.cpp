@@ -641,6 +641,74 @@ void GetVars( SaHpiWatchdogT& wd, cVars& vars )
          << VAR_END();
 }
 
+void GetVars( SaHpiAnnouncementT& a, cVars& vars )
+{
+    vars << "EntryId"
+         << dtSaHpiEntryIdT
+         << DATA( a.EntryId )
+         << READONLY()
+         << VAR_END();
+    vars << "Timestamp"
+         << dtSaHpiTimeT
+         << DATA( a.Timestamp )
+         << VAR_END();
+    vars << "AddedByUser"
+         << dtSaHpiBoolT
+         << DATA( a.AddedByUser )
+         << VAR_END();
+    vars << "Severity"
+         << dtSaHpiSeverityT
+         << DATA( a.Severity )
+         << VAR_END();
+    vars << "Acknowledged"
+         << dtSaHpiBoolT
+         << DATA( a.Acknowledged )
+         << VAR_END();
+
+    SaHpiConditionT& c = a.StatusCond;
+
+    vars << "StatusCond.Type"
+         << dtSaHpiStatusCondTypeT
+         << DATA( c.Type )
+         << VAR_END();
+    vars << "StatusCond.Entity"
+         << dtSaHpiEntityPathT
+         << DATA( c.Entity )
+         << VAR_END();
+    vars << "StatusCond.DomainId"
+         << dtSaHpiDomainIdT
+         << DATA( c.DomainId )
+         << VAR_END();
+    vars << "StatusCond.ResourceId"
+         << dtSaHpiResourceIdT
+         << DATA( c.ResourceId )
+         << VAR_END();
+    vars << IF( c.Type == SAHPI_STATUS_COND_TYPE_SENSOR )
+         << "StatusCond.SensorNum"
+         << dtSaHpiSensorNumT
+         << DATA( c.SensorNum )
+         << VAR_END();
+    vars << IF( c.Type == SAHPI_STATUS_COND_TYPE_SENSOR )
+         << "StatusCond.EventState"
+         << dtSaHpiEventStateT
+         << DATA( c.EventState )
+         << VAR_END();
+    vars << "StatusCond.Name"
+         << dtSaHpiNameT
+         << DATA( c.Name )
+         << VAR_END();
+    vars << IF( c.Type == SAHPI_STATUS_COND_TYPE_OEM )
+         << "StatusCond.Mid"
+         << dtSaHpiManufacturerIdT
+         << DATA( c.Mid )
+         << VAR_END();
+    vars << IF( c.Type == SAHPI_STATUS_COND_TYPE_OEM )
+         << "StatusCond.Data"
+         << dtSaHpiTextBufferT
+         << DATA( c.Data )
+         << VAR_END();
+}
+
 
 }; // namespace Structs
 

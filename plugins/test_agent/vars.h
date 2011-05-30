@@ -40,6 +40,7 @@ enum eDataType
     dtSaHpiFloat64T,
     dtSaHpiBoolT,
     dtSaHpiManufacturerIdT,
+    dtSaHpiDomainIdT,
     dtSaHpiResourceIdT,
     dtSaHpiEntryIdT,
     dtSaHpiTimeT,

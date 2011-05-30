@@ -3,6 +3,7 @@ include ../../Makefile.mingw32.def
 TARGET := libtest_agent.dll
 
 SRC := abi.cpp \
+       announcement.cpp \
        annunciator.cpp \
        area.cpp \
        codec.cpp \
