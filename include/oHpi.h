@@ -50,8 +50,9 @@ typedef struct {
 
 typedef struct {
         SaHpiDomainIdT   id;
-        SaHpiTextBufferT daemonhost;
+        SaHpiTextBufferT host;
         SaHpiUint16T     port;
+        SaHpiEntityPathT entity_root;
 } oHpiDomainEntryT;
 
 
@@ -144,11 +145,13 @@ SaErrorT SAHPI_API oHpiInjectEvent (
 SaErrorT SAHPI_API oHpiDomainAdd ( 
      SAHPI_IN    const SaHpiTextBufferT *host,
      SAHPI_IN    SaHpiUint16T port,
+     SAHPI_IN    const SaHpiEntityPathT *entity_root,
      SAHPI_OUT   SaHpiDomainIdT *domain_id );
 SaErrorT SAHPI_API oHpiDomainAddById ( 
      SAHPI_IN    SaHpiDomainIdT domain_id,
      SAHPI_IN    const SaHpiTextBufferT *host,
-     SAHPI_IN    SaHpiUint16T port );
+     SAHPI_IN    SaHpiUint16T port,
+     SAHPI_IN    const SaHpiEntityPathT *entity_root );
 SaErrorT SAHPI_API oHpiDomainEntryGet (
      SAHPI_IN    SaHpiEntryIdT    EntryId,
      SAHPI_OUT   SaHpiEntryIdT    *NextEntryId,
