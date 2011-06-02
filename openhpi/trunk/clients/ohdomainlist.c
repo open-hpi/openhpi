@@ -104,7 +104,7 @@ SaErrorT show_domains(void)
                                    domainentry.id, nextdomainentryid);
 
 		printf("Domain defined on host(%s:%u) with id: %u\n",
-                                          (char *)domainentry.daemonhost.Data,
+                                          (char *)domainentry.host.Data,
                                           domainentry.port,
                                           domainentry.id);
 

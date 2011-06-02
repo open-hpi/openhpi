@@ -72,6 +72,13 @@ SaErrorT oh_decode_entitypath(const SaHpiEntityPathT *ep,
 SaErrorT oh_encode_entitypath(const gchar *epstr,
 			      SaHpiEntityPathT *ep);
 
+SaHpiUint8T oh_ep_len( const SaHpiEntityPathT * ep );
+
+SaErrorT oh_get_child_ep( const SaHpiEntityPathT * ep,
+                          const SaHpiEntityPathT * parent,
+                          SaHpiEntityPathT * child );
+
+
 SaErrorT oh_init_ep(SaHpiEntityPathT *ep);
 
 #define oh_print_ep(ep_ptr, offsets) oh_fprint_ep(stdout, ep_ptr, offsets)

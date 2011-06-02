@@ -29,11 +29,13 @@
 
 #include <marshal_hpi.h>
 #include <oh_rpc_params.h>
+#include <oh_utils.h>
 
 #include "init.h"
 #include "session.h"
 
 
+#include <oh_error.h>
 /*----------------------------------------------------------------------------*/
 /* Utility functions                                                          */
 /*----------------------------------------------------------------------------*/
@@ -272,6 +274,7 @@ SaErrorT SAHPI_API saHpiDrtEntryGet(
 
     /* Set Domain Id to real Domain Id */
     if (rv == SA_OK) {
+        // TODO: fix me
         rv = ohc_sess_get_did(SessionId, DrtEntry->DomainId);
     }
 
@@ -327,6 +330,14 @@ SaErrorT SAHPI_API saHpiRptEntryGet(
     ClientRpcParams oparams(NextEntryId, RptEntry);
     rv = ohc_sess_rpc(eFsaHpiRptEntryGet, SessionId, iparams, oparams);
 
+    if (rv == SA_OK)  {
+        SaHpiEntityPathT entity_root;
+        rv = ohc_sess_get_entity_root(SessionId, entity_root);
+        if (rv == SA_OK) {
+            oh_concat_ep(&RptEntry->ResourceEntity, &entity_root);
+        }
+    }
+
     return rv;
 }
 
@@ -349,6 +360,14 @@ SaErrorT SAHPI_API saHpiRptEntryGetByResourceId(
     ClientRpcParams iparams(&ResourceId);
     ClientRpcParams oparams(RptEntry);
     rv = ohc_sess_rpc(eFsaHpiRptEntryGetByResourceId, SessionId, iparams, oparams);
+
+    if (rv == SA_OK)  {
+        SaHpiEntityPathT entity_root;
+        rv = ohc_sess_get_entity_root(SessionId, entity_root);
+        if (rv == SA_OK) {
+            oh_concat_ep(&RptEntry->ResourceEntity, &entity_root);
+        }
+    }
 
     return rv;
 }
@@ -421,6 +440,14 @@ SaErrorT SAHPI_API saHpiMyEntityPathGet(
     ClientRpcParams oparams(EntityPath);
     rv = ohc_sess_rpc(eFsaHpiMyEntityPathGet, SessionId, iparams, oparams);
 
+    if (rv == SA_OK)  {
+        SaHpiEntityPathT entity_root;
+        rv = ohc_sess_get_entity_root(SessionId, entity_root);
+        if (rv == SA_OK) {
+            oh_concat_ep(EntityPath , &entity_root);
+        }
+    }
+
     return rv;
 }
 
@@ -473,7 +500,20 @@ SaErrorT SAHPI_API saHpiGetIdByEntityPath(
         InstrumentId = &instrument_id;
     }
 
-    ClientRpcParams iparams(&EntityPath, &InstrumentType, InstanceId);
+    SaHpiEntityPathT entity_root;
+    rv = ohc_sess_get_entity_root(SessionId, entity_root);
+    if (rv != SA_OK) {
+        return rv;
+    }
+
+    // Remove domain entity_root from the EntityPath
+    SaHpiEntityPathT ep;
+    rv = oh_get_child_ep(&EntityPath, &entity_root, &ep);
+    if (rv != SA_OK) {
+        return rv;
+    }
+
+    ClientRpcParams iparams(&ep, &InstrumentType, InstanceId);
     ClientRpcParams oparams(InstanceId, ResourceId, InstrumentId, RptUpdateCount);
     rv = ohc_sess_rpc(eFsaHpiGetIdByEntityPath, SessionId, iparams, oparams);
 
@@ -497,10 +537,37 @@ SaErrorT SAHPI_API saHpiGetChildEntityPath(
     if ((!InstanceId) || (*InstanceId == SAHPI_LAST_ENTRY) || (!RptUpdateCount)) {
         return SA_ERR_HPI_INVALID_PARAMS;
     }
+    if (!ChildEntityPath) {
+        return SA_ERR_HPI_INVALID_PARAMS;
+    }
 
-    ClientRpcParams iparams(&ParentEntityPath, InstanceId);
+    SaHpiEntityPathT entity_root;
+    rv = ohc_sess_get_entity_root(SessionId, entity_root);
+    if (rv != SA_OK) {
+        return rv;
+    }
+
+    // Remove domain entity_root from the ParentEntityPath
+    SaHpiEntityPathT parent;
+    oh_init_ep(&parent);
+    if (oh_ep_len(&ParentEntityPath) > 0) {
+        rv = oh_get_child_ep(&ParentEntityPath, &entity_root, &parent);
+        if (rv != SA_OK) {
+            if ( rv == SA_ERR_HPI_NOT_PRESENT ) {
+                rv = SA_ERR_HPI_INVALID_DATA;
+            }
+            return rv;
+        }
+    }
+
+    ClientRpcParams iparams(&parent, InstanceId);
     ClientRpcParams oparams(InstanceId, ChildEntityPath, RptUpdateCount);
     rv = ohc_sess_rpc(eFsaHpiGetChildEntityPath, SessionId, iparams, oparams);
+
+    // Add domain entity_root to obtained child
+    if (rv == SA_OK)  {
+        oh_concat_ep(ChildEntityPath, &entity_root);
+    }
 
     return rv;
 }
@@ -611,6 +678,16 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet(
             SaHpiDomainIdT did;
             rv = ohc_sess_get_did(SessionId, did );
             EventLogEntry->Event.EventDataUnion.DomainEvent.DomainId = did;
+        }
+    }
+    if (rv == SA_OK)  {
+        SaHpiEntityPathT entity_root;
+        rv = ohc_sess_get_entity_root(SessionId, entity_root);
+        if ((rv == SA_OK) && RptEntry) {
+            oh_concat_ep(&RptEntry->ResourceEntity, &entity_root);
+        }
+        if ((rv == SA_OK) && Rdr) {
+            oh_concat_ep(&Rdr->Entity, &entity_root);
         }
     }
 
@@ -843,6 +920,17 @@ SaErrorT SAHPI_API saHpiEventGet(
         memcpy(EventQueueStatus, &status, sizeof(SaHpiEvtQueueStatusT));
     }
 
+    if (rv == SA_OK)  {
+        SaHpiEntityPathT entity_root;
+        rv = ohc_sess_get_entity_root(SessionId, entity_root);
+        if ((rv == SA_OK) && RptEntry) {
+            oh_concat_ep(&RptEntry->ResourceEntity, &entity_root);
+        }
+        if ((rv == SA_OK) && Rdr) {
+            oh_concat_ep(&Rdr->Entity, &entity_root);
+        }
+    }
+
     return rv;
 }
 
@@ -898,6 +986,16 @@ SaErrorT SAHPI_API saHpiAlarmGetNext(
     if (rv == SA_OK) {
         rv = ohc_sess_get_did(SessionId, Alarm->AlarmCond.DomainId);
     }
+    if (rv == SA_OK)  {
+        SaHpiEntityPathT entity_root;
+        rv = ohc_sess_get_entity_root(SessionId, entity_root);
+        if (rv == SA_OK) {
+            if (Alarm->AlarmCond.Type != SAHPI_STATUS_COND_TYPE_USER) {
+                // We do not append entity root to user added alarm
+                oh_concat_ep(&Alarm->AlarmCond.Entity, &entity_root);
+            }
+        }
+    }
 
     return rv;
 }
@@ -925,6 +1023,16 @@ SaErrorT SAHPI_API saHpiAlarmGet(
     /* Set Alarm DomainId to DomainId that HPI Application sees */
     if (rv == SA_OK) {
         rv = ohc_sess_get_did(SessionId, Alarm->AlarmCond.DomainId);
+    }
+    if (rv == SA_OK)  {
+        SaHpiEntityPathT entity_root;
+        rv = ohc_sess_get_entity_root(SessionId, entity_root);
+        if (rv == SA_OK) {
+            if (Alarm->AlarmCond.Type != SAHPI_STATUS_COND_TYPE_USER) {
+                // We do not append entity root to user added alarm
+                oh_concat_ep(&Alarm->AlarmCond.Entity, &entity_root);
+            }
+        }
     }
 
     return rv;
@@ -982,6 +1090,8 @@ SaErrorT SAHPI_API saHpiAlarmAdd(
         rv = ohc_sess_get_did(SessionId, Alarm->AlarmCond.DomainId);
     }
 
+    /* NB: We do not modify entity path here. */
+
     return rv;
 }
 
@@ -1030,6 +1140,14 @@ SaErrorT SAHPI_API saHpiRdrGet(
     ClientRpcParams oparams(NextEntryId, Rdr);
     rv = ohc_sess_rpc(eFsaHpiRdrGet, SessionId, iparams, oparams);
 
+    if (rv == SA_OK)  {
+        SaHpiEntityPathT entity_root;
+        rv = ohc_sess_get_entity_root(SessionId, entity_root);
+        if (rv == SA_OK) {
+            oh_concat_ep(&Rdr->Entity, &entity_root);
+        }
+    }
+
     return rv;
 }
 
@@ -1054,6 +1172,14 @@ SaErrorT SAHPI_API saHpiRdrGetByInstrumentId(
     ClientRpcParams iparams(&ResourceId, &RdrType, &InstrumentId);
     ClientRpcParams oparams(Rdr);
     rv = ohc_sess_rpc(eFsaHpiRdrGetByInstrumentId, SessionId, iparams, oparams);
+
+    if (rv == SA_OK)  {
+        SaHpiEntityPathT entity_root;
+        rv = ohc_sess_get_entity_root(SessionId, entity_root);
+        if (rv == SA_OK) {
+            oh_concat_ep(&Rdr->Entity, &entity_root);
+        }
+    }
 
     return rv;
 }
@@ -1819,6 +1945,19 @@ SaErrorT SAHPI_API saHpiAnnunciatorGetNext(
     ClientRpcParams oparams(Announcement);
     rv = ohc_sess_rpc(eFsaHpiAnnunciatorGetNext, SessionId, iparams, oparams);
 
+    /* Set Announcement DomainId to DomainId that HPI Application sees */
+    if (rv == SA_OK) {
+        rv = ohc_sess_get_did(SessionId, Announcement->StatusCond.DomainId);
+    }
+    if (rv == SA_OK)  {
+        SaHpiEntityPathT entity_root;
+        rv = ohc_sess_get_entity_root(SessionId, entity_root);
+        if ((rv == SA_OK) && (Announcement->AddedByUser == SAHPI_FALSE)) {
+            // We do not append entity root to user added announcement
+            oh_concat_ep(&Announcement->StatusCond.Entity, &entity_root);
+        }
+    }
+
     return rv;
 }
 
@@ -1843,6 +1982,19 @@ SaErrorT SAHPI_API saHpiAnnunciatorGet(
     ClientRpcParams iparams(&ResourceId, &AnnNum, &EntryId);
     ClientRpcParams oparams(Announcement);
     rv = ohc_sess_rpc(eFsaHpiAnnunciatorGet, SessionId, iparams, oparams);
+
+    /* Set Announcement DomainId to DomainId that HPI Application sees */
+    if (rv == SA_OK) {
+        rv = ohc_sess_get_did(SessionId, Announcement->StatusCond.DomainId);
+    }
+    if (rv == SA_OK)  {
+        SaHpiEntityPathT entity_root;
+        rv = ohc_sess_get_entity_root(SessionId, entity_root);
+        if ((rv == SA_OK) && (Announcement->AddedByUser == SAHPI_FALSE)) {
+            // We do not append entity root to user added announcement
+            oh_concat_ep(&Announcement->StatusCond.Entity, &entity_root);
+        }
+    }
 
     return rv;
 }
@@ -1906,6 +2058,8 @@ SaErrorT SAHPI_API saHpiAnnunciatorAdd(
     ClientRpcParams iparams(&ResourceId, &AnnNum, Announcement);
     ClientRpcParams oparams(Announcement);
     rv = ohc_sess_rpc(eFsaHpiAnnunciatorAdd, SessionId, iparams, oparams);
+
+    /* NB: We do not modify entity path here. */
 
     return rv;
 }
@@ -2029,6 +2183,17 @@ SaErrorT SAHPI_API saHpiDimiTestInfoGet(
     ClientRpcParams iparams(&ResourceId, &DimiNum, &TestNum);
     ClientRpcParams oparams(DimiTest);
     rv = ohc_sess_rpc(eFsaHpiDimiTestInfoGet, SessionId, iparams, oparams);
+
+    if (rv == SA_OK)  {
+        SaHpiEntityPathT entity_root;
+        rv = ohc_sess_get_entity_root(SessionId, entity_root);
+        if (rv == SA_OK) {
+            for ( size_t i = 0; i < SAHPI_DIMITEST_MAX_ENTITIESIMPACTED; ++i ) {
+                oh_concat_ep(&DimiTest->EntitiesImpacted[i].EntityImpacted,
+                             &entity_root);
+            }
+        }
+    }
 
     return rv;
 }
@@ -2179,6 +2344,17 @@ SaErrorT SAHPI_API saHpiFumiServiceImpactGet(
     ClientRpcParams iparams(&ResourceId, &FumiNum);
     ClientRpcParams oparams(ServiceImpact);
     rv = ohc_sess_rpc(eFsaHpiFumiServiceImpactGet, SessionId, iparams, oparams);
+
+    if (rv == SA_OK)  {
+        SaHpiEntityPathT entity_root;
+        rv = ohc_sess_get_entity_root(SessionId, entity_root);
+        if (rv == SA_OK) {
+            for ( size_t i = 0; i < ServiceImpact->NumEntities; ++i ) {
+                oh_concat_ep(&ServiceImpact->ImpactedEntities[i].ImpactedEntity,
+                             &entity_root);
+            }
+        }
+    }
 
     return rv;
 }

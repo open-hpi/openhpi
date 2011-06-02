@@ -298,12 +298,16 @@ SaErrorT SAHPI_API oHpiInjectEvent (
 SaErrorT SAHPI_API oHpiDomainAdd (
     SAHPI_IN    const SaHpiTextBufferT *host,
     SAHPI_IN    SaHpiUint16T port,
+    SAHPI_IN    const SaHpiEntityPathT *entity_root,
     SAHPI_OUT   SaHpiDomainIdT *domain_id)
 {
     if (!host) {
         return SA_ERR_HPI_INVALID_PARAMS;
     }
     if (!domain_id) {
+        return SA_ERR_HPI_INVALID_PARAMS;
+    }
+    if (!entity_root) {
         return SA_ERR_HPI_INVALID_PARAMS;
     }
     if ((host->DataType != SAHPI_TL_TYPE_BCDPLUS) &&
@@ -321,7 +325,7 @@ SaErrorT SAHPI_API oHpiDomainAdd (
     memcpy(&buf[0], &host->Data[0], host->DataLength);
     buf[host->DataLength] = '\0';
 
-    return ohc_add_domain_conf(buf, port, domain_id);
+    return ohc_add_domain_conf(buf, port, entity_root, domain_id);
 }
 
 
@@ -332,9 +336,13 @@ SaErrorT SAHPI_API oHpiDomainAdd (
 SaErrorT SAHPI_API oHpiDomainAddById (
     SAHPI_IN    SaHpiDomainIdT domain_id,
     SAHPI_IN    const SaHpiTextBufferT *host,
-    SAHPI_IN    SaHpiUint16T port)
+    SAHPI_IN    SaHpiUint16T port,
+    SAHPI_IN    const SaHpiEntityPathT *entity_root)
 {
     if (!host) {
+        return SA_ERR_HPI_INVALID_PARAMS;
+    }
+    if (!entity_root) {
         return SA_ERR_HPI_INVALID_PARAMS;
     }
     if ((host->DataType != SAHPI_TL_TYPE_BCDPLUS) &&
@@ -352,7 +360,7 @@ SaErrorT SAHPI_API oHpiDomainAddById (
     memcpy(&buf[0], &host->Data[0], host->DataLength);
     buf[host->DataLength] = '\0';
 
-    return ohc_add_domain_conf_by_id(domain_id, buf, port);
+    return ohc_add_domain_conf_by_id(domain_id, buf, port, entity_root);
 }
 
 /*----------------------------------------------------------------------------*/
@@ -377,13 +385,14 @@ SaErrorT SAHPI_API oHpiDomainEntryGet (
     }
 
     DomainEntry->id = (SaHpiDomainIdT) EntryId;
-    if (oh_init_textbuffer(&DomainEntry->daemonhost) != SA_OK) {
+    if (oh_init_textbuffer(&DomainEntry->host) != SA_OK) {
         return SA_ERR_HPI_INVALID_PARAMS;
     }
-    if (oh_append_textbuffer(&DomainEntry->daemonhost, dc->host)!= SA_OK) {
+    if (oh_append_textbuffer(&DomainEntry->host, dc->host)!= SA_OK) {
         return SA_ERR_HPI_INVALID_PARAMS;
     }
     DomainEntry->port = dc->port;
+    memcpy(&DomainEntry->entity_root, &dc->entity_root, sizeof(SaHpiEntityPathT));
 
     return SA_OK;
 }
@@ -410,13 +419,14 @@ SaErrorT SAHPI_API oHpiDomainEntryGetByDomainId (
     }
 
     DomainEntry->id = DomainId;
-    if (oh_init_textbuffer(&DomainEntry->daemonhost) != SA_OK) {
+    if (oh_init_textbuffer(&DomainEntry->host) != SA_OK) {
         return SA_ERR_HPI_INVALID_PARAMS;
     }
-    if (oh_append_textbuffer(&DomainEntry->daemonhost, entry->host)!= SA_OK) {
+    if (oh_append_textbuffer(&DomainEntry->host, entry->host)!= SA_OK) {
         return SA_ERR_HPI_INVALID_PARAMS;
     }
     DomainEntry->port = entry->port;
+    memcpy(&DomainEntry->entity_root, &entry->entity_root, sizeof(SaHpiEntityPathT));    
 
     return SA_OK;
 }
