@@ -33,6 +33,7 @@ struct ohc_domain_conf {
         SaHpiDomainIdT did;
         char host[SAHPI_MAX_TEXT_BUFFER_LENGTH];
         unsigned short port;
+        SaHpiEntityPathT entity_root;
 };
 
 
@@ -43,10 +44,12 @@ const struct ohc_domain_conf * ohc_get_next_domain_conf(SaHpiEntryIdT entry_id,
 
 SaErrorT ohc_add_domain_conf(const char *host,
                              unsigned short port,
+                             const SaHpiEntityPathT *entity_root,
                              SaHpiDomainIdT *did);
 SaErrorT ohc_add_domain_conf_by_id(SaHpiDomainIdT did,
                                    const char *host,
-                                   unsigned short port);
+                                   unsigned short port,
+                                   const SaHpiEntityPathT *entity_root);
 
 #ifdef __cplusplus
 } /* extern "C" */

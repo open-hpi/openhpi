@@ -226,6 +226,7 @@ static ret_code_t newdomain(void)
 
     SaHpiUint16T port;
     SaHpiTextBufferT host;
+    SaHpiEntityPathT entity_root;
     SaHpiDomainIdT did;
 
     SaErrorT rv;
@@ -256,6 +257,8 @@ static ret_code_t newdomain(void)
     memcpy(&host.Data[0], &buf[0], host.DataLength );
     host.Data[host.DataLength] = '\0';
 
+    oh_init_ep(&entity_root);
+
     i = get_string_param("Domain Id: ", buf, SAHPI_MAX_TEXT_BUFFER_LENGTH);
     if (i == 0) {
         p = &buf[0];
@@ -263,13 +266,13 @@ static ret_code_t newdomain(void)
             return HPI_SHELL_PARM_ERROR;
         }
         did = (SaHpiDomainIdT)atoi(p);
-        rv = oHpiDomainAddById(did, &host, port);
+        rv = oHpiDomainAddById(did, &host, port, &entity_root);
         if (rv != SA_OK) {
             printf("oHpiDomainAddById error %s\n", oh_lookup_error(rv));
             return HPI_SHELL_CMD_ERROR;
         }
     } else {
-        rv = oHpiDomainAdd(&host, port, &did);
+        rv = oHpiDomainAdd(&host, port, &entity_root, &did);
         if (rv != SA_OK) {
             printf("oHpiDomainAdd error %s\n", oh_lookup_error(rv));
             return HPI_SHELL_CMD_ERROR;

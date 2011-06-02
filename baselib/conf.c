@@ -25,6 +25,7 @@
 
 #include <config.h>
 #include <oh_error.h>
+#include <oh_utils.h>
 
 #include "conf.h"
 #include "init.h"
@@ -36,7 +37,8 @@ static GHashTable *ohc_domains = NULL;
 static int load_client_config(const char *filename);
 static void add_domain_conf(SaHpiDomainIdT did,
                             const char *host,
-                            unsigned short port);
+                            unsigned short port,
+                            const SaHpiEntityPathT *entity_root);
 static void extract_keys(gpointer key, gpointer val, gpointer user_data);
 static gint compare_keys(const gint *a, const gint *b);
 
@@ -69,6 +71,7 @@ void ohc_conf_init(void)
         if (default_conf == NULL) {
             const char *host, *portstr;
             unsigned short port;
+            SaHpiEntityPathT entity_root;
 
             /* TODO: change these envs to have DEFAULT in the name*/
             host = getenv("OPENHPI_DAEMON_HOST");
@@ -81,8 +84,9 @@ void ohc_conf_init(void)
             } else {
                 port = atoi(portstr);
             }
+            oh_init_ep(&entity_root);
 
-            add_domain_conf(OH_DEFAULT_DOMAIN_ID, host, port);
+            add_domain_conf(OH_DEFAULT_DOMAIN_ID, host, port, &entity_root);
         }
     }
 
@@ -101,6 +105,7 @@ const struct ohc_domain_conf * ohc_get_domain_conf(SaHpiDomainIdT did)
 
 SaErrorT ohc_add_domain_conf(const char *host,
                              unsigned short port,
+                             const SaHpiEntityPathT *entity_root,
                              SaHpiDomainIdT *did)
 {
     ohc_lock();
@@ -134,7 +139,7 @@ SaErrorT ohc_add_domain_conf(const char *host,
     }
 
     *did = prev_did + 1;
-    add_domain_conf(*did, host, port);
+    add_domain_conf(*did, host, port, entity_root);
 
     ohc_unlock();
 
@@ -143,7 +148,8 @@ SaErrorT ohc_add_domain_conf(const char *host,
 
 SaErrorT ohc_add_domain_conf_by_id(SaHpiDomainIdT did,
                                    const char *host,
-                                   unsigned short port)
+                                   unsigned short port,
+                                   const SaHpiEntityPathT *entity_root)
 {
     if (did==SAHPI_UNSPECIFIED_DOMAIN_ID || 
         did==OH_DEFAULT_DOMAIN_ID)
@@ -157,7 +163,7 @@ SaErrorT ohc_add_domain_conf_by_id(SaHpiDomainIdT did,
         return SA_ERR_HPI_DUPLICATE;
     }
     
-    add_domain_conf(did, host, port);
+    add_domain_conf(did, host, port, entity_root);
     ohc_unlock();
     return SA_OK;
 }
@@ -230,7 +236,8 @@ enum {
         HPI_CLIENT_CONF_TOKEN_DOMAIN = G_TOKEN_LAST,
         HPI_CLIENT_CONF_TOKEN_DEFAULT,	
         HPI_CLIENT_CONF_TOKEN_HOST,
-        HPI_CLIENT_CONF_TOKEN_PORT
+        HPI_CLIENT_CONF_TOKEN_PORT,
+        HPI_CLIENT_CONF_TOKEN_ROOT
 } hpiClientConfType;
 
 struct tokens {
@@ -255,6 +262,10 @@ static struct tokens ohc_conf_tokens[] = {
         {
                 .name = "port",
                 .token = HPI_CLIENT_CONF_TOKEN_PORT
+        },
+        {
+                .name = "entity_root",
+                .token = HPI_CLIENT_CONF_TOKEN_ROOT
         }
 
 };
@@ -315,7 +326,8 @@ static int get_next_good_token(GScanner *oh_scanner) {
         next_token = g_scanner_get_next_token(oh_scanner);
         while (next_token != G_TOKEN_RIGHT_CURLY &&
                next_token != HPI_CLIENT_CONF_TOKEN_HOST &&
-               next_token != HPI_CLIENT_CONF_TOKEN_PORT) {
+               next_token != HPI_CLIENT_CONF_TOKEN_PORT &&
+               next_token != HPI_CLIENT_CONF_TOKEN_ROOT) {
                 if (next_token == G_TOKEN_EOF) break;
                 next_token = g_scanner_get_next_token(oh_scanner);
         }
@@ -325,7 +337,8 @@ static int get_next_good_token(GScanner *oh_scanner) {
 
 static void add_domain_conf(SaHpiDomainIdT did,
                             const char *host,
-                            unsigned short port)
+                            unsigned short port,
+                            const SaHpiEntityPathT * entity_root)
 {
     struct ohc_domain_conf *domain_conf;
 
@@ -333,6 +346,7 @@ static void add_domain_conf(SaHpiDomainIdT did,
     domain_conf->did = did;
     strncpy(domain_conf->host, host, SAHPI_MAX_TEXT_BUFFER_LENGTH);
     domain_conf->port = port;
+    memcpy(&domain_conf->entity_root, entity_root, sizeof(SaHpiEntityPathT));
     g_hash_table_insert(ohc_domains, &domain_conf->did, domain_conf);
 }
 
@@ -341,11 +355,13 @@ static int process_domain_token (GScanner *oh_scanner)
         SaHpiDomainIdT did;
         char host[SAHPI_MAX_TEXT_BUFFER_LENGTH];
         unsigned int port;
+        SaHpiEntityPathT entity_root;
 
         int next_token;
 
         host[0] = '\0';
         port = OPENHPI_DEFAULT_DAEMON_PORT;
+        oh_init_ep(&entity_root);
 
         next_token = g_scanner_get_next_token(oh_scanner);
         if (next_token != HPI_CLIENT_CONF_TOKEN_DOMAIN) {
@@ -402,6 +418,21 @@ static int process_domain_token (GScanner *oh_scanner)
                                 return -10;
                         }
                         port = oh_scanner->value.v_int;
+                } else if (next_token == HPI_CLIENT_CONF_TOKEN_ROOT) {
+                        next_token = g_scanner_get_next_token(oh_scanner);
+                        if (next_token != G_TOKEN_EQUAL_SIGN) {
+                                CRIT("Processing entity_root: Expected equal sign");
+                                return -10;
+                        }
+                        next_token = g_scanner_get_next_token(oh_scanner);
+                        if (next_token != G_TOKEN_STRING) {
+                                CRIT("Processing entity_root: Expected a string");
+                                return -10;
+                        }
+                        if ( oh_encode_entitypath(oh_scanner->value.v_string, &entity_root) != SA_OK ) {
+                                CRIT("Processing entity_root: Invalid entity path");
+                                return -10;
+                        }
                 } else {
                         CRIT("Processing domain: Should not get here!");
                         return -10;
@@ -417,7 +448,7 @@ static int process_domain_token (GScanner *oh_scanner)
                 return -10;
         }
 
-        add_domain_conf(did, host, port); 
+        add_domain_conf(did, host, port, &entity_root);
 
         return 0;
 }

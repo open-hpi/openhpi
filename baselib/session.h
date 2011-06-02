@@ -36,6 +36,7 @@ SaErrorT ohc_sess_rpc( uint32_t id,
                        ClientRpcParams& iparams,
                        ClientRpcParams& oparams );
 SaErrorT ohc_sess_get_did( SaHpiSessionIdT sid, SaHpiDomainIdT& did );
+SaErrorT ohc_sess_get_entity_root( SaHpiSessionIdT sid, SaHpiEntityPathT& ep );
 
 #endif /* __BASELIB_SESSION_H */
 

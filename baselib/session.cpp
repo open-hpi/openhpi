@@ -17,6 +17,8 @@
  *
  */
 
+#include <string.h>
+
 #include <glib.h>
 
 #include <oh_error.h>
@@ -44,6 +46,8 @@ public:
     {
         return m_did;
     }
+
+    SaErrorT GetEntityRoot( SaHpiEntityPathT& entity_root ) const;
 
     SaErrorT RpcOpen( SaHpiDomainIdT did );
     SaErrorT RpcClose();
@@ -85,6 +89,22 @@ cSession::cSession()
 cSession::~cSession()
 {
     g_static_private_free( &m_sockets );
+}
+
+SaErrorT cSession::GetEntityRoot( SaHpiEntityPathT& entity_root ) const
+{
+    ohc_lock();
+    const struct ohc_domain_conf * dc = ohc_get_domain_conf( m_did );
+    if ( dc ) {
+        memcpy( &entity_root, &dc->entity_root, sizeof(SaHpiEntityPathT) );
+    }
+    ohc_unlock();
+
+    if (!dc) {
+        return SA_ERR_HPI_INVALID_DOMAIN;
+    }
+
+    return SA_OK;
 }
 
 SaErrorT cSession::RpcOpen( SaHpiDomainIdT did )
@@ -302,6 +322,7 @@ SaErrorT ohc_sess_open( SaHpiDomainIdT did, SaHpiSessionIdT& sid )
 
 SaErrorT ohc_sess_close( SaHpiSessionIdT sid )
 {
+    // TODO fix race condition
     cSession * session = sessions_get( sid );
     if ( !session ) {
         return SA_ERR_HPI_INVALID_SESSION;
@@ -318,6 +339,7 @@ SaErrorT ohc_sess_close( SaHpiSessionIdT sid )
 
 SaErrorT ohc_sess_close_all()
 {
+    // TODO fix race condition
     SaErrorT rv = SA_OK;
 
     GList * sessions_list = sessions_take_all();
@@ -345,6 +367,7 @@ SaErrorT ohc_sess_rpc( uint32_t id,
                        ClientRpcParams& iparams,
                        ClientRpcParams& oparams )
 {
+    // TODO fix race condition
     cSession * session = sessions_get( sid );
     if ( !session ) {
         return SA_ERR_HPI_INVALID_SESSION;
@@ -355,6 +378,7 @@ SaErrorT ohc_sess_rpc( uint32_t id,
 
 SaErrorT ohc_sess_get_did( SaHpiSessionIdT sid, SaHpiDomainIdT& did )
 {
+    // TODO fix race condition
     cSession * session = sessions_get( sid );
     if ( !session ) {
         return SA_ERR_HPI_INVALID_SESSION;
@@ -363,5 +387,16 @@ SaErrorT ohc_sess_get_did( SaHpiSessionIdT sid, SaHpiDomainIdT& did )
     did = session->GetDomainId();
 
     return SA_OK;
+}
+
+SaErrorT ohc_sess_get_entity_root( SaHpiSessionIdT sid, SaHpiEntityPathT& ep )
+{
+    // TODO fix race condition
+    cSession * session = sessions_get( sid );
+    if ( !session ) {
+        return SA_ERR_HPI_INVALID_SESSION;
+    }
+
+    return session->GetEntityRoot( ep );
 }
 

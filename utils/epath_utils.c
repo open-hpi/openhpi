@@ -16,6 +16,7 @@
  */
 
 #include <glib.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -311,6 +312,85 @@ SaErrorT oh_init_ep(SaHpiEntityPathT *ep)
 
 	 return(SA_OK);
  }
+
+/**
+ * oh_ep_len:
+ * @ep: Pointer to SaHpiEntityPathT structure to get length.
+ *
+ * Returns entity path length - number of entries before {ROOT,0} element.
+ * Returns 0 in case of NULL ep pointer.
+ **/
+SaHpiUint8T oh_ep_len( const SaHpiEntityPathT * ep )
+{
+    if ( !ep ) {
+        return 0;
+    }
+
+    size_t i;
+    for ( i = 0; i < SAHPI_MAX_ENTITY_PATH; ++i ) {
+        if ( ep->Entry[i].EntityType == SAHPI_ENT_ROOT ) {
+            break;
+        }
+    }
+
+    return i;
+}
+
+/**
+ * oh_get_child_ep:
+ * @ep: Pointer to entity path.
+ * @parent: Pointer to parent entity path.
+ * @child: Pointer to location that will be filled with child entity path
+ *
+ * Checks if the given entity path(@ep) consists of of the parent entity path
+ * and some child entity path.
+ * If it is so then fills child entity path.
+ *
+ * Returns:
+ * SA_OK - @ep consists of the @parent and some child.
+ * SA_ERR_HPI_INVALID_PARAMS - one of @ep, @parent, @child is NULL.
+ * SA_ERR_HPI_NOT_PRESENT - @ep doesn't consist of the @parent and some child.
+ **/
+SaErrorT oh_get_child_ep( const SaHpiEntityPathT * ep,
+                          const SaHpiEntityPathT * parent,
+                          SaHpiEntityPathT * child )
+{
+    if ( ( !ep ) || ( !parent ) || ( !child ) ) {
+        return SA_ERR_HPI_INVALID_PARAMS;
+    }
+
+    oh_init_ep( child );
+
+    size_t l_ep     = oh_ep_len( ep );
+    size_t l_parent = oh_ep_len( parent );
+
+    if ( l_ep < l_parent ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    } else if ( l_ep == l_parent ) {
+        return SA_OK;
+    }
+
+    size_t l_child = l_ep - l_parent;
+
+    size_t i;
+
+    for ( i = 0; i < l_parent; ++i ) {
+        const SaHpiEntityT * x = &ep->Entry[i + l_child];
+        const SaHpiEntityT * y = &parent->Entry[i];
+        if ( x->EntityType != y->EntityType ) {
+            return SA_ERR_HPI_NOT_PRESENT;
+        }
+        if ( x->EntityLocation != y->EntityLocation ) {
+            return SA_ERR_HPI_NOT_PRESENT;
+        }
+    }
+
+    for ( i = 0; i < l_child; ++i ) {
+        child->Entry[i] = ep->Entry[i];
+    }
+
+    return SA_OK;
+}
 
 /**
  * oh_concat_ep:

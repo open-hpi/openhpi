@@ -260,7 +260,7 @@ static SaErrorT print_domaininfo(SaHpiDomainInfoT info, int shift)
         if (rv==SA_OK) {
                 for (i=0;i<shift;i++)printf("    ");
                 printf("            Serving Daemon on Host: %s:%u\n",
-                                          (char *)ohdomainentry.daemonhost.Data,
+                                          (char *)ohdomainentry.host.Data,
                                           ohdomainentry.port );
         }
 

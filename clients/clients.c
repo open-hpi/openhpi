@@ -93,15 +93,18 @@ static SaErrorT ohc_domain_add_by_options(oHpiCommonOptionsT *opt)
 {
    SaErrorT rv = SA_OK;
    SaHpiDomainIdT did_N = SAHPI_UNSPECIFIED_DOMAIN_ID;
+   SaHpiEntityPathT entity_root;
    const char *envhoststr, *envportstr;
    unsigned short envport;
    SaHpiTextBufferT envhost;
    SaHpiDomainIdT did_env = SAHPI_UNSPECIFIED_DOMAIN_ID;
 
+   oh_init_ep(&entity_root);
+
    // Add a domain for the -N option
    if (opt->withdaemonhost) {// add a domain for that host
       if (opt->domainid == SAHPI_UNSPECIFIED_DOMAIN_ID) { // add with generated did  
-         rv = oHpiDomainAdd ( &opt->daemonhost, opt->daemonport, &did_N );
+         rv = oHpiDomainAdd ( &opt->daemonhost, opt->daemonport, &entity_root, &did_N );
          if (rv != SA_OK) {
             CRIT("Domain could not be created for given daemonhost");
             return rv;
@@ -111,7 +114,7 @@ static SaErrorT ohc_domain_add_by_options(oHpiCommonOptionsT *opt)
          opt->domainid = did_N;
       }
       else { // add with given domain id
-         rv = oHpiDomainAddById ( opt->domainid, &opt->daemonhost, opt->daemonport);
+         rv = oHpiDomainAddById ( opt->domainid, &opt->daemonhost, opt->daemonport, &entity_root );
          if (rv != SA_OK) {
             CRIT("Domain %u could not be created for given daemonhost", opt->domainid);
             return rv;
@@ -131,7 +134,7 @@ static SaErrorT ohc_domain_add_by_options(oHpiCommonOptionsT *opt)
 
       if (opt->withdaemonhost) { // we will add the domain with a new did, but
                                  // we will not use it now.
-         rv = oHpiDomainAdd ( &envhost, envport, &did_env );
+         rv = oHpiDomainAdd ( &envhost, envport, &entity_root, &did_env );
          if (rv != SA_OK) {
             CRIT("Domain could not be created for OPENHPI_DAEMON_HOST %s:%u",
                  envhoststr, envport);
@@ -142,7 +145,7 @@ static SaErrorT ohc_domain_add_by_options(oHpiCommonOptionsT *opt)
       } 
       else if (opt->domainid == SAHPI_UNSPECIFIED_DOMAIN_ID) { 
          // add with generated did  (here we don't have -N or -D options)
-         rv = oHpiDomainAdd ( &envhost, envport, &did_env );
+         rv = oHpiDomainAdd ( &envhost, envport, &entity_root, &did_env );
          if (rv != SA_OK) {
             CRIT("Domain could not be created for OPENHPI_DAEMON_HOST %s:%u",
                  envhoststr, envport);
@@ -154,7 +157,7 @@ static SaErrorT ohc_domain_add_by_options(oHpiCommonOptionsT *opt)
       }
 
       else { // use the given did for OPENHPI_DAEMON_HOST
-         rv = oHpiDomainAddById ( opt->domainid, &envhost, envport);
+         rv = oHpiDomainAddById ( opt->domainid, &envhost, envport, &entity_root );
          if (rv != SA_OK) {
             CRIT("Domain %u could not be created for OPENHPI_DAEMON_HOST %s:%u", 
                  opt->domainid, envhoststr, envport);

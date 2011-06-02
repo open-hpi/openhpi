@@ -557,6 +557,7 @@ SaErrorT SAHPI_API oHpiInjectEvent (
  * oHpiDomainAdd
  * @host: host name of domain config item
  * @port: port for domain config item
+ * @entity_root: entity path to be added to all resources/rdrs
  * @domain_id: domain_id for newly created domain config item
  *
  * Returns: SA_OK on success and fills domain_id.
@@ -566,6 +567,7 @@ SaErrorT SAHPI_API oHpiInjectEvent (
 SaErrorT SAHPI_API oHpiDomainAdd (
      SAHPI_IN    const SaHpiTextBufferT *host,
      SAHPI_IN    SaHpiUint16T port,
+     SAHPI_IN    const SaHpiEntityPathT *entity_root,
      SAHPI_OUT   SaHpiDomainIdT *domain_id )
 {
     return SA_ERR_HPI_UNSUPPORTED_API;
@@ -576,6 +578,7 @@ SaErrorT SAHPI_API oHpiDomainAdd (
  * oHpiDomainAddById
  * @host: host name of domain config item
  * @port: port for domain config item
+ * @entity_root: entity path to be added to all resources/rdrs
  * @domain_id: domain_id for newly created domain config item
  *
  * Returns: SA_OK on success and fills domain_id.
@@ -585,7 +588,8 @@ SaErrorT SAHPI_API oHpiDomainAdd (
 SaErrorT SAHPI_API oHpiDomainAddById (
      SAHPI_IN    SaHpiDomainIdT domain_id,
      SAHPI_IN    const SaHpiTextBufferT *host,
-     SAHPI_IN    SaHpiUint16T port )
+     SAHPI_IN    SaHpiUint16T port,
+     SAHPI_IN    const SaHpiEntityPathT *entity_root )
 {
     return SA_ERR_HPI_UNSUPPORTED_API;
 }
