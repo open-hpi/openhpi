@@ -42,9 +42,34 @@ public:
     explicit cSession();
     ~cSession();
 
+    void Ref()
+    {
+        ++m_ref_cnt;
+    }
+
+    void Unref()
+    {
+        --m_ref_cnt;
+    }
+
+    int GetRefCnf() const
+    {
+        return m_ref_cnt;
+    }
+
     SaHpiDomainIdT GetDomainId() const
     {
         return m_did;
+    }
+
+    SaHpiSessionIdT GetSid() const
+    {
+        return m_sid;
+    }
+
+    void SetSid( SaHpiSessionIdT sid )
+    {
+        m_sid = sid;
     }
 
     SaErrorT GetEntityRoot( SaHpiEntityPathT& entity_root ) const;
@@ -73,14 +98,18 @@ private:
     static const gulong NEXT_RPC_ATTEMPT_TIMEOUT = 2 * G_USEC_PER_SEC;
 
     // data
+    volatile int    m_ref_cnt;
     SaHpiDomainIdT  m_did;
+    SaHpiSessionIdT m_sid;
     SaHpiSessionIdT m_remote_sid;
     GStaticPrivate  m_sockets;
 };
 
 
 cSession::cSession()
-    : m_did( SAHPI_UNSPECIFIED_DOMAIN_ID ),
+    : m_ref_cnt( 0 ),
+      m_did( SAHPI_UNSPECIFIED_DOMAIN_ID ),
+      m_sid( 0 ),
       m_remote_sid( 0 )
 {
     g_static_private_init( &m_sockets );
@@ -250,31 +279,6 @@ static void sessions_init()
     ohc_unlock();
 }
 
-static cSession * sessions_get( SaHpiSessionIdT sid )
-{
-    ohc_lock();
-    gpointer value = g_hash_table_lookup( sessions, sid_key( sid ) );
-    ohc_unlock();
-    return reinterpret_cast<cSession*>(value);
-}
-
-gboolean dehash_sessions( gpointer /* key */, gpointer value, gpointer user_data )
-{
-    GList ** pvalues = reinterpret_cast<GList **>(user_data);
-    *pvalues = g_list_append( *pvalues, value );
-    return TRUE;
-}
-
-static GList * sessions_take_all()
-{
-    ohc_lock();
-    GList * sessions_list = 0;
-    g_hash_table_foreach_remove( sessions, dehash_sessions, &sessions_list );
-    ohc_unlock();
-
-    return sessions_list;
-}
-
 static SaHpiSessionIdT sessions_add( cSession * session )
 {
     static SaHpiSessionIdT next_sid = 1;
@@ -282,16 +286,54 @@ static SaHpiSessionIdT sessions_add( cSession * session )
     ohc_lock();
     SaHpiSessionIdT sid = next_sid;
     ++next_sid;
+    session->SetSid( sid );
     g_hash_table_insert( sessions, sid_key( sid ), session );
     ohc_unlock();
 
     return sid;
 }
 
-static void sessions_remove( SaHpiSessionIdT sid )
+static cSession * sessions_get_ref( SaHpiSessionIdT sid )
 {
     ohc_lock();
-    g_hash_table_remove( sessions, sid_key( sid ) );
+    gpointer value = g_hash_table_lookup( sessions, sid_key( sid ) );
+    cSession * session = reinterpret_cast<cSession*>(value);
+    if ( session ) {
+        session->Ref();
+    }
+    ohc_unlock();
+    return session;
+}
+
+static void dehash_func( gpointer /* key */, gpointer value, gpointer user_data )
+{
+    GList ** pvalues = reinterpret_cast<GList **>(user_data);
+    cSession * session = reinterpret_cast<cSession*>(value);
+    session->Ref();
+    *pvalues = g_list_append( *pvalues, value );
+}
+
+static GList * sessions_get_ref_all()
+{
+    ohc_lock();
+    GList * sessions_list = 0;
+    g_hash_table_foreach( sessions, dehash_func, &sessions_list );
+    ohc_unlock();
+
+    return sessions_list;
+}
+
+static void sessions_unref( cSession * session, bool closed = false )
+{
+    ohc_lock();
+    session->Unref();
+    if ( closed ) {
+        session->Unref();
+        g_hash_table_remove( sessions, sid_key( session->GetSid() ) );
+    }
+    if ( session->GetRefCnf() < 0 ) {
+        delete session;
+    }
     ohc_unlock();
 }
 
@@ -322,27 +364,22 @@ SaErrorT ohc_sess_open( SaHpiDomainIdT did, SaHpiSessionIdT& sid )
 
 SaErrorT ohc_sess_close( SaHpiSessionIdT sid )
 {
-    // TODO fix race condition
-    cSession * session = sessions_get( sid );
+    cSession * session = sessions_get_ref( sid );
     if ( !session ) {
         return SA_ERR_HPI_INVALID_SESSION;
     }
 
     SaErrorT rv = session->RpcClose();
-    if ( rv == SA_OK ) {
-        sessions_remove( sid );
-        delete session;
-    }
+    sessions_unref( session, ( rv == SA_OK ) );
 
     return rv;
 }
 
 SaErrorT ohc_sess_close_all()
 {
-    // TODO fix race condition
     SaErrorT rv = SA_OK;
 
-    GList * sessions_list = sessions_take_all();
+    GList * sessions_list = sessions_get_ref_all();
     if ( g_list_length( sessions_list ) == 0 ) {
         //rv = SA_ERR_HPI_INVALID_REQUEST;
         rv = SA_OK;
@@ -351,7 +388,7 @@ SaErrorT ohc_sess_close_all()
         while ( item ) {
             cSession * session = reinterpret_cast<cSession*>(item->data);
             session->RpcClose();
-            delete session;
+            sessions_unref( session, true );
             item = item->next;
         }
     }
@@ -367,36 +404,40 @@ SaErrorT ohc_sess_rpc( uint32_t id,
                        ClientRpcParams& iparams,
                        ClientRpcParams& oparams )
 {
-    // TODO fix race condition
-    cSession * session = sessions_get( sid );
+    cSession * session = sessions_get_ref( sid );
     if ( !session ) {
         return SA_ERR_HPI_INVALID_SESSION;
     }
 
-    return session->Rpc( id, iparams, oparams );
+    SaErrorT rv = session->Rpc( id, iparams, oparams );
+    sessions_unref( session );
+
+    return rv;
 }
 
 SaErrorT ohc_sess_get_did( SaHpiSessionIdT sid, SaHpiDomainIdT& did )
 {
-    // TODO fix race condition
-    cSession * session = sessions_get( sid );
+    cSession * session = sessions_get_ref( sid );
     if ( !session ) {
         return SA_ERR_HPI_INVALID_SESSION;
     }
 
     did = session->GetDomainId();
+    sessions_unref( session );
 
     return SA_OK;
 }
 
 SaErrorT ohc_sess_get_entity_root( SaHpiSessionIdT sid, SaHpiEntityPathT& ep )
 {
-    // TODO fix race condition
-    cSession * session = sessions_get( sid );
+    cSession * session = sessions_get_ref( sid );
     if ( !session ) {
         return SA_ERR_HPI_INVALID_SESSION;
     }
 
-    return session->GetEntityRoot( ep );
+    SaErrorT rv = session->GetEntityRoot( ep );
+    sessions_unref( session );
+
+    return rv;
 }
 
