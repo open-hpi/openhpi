@@ -62,7 +62,7 @@ public:  // HPI interface
     SaErrorT RequestHsAction( SaHpiHsActionT action );
     SaErrorT GetHsIndicatorState( SaHpiHsIndicatorStateT& state ) const;
     SaErrorT SetHsIndicatorState( const SaHpiHsIndicatorStateT& state );
-    SaErrorT GetPowerState( SaHpiPowerStateT& state ) const;
+    SaErrorT GetPowerState( SaHpiPowerStateT& state );
     SaErrorT SetPowerState( const SaHpiPowerStateT& state );
     SaErrorT ControlParm( SaHpiParmActionT action );
     SaErrorT GetLoadId( SaHpiLoadIdT& load_id ) const;
@@ -125,6 +125,13 @@ private: // data
     SaHpiLoadIdT           m_load_id;
     SaHpiResetActionT      m_rst_state;
     SaHpiPowerStateT       m_pwr_state;
+
+    // If Power State is set to POWER_CYCLE then for PwrCycleDuration times
+    // saHpiResourcePowerStateGet() call will report ON (or OFF)
+    // and after that it will report OFF (or ON).
+    static const int       PwrCycleDuration = 3;
+
+    int                    m_pwr_cycle_cnt;
 };
 
 
