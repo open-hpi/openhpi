@@ -329,7 +329,8 @@ SaErrorT cResource::SetPowerState( const SaHpiPowerStateT& state )
         }
         m_pwr_cycle_cnt = PwrCycleDuration;
     } else {
-        m_pwr_state = state;
+        m_pwr_state     = state;
+        m_pwr_cycle_cnt = 0;
     }
 
     return SA_OK;
