@@ -95,6 +95,8 @@ cResource::cResource( cHandler& handler,
     m_load_id.LoadNumber = SAHPI_LOAD_ID_DEFAULT;
     m_rst_state          = SAHPI_RESET_DEASSERT;
     m_pwr_state          = SAHPI_POWER_OFF;
+
+    m_pwr_cycle_cnt      = 0;
 }
 
 cResource::~cResource()
@@ -290,11 +292,22 @@ SaErrorT cResource::SetHsIndicatorState( const SaHpiHsIndicatorStateT& state )
     return SA_OK;
 }
 
-SaErrorT cResource::GetPowerState( SaHpiPowerStateT& state ) const
+SaErrorT cResource::GetPowerState( SaHpiPowerStateT& state )
 {
     const SaHpiCapabilitiesT caps = m_rpte.ResourceCapabilities;
     if ( ( caps & SAHPI_CAPABILITY_POWER ) == 0 ) {
         return SA_ERR_HPI_CAPABILITY;
+    }
+
+    if ( m_pwr_cycle_cnt > 0 ) {
+        --m_pwr_cycle_cnt;
+        if ( m_pwr_cycle_cnt == 0 ) {
+            if ( m_pwr_state == SAHPI_POWER_ON ) {
+                m_pwr_state = SAHPI_POWER_OFF;
+            } else if ( m_pwr_state == SAHPI_POWER_OFF ) {
+                m_pwr_state = SAHPI_POWER_ON;
+            }
+        }
     }
 
     state = m_pwr_state;
@@ -314,6 +327,7 @@ SaErrorT cResource::SetPowerState( const SaHpiPowerStateT& state )
         } else if ( m_pwr_state == SAHPI_POWER_OFF ) {
             m_pwr_state = SAHPI_POWER_ON;
         }
+        m_pwr_cycle_cnt = PwrCycleDuration;
     } else {
         m_pwr_state = state;
     }
@@ -590,6 +604,9 @@ void cResource::AfterVarSet( const std::string& var_name )
     if ( var_name.find( "RptEntry." ) == 0 ) {
         // RPT Entry was changed
         PostResourceEvent( SAHPI_RESE_RESOURCE_UPDATED );
+    }
+    if ( var_name == "PowerState" ) {
+        m_pwr_cycle_cnt = 0;
     }
 
     CommitChanges();
