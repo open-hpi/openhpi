@@ -105,8 +105,7 @@ SaErrorT SAHPI_API saHpiDiscover(
          * plugin instances. If the thread is already running,
          * it will wait for it until it completes the round.
          */
-        oh_wake_discovery_thread(SAHPI_TRUE);
-        oh_wake_event_thread(SAHPI_TRUE);
+        oh_wake_discovery_thread();
 
         return SA_OK;
 }
@@ -1293,7 +1292,7 @@ SaErrorT SAHPI_API saHpiEventGet (
         SaHpiBoolT subscribed;
         struct oh_event e;
         SaErrorT error = SA_OK;
-        SaHpiEvtQueueStatusT qstatus1 = 0, qstatus2 = 0;
+        SaHpiEvtQueueStatusT qstatus = 0;
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
@@ -1315,23 +1314,20 @@ SaErrorT SAHPI_API saHpiEventGet (
         /* See if there is already an event in the queue */
         error = oh_dequeue_session_event(SessionId,
                                          SAHPI_TIMEOUT_IMMEDIATE,
-                                         &e, &qstatus1);
-
-        if (error != SA_OK) { /* If queue empty then fetch more events */
-                oh_wake_event_thread(SAHPI_TRUE);
+                                         &e, &qstatus);
+        if (error == SA_ERR_HPI_TIMEOUT) { /* If queue empty then fetch more events */
                 /* Sent for more events. Ready to wait on queue. */
                 error = oh_dequeue_session_event(SessionId, Timeout,
-                                                 &e, &qstatus2);
-        
-                if (error != SA_OK) {
-                    /* If no events after trying to fetch them, return error */
-                    return error;
-                }
+                                                 &e, &qstatus);
+        }
+        if (error != SA_OK) {
+            /* If no events after trying to fetch them, return error */
+            return error;
         }
 
         /* If there was overflow before or after getting events, return it */
         if (EventQueueStatus)
-                *EventQueueStatus = qstatus1 ? qstatus1 : qstatus2;
+                *EventQueueStatus = qstatus;
 
         /* Return event, resource and rdr */
         *Event = e.event;
@@ -1355,7 +1351,7 @@ SaErrorT SAHPI_API saHpiEventAdd (
         SAHPI_IN SaHpiEventT     *EvtEntry)
 {
         SaHpiDomainIdT did;
-        struct oh_event e;
+        struct oh_event * e;
         SaHpiEventLogInfoT info;
         SaErrorT error = SA_OK;
 
@@ -1377,25 +1373,24 @@ SaErrorT SAHPI_API saHpiEventAdd (
                 return SA_ERR_HPI_INVALID_DATA;
         }
 
-        e.hid = 0;
+        e = oh_new_event();
+        e->hid = 0;
         /* Timestamp the incoming user event
          * only if it is SAHPI_TIME_UNSPECIFIED */
         if (EvtEntry->Timestamp == SAHPI_TIME_UNSPECIFIED) {
                 oh_gettimeofday(&EvtEntry->Timestamp);
         }
         /* Copy SaHpiEventT into oh_event struct */
-        e.event = *EvtEntry;
+        e->event = *EvtEntry;
         /* indicate there is no rdr or resource */
-        e.rdrs = NULL;
-        e.rdrs_to_remove = NULL;
-        e.resource.ResourceId = did;
-        e.resource.ResourceCapabilities = 0;
+        e->rdrs = NULL;
+        e->rdrs_to_remove = NULL;
+        e->resource.ResourceId = did;
+        e->resource.ResourceCapabilities = 0;
         /* indicate this is a user-added event */
-        e.resource.ResourceSeverity = SAHPI_INFORMATIONAL;
+        e->resource.ResourceSeverity = SAHPI_INFORMATIONAL;
 
-        oh_evt_queue_push(oh_process_q, g_memdup(&e, sizeof(struct oh_event)));
-
-        oh_wake_event_thread(SAHPI_TRUE);
+        oh_evt_queue_push(oh_process_q, e);
 
         return error;
 }
@@ -5515,8 +5510,6 @@ SaErrorT SAHPI_API saHpiHotSwapActionRequest (
         OH_CALL_ABI(h, request_hotswap_action, SA_ERR_HPI_INVALID_CMD, rv,
                     ResourceId, Action);
         oh_release_handler(h);
-
-        oh_wake_event_thread(SAHPI_TRUE);
 
         return rv;
 }

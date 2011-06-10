@@ -24,6 +24,7 @@
 #include <oh_utils.h>
 
 #include "conf.h"
+#include "event.h"
 #include "lock.h"
 
 struct oh_session_table oh_sessions = {
@@ -31,29 +32,6 @@ struct oh_session_table oh_sessions = {
         .lock = G_STATIC_REC_MUTEX_INIT
 };
 
-static struct oh_event *oh_generate_hpi_event(void)
-{
-        struct oh_event *e = NULL;
-        char *msg = "This session is being destroyed now!";
-
-        e = g_new0(struct oh_event, 1);
-        e->event.EventType = SAHPI_ET_HPI_SW;
-        e->event.Source = SAHPI_UNSPECIFIED_RESOURCE_ID;
-        e->event.Timestamp = SAHPI_TIME_UNSPECIFIED;
-        e->event.Severity = SAHPI_CRITICAL;
-        e->event.EventDataUnion.HpiSwEvent.MId =
-		SAHPI_MANUFACTURER_ID_UNSPECIFIED;
-        e->event.EventDataUnion.HpiSwEvent.Type =
-		SAHPI_HPIE_OTHER;
-        e->event.EventDataUnion.HpiSwEvent.EventData.DataType =
-        	SAHPI_TL_TYPE_TEXT;
-        e->event.EventDataUnion.HpiSwEvent.EventData.Language =
-        	SAHPI_TL_TYPE_TEXT;
-        strcpy((char *)e->event.EventDataUnion.HpiSwEvent.EventData.Data, msg);
-        e->event.EventDataUnion.HpiSwEvent.EventData.DataLength	= strlen(msg);
-
-        return e;
-}
 
 /**
  * oh_create_session
@@ -366,6 +344,13 @@ SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
         g_async_queue_unref(eventq);
 
         if (devent) {
+                int cc;
+                cc = oh_detect_quit_event(devent);
+                if (cc == 0) {
+                        // OpenHPI is about to quit
+                        oh_event_free(devent, FALSE);
+                        return SA_ERR_HPI_NO_RESPONSE;
+                }
                 memcpy(event, devent, sizeof(struct oh_event));
                 g_free(devent);
                 return SA_OK;
@@ -414,57 +399,6 @@ SaErrorT oh_destroy_session(SaHpiSessionIdT sid)
         }
         g_async_queue_unref(session->eventq);
         g_free(session);
-
-        return SA_OK;
-}
-
-static void __delete_by_did(gpointer key, gpointer value,
-                            gpointer user_data)
-{
-        SaHpiDomainIdT did = *((SaHpiDomainIdT *) user_data);
-        struct oh_session *session = (struct oh_session *) value;
-        int i, len;
-        gpointer event = NULL;
-
-        if (!session) {
-                CRIT("Session does not exist!");
-                return;
-        }
-
-        if (session->did != did) {
-                return;
-        }
-
-        oh_sessions.list = g_slist_remove(oh_sessions.list, session);
-        g_hash_table_remove(oh_sessions.table, &(session->id));
-
-        /* Neutralize event queue */
-        len = g_async_queue_length(session->eventq);
-        if (len < 0) {
-                for (i = 0; i > len; i--) {
-                        g_async_queue_push(session->eventq,
-                                           oh_generate_hpi_event());
-                }
-        } else if (len > 0) {
-                for (i = 0; i < len; i++) {
-                        event = g_async_queue_try_pop(session->eventq);
-                        if (event)
-                                oh_event_free(event, FALSE);
-                        event = NULL;
-                }
-        }
-        g_async_queue_unref(session->eventq);
-        g_free(session);
-}
-
-SaErrorT oh_destroy_domain_sessions(SaHpiDomainIdT did)
-{
-        if (did == SAHPI_UNSPECIFIED_DOMAIN_ID)
-                did = OH_DEFAULT_DOMAIN_ID;
-
-        g_static_rec_mutex_lock(&oh_sessions.lock);
-        g_hash_table_foreach(oh_sessions.table, __delete_by_did, &did);
-        g_static_rec_mutex_unlock(&oh_sessions.lock);
 
         return SA_OK;
 }

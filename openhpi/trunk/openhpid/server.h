@@ -28,7 +28,7 @@ bool oh_server_run( int ipvflags,
                     unsigned int sock_timeout,
                     int max_threads );
 
-void oh_server_stop( void );
+void oh_server_request_stop( void );
 
 
 #endif /* __OH_SERVER_H */

@@ -86,6 +86,8 @@ public:
     explicit cStreamSock( SockFdT sockfd = InvalidSockFd );
     virtual ~cStreamSock();
 
+    bool Close();
+
     bool ReadMsg( uint8_t& type,
                   uint32_t& id,
                   void * payload,
@@ -97,6 +99,15 @@ public:
                    const void * payload,
                    uint32_t payload_len );
 
+    enum eWaitCc
+    {
+        eWaitSuccess,
+        eWaitTimeout,
+        eWaitError,
+    };
+
+    eWaitCc Wait();
+
 protected:
 
     SockFdT SockFd() const
@@ -105,7 +116,6 @@ protected:
     }
 
     bool Create( const struct addrinfo * ainfo );
-    bool Close();
 
 private:
 

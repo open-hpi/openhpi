@@ -29,6 +29,7 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
+#include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -117,6 +118,31 @@ cStreamSock::cStreamSock( SockFdT sockfd )
 cStreamSock::~cStreamSock()
 {
     Close();
+}
+
+bool cStreamSock::Close()
+{
+    if ( m_sockfd == InvalidSockFd ) {
+        return true;
+    }
+
+    int cc;
+
+#ifdef _WIN32
+    cc = shutdown( m_sockfd, SD_BOTH );
+    cc = closesocket( m_sockfd );
+#else
+    cc = shutdown( m_sockfd, SHUT_RDWR );
+    cc = close( m_sockfd );
+#endif
+    if ( cc != 0 ) {
+        CRIT( "cannot close stream socket." );
+        return false;
+    }
+
+    m_sockfd = InvalidSockFd;
+
+    return true;
 }
 
 bool cStreamSock::ReadMsg( uint8_t& type,
@@ -251,6 +277,34 @@ bool cStreamSock::WriteMsg( uint8_t type,
     return true;
 }
 
+cStreamSock::eWaitCc cStreamSock::Wait()
+{
+    fd_set fds;
+    struct timeval tv;
+
+    FD_ZERO( &fds );
+    FD_SET( m_sockfd, &fds );
+    tv.tv_sec  = 5; // TODO
+    tv.tv_usec = 0;
+
+#ifdef _WIN32
+    int cc = select( 0, &fds, 0, 0, &tv );
+#else
+    int cc = select( m_sockfd + 1, &fds, 0, 0, &tv );
+#endif
+    if ( cc == 0 ) { // timeout
+        return eWaitTimeout;
+    } else if ( cc != 1 ) {
+        CRIT( "select failed" );
+        return eWaitError;
+    } else if ( FD_ISSET( m_sockfd, &fds ) == 0 ) {
+        CRIT( "unexpected select behaviour" );
+        return eWaitError;
+    }
+
+    return eWaitSuccess;
+}
+
 bool cStreamSock::Create( const struct addrinfo * info )
 {
     bool rc = Close();
@@ -266,30 +320,6 @@ bool cStreamSock::Create( const struct addrinfo * info )
     }
 
     m_sockfd = new_sock;
-
-    return true;
-}
-
-bool cStreamSock::Close()
-{
-    if ( m_sockfd == InvalidSockFd ) {
-        return true;
-    }
-
-    // TODO shutdown
-
-    int cc;
-#ifdef _WIN32
-    cc = closesocket( m_sockfd );
-#else
-    cc = close( m_sockfd );
-#endif
-    if ( cc != 0 ) {
-        CRIT( "cannot close stream socket." );
-        return false;
-    }
-
-    m_sockfd = InvalidSockFd;
 
     return true;
 }

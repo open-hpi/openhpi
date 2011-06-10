@@ -30,6 +30,7 @@
 #include <oh_utils.h>
 
 #include "conf.h"
+#include "event.h"
 #include "init.h"
 #include "lock.h"
 #include "threaded.h"
@@ -56,8 +57,8 @@ int oh_init(void)
         	return 0;
         }
 
-        /* Initialize thread engine */
-        oh_threaded_init();
+        /* Initialize event queue */
+        oh_event_init();
 
 #ifdef HAVE_OPENSSL
         INFO("Initializing SSL Library.");
@@ -99,13 +100,10 @@ int oh_init(void)
 
         /* Initialize handler table */
         oh_handlers.table = g_hash_table_new(g_int_hash, g_int_equal);
-
         /* Initialize domain table */
         oh_domains.table = g_hash_table_new(g_int_hash, g_int_equal);
-
         /* Initialize session table */
         oh_sessions.table = g_hash_table_new(g_int_hash, g_int_equal);
-
         /* Load plugins, create handlers and domains */
         oh_process_config(&config);
 
@@ -186,10 +184,23 @@ int oh_init(void)
 int oh_finit(void)
 {
         data_access_lock();
-
         oh_close_handlers();
-
         data_access_unlock();
+
+        oh_threaded_stop();
+
+        oh_destroy_domain(OH_DEFAULT_DOMAIN_ID);
+        g_hash_table_destroy(oh_sessions.table);
+        g_hash_table_destroy(oh_domains.table);
+        g_hash_table_destroy(oh_handlers.table);
+
+#ifdef HAVE_OPENSSL
+        oh_ssl_finit();
+#endif
+
+        oh_event_finit();
+
+	INFO("OpenHPI has been finalized.");
 
         return 0;
 }

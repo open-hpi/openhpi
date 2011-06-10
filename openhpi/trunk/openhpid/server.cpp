@@ -50,7 +50,38 @@ static SaErrorT process_msg(cHpiMarshal * hm,
 /* Local Definitions                                                  */
 /*--------------------------------------------------------------------*/
 
-static bool stop_server = false;
+static GStaticRecMutex lock = G_STATIC_REC_MUTEX_INIT;
+static volatile bool stop = false;
+
+static GList * sockets = 0; 
+
+
+/*--------------------------------------------------------------------*/
+/* Socket List                                                        */
+/*--------------------------------------------------------------------*/
+static void add_socket_to_list( cStreamSock * sock )
+{
+    g_static_rec_mutex_lock(&lock);
+    sockets = g_list_prepend( sockets, sock );
+    g_static_rec_mutex_unlock(&lock);
+}
+
+static void remove_socket_from_list( const cStreamSock * sock )
+{
+    g_static_rec_mutex_lock(&lock);
+    sockets = g_list_remove( sockets, sock );
+    g_static_rec_mutex_unlock(&lock);
+}
+
+static void close_sockets_in_list( void )
+{
+    g_static_rec_mutex_lock(&lock);
+    for ( GList * iter = sockets; iter != 0; iter = g_list_next( iter ) ) {
+        cStreamSock * sock = reinterpret_cast<cStreamSock *>(iter->data);
+        sock->Close();
+    }
+    g_static_rec_mutex_unlock(&lock);
+}
 
 
 /*--------------------------------------------------------------------*/
@@ -82,39 +113,46 @@ bool oh_server_run( int ipvflags,
                     int max_threads )
 {
     // create the server socket
-    cServerStreamSock ssock;
-    if (!ssock.Create(ipvflags, bindaddr, port)) {
+    cServerStreamSock * ssock = new cServerStreamSock;
+    if (!ssock->Create(ipvflags, bindaddr, port)) {
         CRIT("Error creating server socket. Exiting.");
         return false;
     }
+    add_socket_to_list( ssock );
 
     // create the thread pool
     GThreadPool *pool;
     pool = g_thread_pool_new(service_thread, 0, max_threads, FALSE, 0);
 
     // wait for a connection and then service the connection
-    while (!stop_server) {
-        cStreamSock * sock = ssock.Accept();
+    while (!stop) {
+        cStreamSock * sock = ssock->Accept();
+        if (stop) {
+            break;
+        }
         if (!sock) {
             CRIT("Error accepting server socket.");
-            return false;
+            break;
         }
+        add_socket_to_list( sock );
         DBG("### Spawning thread to handle connection. ###");
         g_thread_pool_push(pool, (gpointer)sock, 0);
     }
 
-    // ensure all threads are complete
-    g_thread_pool_free(pool, FALSE, TRUE);
-
+    remove_socket_from_list( ssock );
+    delete ssock;
     DBG("Server socket closed.");
+
+    g_thread_pool_free(pool, FALSE, TRUE);
+    DBG("All connection threads are terminated.");
 
     return true;
 }
 
-void oh_server_stop(void)
+void oh_server_request_stop(void)
 {
-    stop_server = true;
-    // TODO do something more to stop Accept function
+    stop = true;
+    close_sockets_in_list();
 }
 
 
@@ -138,7 +176,7 @@ static void service_thread(gpointer sock_ptr, gpointer /* user_data */)
 
     DBG("### service_thread, thrdid [%p] ###", (void *)thrdid);
 
-    while (true) {
+    while (!stop) {
         bool     rc;
         char     data[dMaxPayloadLength];
         uint32_t data_len;
@@ -147,6 +185,9 @@ static void service_thread(gpointer sock_ptr, gpointer /* user_data */)
         int      rq_byte_order;
 
         rc = sock->ReadMsg(type, id, data, data_len, rq_byte_order);
+        if (stop) {
+            break;
+        }
         if (!rc) {
             CRIT("%p Error or Timeout while reading socket.", thrdid);
             break;
@@ -167,6 +208,9 @@ static void service_thread(gpointer sock_ptr, gpointer /* user_data */)
                 data_len = (uint32_t)mr;
             }
             rc = sock->WriteMsg(eMhMsg, id, data, data_len);
+            if (stop) {
+                break;
+            }
             if (!rc) {
                 CRIT("%p Socket write failed.", thrdid);
                 break;
@@ -186,11 +230,13 @@ static void service_thread(gpointer sock_ptr, gpointer /* user_data */)
     if (my_sid != 0) {
         saHpiSessionClose(my_sid);
     }
+
+    remove_socket_from_list( sock );
     delete sock; // cleanup thread instance data
 
     DBG("%p Connection closed.", thrdid);
-    // TODO why?
     return; // do NOT use g_thread_exit here!
+    // TODO why? what is wrong with g_thread_exit? (2011-06-07)
 }
 
 
