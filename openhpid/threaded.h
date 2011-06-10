@@ -17,22 +17,18 @@
 #ifndef __OH_THREADED_H
 #define __OH_THREADED_H
 
-#include <SaHpi.h>
-#include <glib.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int oh_threaded_init(void);
 int oh_threaded_start(void);
-int oh_threaded_final(void);
+int oh_threaded_stop(void);
 
-void oh_wake_discovery_thread(SaHpiBoolT wait);
-void oh_wake_event_thread(SaHpiBoolT);
+void oh_wake_discovery_thread(void);
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* __OH_THREADED_H */
+

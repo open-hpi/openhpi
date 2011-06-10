@@ -70,8 +70,9 @@ enum OH_SSL_SHUTDOWN_TYPE {             /* See SSL_shutdown man page */
  * Prototypes for the SSL connection management functions that are
  * implemented in oh_ssl.c
  */
-extern int oh_ssl_init(void);
 #ifdef HAVE_OPENSSL
+extern int oh_ssl_init(void);
+extern void oh_ssl_finit(void);
 extern SSL_CTX *oh_ssl_ctx_init(void);
 extern int oh_ssl_ctx_free(SSL_CTX *ctx);
 extern BIO *oh_ssl_connect(char *hostname, SSL_CTX *ctx, long timeout);

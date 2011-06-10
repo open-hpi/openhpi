@@ -39,6 +39,7 @@
 #include <oh_error.h>
 #include <strmsock.h>
 
+#include "event.h"
 #include "init.h"
 #include "server.h"
 
@@ -299,6 +300,14 @@ static bool daemonize(const char *pidfile)
     return true;
 }
 
+static void sig_handler( int signum )
+{
+    // Handles SIGTERM and SIGINT
+    oh_post_quit_event();
+    oh_server_request_stop();
+}
+
+
 /*--------------------------------------------------------------------*/
 /* Function: main                                                     */
 /*--------------------------------------------------------------------*/
@@ -380,6 +389,15 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
+    if (signal(SIGTERM, sig_handler) == SIG_ERR) {
+        CRIT("Cannot set SIGTERM handler. Exiting.");
+        exit(1);
+    }
+    if (signal(SIGINT, sig_handler) == SIG_ERR) {
+        CRIT("Cannot set SIGINT handler. Exiting.");
+        exit(1);
+    }
+
     if (!runasforeground) {
         if (!daemonize(pidfile)) {
             exit(8);
@@ -409,6 +427,11 @@ int main(int argc, char *argv[])
     bool rc = oh_server_run(ipvflags, bindaddr, port, sock_timeout, max_threads);
     if (!rc) {
         return 9;
+    }
+
+    if (oh_finit()) {
+        CRIT("There was an error finalizing OpenHPI. Exiting.");
+        return 8;
     }
 
     return 0;

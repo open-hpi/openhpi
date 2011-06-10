@@ -30,6 +30,9 @@ extern oh_evt_queue * oh_process_q;
 
 /* function definitions */
 int oh_event_init(void);
+int oh_event_finit(void);
+void oh_post_quit_event(void);
+int oh_detect_quit_event(struct oh_event * e);
 SaErrorT oh_harvest_events(void);
 SaErrorT oh_process_events(void);
 

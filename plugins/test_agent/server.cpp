@@ -51,10 +51,11 @@ static void CloseSocket( SockFdT sock )
 {
     if ( sock != InvalidSockFd ) {
         int cc;
-        // TODO shutdown
 #ifdef _WIN32
+        cc = shutdown( sock, SD_BOTH );
         cc = closesocket( sock );
 #else
+        cc = shutdown( sock, SHUT_RDWR );
         cc = close( sock );
 #endif
         if ( cc != 0 ) {
@@ -121,7 +122,7 @@ static eWaitCc WaitOnSocket( SockFdT s )
 
     FD_ZERO( &fds );
     FD_SET( s, &fds );
-    tv.tv_sec  = 5; // TODO
+    tv.tv_sec  = 3; // TODO
     tv.tv_usec = 0;
 
 #ifdef _WIN32

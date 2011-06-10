@@ -20,6 +20,7 @@
  *     Anton Pak <anton.pak@pigeonpoint.com>
  */
 
+#include <errno.h>
 #include <string.h>
 
 #include <oHpi.h>
@@ -45,16 +46,119 @@ oh_evt_queue * oh_process_q = 0;
  */
 int oh_event_init()
 {
-        DBG("Setting up event processing queue");
+        DBG("Setting up event processing queue.");
         if (!oh_process_q) oh_process_q = g_async_queue_new();
         if (oh_process_q) {
-                DBG("Set up processing queue");
+                DBG("Set up processing queue.");
                 return 1;
         } else {
-                CRIT("Failed to allocate processing queue");
+                CRIT("Failed to allocate processing queue.");
                 return 0;
         }
 }
+
+int oh_event_finit(void)
+{
+        if (oh_process_q) {
+                g_async_queue_unref(oh_process_q);
+                DBG("Processing queue is disposed.");
+        }
+        return 0;
+}
+
+static struct oh_event * make_quit_event(void)
+{
+        static SaHpiUint8T signature[SAHPI_MAX_TEXT_BUFFER_LENGTH] =
+        {
+              0x01, 0xE8, 0xEC, 0x84, 0xFE, 0x23, 0x41, 0x62, 
+              0x82, 0xF8, 0xDC, 0x1A, 0x32, 0xD9, 0x24, 0x14, 
+              0x6A, 0x5B, 0x92, 0x41, 0xE1, 0xE4, 0x49, 0x34, 
+              0x89, 0x36, 0x5C, 0x94, 0xA9, 0x26, 0xBE, 0x70, 
+              0x95, 0x12, 0x74, 0xA7, 0xAE, 0x99, 0x49, 0x93, 
+              0x87, 0x57, 0xAF, 0xA5, 0x0A, 0xF6, 0x6A, 0x3C, 
+              0xC3, 0x02, 0x83, 0x48, 0xAF, 0xCB, 0x49, 0x90, 
+              0xA6, 0x5A, 0x1C, 0xDA, 0x6E, 0x56, 0x09, 0x32, 
+              0x38, 0x61, 0x87, 0x52, 0x76, 0x98, 0x4A, 0x6C, 
+              0x94, 0xEC, 0x67, 0xD2, 0xAE, 0xAB, 0x56, 0xC4, 
+              0xA1, 0xFA, 0x65, 0x89, 0xBA, 0x2A, 0x4F, 0x6B, 
+              0x84, 0x8F, 0xE0, 0x53, 0xF4, 0xF7, 0xD2, 0x50, 
+              0x22, 0xFE, 0x68, 0xB6, 0x38, 0xDD, 0x4C, 0xA7, 
+              0xB8, 0x17, 0xF8, 0xC8, 0x5C, 0xE3, 0x27, 0x26, 
+              0x8E, 0x76, 0x0F, 0x7C, 0x45, 0x50, 0x40, 0xA8, 
+              0x83, 0xE7, 0xCA, 0x73, 0x0C, 0x64, 0x19, 0x74, 
+              0xFE, 0x92, 0x39, 0x2B, 0x23, 0xBD, 0x43, 0x05, 
+              0xB1, 0xE6, 0xA8, 0x9D, 0x81, 0x01, 0x16, 0x5A, 
+              0x05, 0x27, 0xEE, 0xBB, 0x08, 0xE1, 0x48, 0x9F, 
+              0xBB, 0xD4, 0x90, 0xA9, 0x46, 0x85, 0xF0, 0x09, 
+              0x68, 0x93, 0xAA, 0x6A, 0x62, 0xA4, 0x43, 0xCD, 
+              0x8D, 0x80, 0x3B, 0x6C, 0x1A, 0xFF, 0xB3, 0xCD, 
+              0x91, 0x09, 0x01, 0x4B, 0x9E, 0xFB, 0x43, 0x1D, 
+              0x83, 0xB0, 0x5C, 0x39, 0x6D, 0x6E, 0xB1, 0xDA, 
+              0xE0, 0x5D, 0x8D, 0x87, 0xF3, 0x01, 0x40, 0xC0, 
+              0xA0, 0x83, 0xEC, 0x5B, 0x71, 0x40, 0xE9, 0x2D, 
+              0x54, 0xC1, 0x9B, 0x23, 0x29, 0xFC, 0x4E, 0x64, 
+              0xAA, 0x8C, 0xD3, 0x77, 0x8B, 0x19, 0xEC, 0xB8, 
+              0xE2, 0xBE, 0xB9, 0x15, 0x28, 0x69, 0x46, 0x73, 
+              0x90, 0xFE, 0xE9, 0x24, 0xE6, 0x74, 0xAF, 0x4A, 
+              0x78, 0x7D, 0xC7, 0x44, 0x87, 0x51, 0x4A, 0x2C, 
+              0x9E, 0x1B, 0xB1, 0x6C, 0x31, 0xEA, 0x40
+        };
+
+        struct oh_event * e     = oh_new_event();
+        SaHpiEventT * he        = &e->event;
+        SaHpiHpiSwEventT * swe  = &he->EventDataUnion.HpiSwEvent;
+        SaHpiTextBufferT * data = &swe->EventData;
+        SaHpiRptEntryT * rpte   = &e->resource;
+
+        e->hid                     = 0;
+        he->Source                 = SAHPI_UNSPECIFIED_RESOURCE_ID;
+        he->EventType              = SAHPI_ET_HPI_SW;
+        oh_gettimeofday(&he->Timestamp);
+        he->Severity               = SAHPI_CRITICAL;
+        swe->MId                   = SAHPI_MANUFACTURER_ID_UNSPECIFIED;
+        swe->Type                  = SAHPI_HPIE_OTHER;
+        data->DataType             = SAHPI_TL_TYPE_BINARY;
+        data->Language             = SAHPI_LANG_UNDEF;
+        data->DataLength           = sizeof(signature);
+        memcpy( &data->Data[0], &signature, sizeof(signature) );
+        rpte->ResourceId           = SAHPI_UNSPECIFIED_RESOURCE_ID;
+        rpte->ResourceCapabilities = 0;
+        e->rdrs                    = 0;
+        e->rdrs_to_remove          = 0;
+
+        return e;
+}
+
+void oh_post_quit_event(void)
+{
+        if (oh_process_q) {
+            oh_evt_queue_push(oh_process_q, make_quit_event());
+        }
+}
+
+int oh_detect_quit_event(struct oh_event * e)
+{
+        if (!e) {
+                return ENOENT;
+        }
+        if (e->event.EventType != SAHPI_ET_HPI_SW) {
+                return ENOENT;
+        }
+        if (e->event.EventDataUnion.HpiSwEvent.MId != 0) {
+                return ENOENT;
+        }
+
+        struct oh_event * qe = make_quit_event();
+        qe->event.Timestamp = e->event.Timestamp;
+        int cc = memcmp( e, qe, sizeof(struct oh_event) );
+        oh_event_free(qe, FALSE);
+        if ( cc != 0 ) {
+                return ENOENT;
+        }
+
+        return 0;
+}
+
 
 struct oh_event *oh_dup_event(struct oh_event *old_event)
 {
@@ -442,38 +546,18 @@ static int process_event(SaHpiDomainIdT did,
 
 SaErrorT oh_process_events()
 {
+        int cc;
         struct oh_event *e;
-        // GArray *domain_results = NULL;
-        SaHpiDomainIdT tmp_did;
-        char *et;
-
-        // domain_results = oh_query_domains();
 
         while ((e = g_async_queue_pop(oh_process_q)) != NULL) {
-                et = oh_lookup_eventtype(e->event.EventType);
-                DBG("Event Type = %s", (et) ? et : "<Unknown>");
-                
-                /* 1. Take care of special cases: user and domain type events */
-                if (e->event.EventType == SAHPI_ET_DOMAIN) {
-                        tmp_did = e->event.Source;
-                        e->event.Source = SAHPI_UNSPECIFIED_RESOURCE_ID;
-                        process_event(tmp_did, e);
-                        goto free_event;
-                } else if (e->event.EventType == SAHPI_ET_USER) {
-                        tmp_did = e->resource.ResourceId;
-                        e->resource.ResourceId = SAHPI_UNSPECIFIED_RESOURCE_ID;
-                        process_event(tmp_did, e);
-                        goto free_event;
-                } /* TODO: Include HPI_SW event type in special case */
-                
-                /* All events get processed in the default domain regardless. */
                 process_event(OH_DEFAULT_DOMAIN_ID, e);
-                
-free_event:
+                cc = oh_detect_quit_event(e);
                 oh_event_free(e, FALSE);
+                if (cc == 0) {
+                        break;
+                }
 	}
-        /* Should never get here */
-        // g_array_free(domain_results, TRUE);
-	return SA_ERR_HPI_INTERNAL_ERROR;
+
+        return SA_OK;
 }
 

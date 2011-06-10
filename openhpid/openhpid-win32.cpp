@@ -262,6 +262,11 @@ int main(int argc, char *argv[])
         return 9;
     }
 
+    if (oh_finit()) {
+        CRIT("There was an error finalizing OpenHPI. Exiting.");
+        return 8;
+    }
+
     return 0;
 }
 
