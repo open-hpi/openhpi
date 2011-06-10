@@ -53,6 +53,7 @@ new ctrl-1
 cd ctrl-1
 set Rdr.CtrlRec.Type = DIGITAL
 set Rdr.CtrlRec.Digital.Default = ON
+set State.Digital = ON
 set Visible = TRUE
 cd ..
 
