@@ -52,7 +52,7 @@ set Visible = TRUE
 new ctrl-1
 cd ctrl-1
 set Rdr.CtrlRec.Type = DIGITAL
-set Rdr.CtrlRec.Digital.Default
+set Rdr.CtrlRec.Digital.Default = ON
 set Visible = TRUE
 cd ..
 
@@ -247,4 +247,6 @@ set Rdr.AnnunciatorRec.ModeReadOnly = TRUE
 set Mode = AUTO
 set Visible = TRUE
 cd ..
+
+cd /
 
