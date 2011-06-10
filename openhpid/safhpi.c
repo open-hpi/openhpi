@@ -460,7 +460,7 @@ SaErrorT SAHPI_API saHpiGetIdByEntityPath (
 {
         struct oh_domain *d = NULL;
         SaHpiDomainIdT did;
-        SaHpiResourceIdT rid = 0;
+        SaHpiRptEntryT *rptentry;
         SaHpiRdrT *rdr = NULL;
         
         if (InstanceId == NULL || ResourceId == NULL ||
@@ -472,14 +472,15 @@ SaErrorT SAHPI_API saHpiGetIdByEntityPath (
         
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);        
+        OH_GET_DOMAIN(did, d); /* Lock domain */
         
-        rid = oh_uid_lookup(&EntityPath);
-        if (rid == 0) {
+        rptentry = oh_get_resource_by_ep(&(d->rpt), &EntityPath);
+        if (!rptentry) {
+                oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_NOT_PRESENT;
         }
         
-        OH_GET_DOMAIN(did, d); /* Lock domain */
-        *ResourceId = rid;
+        *ResourceId = rptentry->ResourceId;
         *RptUpdateCount = d->rpt.update_count;        
         if (InstrumentType == SAHPI_NO_RECORD) {
                 *InstanceId = SAHPI_LAST_ENTRY;
@@ -489,9 +490,9 @@ SaErrorT SAHPI_API saHpiGetIdByEntityPath (
 
         /* Get Rdr indicated by InstanceId (Num) and Type */
         if (*InstanceId == SAHPI_FIRST_ENTRY) {
-                rdr = oh_get_rdr_by_type_first(&d->rpt, rid, InstrumentType);
+                rdr = oh_get_rdr_by_type_first(&d->rpt, *ResourceId, InstrumentType);
         } else {
-                rdr = oh_get_rdr_by_type(&d->rpt, rid,
+                rdr = oh_get_rdr_by_type(&d->rpt, *ResourceId,
                                          InstrumentType, oh_get_rdr_num(*InstanceId));
         }
         
@@ -501,7 +502,7 @@ SaErrorT SAHPI_API saHpiGetIdByEntityPath (
         }
        
 	*InstrumentId = oh_get_rdr_num(rdr->RecordId);
-        rdr = oh_get_rdr_by_type_next(&d->rpt, rid, InstrumentType,
+        rdr = oh_get_rdr_by_type_next(&d->rpt, *ResourceId, InstrumentType,
                                       oh_get_rdr_num(rdr->RecordId));
         if (rdr == NULL) {
                 *InstanceId = SAHPI_LAST_ENTRY;
