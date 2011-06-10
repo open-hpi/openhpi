@@ -984,6 +984,7 @@ typedef
 SaErrorT SAHPI_API (*oHpiDomainAddPtr)(
     const SaHpiTextBufferT *host,
     SaHpiUint16T port,
+    const SaHpiEntityPathT *entity_root,
     SaHpiDomainIdT *domain_id
 );
 

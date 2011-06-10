@@ -84,8 +84,11 @@ bool cHandler::Init()
         return false;
     }
 
+    SaHpiEntityPathT root;
+    oh_init_ep( &root );
+
     SaHpiDomainIdT did;
-    SaErrorT rv = Abi()->oHpiDomainAdd( &m_host, m_port, &did );
+    SaErrorT rv = Abi()->oHpiDomainAdd( &m_host, m_port, &root, &did );
     if ( rv != SA_OK ) {
         CRIT( "oHpiDomainAdd failed with rv = %d", rv );
         return false;
