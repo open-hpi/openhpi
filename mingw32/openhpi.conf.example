@@ -10,7 +10,7 @@
 ## FIRST section: declaration of global parameters like the following.
 
 #OPENHPI_LOG_ON_SEV = "MINOR"
-OPENHPI_ON_EP = "{SYSTEM_CHASSIS,1}"
+#OPENHPI_ON_EP = "{SYSTEM_CHASSIS,1}"
 #OPENHPI_EVT_QUEUE_LIMIT = 10000
 #OPENHPI_DEL_SIZE_LIMIT = 10000
 #OPENHPI_DEL_SAVE = "NO"
@@ -19,6 +19,9 @@ OPENHPI_ON_EP = "{SYSTEM_CHASSIS,1}"
 #OPENHPI_DAT_SAVE = "NO"
 #OPENHPI_PATH = "/usr/local/lib/openhpi:/usr/lib/openhpi"
 #OPENHPI_VARPATH = "/usr/local/var/lib/openhpi"
+#OPENHPI_AUTOINSERT_TIMEOUT = 0
+#OPENHPI_AUTOINSERT_TIMEOUT_READONLY = "YES"
+
 
 ## The default values for each have been selected in the example above (except
 ## for OPENHPI_PATH and OPENHPI_CONF. See below).
@@ -71,20 +74,9 @@ OPENHPI_ON_EP = "{SYSTEM_CHASSIS,1}"
 ## Section for the simulator plugin
 ## You can load multiple copies of the simulator plugin but each
 ## copy must have a unique name.
-handler libslave {
-        entity_root = "{SYSTEM_CHASSIS,1}"
-        host = "192.168.1.254"
-}
-
-#handler simulator {
-#        entity_root = "{SYSTEM_CHASSIS,2}"
-#        name = "simulator2"
-#}
-
-#handler slave {
-#        host = "192.168.1.1"
-#        entity_root = "{SYSTEM_CHASSIS,2}"
-#        name = "simulator2"
+#handler libsimulator {
+#        entity_root = "{SYSTEM_CHASSIS,1}"
+#        name = "simulator"
 #}
 
 ## Section for ipmi plugin using SMI -- local interface
@@ -213,4 +205,23 @@ handler libslave {
 #        # if #logfile_max reached replace the oldest one
 ##        logfile_max = "5"
 #}
+
+## Section for slave plugin
+#handler libslave {
+#        # Optional.
+#        # Entity path that will be added to slave daemon resources' entity paths.
+#        # Default value is empty.
+#        entity_root = "{RACK,1}"
+#        # Mandatory. Address of slave OpenHPI daemon.
+#        host = "192.168.1.42"
+#        # Optional. Port of slave OpenHPI daemon.
+#        # Default value is 4743
+#        #port = "4743"
+#}
+
+# Section for slave plugin
+handler libtest_agent {
+    # Mandatory. TCP port for console.
+    port = "41415"
+}
 

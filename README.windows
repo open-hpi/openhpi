@@ -129,7 +129,7 @@ Daemon Usage instructions:
 Only Slave plug-in and Test agent plug-in are now ported under Windows.
 
 - prepare openhpi.conf
-- openhpid.exe -n -v -c "path to openhpi.conf"
+- openhpid.exe -v -c "path to openhpi.conf"
 
 As an optional step you can do 
 - set OPENHPI_UID_MAP="path to uid map file"
