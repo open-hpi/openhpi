@@ -29,40 +29,26 @@
 
 MAINTAINERCLEANFILES 	= Makefile.in
 
-EXTRA_DIST		= openhpi.pod.7   openhpid.pod.8      \
-                          hpialarms.pod.1 hpifan.pod.1        \
-                          hpipower.pod.1  hpisettime.pod.1    \
-                          hpitree.pod.1   hpiel.pod.1         \
-                          hpiinv.pod.1    hpireset.pod.1      \
-                          hpithres.pod.1  hpiwdt.pod.1        \
-                          hpievents.pod.1 hpionIBMblade.pod.1 \
-                          hpisensor.pod.1 hpitop.pod.1 \
-			  hpidomain.pod.1 hpigensimdata.pod.1 \
-			  hpixml.pod.1 \
-			  ohhandler.pod.1 ohparam.pod.1 \
-                          ohdomainlist.pod.1 \
-			  hpi_shell.pod.1
+EXTRA_DIST		= openhpi.7.pod   openhpid.8.pod      \
+                          hpialarms.1.pod hpifan.1.pod        \
+                          hpipower.1.pod  hpisettime.1.pod    \
+                          hpitree.1.pod   hpiel.1.pod         \
+                          hpiinv.1.pod    hpireset.1.pod      \
+                          hpithres.1.pod  hpiwdt.1.pod        \
+                          hpievents.1.pod hpionIBMblade.1.pod \
+                          hpisensor.1.pod hpitop.1.pod \
+			  hpidomain.1.pod hpigensimdata.1.pod \
+			  hpixml.1.pod \
+			  ohhandler.1.pod ohparam.1.pod \
+                          ohdomainlist.1.pod \
+			  hpi_shell.1.pod
 
 
-%.1: %.pod.1
-	pod2man --release=$(VERSION) --name=`echo $@ | sed 's/.1//'` \
-		-s 1 -c "OpenHPI" $< $@
+SUFFIXES=.pod
 
-%.3: %.pod.3
-	pod2man --release=$(VERSION) --name=`echo $@ | sed 's/.3//'` \
-		-s 3 -c "OpenHPI" $< $@
-
-%.5: %.pod.5
-	pod2man --release=$(VERSION) --name=`echo $@ | sed 's/.5//'` \
-		-s 5 -c "OpenHPI" $< $@
-
-%.7: %.pod.7
-	pod2man --release=$(VERSION) --name=`echo $@ | sed 's/.7//'` \
-		-s 7 -c "OpenHPI" $< $@
-
-%.8: %.pod.8
-	pod2man --release=$(VERSION) --name=`echo $@ | sed 's/.8//'` \
-		-s 8 -c "OpenHPI" $< $@
+.pod:
+	pod2man --release=$(VERSION) --name=`echo $@ | sed 's/\..*//'` \
+		-s `echo $@ | sed 's/.*\.//'` -c "OpenHPI" $< $@
 
 #mandir = $(datadir)/man
 man_MANS = openhpi.7   openhpid.8      \

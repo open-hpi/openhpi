@@ -137,7 +137,7 @@ AC_DEFUN([OH_CHECK_GCC],
         } \
     }'` \
     
-    if test "$GCCVERSIONOK" == "OK"; then
+    if test "$GCCVERSIONOK" = "OK"; then
         AC_MSG_RESULT(yes)
     else
         OH_CHECK_FAIL(gcc >= $1.$2.$3 is required to build OpenHPI)
@@ -200,7 +200,7 @@ AC_DEFUN([OH_CHECK_OPENIPMI],
 		}'` 
 	fi
 		
-	if test "$OPENIPMI_VERSION" == "OK"; then
+	if test "$OPENIPMI_VERSION" = "OK"; then
 		have_openipmi=yes
 		AC_MSG_RESULT(yes)
 	else
