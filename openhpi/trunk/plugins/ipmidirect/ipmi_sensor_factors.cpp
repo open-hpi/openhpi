@@ -209,6 +209,12 @@ c_1_over_cube( double val )
   return 1.0 / pow( val, 3.0 );
 }
 
+#if defined(__FreeBSD__)
+static double log2( double val )
+{
+  return log( val ) / M_LN2;
+}
+#endif // __FreeBSD__
 
 typedef double (*linearizer)( double val );
 static linearizer linearize[12] =
