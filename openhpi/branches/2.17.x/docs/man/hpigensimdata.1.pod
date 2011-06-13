@@ -1,0 +1,63 @@
+=head1 NAME
+
+hpigensimdata - A openhpi client application supplementing the dynamic simulator plugin.
+
+=head1 SYNOPSIS 
+
+ hpigensimdata [-D nn] [-N host[:port]] [-C <cfgfile>] [-r res_id] [-f filename] [-m UPD|INIT] [-h]
+ hpigensimdata [--domain=nn] [--host=host[:port]] [--cfgfile=file] 
+               [--resource=res_id] [--file=filename] [--mode=UPD|INIT] [--help]
+
+=head1 DESCRIPTION
+
+hpigensimdata generates data for the dynamic simulator plugin by reading the current 
+configuration. It will print all HPI information in a format that can be parsed by Dynamic
+Simulator plugin. To spare some encoding/decoding function, values of enums are 
+printed as int values instead of encode them to ASCII values and decode them afterwards.
+Since this client is primarily for the Dynamic Simulator, the output functions don't
+depend on the oh_.. - output function. Therefore they can be easily changed without 
+influence on other clients.
+
+Please refer to README and detailed documentation with the plugin.
+
+If no domain or host is selected, ohparam uses the default domain as specified in the openhpiclient.conf file.
+
+If no file name is specified, the data is displayed on console.
+
+=over 2
+
+Help Options:
+  -h, --help                   Show help options
+
+Application Options:
+  -r, --resource=res_id        Select particular resource id for an update file
+  -f, --file=filename          Name of the file to be generated
+  -m, --mode=UPD|INIT          Write update or initial file
+  -D, --domain=nn              Select domain id nn
+  -N, --host="host<:port>"     Open session to the domain served by the daemon 
+                               at the specified URL (host:port)
+                               This option overrides the OPENHPI_DAEMON_HOST and
+                               OPENHPI_DAEMON_PORT environment variables.
+  -C, --cfgfile="file"         Use passed file as client configuration file
+                               This option overrides the OPENHPICLIENT_CONf
+                               environment variable.
+
+=back
+
+=head1 SEE ALSO
+  
+         hpi_shell
+         hpialarms      hpifan         hpireset       hpitop
+         hpidomain      hpiinv         hpisensor      hpitree
+         hpiel          hpionIBMblade  hpisettime     hpiwdt
+         hpievents      hpipower       hpithres       hpixml
+         ohdomainlist   ohhandler      ohparam
+
+
+=head1 AUTHORS
+
+Authors of this man page:
+
+ Ulrich Kleber (ulikleber@users.sourceforge.net)
+ Lars Wetzel (larswetzel@users.sourceforge.net)
+

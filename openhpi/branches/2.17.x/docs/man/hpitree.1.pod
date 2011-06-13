@@ -1,0 +1,68 @@
+=head1 NAME
+
+hpitree - A openhpi sample application that shows in details the resources (rpt's)
+and resources' manamegement instruments (rdr's) data structures of the managed openHPI complex. 
+
+=head1 SYNOPSIS 
+
+ hpitree [-D nn] [-N host[:port]] [-C <cfgfile>] [-acdiorsw ] [-n nn] [-x] [-h]
+ hpitree [--domain=nn] [--host=host[:port]] [--cfgfile=file] [--all] [--controls] [--rdrs] [--inventories] [--rpts]
+         [--sensors] [--watchdogs] [--overview] [--resource=nn] [--debug] [--help]
+
+=head1 DESCRIPTION
+
+hpitree walks the Resource Presence Table (RPT) of the managed openHPI complex, and displays in details the resources (rpt's) and resources' management instruments (rdr's) data structures.
+
+If no domain or host is selected, hpitree uses the default domain as specified in the openhpiclient.conf file.
+
+
+=head1 OPTIONS
+
+=over 2
+
+(No Option) Display all rpts and rdrs
+
+Help Options:
+  -h, --help                   Show help options
+
+Application Options:
+  -a, --all                    Display all rpts and rdrs (default)
+  -c, --controls               Display only controls
+  -d, --rdrs                   Display rdr records
+  -i, --inventories            Display only inventories
+  -r, --rpts                   Display only rpts
+  -s, --sensors                Display only sensors
+  -w, --watchdogs              Display only watchdogs
+  -o, --overview               Display system overview: rpt & rdr headers
+  -n, --resource=nn            Select particular resource id to display
+                               (Used with [-cdirs] options)
+  -D, --domain=nn              Select domain id nn
+  -X, --debug                  Display debug messages
+  -N, --host="host<:port>"     Open session to the domain served by the daemon 
+                               at the specified URL (host:port)
+                               This option overrides the OPENHPI_DAEMON_HOST and
+                               OPENHPI_DAEMON_PORT environment variables.
+  -C, --cfgfile="file"         Use passed file as client configuration file
+                               This option overrides the OPENHPICLIENT_CONf
+                               environment variable.
+
+
+=back
+
+=head1 SEE ALSO
+  
+         hpi_shell
+         hpialarms      hpifan         hpipower       hpithres
+         hpidomain      hpigensimdata  hpireset       hpitop
+         hpiel          hpiiinv        hpisensor      hpiwdt
+         hpievents      hpionIBMblade  hpisettime     hpixml
+         ohdomainlist   ohhandler      ohparam
+
+
+=head1 AUTHORS
+
+Authors of this man page:
+
+ Peter D Phan (pdphan@users.sourceforge.net)
+ Ulrich Kleber (ulikleber@users.sourceforge.net)
+

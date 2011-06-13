@@ -1,0 +1,59 @@
+=head1 NAME
+
+hpiinv - An openhpi sample application that shows resources' inventory records. 
+
+=head1 SYNOPSIS 
+
+ hpiinv [-D nn] [-N host[:port]] [-C <cfgfile>] [-V] [ -X] [-a tag] [-h]
+ hpiinv [--domain=nn] [--host=host[:port]] [--cfgfile=file] [--verbose] [--debug] [--asset-tag=tag] [--help]
+
+=head1 DESCRIPTION
+
+hpiinv walks the RPT (Resource Present Table) looking for resources that have Inventory Capability.  It displays all inventory records found.  
+
+If no domain is selected, hpiinv uses a session with the default domain. The selected domain id must be configured via the openhpidclient.conf file specified in the environment.
+
+=head1 OPTIONS
+
+=over 2
+
+Help Options:
+  -h, --help                   Show help options
+
+Application Options:
+  -a, --asset-tag=tag          Set the asset tag to the specified string
+  -D, --domain=nn              Select domain id nn
+  -X, --debug                  Display debug messages
+  -V, --verbose                Verbose mode
+  -N, --host="host<:port>"     Open session to the domain served by the daemon 
+                               at the specified URL (host:port)
+                               This option overrides the OPENHPI_DAEMON_HOST and
+                               OPENHPI_DAEMON_PORT environment variables.
+  -C, --cfgfile="file"         Use passed file as client configuration file
+                               This option overrides the OPENHPICLIENT_CONf
+                               environment variable.
+
+=back
+
+=head1 ENVIRONMENT VARIABLES
+
+For generic OpenHPI, there is *no* additional environment variable required.
+For some devices; sahalee, mBMC; BMCONLY flag needs to be set for additional device characterization based on rdr.IdString.Data.
+
+=head1 SEE ALSO
+
+         hpi_shell
+         hpialarms      hpifan         hpireset       hpitop
+         hpidomain      hpigensimdata  hpisensor      hpitree
+         hpiel          hpionIBMblade  hpisettime     hpiwdt
+         hpievents      hpipower       hpithres       hpixml
+         ohdomainlist   ohhandler      ohparam
+
+
+=head1 AUTHORS
+
+Authors of this man page:
+
+ Peter D Phan (pdphan@users.sourceforge.net)
+ Ulrich Kleber (ulikleber@users.sourceforge.net)
+
