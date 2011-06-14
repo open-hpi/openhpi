@@ -704,6 +704,8 @@ SaErrorT re_discover_blade(struct oh_handler_state *oh_handler,
                  */
                 else if (oa_handler->oa_soap_resources.server.presence[i - 1]
                            == RES_PRESENT) {
+			/* NULL pointer Check for the serial Number to avoid the segfault*/
+			if (response.serialNumber != 0){
                         /* If Serial number is different, remove and
                          * add the blade
                          */
@@ -734,6 +736,8 @@ SaErrorT re_discover_blade(struct oh_handler_state *oh_handler,
 				}
                                 continue;
                         }
+			} else
+                                replace_resource = SAHPI_TRUE;
                 } else
                         state = RES_PRESENT;
 
