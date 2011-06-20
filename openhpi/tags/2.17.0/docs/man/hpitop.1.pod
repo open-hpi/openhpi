@@ -1,0 +1,67 @@
+=head1 NAME
+
+
+hpitop - A openhpi sample application that displays highlevel topology for a managed openHPI complex.
+
+=head1 SYNOPSIS 
+
+ hpitop [-D nn] [-N host[:port]] [-C <cfgfile>] [-rscwiafd] [-n nn] [-X] [-h]
+ hpitop [--domain=nn] [--host=host[:port]] [--cfgfile=file] [--rpts] [--sensors]
+        [--controls] [--watchdogs] [--inventories] [--annunciators] [--fumis] [--dimis] 
+        [--resource=nn] [--debug] [--help]
+
+=head1 DESCRIPTION
+
+hpitop walks the Resource Present Table (RPT) of the managed openHPI complex and displays all the resources and resources' management instruments. 
+
+If no domain or host is selected, hpitop uses the default domain as specified in the openhpiclient.conf file.
+
+=head1 OPTIONS
+
+=over 2
+
+(No Option) Display system topology via default domain: rpt & rdr headers
+
+Help Options:
+  -h, --help                   Show help options
+
+Application Options:
+  -r, --rpts                   Display only rpts
+  -s, --sensors                Display only sensors
+  -c, --controls               Display only controls
+  -w, --watchdogs              Display only watchdogs
+  -i, --inventories            Display only inventories
+  -a, --annunciators           Display only annunciators
+  -f, --fumis                  Display only fumis
+  -d, --dimis                  Display only dimis
+  -n, --resource=nn            Display only resource nn and its topology
+  -D, --domain=nn              Select domain id nn
+  -X, --debug                  Display debug messages
+  -N, --host="host<:port>"     Open session to the domain served by the daemon 
+                               at the specified URL (host:port)
+                               This option overrides the OPENHPI_DAEMON_HOST and
+                               OPENHPI_DAEMON_PORT environment variables.
+  -C, --cfgfile="file"         Use passed file as client configuration file
+                               This option overrides the OPENHPICLIENT_CONf
+                               environment variable.
+
+
+=back
+
+=head1 SEE ALSO
+ 
+         hpi_shell
+         hpialarms      hpifan         hpipower       hpithres
+         hpidomain      hpigensimdata  hpireset       hpitree
+         hpiel          hpiiinv        hpisensor      hpiwdt
+         hpievents      hpionIBMblade  hpisettime     hpixml
+         ohdomainlist   ohhandler      ohparam
+
+
+=head1 AUTHORS
+
+Authors of this man page:
+
+ Peter D Phan (pdphan@users.sourceforge.net)
+ Ulrich Kleber (ulikleber@users.sourceforge.net)
+

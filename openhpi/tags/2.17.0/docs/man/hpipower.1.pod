@@ -1,0 +1,59 @@
+=head1 NAME
+
+hpipower - This sample openhpi application exercises HPI Power Management APIs. 
+
+=head1 SYNOPSIS 
+
+ hpipower [ -D nn ] [-N host[:port]] [-C <cfgfile>] [ -d -p -r -u -X -h] [ -b n ]
+ hpipower [--domain=nn] [--host=host[:port]] [--cfgfile=file] 
+          [--power-down --power-up --reset --unattended --debug --help] [--blade=n ]
+
+=head1 DESCRIPTION
+
+hpipower searches the Resource Presence Table (RPT) for resources with Power Capability. It sends the requested power action to the selected target.
+
+If no domain or host is selected, hpipower uses the default domain as specified in the openhpiclient.conf file.
+
+
+=head1 OPTIONS
+
+=over 2
+
+Help Options:
+  -h, --help                   Show help options
+
+Application Options:
+  -d, --power-down             Power down target object
+  -p, --power-up               Power on target object
+  -r, --reset                  Reset target object
+  -u, --unattended             Unattended
+  -b, --blade=n                Specify blade n (1...n)
+  -D, --domain=nn              Select domain id nn
+  -X, --debug                  Display debug messages
+  -N, --host="host<:port>"     Open session to the domain served by the daemon 
+                               at the specified URL (host:port)
+                               This option overrides the OPENHPI_DAEMON_HOST and
+                               OPENHPI_DAEMON_PORT environment variables.
+  -C, --cfgfile="file"         Use passed file as client configuration file
+                               This option overrides the OPENHPICLIENT_CONf
+                               environment variable.
+
+=back
+
+=head1 SEE ALSO
+
+         hpi_shell
+         hpialarms      hpifan         hpireset       hpitop
+         hpidomain      hpigensimdata  hpisensor      hpitree
+         hpiel          hpiiinv        hpisettime     hpiwdt
+         hpievents      hpionIBMblade  hpithres       hpixml
+         ohdomainlist   ohhandler      ohparam
+
+
+=head1 AUTHORS
+
+Authors of this man page:
+
+ Peter D Phan (pdphan@users.sourceforge.net)
+ Ulrich Kleber (ulikleber@users.sourceforge.net)
+

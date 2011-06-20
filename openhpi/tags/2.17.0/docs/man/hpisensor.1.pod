@@ -1,0 +1,60 @@
+=head1 NAME
+
+ hpisensor -  This sample openhpi application displays sensor info for all resources with Sensor Capability
+
+=head1 SYNOPSIS 
+
+ hpisensor [-D nn] [-N host[:port]] [-C <cfgfile>] [-t -r -s -X -h] [-E epath]
+ hpisensor [--domain=nn] [--host=host[:port]] [--cfgfile=file]
+           [--threshold --range --eventstate --debug --help] [--entity-path="epath"]
+
+=head1 DESCRIPTION
+
+hpisensor displays sensor info for all resources with Sensor Capability.
+Option -E (entity-path) restricts the output on the specified entity-path.
+
+If no domain or host is selected, hpisensor uses the default domain as specified in the openhpiclient.conf file.
+
+
+=head1 OPTIONS
+
+=over 2
+
+Help Options:
+  -h, --help                   Show help options
+
+Application Options:
+  -t, --threshold              Show Thresholds also
+  -r, --range                  Show Range values also
+  -s, --eventstate             Show EventState also
+  -D, --domain=nn              Select domain id nn
+  -X, --debug                  Display debug messages
+  -E, --entity-path="epath"    Use entity path epath
+  -N, --host="host<:port>"     Open session to the domain served by the daemon 
+                               at the specified URL (host:port)
+                               This option overrides the OPENHPI_DAEMON_HOST and
+                               OPENHPI_DAEMON_PORT environment variables.
+  -C, --cfgfile="file"         Use passed file as client configuration file
+                               This option overrides the OPENHPICLIENT_CONf
+                               environment variable.
+
+
+=back
+
+=head1 SEE ALSO
+
+         hpi_shell
+         hpialarms      hpifan         hpipower       hpitop
+         hpidomain      hpigensimdata  hpireset       hpitree
+         hpiel          hpiiinv        hpisettime     hpiwdt
+         hpievents      hpionIBMblade  hpithres       hpixml
+         ohdomainlist   ohhandler      ohparam
+ 
+
+=head1 AUTHORS
+
+Authors of this man page:
+
+ Peter D Phan (pdphan@users.sourceforge.net)
+ Ulrich Kleber (ulikleber@users.sourceforge.net)
+

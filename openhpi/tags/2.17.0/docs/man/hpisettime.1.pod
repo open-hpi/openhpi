@@ -1,0 +1,55 @@
+=head1 NAME
+
+hpisettime - This sample openhpi application excercises Event Log clock APIs. 
+
+=head1 SYNOPSIS 
+
+ hpisettime [-D nn] [-N host[:port]] [-C <cfgfile>] -d mm/dd/yyyy -t HH:MM:SS [-X] [-h]
+ hpisettime [--domain=nn] [--host=host[:port]] [--cfgfile=file] --date=mm/dd/yyyy --time=HH:MM:SS [--debug] [--help]
+
+=head1 DESCRIPTION
+
+hpisettime sets new date and time for the Event Log clock.
+
+If no domain is selected, hpisettime uses a session with the default domain. The selected domain id must be configured via the openhpidclient.conf file specified in the environment.
+
+=head1 OPTIONS
+
+=over 2
+
+Help Options:
+  -h, --help                   Show help options
+
+Application Options:
+  -d, --date=mm/dd/yyyy        New date
+  -t, --time=24:12:60          New time of day in 24-hr format
+  -D, --domain=nn              Select domain id nn
+  -X, --debug                  Display debug messages
+  -N, --host="host<:port>"     Open session to the domain served by the daemon 
+                               at the specified URL (host:port)
+                               This option overrides the OPENHPI_DAEMON_HOST and
+                               OPENHPI_DAEMON_PORT environment variables.
+  -C, --cfgfile="file"         Use passed file as client configuration file
+                               This option overrides the OPENHPICLIENT_CONf
+                               environment variable.
+
+
+=back
+
+=head1 SEE ALSO
+
+         hpi_shell
+         hpialarms      hpifan         hpipower       hpitop
+         hpidomain      hpigensimdata  hpireset       hpitree
+         hpiel          hpiiinv        hpisensor      hpiwdt
+         hpievents      hpionIBMblade  hpithres       hpixml
+         ohdomainlist   ohhandler      ohparam
+
+
+=head1 AUTHORS
+
+Authors of this man page:
+
+ Peter D Phan (pdphan@users.sourceforge.net)
+ Ulrich Kleber (ulikleber@users.sourceforge.net)
+
