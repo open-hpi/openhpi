@@ -2273,7 +2273,7 @@ SaErrorT SAHPI_API saHpiDimiTestStatusGet(
     if (!RunStatus) {
         return SA_ERR_HPI_INVALID_PARAMS;
     }
-    if (!PercentCompleted) {
+    if (PercentCompleted) {
         ppercent = PercentCompleted;
     }
 
