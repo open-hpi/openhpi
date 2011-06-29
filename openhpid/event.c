@@ -160,29 +160,6 @@ int oh_detect_quit_event(struct oh_event * e)
 }
 
 
-struct oh_event *oh_dup_event(struct oh_event *old_event)
-{
-	GSList *node = NULL;
-	struct oh_event *e = NULL;
-
-	if (!old_event) return NULL;
-
-	e = g_new0(struct oh_event, 1);
-	*e = *old_event;
-	e->rdrs = NULL;
-	for (node = old_event->rdrs; node; node = node->next) {
-		e->rdrs = g_slist_append(e->rdrs, g_memdup(node->data,
-							   sizeof(SaHpiRdrT)));
-	}
-    e->rdrs_to_remove = NULL;
-	for (node = old_event->rdrs_to_remove; node; node = node->next) {
-		e->rdrs_to_remove = g_slist_append(e->rdrs_to_remove, g_memdup(node->data,
-							   sizeof(SaHpiRdrT)));
-	}
-
-	return e;
-}
-
 /*
  *  Event processing is split up into 2 stages
  *  1. Harvesting of the events
