@@ -958,6 +958,11 @@ SaErrorT oh_encode_entitytype(SaHpiTextBufferT *buffer, SaHpiEntityTypeT *type)
 
 char * oh_lookup_sensortype(SaHpiSensorTypeT value)
 {
+        // OEM Sensor Type
+        if ((value >= SAHPI_OEM_SENSOR) && (value <= (SAHPI_OEM_SENSOR + 0x3F))) {
+                return "OEM_SENSOR";
+        }
+
         switch (value) {
         case SAHPI_TEMPERATURE:
                 return "TEMPERATURE";
@@ -1047,8 +1052,6 @@ char * oh_lookup_sensortype(SaHpiSensorTypeT value)
                 return "VERSION_CHANGE";
         case SAHPI_OPERATIONAL:
                 return "OPERATIONAL";
-        case SAHPI_OEM_SENSOR:
-                return "OEM_SENSOR";
         case SAHPI_COMM_CHANNEL_LINK_STATE:
                 return "COMM_CHANNEL_LINK_STATE";
         case SAHPI_MANAGEMENT_BUS_STATE:
