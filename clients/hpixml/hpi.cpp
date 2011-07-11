@@ -232,14 +232,20 @@ static bool FetchResources( SaHpiSessionIdT sid,
                 CRIT( "saHpiRptEntryGet returned %s", oh_lookup_error( rv ) );
                 return false;
             }
-            rc = FetchInstruments( sid, resource );
-            if ( !rc ) {
-                break;
-            }
-            if ( resource.rpte.ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG ) {
-                rc = FetchLog( sid, resource.rpte.ResourceId, resource.log );
+
+            resource.instruments.clear();
+            resource.log.entries.clear();
+
+            if ( resource.rpte.ResourceFailed == SAHPI_FALSE ) {
+                rc = FetchInstruments( sid, resource );
                 if ( !rc ) {
                     break;
+                }
+                if ( resource.rpte.ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG ) {
+                    rc = FetchLog( sid, resource.rpte.ResourceId, resource.log );
+                    if ( !rc ) {
+                        break;
+                    }
                 }
             }
 
