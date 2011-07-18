@@ -539,6 +539,85 @@ SaErrorT process_server_insertion_event(struct oh_handler_state *oh_handler,
 }
 
 /**
+ * process_server_info_event
+ *      @oh_handler: Pointer to openhpi handler structure
+ *      @con:        Pointer to the SOAP_CON structure
+ *      @oa_event:   Pointer to OA event structure
+ *
+ * Purpose:
+ *      Check if the serial number is there, if so insert.
+ *      This is bad as the query does not get the complete details
+ *      We need to make OA do the right stuff.
+ *      This is created only as an additional mechanism to get the
+ *      part/serial number of the already inserted blade server.
+ *      So not much error handling
+ *
+ * Detailed Description: NA
+ *
+ * Return values:
+ *      SA_OK                     - success.
+ *      SA_ERR_HPI_INVALID_PARAMS - Invalid parameters
+ *      SA_ERR_HPI_OUT_OF_MEMORY  - Out of memory
+ **/
+SaErrorT process_server_info_event(struct oh_handler_state
+                                               *oh_handler,
+                                               SOAP_CON *con,
+                                               struct eventInfo *oa_event)
+{
+        SaErrorT rv = SA_OK;
+        struct oa_soap_handler *oa_handler = NULL;
+        SaHpiInt32T bay_number, len;
+        char *serial_number = NULL;
+        char *name = NULL;
+	struct bladeInfo *response;
+        SaHpiResourceIdT resource_id;
+
+        if (oh_handler == NULL || oa_event == NULL) {
+                err("Invalid oh_handler and/or oa_event parameters");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        oa_handler = (struct oa_soap_handler *) oh_handler->data;
+        bay_number = oa_event->eventData.bladeInfo.bayNumber;
+        /* Null ponter check for serialNumber,if Null return immediately*/
+        if(oa_event->eventData.bladeInfo.serialNumber == 0) {
+                return rv;
+        }
+        len = strlen(oa_event->eventData.bladeInfo.serialNumber);
+        serial_number = (char *)g_malloc0(sizeof(char) * len + 1);
+        if(serial_number == 0){
+                g_free(serial_number);
+                return SA_ERR_HPI_OUT_OF_MEMORY;
+        }
+        strcpy(serial_number, oa_event->eventData.bladeInfo.serialNumber);
+        serial_number[len]='\0';
+        if (strcmp(serial_number,"[Unknown]") == 0 )  {
+                g_free(serial_number);
+                return rv;
+        }
+        name = oa_event->eventData.bladeInfo.name;
+	response = (struct bladeInfo *)&oa_event->eventData.bladeInfo;
+         resource_id = oa_handler->
+                oa_soap_resources.server.resource_id[bay_number - 1];
+
+        /* Update resource_status structure with resource_id,
+         * serial_number, and presence status
+         */
+        oa_soap_update_resource_status(
+                 &oa_handler->oa_soap_resources.server, bay_number,
+                 serial_number, resource_id, RES_PRESENT);
+
+        /* The RDR already exist, but the relevant data is available only now
+         * So just go ahead and correct it. When building the RDR the code does
+         * take care of already existing RDR.
+         */
+        rv = build_server_rdr(oh_handler, con,
+                                    bay_number, resource_id, name);
+        g_free(serial_number);
+        return SA_OK;
+}
+
+/**
  * process_server_extraction_event
  *      @oh_handler: Pointer to openhpi handler structure
  *      @oa_event:   Pointer to the OA event structure

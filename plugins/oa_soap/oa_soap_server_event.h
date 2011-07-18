@@ -57,6 +57,11 @@ SaErrorT process_server_insertion_event(struct oh_handler_state *oh_handler,
                                         struct eventInfo *oa_event,
                                         SaHpiInt32T loc);
 
+SaErrorT process_server_info_event(struct oh_handler_state
+                                               *oh_handler,
+                                               SOAP_CON *con,
+                                               struct eventInfo *oa_event);
+
 SaErrorT process_server_extraction_event(struct oh_handler_state *oh_handler,
                                          struct eventInfo *oa_event);
 
