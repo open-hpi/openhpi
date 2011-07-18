@@ -856,7 +856,9 @@ void process_oa_events(struct oh_handler_state *oh_handler,
 						&(event.eventData.bladeStatus));
                                 break;
                         case EVENT_BLADE_INFO:
-                                dbg("EVENT_BLADE_INFO -- Not processed");
+                                dbg("EVENT_BLADE_INFO");
+				rv = process_server_info_event(oh_handler, 
+						oa->event_con2, &event);
                                 break;
                         case EVENT_BLADE_MP_INFO:
                                 dbg("EVENT_BLADE_MP_INFO -- Not processed");
