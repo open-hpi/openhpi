@@ -60,7 +60,9 @@ static xmlDocPtr ir_xml_doparse( char *);
 static int ir_xml_scan_fans( ilo2_ribcl_handler_t *, xmlNodePtr);
 static int ir_xml_record_fandata( ilo2_ribcl_handler_t *, char *, char *,
 		char *, char *, char *);
-static void ir_xml_scan_temperature( ilo2_ribcl_handler_t *, xmlNodePtr);
+static int ir_xml_scan_temperature( ilo2_ribcl_handler_t *, xmlNodePtr);
+static int ir_xml_record_temperaturedata( ilo2_ribcl_handler_t *,
+                char *, char *,char *, char *, char *);
 static void ir_xml_scan_firmware_revision(ilo2_ribcl_handler_t *, xmlNodePtr);
 static int ir_xml_scan_vrm( ilo2_ribcl_handler_t *, xmlNodePtr);
 static int ir_xml_record_vrmdata( ilo2_ribcl_handler_t *, char *, char *);
@@ -214,8 +216,11 @@ int ir_xml_parse_emhealth( ilo2_ribcl_handler_t *ir_handler, char *ribcl_outbuf)
 	}
 
 	/* Extract data for temp sensors */
-	ir_xml_scan_temperature( ir_handler, eh_data_node);
-
+        if( ir_xml_scan_temperature( ir_handler, eh_data_node)
+                                                      != RIBCL_SUCCESS){
+                xmlFreeDoc( doc);
+                return( -1);
+        }
 
 	xmlFreeDoc( doc);
 	return( RIBCL_SUCCESS);
@@ -366,7 +371,11 @@ int ir_xml_parse_discoveryinfo( ilo2_ribcl_handler_t *ir_handler,
 	}
 
 	/* Extract data for temp sensors */
-	ir_xml_scan_temperature( ir_handler, h_node);
+        if( ir_xml_scan_temperature( ir_handler, h_node)
+                                                     != RIBCL_SUCCESS){
+                xmlFreeDoc( doc);
+                return( -1);
+        }
 
 	/* Extract firmware revision information */
 	/* Now we parse the output from the GET_FW_VERSION RIBCL command */
@@ -1483,9 +1492,9 @@ static int ir_xml_record_fandata( ilo2_ribcl_handler_t *ir_handler,
  *	</TEMP>
  * </TEMPERATURE>
  *
- * Return value: None
+ * Return value: RIBCL_SUCCESS if success, -1 if failure.
  **/
-static void ir_xml_scan_temperature( ilo2_ribcl_handler_t *ir_handler,
+static int ir_xml_scan_temperature( ilo2_ribcl_handler_t *ir_handler,
 			      xmlNodePtr eh_data_node)
 {
 	xmlNodePtr t_node;
@@ -1495,6 +1504,7 @@ static void ir_xml_scan_temperature( ilo2_ribcl_handler_t *ir_handler,
 	xmlChar *stat = NULL;
 	xmlChar *cur_reading = NULL;
 	xmlChar *unit = NULL;
+        int ret;
 
 	t_node = ir_xml_find_node( eh_data_node, "TEMPERATURE");
 
@@ -1525,8 +1535,10 @@ static void ir_xml_scan_temperature( ilo2_ribcl_handler_t *ir_handler,
 
 			/* Extract Caution value here, if needed */
 
-			/* Call to process temperature data goes here, when
-			 * we add support to this plugin for sensors. */
+                        /* Call to process temperature data */
+                        ret = ir_xml_record_temperaturedata( ir_handler,
+                                  ( char *)lbl,( char *)loc, ( char *)stat,
+                                  ( char *)cur_reading,( char *)unit);
 
 			if( lbl){
 				xmlFree( lbl);
@@ -1544,13 +1556,139 @@ static void ir_xml_scan_temperature( ilo2_ribcl_handler_t *ir_handler,
 				xmlFree( unit);
 			}
 
+                        if( ret != RIBCL_SUCCESS){
+                                 return( -1);
+                        }
+
 		} /* end if name == "TEMP" */
 
 		t_node = t_node->next;
 
 	} /* end while t_node != NULL */
 
+        return( RIBCL_SUCCESS);
+
 } /* end  ir_xml_scan_temperature() */
+
+
+/**
+ * ir_xml_record_temperaturedata
+ * @ir_handler: ptr to the ilo2_ribcl plugin private handler.
+ * @temperaturelabel:   string label for the temperature sensor from iLO2.
+ * @temperaturelocation:string location for the temperature sensor from iLO2.
+ * @temperaturestat:    string status for the temperature sensor from iLO2.
+ * @temperaturereading: string reading for the temperature sensor from iLO2.
+ * @temperatureunits:   string units for the temperature.
+ *
+ * This routine records the data for a temperature sensor reported by iLO2
+ * into the DiscoveryData structure within the plugin's private handler.
+ *
+ * Detailed description:
+ *
+ *      - Extract an index for this temperature sensor from the temperature
+ *        sensor label provided by iLO2.
+ *      - Use this index to access the DiscoveryData.tsdata[] array.
+ *      - Set the IR_DISCOVERED bit in tsflags.
+ *      - Store updated values for the temperature sensor reading, label,
+ *        location, status, and temperatureunit for this temperature sensor.
+ *
+ * Return value: RIBCL_SUCCESS if success, -1 if failure.
+ **/
+static int ir_xml_record_temperaturedata( ilo2_ribcl_handler_t *ir_handler,
+              char *temperaturelabel, char *temperaturelocation,
+              char *temperaturestat,char *temperaturereading,
+              char *temperatureunits)
+{
+
+        int temperatureindex = 0;
+        ir_tsdata_t *tsdat = NULL;
+
+        if ( ir_handler == NULL) {
+           err("ir_xml_record_temperaturedata: ir_handler value is NULL");
+           return( -1);
+        }
+
+        /* Find the index of this temperature sensor. The parameter
+         * 'temperaturelabel' should be of the form 'Temp N',
+         * where N ranges from 1 to ILO2_RIBCL_DISCOVER_TS_MAX.
+         */
+
+        temperatureindex = ir_xml_extract_index("Temp",
+                                              (char *)temperaturelabel, 1);
+
+        if( temperatureindex == IR_NO_PREFIX){
+                /* We didn't parse the temperaturelabel string prefix
+                 * correctly
+                 */
+                err("ir_xml_record_temperaturedata: incorrect temperature "
+                                      "label string: %s", temperaturelabel);
+                return( -1);
+        }
+
+        if( temperatureindex == IR_NO_INDEX){
+                /* We didn't parse the temperaturelabel string index
+                 * correctly
+                 */
+                err("ir_xml_record_temperaturedata: could not extract index "
+                      "from temperature label string: %s", temperaturelabel);
+                return( -1);
+        }
+
+        /* The index of this temperature sensor should be between 1 and
+           ILO2_RIBCL_DISCOVER_TS_MAX.*/
+
+        if( (temperatureindex < 1) ||
+                           (temperatureindex > ILO2_RIBCL_DISCOVER_TS_MAX) ){
+                err("ir_xml_record_temperaturedata: temperatureindex out of "
+                          "range: %d.", temperatureindex);
+                return( -1);
+        }
+
+        /* Now, if this information is different than what's already in
+         * DiscoveryData, update DiscoveryData with the latest info */
+
+        tsdat = &(ir_handler->DiscoveryData.tsdata[3 + temperatureindex]);
+        tsdat->tsflags |= IR_DISCOVERED;
+
+        if( ir_xml_replacestr( &(tsdat->label), temperaturelabel)
+                                                   != RIBCL_SUCCESS){
+                  err("ir_xml_record_temperaturedata: could not update "
+                      "temperature label: %s", temperaturelabel);
+                  return( -1);
+        }
+
+        if( ir_xml_replacestr( &(tsdat->location), temperaturelocation)
+                                                   != RIBCL_SUCCESS){
+                  err("ir_xml_record_temperaturedata: could not update "
+                      "temperature location: %s", temperaturelocation);
+                  return( -1);
+        }
+
+        if( ir_xml_replacestr( &(tsdat->status), temperaturestat)
+                                                   != RIBCL_SUCCESS){
+                  err("ir_xml_record_temperaturedata: could not update "
+                      "temperature status: %s", temperaturestat);
+                  return( -1);
+        }
+
+        if( ir_xml_replacestr( &(tsdat->reading), temperaturereading)
+                                                   != RIBCL_SUCCESS){
+                  err("ir_xml_record_temperaturedata: could not update "
+                      "temperature reading: %s", temperaturereading);
+                  return( -1);
+        }
+
+        if( ir_xml_replacestr( &(tsdat->readingunits), temperatureunits)
+                                                   != RIBCL_SUCCESS){
+                  err("ir_xml_record_temperaturedata: could not update "
+                      "temperature units: %s", temperatureunits);
+                  return( -1);
+        }
+
+        return( RIBCL_SUCCESS);
+
+} /* end ir_xml_record_temparaturedata()*/
+
 
 /**
  * ir_xml_firmaware_revision

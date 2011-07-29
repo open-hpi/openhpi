@@ -255,6 +255,7 @@ struct ilo2_ribcl_sens_allinfo {
 	SaHpiRptEntryT *rpt;
 	SaHpiRdrT *rdr;
 	struct ilo2_ribcl_sensinfo *sens_dat;
+        struct ir_tsdata *ts_data;
 };
 
 /* These are the state for software state machines that process the iLo2
@@ -345,6 +346,7 @@ typedef struct ir_tsdata{
 	char *status;
 	char *reading;
 	char *readingunits;
+        SaHpiResourceIdT rid;
 } ir_tsdata_t;
 
 /* Firmware Revision Information */
@@ -359,7 +361,7 @@ typedef struct ir_fwdata{
 #define ILO2_RIBCL_DISCOVER_FAN_MAX 16
 #define ILO2_RIBCL_DISCOVER_PSU_MAX 8
 #define ILO2_RIBCL_DISCOVER_VRM_MAX 8
-#define ILO2_RIBCL_DISCOVER_TS_MAX  48
+#define ILO2_RIBCL_DISCOVER_TS_MAX  51
 
 #define ILO2_RIBCL_CHASSIS_INDEX    -1;	/* Index is not aplicable to chassis */
  
