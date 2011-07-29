@@ -57,6 +57,10 @@ static SaErrorT ilo2_ribcl_sensor_send_event( struct oh_handler_state *,
 static void ilo2_ribcl_process_severitysensor( struct oh_handler_state *,
 				struct ilo2_ribcl_sens_allinfo *,
 				I2R_SensorDataT *);
+static void ilo2_ribcl_process_temperaturesensor( struct oh_handler_state *,
+                                struct ilo2_ribcl_sens_allinfo *,
+                                ir_tsdata_t *);
+
 
 /**
  * ilo2_ribcl_get_sensor_reading:
@@ -643,6 +647,7 @@ SaErrorT ilo2_ribcl_get_sensor_allinfo( struct oh_handler_state *oh_handler,
 	sens_allinfo->rpt = NULL;
 	sens_allinfo->rdr = NULL;
 	sens_allinfo->sens_dat = NULL;
+        sens_allinfo->ts_data = NULL;
 
 	/* Check if the resource exists, and that it has sensor capability */
 
@@ -677,6 +682,17 @@ SaErrorT ilo2_ribcl_get_sensor_allinfo( struct oh_handler_state *oh_handler,
 				 rid, s_num, sens_allinfo->rdr->IdString.Data);
 		return( SA_ERR_HPI_INTERNAL_ERROR);
 	}
+
+        /* Finally, get the associated private data for temperature sensor */
+        sens_allinfo->ts_data = (struct ir_tsdata *)oh_get_rdr_data(
+                       oh_handler->rptcache, rid, sens_allinfo->rdr->RecordId);
+
+        if( sens_allinfo->ts_data == NULL){
+                err("ilo2_ribcl_get_sensor_allinfo: no private temp data for "
+                     "resource id %d, sensor %d, label: %s.",rid, s_num,
+                                            sens_allinfo->rdr->IdString.Data);
+                return( SA_ERR_HPI_INTERNAL_ERROR);
+        }
 
 	return( SA_OK);
 
@@ -823,10 +839,11 @@ static SaErrorT ilo2_ribcl_sensor_send_event(
 void ilo2_ribcl_process_sensors( struct oh_handler_state *oh_handler) 
 {
 	SaErrorT ret;
-	SaHpiSensorNumT sens_num;
+	SaHpiSensorNumT sens_num, temp_sensnum;
 	ilo2_ribcl_handler_t *ir_handler = NULL;
 	I2R_SensorDataT *ir_sens_dat;
 	struct ilo2_ribcl_sens_allinfo sens_allinfo;
+        ir_tsdata_t *tsdata = NULL;
 
 	ir_handler = (ilo2_ribcl_handler_t *) oh_handler->data;
 
@@ -855,6 +872,34 @@ void ilo2_ribcl_process_sensors( struct oh_handler_state *oh_handler)
 		ilo2_ribcl_process_severitysensor( oh_handler, &sens_allinfo,
 						   ir_sens_dat);
 	}
+
+        /* Handle the temperature sensors */
+        for( temp_sensnum = 4; temp_sensnum < ILO2_RIBCL_DISCOVER_TS_MAX + 1;
+                                                              temp_sensnum++){
+
+               tsdata =
+                        &(ir_handler->DiscoveryData.tsdata[temp_sensnum]);
+
+               /* If temperature sensor was not found during discovery,
+                * skip it */
+               if( tsdata->tsflags != IR_DISCOVERED){
+                       continue;
+               }
+
+               /* Get the rpt of the sensor resource, the RDR of the sensor,
+                * and the sensor data associated with the RDR. */
+               ret = ilo2_ribcl_get_sensor_allinfo( oh_handler,
+                                    tsdata->rid, temp_sensnum, &sens_allinfo);
+
+               if( ret != SA_OK){
+                      err("ilo2_ribcl_process_sensors: could not locate HPI "
+                             "data for temp sensor number %d.", temp_sensnum);
+                      continue;
+               }
+
+               ilo2_ribcl_process_temperaturesensor( oh_handler, &sens_allinfo,
+                                                                      tsdata);
+        }
 
 	/* Processing of any future sensors will be inserted here */
 	
@@ -1041,6 +1086,51 @@ static void ilo2_ribcl_process_severitysensor(
 
 } /* end ilo2_ribcl_process_severitysensor() */
 
+
+/**
+ * ilo2_ribcl_process_temperaturesensor:
+ * @oh_handler:    Pointer to the handler for this instance.
+ * @sens_allinfo:  Pointer to structure giving all HPI info for this sensor.
+ * @ir_tsdata:     Pointer to iLo2 RIBCL data for temperature sensor.
+ *
+ * This routine is given the sensor data obtained from iLo2 via parameter
+ * ir_tsdata and converts that data into an HPI sensor value.
+ *
+ *
+ * A high level description of the algorithm used is:
+ *
+ *      if( (sensor is disabled) ||
+              (sensor reading has not changed){
+ *              return;
+ *      }
+ *
+ *      Update the stored sensor value with the current sensor reading.
+ *
+ * Return values:
+ * None
+**/
+static void ilo2_ribcl_process_temperaturesensor(
+                        struct oh_handler_state *oh_handler,
+                        struct ilo2_ribcl_sens_allinfo *sens_allinfo,
+                        ir_tsdata_t *ir_tsdata)
+{
+        struct ilo2_ribcl_sensinfo *sensinfo;
+
+        sensinfo = (struct ilo2_ribcl_sensinfo *)sens_allinfo->ts_data;
+
+        /* Either the sensor is disable or the sensor reading has not
+         * changed; just return.
+        */
+        if( (sensinfo->sens_enabled != SAHPI_TRUE) ||
+                (atoi(ir_tsdata->reading) == sensinfo->sens_value)){
+                return;
+        }
+
+        /* Update our stored HPI sensor value with the current iLo2 RIBCL
+         * sensor reading.*/
+        sensinfo->sens_value = atoi(ir_tsdata->reading);
+
+} /* end  ilo2_ribcl_process_temperaturesensor () */
 
 
 /**

@@ -62,6 +62,8 @@ static SaErrorT ilo2_ribcl_discover_fans( struct oh_handler_state *,
 static SaErrorT ilo2_ribcl_discovered_fru( struct oh_handler_state *,
 	SaHpiEntityPathT *, enum ir_discoverstate *, int, char *,
 	struct ilo2_ribcl_idr_info *);
+static void ilo2_ribcl_discover_temp_sensors( struct oh_handler_state *,
+        struct oh_event *);
 static SaErrorT ilo2_ribcl_resource_set_failstatus( struct oh_handler_state *,
 	 SaHpiEntityPathT *, SaHpiBoolT);
 static SaErrorT ilo2_ribcl_undiscovered_fru( struct oh_handler_state *,
@@ -72,6 +74,9 @@ static SaErrorT ilo2_ribcl_controls(struct oh_handler_state *, int,
 static SaErrorT ilo2_ribcl_add_severity_sensor( struct oh_handler_state *,
 	struct oh_event *, int, SaHpiSensorTypeT, SaHpiEventStateT,
 	struct ilo2_ribcl_sensinfo *, char *);
+static SaErrorT ilo2_ribcl_add_threshold_sensor( struct oh_handler_state *,
+        struct oh_event *, int, SaHpiSensorTypeT, SaHpiEventStateT,
+        struct ilo2_ribcl_sensinfo *, char *);
 static void ilo2_ribcl_discover_chassis_sensors( struct oh_handler_state *, 
 	struct oh_event *);
 void ilo2_ribcl_add_resource_capability( struct oh_handler_state *, 
@@ -424,6 +429,11 @@ void ilo2_ribcl_clear_discoveryflags( ilo2_ribcl_handler_t *ir_handler){
 		ddata->vrmdata[idex].vrmflags &= ~IR_DISCOVERED;
 	}
 
+        /* Clear the Temperature Sensor flags */
+        for( idex = 4; idex <= ILO2_RIBCL_DISCOVER_TS_MAX; idex++){
+                ddata->tsdata[idex].tsflags &= ~IR_DISCOVERED;
+        }
+
 } /* end ilo2_ribcl_clear_discoveryflags() */
 
 
@@ -612,6 +622,9 @@ static SaErrorT ilo2_ribcl_discover_chassis(
 
 	/* Add sensor RDRs. We use three general system health sensors. */
 	ilo2_ribcl_discover_chassis_sensors( oh_handler, ev); 
+
+        /* Add Temperature Sensor RDR */
+        ilo2_ribcl_discover_temp_sensors( oh_handler, ev);
 
 	/* Add an inventory RDR */
 	ilo2_ribcl_discover_chassis_idr( oh_handler, ev, tmptag);
@@ -1447,6 +1460,88 @@ static SaErrorT ilo2_ribcl_discovered_fru( struct oh_handler_state *oh_handler,
 } /* end ilo2_ribcl_discovered_fru() */
 
 
+/**
+ * ilo2_ribcl_discover_temp_sensors:
+ * @oh_handler:  Handler data pointer.
+ * @event: Pointer to event structure for chassis resource event.
+ *
+ * This routine will create RDRs for the all temperature sensors that
+ * have been detected during a discovery operation.
+ * These sensors correspond to the system's temperature's sensors.
+ * Return values:
+ * None
+ **/
+static void ilo2_ribcl_discover_temp_sensors(
+                        struct oh_handler_state *oh_handler,
+                        struct oh_event *event)
+{
+        SaErrorT ret = SA_OK;
+        ilo2_ribcl_handler_t *ir_handler = NULL;
+        struct ilo2_ribcl_sensinfo si_initial;
+        ir_tsdata_t *tsdata = NULL;
+        int idex, cur_reading = I2R_SEN_VAL_UNINITIALIZED;
+        char *label = NULL, *location = NULL, *description = NULL;
+
+        ir_handler = ( ilo2_ribcl_handler_t *) oh_handler->data;
+
+        /* Look for the all temperature isensors from the RIBCL */
+	for( idex = 4; idex <= ILO2_RIBCL_DISCOVER_TS_MAX; idex++){
+		tsdata = &(ir_handler->DiscoveryData.tsdata[idex]);
+		if(tsdata->tsflags != IR_DISCOVERED){
+			break;
+		}
+
+		cur_reading = atoi( tsdata->reading );
+
+		if ( cur_reading != I2R_SEN_VAL_UNINITIALIZED){
+			si_initial.sens_num = idex;
+			si_initial.sens_ev_state = SAHPI_ES_UNSPECIFIED;
+			si_initial.sens_enabled = SAHPI_TRUE;
+			si_initial.sens_ev_enabled = SAHPI_FALSE;
+			si_initial.sens_assertmask = SAHPI_ES_UNSPECIFIED;
+			si_initial.sens_deassertmask = SAHPI_ES_UNSPECIFIED;
+			si_initial.sens_value = I2R_SEN_VAL_UNINITIALIZED;
+
+			label = tsdata->label;
+			location = tsdata->location;
+			description = (char*)malloc(snprintf(NULL, 0, "%s %s",
+						label, location) + 3);
+
+			if ( description != NULL) {
+				strcpy(description, label);
+				strcat(description, ": ");
+				strcat(description, location);
+
+				ret = ilo2_ribcl_add_threshold_sensor(
+				       oh_handler, event,idex,SAHPI_TEMPERATURE,
+				       SAHPI_ES_UNSPECIFIED, &si_initial,
+				       description);
+
+				if ( ret == SA_OK){
+					tsdata->rid = 
+						event->resource.ResourceId;
+					ilo2_ribcl_add_resource_capability( 
+							oh_handler, event,
+							(SAHPI_CAPABILITY_RDR | 
+							 SAHPI_CAPABILITY_SENSOR));
+
+				} else {
+					err("ilo2_ribcl_discover_temp_sensors: "
+					      "Failed to set up temp sensor.");
+				}
+
+				free(description);
+
+			} else {
+				err("ilo2_ribcl_discover_temp_sensors: "
+						"Memory Allocation failed.");
+			}
+		}
+
+	} /* end for idex */
+
+}/* end ilo2_ribcl_discover_temperator_sensors() */
+
 
 /**
  * ilo2_ribcl_resource_set_failstatus
@@ -1990,6 +2085,111 @@ static SaErrorT ilo2_ribcl_add_severity_sensor(
 
 } /* end ilo2_ribcl_add_severity_sensor() */
 
+
+/**
+ * ilo2_ribcl_add_threshold_sensor:
+ * @oh_handler:  Handler data pointer.
+ * @event: Pointer to event structure for sensor parent resource event.
+ * @sens_num: Sensor number for new sensor.
+ * @sens_type: HPI type of new sensor.
+ * @supported_states: Mask of all the EV states this sensor can support.
+ * @sens_info: Private sensor info associated with RDR.
+ * @description: Character string description of temperature sensor.
+ *
+ * This routine creates a new sensor of category SAHPI_EC_THRESHOLD, using
+ * the data given by the parameters. The new sensor RDR is added to
+ * the parent resource given in the oh_event structure paramenter.
+ *
+ * The following fields in the SensorRec of the RDR will be set to fixed
+ * values:
+ *      EnableCtrl = SAHPI_TRUE
+ *      EventCtrl  = SAHPI_SEC_READ_ONLY
+ *      DataFormat.IsSupported = SAHPI_TRUE
+ *      DataFormat.ReadingType = SAHPI_SENSOR_READING_TYPE_UINT64
+ *      DataFormat.BaseUnits   = SAHPI_SU_DEGREES_C
+ *      DataFormat.ModifierUse = SAHPI_SMUU_NONE
+ *      DataFormat.Percentage  = SAHPI_FALSE
+ *      ThresholdDefn.IsAccessible = SAHPI_FALSE
+ *
+ * Return values:
+ * SA_ERR_HPI_OUT_OF_MEMORY - memory allocation failed.
+ * SA_ERR_HPI_INTERNAL_ERROR - could not add sensor RDR
+ **/
+static SaErrorT ilo2_ribcl_add_threshold_sensor(
+                        struct oh_handler_state *oh_handler,
+                        struct oh_event *event,
+                        int sens_num,
+                        SaHpiSensorTypeT sens_type,
+                        SaHpiEventStateT supported_states,
+                        struct ilo2_ribcl_sensinfo *sens_info,
+                        char *description)
+{
+
+	SaErrorT ret = SA_OK;
+	SaHpiRdrT *rdr;
+	SaHpiSensorRecT *sensor_rec;
+	struct ilo2_ribcl_sensinfo *si;
+
+	rdr = (SaHpiRdrT *)g_malloc0(sizeof(SaHpiRdrT));
+	if( rdr == NULL){
+		err("ilo2_ribcl_add_threshold_sensor: "
+				"Memory allocation failed.");
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
+	}
+
+	/* Fill in generic RDR stuff */
+	rdr->RdrType = SAHPI_SENSOR_RDR;
+	rdr->Entity  = event->resource.ResourceEntity;
+	rdr->IsFru   = SAHPI_FALSE;
+
+	/* Fill in sensor specific info */
+	sensor_rec = &(rdr->RdrTypeUnion.SensorRec);
+	sensor_rec->Num = sens_num;
+	sensor_rec->Type = sens_type;
+	sensor_rec->Category = SAHPI_EC_THRESHOLD;
+	sensor_rec->EnableCtrl = SAHPI_TRUE;
+	sensor_rec->EventCtrl  = SAHPI_SEC_READ_ONLY;
+	sensor_rec->Events = SAHPI_ES_UNSPECIFIED;
+
+	sensor_rec->DataFormat.IsSupported = SAHPI_TRUE;
+	sensor_rec->DataFormat.ReadingType = SAHPI_SENSOR_READING_TYPE_INT64;
+	sensor_rec->DataFormat.BaseUnits   = SAHPI_SU_DEGREES_C;
+	sensor_rec->DataFormat.ModifierUse = SAHPI_SMUU_NONE;
+	sensor_rec->DataFormat.Percentage  = SAHPI_FALSE;
+	/* Range and AccuracyFactor have been cleared by g_malloc0() */
+
+	sensor_rec->ThresholdDefn.IsAccessible = SAHPI_FALSE;
+
+	oh_init_textbuffer(&(rdr->IdString));
+	oh_append_textbuffer(&(rdr->IdString), description);
+
+
+	/* Copy the private sensor data initial values into a new allocation
+	 * to be associated with this RDR. */
+	si = g_memdup(sens_info, sizeof(struct ilo2_ribcl_sensinfo));
+	if( si == NULL){
+		g_free( rdr);
+		err("ilo2_ribcl_add_threshold_sensor: Memory allocation "
+				"failed.");
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
+	}
+
+	ret = oh_add_rdr(oh_handler->rptcache, event->resource.ResourceId,
+			rdr, si, 0);
+
+	if( ret != SA_OK){
+		err("ilo2_ribcl_add_threshold_sensor: could not add RDR. "
+				"Error = %s.", oh_lookup_error(ret));
+		g_free( si);
+		g_free( rdr);
+		return( SA_ERR_HPI_INTERNAL_ERROR);
+	} else {
+		event->rdrs = g_slist_append(event->rdrs, rdr);
+	}
+
+	return( SA_OK);
+
+} /* end ilo2_ribcl_add_threshold_sensor() */
 
 
 /**
