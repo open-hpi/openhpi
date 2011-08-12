@@ -1159,6 +1159,11 @@ void    soap_getEventInfo(xmlNode *events, struct eventInfo *result)
                                 soap_enum(powerSystemType_S,
                                      soap_tree_value(node, "subsystemType"));
                 }
+                if ((node = soap_walk_tree(events, "enclosureStatus"))) {
+                        result->eventData.enclosureInfo.enclosureStatus = 
+                                soap_enum(opStatus_S,
+                                     soap_tree_value(node, "operationalStatus"));
+                }
                 return;
         }
 
@@ -1432,6 +1437,16 @@ int soap_getEnclosureInfo(SOAP_CON *con,
                 response->powerType = soap_enum(powerSystemType_S,
                                                     soap_tree_value(node,
                                                     "subsystemType"));
+
+        } 
+        if (! (ret = soap_request(con, GET_ENCLOSURE_STATUS))) {
+                node = soap_walk_doc(con->doc,
+                                     "Body:"
+                                     "getEnclosureStatusResponse:"
+                                     "enclosureStatus");
+                response->enclosureStatus = soap_enum(opStatus_S,
+                                                    soap_tree_value(node,
+                                                    "operationalStatus"));
 
         } 
 	
