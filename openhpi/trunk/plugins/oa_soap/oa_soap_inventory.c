@@ -1316,6 +1316,7 @@ SaErrorT build_enclosure_inv_rdr(struct oh_handler_state *oh_handler,
         SaHpiRptEntryT *rpt = NULL;
         char *telco_status = NULL;
         char *power_type = NULL;
+        char *es = NULL;
 
         if (oh_handler == NULL || response == NULL || rdr == NULL ||
             inventory == NULL) {
@@ -1511,6 +1512,72 @@ SaErrorT build_enclosure_inv_rdr(struct oh_handler_state *oh_handler,
                                            idr_area_head.AreaId;
                         hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
                         strcpy ((char *)hpi_field.Field.Data, power_type);
+
+                        rv = idr_field_add(&(local_inventory->info.area_list
+                                           ->field_list),
+                                           &hpi_field);
+                        if (rv != SA_OK) {
+                                err("Add idr field failed");
+                                return rv;
+                        }
+                
+                        /* Increment the field counter */
+                        local_inventory->info.area_list->idr_area_head.
+                        NumFields++;
+                }
+                switch(response->enclosureStatus){
+                        case 1: es = "ENCLOSURE STATUS: OTHER";
+                                break;
+                        case 2: es = "ENCLOSURE STATUS: OK";
+                                break;
+                        case 3: es = "ENCLOSURE STATUS: DEGRADED";
+                                break;
+                        case 4: es = "ENCLOSURE STATUS: STRESSED";
+                                break;
+                        case 5: es = "ENCLOSURE STATUS: PREDICTIVE_FAILURE";
+                                  break;
+                        case 6: es = "ENCLOSURE STATUS: ERROR";
+                                break;
+                        case 7: es = "ENCLOSURE STATUS: NON_RECOVERABLE_ERROR";
+                                break;
+                        case 8: es = "ENCLOSURE STATUS: STARTING";
+                                break;
+                        case 9: es = "ENCLOSURE STATUS: STOPPING";
+                                break;
+                        case 10: es = "ENCLOSURE STATUS: STOPPED";
+                                break;
+                        case 11: es = "ENCLOSURE STATUS: IN_SERVICE";
+                                break;
+                        case 12: es = "ENCLOSURE STATUS: NO_CONTACT";
+                                break;
+                        case 13: es = "ENCLOSURE STATUS: LOST_COMMUNICATION";
+                                break;
+                        case 14: es = "ENCLOSURE STATUS: ABORTED";
+                                break;
+                        case 15: es = "ENCLOSURE STATUS: DORMANT";
+                                break;
+                        case 16: es = "ENCLOSURE STATUS: SUPPORTING_ENTITY_IN_ERROR";
+                                break;
+                        case 17: es = "ENCLOSURE STATUS: COMPLETED";
+                                break;
+                        case 18: es = "ENCLOSURE STATUS: POWER_MODE";
+                                break;
+                        case 19: es = "ENCLOSURE STATUS: DMTF_RESERVED";
+                                break;
+                        case 20: es = "ENCLOSURE STATUS: VENDER_RESERVED";
+                                break;
+                        default : es = "ENCLOSURE STATUS: UNKNOWN";
+                                break;
+                }
+                /* Add the enclosure status field if the enclosure status info
+                 * is available
+                 */
+                if (es != NULL) {
+                        memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
+                        hpi_field.AreaId = local_inventory->info.area_list->
+                                           idr_area_head.AreaId;
+                        hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
+                        strcpy ((char *)hpi_field.Field.Data, es);
 
                         rv = idr_field_add(&(local_inventory->info.area_list
                                            ->field_list),
