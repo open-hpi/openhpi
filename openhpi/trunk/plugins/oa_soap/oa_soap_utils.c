@@ -715,8 +715,9 @@ SaErrorT check_oa_status(struct oa_soap_handler *oa_handler,
  *      check oa user permissions, even for the oa administrator.
  *
  * Detailed Description:
- *      - checks whether OA user has the ADMINISTRATOR permission
- *        and can access all the resources in HP BladeSystem c-Class
+ *      - checks whether OA user has ADMINISTRATOR or OPERATOR
+ *        permission and can access all the resources in HP 
+ *        BladeSystem c-Class
  *
  * Return values:
  *      SA_OK                     - on success.
@@ -759,9 +760,9 @@ SaErrorT check_oa_user_permissions(struct oa_soap_handler *oa_handler,
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        /* Check for the ADMINISTRATOR rights */
-        if (response.acl != ADMINISTRATOR) {
-                err("User - %s does not have Administrator rights for OA %s",
+        /* Check for the ADMINISTRATOR or OPERATOR rights */
+        if ((response.acl != ADMINISTRATOR) && (response.acl != OPERATOR))  {
+                err("User - %s is not Administrator or Operator on OA %s", 
                      user_name, con->server);
                 err("Please give full permissions to user - %s", user_name);
                 return SA_ERR_HPI_INTERNAL_ERROR;
