@@ -108,11 +108,15 @@
 #define ILO2_RIBCL_POWER_ON	1
 #define ILO2_RIBCL_RESET_SUCCESS	1	
 #define ILO2_RIBCL_RESET_FAILED	0	
-/*
- *Moving this definition to this file
- *from ilo2_ribcl_discover.h file
+
+/* The size used for the temporary buffer to contain the response
+ * of the IR_CMD_GET_SERVER_DATA command. The current return size for iLO2 is
+ * a little over 24K and a little over 45K for iLO3, so we use 64K to give 
+ * us some margin for the future.
  */
-#define ILO2_RIBCL_DISCOVER_RESP_MAX 1024*48
+
+#define ILO2_RIBCL_DISCOVER_RESP_MAX 1024*64
+
 /*
  * For a oh_set_power_state() call with a state parameter of
  * SAHPI_POWER_CYCLE, we must wait until the server actually powers off
