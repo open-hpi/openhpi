@@ -952,7 +952,9 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                                 break;
 
                         case EVENT_OA_INSERTED:
-                                dbg("EVENT_OA_INSERTED -- Not processed");
+                                dbg("EVENT_OA_INSERTED");
+				oa_soap_proc_oa_inserted(oh_handler,
+								&event);
                                 break;
 
                         case EVENT_OA_REMOVED:
