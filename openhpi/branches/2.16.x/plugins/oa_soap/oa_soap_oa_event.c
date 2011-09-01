@@ -77,11 +77,29 @@ SaErrorT process_oa_extraction_event(struct oh_handler_state *oh_handler,
 {
         SaErrorT rv = SA_OK;
         SaHpiInt32T bay_number;
+	struct oa_soap_handler *oa_handler = NULL;
+	SaHpiResourceIdT resource_id;
 
         if (oh_handler == NULL || oa_event == NULL) {
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
+
+	oa_handler = (struct oa_soap_handler *) oh_handler->data;
+	bay_number = oa_event->eventData.oaStatus.bayNumber;
+        resource_id =
+                oa_handler->oa_soap_resources.oa.resource_id[bay_number - 1];
+        rv = oa_soap_proc_sen_evt(oh_handler, resource_id,
+			OA_SOAP_SEN_OA_REDUND,
+                        oa_event->eventData.oaStatus.oaRedundancy, 0, 0);
+        if (rv != SA_OK) {
+                err("processing the sensor event for sensor %x has failed",
+                     OA_SOAP_SEN_OA_REDUND);
+                return rv;
+        }
+
+        /*OA_SOAP_PROCESS_SENSOR_EVENT(OA_SOAP_SEN_OA_REDUND,
+                              oa_event->eventData.oaStatus.oaRedundancy, 0, 0)*/
 
         /* The OA is sending the wrong bay_number for the removed OA
          * Hence if the bay number in the oa_event is 1,
@@ -502,4 +520,49 @@ void oa_soap_proc_oa_network_info(struct oh_handler_state *oh_handler,
 				     nw_info->linkActive, 0, 0)
 
         return;
-}
+} /* oa_soap_proc_oa_network_info */
+
+/**
+ * oa_soap_proc_oa_inserted
+ *      @oh_handler	: Pointer to openhpi handler structure
+ *      @oa_event	: Pointer to the OA inserted event 
+ *
+ * Purpose:
+ *      Processes the OA inserted event and generates the HPI sensor event.
+ *
+ * Detailed Description:
+ * 	NA
+ *
+ * Return values:
+ *	NONE
+ **/
+void oa_soap_proc_oa_inserted(struct oh_handler_state *oh_handler,
+                            struct eventInfo *oa_event)
+{
+        SaErrorT rv = SA_OK;
+        SaHpiInt32T bay_number;
+        struct oa_soap_handler *oa_handler = NULL;
+        SaHpiResourceIdT resource_id;
+        enum diagnosticStatus diag_ex_status[OA_SOAP_MAX_DIAG_EX];
+
+        if (oh_handler == NULL || oa_event == NULL) {
+                err("Invalid parameters");
+                return;
+        }
+
+        oa_handler = (struct oa_soap_handler *) oh_handler->data;
+        bay_number = oa_event->eventData.oaStatus.bayNumber;
+        resource_id =
+                oa_handler->oa_soap_resources.oa.resource_id[bay_number - 1];
+
+        /* Process the operational status sensor */
+        rv = oa_soap_proc_sen_evt(oh_handler, resource_id,
+                        OA_SOAP_SEN_OA_REDUND,
+                        oa_event->eventData.oaStatus.oaRedundancy, 0, 0);
+	if (rv != SA_OK) {
+                err("processing the sensor event for sensor %x has failed",
+                     OA_SOAP_SEN_OA_REDUND);
+                return;
+	}
+	return;
+} /* oa_soap_proc_oa_inserted */
