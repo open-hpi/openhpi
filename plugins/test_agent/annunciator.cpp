@@ -242,7 +242,7 @@ SaErrorT cAnnunciator::GetNextAnnouncement( SaHpiSeverityT sev,
 
     AnnouncementSeverityPred pred( sev, ( only_unack != SAHPI_FALSE ) );
     Announcements::const_iterator j;
-    j = std::find_if( i, m_as.end(), ( sev, pred ) );
+    j = std::find_if( i, m_as.end(), pred );
     if ( j == m_as.end() ) {
         return SA_ERR_HPI_NOT_PRESENT;
     }

@@ -119,7 +119,7 @@ static void LogIp( const cStreamSock * sock )
         const uint8_t * ip = reinterpret_cast<const uint8_t *>( &sa4->sin_addr );
         INFO( "Got connection from %u.%u.%u.%u port %u",
               ip[0], ip[1], ip[2], ip[3],
-              ntohs( sa4->sin_port ) );
+              g_ntohs( sa4->sin_port ) );
     } else if ( storage.ss_family == AF_INET6 ) {
         const struct sockaddr_in6 * sa6
             = reinterpret_cast<const struct sockaddr_in6 *>(&storage);
@@ -129,7 +129,7 @@ static void LogIp( const cStreamSock * sock )
               " port %u",
               ip[0], ip[1], ip[2], ip[3], ip[4], ip[5], ip[6], ip[7],
               ip[8], ip[9], ip[10], ip[11], ip[12], ip[13], ip[14], ip[15],
-              ntohs( sa6->sin6_port ) );
+              g_ntohs( sa6->sin6_port ) );
     } else {
         WARN( "Unsupported socket address family!" );
     }
