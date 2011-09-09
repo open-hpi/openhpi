@@ -120,6 +120,15 @@ cStreamSock::~cStreamSock()
     Close();
 }
 
+bool cStreamSock::GetPeerAddress( SockAddrStorageT& storage ) const
+{
+    SockAddrLenT len = sizeof(storage);
+    int cc = getpeername( m_sockfd,
+                          reinterpret_cast<struct sockaddr *>( &storage ),
+                          &len );
+    return ( cc == 0 );
+}
+
 bool cStreamSock::Close()
 {
     if ( m_sockfd == InvalidSockFd ) {
@@ -165,7 +174,7 @@ bool cStreamSock::ReadMsg( uint8_t& type,
             CRIT( "error while reading message." );
             return false;
         } else if ( len == 0 ) {
-            CRIT( "peer closed connection." );
+            //CRIT( "peer closed connection." );
             return false;
         }
         got += len;
