@@ -71,22 +71,26 @@ const size_t dMaxPayloadLength = dMaxMessageLength - sizeof(MessageHeader);
  **************************************************************/
 class cStreamSock
 {
-protected:
+public:
 
 #ifdef _WIN32
+    typedef SOCKADDR_STORAGE SockAddrStorageT;
+    typedef int SockAddrLenT;
     typedef SOCKET SockFdT;
     static const SockFdT InvalidSockFd = INVALID_SOCKET;
 #else
+    typedef sockaddr_storage SockAddrStorageT;
+    typedef socklen_t SockAddrLenT;
     typedef int SockFdT;
     static const SockFdT InvalidSockFd = -1;
 #endif
-
-public:
 
     explicit cStreamSock( SockFdT sockfd = InvalidSockFd );
     virtual ~cStreamSock();
 
     bool Close();
+
+    bool GetPeerAddress( SockAddrStorageT& storage ) const;
 
     bool ReadMsg( uint8_t& type,
                   uint32_t& id,

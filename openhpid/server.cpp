@@ -101,6 +101,40 @@ static void dehash_handler_cfg(gpointer key, gpointer value, gpointer data)
     ++hc->NumberOfParams;
 }
 
+/*--------------------------------------------------------------------*/
+/* Function to log connection address                                 */
+/*--------------------------------------------------------------------*/
+static void LogIp( const cStreamSock * sock )
+{
+    sockaddr_storage storage;
+    bool rc = sock->GetPeerAddress( storage );
+    if ( !rc ) {
+        WARN( "Cannot determine connection address!" );
+        return;
+    }
+
+    if ( storage.ss_family == AF_INET ) {
+        const struct sockaddr_in * sa4
+            = reinterpret_cast<const struct sockaddr_in *>(&storage);
+        const uint8_t * ip = reinterpret_cast<const uint8_t *>( &sa4->sin_addr );
+        INFO( "Got connection from %u.%u.%u.%u port %u",
+              ip[0], ip[1], ip[2], ip[3],
+              ntohs( sa4->sin_port ) );
+    } else if ( storage.ss_family == AF_INET6 ) {
+        const struct sockaddr_in6 * sa6
+            = reinterpret_cast<const struct sockaddr_in6 *>(&storage);
+        const uint8_t * ip = reinterpret_cast<const uint8_t *>( &sa6->sin6_addr );
+        INFO( "HPI: Got connection from"
+              " %02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x"
+              " port %u",
+              ip[0], ip[1], ip[2], ip[3], ip[4], ip[5], ip[6], ip[7],
+              ip[8], ip[9], ip[10], ip[11], ip[12], ip[13], ip[14], ip[15],
+              ntohs( sa6->sin6_port ) );
+    } else {
+        WARN( "Unsupported socket address family!" );
+    }
+}
+
 
 /*--------------------------------------------------------------------*/
 /* HPI Server Interface                                               */
@@ -134,6 +168,7 @@ bool oh_server_run( int ipvflags,
             CRIT("Error accepting server socket.");
             break;
         }
+        LogIp( sock );
         add_socket_to_list( sock );
         DBG("### Spawning thread to handle connection. ###");
         g_thread_pool_push(pool, (gpointer)sock, 0);
