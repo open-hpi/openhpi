@@ -151,6 +151,13 @@ SaErrorT oa_soap_re_discover_resources(struct oh_handler_state *oh_handler,
                 if (rv != SA_OK) {
                         err("Re-discovery of OA failed");
                 }
+	        OA_SOAP_CHEK_SHUTDOWN_REQ(oa_handler, oa_handler->mutex, oa->mutex,
+        	                          NULL);
+	        rv = re_discover_interconnect(oh_handler, oa->event_con);
+        	if (rv != SA_OK) {
+                	err("Re-discovery of interconnect failed");
+        	}
+
                 return rv;
         }
 
