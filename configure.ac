@@ -643,28 +643,6 @@ AC_SUBST(OPENHPI_INCLUDES)
 dnl Set up libs that will be linked to
 LIBS="$LIBS $SSL_LIB $GLIB_LIBS -lm -lpthread"
 
-AC_CHECK_PROG([found_docbook2html], [docbook2html], [yes])
-AC_ARG_ENABLE([docs],
-    [  --enable-docs            generate documentation [[default=yes if docbook2html exists]]],
-    [if test "x$enableval" = "xyes"; then
-        if test "x$found_docbook2html" = "xyes"; then
-            AC_SUBST(HLD,hld)
-            AC_SUBST(WITH_DOCBOOK2HTML,1)
-        else
-           OH_CHECK_FAIL(docbook2html,docbook-utils,http://sources.redhat.com/docbook-tools, Can not generate HTML design docs without docbook2html)
-	fi
-    else
-        AC_SUBST(HLD,"")
-        AC_SUBST(WITH_DOCBOOK2HTML,0)
-    fi],
-    [if test "x$found_docbook2html" = "xyes"; then
-        AC_SUBST(HLD,hld)  
-        AC_SUBST(WITH_DOCBOOK2HTML,1)
-    else
-        AC_SUBST(HLD,"")
-        AC_SUBST(WITH_DOCBOOK2HTML,0)
-    fi])
-    
 AC_CHECK_PROG([found_pod2man], [pod2man], [yes])
 AC_ARG_ENABLE([man],
     [  --enable-man            generate man pages [[default=yes if pod2man exists]]],
@@ -723,7 +701,6 @@ AC_CONFIG_FILES([openhpi.spec
 	ssl/Makefile
         baselib/Makefile
         docs/Makefile
-        docs/hld/Makefile
         docs/man/Makefile
         openhpid/Makefile
         openhpid/openhpid.sh

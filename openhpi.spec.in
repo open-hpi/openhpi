@@ -40,7 +40,6 @@
 
 %define with_ilo2_ribcl @WITH_ILO2_RIBCL@
 %define with_oa_soap @WITH_OA_SOAP@
-%define with_docbook2html @WITH_DOCBOOK2HTML@
 
 %if "x@SLAVE@" == "xslave"
 %define with_slave 1
@@ -70,9 +69,6 @@ BuildRequires: openssl-devel
 BuildRequires: tcpd-devel
 %else
 BuildRequires: tcp_wrappers
-%endif
-%if 0%{?with_docbook2html}
-BuildRequires: docbook-utils
 %endif
 Requires: glib2 libstdc++ %{uuid_provider}
 %if 0%{?with_openssl}
@@ -287,12 +283,6 @@ make DESTDIR=%{buildroot} install
 %defattr(-,root,root)
 %{_docdir}/README*
 %{_docdir}/COPYING
-%if 0%{?with_docbook2html}
-%{_docdir}/html/*.html
-%dir %{_docdir}/html/images
-%{_docdir}/html/images/*.png
-%{_docdir}/html/images/*.gif
-%endif
 %dir %{_sysconfdir}/%{name}/
 %config(noreplace) %attr(0640,root,root) %{_sysconfdir}/%{name}/%{name}.conf
 %config(noreplace) %attr(0640,root,root) %{_sysconfdir}/%{name}/simulation.data
