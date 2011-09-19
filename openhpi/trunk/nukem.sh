@@ -21,5 +21,3 @@ done
 for i in `find . -name '.#*'`; do
     rm $i
 done
-
-rm -fR docs/hld/openhpi-manual
