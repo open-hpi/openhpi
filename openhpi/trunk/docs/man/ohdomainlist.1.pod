@@ -24,28 +24,33 @@ If no domain or host is selected, ohdomainlist lists the domains as specified in
 
 =head1 OPTIONS
 
+=head2 Help Options:
+
 =over 2
 
- (No Option) Display domain info
+=item B<-h>, B<--help>
 
-Help Options:
-  -h, --help                   Show help options
+Show help options
 
-Application Options:
-  -D, --domain=nn              Select domain id nn
-  -X, --debug                  Display debug messages
-  -V, --verbose                Verbose mode
-  -N, --host="host<:port>"     Define also a domain at the specified host:port
-  -C, --cfgfile="file"         Use passed file as client configuration file
-                               This option overrides the OPENHPICLIENT_CONf
-                               environment variable.
+=back
+
+=head2 Application Options:
+
+=over 2
+
+=item B<-X>, B<--debug>
+
+Display debug messages
+
+=item B<-V>, B<--verbose>
+
+Verbose mode
 
 =back
 
 =head1 SEE ALSO
   
          hpi_shell
-
          hpialarms      hpifan         hpipower       hpithres
          hpidomain      hpigensimdata  hpireset       hpitop
          hpiel          hpiiinv        hpisensor      hpitree
@@ -59,4 +64,5 @@ Application Options:
 Authors of this man page:
 
  Ulrich Kleber (ulikleber@users.sourceforge.net)
+ Anton Pak (avpak@users.sourceforge.net)
 

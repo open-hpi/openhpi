@@ -15,37 +15,79 @@ hpitree walks the Resource Presence Table (RPT) of the managed openHPI complex, 
 
 If no domain or host is selected, hpitree uses the default domain as specified in the openhpiclient.conf file.
 
-
 =head1 OPTIONS
-
-=over 2
 
 (No Option) Display all rpts and rdrs
 
-Help Options:
-  -h, --help                   Show help options
+=head2 Help Options:
 
-Application Options:
-  -a, --all                    Display all rpts and rdrs (default)
-  -c, --controls               Display only controls
-  -d, --rdrs                   Display rdr records
-  -i, --inventories            Display only inventories
-  -r, --rpts                   Display only rpts
-  -s, --sensors                Display only sensors
-  -w, --watchdogs              Display only watchdogs
-  -o, --overview               Display system overview: rpt & rdr headers
-  -n, --resource=nn            Select particular resource id to display
-                               (Used with [-cdirs] options)
-  -D, --domain=nn              Select domain id nn
-  -X, --debug                  Display debug messages
-  -N, --host="host<:port>"     Open session to the domain served by the daemon 
-                               at the specified URL (host:port)
-                               This option overrides the OPENHPI_DAEMON_HOST and
-                               OPENHPI_DAEMON_PORT environment variables.
-  -C, --cfgfile="file"         Use passed file as client configuration file
-                               This option overrides the OPENHPICLIENT_CONf
-                               environment variable.
+=over 2
 
+=item B<-h>, B<--help>
+
+Show help options
+
+=back
+
+=head2 Application Options:
+
+=over 2
+
+=item B<-a>, B<--all>
+
+Display all rpts and rdrs (default)
+
+=item B<-r>, B<--rpts>
+
+Display only rpts
+
+=item B<-d>, B<--rdrs>
+
+Display rdr records
+
+=item B<-o>, B<--overview>
+
+Display system overview: rpt & rdr headers
+
+=item B<-s>, B<--sensors>
+
+Display only sensors
+
+=item B<-c>, B<--controls>
+
+Display only controls
+
+=item B<-w>, B<--watchdogs>
+
+Display only watchdogs
+
+=item B<-i>, B<--inventories>
+
+Display only inventories
+
+=item B<-n> I<nn>, B<--resource>=I<nn>
+
+Display only resource I<nn> and its topology
+
+=item B<-D> I<nn>, B<--domain>=I<nn>
+
+Select domain id I<nn>
+
+=item B<-X>, B<--debug>
+
+Display debug messages
+
+=item B<-N> I<"host[:port]">, B<--host>=I<"host[:port]">
+
+Open session to the domain served by the daemon at the specified URL (host:port).
+This option overrides the OPENHPI_DAEMON_HOST and OPENHPI_DAEMON_PORT environment variables.
+If host contains ':' (for example IPv6 address) then enclose it in square brackets.
+For example: I<"[::1]"> or I<"[::1]:4743">.
+
+=item B<-C> I<"file">, B<--cfgfile>=I<"file">
+
+Use passed file as client configuration file.
+This option overrides the OPENHPICLIENT_CONf environment variable.
 
 =back
 
@@ -65,4 +107,5 @@ Authors of this man page:
 
  Peter D Phan (pdphan@users.sourceforge.net)
  Ulrich Kleber (ulikleber@users.sourceforge.net)
+ Anton Pak (avpak@users.sourceforge.net)
 

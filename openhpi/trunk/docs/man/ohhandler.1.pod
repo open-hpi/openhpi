@@ -40,22 +40,39 @@ If no domain or host is selected, ohhandler uses the default domain as specified
 
 =head1 OPTIONS
 
+=head2 Help Options:
+
 =over 2
 
-Help Options:
-  -h, --help                   Show help options
+=item B<-h>, B<--help>
 
-Application Options:
-  -D, --domain=nn              Select domain id nn
-  -X, --debug                  Display debug messages
-  -N, --host="host<:port>"     Open session to the domain served by the daemon 
-                               at the specified URL (host:port)
-                               This option overrides the OPENHPI_DAEMON_HOST and
-                               OPENHPI_DAEMON_PORT environment variables.
-  -C, --cfgfile="file"         Use passed file as client configuration file
-                               This option overrides the OPENHPICLIENT_CONf
-                               environment variable.
+Show help options
 
+=back
+
+=head2 Application Options:
+
+=over 2
+
+=item B<-D> I<nn>, B<--domain>=I<nn>
+
+Select domain id I<nn>
+
+=item B<-X>, B<--debug>
+
+Display debug messages
+
+=item B<-N> I<"host[:port]">, B<--host>=I<"host[:port]">
+
+Open session to the domain served by the daemon at the specified URL (host:port).
+This option overrides the OPENHPI_DAEMON_HOST and OPENHPI_DAEMON_PORT environment variables.
+If host contains ':' (for example IPv6 address) then enclose it in square brackets.
+For example: I<"[::1]"> or I<"[::1]:4743">.
+
+=item B<-C> I<"file">, B<--cfgfile>=I<"file">
+
+Use passed file as client configuration file.
+This option overrides the OPENHPICLIENT_CONf environment variable.
 
 =back
 
@@ -76,4 +93,5 @@ Application Options:
 Authors of this man page:
 
  Ulrich Kleber (ulikleber@users.sourceforge.net)
+ Anton Pak (avpak@users.sourceforge.net)
 

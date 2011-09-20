@@ -38,39 +38,39 @@ The client and daemon currently cannot resolve differences between 32-bit and
 
 =over 4
 
-=item -f pidfile
+=item B<-f> I<pidfile>
 
 This overrides the default location of the pidfile.
 
-=item -n
+=item B<-n>
 
 This forces the daemon to run in the foreground.
 
-=item -p port
+=item B<-p> I<port>
 
 This is used to override the port to listen on by the daemon.
 
-=item -s seconds
+=item B<-s> I<seconds>
 
 Read timeout used by the daemon sockets. Default is unlimited.
 
-=item -t threads
+=item B<-t> I<threads>
 
 Sets the maximum number of connection threads. Default is unlimited.
 
-=item -v
+=item B<-v>
 
 Display verbose messages
 
-=item -4
+=item B<-4>
 
 The daemon will try to bind IPv4 socket.
 
-=item -6
+=item B<-6>
 
 The daemon will try to bind IPv6 socket.
 
-=item -4 -6
+=item B<-4 -6>
 
 The daemon will try to bind IPv4 or IPv6 socket.
 
@@ -164,4 +164,5 @@ General information about OpenHPI
 Authors of this man page:
 
  Renier Morales (renier@openhpi.org)
+ Anton Pak (avpak@users.sourceforge.net)
 
