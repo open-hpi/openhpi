@@ -121,6 +121,11 @@ OpenHPI plug-in that allows to aggregate resources from different
 domains (slave domains) and to provide aggregated resources as part 
 of the one domain (master domain).
 
+=item B<test_agent>
+
+OpenHPI plug-in for advanced testing.
+Provides console for runtime configuration.
+
 =back
 
 =head1 OTHER DOCUMENTATION
@@ -159,5 +164,6 @@ Authors of this man page:
  Sean Dague (http://dague.net/sean)
  Renier Morales (renier@openhpi.org)
  Ulrich Kleber (ulikleber@users.sourceforge.net)
+ Anton Pak (avpak@users.sourceforge.net)
 
 

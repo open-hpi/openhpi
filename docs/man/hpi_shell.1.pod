@@ -21,23 +21,45 @@ If no domain or host is selected, ohparam uses the default domain as specified i
 
 =head1 OPTIONS
 
+=head2 Help Options:
+
 =over 2
 
-Help Options:
   -h, --help                   Show help options
 
-Application Options:
-  -f, --cmdfile=filename       Execute command file
-  -e, --events                 Show short events, discover after subscribe
-  -D, --domain=nn              Initially connect to domain id nn
-  -X, --debug                  Display debug messages
-  -N, --host="host<:port>"     Define a domain at the specified URL (host:port)
-                               and initially connect to that domain
-                               This option overrides the OPENHPI_DAEMON_HOST and
-                               OPENHPI_DAEMON_PORT environment variables.
-  -C, --cfgfile="file"         Use passed file as client configuration file
-                               This option overrides the OPENHPICLIENT_CONf
-                               environment variable.
+=back
+
+=head2 Application Options:
+
+=over 2
+
+=item B<-f> I<filename>, B<--cmdfile>=I<filename>
+
+Execute command file
+
+=item B<-e>, B<--events>
+
+Show short events, discover after subscribe
+
+=item B<-D> I<nn>, B<--domain>=I<nn>
+
+Select domain id I<nn>
+
+=item B<-X>, B<--debug>
+
+Display debug messages
+
+=item B<-N> I<"host[:port]">, B<--host>=I<"host[:port]">
+
+Open session to the domain served by the daemon at the specified URL (host:port).
+This option overrides the OPENHPI_DAEMON_HOST and OPENHPI_DAEMON_PORT environment variables.
+If host contains ':' (for example IPv6 address) then enclose it in square brackets.
+For example: I<"[::1]"> or I<"[::1]:4743">.
+
+=item B<-C> I<"file">, B<--cfgfile>=I<"file">
+
+Use passed file as client configuration file.
+This option overrides the OPENHPICLIENT_CONf environment variable.
 
 =back
 
@@ -57,4 +79,5 @@ Author(s) of this man page:
 
   Bryan Sutula (sutula@users.sourceforge.net)
   Ulrich Kleber (ulikleber@users.sourceforge.net)
+  Anton Pak (avpak@users.sourceforge.net)
 
