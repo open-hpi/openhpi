@@ -257,18 +257,36 @@ gboolean ohc_option_parse(int *argc, char *argv[],
 
    oh_init_textbuffer(&common_options->daemonhost);
    if (common_options->withdaemonhost) {
-      char *colon=strchr(optdaemon, ':');
-      if (colon!=NULL) {
-         *colon = '\0';
-         common_options->daemonport = atoi(++colon);
-         // setenv("OPENHPI_DAEMON_PORT", colon, 1);  
-      } else common_options->daemonport = OPENHPI_DEFAULT_DAEMON_PORT;
-      //setenv("OPENHPI_DAEMON_HOST", optdaemon, 1);  // copied from hpi_shell
-      rv = oh_append_textbuffer(&common_options->daemonhost, optdaemon);
+      char * hostbegin = NULL;
+      char * hostend = NULL;
+      char * portbegin = NULL;
+      if ( *optdaemon == '[' ) {
+         hostbegin = optdaemon + 1;
+         hostend = strchr(hostbegin, ']');
+         if (hostend==NULL) {
+            CRIT("Ill-formed host: %s", optdaemon);
+            return FALSE;
+         }
+      } else {
+         hostbegin = optdaemon;
+         hostend = strchr(hostbegin, ':');
+      }
+      if (hostend) {
+         portbegin = strchr(hostend, ':' );
+         if (portbegin) {
+            ++portbegin;
+         }
+         *hostend = '\0';
+      }
+      rv = oh_append_textbuffer(&common_options->daemonhost, hostbegin);
+      if (portbegin) {
+         common_options->daemonport = atoi(portbegin);
+      } else {
+         common_options->daemonport = OPENHPI_DEFAULT_DAEMON_PORT;
+      }
       if (optdebug && optverbose) {
-         DBG("Daemon host:port scanned successfully: host=");
-         oh_print_text(&common_options->daemonhost);
-         DBG(" port=%u\n",common_options->daemonport);
+         DBG("Daemon host:port scanned successfully: host=%s", hostbegin);
+         DBG("Daemon host:port scanned successfully: port=%u", common_options->daemonport);
       }
    }
 
