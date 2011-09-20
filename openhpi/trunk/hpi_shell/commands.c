@@ -222,6 +222,9 @@ static ret_code_t newdomain(void)
 {
     int i;
     char buf[SAHPI_MAX_TEXT_BUFFER_LENGTH + 1];
+    char * hostbegin = NULL;
+    char * hostend = NULL;
+    char * portbegin = NULL;
     char * p;
 
     SaHpiUint16T port;
@@ -235,27 +238,38 @@ static ret_code_t newdomain(void)
     if (i != 0) {
         return HPI_SHELL_PARM_ERROR;
     }
-    if (buf[0] == ':') {
-        return HPI_SHELL_PARM_ERROR;
-    }
-
-    p = strchr(buf, ':');
-    if (p != 0) {
-        *p = '\0';
-        ++p;
-        if (isdigit(*p) == 0) {
+    if (buf[0] == '[') {
+        hostbegin = &buf[1];
+        hostend = strchr(hostbegin, ']');
+        if (hostend == NULL) {
             return HPI_SHELL_PARM_ERROR;
         }
-        port = (SaHpiUint16T)atoi(p);
     } else {
-        port = OPENHPI_DEFAULT_DAEMON_PORT;
+        hostbegin = &buf[0];
+        hostend = strchr(hostbegin, ':');
+    }
+    if (hostend) {
+        portbegin = strchr(hostend, ':' );
+        if (portbegin) {
+            ++portbegin;
+        }
+        *hostend = '\0';
     }
 
     host.DataType = SAHPI_TL_TYPE_TEXT;
     host.Language = SAHPI_LANG_ENGLISH;
-    host.DataLength = strlen(buf);
-    memcpy(&host.Data[0], &buf[0], host.DataLength );
+    host.DataLength = strlen(hostbegin);
+    memcpy(&host.Data[0], hostbegin, host.DataLength );
     host.Data[host.DataLength] = '\0';
+
+    if (portbegin) {
+        if (isdigit(*portbegin) == 0) {
+            return HPI_SHELL_PARM_ERROR;
+        }
+        port = (SaHpiUint16T)atoi(portbegin);
+    } else {
+        port = OPENHPI_DEFAULT_DAEMON_PORT;
+    }
 
     oh_init_ep(&entity_root);
 
@@ -279,7 +293,7 @@ static ret_code_t newdomain(void)
         }
     }
 
-    printf("Created new domain %u (%s:%u)\n",
+    printf("Created new domain %u (host %s port %u)\n",
            did,
            (const char*)(&host.Data[0]),
            port);
