@@ -9,9 +9,9 @@
 %define _docdir %{_datadir}/doc/%{name}-%{version}
 
 # For systems where libuuid is provided in e2fsprogs rpm 
-#%define uuid_provider e2fsprogs
+%define uuid_provider e2fsprogs
 # For systems where libuuid is provided in libuuid rpm 
-%define uuid_provider libuuid
+#%define uuid_provider libuuid
 
 %define with_openssl @WITH_OPENSSL@
 
