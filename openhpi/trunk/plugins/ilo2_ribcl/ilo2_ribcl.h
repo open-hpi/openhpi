@@ -115,7 +115,7 @@
  * us some margin for the future.
  */
 
-#define ILO2_RIBCL_DISCOVER_RESP_MAX 1024*64
+#define ILO2_RIBCL_DISCOVER_RESP_MAX 1024*256
 
 /*
  * For a oh_set_power_state() call with a state parameter of
@@ -365,7 +365,7 @@ typedef struct ir_fwdata{
 #define ILO2_RIBCL_DISCOVER_FAN_MAX 16
 #define ILO2_RIBCL_DISCOVER_PSU_MAX 8
 #define ILO2_RIBCL_DISCOVER_VRM_MAX 8
-#define ILO2_RIBCL_DISCOVER_TS_MAX  51
+#define ILO2_RIBCL_DISCOVER_TS_MAX  120
 
 #define ILO2_RIBCL_CHASSIS_INDEX    -1;	/* Index is not aplicable to chassis */
  

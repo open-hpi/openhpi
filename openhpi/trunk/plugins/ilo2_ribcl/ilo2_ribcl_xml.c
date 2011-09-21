@@ -62,7 +62,7 @@ static int ir_xml_record_fandata( ilo2_ribcl_handler_t *, char *, char *,
 		char *, char *, char *);
 static int ir_xml_scan_temperature( ilo2_ribcl_handler_t *, xmlNodePtr);
 static int ir_xml_record_temperaturedata( ilo2_ribcl_handler_t *,
-                char *, char *,char *, char *, char *);
+                char *, char *,char *, char *, char *, int);
 static void ir_xml_scan_firmware_revision(ilo2_ribcl_handler_t *, xmlNodePtr);
 static int ir_xml_scan_vrm( ilo2_ribcl_handler_t *, xmlNodePtr);
 static int ir_xml_record_vrmdata( ilo2_ribcl_handler_t *, char *, char *);
@@ -1505,10 +1505,12 @@ static int ir_xml_scan_temperature( ilo2_ribcl_handler_t *ir_handler,
 	xmlChar *cur_reading = NULL;
 	xmlChar *unit = NULL;
         int ret;
+	int temp_index;
 
 	t_node = ir_xml_find_node( eh_data_node, "TEMPERATURE");
 
 	t_node = t_node->xmlChildrenNode;
+	temp_index = 0;
 	while( t_node != NULL){
 		if((!xmlStrcmp( t_node->name, (const xmlChar *)"TEMP"))){
 
@@ -1534,12 +1536,13 @@ static int ir_xml_scan_temperature( ilo2_ribcl_handler_t *ir_handler,
 			}
 
 			/* Extract Caution value here, if needed */
+			temp_index++;
 
                         /* Call to process temperature data */
+			if(temp_index != 0)
                         ret = ir_xml_record_temperaturedata( ir_handler,
                                   ( char *)lbl,( char *)loc, ( char *)stat,
-                                  ( char *)cur_reading,( char *)unit);
-
+                                  ( char *)cur_reading,( char *)unit, temp_index);
 			if( lbl){
 				xmlFree( lbl);
 			}
@@ -1597,10 +1600,9 @@ static int ir_xml_scan_temperature( ilo2_ribcl_handler_t *ir_handler,
 static int ir_xml_record_temperaturedata( ilo2_ribcl_handler_t *ir_handler,
               char *temperaturelabel, char *temperaturelocation,
               char *temperaturestat,char *temperaturereading,
-              char *temperatureunits)
+              char *temperatureunits, int temperatureindex)
 {
 
-        int temperatureindex = 0;
         ir_tsdata_t *tsdat = NULL;
 
         if ( ir_handler == NULL) {
@@ -1613,29 +1615,6 @@ static int ir_xml_record_temperaturedata( ilo2_ribcl_handler_t *ir_handler,
          * where N ranges from 1 to ILO2_RIBCL_DISCOVER_TS_MAX.
          */
 
-        temperatureindex = ir_xml_extract_index("Temp",
-                                              (char *)temperaturelabel, 1);
-
-        if( temperatureindex == IR_NO_PREFIX){
-                /* We didn't parse the temperaturelabel string prefix
-                 * correctly
-                 */
-                err("ir_xml_record_temperaturedata: incorrect temperature "
-                                      "label string: %s", temperaturelabel);
-                return( -1);
-        }
-
-        if( temperatureindex == IR_NO_INDEX){
-                /* We didn't parse the temperaturelabel string index
-                 * correctly
-                 */
-                err("ir_xml_record_temperaturedata: could not extract index "
-                      "from temperature label string: %s", temperaturelabel);
-                return( -1);
-        }
-
-        /* The index of this temperature sensor should be between 1 and
-           ILO2_RIBCL_DISCOVER_TS_MAX.*/
 
         if( (temperatureindex < 1) ||
                            (temperatureindex > ILO2_RIBCL_DISCOVER_TS_MAX) ){
