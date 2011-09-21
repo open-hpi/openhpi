@@ -466,6 +466,10 @@ SaErrorT process_server_insertion_event(struct oh_handler_state *oh_handler,
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
+        if (strcmp(response.name,"[Unknown]") == 0 ) {
+              return rv;
+        }
+
 	/* Copy the blade name from response for future processing */ 
 	convert_lower_to_upper(response.name, strlen(response.name), 
 			       blade_name, MAX_NAME_LEN);
@@ -579,10 +583,15 @@ SaErrorT process_server_info_event(struct oh_handler_state
 
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
         bay_number = oa_event->eventData.bladeInfo.bayNumber;
-        /* Null ponter check for serialNumber,if Null return immediately*/
-        if(oa_event->eventData.bladeInfo.serialNumber == 0) {
+
+        /* Null ponter check for serialNumber and partNumber
+        *  if any one of them is Null, return immediately.
+        */
+        if(oa_event->eventData.bladeInfo.serialNumber == 0 ||
+                      oa_event->eventData.bladeInfo.partNumber == 0) {
                 return rv;
         }
+      
         len = strlen(oa_event->eventData.bladeInfo.serialNumber);
         serial_number = (char *)g_malloc0(sizeof(char) * len + 1);
         if(serial_number == 0){
@@ -595,6 +604,11 @@ SaErrorT process_server_info_event(struct oh_handler_state
                 g_free(serial_number);
                 return rv;
         }
+       
+        if(strcmp(oa_event->eventData.bladeInfo.partNumber,"[Unknown]") == 0) {
+                return rv;
+        }
+
         name = oa_event->eventData.bladeInfo.name;
 	response = (struct bladeInfo *)&oa_event->eventData.bladeInfo;
          resource_id = oa_handler->
