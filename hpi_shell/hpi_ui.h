@@ -118,7 +118,7 @@ extern SaErrorT	get_rdr_attr(Rdr_t *rdr, char *attr_name, union_type_t *val);
 			// get rdr attribute value
 extern SaErrorT	get_rdr_attr_as_string(Rdr_t *rdr, char *attr_name, char *val, int len);
 			// get rdr attribute value as string (max length: len)
-extern void	get_text_buffer_text(char *mes, SaHpiTextBufferT *buf, char *meslast,
+extern void	get_text_buffer_text(char *mes, const SaHpiTextBufferT *buf, char *meslast,
 			char *outbuf);
 extern SaErrorT	get_value(Attributes_t *Attrs, int num, union_type_t *val);
 			// get attribute value as string by number (max length: len)
@@ -136,7 +136,7 @@ extern Pr_ret_t	print_text_buffer_lang(char *mes, SaHpiTextBufferT *buf,
 			char *meslast, hpi_ui_print_cb_t proc);
 extern Pr_ret_t	print_text_buffer_length(char *mes, SaHpiTextBufferT *buf,
 			char *meslast, hpi_ui_print_cb_t proc);
-extern Pr_ret_t	print_text_buffer_text(char *mes, SaHpiTextBufferT *buf,
+extern Pr_ret_t	print_text_buffer_text(char *mes, const SaHpiTextBufferT *buf,
 			char *meslast, hpi_ui_print_cb_t proc);
 extern Pr_ret_t	print_text_buffer_type(char *mes, SaHpiTextBufferT *buf,
 			char *meslast, hpi_ui_print_cb_t proc);
