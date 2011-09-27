@@ -122,7 +122,8 @@ static ret_code_t show_test_info( SaHpiSessionIdT sessionId,
         }
         printf( "        Parameter %d:\n", i );
         printf( "            Name: \"%s\"\n", param->ParamName );
-        printf( "            Info: %s\n", param->ParamInfo.Data );
+        print_text_buffer_text( "            Info: ", &param->ParamInfo, NULL, ui_print );
+        printf( "\n" );
         switch ( param->ParamType ) {
             case SAHPI_DIMITEST_PARAM_TYPE_BOOLEAN:
                 printf( "            Type: boolean\n" );
@@ -143,7 +144,11 @@ static ret_code_t show_test_info( SaHpiSessionIdT sessionId,
                 break;
             case SAHPI_DIMITEST_PARAM_TYPE_TEXT:
                 printf( "            Type: text\n" );
-                printf( "            Default value: %s\n", param->DefaultParam.paramtext.Data );
+                print_text_buffer_text( "            Default value: ",
+                                        &param->DefaultParam.paramtext,
+                                        NULL,
+                                        ui_print );
+                printf( "\n" );
                 break;
             default:
                 printf( "            Type: unknown\n" );
@@ -217,7 +222,8 @@ static ret_code_t start_test( SaHpiSessionIdT sessionId,
         }
         printf( "Parameter %d:\n", i );
         printf( "    Name: \"%s\"\n", def->ParamName );
-        printf( "    Info: %s\n", def->ParamInfo.Data );
+        print_text_buffer_text( "    Info: ", &def->ParamInfo, NULL, ui_print );
+        printf( "\n" );
         memcpy( param->ParamName, def->ParamName, SAHPI_DIMITEST_PARAM_NAME_LEN );
         param->ParamType = def->ParamType;
         switch ( def->ParamType ) {
@@ -270,7 +276,11 @@ static ret_code_t start_test( SaHpiSessionIdT sessionId,
                 break;
             case SAHPI_DIMITEST_PARAM_TYPE_TEXT:
                 printf( "        Type: text\n" );
-                printf( "        Default value: %s\n", def->DefaultParam.paramtext.Data );
+                print_text_buffer_text( "        Default value: ",
+                                        &def->DefaultParam.paramtext,
+                                        NULL,
+                                        ui_print );
+                printf( "\n" );
                 cc = get_string_param( "Text Value ==> ", buf, sizeof(buf) );
                 if ( cc == 0 ) {
                     param->Value.paramtext.DataType = SAHPI_TL_TYPE_TEXT;
@@ -382,10 +392,18 @@ static ret_code_t show_test_results( SaHpiSessionIdT sessionId,
     }
     printf( "\n" );
 
-    printf( "    Test result %s: \"%s\"\n",
-            results.TestResultStringIsURI == SAHPI_TRUE ? "URI" : "string",
-            results.TestResultString.Data
-          );
+    if ( results.TestResultStringIsURI == SAHPI_FALSE ) {
+        print_text_buffer_text( "    Test result string: ",
+                                &results.TestResultString,
+                                NULL,
+                                ui_print );
+    } else {
+        print_text_buffer_text( "    Test result URI: ",
+                                &results.TestResultString,
+                                NULL,
+                                ui_print );
+    }
+    printf( "\n" );
 
     return HPI_SHELL_OK;
 }

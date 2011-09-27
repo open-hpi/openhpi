@@ -1187,7 +1187,7 @@ Pr_ret_t print_text_buffer_type(char *mes, SaHpiTextBufferT *buf, char *meslast,
 	return(0);
 }
 
-void get_text_buffer_text(char *mes, SaHpiTextBufferT *buf, char *meslast,
+void get_text_buffer_text(char *mes, const SaHpiTextBufferT *buf, char *meslast,
 	char *outbuf)
 {
 	int	i, c, tmp_ind, len;
@@ -1208,7 +1208,7 @@ void get_text_buffer_text(char *mes, SaHpiTextBufferT *buf, char *meslast,
 		case SAHPI_TL_TYPE_BCDPLUS:
 		case SAHPI_TL_TYPE_ASCII6:
 		case SAHPI_TL_TYPE_TEXT:
-			strncat(outbuf, (char *)(buf->Data), buf->DataLength);
+			strncat(outbuf, (const char *)(buf->Data), buf->DataLength);
 			break;
 		case SAHPI_TL_TYPE_BINARY:
 			len = buf->DataLength * 2 + 1;
@@ -1231,7 +1231,7 @@ void get_text_buffer_text(char *mes, SaHpiTextBufferT *buf, char *meslast,
 	return;
 }
 
-Pr_ret_t print_text_buffer_text(char *mes, SaHpiTextBufferT *buf, char *meslast,
+Pr_ret_t print_text_buffer_text(char *mes, const SaHpiTextBufferT *buf, char *meslast,
 	hpi_ui_print_cb_t proc)
 {
 	char	outbuf[SHOW_BUF_SZ];
