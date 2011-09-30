@@ -1804,6 +1804,8 @@ SaErrorT build_server_inv_rdr(struct oh_handler_state *oh_handler,
         SaHpiRptEntryT *rpt = NULL;
 	SaHpiFloat64T fm_version;
 	SaHpiInt32T major;
+        struct bladeNicInfo nic_info;
+        char *nic_address = NULL;
 
         if (oh_handler == NULL || con == NULL || rdr == NULL ||
             inventory == NULL) {
@@ -1948,6 +1950,39 @@ SaErrorT build_server_inv_rdr(struct oh_handler_state *oh_handler,
 			rpt->ResourceInfo.FirmwareMajorRev = major = floor(fm_version);
 			rpt->ResourceInfo.FirmwareMinorRev = rintf((fm_version - major) * 100);
                 }
+			/* Get the Blade NIC information*/
+		rv = soap_getBladeInfo(con,
+				&request, &response);
+                while (response.nics){
+
+                soap_getBladeNicInfo(response.nics, &nic_info);
+                /* Add the custom field if the Nic info
+                 * is available
+                 */
+                if (nic_info.port != NULL && nic_info.macAddress != NULL) {
+                        memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
+                        hpi_field.AreaId = local_inventory->info.area_list->
+                                           idr_area_head.AreaId;
+                        hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
+                       rv = asprintf(&nic_address, "%s = %s", nic_info.port, 
+				nic_info.macAddress);
+                        strcpy ((char *)hpi_field.Field.Data,
+                                nic_address);
+
+                        rv = idr_field_add(&(local_inventory->info.area_list
+                                           ->field_list),
+                                           &hpi_field);
+                        if (rv != SA_OK) {
+                                err("Add idr field failed");
+                                return rv;
+                        }
+
+                        /* Increment the field counter */
+                        local_inventory->info.area_list->idr_area_head.
+                        NumFields++;
+                }
+               response.nics = soap_next_node(response.nics);
+              }
         }
         return SA_OK;
 }
