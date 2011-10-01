@@ -20,20 +20,20 @@
  * Set timezone constants
  */                                                               
 typedef enum {
-	DST_NONE = 0,
-	DST_USA,
-	DST_ESA,
-	DST_MID,
-	DST_EEC,
-	DST_EEU,
-	DST_EGT,
-	DST_FLE,
-	DST_IRN,
-	DST_AUS,
-	DST_TAS,
-	DST_NWZ,
-	DST_AUTOMATIC              // Must be last in list, used to validate entry
-} DST_STANDARDS;
+	SNMP_BC_DST_NONE = 0,
+	SNMP_BC_DST_USA,
+	SNMP_BC_DST_ESA,
+	SNMP_BC_DST_MID,
+	SNMP_BC_DST_EEC,
+	SNMP_BC_DST_EEU,
+	SNMP_BC_DST_EGT,
+	SNMP_BC_DST_FLE,
+	SNMP_BC_DST_IRN,
+	SNMP_BC_DST_AUS,
+	SNMP_BC_DST_TAS,
+	SNMP_BC_DST_NWZ,
+	SNMP_BC_DST_AUTOMATIC              // Must be last in list, used to validate entry
+} SNMP_BC_DST_STANDARDS;
     
 typedef enum {
 	FIRST_WEEK = 1,
@@ -41,7 +41,7 @@ typedef enum {
 	THIRD_WEEK,
 	FOURTH_WEEK,
 	LAST_WEEK
-} DST_WEEK;
+} SNMP_BC_DST_WEEK;
     
 typedef enum {
 	SUNDAY = 1,
@@ -51,7 +51,7 @@ typedef enum {
 	THURSDAY,
 	FRIDAY,
 	SATURDAY
-} DST_WEEKDAY;
+} SNMP_BC_DST_WEEKDAY;
     
 typedef enum {
 	JANUARY = 1,
@@ -66,7 +66,7 @@ typedef enum {
 	OCTOBER,
 	NOVEMBER,
 	DECEMBER
-} DST_MONTH;
+} SNMP_BC_DST_MONTH;
 
 /*                                                               
  * Daylight saving time standards table entry

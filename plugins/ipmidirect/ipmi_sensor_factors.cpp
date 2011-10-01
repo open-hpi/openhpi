@@ -209,12 +209,14 @@ c_1_over_cube( double val )
   return 1.0 / pow( val, 3.0 );
 }
 
-#if defined(__FreeBSD__)
-static double log2( double val )
+// We have to define our own log2 function
+// because some versions of FreeBSD do not provide it
+// and some versions of FreeBSD provide it in a very
+// specific way.
+static double ipmi_log2( double val )
 {
   return log( val ) / M_LN2;
 }
-#endif // __FreeBSD__
 
 typedef double (*linearizer)( double val );
 static linearizer linearize[12] =
@@ -222,7 +224,7 @@ static linearizer linearize[12] =
   c_linear,
   log,
   log10,
-  log2,
+  ipmi_log2,
   exp,
   c_exp10,
   c_exp2,
