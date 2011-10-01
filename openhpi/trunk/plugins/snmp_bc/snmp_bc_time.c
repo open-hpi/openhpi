@@ -46,74 +46,74 @@ const unsigned short days_in_month[12] = /* Table of days in each month. */
  * time is observed for the supported timezones.
  *
  * If you add or remove any entries from this table you must also
- * change DST_STANDARDS (contains the indices for this table).
+ * change SNMP_BC_DST_STANDARDS (contains the indices for this table).
  */
-const DST_ENTRY DST_TABLE[] =
+static const DST_ENTRY DST_TABLE[] =
 {
         /*                                                               
-        * DST_USA:
+        * SNMP_BC_DST_USA:
         *   Alaskan, Pacific, Mountain, Central, Eastern,
         *   Atlantic, Newfoundland
         */
         { 2,  0, SECOND_WEEK,  SUNDAY,    MARCH,
           2,  0, FIRST_WEEK,   SUNDAY,   NOVEMBER   },
         /*                                                           
-         * DST_ESA:
+         * SNMP_BC_DST_ESA:
          *   E. South America
          */
         { 2,  0, THIRD_WEEK,  SUNDAY,    OCTOBER,
           2,  0, SECOND_WEEK, SUNDAY,    FEBRUARY  },
         /*                                                            
-         * DST_MID:
+         * SNMP_BC_DST_MID:
          *   Mid-Atlantic
          */
         { 2,  0, LAST_WEEK,   SUNDAY,    MARCH,
           2,  0, LAST_WEEK,   SUNDAY,    SEPTEMBER },
         /* 
-         * DST_EEC:
+         * SNMP_BC_DST_EEC:
          *   Azores, GMT, Romance, Central European, GTB,
          *   W. Europe, Arab, Russian, Ekateinburg, Yakutsk
          */
         { 2,  0, LAST_WEEK,   SUNDAY,    MARCH,
           3,  0, LAST_WEEK,   SUNDAY,    OCTOBER   },
         /*                                                            
-         * DST_EEU:
+         * SNMP_BC_DST_EEU:
          *   E. Europe
          */
         { 0,  0, LAST_WEEK,   SUNDAY,    MARCH,
           1,  0, LAST_WEEK,   SUNDAY,    SEPTEMBER },
         /*                                                           
-         * DST_EGT:
+         * SNMP_BC_DST_EGT:
          *   Egypt
          */
         { 2,  0, FIRST_WEEK,  FRIDAY,    MAY,
           2,  0, LAST_WEEK,   WEDNESDAY, SEPTEMBER },
         /*                                                           
-         * DST_FLE:
+         * SNMP_BC_DST_FLE:
          *   FLE
          */
         { 3,  0, LAST_WEEK,   SUNDAY,    MARCH,
           4,  0, LAST_WEEK,   SUNDAY,    OCTOBER   },
         /*                                                           
-         * DST_IRN:
+         * SNMP_BC_DST_IRN:
          *   Iran
          */
         { 2,  0, FIRST_WEEK,  SUNDAY,    MARCH,
           2,  0, LAST_WEEK,   TUESDAY,   SEPTEMBER },
         /*                                                            
-         * DST_AUS:
+         * SNMP_BC_DST_AUS:
          *   Cen. Australia, AUS Eastern
          */
         { 2,  0, LAST_WEEK,   SUNDAY,    OCTOBER,
           2,  0, LAST_WEEK,   SUNDAY,    MARCH     },
         /*                                                           
-         * DST_TAS:
+         * SNMP_BC_DST_TAS:
          *   Tasmania
          */
         { 2,  0, FIRST_WEEK,  SUNDAY,    OCTOBER,
           2,  0, LAST_WEEK,   SUNDAY,    MARCH     },
         /*                                                            
-         * DST_NWZ:
+         * SNMP_BC_DST_NWZ:
          *   New Zealand
          */
         { 2,  0, LAST_WEEK,   SUNDAY,    MARCH,
@@ -140,9 +140,9 @@ gboolean is_leap_year(guchar year)
  * Calculates day of month given month/year and weekday/week
  *
  * Note: This routine does not do any error checking on the inputs.
- *       weekday assumed to be in DST_WEEKDAY
- *       week assumed to be in DST_WEEK
- *       month assumed to be in DST_MONTH
+ *       weekday assumed to be in SNMP_BC_DST_WEEKDAY
+ *       week assumed to be in SNMP_BC_DST_WEEK
+ *       month assumed to be in SNMP_BC_DST_MONTH
  *       year assumed to be 0-99
  */ 
 guchar get_day_of_month(guchar weekday, guchar week, guchar month, guchar year)
