@@ -2064,7 +2064,22 @@ SaErrorT build_interconnect_rpt(struct oh_handler_state *oh_handler,
                 return SA_ERR_HPI_OUT_OF_MEMORY;
         }
 
-        if (inserted == TRUE) {
+        /* Get the power state of the interconnect blade to determine
+         * the hotswap state.  The hotswap state of the interconnect
+         * shall be maintained in a private data area of the
+         * interconnect RPT.
+         */
+        rv = get_interconnect_power_state(con, bay_number, &state);
+        if (rv != SA_OK) {
+                err("Unable to get power status");
+                return rv;
+	}
+
+	if (inserted == TRUE && state == SAHPI_POWER_ON) {
+		hotswap_state->currentHsState =
+			SAHPI_HS_STATE_ACTIVE;	
+
+	} else if (inserted == TRUE) {
                 /* The interconnect takes nearly 3 seconds to power on after
                  * insertion.  Intialize the current hotswap state as
                  * change is handled as part of interconnect status events.
@@ -2073,18 +2088,6 @@ SaErrorT build_interconnect_rpt(struct oh_handler_state *oh_handler,
                         SAHPI_HS_STATE_INSERTION_PENDING;
 
         } else {
-                /* Get the power state of the interconnect blade to determine
-                 * the hotswap state.  The hotswap state of the interconnect
-                 * shall be maintained in a private data area of the
-                 * interconnect RPT.
-                 */
-                rv = get_interconnect_power_state(con, bay_number, &state);
-                if (rv != SA_OK) {
-                        err("Unable to get power status");
-                        return rv;
-                }
-
-
                 switch (state) {
                         case SAHPI_POWER_ON:
                                 hotswap_state->currentHsState =

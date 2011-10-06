@@ -377,7 +377,8 @@ SaErrorT process_interconnect_insertion_event(struct oh_handler_state
         SaHpiInt32T bay_number;
         SaHpiResourceIdT resource_id;
 	GSList *asserted_sensors = NULL;
-	SaHpiRptEntryT *rpt;
+	SaHpiRptEntryT *rpt = NULL;
+	struct oa_soap_hotswap_state *hotswap_state = NULL;
 
         if (oh_handler == NULL || oa_event == NULL || con == NULL) {
                 err("Invalid parameters");
@@ -443,6 +444,36 @@ SaErrorT process_interconnect_insertion_event(struct oh_handler_state
                 SAHPI_HS_CAUSE_OPERATOR_INIT;
         oh_evt_queue_push(oh_handler->eventq, copy_oa_soap_event(&event));
 
+        /* Get the rpt entry of the server */
+        rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+        if (rpt == NULL) {
+                err("resource RPT is NULL");
+                return 0;
+        }
+
+        hotswap_state = (struct oa_soap_hotswap_state *)
+                oh_get_resource_data(oh_handler->rptcache, resource_id);
+        if (hotswap_state == NULL) {
+                err("Failed to get hotswap state of server blade");
+                return 0;
+        }
+
+        hotswap_state->currentHsState = SAHPI_HS_STATE_ACTIVE;
+ 
+        update_hotswap_event(oh_handler, &event);
+        memcpy(&(event.resource), rpt, sizeof(SaHpiRptEntryT));
+        event.event.Source = event.resource.ResourceId;
+        event.event.EventDataUnion.HotSwapEvent.PreviousHotSwapState =
+                SAHPI_HS_STATE_INSERTION_PENDING;
+        event.event.EventDataUnion.HotSwapEvent.HotSwapState =
+                SAHPI_HS_STATE_ACTIVE;
+        /* INSERTION_PENDING to ACTIVE state change happened de
+         * to Auto policy of server blade
+         */
+        event.event.EventDataUnion.HotSwapEvent.CauseOfStateChange =
+                SAHPI_HS_CAUSE_AUTO_POLICY;
+        oh_evt_queue_push(oh_handler->eventq, copy_oa_soap_event(&event));
+
 	/* Raise the assert sensor events */
 	if (asserted_sensors) {
 	        rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
@@ -505,7 +536,6 @@ SaErrorT process_interconnect_info_event(struct oh_handler_state
  
          resource_id = oa_handler->
                 oa_soap_resources.interconnect.resource_id[bay_number - 1];
-	
         /* Build the inserted interconnect RPT entry */
         rv = build_interconnect_rpt(oh_handler, con, name,
                                     bay_number, &resource_id, TRUE);
@@ -625,29 +655,6 @@ void oa_soap_proc_interconnect_status(struct oh_handler_state *oh_handler,
         if (hotswap_state == NULL) {
                 err("Failed to get hotswap state of server blade");
                 return;
-        }
-
-        /* Check whether blade is in the insertion pending state and it is
-         * powered on
-         */
-        if (hotswap_state->currentHsState == SAHPI_HS_STATE_INSERTION_PENDING &&
-	    status->powered == POWER_ON) {
-                hotswap_state->currentHsState = SAHPI_HS_STATE_ACTIVE;
-
-		update_hotswap_event(oh_handler, &event);
-		memcpy(&(event.resource), rpt, sizeof(SaHpiRptEntryT));
-		event.event.Source = event.resource.ResourceId;
-                event.event.EventDataUnion.HotSwapEvent.PreviousHotSwapState =
-                        SAHPI_HS_STATE_INSERTION_PENDING;
-                event.event.EventDataUnion.HotSwapEvent.HotSwapState =
-                        SAHPI_HS_STATE_ACTIVE;
-                /* INSERTION_PENDING to ACTIVE state change happened de
-                 * to Auto policy of server blade
-                 */
-                event.event.EventDataUnion.HotSwapEvent.CauseOfStateChange =
-                        SAHPI_HS_CAUSE_AUTO_POLICY;
-                oh_evt_queue_push(oh_handler->eventq,
-                                  copy_oa_soap_event(&event));
         }
 
 	/* Build operational status sensor rdr */
