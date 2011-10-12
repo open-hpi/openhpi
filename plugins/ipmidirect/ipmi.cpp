@@ -1224,8 +1224,6 @@ IpmiSetAutoInsertTimeout( void *hnd, SaHpiTimeoutT  timeout)
 
   SaErrorT rv = ipmi->IfSetAutoInsertTimeout( timeout );
 
-  ipmi->IfLeave();
-
   return rv;
 }
 
