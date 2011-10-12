@@ -3274,8 +3274,6 @@ static SaErrorT NewSimulatorSetAutoInsertTimeout( void *hnd, SaHpiTimeoutT  time
 
    SaErrorT rv = newsim->IfSetAutoInsertTimeout( timeout );
 
-   newsim->IfLeave();
-
    return rv;
 }
 
