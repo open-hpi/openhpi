@@ -87,8 +87,7 @@
 /*
  * ILO2 RIBCL Hostname Length defines
  */
-#define ILO2_HOST_NAME_MAX_LEN 256
-#define HOST_NAME_MAX 255
+#define ILO2_HOST_NAME_MAX_LEN 255
 /* A valid IP addr will have a min. len of 7 4 digts + 3 decimal points */
 #define ILO2_HOST_NAME_MIN_LEN 7
 
@@ -388,7 +387,7 @@ typedef struct ilo2_ribcl_handler {
 	char *entity_root;
 	int first_discovery_done;
 	int ilo_type;
-	char ir_hostname[HOST_NAME_MAX];
+	char ir_hostname[ILO2_HOST_NAME_MAX_LEN];
 	/* Storehouse for data obtained during discovery */
 	ilo2_ribcl_DiscoveryData_t DiscoveryData;
 

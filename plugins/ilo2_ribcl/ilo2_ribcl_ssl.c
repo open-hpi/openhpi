@@ -48,6 +48,7 @@
 /* Header files */
 #include <oh_ssl.h>
 #include <ilo2_ribcl_ssl.h>
+#include <ilo2_ribcl_xml.h>
 #include <ilo2_ribcl_cmnds.h>
 
 
