@@ -536,7 +536,6 @@ void oa_soap_proc_oa_inserted(struct oh_handler_state *oh_handler,
 	SaHpiInt32T bay_number;
 	struct oa_soap_handler *oa_handler = NULL;
 	SaHpiResourceIdT resource_id;
-	enum diagnosticStatus diag_ex_status[OA_SOAP_MAX_DIAG_EX];
 
 	if (oh_handler == NULL || oa_event == NULL) {
 		err("Invalid parameters");
