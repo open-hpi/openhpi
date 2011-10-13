@@ -222,14 +222,14 @@ void *ilo2_ribcl_open(GHashTable *handler_config,
 	/*hostname is needed for the HTTP 1.1 header
 	 *that will be sent to iLO3 prior to RIBCL command
 	 *submission. The max length of the hostname is 
-	 *limited by HOST_NAME_MAX, the gethostname always have a '\0'
-	 *at the end of the name, if hostname exceeds the HOST_NAME_MAX,
-	 *the string is truncated. So it is always made
-	 *sure that the last character is '\0'. Achieved by the following
-	 *statement of the gethostname.
+	 *limited by ILO2_HOST_NAME_MAX_LEN, the gethostname always have a '\0'
+	 *at the end of the name, if hostname exceeds the ILO2_HOST_NAME_MAX_LEN,,
+	 *the string is truncated. In that case truncate last charactor with '\0'; 
+         *Achieved by the following statement of the gethostname.
 	 */
-	gethostname(ilo2_ribcl_handler->ir_hostname, HOST_NAME_MAX-1);
-	ilo2_ribcl_handler->ir_hostname[HOST_NAME_MAX] = '\0';
+	gethostname(ilo2_ribcl_handler->ir_hostname, ILO2_HOST_NAME_MAX_LEN);
+	if (strlen(ilo2_ribcl_handler->ir_hostname) >= ILO2_HOST_NAME_MAX_LEN)
+		ilo2_ribcl_handler->ir_hostname[ILO2_HOST_NAME_MAX_LEN] = '\0';
 	
 
 	/*Initialize the test and the iLO3 header pointer to NULL*/
