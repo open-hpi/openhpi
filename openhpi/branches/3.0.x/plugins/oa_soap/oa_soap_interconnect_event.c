@@ -627,7 +627,6 @@ void oa_soap_proc_interconnect_status(struct oh_handler_state *oh_handler,
 {
         struct oa_soap_hotswap_state *hotswap_state;
         SaHpiRptEntryT *rpt = NULL;
-        struct oh_event event;
         SaHpiResourceIdT resource_id;
         struct oa_soap_handler *oa_handler = NULL;
 	enum oa_soap_extra_data_health health_status;

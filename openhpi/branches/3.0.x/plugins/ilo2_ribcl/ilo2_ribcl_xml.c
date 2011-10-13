@@ -79,7 +79,6 @@ static xmlChar *ir_xml_smb_get_value( char *, xmlNodePtr);
 static int ir_xml_insert_logininfo( char *, int, char *, char *, char *);
 static int ir_xml_extract_index( char *, char *, int);
 static int ir_xml_replacestr( char **, char *);
-extern int ir_xml_insert_headerinfo( char *, int, char *, char *, char *);
 
 /* Error return values for ir_xml_extract_index */
 #define IR_NO_PREFIX	-1
@@ -1504,7 +1503,7 @@ static int ir_xml_scan_temperature( ilo2_ribcl_handler_t *ir_handler,
 	xmlChar *stat = NULL;
 	xmlChar *cur_reading = NULL;
 	xmlChar *unit = NULL;
-        int ret;
+        int ret = 0;
 	int temp_index;
 
 	t_node = ir_xml_find_node( eh_data_node, "TEMPERATURE");
@@ -2978,7 +2977,7 @@ char* ir_xml_decode_chunked(char *d_response)
 	int hide = 1;
 	int issizeofchunk = 1;
 	char temp_line[ILO2_RIBCL_HTTP_LINE_MAX];
-	int chunksize;
+	int chunksize = 0;
 	int line_length;
 	int i;
 	int j;
