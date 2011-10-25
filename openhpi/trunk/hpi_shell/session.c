@@ -91,14 +91,48 @@ void delete_progress()
 	printf("%s\n", buf);
 }
 
+static const SaHpiEntityPathT * get_event_ep(const SaHpiEventT * event,
+                                             const SaHpiRptEntryT * rptentry,
+                                             const SaHpiRdrT * rdr )
+{
+        const SaHpiEntityPathT * rptentry_ep = 0;
+        const SaHpiEntityPathT * rdr_ep = 0;
+
+        if (rptentry && (rptentry->ResourceCapabilities != 0)) {
+                rptentry_ep = &rptentry->ResourceEntity;
+        }
+        if (rdr && (rdr->RdrType != SAHPI_NO_RECORD)) {
+                rdr_ep = &rdr->Entity;
+        }
+
+        switch ( event->EventType ) {
+                case SAHPI_ET_DOMAIN:
+                case SAHPI_ET_USER:
+                        return 0;
+                case SAHPI_ET_RESOURCE:
+                case SAHPI_ET_HOTSWAP:
+                        return rptentry_ep;
+                case SAHPI_ET_HPI_SW:
+                case SAHPI_ET_OEM:
+                        return rptentry_ep ? rptentry_ep : rdr_ep;
+                case SAHPI_ET_SENSOR:
+                case SAHPI_ET_SENSOR_ENABLE_CHANGE:
+                case SAHPI_ET_WATCHDOG:
+                case SAHPI_ET_DIMI:
+                case SAHPI_ET_DIMI_UPDATE:
+                case SAHPI_ET_FUMI:
+                        return rdr_ep ? rdr_ep : rptentry_ep;
+                default:
+                        return 0;
+        }
+}
+
 static void* get_event(void *unused)
 {
 	SaHpiEventT	event;
 	SaErrorT	rv;        
         SaHpiRptEntryT rptentry;
         SaHpiRdrT rdr;
-        SaHpiEntryIdT rptentryid;
-        SaHpiEntryIdT nextrptentryid;
 
 	rv = saHpiSubscribe(Domain->sessionId);
 	if (rv != SA_OK) {
@@ -119,22 +153,20 @@ static void* get_event(void *unused)
 				break;
 			}
 			if (prt_flag == 1) {
-				if (show_event_short)
+				if (show_event_short) {
 					show_short_event(&event, ui_print);
-                                else if (rdr.RdrType != SAHPI_NO_RECORD)
-                                        oh_print_event(&event, &rdr.Entity, 4);
-                                else if (rptentry.ResourceId != 0)
-                                        oh_print_event(&event, &rptentry.ResourceEntity, 4);
-                                else {
-                                        rptentryid = event.Source;
-                                        rv = saHpiRptEntryGet(Domain->sessionId,
-                                                              rptentryid,
-                                                              &nextrptentryid, &rptentry);
-                                        if(rv == SA_OK)
-                                                oh_print_event(&event, &rptentry.ResourceEntity, 4);
-                                        else {
-                                                oh_print_event(&event, NULL, 4);
+                                } else {
+                                        const SaHpiEntityPathT * ep;
+                                        ep = get_event_ep( &event, &rptentry, &rdr);
+                                        if ((!ep) && (event.Source != SAHPI_UNSPECIFIED_RESOURCE_ID)) {
+                                                rv = saHpiRptEntryGetByResourceId(Domain->sessionId,
+                                                                                  event.Source,
+                                                                                  &rptentry);
+                                                if ( rv == SA_OK ) {
+                                                        ep = get_event_ep(&event, &rptentry, &rdr);
+                                                }
                                         }
+                                        oh_print_event(&event, ep, 4);
                                 }
 			}
 		}/*the loop for retrieving event*/
