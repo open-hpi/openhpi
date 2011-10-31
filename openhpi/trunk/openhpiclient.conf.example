@@ -11,6 +11,9 @@
 #                                        # Number 0 is not allowed.
 #       host = "my_default_domain_host"  # String value. Double quotes required.
 #       port = my_defaultdomain_port     # Integer value
+#       entity_root = "my_entity_root"   # String value. Double quotes required.
+#                                        # This entity_root will be added to all
+#                                        # entity paths exposed in the domain
 #}
 #                                        # If no "default" stanza is declared, 
 #                                        #  host = "localhost" and port = 4743
@@ -19,6 +22,7 @@
 #domain 1 {
 #	host = "my_domain1_host"   # String value. Double quotes required.
 #	port = my_domain1_port     # Integer value 
+#   entity_root = "{RACK,1}"
 #}
 
 #domain 2 {
