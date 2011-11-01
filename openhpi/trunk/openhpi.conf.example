@@ -10,7 +10,6 @@ OPENHPI_UNCONFIGURED = "YES"
 ## FIRST section: declaration of global parameters like the following.
 
 #OPENHPI_LOG_ON_SEV = "MINOR"
-#OPENHPI_ON_EP = "{SYSTEM_CHASSIS,1}"
 #OPENHPI_EVT_QUEUE_LIMIT = 10000
 #OPENHPI_DEL_SIZE_LIMIT = 10000
 #OPENHPI_DEL_SAVE = "NO"
@@ -33,8 +32,6 @@ OPENHPI_UNCONFIGURED = "YES"
 ## OPENHPI_LOG_SEV sets the lowest severity level an event must meet to be
 ## logged in the domain event log. Possible values are (highest to lowest):
 ## "CRITICAL", "MAJOR", "MINOR", "INFORMATIONAL", "OK", and "DEBUG".
-## OPENHPI_ON_EP sets the entity path on which the application is running. This
-## entity path is returned when SaHpiResourceIdGet() is called.
 ## OPENHPI_EVT_QUEUE_LIMIT sets the maximum number of events that are allowed
 ## in the session's event queue. Default is 10000 events. Setting it to 0 means
 ## unlimited.

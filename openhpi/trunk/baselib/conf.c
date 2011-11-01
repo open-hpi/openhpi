@@ -34,6 +34,10 @@
 
 static GHashTable *ohc_domains = NULL;
 
+static SaHpiEntityPathT my_entity
+    = { .Entry[0] = { .EntityType = SAHPI_ENT_UNSPECIFIED, .EntityLocation = 0 } };
+
+
 static int load_client_config(const char *filename);
 static void add_domain_conf(SaHpiDomainIdT did,
                             const char *host,
@@ -91,6 +95,19 @@ void ohc_conf_init(void)
     }
 
     ohc_unlock();
+}
+
+const SaHpiEntityPathT * ohc_get_my_entity(void)
+{
+    // NB: Since my_entity is assigned on initialization
+    // we don't need to aquire lock
+    if ( my_entity.Entry[0].EntityType == SAHPI_ENT_UNSPECIFIED ) {
+        if ( my_entity.Entry[0].EntityLocation == 0 ) {
+            return 0;
+        }
+    }
+
+    return &my_entity;
 }
 
 const struct ohc_domain_conf * ohc_get_domain_conf(SaHpiDomainIdT did)
@@ -237,7 +254,8 @@ enum {
         HPI_CLIENT_CONF_TOKEN_DEFAULT,	
         HPI_CLIENT_CONF_TOKEN_HOST,
         HPI_CLIENT_CONF_TOKEN_PORT,
-        HPI_CLIENT_CONF_TOKEN_ROOT
+        HPI_CLIENT_CONF_TOKEN_ROOT,
+        HPI_CLIENT_CONF_TOKEN_MY_EP,
 } hpiClientConfType;
 
 struct tokens {
@@ -266,8 +284,11 @@ static struct tokens ohc_conf_tokens[] = {
         {
                 .name = "entity_root",
                 .token = HPI_CLIENT_CONF_TOKEN_ROOT
-        }
-
+        },
+        {
+                .name = "my_entity",
+                .token = HPI_CLIENT_CONF_TOKEN_MY_EP
+        },
 };
 
 /*******************************************************************************
@@ -320,7 +341,7 @@ static GScannerConfig oh_scanner_conf = {
                 FALSE                   /* scope_0_fallback */,
 };
 
-static int get_next_good_token(GScanner *oh_scanner) {
+static int get_next_good_token_in_domain_stanza(GScanner *oh_scanner) {
         int next_token;
 
         next_token = g_scanner_get_next_token(oh_scanner);
@@ -390,7 +411,7 @@ static int process_domain_token (GScanner *oh_scanner)
                 return -10;
         }
 
-        next_token = get_next_good_token(oh_scanner);
+        next_token = get_next_good_token_in_domain_stanza(oh_scanner);
         while (next_token != G_TOKEN_EOF && next_token != G_TOKEN_RIGHT_CURLY) {
                 if (next_token == HPI_CLIENT_CONF_TOKEN_HOST) {
                         next_token = g_scanner_get_next_token(oh_scanner);
@@ -453,6 +474,39 @@ static int process_domain_token (GScanner *oh_scanner)
         return 0;
 }
 
+static int process_my_entity_token(GScanner *oh_scanner)
+{
+        int next_token;
+        SaHpiEntityPathT ep;
+
+        next_token = g_scanner_get_next_token(oh_scanner);
+        if (next_token != HPI_CLIENT_CONF_TOKEN_MY_EP) {
+                CRIT("Processing my_entity: Expected a my_entity token");
+                return -1;
+        }
+        next_token = g_scanner_get_next_token(oh_scanner);
+        if (next_token != G_TOKEN_EQUAL_SIGN) {
+                CRIT("Processing my_entity: Expected equal sign");
+                return -2;
+        }
+        next_token = g_scanner_get_next_token(oh_scanner);
+        if (next_token != G_TOKEN_STRING) {
+                CRIT("Processing my_entity: Expected a string");
+                return -3;
+        }
+        if ( oh_encode_entitypath(oh_scanner->value.v_string, &ep) != SA_OK ) {
+                CRIT("Processing my_entity: Invalid entity path");
+                return -4;
+        }
+
+        // NB: Since this code works only on initialization
+        // we don't need to acquire lock
+        memcpy( &my_entity, &ep, sizeof(SaHpiEntityPathT) );
+
+        return 0;
+}
+
+
 static void scanner_msg_handler (GScanner *scanner, gchar *message, gboolean is_error)
 {
         g_return_if_fail (scanner != NULL);
@@ -513,11 +567,14 @@ static int load_client_config(const char *filename)
                 case HPI_CLIENT_CONF_TOKEN_DOMAIN:
                         process_domain_token(oh_scanner);
                         break;
+                case HPI_CLIENT_CONF_TOKEN_MY_EP:
+                        process_my_entity_token(oh_scanner);
+                        break;
                 default:
                         /* need to advance it */
                         my_token = g_scanner_get_next_token(oh_scanner);
                         g_scanner_unexp_token(oh_scanner, G_TOKEN_SYMBOL,
-                                              NULL, "\"domain\"", NULL, NULL, 1);
+                                              NULL, "\"domain\" or \"my_entity\"", NULL, NULL, 1);
                         break;
                 }
         }

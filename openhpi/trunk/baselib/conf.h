@@ -38,6 +38,7 @@ struct ohc_domain_conf {
 
 
 void ohc_conf_init(void);
+const SaHpiEntityPathT * ohc_get_my_entity(void);
 const struct ohc_domain_conf * ohc_get_domain_conf(SaHpiDomainIdT did);
 const struct ohc_domain_conf * ohc_get_next_domain_conf(SaHpiEntryIdT entry_id,
                                                         SaHpiEntryIdT *next_entry_id);
