@@ -28,20 +28,19 @@
 int main(int argc, char **argv)
 {
         SaHpiSessionIdT sid = 0;
-        oHpiGlobalParamT onep_param = { .Type = OHPI_ON_EP };
+        oHpiGlobalParamT param = { .Type = OHPI_LOG_ON_SEV };
                 
 	if (saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sid, NULL)) {
 		printf("Could not open session\n");
                 return -1;
 	}
                 
-        if (oHpiGlobalParamGet(sid, &onep_param)) {
+        if (oHpiGlobalParamGet(sid, &param)) {
 		printf("Could not get parameter\n");
                 return -1;
 	}
                 
-        if (onep_param.u.OnEP.Entry[0].EntityType != SAHPI_ENT_SYSTEM_CHASSIS ||
-            onep_param.u.OnEP.Entry[0].EntityLocation != 1)
+        if (param.u.LogOnSev != SAHPI_MAJOR)
                 return -1;
                 
         return 0;

@@ -58,7 +58,7 @@ typedef struct {
 
 
 typedef enum {
-        OHPI_ON_EP = 1,
+        OHPI_ON_EP = 1, // Not used now
         OHPI_LOG_ON_SEV,
         OHPI_EVT_QUEUE_LIMIT,
         OHPI_DEL_SIZE_LIMIT,
@@ -75,7 +75,7 @@ typedef enum {
 } oHpiGlobalParamTypeT;
 
 typedef union {
-        SaHpiEntityPathT OnEP; /* Entity path where this openhpi instance runs */
+        SaHpiEntityPathT OnEP; /* Not used now */
         /* Log events of severity equal to ore more critical than this */
         SaHpiSeverityT LogOnSev;
         SaHpiUint32T EvtQueueLimit; /* Max events # allowed in session queue */
@@ -128,7 +128,7 @@ SaErrorT SAHPI_API oHpiHandlerRetry (
 /* Global parameters */
 SaErrorT SAHPI_API oHpiGlobalParamGet ( 
      SAHPI_IN    SaHpiSessionIdT sid,
-     SAHPI_OUT   oHpiGlobalParamT *param );
+     SAHPI_INOUT oHpiGlobalParamT *param );
 SaErrorT SAHPI_API oHpiGlobalParamSet ( 
      SAHPI_IN    SaHpiSessionIdT sid,
      SAHPI_IN    oHpiGlobalParamT *param );

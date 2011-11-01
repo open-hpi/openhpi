@@ -229,7 +229,7 @@ SaErrorT SAHPI_API oHpiHandlerRetry (
 
 SaErrorT SAHPI_API oHpiGlobalParamGet (
     SAHPI_IN    SaHpiSessionIdT sid,
-    SAHPI_OUT   oHpiGlobalParamT *param)
+    SAHPI_INOUT oHpiGlobalParamT *param)
 {
     SaErrorT rv;
 

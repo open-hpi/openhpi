@@ -94,11 +94,6 @@ Valus can be one of: CRITICAL,MAJOR,MINOR,INFORMATIONAL,OK,DEBUG.
 Events of this severity or higher will be logged to the domain event log.
 The default is MINOR.
 
-=item B<OPENHPI_ON_EP>=ENTITY_PATH
-
-Entity path returned (e.g. {SYSTEM_CHASSIS,1}) when saHpiResourceIdGet()
-is called.
-
 =item B<OPENHPI_EVT_QUEUE_LIMIT>=NUMBER
 
 Maximum number of events allowed in a subscribed session's queue.

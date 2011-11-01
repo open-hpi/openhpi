@@ -27,7 +27,7 @@ If no domain or host is selected, ohparam uses the default domain as specified i
  Command set:                                           
          one of the daemon's global parameters:        
          (without the OPENHPI prefix)                  
-           ON_EP, LOG_ON_SEV, EVT_QUEUE_LIMIT,         
+           LOG_ON_SEV, EVT_QUEUE_LIMIT,         
            DEL_SIZE_LIMIT, DEL_SAVE                    
            DAT_SIZE_LIMIT, DAT_USER_LIMIT, DAT_SAVE    
            PATH, VARPATH, CONF                         
