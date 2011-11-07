@@ -41,7 +41,6 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/types.h>
-#include <uuid/uuid.h>
 #include <linux/types.h>
 #include <linux/ioctl.h>
 #include <linux/watchdog.h>
