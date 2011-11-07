@@ -20,7 +20,6 @@
 
 #include <string.h>
 #include <sys/time.h>
-#include <uuid/uuid.h>
 #include <unistd.h>
 
 #include <SaHpi.h>
