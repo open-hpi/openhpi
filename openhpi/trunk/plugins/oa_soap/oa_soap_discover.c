@@ -937,6 +937,7 @@ SaErrorT build_enclosure_rdr(struct oh_handler_state *oh_handler,
 	}
 
         /* Build thermal sensor rdr for the enclosure */
+	event_support = SAHPI_TRUE;
 	OA_SOAP_BUILD_THRESHOLD_SENSOR_RDR(OA_SOAP_SEN_TEMP_STATUS,
 					   thermal_response)
 
@@ -1684,6 +1685,7 @@ SaErrorT build_server_rdr(struct oh_handler_state *oh_handler,
 	struct getBladeStatus status_request;
 	struct bladeStatus status_response;
 	SaHpiInt32T sensor_status;
+        SaHpiBoolT event_support = SAHPI_FALSE;
 	enum diagnosticStatus diag_ex_status[OA_SOAP_MAX_DIAG_EX];
 
         if (oh_handler == NULL || con == NULL) {
@@ -1728,6 +1730,7 @@ SaErrorT build_server_rdr(struct oh_handler_state *oh_handler,
 		err("Failed to build thermal rdr");
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
+        event_support = SAHPI_TRUE;
 
         /* Build power sensor rdr for server */
 	OA_SOAP_BUILD_SENSOR_RDR(OA_SOAP_SEN_PWR_STATUS)
