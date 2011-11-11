@@ -230,13 +230,6 @@ int main(int argc, char *argv[])
         display_help();
     }
 
-    // see if we have a valid configuration file
-    if ((!cfgfile) || (!g_file_test(cfgfile, G_FILE_TEST_EXISTS))) {
-        CRIT("Cannot find configuration file. Exiting.");
-        display_help();
-        exit(-1);
-    }
-
     // announce ourselves
     INFO("Starting OpenHPI %s.", VERSION);
     if (cfgfile) {
