@@ -20,6 +20,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#ifdef _WIN32
+#include <windows.h>
+#endif /* _WIN32 */
+
+#include <glib.h>
 
 #include <oHpi.h>
 
@@ -67,7 +72,16 @@ void ohc_conf_init(void)
         if (config_file != NULL) {
             load_client_config(config_file);
         } else {
+#ifdef _WIN32
+            char buf[MAX_PATH];
+            config_file = &buf[0];
+            DWORD cc = ExpandEnvironmentStrings(OH_CLIENT_DEFAULT_CONF, config_file, MAX_PATH);
+            if ((cc != 0) && (cc < MAX_PATH)) {
+                load_client_config(config_file);
+            }
+#else
             load_client_config(OH_CLIENT_DEFAULT_CONF);
+#endif /* _WIN32 */
         }
 
         /* Check to see if a default domain exists, if not, add it */

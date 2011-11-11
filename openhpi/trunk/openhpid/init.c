@@ -14,6 +14,9 @@
  *      Bryan Sutula <sutula@users.sourceforge.net>
  *
  */
+#ifdef _WIN32
+#include <windows.h>
+#endif /* _WIN32 */
 
 #include <glib.h>
 
@@ -70,8 +73,20 @@ int oh_init(void)
 #endif
         /* Set openhpi configuration file location */
         oh_get_global_param2(OPENHPI_CONF, &param);
+#ifdef _WIN32
+        char config_file[MAX_PATH];
+        DWORD cc = ExpandEnvironmentStrings(param.u.conf, config_file, MAX_PATH);
+        if ((cc != 0) && (cc < MAX_PATH)) {
+            INFO("Loading config file %s.", config_file);
+            rval = oh_load_config(config_file, &config);
+        } else {
+            CRIT("Failed to expand config file path: %s", param.u.conf);
+            rval = SA_ERR_HPI_ERROR;
+        }
+#else
         INFO("Loading config file %s.", param.u.conf);
         rval = oh_load_config(param.u.conf, &config);
+#endif /* _WIN32 */
         /* Don't error out if there is no conf file */
         if (rval < 0 && rval != -4) {
                 CRIT("Can not load config.");
