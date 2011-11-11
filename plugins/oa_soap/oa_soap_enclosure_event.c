@@ -105,3 +105,94 @@ void oa_soap_proc_enc_status(struct oh_handler_state *oh_handler,
 
 	return;
 }
+
+/**
+ * process_enc_thermal_event
+ *      @oh_handler:  Pointer to openhpi handler structure
+ *      @con:         Pointer to the SOAP_CON structure
+ *      @response:    Pointer to the Enclosure thermal Info structure
+ *
+ * Purpose:
+ *      Processes and creates enclosure / chassis sensor thermal events
+ *
+ * Detailed Description: NA
+ *
+ * Return values: 
+ *      NONE
+ **/
+void oa_soap_proc_enc_thermal(struct oh_handler_state *oh_handler,
+                                       SOAP_CON *con,
+					struct thermalInfo *response)
+{
+        SaErrorT rv = SA_OK;
+        SaHpiResourceIdT resource_id;
+        struct oa_soap_handler *oa_handler = NULL;
+        SaHpiFloat64T trigger_reading;
+        SaHpiFloat64T trigger_threshold;
+        struct getThermalInfo thermal_request;
+        struct thermalInfo thermal_response;
+        struct oa_soap_sensor_info *sensor_info = NULL;
+        SaHpiRdrT *rdr = NULL;
+ 
+        if (oh_handler == NULL || con== NULL || response == NULL) {
+                err("Invalid parameters");
+                return;
+        }
+ 
+        oa_handler = (struct oa_soap_handler *) oh_handler->data;
+        resource_id = oa_handler->
+                oa_soap_resources.enclosure_rid;
+ 
+        rdr = oh_get_rdr_by_type(oh_handler->rptcache, resource_id,
+                                 SAHPI_SENSOR_RDR, OA_SOAP_SEN_TEMP_STATUS);
+        sensor_info = (struct oa_soap_sensor_info *)
+                        oh_get_rdr_data(oh_handler->rptcache, resource_id,
+                                        rdr->RecordId);
+ 
+        
+        /* Based on the sensor status,
+         * determine the threshold which triggered the thermal event from 
+	 * Enclosure.
+         * Event with SENSOR_STATUS_CAUTION or SENSOR_STATUS_OK is
+         * generated only if CAUTION threshold is crossed.
+         * Event with SENSOR_STATUS_CRITICAL is generated only when CRITICAL
+         * threshold is crossed.
+         * Sensor current reading and trigger threshold are required for event
+         * generation. Sensor current reading is not provided by the event,
+         * hence make soap call to get the reading
+         */
+        thermal_request.bayNumber = 1;
+        thermal_request.sensorType = SENSOR_TYPE_ENC;
+ 
+        rv = soap_getThermalInfo(con, &thermal_request, &thermal_response);
+        if (rv != SOAP_OK) {
+                err("soap_getThermalInfo soap call returns error");
+                return;
+        }
+ 
+        trigger_reading = (SaHpiInt32T)thermal_response.temperatureC;
+ 
+        if ((response->sensorStatus == SENSOR_STATUS_CAUTION &&
+             sensor_info->current_state != SAHPI_ES_UPPER_MAJOR) ||
+            (response->sensorStatus == SENSOR_STATUS_OK &&
+              sensor_info->current_state !=  SAHPI_ES_UNSPECIFIED)) {
+                /* Trigger for this event is caution threshold */
+                trigger_threshold = thermal_response.cautionThreshold;
+        } else if (response->sensorStatus == SENSOR_STATUS_CRITICAL  &&
+                   sensor_info->current_state != SAHPI_ES_UPPER_CRIT) { 
+                /* Trigger for this event is critical threshold */
+                trigger_threshold = thermal_response.criticalThreshold;
+        } else {
+                dbg("Ignore the event. There is no change in the sensor state");
+                return;
+        }
+ 
+        /* Process the thermal event from Enclosure and generate appropriate 
+	 *  HPI event
+         */
+        OA_SOAP_PROCESS_SENSOR_EVENT(OA_SOAP_SEN_TEMP_STATUS,
+                                response->sensorStatus,
+                                trigger_reading,trigger_threshold)
+ 
+        return;
+}

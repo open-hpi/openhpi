@@ -689,7 +689,10 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                                 dbg("EVENT_FAN_GROUP_STATUS -- Not processed");
                                 break;
                         case EVENT_THERMAL_STATUS:
-                                dbg("EVENT_THERMAL_STATUS -- Not processed");
+                                dbg("EVENT_THERMAL_STATUS");
+				oa_soap_proc_enc_thermal(oh_handler,
+                                       oa->event_con2,
+                                       &(event.eventData.thermalInfo));
                                 break;
                         case EVENT_COOLING_STATUS:
 				dbg("EVENT_COOLING_STATUS");
@@ -854,6 +857,12 @@ void process_oa_events(struct oh_handler_state *oh_handler,
 				oa_soap_proc_server_status(oh_handler,
 						oa->event_con2,
 						&(event.eventData.bladeStatus));
+                                break;
+                        case EVENT_BLADE_THERMAL:
+                                dbg("EVENT_BLADE_THERMAL");
+                                oa_soap_proc_server_thermal(oh_handler,
+                                                oa->event_con2,
+                                                &(event.eventData.bladeStatus));
                                 break;
                         case EVENT_BLADE_INFO:
                                 dbg("EVENT_BLADE_INFO");
