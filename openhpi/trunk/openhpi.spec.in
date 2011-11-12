@@ -65,11 +65,6 @@ BuildRequires: pkgconfig automake autoconf libtool gcc-c++ glib2-devel libstdc++
 %if 0%{?with_openssl}
 BuildRequires: openssl-devel
 %endif
-%if 0%{?suse_version}
-BuildRequires: tcpd-devel
-%else
-BuildRequires: tcp_wrappers
-%endif
 Requires: glib2 libstdc++
 %if 0%{?with_openssl}
 Requires: openssl
