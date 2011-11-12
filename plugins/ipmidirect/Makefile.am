@@ -122,7 +122,7 @@ libipmidirect_la_SOURCES= \
 		thread.h \
 		thread.cpp
 
-libipmidirect_la_LIBADD	= @CRYPTO_LIB@ -luuid -lm -lstdc++ $(top_builddir)/utils/libopenhpiutils.la
+libipmidirect_la_LIBADD	= @CRYPTO_LIB@ -lm -lstdc++ $(top_builddir)/utils/libopenhpiutils.la
 libipmidirect_la_LDFLAGS= -module -version-info @HPI_LIB_VERSION@
 
 clean-local:

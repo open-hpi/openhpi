@@ -127,7 +127,7 @@ libdyn_simulator_la_SOURCES= \
 		thread.h \
 		thread.cpp
 
-libdyn_simulator_la_LIBADD	= -luuid -lm -lstdc++ $(top_builddir)/utils/libopenhpiutils.la
+libdyn_simulator_la_LIBADD	= -lm -lstdc++ $(top_builddir)/utils/libopenhpiutils.la
 libdyn_simulator_la_LDFLAGS= -module -version-info @HPI_LIB_VERSION@
 
 clean-local:

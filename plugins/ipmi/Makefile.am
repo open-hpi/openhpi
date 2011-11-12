@@ -69,6 +69,6 @@ libipmi_la_SOURCES	= ipmi.c 		\
 			  atca_shelf_fru.c	\
 			  ipmi.h
 			  
-libipmi_la_LIBADD	= $(top_builddir)/utils/libopenhpiutils.la -luuid -lncurses -lOpenIPMI -lOpenIPMIposix @OPENIPMI_LIBS@
+libipmi_la_LIBADD	= $(top_builddir)/utils/libopenhpiutils.la -lncurses -lOpenIPMI -lOpenIPMIposix @OPENIPMI_LIBS@
 #libipmi_la_LDFLAGS	= -module -version-info @HPI_LIB_VERSION@ -export-symbols $(srcdir)/ipmi.sym
 libipmi_la_LDFLAGS	= -module -version-info @HPI_LIB_VERSION@ -export-dymanic $(srcdir)/ipmi.sym

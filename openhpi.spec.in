@@ -61,7 +61,7 @@ URL: http://www.openhpi.org
 Source: http://prdownloads.sourceforge.net/openhpi/%{name}-%{version}.tar.gz
 #
 Buildroot: %{_rpmtopdir}/INSTALL
-BuildRequires: pkgconfig automake autoconf libtool gcc-c++ glib2-devel libstdc++-devel %{uuid_provider}-devel
+BuildRequires: pkgconfig automake autoconf libtool gcc-c++ glib2-devel libstdc++-devel
 %if 0%{?with_openssl}
 BuildRequires: openssl-devel
 %endif
@@ -70,7 +70,7 @@ BuildRequires: tcpd-devel
 %else
 BuildRequires: tcp_wrappers
 %endif
-Requires: glib2 libstdc++ %{uuid_provider}
+Requires: glib2 libstdc++
 %if 0%{?with_openssl}
 Requires: openssl
 %endif
@@ -129,8 +129,8 @@ Requires: openhpi = %{version}
 %package bladecenter
 Summary: OpenHPI plugin for the IBM Blade Center
 Group: System/Monitoring
-BuildRequires: net-snmp-devel
-Requires: openhpi = %{version} net-snmp > 5.0
+BuildRequires: net-snmp-devel %{uuid_provider}-devel
+Requires: openhpi = %{version} net-snmp > 5.0 %{uuid_provider}
 %endif
 
 %if 0%{?with_sysfs}

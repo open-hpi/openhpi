@@ -37,6 +37,6 @@ librtas2hpi_la_SOURCES	=  rtas.h rtas.c \
 			   rtas_utils.h rtas_utils.c \
 			   rtas_watchdog.h rtas_watchdog.c
 			   
-librtas2hpi_la_LIBADD	= -luuid -lrtas -lrtasevent $(top_builddir)/utils/libopenhpiutils.la
+librtas2hpi_la_LIBADD	= -lrtas -lrtasevent $(top_builddir)/utils/libopenhpiutils.la
 librtas2hpi_la_LDFLAGS	= -module -version-info @HPI_LIB_VERSION@
 
