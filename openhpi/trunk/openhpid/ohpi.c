@@ -38,11 +38,7 @@
 
 /**
  * oHpiVersionGet
- *
- * Returns the version of the library as a SaHpiUint64T type.
- * The version consists of 3 16-bit integers: MAJOR, MINOR, and PATCH.
  */
-
 SaHpiUint64T oHpiVersionGet()
 {
         SaHpiUint64T v = 0;
@@ -56,18 +52,6 @@ SaHpiUint64T oHpiVersionGet()
 
 /**
  * oHpiHandlerCreate
- * @sid:    IN.     a valid session id
- * @config: IN.     Hash table. Holds configuration information used by handler.
- * @id:     IN/OUT. The id of the newly created handler is returned here.
- *
- * Creates a new handler (instance of a plugin). Plugin handlers are what
- * respond to most API calls.
- * @config needs to have an entry for "plugin" in order to know for which
- * plugin the handler is being created.
- *
- * Returns: SA_OK on success. SA_ERR_HPI_INTERNAL_ERROR if a handler is
- * created, but failed to open. oHpiHandlerRetry can be used to retry
- * opening the handler.
  **/
 SaErrorT SAHPI_API oHpiHandlerCreate (
      SAHPI_IN    SaHpiSessionIdT sid,
@@ -101,12 +85,6 @@ SaErrorT SAHPI_API oHpiHandlerCreate (
 
 /**
  * oHpiHandlerDestroy
- * @sid:    IN.     a valid session id
- * @id:     IN.     The id of the handler to destroy
- *
- * Destroys a handler. Calls the plugin's abi close function.
- *
- * Returns: SA_OK on success. Minus SA_OK on error.
  **/
 SaErrorT SAHPI_API oHpiHandlerDestroy (
      SAHPI_IN    SaHpiSessionIdT sid,
@@ -174,15 +152,6 @@ SaErrorT SAHPI_API oHpiHandlerDestroy (
 
 /**
  * oHpiHandlerInfo
- * @sid:    IN.     a valid session id
- * @id:     IN.     The id of the handler to query
- * @info:   IN/OUT. Pointer to struct for holding handler information
- * @conf_params: IN/OUT Pointer to pre-allocated hash-table, for holding the
- *               handler's configuration parameters
- *
- * Queries a handler for the information associated with it.
- *
- * Returns: SA_OK on success. Minus SA_OK on error.
  **/
 // function to copy hash table
 static void copy_hashed_config_info (gpointer key, gpointer value, gpointer newhash)
@@ -245,16 +214,6 @@ SaErrorT SAHPI_API oHpiHandlerInfo (
 
 /**
  * oHpiHandlerGetNext
- * @sid:     IN.     a valid session id
- * @id:      IN.     Id of handler to search for.
- * @next_id: OUT.    The id of the handler next to the handler being searched for
- *                   will be returned here.
- *
- * Used for iterating through all loaded handlers. If you pass
- * 0 (SAHPI_FIRST_ENTRY), you will get the id of the first handler returned
- * in next_id.
- *
- * Returns: SA_OK on success. Minus SA_OK on error.
  **/
 SaErrorT SAHPI_API oHpiHandlerGetNext (
      SAHPI_IN    SaHpiSessionIdT sid,
@@ -286,15 +245,6 @@ SaErrorT SAHPI_API oHpiHandlerGetNext (
 
 /**
  * oHpiHandlerFind
- * @sid:    IN.     a valid session id
- * @rid:    IN.     resource id
- * @id:     OUT     pointer where handler id found will be placed.
- *
- * Inputs are the @sid and @rid. @rid corresponds to some resource available
- * in that session. The function then will return the handler that served such
- * resource.
- *
- * Returns: SA_OK if handler was found.
  **/
 SaErrorT SAHPI_API oHpiHandlerFind (
      SAHPI_IN    SaHpiSessionIdT sid,
@@ -334,10 +284,6 @@ SaErrorT SAHPI_API oHpiHandlerFind (
 
 /**
  * oHpiHandlerRetry
- * @sid:    IN.     a valid session id
- * @id:     IN      handler id
- *
- * Returns: SA_OK if handler opens successfully.
  **/
 SaErrorT SAHPI_API oHpiHandlerRetry (
      SAHPI_IN    SaHpiSessionIdT sid,
@@ -388,12 +334,6 @@ SaErrorT SAHPI_API oHpiHandlerRetry (
 
 /**
  * oHpiGlobalParamGet
- * @sid:    IN.     a valid session id
- * @param:  IN/OUT  param->type needs to be set to know what parameter to fetch.
- *
- * Gets the value of the specified global parameter.
- *
- * Returns: SA_OK on success. Minus SA_OK on error.
  **/
 SaErrorT SAHPI_API oHpiGlobalParamGet (
      SAHPI_IN    SaHpiSessionIdT sid,
@@ -433,13 +373,6 @@ SaErrorT SAHPI_API oHpiGlobalParamGet (
 
 /**
  * oHpiGlobalParamSet
- * @sid:    IN.     a valid session id
- * @param:  IN.     param->type needs to be set to know what parameter to set.
- *                  Also, the appropiate value in param->u needs to be filled in.
- *
- * Sets a global parameter.
- *
- * Returns: SA_OK on success. Minus SA_OK on error.
  **/
 SaErrorT SAHPI_API oHpiGlobalParamSet (
      SAHPI_IN    SaHpiSessionIdT sid,
@@ -478,23 +411,6 @@ SaErrorT SAHPI_API oHpiGlobalParamSet (
 
 /**
  * oHpiInjectEvent
- * @sid:    IN.     a valid session id
- * @id:     IN.     id of handler into which the event will be injected.
- * @event:  IN.     pointer to the event to be injected.
- * @rpte:   IN.     pointer to the resource to be injected.
- * @rdrs:   IN.     pointer to the list of RDRs to be injected along with @resoruce
- *
- * @id and @event are required parameters. @rpte is only required if the event
- * is of RESOURCE type or HOTSWAP type. @rdrs is an optional argument in all
- * cases and can be NULL. If @rdrs is passed, it will be copied. It is the
- * responsibility of the caller to clean up the RDRs list once it is used here.
- *
- * Returns: SA_OK on success. This call will set the event.Source, rpte.ResourceId,
- * rpte.ResourceEntity so that the caller knows what the final assigned values were.
- * For rpte.ResourceEntity, the entity_root configuration parameter for the plugin
- * is used to complete it. In addition, for each rdr in @rdrs, a Num, RecordId,
- * and Entity will be assigned. This will also be reflected in the passed @rdrs
- * list so that the caller can know what the assigned values were.
  **/
 SaErrorT SAHPI_API oHpiInjectEvent (
      SAHPI_IN    SaHpiSessionIdT sid,
@@ -555,13 +471,6 @@ SaErrorT SAHPI_API oHpiInjectEvent (
 
 /**
  * oHpiDomainAdd
- * @host: host name of domain config item
- * @port: port for domain config item
- * @entity_root: entity path to be added to all resources/rdrs
- * @domain_id: domain_id for newly created domain config item
- *
- * Returns: SA_OK on success and fills domain_id.
- *
  * Currently only available in client library, but not in daemon
  **/
 SaErrorT SAHPI_API oHpiDomainAdd (
@@ -576,13 +485,6 @@ SaErrorT SAHPI_API oHpiDomainAdd (
 
 /**
  * oHpiDomainAddById
- * @host: host name of domain config item
- * @port: port for domain config item
- * @entity_root: entity path to be added to all resources/rdrs
- * @domain_id: domain_id for newly created domain config item
- *
- * Returns: SA_OK on success and fills domain_id.
- *
  * Currently only available in client library, but not in daemon
  **/
 SaErrorT SAHPI_API oHpiDomainAddById (
@@ -597,15 +499,6 @@ SaErrorT SAHPI_API oHpiDomainAddById (
 
 /**
  * oHpiDomainEntryGet
- * @EntryId:     id of an entry of the library's domain table
- *               or SAHPI_FIRST_ENTRY
- * @NextEntryId: id of the next entry of the library's domain table
- *               or SAHPI_LAST_ENTRY
- * @DomainEntry: configuration info of the domain listed in
- *               the entry identified by NextEntryId
- *
- * Returns: SA_OK on success and fills DomainEntry
- *
  * Currently only available in client library, but not in daemon
  **/
 SaErrorT SAHPI_API oHpiDomainEntryGet (
