@@ -1225,7 +1225,11 @@ static ret_code_t reopen_session(void)
         do {
            rv = saHpiSessionClose(Domain->sessionId);
            sleep( 1 );
-        } while ( fflag == 0 && rv != SA_OK && rv != SA_ERR_HPI_NO_RESPONSE );
+        } while ( ( fflag == 0 ) &&
+                  ( rv != SA_OK ) &&
+                  ( rv != SA_ERR_HPI_NO_RESPONSE ) &&
+                  ( rv != SA_ERR_HPI_INVALID_SESSION )
+        );
         if (rv != SA_OK) {
                 printf("saHpiSessionClose error %s\n", oh_lookup_error(rv));
         }
