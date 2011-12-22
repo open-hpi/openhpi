@@ -575,6 +575,7 @@ SaErrorT process_server_info_event(struct oh_handler_state
         char *name = NULL;
 	struct bladeInfo *response;
         SaHpiResourceIdT resource_id;
+       	char blade_name[MAX_NAME_LEN];
 
         if (oh_handler == NULL || oa_event == NULL) {
                 err("Invalid oh_handler and/or oa_event parameters");
@@ -621,12 +622,15 @@ SaErrorT process_server_info_event(struct oh_handler_state
                  &oa_handler->oa_soap_resources.server, bay_number,
                  serial_number, resource_id, RES_PRESENT);
 
+        /* Convert Blade name lower to upper */
+        convert_lower_to_upper(name, strlen(name),
+                 blade_name, MAX_NAME_LEN);
         /* The RDR already exist, but the relevant data is available only now
          * So just go ahead and correct it. When building the RDR the code does
          * take care of already existing RDR.
          */
         rv = build_server_rdr(oh_handler, con,
-                                    bay_number, resource_id, name);
+                                    bay_number, resource_id, blade_name);
         g_free(serial_number);
         return SA_OK;
 }
