@@ -340,6 +340,50 @@ SaErrorT process_oa_failover_event(struct oh_handler_state *oh_handler,
 }
 
 /**
+ * process_oa_reboot_event
+ *      @oh_handler: Pointer to openhpi handler structure
+ *      @oa:         Pointer to the OA structure
+ *
+ * Purpose:
+ *      Gets the OA REBOOT event.
+ *      perform the rediscovery for all the resources.
+ *
+ * Detailed Description:
+ *      - OA needs some time to stabilize, after getting the OA REBOOT event,
+ *        plug-in starts checking for events after 90 seconds
+	- Establish the new connection with OA.
+ *      - Since there are high chances for missing the information of changes
+ *        in the resources, re-discovery will be done before start listening
+ *        for events.
+ * Return values:
+ *      SA_OK                     - on success.
+ *      SA_ERR_HPI_INVALID_PARAMS - on wrong parameters.
+ **/
+SaErrorT process_oa_reboot_event(struct oh_handler_state *oh_handler,
+                                   struct oa_info *oa)
+{
+	SaErrorT rv = SA_OK;
+	SaHpiInt32T sleep_time = 0;
+	dbg("\nThread id = %p \n",g_thread_self());
+
+	if (oh_handler == NULL || oa == NULL) {
+		err("Invalid parameters");
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
+	sleep_time = OA_STABILIZE_MAX_TIME;
+	dbg("Sleeping for %d seconds", sleep_time);
+	if (sleep_time > 0) {
+		sleep(sleep_time);
+	}
+    /* Call the oa_soap error handling function to re establish the connection
+     * with OA and rediscover all the resources
+     */
+	oa_soap_error_handling(oh_handler, oa);
+
+	return SA_OK;
+}
+
+/**
  * process_oa_info_event
  *      @oh_handler: Pointer to openhpi handler structure
  *      @con:        Pointer to SOAP_CON structure

@@ -1082,8 +1082,9 @@ SaErrorT add_server_blade(struct oh_handler_state *oh_handler,
 	convert_lower_to_upper(response.name, strlen(response.name),
 			       blade_name, MAX_NAME_LEN);
 
-        /* Build the server RPR entry */
-        rv = build_discovered_server_rpt(oh_handler, con, info, &resource_id);
+        /* Build the server RPT entry */
+        rv = build_discovered_server_rpt(oh_handler, con, &response,
+                                         &resource_id);
         if (rv != SA_OK) {
                 err("build inserted server rpt failed");
                 return rv;

@@ -295,14 +295,13 @@ void oa_soap_push_power_events(struct oh_handler_state *oh_handler,
 
         /* Make a soap call to get the enclosure power cap config which */
         /* may contain new dynamic power cap limits                     */
+        dbg("\n Threadid=%p \n",g_thread_self());
 
-        g_mutex_lock(oa_handler->mutex);
         rv = soap_getPowerCapConfig(oa_handler->active_con,
                                     power_cap_config,
                                     &(oa_handler->desired_dynamic_pwr_cap),
                                     &(oa_handler->desired_derated_circuit_cap),
                                     &(oa_handler->desired_rated_circuit_cap));
-        g_mutex_unlock(oa_handler->mutex);
 
         if (rv != SOAP_OK) {
                 err("Getting the power cap config failed");
