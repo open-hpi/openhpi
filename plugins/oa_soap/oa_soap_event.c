@@ -230,6 +230,7 @@ gpointer oa_soap_event_thread(gpointer oa_pointer)
 
         /* Listen for the events from OA */
         while (listen_for_events == SAHPI_TRUE) {
+                request.pid = oa->event_pid;
         	OA_SOAP_CHEK_SHUTDOWN_REQ(oa_handler, NULL, NULL, NULL);
                 rv = soap_getAllEvents(oa->event_con, &request, &response);
                 if (rv == SOAP_OK) {
@@ -628,6 +629,8 @@ void process_oa_events(struct oh_handler_state *oh_handler,
         	OA_SOAP_CHEK_SHUTDOWN_REQ(oa_handler, NULL, NULL, NULL);
                 /* Get the event from eventInfoArray */
                 soap_getEventInfo(response->eventInfoArray, &event);
+		dbg("\nThread id=%p event %d received\n",
+				g_thread_self(), event.event);
                 switch (event.event) {
                         case EVENT_HEARTBEAT:
                                 dbg("HEART BEAT EVENT");
@@ -1078,7 +1081,8 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                                 dbg("EVENT_GROUP_CHANGED -- Not processed");
                                 break;
                         case EVENT_OA_REBOOT:
-                                dbg("EVENT_OA_REBOOT -- Not processed");
+                                dbg("EVENT_OA_REBOOT");
+                                rv = process_oa_reboot_event(oh_handler, oa);
                                 break;
                         case EVENT_OA_LOGOFF_REQUEST:
                                 dbg("EVENT_OA_LOGOFF_REQUEST -- Not processed");

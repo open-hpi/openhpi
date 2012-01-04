@@ -44,6 +44,9 @@ SaErrorT process_oa_extraction_event(struct oh_handler_state *oh_handler,
 SaErrorT process_oa_failover_event(struct oh_handler_state *oh_handler,
                                    struct oa_info *oa);
 
+SaErrorT process_oa_reboot_event(struct oh_handler_state *oh_handler,
+                                   struct oa_info *oa);
+
 SaErrorT process_oa_info_event(struct oh_handler_state *oh_handler,
                                SOAP_CON *con,
                                struct eventInfo *oa_event);
