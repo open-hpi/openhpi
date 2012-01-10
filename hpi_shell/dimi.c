@@ -360,8 +360,7 @@ static ret_code_t show_test_results( SaHpiSessionIdT sessionId,
 {
     SaErrorT rv;
     SaHpiDimiTestResultsT results;
-    char date[30];
-    
+    SaHpiTextBufferT tb;
 
     rv = saHpiDimiTestResultsGet( sessionId, rptid, diminum, testnum, &results );
     if ( rv != SA_OK ) {
@@ -371,8 +370,8 @@ static ret_code_t show_test_results( SaHpiSessionIdT sessionId,
 
     printf( "Test number: %d\n", (int)testnum );
 
-    time2str( results.ResultTimeStamp, date, sizeof(date) );
-    printf( "    Result timestamp: %s\n", date );
+    oh_decode_time( results.ResultTimeStamp, &tb );
+    print_text_buffer_text("    Result timestamp: ", &tb, "\n", ui_print);
     printf( "    Run duration: %lld nsec\n", results.RunDuration );
     printf( "    Last run status: %s\n", oh_lookup_dimitestrunstatus( results.LastRunStatus ) );
 
