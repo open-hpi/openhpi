@@ -173,7 +173,6 @@ extern SaErrorT	show_threshold(SaHpiSessionIdT sessionid, SaHpiResourceIdT resou
 			SaHpiSensorNumT sensornum, SaHpiSensorRecT *sen,
 			hpi_ui_print_cb_t proc);
 extern SaErrorT	sensor_list(SaHpiSessionIdT sessionid, hpi_ui_print_cb_t proc);
-extern void	time2str(SaHpiTimeT time, char * str, size_t size);
 
 #endif /* __HPI_UI_H */
 

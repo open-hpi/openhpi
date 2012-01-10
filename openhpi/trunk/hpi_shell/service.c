@@ -976,27 +976,6 @@ void free_attrs(Attributes_t *At)
 	free(At->Attrs);
 }
 
-void time2str(SaHpiTimeT time, char * str, size_t size)
-{
-	struct tm t;
-	time_t tt;
-	
-	if (!str) return;
-
-        if (time > SAHPI_TIME_MAX_RELATIVE) { /*absolute time*/
-                tt = time / 1000000000;
-                strftime(str, size, "%F %T", localtime(&tt));
-        } else if (time ==  SAHPI_TIME_UNSPECIFIED) { 
-                strcpy(str,"SAHPI_TIME_UNSPECIFIED     ");
-        } else if (time > SAHPI_TIME_UNSPECIFIED) { /*invalid time*/
-                strcpy(str,"invalid time     ");
-        } else {   /*relative time*/
-		tt = time / 1000000000;
-		localtime_r(&tt, &t);
-		strftime(str, size, "%b %d, %Y - %H:%M:%S", &t);
-	}
-}
-
 char *get_attr_name(Attributes_t *Attrs, int num)
 {
 	if ((num < 0) || (num >= Attrs->n_attrs))

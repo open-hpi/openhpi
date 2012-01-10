@@ -1354,10 +1354,10 @@ static ret_code_t entity_resources(void)
 
 static ret_code_t domain_info(void)
 {
-        SaHpiDomainInfoT        info;
-        SaHpiTextBufferT        *buf;
-        SaErrorT                rv;
-        char                    date[30];
+        SaHpiDomainInfoT info;
+        SaHpiTextBufferT *buf;
+        SaHpiTextBufferT tb;
+        SaErrorT         rv;
 
         rv = saHpiDomainInfoGet(Domain->sessionId, &info);
         if (rv != SA_OK) {
@@ -1371,15 +1371,15 @@ static ret_code_t domain_info(void)
         buf = &(info.DomainTag);
         print_text_buffer_text("    Tag: ", buf, NULL, ui_print);
         printf("\n");
-        time2str(info.DrtUpdateTimestamp, date, 30);
-        printf("    DRT update count: %d   DRT Timestamp : %s\n",
-                info.DrtUpdateCount, date);
-        time2str(info.RptUpdateTimestamp, date, 30);
-        printf("    RPT update count: %d   RPT Timestamp : %s\n",
-                info.RptUpdateCount, date);
-        time2str(info.DatUpdateTimestamp, date, 30);
-        printf("    DAT update count: %d   DAT Timestamp : %s\n",
-                info.DatUpdateCount, date);
+        printf("    DRT update count: %d", info.DrtUpdateCount);
+        oh_decode_time(info.DrtUpdateTimestamp, &tb);
+        print_text_buffer_text("   DRT Timestamp : ", &tb, "\n", ui_print);
+        printf("    RPT update count: %d", info.RptUpdateCount);
+        oh_decode_time(info.RptUpdateTimestamp, &tb);
+        print_text_buffer_text("   RPT Timestamp : ", &tb, "\n", ui_print);
+        printf("    DAT update count: %d", info.DatUpdateCount);
+        oh_decode_time(info.DatUpdateTimestamp, &tb);
+        print_text_buffer_text("   DAT Timestamp : ", &tb, "\n", ui_print);
         printf("        ActiveAlarms: %d   CriticalAlarms: %d   Major: %d "
                 "Minor: %d   Limit: %d\n",
                 info.ActiveAlarms, info.CriticalAlarms, info.MajorAlarms,
