@@ -49,6 +49,7 @@ out: all
 	cp baselib/libopenhpi.dll ${libs}
 	mkdir -p ${devel}
 	cat include/SaHpi.h | sed -e 's/ __attribute__.*/;/' -e 's/#define SAHPI_API/#define SAHPI_API __declspec(dllimport)/' > ${devel}/SaHpi.h
+	cp include/SaHpiXtca.h ${devel}
 	cp include/oHpi.h ${devel}
 	cp utils/libopenhpiutils.a ${devel}
 	cp utils/libopenhpiutils.def ${devel}
