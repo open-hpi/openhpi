@@ -1090,15 +1090,13 @@ static ret_code_t wdt_set(void)
                 return(HPI_SHELL_PARM_ERROR);
         };
         if (strcmp(tmp, "no") == 0)
-                watchdog.TimerAction = SAHPI_WAE_NO_ACTION;
+                watchdog.TimerAction = SAHPI_WA_NO_ACTION;
         else if (strcmp(tmp, "reset") == 0)
-                watchdog.TimerAction = SAHPI_WAE_RESET;
+                watchdog.TimerAction = SAHPI_WA_RESET;
         else if (strcmp(tmp, "pwr_down") == 0)
-                watchdog.TimerAction = SAHPI_WAE_POWER_DOWN;
+                watchdog.TimerAction = SAHPI_WA_POWER_DOWN;
         else if (strcmp(tmp, "pwr_cycle") == 0)
-                watchdog.TimerAction = SAHPI_WAE_POWER_CYCLE;
-        else if (strcmp(tmp, "int") == 0)
-                watchdog.TimerAction = SAHPI_WAE_TIMER_INT;
+                watchdog.TimerAction = SAHPI_WA_POWER_CYCLE;
         else {
                 printf("Invalid TimerAction value: %s\n", tmp);
                 return(HPI_SHELL_PARM_ERROR);
