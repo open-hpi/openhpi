@@ -86,9 +86,8 @@ static GOptionEntry daemon_options[] =
                                     "                            and NOT as a daemon. The default is to run as\n"
                                     "                            a daemon. The option is optional.",                 NULL },
   { "ipv6",      '6', 0, G_OPTION_ARG_NONE,   &enableIPv6,      "The daemon will try to bind IPv6 socket.",          NULL },
-  { "ipv4",      '4', 0, G_OPTION_ARG_NONE,   &enableIPv4,      "The daemon will try to bind IPv4 socket.\n"
-                                    "                            Can be combined with ipv6 option, to bind IPv4\n"
-                                    "                            or IPv6 socket.",                                   NULL },
+  { "ipv4",      '4', 0, G_OPTION_ARG_NONE,   &enableIPv4,      "The daemon will try to bind IPv4 socket (default).\n"
+                                    "                            IPv6 option takes precedence over IPv6 option.",    NULL },
 
   { NULL }
 };
@@ -134,9 +133,8 @@ void display_help(void)
     printf("                            and NOT as a daemon. The default is to run as\n");
     printf("                            a daemon. The option is optional.\n");
     printf("  -6, --ipv6                The daemon will try to bind IPv6 socket.\n");
-    printf("  -4, --ipv4                The daemon will try to bind IPv4 socket.\n");
-    printf("                            Can be combined with ipv6 option, to bind IPv4\n");
-    printf("                            or IPv6 socket.\n\n");
+    printf("  -4, --ipv4                The daemon will try to bind IPv4 socket (default).\n");
+    printf("                            IPv6 option takes precedence over IPv6 option.\n\n");
 }
 
 /*--------------------------------------------------------------------*/
@@ -314,8 +312,8 @@ static void sig_handler( int signum )
 
 int main(int argc, char *argv[])
 {
-    int ipvflags              = 0;
-    const char *pidfile       = "/var/run/openhpid.pid";
+    int ipvflags;
+    const char *pidfile = "/var/run/openhpid.pid";
     GError *error = NULL;
     GOptionContext *context;
 
@@ -351,15 +349,7 @@ int main(int argc, char *argv[])
     if (portstr) {
         port = atoi(portstr);
     }
-    if (enableIPv4) {
-        ipvflags |= FlagIPv4;
-    }
-    if (enableIPv6) {
-        ipvflags |= FlagIPv6;
-    }
-    if (ipvflags == 0) {
-        ipvflags = FlagIPv4;
-    }
+    ipvflags = ( enableIPv6 == TRUE ) ? FlagIPv6 : FlagIPv4;
     if (optpidfile) {
         pidfile = g_strdup(optpidfile);
     }
