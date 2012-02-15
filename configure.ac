@@ -93,8 +93,8 @@ PKG_CFG_SETPATH
 
 # check for gcc version
 
-AC_MSG_CHECKING(gcc >= 3.2.0)
-OH_CHECK_GCC(3,2,0)
+AC_MSG_CHECKING(gcc >= 3.2)
+OH_CHECK_GCC(3,2)
 
 dnl glib 2.x checks
 GLIB_REQUIRED_VERSION=2.12
