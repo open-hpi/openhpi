@@ -130,9 +130,7 @@ AC_DEFUN([OH_CHECK_GCC],
                 print "OK"; \
             } \
             if( $[2] == $2 ) { \
-                if( $[3] >= $3 ) { \
-                    print "OK"; \
-                } \
+                print "OK"; \
             } \
         } \
     }'` \
@@ -140,7 +138,7 @@ AC_DEFUN([OH_CHECK_GCC],
     if test "$GCCVERSIONOK" = "OK"; then
         AC_MSG_RESULT(yes)
     else
-        OH_CHECK_FAIL(gcc >= $1.$2.$3 is required to build OpenHPI)
+        OH_CHECK_FAIL(gcc >= $1.$2 is required to build OpenHPI)
     fi
 ])
     
