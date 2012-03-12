@@ -124,21 +124,26 @@ public class Hpi extends HpiGen
         long DimiNum,
         long TestNum,
         long NumberOfParams,
-        SaHpiDimiTestVariableParamsT ParamsList
+        SaHpiDimiTestVariableParamsT[] ParamsList
     ) throws HpiException
     {
-        // TODO
-        return SA_ERR_HPI_UNSUPPORTED_API;
-/*
-
         long rv;
         boolean rc;
 
-        rc = HpiUtil.check( ParamsList );
-        if ( !rc ) {
-            return SA_ERR_HPI_INVALID_PARAMS;
+        if ( NumberOfParams != 0 ) {
+            if ( ParamsList == null ) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+            }
+            if ( NumberOfParams > ParamsList.length ) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+            }
+            for ( int i = 0; i < NumberOfParams; ++i ) {
+                rc = HpiUtil.check( ParamsList[i] );
+                if ( !rc ) {
+                    return SA_ERR_HPI_INVALID_PARAMS;
+                }
+            }
         }
-
         HpiSession s = HpiCore.getSession( SessionId );
         if ( s == null ) {
             return SA_ERR_HPI_INVALID_SESSION;
@@ -153,7 +158,9 @@ public class Hpi extends HpiGen
         m.marshalSaHpiDimiNumT( DimiNum );
         m.marshalSaHpiDimiTestNumT( TestNum );
         m.marshalSaHpiUint8T( NumberOfParams );
-        m.marshalSaHpiDimiTestVariableParamsT( ParamsList );
+        for ( int i = 0; i < NumberOfParams; ++i ) {
+            m.marshalSaHpiDimiTestVariableParamsT( ParamsList[i] );
+        }
         rc = m.interchange( RPC_SAHPI_DIMI_TEST_START );
         if ( !rc ) {
             m.close();
@@ -166,7 +173,6 @@ public class Hpi extends HpiGen
         s.putMarshal( m );
 
         return rv;
-*/
     }
 
 };
