@@ -716,6 +716,7 @@ AC_CONFIG_FILES([openhpi.spec
         cpp/Makefile
         cpp/t/Makefile
         clients/Makefile
-        clients/hpixml/Makefile])
+        clients/hpixml/Makefile
+        baselibs/Makefile])
 
 AC_OUTPUT
