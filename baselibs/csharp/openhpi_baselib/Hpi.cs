@@ -111,19 +111,25 @@ public static partial class Api
         long DimiNum,
         long TestNum,
         long NumberOfParams,
-        SaHpiDimiTestVariableParamsT ParamsList
+        SaHpiDimiTestVariableParamsT[] ParamsList
     )
     {
-// TODO
-return HpiConst.SA_ERR_HPI_UNSUPPORTED_API;
-/*
         long rv;
         bool rc;
-        rc = HpiUtil.Check( ParamsList );
-        if ( !rc ) {
-            return HpiConst.SA_ERR_HPI_INVALID_PARAMS;
+        if ( NumberOfParams != 0 ) {
+            if ( ParamsList == null ) {
+                return HpiConst.SA_ERR_HPI_INVALID_PARAMS;
+            }
+            if ( NumberOfParams > ParamsList.Length ) {
+                return HpiConst.SA_ERR_HPI_INVALID_PARAMS;
+            }
+            for ( int i = 0; i < NumberOfParams; ++i ) {
+                rc = HpiUtil.Check( ParamsList[i] );
+                if ( !rc ) {
+                    return HpiConst.SA_ERR_HPI_INVALID_PARAMS;
+                }
+            }
         }
-
         HpiSession s = HpiCore.GetSession( SessionId );
         if ( s == null ) {
             return HpiConst.SA_ERR_HPI_INVALID_SESSION;
@@ -138,7 +144,9 @@ return HpiConst.SA_ERR_HPI_UNSUPPORTED_API;
         m.MarshalSaHpiDimiNumT( DimiNum );
         m.MarshalSaHpiDimiTestNumT( TestNum );
         m.MarshalSaHpiUint8T( NumberOfParams );
-        m.MarshalSaHpiDimiTestVariableParamsT( ParamsList );
+        for ( int i = 0; i < NumberOfParams; ++i ) {
+            m.MarshalSaHpiDimiTestVariableParamsT( ParamsList[i] );
+        }
         rc = m.Interchange( OhpiConst.RPC_SAHPI_DIMI_TEST_START );
         if ( !rc ) {
             m.Close();
@@ -151,7 +159,6 @@ return HpiConst.SA_ERR_HPI_UNSUPPORTED_API;
         s.PutMarshal( m );
 
         return rv;
-*/
     }
 
 };
