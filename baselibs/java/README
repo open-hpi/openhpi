@@ -114,7 +114,6 @@ the array length is valid.
 ================================================================================
 Current Limitations:
 
-- saHpiDimiTestStart is not supported
 - Only oHpiVersionGet() and oHpiDomainAdd() OpenHPI API are supported
 - openhpiclient.conf is not supported
 
@@ -123,7 +122,6 @@ TODO List:
 
 - Implemented openhpiclient.conf support
 - Implement the rest of OpenHPI API
-- Implement saHpiDimiTestStart
 - Domain ID translation for SAF HPI API
 - Entity root translation for SAF HPI API
 - XTCA entity types in HpiUtils
