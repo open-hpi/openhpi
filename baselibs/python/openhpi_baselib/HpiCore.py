@@ -1,10 +1,10 @@
 import re, os, threading
 
-from HpiDataTypes import SAHPI_UNSPECIFIED_DOMAIN_ID
-from HpiDomain import HpiDomain
-from HpiSession import HpiSession
-import HpiUtil
-from OhpiDataTypes import DEFAULT_PORT
+from openhpi_baselib.HpiDataTypes import SAHPI_UNSPECIFIED_DOMAIN_ID
+from openhpi_baselib.HpiDomain import HpiDomain
+from openhpi_baselib.HpiSession import HpiSession
+from openhpi_baselib import HpiUtil
+from openhpi_baselib.OhpiDataTypes import DEFAULT_PORT
 
 
 class HpiCore:

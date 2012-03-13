@@ -1,11 +1,11 @@
-from HpiDataTypes import *
-import HpiMarshalCore
+from openhpi_baselib.HpiDataTypes import *
+from openhpi_baselib.HpiMarshalCore import HpiMarshalCore
 
 
 #**********************************************************
 # HPI Marshal (auto-generated)
 #**********************************************************
-class HpiMarshal( HpiMarshalCore.HpiMarshalCore ):
+class HpiMarshal( HpiMarshalCore ):
 
     #**********************************************************
     # Marshal: For HPI Simple Data Types

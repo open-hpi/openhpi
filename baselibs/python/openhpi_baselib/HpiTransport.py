@@ -1,6 +1,6 @@
 import binascii, ctypes, socket, struct
-from HpiDataTypes import *
-from HpiException import HpiException
+from openhpi_baselib.HpiDataTypes import *
+from openhpi_baselib.HpiException import HpiException
 
 
 ######################################################################

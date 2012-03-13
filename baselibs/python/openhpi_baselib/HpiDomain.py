@@ -1,4 +1,4 @@
-from HpiDataTypes import SAHPI_UNSPECIFIED_DOMAIN_ID
+from openhpi_baselib.HpiDataTypes import SAHPI_UNSPECIFIED_DOMAIN_ID
 
 
 class HpiDomain:

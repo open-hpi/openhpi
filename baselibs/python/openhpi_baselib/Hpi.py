@@ -1,4 +1,4 @@
-from HpiGen import *
+from openhpi_baselib.HpiGen import *
 
 
 #**********************************************************
@@ -9,8 +9,11 @@ from HpiGen import *
 
 #**********************************************************
 def saHpiSessionOpen(
-    DomainId
+    DomainId,
+    SecurityParams
 ):
+    if SecurityParams is not None:
+        return ( SA_ERR_HPI_INVALID_PARAMS, None )
     s = HpiCore.createSession( DomainId )
     if s is None:
         return ( SA_ERR_HPI_INVALID_DOMAIN, None )

@@ -1,4 +1,4 @@
-from HpiDataTypes import *
+from openhpi_baselib.HpiDataTypes import *
 
 
 #**********************************************************
