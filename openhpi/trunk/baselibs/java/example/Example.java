@@ -31,7 +31,7 @@ public class Example
             System.out.printf( "DID = %d\n", did );
 
             saHpiSessionOpenOutputParamsT oo = new saHpiSessionOpenOutputParamsT();
-            rv = saHpiSessionOpen( did, oo );
+            rv = saHpiSessionOpen( did, null, oo );
             if ( rv != SA_OK ) {
                 System.out.printf( "Error: saHpiSessionOpen: %d\n", rv );
                 return;
