@@ -25,7 +25,7 @@ class Example
 
         Console.WriteLine( "DID = {0}", did );
 
-        rv = Api.saHpiSessionOpen( did, out sid );
+        rv = Api.saHpiSessionOpen( did, out sid, null );
         if ( rv != HpiConst.SA_OK ) {
             Console.WriteLine( "Error: saHpiSessionOpen: {0}", rv );
             return;
