@@ -14,13 +14,18 @@ public static partial class Api
 {
     public static long saHpiSessionOpen(
         long DomainId,
-        out long SessionId
+        out long SessionId,
+        Object SecurityParams
     )
     {
         long rv;
         bool rc;
 
         SessionId = 0;
+
+        if ( SecurityParams != null ) {
+            return HpiConst.SA_ERR_HPI_INVALID_PARAMS;
+        }
 
         HpiSession s = HpiCore.CreateSession( DomainId );
         if ( s == null ) {
