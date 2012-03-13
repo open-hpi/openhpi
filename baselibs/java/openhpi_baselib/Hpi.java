@@ -20,6 +20,7 @@ public class Hpi extends HpiGen
 
     public static long saHpiSessionOpen(
         long DomainId,
+        Object SecurityParams,
         saHpiSessionOpenOutputParamsT out
     ) throws HpiException
     {
@@ -29,6 +30,10 @@ public class Hpi extends HpiGen
 
         long rv;
         boolean rc;
+
+        if ( SecurityParams != null ) {
+            return SA_ERR_HPI_INVALID_PARAMS;
+        }
 
         HpiSession s = HpiCore.createSession( DomainId );
         if ( s == null ) {
