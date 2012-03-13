@@ -1,4 +1,4 @@
-from HpiDataTypesGen import *
+from openhpi_baselib.HpiDataTypesGen import *
 
 # empty
 

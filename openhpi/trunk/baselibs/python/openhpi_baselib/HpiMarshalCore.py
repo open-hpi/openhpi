@@ -1,4 +1,4 @@
-from HpiTransport import HpiTransport
+from openhpi_baselib.HpiTransport import HpiTransport
 
 
 class HpiMarshalCore:

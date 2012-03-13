@@ -1,6 +1,6 @@
 import collections, threading
-from HpiDomain import HpiDomain
-from HpiMarshalGen import HpiMarshal
+from openhpi_baselib.HpiDomain import HpiDomain
+from openhpi_baselib.HpiMarshalGen import HpiMarshal
 
 
 class HpiSession:

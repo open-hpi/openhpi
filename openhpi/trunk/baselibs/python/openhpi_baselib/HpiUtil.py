@@ -1,5 +1,5 @@
-from HpiDataTypes import *
-from HpiUtilGen import *
+from openhpi_baselib.HpiDataTypes import *
+from openhpi_baselib.HpiUtilGen import *
 
 
 #**********************************************************
@@ -28,10 +28,10 @@ def toSaHpiTextBufferT( s ):
     if len( s ) > SAHPI_MAX_TEXT_BUFFER_LENGTH:
         raise ValueError()
     tb = SaHpiTextBufferT()
-    tb.DataType = SAHPI_TL_TYPE_TEXT
-    tb.Language = SAHPI_LANG_ENGLISH
-    tb.DataLen  = len( s )
-    tb.Data     = s.ljust( SAHPI_MAX_TEXT_BUFFER_LENGTH, chr(0) )
+    tb.DataType   = SAHPI_TL_TYPE_TEXT
+    tb.Language   = SAHPI_LANG_ENGLISH
+    tb.DataLength = len( s )
+    tb.Data       = s.ljust( SAHPI_MAX_TEXT_BUFFER_LENGTH, chr(0) )
     return tb
 
 

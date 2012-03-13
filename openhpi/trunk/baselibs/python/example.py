@@ -3,7 +3,7 @@ from openhpi_baselib.HpiDataTypes import *
 from openhpi_baselib.Hpi import *
 from openhpi_baselib.Ohpi import *
 from openhpi_baselib.OhpiDataTypes import DEFAULT_PORT
-import openhpi_baselib.HpiUtil
+from openhpi_baselib import HpiUtil
 
 version = oHpiVersionGet()
 print "OpenHPI baselib package version: %0x" % version
@@ -17,7 +17,7 @@ if rv != SA_OK:
 
 print "DID %u" % did
 
-( rv, sid ) = saHpiSessionOpen( did )
+( rv, sid ) = saHpiSessionOpen( did, None )
 if rv != SA_OK:
     print "ERROR: saHpiSessionOpen: %s " % HpiUtil.fromSaErrorT( rv )
     exit()

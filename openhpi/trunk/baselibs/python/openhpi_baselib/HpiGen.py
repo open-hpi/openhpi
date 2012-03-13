@@ -1,7 +1,7 @@
-from HpiCore import HpiCore
-from HpiDataTypes import *
-import HpiUtil
-import OhpiDataTypes
+from openhpi_baselib.HpiCore import HpiCore
+from openhpi_baselib.HpiDataTypes import *
+from openhpi_baselib import HpiUtil
+from openhpi_baselib import OhpiDataTypes
 
 
 #**********************************************************
