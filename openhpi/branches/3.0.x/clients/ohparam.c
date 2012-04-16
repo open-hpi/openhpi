@@ -35,7 +35,7 @@
     "Command set:                                           \n" \
     "         one of the daemon's global parameters:        \n" \
     "         (without the OPENHPI prefix)                  \n" \
-    "           ON_EP, LOG_ON_SEV, EVT_QUEUE_LIMIT,         \n" \
+    "           LOG_ON_SEV, EVT_QUEUE_LIMIT,                \n" \
     "           DEL_SIZE_LIMIT, DEL_SAVE                    \n" \
     "           DAT_SIZE_LIMIT, DAT_USER_LIMIT, DAT_SAVE    \n" \
     "           PATH, VARPATH, CONF                         \n" \
@@ -102,9 +102,7 @@ main(int argc, char **argv)
       else if (strcmp(argv[i],"set")==0) {
          cmd=eGlobalParamSet;
          if (++i<argc) {
-            if (strcmp(argv[i],"OPENHPI_ON_EP")==0) 
-               paramtype=OHPI_ON_EP;
-            else if (strcmp(argv[i],"OPENHPI_LOG_ON_SEV")==0) 
+            if (strcmp(argv[i],"OPENHPI_LOG_ON_SEV")==0) 
                paramtype=OHPI_LOG_ON_SEV;
             else if (strcmp(argv[i],"OPENHPI_EVT_QUEUE_LIMIT")==0) 
                paramtype=OHPI_EVT_QUEUE_LIMIT;
@@ -191,15 +189,6 @@ static SaErrorT execglobalparamget ()
 
    if (copt.debug) DBG("Go and read global parameters in domain %u", copt.domainid);
 
-   param.Type = OHPI_ON_EP;
-   rv = oHpiGlobalParamGet (sessionid, &param);
-   if (rv!=SA_OK) {
-      CRIT("oHpiGlobalParamGet(OHPI_ON_EP) returned %s", oh_lookup_error(rv));
-      return rv;
-   }
-   printf("OPENHPI_ON_EP: ");
-   oh_print_ep (&(param.u.OnEP),0);
-   
    param.Type = OHPI_LOG_ON_SEV;
    rv = oHpiGlobalParamGet (sessionid, &param);
    if (rv!=SA_OK) {
@@ -314,11 +303,6 @@ static SaErrorT execglobalparamset (oHpiGlobalParamTypeT ptype, char *setparam)
       case OHPI_PATH: strcpy(param.u.Path, setparam);break;
       case OHPI_VARPATH: strcpy(param.u.VarPath, setparam);break;
       case OHPI_CONF: strcpy(param.u.Conf, setparam);break;
-      //ep
-      case OHPI_ON_EP: 
-         if (oh_encode_entitypath(setparam,&param.u.OnEP)!=SA_OK)
-            return SA_ERR_HPI_INVALID_PARAMS;
-         break;
       //severity
       case OHPI_LOG_ON_SEV: 
          strncpy((char *)buffer.Data, setparam, SAHPI_MAX_TEXT_BUFFER_LENGTH);
@@ -341,6 +325,7 @@ static SaErrorT execglobalparamset (oHpiGlobalParamTypeT ptype, char *setparam)
          else if (strcmp(setparam,"FALSE")==0) param.u.DatSave = SAHPI_FALSE;
          else return SA_ERR_HPI_INVALID_PARAMS;
          break;
+      default: return SA_ERR_HPI_UNSUPPORTED_PARAMS;
    }
    rv = oHpiGlobalParamSet (sessionid, &param);
 
@@ -350,9 +335,6 @@ static SaErrorT execglobalparamset (oHpiGlobalParamTypeT ptype, char *setparam)
    }
 
    switch (param.Type){
-      case OHPI_ON_EP: printf("OPENHPI_ON_EP: ");
-         oh_print_ep (&(param.u.OnEP),0);
-         break;
       case OHPI_LOG_ON_SEV: printf("OPENHPI_LOG_ON_SEV = %s\n",
          oh_lookup_severity (param.u.LogOnSev));
          break;
@@ -379,6 +361,7 @@ static SaErrorT execglobalparamset (oHpiGlobalParamTypeT ptype, char *setparam)
       case OHPI_PATH: printf("OHPENPI_PATH = %s\n",param.u.Path);break;
       case OHPI_VARPATH: printf("OPENHPI_VARPATH = %s\n",param.u.VarPath);break;
       case OHPI_CONF: printf("OPENHPI_CONF = %s\n",param.u.Conf);break;
+      default: return SA_ERR_HPI_UNSUPPORTED_PARAMS;
    }
    return SA_OK;
    

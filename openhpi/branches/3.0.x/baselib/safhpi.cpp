@@ -31,6 +31,7 @@
 #include <oh_rpc_params.h>
 #include <oh_utils.h>
 
+#include "conf.h"
 #include "init.h"
 #include "session.h"
 
@@ -430,25 +431,18 @@ SaErrorT SAHPI_API saHpiMyEntityPathGet(
     SAHPI_IN  SaHpiSessionIdT  SessionId,
     SAHPI_OUT SaHpiEntityPathT *EntityPath)
 {
-    SaErrorT rv;
-
     if (!EntityPath) {
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    ClientRpcParams iparams;
-    ClientRpcParams oparams(EntityPath);
-    rv = ohc_sess_rpc(eFsaHpiMyEntityPathGet, SessionId, iparams, oparams);
-
-    if (rv == SA_OK)  {
-        SaHpiEntityPathT entity_root;
-        rv = ohc_sess_get_entity_root(SessionId, entity_root);
-        if (rv == SA_OK) {
-            oh_concat_ep(EntityPath , &entity_root);
-        }
+    const SaHpiEntityPathT *my_entity = ohc_get_my_entity();
+    if ( !my_entity) {
+        return SA_ERR_HPI_UNKNOWN;
     }
 
-    return rv;
+    *EntityPath = *my_entity;
+
+    return SA_OK;
 }
 
 
@@ -460,17 +454,34 @@ SaErrorT SAHPI_API saHpiResourceIdGet(
     SAHPI_IN SaHpiSessionIdT  SessionId,
     SAHPI_OUT SaHpiResourceIdT *ResourceId)
 {
-    SaErrorT rv;
-
     if (!ResourceId) {
         return SA_ERR_HPI_INVALID_PARAMS;
     }
 
-    ClientRpcParams iparams;
-    ClientRpcParams oparams(ResourceId);
-    rv = ohc_sess_rpc(eFsaHpiResourceIdGet, SessionId, iparams, oparams);
+    SaErrorT rv;
+    SaHpiEntityPathT ep;
 
-    return rv;
+    rv = saHpiMyEntityPathGet( SessionId, &ep );
+    if ( rv != SA_OK ) {
+        return SA_ERR_HPI_UNKNOWN;
+    }
+
+    SaHpiUint32T instance = SAHPI_FIRST_ENTRY;
+    SaHpiUint32T rpt_update_count;
+    rv = saHpiGetIdByEntityPath( SessionId,
+                                 ep,
+                                 SAHPI_NO_RECORD,
+                                 &instance,
+                                 ResourceId,
+                                 0,
+                                 &rpt_update_count );
+    if ( rv == SA_ERR_HPI_NOT_PRESENT ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    } else if ( rv != SA_OK ) {
+        return SA_ERR_HPI_UNKNOWN;
+    }
+
+    return SA_OK;
 }
 
 

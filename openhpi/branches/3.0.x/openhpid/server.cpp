@@ -233,7 +233,11 @@ static void service_thread(gpointer sock_ptr, gpointer /* user_data */)
             cHpiMarshal *hm = HpiMarshalFind(id);
             SaErrorT process_rv;
             SaHpiSessionIdT changed_sid = 0;
-            process_rv = process_msg(hm, rq_byte_order, data, data_len, changed_sid);
+            if ( hm ) {
+                process_rv = process_msg(hm, rq_byte_order, data, data_len, changed_sid);
+            } else {
+                process_rv = SA_ERR_HPI_UNSUPPORTED_API;
+            }
             if (process_rv != SA_OK) {
                 int mr = HpiMarshalReply0(hm, data, &process_rv);
                 if (mr < 0) {

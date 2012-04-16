@@ -97,27 +97,26 @@ SaErrorT oh_decode_time(SaHpiTimeT time, SaHpiTextBufferT *buffer)
 	err = oh_init_textbuffer(&working);
 	if (err != SA_OK) { return(err); }
 
-        if (time > SAHPI_TIME_MAX_RELATIVE) { /*absolute time*/
+        if (time == SAHPI_TIME_UNSPECIFIED) {
+                strcpy((char *)working.Data,"SAHPI_TIME_UNSPECIFIED     ");
+		count = sizeof("SAHPI_TIME_UNSPECIFIED     ");
+        } else if (time > SAHPI_TIME_MAX_RELATIVE) { /*absolute time*/
                 struct tm tm;
                 err = oh_localtime(time, &tm);
                 if (err != SA_OK) {
                         return(err);
                 }
                 count = strftime((char *)working.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH, "%Y-%m-%d %H:%M:%S", &tm);
-        } else if (time ==  SAHPI_TIME_UNSPECIFIED) {
-                strcpy((char *)working.Data,"SAHPI_TIME_UNSPECIFIED     ");
-		count = sizeof("SAHPI_TIME_UNSPECIFIED     ");
-        } else if (time > SAHPI_TIME_UNSPECIFIED) { /*invalid time*/
-                strcpy((char *)working.Data,"Invalid time     ");
-		count = sizeof("Invalid time     ");
         } else {   /*relative time*/
-                struct tm tm;
-                err = oh_localtime(time, &tm);
-                if (err != SA_OK) {
-                        return(err);
-                }
-                /* count = strftime(str, size, "%b %d, %Y - %H:%M:%S", &t); */
-                count = strftime((char *)working.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH, "%c", &tm);
+                long secs  = (long)( time / 1000000000L );
+                long mins  = ( secs / 60L ) % 60L;
+                long hours = ( secs / 3600L ) % 24L;
+                long days  = secs / 86400L;
+                secs = secs % 60L;
+                count = snprintf( (char *)working.Data,
+                                  SAHPI_MAX_TEXT_BUFFER_LENGTH,
+                                  "RELATIVE: %ldd %02ld:%02ld:%02ld",
+                                  days, hours, mins, secs );
         }
 
         if (count == 0) { return(SA_ERR_HPI_INTERNAL_ERROR); }

@@ -65,8 +65,7 @@ SaErrorT oa_soap_hotswap_policy_cancel(void *oh_handler,
                                        SaHpiTimeoutT timeout);
 
 SaErrorT oa_soap_get_autoinsert_timeout(void *oh_handler,
-                                        SaHpiResourceIdT resource_id,
-                                        SaHpiTimeoutT timeout);
+                                        SaHpiTimeoutT *timeout);
 
 SaErrorT oa_soap_set_autoinsert_timeout(void *oh_handler,
                                         SaHpiTimeoutT timeout);

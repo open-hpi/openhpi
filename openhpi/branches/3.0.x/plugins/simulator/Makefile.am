@@ -25,7 +25,7 @@ INCLUDES		= @OPENHPI_INCLUDES@
 
 pkglib_LTLIBRARIES	= libsimulator.la
 
-libsimulator_la_LIBADD	= -luuid $(top_builddir)/utils/libopenhpiutils.la
+libsimulator_la_LIBADD	= $(top_builddir)/utils/libopenhpiutils.la
 libsimulator_la_SOURCES	= sim_init.c sim_init.h \
                           sim_resources2.c sim_resources.h \
 			  sim_sensors.c sim_sensors.h \

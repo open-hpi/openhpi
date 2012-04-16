@@ -83,4 +83,8 @@ SaErrorT oa_soap_set_thermal_sensor(struct oh_handler_state *oh_handler,
  					*thermal_response,
  				    SaHpiBoolT enable_flag);
  
+void oa_soap_proc_server_thermal(struct oh_handler_state *oh_handler,
+                                       SOAP_CON *con,
+                                        struct bladeStatus *status);
+
 #endif

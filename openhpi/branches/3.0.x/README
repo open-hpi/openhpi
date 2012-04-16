@@ -33,7 +33,6 @@ The following software is required to build openhpi
 autoconf >= 2.57
 automake >= 1.8
 gcc      >= 3.2.0
-uuid.h      (may be found in e2fsprogs-devel or uuid-dev)
 glib2    >= 2.12
 pkgconfig (may be called pkg-config depending on distro)
 
@@ -44,6 +43,7 @@ sysfs plugin
 
 snmp_bc plugin
   net-snmp >= 5.07
+  libuuid (may be found in e2fsprogs or libuuid depending on distro)
 
 oa_soap plugin
   libssl >= 0.9.7

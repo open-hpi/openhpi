@@ -357,7 +357,6 @@ SaErrorT oa_soap_hotswap_policy_cancel(void *oh_handler,
 /**
  * oa_soap_get_autoinsert_timeout:
  *      @oh_handler:  Handler data pointer.
- *      @resource_id: Resource ID.
  *      @timeout:     Timeout to set.
  *
  * Purpose:
@@ -367,16 +366,15 @@ SaErrorT oa_soap_hotswap_policy_cancel(void *oh_handler,
  *
  * Return values:
  *      SA_OK                     - on success
- *      SAHPI_TIMEOUT_IMMEDIATE   - autonomous handling is immediate
  *      SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) are NULL.
  **/
 SaErrorT oa_soap_get_autoinsert_timeout(void *oh_handler,
-                                        SaHpiResourceIdT resource_id,
-                                        SaHpiTimeoutT timeout)
+                                        SaHpiTimeoutT *timeout)
 {
-        err("oa_soap_get_autoinsert_timeout is not supported");
-        err("Default auto insert timeout is IMMEDIATE and read only");
-        return SAHPI_TIMEOUT_IMMEDIATE;
+        dbg("oa_soap_get_autoinsert_timeout is not supported");
+        dbg("Default auto insert timeout is IMMEDIATE and read only");
+        *timeout=SAHPI_TIMEOUT_IMMEDIATE;
+        return SA_OK;
 }
 
 /**
@@ -397,7 +395,7 @@ SaErrorT oa_soap_get_autoinsert_timeout(void *oh_handler,
 SaErrorT oa_soap_set_autoinsert_timeout(void *oh_handler,
                                         SaHpiTimeoutT timeout)
 {
-        err("oa_soap_set_autoinsert_timeout is not supported");
+        err("oa_soap_set_autoinsert_timeout supplied is %lld",timeout);
         err("Default auto insert timeout is IMMEDIATE and read only");
         return SA_ERR_HPI_READ_ONLY;
 }
@@ -422,9 +420,10 @@ SaErrorT oa_soap_get_autoextract_timeout(void *oh_handler,
                                          SaHpiResourceIdT resource_id,
                                          SaHpiTimeoutT *timeout)
 {
-        err("oa_soap_get_autoextract_timeout is not supported");
-        err("Default auto extract timeout is IMMEDIATE and read only");
-        return SAHPI_TIMEOUT_IMMEDIATE;
+        dbg("oa_soap_get_autoextract_timeout is not supported");
+        dbg("Default auto extract timeout is IMMEDIATE and read only");
+        *timeout=SAHPI_TIMEOUT_IMMEDIATE;
+        return SA_OK;
 }
 
 /**

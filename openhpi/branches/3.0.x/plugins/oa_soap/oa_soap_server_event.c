@@ -575,6 +575,7 @@ SaErrorT process_server_info_event(struct oh_handler_state
         char *name = NULL;
 	struct bladeInfo *response;
         SaHpiResourceIdT resource_id;
+       	char blade_name[MAX_NAME_LEN];
 
         if (oh_handler == NULL || oa_event == NULL) {
                 err("Invalid oh_handler and/or oa_event parameters");
@@ -621,12 +622,15 @@ SaErrorT process_server_info_event(struct oh_handler_state
                  &oa_handler->oa_soap_resources.server, bay_number,
                  serial_number, resource_id, RES_PRESENT);
 
+        /* Convert Blade name lower to upper */
+        convert_lower_to_upper(name, strlen(name),
+                 blade_name, MAX_NAME_LEN);
         /* The RDR already exist, but the relevant data is available only now
          * So just go ahead and correct it. When building the RDR the code does
          * take care of already existing RDR.
          */
         rv = build_server_rdr(oh_handler, con,
-                                    bay_number, resource_id, name);
+                                    bay_number, resource_id, blade_name);
         g_free(serial_number);
         return SA_OK;
 }
@@ -1147,4 +1151,107 @@ SaErrorT oa_soap_set_thermal_sensor(struct oh_handler_state *oh_handler,
 				      rdr->RecordId);
 	}
 	return SA_OK;
+}
+
+
+/**
+ * process_server_thermal_event
+ *      @oh_handler	: Pointer to openhpi handler structure
+ *      @con            : Pointer to the SOAP_CON structure
+ *      @status         : Pointer to blade status structure
+ *
+ * Purpose:
+ *      Processes and creates server / blade sensor thermal events
+ *
+ * Detailed Description: NA
+ *
+ * Return values:
+ *      NONE
+ **/
+void oa_soap_proc_server_thermal(struct oh_handler_state *oh_handler,
+                                       SOAP_CON *con,
+                                        struct bladeStatus *status)
+{
+        SaErrorT rv = SA_OK;
+        SaHpiResourceIdT resource_id;
+        struct oa_soap_handler *oa_handler = NULL;
+        SaHpiFloat64T trigger_reading;
+        SaHpiFloat64T trigger_threshold;
+        struct getBladeThermalInfoArray thermal_request;
+        struct bladeThermalInfoArrayResponse thermal_response;
+        struct bladeThermalInfo *blade_thermal_response = NULL;
+        struct oa_soap_sensor_info *sensor_info = NULL;
+        SaHpiRdrT *rdr = NULL;
+ 
+        if (oh_handler == NULL || con== NULL || status == NULL) {
+                err("Invalid parameters");
+                return;
+        }
+ 
+        oa_handler = (struct oa_soap_handler *) oh_handler->data;
+	resource_id = oa_handler->oa_soap_resources.server.
+                        resource_id[status->bayNumber - 1];
+
+ 
+        rdr = oh_get_rdr_by_type(oh_handler->rptcache, resource_id,
+                                 SAHPI_SENSOR_RDR, OA_SOAP_SEN_TEMP_STATUS);
+        sensor_info = (struct oa_soap_sensor_info *)
+                        oh_get_rdr_data(oh_handler->rptcache, resource_id,
+                                        rdr->RecordId);
+ 
+ 
+        /* Based on the sensor status,
+         * determine the threshold which triggered the thermal event from 
+	 * Enclosure.
+         * Event with SENSOR_STATUS_CAUTION or SENSOR_STATUS_OK is
+         * generated only if CAUTION threshold is crossed.
+         * Event with SENSOR_STATUS_CRITICAL is generated only when CRITICAL
+         * threshold is crossed.
+         * Sensor current reading and trigger threshold are required for event
+         * generation. Sensor current reading is not provided by the event,
+         * hence make soap call to get the reading
+         */
+        thermal_request.bayNumber = status->bayNumber;
+ 
+        rv = soap_getBladeThermalInfoArray(con, &thermal_request, &thermal_response);
+
+        /* In addition to verifying return value from the soap call,
+         * Check whether the thermal response is NULL,
+         * blade resource might have transitioned to POWER-OFF state
+         * during the processing of this event hence resulting in
+         * a NULL response
+         */
+        if ((rv != SA_OK) || (thermal_response.bladeThermalInfoArray == NULL)) {
+                err("getBladeThermalInfo failed for blade or"
+                    "the blade is not in stable state");
+                return;
+        }
+ 
+	blade_thermal_response = (struct bladeThermalInfo *)&thermal_response;
+
+        trigger_reading = (SaHpiInt32T)blade_thermal_response->temperatureC;
+ 
+        if ((status->thermal == SENSOR_STATUS_CAUTION &&
+             sensor_info->current_state != SAHPI_ES_UPPER_MAJOR) ||
+            (status->thermal == SENSOR_STATUS_OK &&
+              sensor_info->current_state !=  SAHPI_ES_UNSPECIFIED)) {
+                /* Trigger for this event is caution threshold */
+                trigger_threshold = blade_thermal_response->cautionThreshold;
+        } else if (status->thermal == SENSOR_STATUS_CRITICAL  &&
+                   sensor_info->current_state != SAHPI_ES_UPPER_CRIT) {
+                /* Trigger for this event is critical threshold */
+                trigger_threshold = blade_thermal_response->criticalThreshold;
+        } else {
+                dbg("Ignore the event. There is no change in the sensor state");
+                return;
+        }
+ 
+        /* Process the thermal event from Server / Blade and generate 
+	 * appropriate HPI event
+         */
+        OA_SOAP_PROCESS_SENSOR_EVENT(OA_SOAP_SEN_TEMP_STATUS,
+                                status->thermal,
+                                trigger_reading,trigger_threshold)
+ 
+        return;
 }

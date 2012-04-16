@@ -38,5 +38,5 @@ INCLUDES		= @OPENHPI_INCLUDES@
 pkglib_LTLIBRARIES	= libwatchdog.la
 
 libwatchdog_la_SOURCES  = watchdog.c
-libwatchdog_la_LIBADD   = -luuid $(top_builddir)/utils/libopenhpiutils.la
+libwatchdog_la_LIBADD   = $(top_builddir)/utils/libopenhpiutils.la
 libwatchdog_la_LDFLAGS  = -module -version-info @HPI_LIB_VERSION@
