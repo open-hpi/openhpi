@@ -34,7 +34,6 @@
  * Global Parameters
  */
 static const char *known_globals[] = {
-        "OPENHPI_ON_EP",
         "OPENHPI_LOG_ON_SEV",
         "OPENHPI_EVT_QUEUE_LIMIT",
         "OPENHPI_DEL_SIZE_LIMIT",
@@ -53,7 +52,6 @@ static const char *known_globals[] = {
 };
 
 static struct {
-        SaHpiEntityPathT on_ep;
         SaHpiSeverityT log_on_sev;
         SaHpiUint32T evt_queue_limit;
         SaHpiUint32T del_size_limit;
@@ -71,7 +69,6 @@ static struct {
         unsigned char read_env;
         GStaticRecMutex lock;
 } global_params = { /* Defaults for global params are set here */
-        .on_ep = { .Entry[0] = { .EntityType = SAHPI_ENT_ROOT, .EntityLocation = 0 } },
         .log_on_sev = SAHPI_MINOR,
         .evt_queue_limit = 10000,
         .del_size_limit = 10000, /* 0 is unlimited size */
@@ -172,9 +169,7 @@ static void process_global_param(const char *name, char *value)
 {
         g_static_rec_mutex_lock(&global_params.lock);
 
-        if (!strcmp("OPENHPI_ON_EP", name)) {
-                oh_encode_entitypath(value, &global_params.on_ep);
-        } else if (!strcmp("OPENHPI_LOG_ON_SEV", name)) {
+        if (!strcmp("OPENHPI_LOG_ON_SEV", name)) {
                 SaHpiTextBufferT buffer;
                 strncpy((char *)buffer.Data, value, SAHPI_MAX_TEXT_BUFFER_LENGTH);
                 oh_encode_severity(&buffer, &global_params.log_on_sev);
@@ -626,9 +621,6 @@ int oh_get_global_param(struct oh_global_param *param)
 
         g_static_rec_mutex_lock(&global_params.lock);
         switch (param->type) {
-                case OPENHPI_ON_EP:
-                        param->u.on_ep = global_params.on_ep;
-                        break;
                 case OPENHPI_LOG_ON_SEV:
                         param->u.log_on_sev = global_params.log_on_sev;
                         break;
@@ -719,9 +711,6 @@ int oh_set_global_param(const struct oh_global_param *param)
 
         g_static_rec_mutex_lock(&global_params.lock);
         switch (param->type) {
-                case OPENHPI_ON_EP:
-                        global_params.on_ep = param->u.on_ep;
-                        break;
                 case OPENHPI_LOG_ON_SEV:
                         global_params.log_on_sev = param->u.log_on_sev;
                         break;

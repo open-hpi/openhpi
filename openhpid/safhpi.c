@@ -394,59 +394,16 @@ SaErrorT SAHPI_API saHpiMyEntityPathGet(
         SAHPI_IN  SaHpiSessionIdT  SessionId,
         SAHPI_OUT SaHpiEntityPathT *EntityPath)
 {
-        SaHpiDomainIdT did;
-        struct oh_global_param ep_param = { .type = OPENHPI_ON_EP };
-
-        if (EntityPath == NULL)
-                return SA_ERR_HPI_INVALID_PARAMS;
-
-        OH_CHECK_INIT_STATE(SessionId);
-        OH_GET_DID(SessionId, did);
-
-        oh_get_global_param(&ep_param);
-
-        // This is true if OPENHPI_ON_EP is not set in openhpi.conf
-        if (
-             ( ep_param.u.on_ep.Entry[0].EntityType == SAHPI_ENT_ROOT ) &&
-             ( ep_param.u.on_ep.Entry[0].EntityLocation == 0 )
-           )
-        {
-                return SA_ERR_HPI_UNKNOWN;
-        }
-
-        *EntityPath = ep_param.u.on_ep;
-
-        return SA_OK;
+        // This function is now implemented on the base library level
+        return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
 SaErrorT SAHPI_API saHpiResourceIdGet(
         SAHPI_IN  SaHpiSessionIdT  SessionId,
         SAHPI_OUT SaHpiResourceIdT *ResourceId)
 {
-        SaHpiDomainIdT did;
-        struct oh_domain *d = NULL;
-        SaHpiRptEntryT *rptentry;
-        struct oh_global_param ep_param = { .type = OPENHPI_ON_EP };
-
-        if (ResourceId == NULL)
-                return SA_ERR_HPI_INVALID_PARAMS;
-
-        OH_CHECK_INIT_STATE(SessionId);
-        OH_GET_DID(SessionId, did);
-
-        oh_get_global_param(&ep_param);
-
-        OH_GET_DOMAIN(did, d); /* Lock domain */
-        rptentry = oh_get_resource_by_ep(&(d->rpt), &ep_param.u.on_ep);
-        if (!rptentry) {
-                oh_release_domain(d); /* Unlock domain */
-                return SA_ERR_HPI_UNKNOWN;
-        }
-
-        *ResourceId = rptentry->ResourceId;
-        oh_release_domain(d); /* Unlock domain */
-
-        return SA_OK;
+        // This function is now implemented on the base library level
+        return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
 SaErrorT SAHPI_API saHpiGetIdByEntityPath (

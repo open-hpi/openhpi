@@ -93,8 +93,8 @@ PKG_CFG_SETPATH
 
 # check for gcc version
 
-AC_MSG_CHECKING(gcc >= 3.2.0)
-OH_CHECK_GCC(3,2,0)
+AC_MSG_CHECKING(gcc >= 3.2)
+OH_CHECK_GCC(3,2)
 
 dnl glib 2.x checks
 GLIB_REQUIRED_VERSION=2.12
@@ -161,9 +161,7 @@ AC_ARG_WITH(net-snmp-config,
 
 OH_CHECK_NETSNMP
 
-AC_CHECK_LIB([uuid], [uuid_generate], [have_uuid=yes], [
-    OH_CHECK_FAIL(libuuid,libuuid-devel or e2fsprogs-devel)
-    ])
+AC_CHECK_LIB([uuid], [uuid_generate], [have_uuid=yes])
 
 dnl ssl is used for md2/md5 authentification in ipmidirect
 dnl and for SSL-based communication in ilo2_ribcl and oa_soap
@@ -295,26 +293,34 @@ AC_ARG_ENABLE([sysfs],
     ])
 
 AC_ARG_ENABLE([snmp_bc],
-    [  --enable-snmp_bc        build IBM Blade Center plugin [[default=yes if net-snmp is installed]]],
+    [  --enable-snmp_bc        build IBM Blade Center plugin [[default=yes if net-snmp and libuuid are installed]]],
     [if test "x$enableval" = "xyes"; then
-        if test "x$have_netsnmp" = "xyes"; then
-            AC_SUBST(SNMP_BC,snmp_bc)
-	    AC_SUBST(WITH_SNMP_BC,1)
-            SNMPDIR=snmp
-        else
+        if test "x$have_netsnmp" != "xyes"; then
+            AC_SUBST(WITH_SNMP_BC,0)
             OH_CHECK_FAIL(net-snmp,net-snmp-devel,http://net-snmp.sourceforge.net/,
                 Can not build IBM Blade Center support without net-snmp)
+        elif test "x$have_uuid" != "xyes"; then
+            AC_SUBST(WITH_SNMP_BC,0)
+            OH_CHECK_FAIL(libuuid,libuuid-devel or e2fsprogs-devel)
+        else
+            SNMPDIR=snmp
+            AC_SUBST(SNMP_BC,snmp_bc)
+            AC_SUBST(WITH_SNMP_BC,1)
         fi
     else
-	    AC_SUBST(WITH_SNMP_BC,0)
+        AC_SUBST(WITH_SNMP_BC,0)
     fi],
-    [if test "x$have_netsnmp" = "xyes"; then
-            AC_SUBST(SNMP_BC,snmp_bc)
-	    AC_SUBST(WITH_SNMP_BC,1)
-            SNMPDIR=snmp
-    else
-	    AC_SUBST(WITH_SNMP_BC,0)
-    fi]
+    [if test "x$have_netsnmp" != "xyes"; then
+        AC_SUBST(WITH_SNMP_BC,0)
+        AC_MSG_NOTICE(snmp_bc plugin is disabled since net-snmp was not found)
+     elif test "x$have_uuid" != "xyes"; then
+        AC_SUBST(WITH_SNMP_BC,0)
+        AC_MSG_NOTICE(snmp_bc plugin is disabled since libuuid was not found)
+     else
+        SNMPDIR=snmp
+        AC_SUBST(SNMP_BC,snmp_bc)
+        AC_SUBST(WITH_SNMP_BC,1)
+     fi]
     )
 
 AC_ARG_ENABLE([ipmidirect],

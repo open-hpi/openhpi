@@ -1090,15 +1090,13 @@ static ret_code_t wdt_set(void)
                 return(HPI_SHELL_PARM_ERROR);
         };
         if (strcmp(tmp, "no") == 0)
-                watchdog.TimerAction = SAHPI_WAE_NO_ACTION;
+                watchdog.TimerAction = SAHPI_WA_NO_ACTION;
         else if (strcmp(tmp, "reset") == 0)
-                watchdog.TimerAction = SAHPI_WAE_RESET;
+                watchdog.TimerAction = SAHPI_WA_RESET;
         else if (strcmp(tmp, "pwr_down") == 0)
-                watchdog.TimerAction = SAHPI_WAE_POWER_DOWN;
+                watchdog.TimerAction = SAHPI_WA_POWER_DOWN;
         else if (strcmp(tmp, "pwr_cycle") == 0)
-                watchdog.TimerAction = SAHPI_WAE_POWER_CYCLE;
-        else if (strcmp(tmp, "int") == 0)
-                watchdog.TimerAction = SAHPI_WAE_TIMER_INT;
+                watchdog.TimerAction = SAHPI_WA_POWER_CYCLE;
         else {
                 printf("Invalid TimerAction value: %s\n", tmp);
                 return(HPI_SHELL_PARM_ERROR);
@@ -1225,7 +1223,11 @@ static ret_code_t reopen_session(void)
         do {
            rv = saHpiSessionClose(Domain->sessionId);
            sleep( 1 );
-        } while ( fflag == 0 && rv != SA_OK && rv != SA_ERR_HPI_NO_RESPONSE );
+        } while ( ( fflag == 0 ) &&
+                  ( rv != SA_OK ) &&
+                  ( rv != SA_ERR_HPI_NO_RESPONSE ) &&
+                  ( rv != SA_ERR_HPI_INVALID_SESSION )
+        );
         if (rv != SA_OK) {
                 printf("saHpiSessionClose error %s\n", oh_lookup_error(rv));
         }
@@ -1350,10 +1352,10 @@ static ret_code_t entity_resources(void)
 
 static ret_code_t domain_info(void)
 {
-        SaHpiDomainInfoT        info;
-        SaHpiTextBufferT        *buf;
-        SaErrorT                rv;
-        char                    date[30];
+        SaHpiDomainInfoT info;
+        SaHpiTextBufferT *buf;
+        SaHpiTextBufferT tb;
+        SaErrorT         rv;
 
         rv = saHpiDomainInfoGet(Domain->sessionId, &info);
         if (rv != SA_OK) {
@@ -1367,15 +1369,15 @@ static ret_code_t domain_info(void)
         buf = &(info.DomainTag);
         print_text_buffer_text("    Tag: ", buf, NULL, ui_print);
         printf("\n");
-        time2str(info.DrtUpdateTimestamp, date, 30);
-        printf("    DRT update count: %d   DRT Timestamp : %s\n",
-                info.DrtUpdateCount, date);
-        time2str(info.RptUpdateTimestamp, date, 30);
-        printf("    RPT update count: %d   RPT Timestamp : %s\n",
-                info.RptUpdateCount, date);
-        time2str(info.DatUpdateTimestamp, date, 30);
-        printf("    DAT update count: %d   DAT Timestamp : %s\n",
-                info.DatUpdateCount, date);
+        printf("    DRT update count: %d", info.DrtUpdateCount);
+        oh_decode_time(info.DrtUpdateTimestamp, &tb);
+        print_text_buffer_text("   DRT Timestamp : ", &tb, "\n", ui_print);
+        printf("    RPT update count: %d", info.RptUpdateCount);
+        oh_decode_time(info.RptUpdateTimestamp, &tb);
+        print_text_buffer_text("   RPT Timestamp : ", &tb, "\n", ui_print);
+        printf("    DAT update count: %d", info.DatUpdateCount);
+        oh_decode_time(info.DatUpdateTimestamp, &tb);
+        print_text_buffer_text("   DAT Timestamp : ", &tb, "\n", ui_print);
         printf("        ActiveAlarms: %d   CriticalAlarms: %d   Major: %d "
                 "Minor: %d   Limit: %d\n",
                 info.ActiveAlarms, info.CriticalAlarms, info.MajorAlarms,

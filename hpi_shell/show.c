@@ -494,7 +494,7 @@ SaErrorT show_event_log(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
         SaHpiRdrT               rdr;
         SaHpiRptEntryT          rpt;
         char                    buf[SHOW_BUF_SZ];
-        char                    date[30], date1[30];
+        SaHpiTextBufferT        tb;
 
         if (resourceid != SAHPI_UNSPECIFIED_RESOURCE_ID) {
                 rv = saHpiRptEntryGetByResourceId(sessionid, resourceid, &rptentry);
@@ -521,10 +521,11 @@ SaErrorT show_event_log(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
         snprintf(buf, SHOW_BUF_SZ, "EventLog: entries = %d, size = %d, enabled = %d\n",
                 info.Entries, info.Size, info.Enabled);
         if (proc(buf) != HPI_UI_OK) return(SA_OK);
-        time2str(info.UpdateTimestamp, date, 30);
-        time2str(info.CurrentTime, date1, 30);
-        snprintf(buf, SHOW_BUF_SZ, "UpdateTime = %s  CurrentTime = %s  Overflow = %d\n",
-                date, date1, info.OverflowFlag);
+        oh_decode_time(info.UpdateTimestamp, &tb);
+        print_text_buffer_text("UpdateTime = ", &tb, "  ", proc);
+        oh_decode_time(info.CurrentTime, &tb);
+        print_text_buffer_text("CurrentTime = ", &tb, "  ", proc);
+        snprintf(buf, SHOW_BUF_SZ, "Overflow = %d\n", info.OverflowFlag);
         if (proc(buf) != HPI_UI_OK) return(SA_OK);
 
         if (info.Entries != 0){
@@ -1008,12 +1009,13 @@ Pr_ret_t show_short_event(SaHpiEventT *event, hpi_ui_print_cb_t proc)
 
 SaErrorT show_dat(Domain_t *domain, hpi_ui_print_cb_t proc)
 {
-        SaHpiAlarmT     alarm;
-        SaErrorT        rv = SA_OK;
-        char            buf[SHOW_BUF_SZ];
-        char            time[256];
-        int             ind;
-        int             first = 1;
+        SaHpiAlarmT      alarm;
+        SaErrorT         rv = SA_OK;
+        char             buf[SHOW_BUF_SZ];
+        SaHpiTextBufferT tb;
+        char             tbuf[SHOW_BUF_SZ];
+        int              ind;
+        int              first = 1;
 
         alarm.AlarmId = SAHPI_FIRST_ENTRY;
         while (rv == SA_OK) {
@@ -1022,9 +1024,9 @@ SaErrorT show_dat(Domain_t *domain, hpi_ui_print_cb_t proc)
                 if (rv != SA_OK) break;
                 first = 0;
                 snprintf(buf, SHOW_BUF_SZ, "(%d) ", alarm.AlarmId);
-                time2str(alarm.Timestamp, time, 256);
-                strcat(buf, time);
-                strcat(buf, " ");
+                oh_decode_time(alarm.Timestamp, &tb);
+                get_text_buffer_text("", &tb, " ", tbuf);
+                strcat(buf, tbuf);
                 strcat(buf, oh_lookup_severity(alarm.Severity));
                 if (alarm.Acknowledged) strcat(buf, " a ");
                 else strcat(buf, " - ");

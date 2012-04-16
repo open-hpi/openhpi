@@ -586,12 +586,18 @@ SaErrorT oh_create_handler (GHashTable *handler_config, unsigned int *hid)
         // set auto-extract timeout
         if (handler->abi->set_autoinsert_timeout) {
                 struct oh_global_param param;
+                SaErrorT rv;
                 oh_get_global_param2(OPENHPI_AUTOINSERT_TIMEOUT, &param);
                 SaHpiTimeoutT ai_timeout = param.u.ai_timeout;
-                SaErrorT rv = handler->abi->set_autoinsert_timeout(handler->hnd, ai_timeout);
-                if (rv != SA_OK) {
-                        CRIT("Cannot propagate auto-insert timeout to handler.");
-                }
+                oh_get_global_param2(OPENHPI_AUTOINSERT_TIMEOUT_READONLY, &param);
+                DBG("auto-insert timeout readonly=%d, auto-insert timeout to set=%lld",
+                       param.u.ai_timeout_readonly, ai_timeout);
+                if (!param.u.ai_timeout_readonly && ai_timeout) {
+                        rv = handler->abi->set_autoinsert_timeout(handler->hnd, ai_timeout);
+                        if (rv != SA_OK) {
+                                CRIT("Cannot propagate auto-insert timeout to handler.");
+                        }
+                 }
         }
 
         g_static_rec_mutex_unlock(&oh_handlers.lock);

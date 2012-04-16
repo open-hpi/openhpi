@@ -1107,10 +1107,17 @@ void    soap_getEventInfo(xmlNode *events, struct eventInfo *result)
         char    *str;
         xmlNode *node;
 
+	if(str = soap_tree_value(events, "event"))
         result->event =
-                soap_enum(eventType_S, soap_tree_value(events, "event"));
-        result->eventTimeStamp =
-                atoi(soap_tree_value(events, "eventTimeStamp"));
+                soap_enum(eventType_S, str);
+	else
+        result->event = -1;
+
+	if((str = soap_tree_value(events, "eventTimeStamp")))
+		result->eventTimeStamp = atoi(str);
+	else
+        	result->eventTimeStamp = -1;
+
         if ((str = soap_tree_value(events, "queueSize")))
                 result->queueSize = atoi(str);
         else
