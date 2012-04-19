@@ -3478,7 +3478,7 @@ SaErrorT oa_soap_build_fan_rpt(struct oh_handler_state *oh_handler,
 
 	/* Set the fan zone location in RPT entry */
 	rpt.ResourceEntity.Entry[1].EntityLocation =
-		oa_soap_fz_map_arr[oa_handler->enc_type][bay_number].zone;
+		oa_soap_fz_map_arr[oa_handler->enc_type][bay_number-1].zone;
 
 	/* Add the fan rpt to the plugin RPTable */
 	rv = oh_add_resource(oh_handler->rptcache, &rpt, NULL, 0);
