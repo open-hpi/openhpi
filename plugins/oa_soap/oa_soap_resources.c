@@ -924,7 +924,7 @@ const struct oa_soap_sensor oa_soap_sen_arr[] = {
 				},
 			},
 		},
-      		.comment = "Ambient Zone Thermal Status",
+      		.comment = "Ambient Zone",
 	},
 	/* Redundancy status sensor */
 	{
@@ -4309,7 +4309,7 @@ const struct oa_soap_sensor oa_soap_sen_arr[] = {
 			},
 		},
 		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
-      		.comment = "System Zone thermal status",
+      		.comment = "System Zone",
 	},
 	/* System zone2 sensor */
 	{
@@ -4385,7 +4385,7 @@ const struct oa_soap_sensor oa_soap_sen_arr[] = {
 			},
 		},
 		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
-      		.comment = "System Zone thermal status",
+      		.comment = "System Zone",
 	},
 	/* System zone3 sensor */
 	{
@@ -4461,7 +4461,7 @@ const struct oa_soap_sensor oa_soap_sen_arr[] = {
 			},
 		},
 		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
-      		.comment = "System Zone thermal status",
+      		.comment = "System Zone",
 	},
 	/* System zone4 sensor */
 	{
@@ -4537,7 +4537,311 @@ const struct oa_soap_sensor oa_soap_sen_arr[] = {
 			},
 		},
 		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
-      		.comment = "System Zone thermal status",
+      		.comment = "System Zone",
+	},
+	/* System zone5 sensor */
+	{
+		.sensor = {
+			.Num = OA_SOAP_SEN_BLADE_SYSTEM_ZONE5,
+			.Type = SAHPI_TEMPERATURE,
+			.Category = SAHPI_EC_THRESHOLD,
+			.EnableCtrl = SAHPI_TRUE,
+			.EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_UNSPECIFIED,
+			.DataFormat = {
+				.IsSupported = SAHPI_TRUE,
+				.ReadingType =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				.BaseUnits = SAHPI_SU_DEGREES_C,
+				.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUse = SAHPI_SMUU_NONE,
+				.Percentage = SAHPI_FALSE,
+				.Range.Flags = SAHPI_SRF_MAX |
+					       SAHPI_SRF_NORMAL_MAX,
+				.Range.Max.IsSupported = SAHPI_TRUE,
+				.Range.Max.Type = 
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Max value should be replaced
+				  * with Max value retrieved from OA
+				  */
+				.Range.Max.Value.SensorFloat64 = 75,
+				.Range.NormalMax.IsSupported = SAHPI_TRUE,
+				.Range.NormalMax.Type =
+				       SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Normal Max value should be
+				  * replaced with Normal Max value retrieved
+				  * from OA
+				  */
+				.Range.NormalMax.Value.SensorFloat64 = 70,
+				.AccuracyFactor =  0,
+			},
+			.ThresholdDefn = {
+				.IsAccessible = SAHPI_TRUE,
+				.ReadThold = SAHPI_ES_UPPER_CRIT |
+					     SAHPI_ES_UPPER_MAJOR,
+				.WriteThold = 0x0,
+			},
+			.Oem = 0,
+		},
+		.sensor_info = {
+			.current_state = SAHPI_ES_UNSPECIFIED,
+			.sensor_enable = SAHPI_TRUE,
+			.event_enable = SAHPI_FALSE,
+			.assert_mask = OA_SOAP_STM_UNSPECIFED,
+			.deassert_mask = OA_SOAP_STM_UNSPECIFED,
+			.sensor_reading = {
+				.IsSupported = SAHPI_TRUE,
+				.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with current reading */
+				.Value.SensorFloat64 = 0x0,
+			},
+			.threshold = {
+				.UpCritical.IsSupported = SAHPI_TRUE,
+				.UpCritical.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with critical threshold
+				 * reading
+				 */
+				.UpCritical.Value.SensorFloat64 = 75,
+				.UpMajor.IsSupported = SAHPI_TRUE,
+				.UpMajor.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with major threshold
+				 * reading
+				 */
+				.UpMajor.Value.SensorFloat64 = 70,
+			},
+		},
+		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
+      		.comment = "System Zone",
+	},
+	/* System zone6 sensor */
+	{
+		.sensor = {
+			.Num = OA_SOAP_SEN_BLADE_SYSTEM_ZONE6,
+			.Type = SAHPI_TEMPERATURE,
+			.Category = SAHPI_EC_THRESHOLD,
+			.EnableCtrl = SAHPI_TRUE,
+			.EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_UNSPECIFIED,
+			.DataFormat = {
+				.IsSupported = SAHPI_TRUE,
+				.ReadingType =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				.BaseUnits = SAHPI_SU_DEGREES_C,
+				.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUse = SAHPI_SMUU_NONE,
+				.Percentage = SAHPI_FALSE,
+				.Range.Flags = SAHPI_SRF_MAX |
+					       SAHPI_SRF_NORMAL_MAX,
+				.Range.Max.IsSupported = SAHPI_TRUE,
+				.Range.Max.Type = 
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Max value should be replaced
+				  * with Max value retrieved from OA
+				  */
+				.Range.Max.Value.SensorFloat64 = 75,
+				.Range.NormalMax.IsSupported = SAHPI_TRUE,
+				.Range.NormalMax.Type =
+				       SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Normal Max value should be
+				  * replaced with Normal Max value retrieved
+				  * from OA
+				  */
+				.Range.NormalMax.Value.SensorFloat64 = 70,
+				.AccuracyFactor =  0,
+			},
+			.ThresholdDefn = {
+				.IsAccessible = SAHPI_TRUE,
+				.ReadThold = SAHPI_ES_UPPER_CRIT |
+					     SAHPI_ES_UPPER_MAJOR,
+				.WriteThold = 0x0,
+			},
+			.Oem = 0,
+		},
+		.sensor_info = {
+			.current_state = SAHPI_ES_UNSPECIFIED,
+			.sensor_enable = SAHPI_TRUE,
+			.event_enable = SAHPI_FALSE,
+			.assert_mask = OA_SOAP_STM_UNSPECIFED,
+			.deassert_mask = OA_SOAP_STM_UNSPECIFED,
+			.sensor_reading = {
+				.IsSupported = SAHPI_TRUE,
+				.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with current reading */
+				.Value.SensorFloat64 = 0x0,
+			},
+			.threshold = {
+				.UpCritical.IsSupported = SAHPI_TRUE,
+				.UpCritical.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with critical threshold
+				 * reading
+				 */
+				.UpCritical.Value.SensorFloat64 = 75,
+				.UpMajor.IsSupported = SAHPI_TRUE,
+				.UpMajor.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with major threshold
+				 * reading
+				 */
+				.UpMajor.Value.SensorFloat64 = 70,
+			},
+		},
+		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
+      		.comment = "System Zone",
+	},
+	/* System zone7 sensor */
+	{
+		.sensor = {
+			.Num = OA_SOAP_SEN_BLADE_SYSTEM_ZONE7,
+			.Type = SAHPI_TEMPERATURE,
+			.Category = SAHPI_EC_THRESHOLD,
+			.EnableCtrl = SAHPI_TRUE,
+			.EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_UNSPECIFIED,
+			.DataFormat = {
+				.IsSupported = SAHPI_TRUE,
+				.ReadingType =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				.BaseUnits = SAHPI_SU_DEGREES_C,
+				.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUse = SAHPI_SMUU_NONE,
+				.Percentage = SAHPI_FALSE,
+				.Range.Flags = SAHPI_SRF_MAX |
+					       SAHPI_SRF_NORMAL_MAX,
+				.Range.Max.IsSupported = SAHPI_TRUE,
+				.Range.Max.Type = 
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Max value should be replaced
+				  * with Max value retrieved from OA
+				  */
+				.Range.Max.Value.SensorFloat64 = 75,
+				.Range.NormalMax.IsSupported = SAHPI_TRUE,
+				.Range.NormalMax.Type =
+				       SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Normal Max value should be
+				  * replaced with Normal Max value retrieved
+				  * from OA
+				  */
+				.Range.NormalMax.Value.SensorFloat64 = 70,
+				.AccuracyFactor =  0,
+			},
+			.ThresholdDefn = {
+				.IsAccessible = SAHPI_TRUE,
+				.ReadThold = SAHPI_ES_UPPER_CRIT |
+					     SAHPI_ES_UPPER_MAJOR,
+				.WriteThold = 0x0,
+			},
+			.Oem = 0,
+		},
+		.sensor_info = {
+			.current_state = SAHPI_ES_UNSPECIFIED,
+			.sensor_enable = SAHPI_TRUE,
+			.event_enable = SAHPI_FALSE,
+			.assert_mask = OA_SOAP_STM_UNSPECIFED,
+			.deassert_mask = OA_SOAP_STM_UNSPECIFED,
+			.sensor_reading = {
+				.IsSupported = SAHPI_TRUE,
+				.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with current reading */
+				.Value.SensorFloat64 = 0x0,
+			},
+			.threshold = {
+				.UpCritical.IsSupported = SAHPI_TRUE,
+				.UpCritical.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with critical threshold
+				 * reading
+				 */
+				.UpCritical.Value.SensorFloat64 = 75,
+				.UpMajor.IsSupported = SAHPI_TRUE,
+				.UpMajor.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with major threshold
+				 * reading
+				 */
+				.UpMajor.Value.SensorFloat64 = 70,
+			},
+		},
+		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
+      		.comment = "System Zone",
+	},
+	/* System zone8 sensor */
+	{
+		.sensor = {
+			.Num = OA_SOAP_SEN_BLADE_SYSTEM_ZONE8,
+			.Type = SAHPI_TEMPERATURE,
+			.Category = SAHPI_EC_THRESHOLD,
+			.EnableCtrl = SAHPI_TRUE,
+			.EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_UNSPECIFIED,
+			.DataFormat = {
+				.IsSupported = SAHPI_TRUE,
+				.ReadingType =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				.BaseUnits = SAHPI_SU_DEGREES_C,
+				.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUse = SAHPI_SMUU_NONE,
+				.Percentage = SAHPI_FALSE,
+				.Range.Flags = SAHPI_SRF_MAX |
+					       SAHPI_SRF_NORMAL_MAX,
+				.Range.Max.IsSupported = SAHPI_TRUE,
+				.Range.Max.Type = 
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Max value should be replaced
+				  * with Max value retrieved from OA
+				  */
+				.Range.Max.Value.SensorFloat64 = 75,
+				.Range.NormalMax.IsSupported = SAHPI_TRUE,
+				.Range.NormalMax.Type =
+				       SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Normal Max value should be
+				  * replaced with Normal Max value retrieved
+				  * from OA
+				  */
+				.Range.NormalMax.Value.SensorFloat64 = 70,
+				.AccuracyFactor =  0,
+			},
+			.ThresholdDefn = {
+				.IsAccessible = SAHPI_TRUE,
+				.ReadThold = SAHPI_ES_UPPER_CRIT |
+					     SAHPI_ES_UPPER_MAJOR,
+				.WriteThold = 0x0,
+			},
+			.Oem = 0,
+		},
+		.sensor_info = {
+			.current_state = SAHPI_ES_UNSPECIFIED,
+			.sensor_enable = SAHPI_TRUE,
+			.event_enable = SAHPI_FALSE,
+			.assert_mask = OA_SOAP_STM_UNSPECIFED,
+			.deassert_mask = OA_SOAP_STM_UNSPECIFED,
+			.sensor_reading = {
+				.IsSupported = SAHPI_TRUE,
+				.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with current reading */
+				.Value.SensorFloat64 = 0x0,
+			},
+			.threshold = {
+				.UpCritical.IsSupported = SAHPI_TRUE,
+				.UpCritical.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with critical threshold
+				 * reading
+				 */
+				.UpCritical.Value.SensorFloat64 = 75,
+				.UpMajor.IsSupported = SAHPI_TRUE,
+				.UpMajor.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with major threshold
+				 * reading
+				 */
+				.UpMajor.Value.SensorFloat64 = 70,
+			},
+		},
+		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
+      		.comment = "System Zone",
 	},
 	/* CPU zone1 sensor */
 	{
@@ -4613,7 +4917,7 @@ const struct oa_soap_sensor oa_soap_sen_arr[] = {
 			},
 		},
 		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
-      		.comment = "CPU Zone thermal status",
+      		.comment = "CPU Zone",
 	},
 	/* CPU zone2 sensor */
 	{
@@ -4689,7 +4993,7 @@ const struct oa_soap_sensor oa_soap_sen_arr[] = {
 			},
 		},
 		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
-      		.comment = "CPU Zone thermal status",
+      		.comment = "CPU Zone",
 	},
 	/* CPU zone3 sensor */
 	{
@@ -4765,7 +5069,7 @@ const struct oa_soap_sensor oa_soap_sen_arr[] = {
 			},
 		},
 		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
-      		.comment = "CPU Zone thermal status",
+      		.comment = "CPU Zone",
 	},
 	/* CPU zone4 sensor */
 	{
@@ -4841,7 +5145,7 @@ const struct oa_soap_sensor oa_soap_sen_arr[] = {
 			},
 		},
 		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
-      		.comment = "CPU Zone thermal status",
+      		.comment = "CPU Zone",
 	},
 	/* Memory zone1 sensor */
 	{
@@ -4917,7 +5221,7 @@ const struct oa_soap_sensor oa_soap_sen_arr[] = {
 			},
 		},
 		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
-      		.comment = "Memory Zone thermal status",
+      		.comment = "Memory Zone",
 	},
 	/* Memory zone2 sensor */
 	{
@@ -4993,7 +5297,7 @@ const struct oa_soap_sensor oa_soap_sen_arr[] = {
 			},
 		},
 		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
-      		.comment = "Memory Zone thermal status",
+      		.comment = "Memory Zone",
 	},
 	/* Memory zone3 sensor */
 	{
@@ -5069,7 +5373,7 @@ const struct oa_soap_sensor oa_soap_sen_arr[] = {
 			},
 		},
 		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
-      		.comment = "Memory Zone thermal status",
+      		.comment = "Memory Zone",
 	},
 	/* Memory zone4 sensor */
 	{
@@ -5145,7 +5449,311 @@ const struct oa_soap_sensor oa_soap_sen_arr[] = {
 			},
 		},
 		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
-      		.comment = "Memory Zone thermal status",
+      		.comment = "Memory Zone",
+	},
+	/* Memory zone5 sensor */
+	{
+		.sensor = {
+			.Num = OA_SOAP_SEN_BLADE_MEM_ZONE5,
+			.Type = SAHPI_TEMPERATURE,
+			.Category = SAHPI_EC_THRESHOLD,
+			.EnableCtrl = SAHPI_TRUE,
+			.EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_UNSPECIFIED,
+			.DataFormat = {
+				.IsSupported = SAHPI_TRUE,
+				.ReadingType =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				.BaseUnits = SAHPI_SU_DEGREES_C,
+				.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUse = SAHPI_SMUU_NONE,
+				.Percentage = SAHPI_FALSE,
+				.Range.Flags = SAHPI_SRF_MAX |
+					       SAHPI_SRF_NORMAL_MAX,
+				.Range.Max.IsSupported = SAHPI_TRUE,
+				.Range.Max.Type = 
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Max value should be replaced
+				  * with Max value retrieved from OA
+				  */
+				.Range.Max.Value.SensorFloat64 = 92,
+				.Range.NormalMax.IsSupported = SAHPI_TRUE,
+				.Range.NormalMax.Type =
+				       SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Normal Max value should be
+				  * replaced with Normal Max value retrieved
+				  * from OA
+				  */
+				.Range.NormalMax.Value.SensorFloat64 = 87,
+				.AccuracyFactor =  0,
+			},
+			.ThresholdDefn = {
+				.IsAccessible = SAHPI_TRUE,
+				.ReadThold = SAHPI_ES_UPPER_CRIT |
+					     SAHPI_ES_UPPER_MAJOR,
+				.WriteThold = 0x0,
+			},
+			.Oem = 0,
+		},
+		.sensor_info = {
+			.current_state = SAHPI_ES_UNSPECIFIED,
+			.sensor_enable = SAHPI_TRUE,
+			.event_enable = SAHPI_FALSE,
+			.assert_mask = OA_SOAP_STM_UNSPECIFED,
+			.deassert_mask = OA_SOAP_STM_UNSPECIFED,
+			.sensor_reading = {
+				.IsSupported = SAHPI_TRUE,
+				.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with current reading */
+				.Value.SensorFloat64 = 0x0,
+			},
+			.threshold = {
+				.UpCritical.IsSupported = SAHPI_TRUE,
+				.UpCritical.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with critical threshold
+				 * reading
+				 */
+				.UpCritical.Value.SensorFloat64 = 92,
+				.UpMajor.IsSupported = SAHPI_TRUE,
+				.UpMajor.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with major threshold
+				 * reading
+				 */
+				.UpMajor.Value.SensorFloat64 = 87,
+			},
+		},
+		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
+      		.comment = "Memory Zone",
+	},
+	/* Memory zone6 sensor */
+	{
+		.sensor = {
+			.Num = OA_SOAP_SEN_BLADE_MEM_ZONE6,
+			.Type = SAHPI_TEMPERATURE,
+			.Category = SAHPI_EC_THRESHOLD,
+			.EnableCtrl = SAHPI_TRUE,
+			.EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_UNSPECIFIED,
+			.DataFormat = {
+				.IsSupported = SAHPI_TRUE,
+				.ReadingType =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				.BaseUnits = SAHPI_SU_DEGREES_C,
+				.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUse = SAHPI_SMUU_NONE,
+				.Percentage = SAHPI_FALSE,
+				.Range.Flags = SAHPI_SRF_MAX |
+					       SAHPI_SRF_NORMAL_MAX,
+				.Range.Max.IsSupported = SAHPI_TRUE,
+				.Range.Max.Type = 
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Max value should be replaced
+				  * with Max value retrieved from OA
+				  */
+				.Range.Max.Value.SensorFloat64 = 92,
+				.Range.NormalMax.IsSupported = SAHPI_TRUE,
+				.Range.NormalMax.Type =
+				       SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Normal Max value should be
+				  * replaced with Normal Max value retrieved
+				  * from OA
+				  */
+				.Range.NormalMax.Value.SensorFloat64 = 87,
+				.AccuracyFactor =  0,
+			},
+			.ThresholdDefn = {
+				.IsAccessible = SAHPI_TRUE,
+				.ReadThold = SAHPI_ES_UPPER_CRIT |
+					     SAHPI_ES_UPPER_MAJOR,
+				.WriteThold = 0x0,
+			},
+			.Oem = 0,
+		},
+		.sensor_info = {
+			.current_state = SAHPI_ES_UNSPECIFIED,
+			.sensor_enable = SAHPI_TRUE,
+			.event_enable = SAHPI_FALSE,
+			.assert_mask = OA_SOAP_STM_UNSPECIFED,
+			.deassert_mask = OA_SOAP_STM_UNSPECIFED,
+			.sensor_reading = {
+				.IsSupported = SAHPI_TRUE,
+				.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with current reading */
+				.Value.SensorFloat64 = 0x0,
+			},
+			.threshold = {
+				.UpCritical.IsSupported = SAHPI_TRUE,
+				.UpCritical.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with critical threshold
+				 * reading
+				 */
+				.UpCritical.Value.SensorFloat64 = 92,
+				.UpMajor.IsSupported = SAHPI_TRUE,
+				.UpMajor.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with major threshold
+				 * reading
+				 */
+				.UpMajor.Value.SensorFloat64 = 87,
+			},
+		},
+		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
+      		.comment = "Memory Zone",
+	},
+	/* Memory zone7 sensor */
+	{
+		.sensor = {
+			.Num = OA_SOAP_SEN_BLADE_MEM_ZONE7,
+			.Type = SAHPI_TEMPERATURE,
+			.Category = SAHPI_EC_THRESHOLD,
+			.EnableCtrl = SAHPI_TRUE,
+			.EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_UNSPECIFIED,
+			.DataFormat = {
+				.IsSupported = SAHPI_TRUE,
+				.ReadingType =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				.BaseUnits = SAHPI_SU_DEGREES_C,
+				.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUse = SAHPI_SMUU_NONE,
+				.Percentage = SAHPI_FALSE,
+				.Range.Flags = SAHPI_SRF_MAX |
+					       SAHPI_SRF_NORMAL_MAX,
+				.Range.Max.IsSupported = SAHPI_TRUE,
+				.Range.Max.Type = 
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Max value should be replaced
+				  * with Max value retrieved from OA
+				  */
+				.Range.Max.Value.SensorFloat64 = 92,
+				.Range.NormalMax.IsSupported = SAHPI_TRUE,
+				.Range.NormalMax.Type =
+				       SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Normal Max value should be
+				  * replaced with Normal Max value retrieved
+				  * from OA
+				  */
+				.Range.NormalMax.Value.SensorFloat64 = 87,
+				.AccuracyFactor =  0,
+			},
+			.ThresholdDefn = {
+				.IsAccessible = SAHPI_TRUE,
+				.ReadThold = SAHPI_ES_UPPER_CRIT |
+					     SAHPI_ES_UPPER_MAJOR,
+				.WriteThold = 0x0,
+			},
+			.Oem = 0,
+		},
+		.sensor_info = {
+			.current_state = SAHPI_ES_UNSPECIFIED,
+			.sensor_enable = SAHPI_TRUE,
+			.event_enable = SAHPI_FALSE,
+			.assert_mask = OA_SOAP_STM_UNSPECIFED,
+			.deassert_mask = OA_SOAP_STM_UNSPECIFED,
+			.sensor_reading = {
+				.IsSupported = SAHPI_TRUE,
+				.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with current reading */
+				.Value.SensorFloat64 = 0x0,
+			},
+			.threshold = {
+				.UpCritical.IsSupported = SAHPI_TRUE,
+				.UpCritical.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with critical threshold
+				 * reading
+				 */
+				.UpCritical.Value.SensorFloat64 = 92,
+				.UpMajor.IsSupported = SAHPI_TRUE,
+				.UpMajor.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with major threshold
+				 * reading
+				 */
+				.UpMajor.Value.SensorFloat64 = 87,
+			},
+		},
+		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
+      		.comment = "Memory Zone",
+	},
+	/* Memory zone8 sensor */
+	{
+		.sensor = {
+			.Num = OA_SOAP_SEN_BLADE_MEM_ZONE8,
+			.Type = SAHPI_TEMPERATURE,
+			.Category = SAHPI_EC_THRESHOLD,
+			.EnableCtrl = SAHPI_TRUE,
+			.EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_UNSPECIFIED,
+			.DataFormat = {
+				.IsSupported = SAHPI_TRUE,
+				.ReadingType =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				.BaseUnits = SAHPI_SU_DEGREES_C,
+				.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUse = SAHPI_SMUU_NONE,
+				.Percentage = SAHPI_FALSE,
+				.Range.Flags = SAHPI_SRF_MAX |
+					       SAHPI_SRF_NORMAL_MAX,
+				.Range.Max.IsSupported = SAHPI_TRUE,
+				.Range.Max.Type = 
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Max value should be replaced
+				  * with Max value retrieved from OA
+				  */
+				.Range.Max.Value.SensorFloat64 = 92,
+				.Range.NormalMax.IsSupported = SAHPI_TRUE,
+				.Range.NormalMax.Type =
+				       SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Normal Max value should be
+				  * replaced with Normal Max value retrieved
+				  * from OA
+				  */
+				.Range.NormalMax.Value.SensorFloat64 = 87,
+				.AccuracyFactor =  0,
+			},
+			.ThresholdDefn = {
+				.IsAccessible = SAHPI_TRUE,
+				.ReadThold = SAHPI_ES_UPPER_CRIT |
+					     SAHPI_ES_UPPER_MAJOR,
+				.WriteThold = 0x0,
+			},
+			.Oem = 0,
+		},
+		.sensor_info = {
+			.current_state = SAHPI_ES_UNSPECIFIED,
+			.sensor_enable = SAHPI_TRUE,
+			.event_enable = SAHPI_FALSE,
+			.assert_mask = OA_SOAP_STM_UNSPECIFED,
+			.deassert_mask = OA_SOAP_STM_UNSPECIFED,
+			.sensor_reading = {
+				.IsSupported = SAHPI_TRUE,
+				.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with current reading */
+				.Value.SensorFloat64 = 0x0,
+			},
+			.threshold = {
+				.UpCritical.IsSupported = SAHPI_TRUE,
+				.UpCritical.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with critical threshold
+				 * reading
+				 */
+				.UpCritical.Value.SensorFloat64 = 92,
+				.UpMajor.IsSupported = SAHPI_TRUE,
+				.UpMajor.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with major threshold
+				 * reading
+				 */
+				.UpMajor.Value.SensorFloat64 = 87,
+			},
+		},
+		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
+      		.comment = "Memory Zone",
 	},
 	/* Disk zone1 sensor */
 	{
@@ -5221,7 +5829,7 @@ const struct oa_soap_sensor oa_soap_sen_arr[] = {
 			},
 		},
 		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
-      		.comment = "Disk Zone thermal status",
+      		.comment = "Disk Zone",
 	},
 	/* Disk zone2 sensor */
 	{
@@ -5297,7 +5905,7 @@ const struct oa_soap_sensor oa_soap_sen_arr[] = {
 			},
 		},
 		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
-      		.comment = "Disk Zone thermal status",
+      		.comment = "Disk Zone",
 	},
 	/* Disk zone3 sensor */
 	{
@@ -5373,7 +5981,7 @@ const struct oa_soap_sensor oa_soap_sen_arr[] = {
 			},
 		},
 		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
-      		.comment = "Disk Zone thermal status",
+      		.comment = "Disk Zone",
 	},
 	/* Disk zone4 sensor */
 	{
@@ -5449,7 +6057,7 @@ const struct oa_soap_sensor oa_soap_sen_arr[] = {
 			},
 		},
 		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
-      		.comment = "Disk Zone thermal status",
+      		.comment = "Disk Zone",
 	},
 	/* CPU 1 sensor */
 	{
@@ -5525,7 +6133,7 @@ const struct oa_soap_sensor oa_soap_sen_arr[] = {
 			},
 		},
 		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
-      		.comment = "CPU 1 thermal status",
+      		.comment = "CPU 1",
 	},
 	/* CPU 1 sensor */
 	{
@@ -5601,7 +6209,7 @@ const struct oa_soap_sensor oa_soap_sen_arr[] = {
 			},
 		},
 		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
-      		.comment = "CPU 1 thermal status",
+      		.comment = "CPU 1",
 	},
 	/* CPU 1 sensor */
 	{
@@ -5677,7 +6285,7 @@ const struct oa_soap_sensor oa_soap_sen_arr[] = {
 			},
 		},
 		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
-      		.comment = "CPU 1 thermal status",
+      		.comment = "CPU 1",
 	},
 	/* CPU 1 sensor */
 	{
@@ -5753,7 +6361,7 @@ const struct oa_soap_sensor oa_soap_sen_arr[] = {
 			},
 		},
 		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
-      		.comment = "CPU 1 thermal status",
+      		.comment = "CPU 1",
 	},
 	/* CPU 2 sensor */
 	{
@@ -5829,7 +6437,7 @@ const struct oa_soap_sensor oa_soap_sen_arr[] = {
 			},
 		},
 		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
-      		.comment = "CPU 2 thermal status",
+      		.comment = "CPU 2",
 	},
 	/* CPU 2 sensor */
 	{
@@ -5905,7 +6513,7 @@ const struct oa_soap_sensor oa_soap_sen_arr[] = {
 			},
 		},
 		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
-      		.comment = "CPU 2 thermal status",
+      		.comment = "CPU 2",
 	},
 	/* CPU 2 sensor */
 	{
@@ -5981,7 +6589,7 @@ const struct oa_soap_sensor oa_soap_sen_arr[] = {
 			},
 		},
 		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
-      		.comment = "CPU 2 thermal status",
+      		.comment = "CPU 2",
 	},
 	/* CPU 2 sensor */
 	{
@@ -6057,7 +6665,7 @@ const struct oa_soap_sensor oa_soap_sen_arr[] = {
 			},
 		},
 		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
-      		.comment = "CPU 2 thermal status",
+      		.comment = "CPU 2",
 	},
 	/* CPU 3 sensor */
 	{
@@ -6133,7 +6741,7 @@ const struct oa_soap_sensor oa_soap_sen_arr[] = {
 			},
 		},
 		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
-      		.comment = "CPU 3 thermal status",
+      		.comment = "CPU 3",
 	},
 	/* CPU 3 sensor */
 	{
@@ -6209,7 +6817,7 @@ const struct oa_soap_sensor oa_soap_sen_arr[] = {
 			},
 		},
 		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
-      		.comment = "CPU 3 thermal status",
+      		.comment = "CPU 3",
 	},
 	/* CPU 3 sensor */
 	{
@@ -6285,7 +6893,7 @@ const struct oa_soap_sensor oa_soap_sen_arr[] = {
 			},
 		},
 		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
-      		.comment = "CPU 3 thermal status",
+      		.comment = "CPU 3",
 	},
 	/* CPU 3 sensor */
 	{
@@ -6361,7 +6969,7 @@ const struct oa_soap_sensor oa_soap_sen_arr[] = {
 			},
 		},
 		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
-      		.comment = "CPU 3 thermal status",
+      		.comment = "CPU 3",
 	},
 	/* CPU 4 sensor */
 	{
@@ -6437,7 +7045,7 @@ const struct oa_soap_sensor oa_soap_sen_arr[] = {
 			},
 		},
 		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
-      		.comment = "CPU 4 thermal status",
+      		.comment = "CPU 4",
 	},
 	/* CPU 4 sensor */
 	{
@@ -6513,7 +7121,7 @@ const struct oa_soap_sensor oa_soap_sen_arr[] = {
 			},
 		},
 		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
-      		.comment = "CPU 4 thermal status",
+      		.comment = "CPU 4",
 	},
 	/* CPU 4 sensor */
 	{
@@ -6589,7 +7197,7 @@ const struct oa_soap_sensor oa_soap_sen_arr[] = {
 			},
 		},
 		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
-      		.comment = "CPU 4 thermal status",
+      		.comment = "CPU 4",
 	},
 	/* CPU 4 sensor */
 	{
@@ -6665,7 +7273,1527 @@ const struct oa_soap_sensor oa_soap_sen_arr[] = {
 			},
 		},
 		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
-      		.comment = "CPU 4 thermal status",
+      		.comment = "CPU 4",
+	},
+	/* Storage zone1 sensor */
+	{
+		.sensor = {
+			.Num = OA_SOAP_SEN_BLADE_STORAGE_ZONE1,
+			.Type = SAHPI_TEMPERATURE,
+			.Category = SAHPI_EC_THRESHOLD,
+			.EnableCtrl = SAHPI_TRUE,
+			.EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_UNSPECIFIED,
+			.DataFormat = {
+				.IsSupported = SAHPI_TRUE,
+				.ReadingType =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				.BaseUnits = SAHPI_SU_DEGREES_C,
+				.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUse = SAHPI_SMUU_NONE,
+				.Percentage = SAHPI_FALSE,
+				.Range.Flags = SAHPI_SRF_MAX |
+					       SAHPI_SRF_NORMAL_MAX,
+				.Range.Max.IsSupported = SAHPI_TRUE,
+				.Range.Max.Type = 
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Max value should be replaced
+				  * with Max value retrieved from OA
+				  */
+				.Range.Max.Value.SensorFloat64 = 65,
+				.Range.NormalMax.IsSupported = SAHPI_TRUE,
+				.Range.NormalMax.Type =
+				       SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Normal Max value should be
+				  * replaced with Normal Max value retrieved
+				  * from OA
+				  */
+				.Range.NormalMax.Value.SensorFloat64 = 60,
+				.AccuracyFactor =  0,
+			},
+			.ThresholdDefn = {
+				.IsAccessible = SAHPI_TRUE,
+				.ReadThold = SAHPI_ES_UPPER_CRIT |
+					     SAHPI_ES_UPPER_MAJOR,
+				.WriteThold = 0x0,
+			},
+			.Oem = 0,
+		},
+		.sensor_info = {
+			.current_state = SAHPI_ES_UNSPECIFIED,
+			.sensor_enable = SAHPI_TRUE,
+			.event_enable = SAHPI_FALSE,
+			.assert_mask = OA_SOAP_STM_UNSPECIFED,
+			.deassert_mask = OA_SOAP_STM_UNSPECIFED,
+			.sensor_reading = {
+				.IsSupported = SAHPI_TRUE,
+				.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with current reading */
+				.Value.SensorFloat64 = 0x0,
+			},
+			.threshold = {
+				.UpCritical.IsSupported = SAHPI_TRUE,
+				.UpCritical.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with critical threshold
+				 * reading
+				 */
+				.UpCritical.Value.SensorFloat64 = 65,
+				.UpMajor.IsSupported = SAHPI_TRUE,
+				.UpMajor.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with major threshold
+				 * reading
+				 */
+				.UpMajor.Value.SensorFloat64 = 60,
+			},
+		},
+		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
+      		.comment = "Storage Zone",
+	},
+	/* Storage zone2 sensor */
+	{
+		.sensor = {
+			.Num = OA_SOAP_SEN_BLADE_STORAGE_ZONE2,
+			.Type = SAHPI_TEMPERATURE,
+			.Category = SAHPI_EC_THRESHOLD,
+			.EnableCtrl = SAHPI_TRUE,
+			.EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_UNSPECIFIED,
+			.DataFormat = {
+				.IsSupported = SAHPI_TRUE,
+				.ReadingType =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				.BaseUnits = SAHPI_SU_DEGREES_C,
+				.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUse = SAHPI_SMUU_NONE,
+				.Percentage = SAHPI_FALSE,
+				.Range.Flags = SAHPI_SRF_MAX |
+					       SAHPI_SRF_NORMAL_MAX,
+				.Range.Max.IsSupported = SAHPI_TRUE,
+				.Range.Max.Type = 
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Max value should be replaced
+				  * with Max value retrieved from OA
+				  */
+				.Range.Max.Value.SensorFloat64 = 65,
+				.Range.NormalMax.IsSupported = SAHPI_TRUE,
+				.Range.NormalMax.Type =
+				       SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Normal Max value should be
+				  * replaced with Normal Max value retrieved
+				  * from OA
+				  */
+				.Range.NormalMax.Value.SensorFloat64 = 60,
+				.AccuracyFactor =  0,
+			},
+			.ThresholdDefn = {
+				.IsAccessible = SAHPI_TRUE,
+				.ReadThold = SAHPI_ES_UPPER_CRIT |
+					     SAHPI_ES_UPPER_MAJOR,
+				.WriteThold = 0x0,
+			},
+			.Oem = 0,
+		},
+		.sensor_info = {
+			.current_state = SAHPI_ES_UNSPECIFIED,
+			.sensor_enable = SAHPI_TRUE,
+			.event_enable = SAHPI_FALSE,
+			.assert_mask = OA_SOAP_STM_UNSPECIFED,
+			.deassert_mask = OA_SOAP_STM_UNSPECIFED,
+			.sensor_reading = {
+				.IsSupported = SAHPI_TRUE,
+				.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with current reading */
+				.Value.SensorFloat64 = 0x0,
+			},
+			.threshold = {
+				.UpCritical.IsSupported = SAHPI_TRUE,
+				.UpCritical.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with critical threshold
+				 * reading
+				 */
+				.UpCritical.Value.SensorFloat64 = 65,
+				.UpMajor.IsSupported = SAHPI_TRUE,
+				.UpMajor.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with major threshold
+				 * reading
+				 */
+				.UpMajor.Value.SensorFloat64 = 60,
+			},
+		},
+		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
+      		.comment = "Storage Zone",
+	},
+	/* Storage zone3 sensor */
+	{
+		.sensor = {
+			.Num = OA_SOAP_SEN_BLADE_STORAGE_ZONE3,
+			.Type = SAHPI_TEMPERATURE,
+			.Category = SAHPI_EC_THRESHOLD,
+			.EnableCtrl = SAHPI_TRUE,
+			.EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_UNSPECIFIED,
+			.DataFormat = {
+				.IsSupported = SAHPI_TRUE,
+				.ReadingType =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				.BaseUnits = SAHPI_SU_DEGREES_C,
+				.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUse = SAHPI_SMUU_NONE,
+				.Percentage = SAHPI_FALSE,
+				.Range.Flags = SAHPI_SRF_MAX |
+					       SAHPI_SRF_NORMAL_MAX,
+				.Range.Max.IsSupported = SAHPI_TRUE,
+				.Range.Max.Type = 
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Max value should be replaced
+				  * with Max value retrieved from OA
+				  */
+				.Range.Max.Value.SensorFloat64 = 65,
+				.Range.NormalMax.IsSupported = SAHPI_TRUE,
+				.Range.NormalMax.Type =
+				       SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Normal Max value should be
+				  * replaced with Normal Max value retrieved
+				  * from OA
+				  */
+				.Range.NormalMax.Value.SensorFloat64 = 60,
+				.AccuracyFactor =  0,
+			},
+			.ThresholdDefn = {
+				.IsAccessible = SAHPI_TRUE,
+				.ReadThold = SAHPI_ES_UPPER_CRIT |
+					     SAHPI_ES_UPPER_MAJOR,
+				.WriteThold = 0x0,
+			},
+			.Oem = 0,
+		},
+		.sensor_info = {
+			.current_state = SAHPI_ES_UNSPECIFIED,
+			.sensor_enable = SAHPI_TRUE,
+			.event_enable = SAHPI_FALSE,
+			.assert_mask = OA_SOAP_STM_UNSPECIFED,
+			.deassert_mask = OA_SOAP_STM_UNSPECIFED,
+			.sensor_reading = {
+				.IsSupported = SAHPI_TRUE,
+				.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with current reading */
+				.Value.SensorFloat64 = 0x0,
+			},
+			.threshold = {
+				.UpCritical.IsSupported = SAHPI_TRUE,
+				.UpCritical.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with critical threshold
+				 * reading
+				 */
+				.UpCritical.Value.SensorFloat64 = 65,
+				.UpMajor.IsSupported = SAHPI_TRUE,
+				.UpMajor.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with major threshold
+				 * reading
+				 */
+				.UpMajor.Value.SensorFloat64 = 60,
+			},
+		},
+		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
+      		.comment = "Storage Zone",
+	},
+	/* Storage zone4 sensor */
+	{
+		.sensor = {
+			.Num = OA_SOAP_SEN_BLADE_STORAGE_ZONE4,
+			.Type = SAHPI_TEMPERATURE,
+			.Category = SAHPI_EC_THRESHOLD,
+			.EnableCtrl = SAHPI_TRUE,
+			.EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_UNSPECIFIED,
+			.DataFormat = {
+				.IsSupported = SAHPI_TRUE,
+				.ReadingType =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				.BaseUnits = SAHPI_SU_DEGREES_C,
+				.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUse = SAHPI_SMUU_NONE,
+				.Percentage = SAHPI_FALSE,
+				.Range.Flags = SAHPI_SRF_MAX |
+					       SAHPI_SRF_NORMAL_MAX,
+				.Range.Max.IsSupported = SAHPI_TRUE,
+				.Range.Max.Type = 
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Max value should be replaced
+				  * with Max value retrieved from OA
+				  */
+				.Range.Max.Value.SensorFloat64 = 65,
+				.Range.NormalMax.IsSupported = SAHPI_TRUE,
+				.Range.NormalMax.Type =
+				       SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Normal Max value should be
+				  * replaced with Normal Max value retrieved
+				  * from OA
+				  */
+				.Range.NormalMax.Value.SensorFloat64 = 60,
+				.AccuracyFactor =  0,
+			},
+			.ThresholdDefn = {
+				.IsAccessible = SAHPI_TRUE,
+				.ReadThold = SAHPI_ES_UPPER_CRIT |
+					     SAHPI_ES_UPPER_MAJOR,
+				.WriteThold = 0x0,
+			},
+			.Oem = 0,
+		},
+		.sensor_info = {
+			.current_state = SAHPI_ES_UNSPECIFIED,
+			.sensor_enable = SAHPI_TRUE,
+			.event_enable = SAHPI_FALSE,
+			.assert_mask = OA_SOAP_STM_UNSPECIFED,
+			.deassert_mask = OA_SOAP_STM_UNSPECIFED,
+			.sensor_reading = {
+				.IsSupported = SAHPI_TRUE,
+				.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with current reading */
+				.Value.SensorFloat64 = 0x0,
+			},
+			.threshold = {
+				.UpCritical.IsSupported = SAHPI_TRUE,
+				.UpCritical.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with critical threshold
+				 * reading
+				 */
+				.UpCritical.Value.SensorFloat64 = 65,
+				.UpMajor.IsSupported = SAHPI_TRUE,
+				.UpMajor.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with major threshold
+				 * reading
+				 */
+				.UpMajor.Value.SensorFloat64 = 60,
+			},
+		},
+		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
+      		.comment = "Storage Zone",
+	},
+	/* I/O Board zone1 sensor */
+	{
+		.sensor = {
+			.Num = OA_SOAP_SEN_BLADE_IO_BOARD_ZONE1,
+			.Type = SAHPI_TEMPERATURE,
+			.Category = SAHPI_EC_THRESHOLD,
+			.EnableCtrl = SAHPI_TRUE,
+			.EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_UNSPECIFIED,
+			.DataFormat = {
+				.IsSupported = SAHPI_TRUE,
+				.ReadingType =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				.BaseUnits = SAHPI_SU_DEGREES_C,
+				.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUse = SAHPI_SMUU_NONE,
+				.Percentage = SAHPI_FALSE,
+				.Range.Flags = SAHPI_SRF_MAX |
+					       SAHPI_SRF_NORMAL_MAX,
+				.Range.Max.IsSupported = SAHPI_TRUE,
+				.Range.Max.Type = 
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Max value should be replaced
+				  * with Max value retrieved from OA
+				  */
+				.Range.Max.Value.SensorFloat64 = 86,
+				.Range.NormalMax.IsSupported = SAHPI_TRUE,
+				.Range.NormalMax.Type =
+				       SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Normal Max value should be
+				  * replaced with Normal Max value retrieved
+				  * from OA
+				  */
+				.Range.NormalMax.Value.SensorFloat64 = 81,
+				.AccuracyFactor =  0,
+			},
+			.ThresholdDefn = {
+				.IsAccessible = SAHPI_TRUE,
+				.ReadThold = SAHPI_ES_UPPER_CRIT |
+					     SAHPI_ES_UPPER_MAJOR,
+				.WriteThold = 0x0,
+			},
+			.Oem = 0,
+		},
+		.sensor_info = {
+			.current_state = SAHPI_ES_UNSPECIFIED,
+			.sensor_enable = SAHPI_TRUE,
+			.event_enable = SAHPI_FALSE,
+			.assert_mask = OA_SOAP_STM_UNSPECIFED,
+			.deassert_mask = OA_SOAP_STM_UNSPECIFED,
+			.sensor_reading = {
+				.IsSupported = SAHPI_TRUE,
+				.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with current reading */
+				.Value.SensorFloat64 = 0x0,
+			},
+			.threshold = {
+				.UpCritical.IsSupported = SAHPI_TRUE,
+				.UpCritical.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with critical threshold
+				 * reading
+				 */
+				.UpCritical.Value.SensorFloat64 = 86,
+				.UpMajor.IsSupported = SAHPI_TRUE,
+				.UpMajor.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with major threshold
+				 * reading
+				 */
+				.UpMajor.Value.SensorFloat64 = 81,
+			},
+		},
+		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
+      		.comment = "I/O Board Zone",
+	},
+	/* I/O Board zone2 sensor */
+	{
+		.sensor = {
+			.Num = OA_SOAP_SEN_BLADE_IO_BOARD_ZONE2,
+			.Type = SAHPI_TEMPERATURE,
+			.Category = SAHPI_EC_THRESHOLD,
+			.EnableCtrl = SAHPI_TRUE,
+			.EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_UNSPECIFIED,
+			.DataFormat = {
+				.IsSupported = SAHPI_TRUE,
+				.ReadingType =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				.BaseUnits = SAHPI_SU_DEGREES_C,
+				.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUse = SAHPI_SMUU_NONE,
+				.Percentage = SAHPI_FALSE,
+				.Range.Flags = SAHPI_SRF_MAX |
+					       SAHPI_SRF_NORMAL_MAX,
+				.Range.Max.IsSupported = SAHPI_TRUE,
+				.Range.Max.Type = 
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Max value should be replaced
+				  * with Max value retrieved from OA
+				  */
+				.Range.Max.Value.SensorFloat64 = 86,
+				.Range.NormalMax.IsSupported = SAHPI_TRUE,
+				.Range.NormalMax.Type =
+				       SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Normal Max value should be
+				  * replaced with Normal Max value retrieved
+				  * from OA
+				  */
+				.Range.NormalMax.Value.SensorFloat64 = 81,
+				.AccuracyFactor =  0,
+			},
+			.ThresholdDefn = {
+				.IsAccessible = SAHPI_TRUE,
+				.ReadThold = SAHPI_ES_UPPER_CRIT |
+					     SAHPI_ES_UPPER_MAJOR,
+				.WriteThold = 0x0,
+			},
+			.Oem = 0,
+		},
+		.sensor_info = {
+			.current_state = SAHPI_ES_UNSPECIFIED,
+			.sensor_enable = SAHPI_TRUE,
+			.event_enable = SAHPI_FALSE,
+			.assert_mask = OA_SOAP_STM_UNSPECIFED,
+			.deassert_mask = OA_SOAP_STM_UNSPECIFED,
+			.sensor_reading = {
+				.IsSupported = SAHPI_TRUE,
+				.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with current reading */
+				.Value.SensorFloat64 = 0x0,
+			},
+			.threshold = {
+				.UpCritical.IsSupported = SAHPI_TRUE,
+				.UpCritical.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with critical threshold
+				 * reading
+				 */
+				.UpCritical.Value.SensorFloat64 = 86,
+				.UpMajor.IsSupported = SAHPI_TRUE,
+				.UpMajor.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with major threshold
+				 * reading
+				 */
+				.UpMajor.Value.SensorFloat64 = 81,
+			},
+		},
+		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
+      		.comment = "I/O Board Zone",
+	},
+	/* I/O Board zone3 sensor */
+	{
+		.sensor = {
+			.Num = OA_SOAP_SEN_BLADE_IO_BOARD_ZONE3,
+			.Type = SAHPI_TEMPERATURE,
+			.Category = SAHPI_EC_THRESHOLD,
+			.EnableCtrl = SAHPI_TRUE,
+			.EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_UNSPECIFIED,
+			.DataFormat = {
+				.IsSupported = SAHPI_TRUE,
+				.ReadingType =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				.BaseUnits = SAHPI_SU_DEGREES_C,
+				.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUse = SAHPI_SMUU_NONE,
+				.Percentage = SAHPI_FALSE,
+				.Range.Flags = SAHPI_SRF_MAX |
+					       SAHPI_SRF_NORMAL_MAX,
+				.Range.Max.IsSupported = SAHPI_TRUE,
+				.Range.Max.Type = 
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Max value should be replaced
+				  * with Max value retrieved from OA
+				  */
+				.Range.Max.Value.SensorFloat64 = 86,
+				.Range.NormalMax.IsSupported = SAHPI_TRUE,
+				.Range.NormalMax.Type =
+				       SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Normal Max value should be
+				  * replaced with Normal Max value retrieved
+				  * from OA
+				  */
+				.Range.NormalMax.Value.SensorFloat64 = 81,
+				.AccuracyFactor =  0,
+			},
+			.ThresholdDefn = {
+				.IsAccessible = SAHPI_TRUE,
+				.ReadThold = SAHPI_ES_UPPER_CRIT |
+					     SAHPI_ES_UPPER_MAJOR,
+				.WriteThold = 0x0,
+			},
+			.Oem = 0,
+		},
+		.sensor_info = {
+			.current_state = SAHPI_ES_UNSPECIFIED,
+			.sensor_enable = SAHPI_TRUE,
+			.event_enable = SAHPI_FALSE,
+			.assert_mask = OA_SOAP_STM_UNSPECIFED,
+			.deassert_mask = OA_SOAP_STM_UNSPECIFED,
+			.sensor_reading = {
+				.IsSupported = SAHPI_TRUE,
+				.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with current reading */
+				.Value.SensorFloat64 = 0x0,
+			},
+			.threshold = {
+				.UpCritical.IsSupported = SAHPI_TRUE,
+				.UpCritical.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with critical threshold
+				 * reading
+				 */
+				.UpCritical.Value.SensorFloat64 = 86,
+				.UpMajor.IsSupported = SAHPI_TRUE,
+				.UpMajor.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with major threshold
+				 * reading
+				 */
+				.UpMajor.Value.SensorFloat64 = 81,
+			},
+		},
+		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
+      		.comment = "I/O Board Zone",
+	},
+	/* I/O Board zone4 sensor */
+	{
+		.sensor = {
+			.Num = OA_SOAP_SEN_BLADE_IO_BOARD_ZONE4,
+			.Type = SAHPI_TEMPERATURE,
+			.Category = SAHPI_EC_THRESHOLD,
+			.EnableCtrl = SAHPI_TRUE,
+			.EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_UNSPECIFIED,
+			.DataFormat = {
+				.IsSupported = SAHPI_TRUE,
+				.ReadingType =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				.BaseUnits = SAHPI_SU_DEGREES_C,
+				.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUse = SAHPI_SMUU_NONE,
+				.Percentage = SAHPI_FALSE,
+				.Range.Flags = SAHPI_SRF_MAX |
+					       SAHPI_SRF_NORMAL_MAX,
+				.Range.Max.IsSupported = SAHPI_TRUE,
+				.Range.Max.Type = 
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Max value should be replaced
+				  * with Max value retrieved from OA
+				  */
+				.Range.Max.Value.SensorFloat64 = 86,
+				.Range.NormalMax.IsSupported = SAHPI_TRUE,
+				.Range.NormalMax.Type =
+				       SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Normal Max value should be
+				  * replaced with Normal Max value retrieved
+				  * from OA
+				  */
+				.Range.NormalMax.Value.SensorFloat64 = 81,
+				.AccuracyFactor =  0,
+			},
+			.ThresholdDefn = {
+				.IsAccessible = SAHPI_TRUE,
+				.ReadThold = SAHPI_ES_UPPER_CRIT |
+					     SAHPI_ES_UPPER_MAJOR,
+				.WriteThold = 0x0,
+			},
+			.Oem = 0,
+		},
+		.sensor_info = {
+			.current_state = SAHPI_ES_UNSPECIFIED,
+			.sensor_enable = SAHPI_TRUE,
+			.event_enable = SAHPI_FALSE,
+			.assert_mask = OA_SOAP_STM_UNSPECIFED,
+			.deassert_mask = OA_SOAP_STM_UNSPECIFED,
+			.sensor_reading = {
+				.IsSupported = SAHPI_TRUE,
+				.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with current reading */
+				.Value.SensorFloat64 = 0x0,
+			},
+			.threshold = {
+				.UpCritical.IsSupported = SAHPI_TRUE,
+				.UpCritical.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with critical threshold
+				 * reading
+				 */
+				.UpCritical.Value.SensorFloat64 = 86,
+				.UpMajor.IsSupported = SAHPI_TRUE,
+				.UpMajor.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with major threshold
+				 * reading
+				 */
+				.UpMajor.Value.SensorFloat64 = 81,
+			},
+		},
+		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
+      		.comment = "I/O Board Zone",
+	},
+	/* I/O Board zone5 sensor */
+	{
+		.sensor = {
+			.Num = OA_SOAP_SEN_BLADE_IO_BOARD_ZONE5,
+			.Type = SAHPI_TEMPERATURE,
+			.Category = SAHPI_EC_THRESHOLD,
+			.EnableCtrl = SAHPI_TRUE,
+			.EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_UNSPECIFIED,
+			.DataFormat = {
+				.IsSupported = SAHPI_TRUE,
+				.ReadingType =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				.BaseUnits = SAHPI_SU_DEGREES_C,
+				.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUse = SAHPI_SMUU_NONE,
+				.Percentage = SAHPI_FALSE,
+				.Range.Flags = SAHPI_SRF_MAX |
+					       SAHPI_SRF_NORMAL_MAX,
+				.Range.Max.IsSupported = SAHPI_TRUE,
+				.Range.Max.Type = 
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Max value should be replaced
+				  * with Max value retrieved from OA
+				  */
+				.Range.Max.Value.SensorFloat64 = 86,
+				.Range.NormalMax.IsSupported = SAHPI_TRUE,
+				.Range.NormalMax.Type =
+				       SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Normal Max value should be
+				  * replaced with Normal Max value retrieved
+				  * from OA
+				  */
+				.Range.NormalMax.Value.SensorFloat64 = 81,
+				.AccuracyFactor =  0,
+			},
+			.ThresholdDefn = {
+				.IsAccessible = SAHPI_TRUE,
+				.ReadThold = SAHPI_ES_UPPER_CRIT |
+					     SAHPI_ES_UPPER_MAJOR,
+				.WriteThold = 0x0,
+			},
+			.Oem = 0,
+		},
+		.sensor_info = {
+			.current_state = SAHPI_ES_UNSPECIFIED,
+			.sensor_enable = SAHPI_TRUE,
+			.event_enable = SAHPI_FALSE,
+			.assert_mask = OA_SOAP_STM_UNSPECIFED,
+			.deassert_mask = OA_SOAP_STM_UNSPECIFED,
+			.sensor_reading = {
+				.IsSupported = SAHPI_TRUE,
+				.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with current reading */
+				.Value.SensorFloat64 = 0x0,
+			},
+			.threshold = {
+				.UpCritical.IsSupported = SAHPI_TRUE,
+				.UpCritical.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with critical threshold
+				 * reading
+				 */
+				.UpCritical.Value.SensorFloat64 = 86,
+				.UpMajor.IsSupported = SAHPI_TRUE,
+				.UpMajor.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with major threshold
+				 * reading
+				 */
+				.UpMajor.Value.SensorFloat64 = 81,
+			},
+		},
+		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
+      		.comment = "I/O Board Zone",
+	},
+	/* I/O Board zone6 sensor */
+	{
+		.sensor = {
+			.Num = OA_SOAP_SEN_BLADE_IO_BOARD_ZONE6,
+			.Type = SAHPI_TEMPERATURE,
+			.Category = SAHPI_EC_THRESHOLD,
+			.EnableCtrl = SAHPI_TRUE,
+			.EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_UNSPECIFIED,
+			.DataFormat = {
+				.IsSupported = SAHPI_TRUE,
+				.ReadingType =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				.BaseUnits = SAHPI_SU_DEGREES_C,
+				.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUse = SAHPI_SMUU_NONE,
+				.Percentage = SAHPI_FALSE,
+				.Range.Flags = SAHPI_SRF_MAX |
+					       SAHPI_SRF_NORMAL_MAX,
+				.Range.Max.IsSupported = SAHPI_TRUE,
+				.Range.Max.Type = 
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Max value should be replaced
+				  * with Max value retrieved from OA
+				  */
+				.Range.Max.Value.SensorFloat64 = 86,
+				.Range.NormalMax.IsSupported = SAHPI_TRUE,
+				.Range.NormalMax.Type =
+				       SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Normal Max value should be
+				  * replaced with Normal Max value retrieved
+				  * from OA
+				  */
+				.Range.NormalMax.Value.SensorFloat64 = 81,
+				.AccuracyFactor =  0,
+			},
+			.ThresholdDefn = {
+				.IsAccessible = SAHPI_TRUE,
+				.ReadThold = SAHPI_ES_UPPER_CRIT |
+					     SAHPI_ES_UPPER_MAJOR,
+				.WriteThold = 0x0,
+			},
+			.Oem = 0,
+		},
+		.sensor_info = {
+			.current_state = SAHPI_ES_UNSPECIFIED,
+			.sensor_enable = SAHPI_TRUE,
+			.event_enable = SAHPI_FALSE,
+			.assert_mask = OA_SOAP_STM_UNSPECIFED,
+			.deassert_mask = OA_SOAP_STM_UNSPECIFED,
+			.sensor_reading = {
+				.IsSupported = SAHPI_TRUE,
+				.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with current reading */
+				.Value.SensorFloat64 = 0x0,
+			},
+			.threshold = {
+				.UpCritical.IsSupported = SAHPI_TRUE,
+				.UpCritical.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with critical threshold
+				 * reading
+				 */
+				.UpCritical.Value.SensorFloat64 = 86,
+				.UpMajor.IsSupported = SAHPI_TRUE,
+				.UpMajor.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with major threshold
+				 * reading
+				 */
+				.UpMajor.Value.SensorFloat64 = 81,
+			},
+		},
+		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
+      		.comment = "I/O Board Zone",
+	},
+	/* I/O Board zone7 sensor */
+	{
+		.sensor = {
+			.Num = OA_SOAP_SEN_BLADE_IO_BOARD_ZONE7,
+			.Type = SAHPI_TEMPERATURE,
+			.Category = SAHPI_EC_THRESHOLD,
+			.EnableCtrl = SAHPI_TRUE,
+			.EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_UNSPECIFIED,
+			.DataFormat = {
+				.IsSupported = SAHPI_TRUE,
+				.ReadingType =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				.BaseUnits = SAHPI_SU_DEGREES_C,
+				.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUse = SAHPI_SMUU_NONE,
+				.Percentage = SAHPI_FALSE,
+				.Range.Flags = SAHPI_SRF_MAX |
+					       SAHPI_SRF_NORMAL_MAX,
+				.Range.Max.IsSupported = SAHPI_TRUE,
+				.Range.Max.Type = 
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Max value should be replaced
+				  * with Max value retrieved from OA
+				  */
+				.Range.Max.Value.SensorFloat64 = 86,
+				.Range.NormalMax.IsSupported = SAHPI_TRUE,
+				.Range.NormalMax.Type =
+				       SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Normal Max value should be
+				  * replaced with Normal Max value retrieved
+				  * from OA
+				  */
+				.Range.NormalMax.Value.SensorFloat64 = 81,
+				.AccuracyFactor =  0,
+			},
+			.ThresholdDefn = {
+				.IsAccessible = SAHPI_TRUE,
+				.ReadThold = SAHPI_ES_UPPER_CRIT |
+					     SAHPI_ES_UPPER_MAJOR,
+				.WriteThold = 0x0,
+			},
+			.Oem = 0,
+		},
+		.sensor_info = {
+			.current_state = SAHPI_ES_UNSPECIFIED,
+			.sensor_enable = SAHPI_TRUE,
+			.event_enable = SAHPI_FALSE,
+			.assert_mask = OA_SOAP_STM_UNSPECIFED,
+			.deassert_mask = OA_SOAP_STM_UNSPECIFED,
+			.sensor_reading = {
+				.IsSupported = SAHPI_TRUE,
+				.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with current reading */
+				.Value.SensorFloat64 = 0x0,
+			},
+			.threshold = {
+				.UpCritical.IsSupported = SAHPI_TRUE,
+				.UpCritical.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with critical threshold
+				 * reading
+				 */
+				.UpCritical.Value.SensorFloat64 = 86,
+				.UpMajor.IsSupported = SAHPI_TRUE,
+				.UpMajor.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with major threshold
+				 * reading
+				 */
+				.UpMajor.Value.SensorFloat64 = 81,
+			},
+		},
+		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
+      		.comment = "I/O Board Zone",
+	},
+	/* I/O Board zone8 sensor */
+	{
+		.sensor = {
+			.Num = OA_SOAP_SEN_BLADE_IO_BOARD_ZONE8,
+			.Type = SAHPI_TEMPERATURE,
+			.Category = SAHPI_EC_THRESHOLD,
+			.EnableCtrl = SAHPI_TRUE,
+			.EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_UNSPECIFIED,
+			.DataFormat = {
+				.IsSupported = SAHPI_TRUE,
+				.ReadingType =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				.BaseUnits = SAHPI_SU_DEGREES_C,
+				.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUse = SAHPI_SMUU_NONE,
+				.Percentage = SAHPI_FALSE,
+				.Range.Flags = SAHPI_SRF_MAX |
+					       SAHPI_SRF_NORMAL_MAX,
+				.Range.Max.IsSupported = SAHPI_TRUE,
+				.Range.Max.Type = 
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Max value should be replaced
+				  * with Max value retrieved from OA
+				  */
+				.Range.Max.Value.SensorFloat64 = 86,
+				.Range.NormalMax.IsSupported = SAHPI_TRUE,
+				.Range.NormalMax.Type =
+				       SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Normal Max value should be
+				  * replaced with Normal Max value retrieved
+				  * from OA
+				  */
+				.Range.NormalMax.Value.SensorFloat64 = 81,
+				.AccuracyFactor =  0,
+			},
+			.ThresholdDefn = {
+				.IsAccessible = SAHPI_TRUE,
+				.ReadThold = SAHPI_ES_UPPER_CRIT |
+					     SAHPI_ES_UPPER_MAJOR,
+				.WriteThold = 0x0,
+			},
+			.Oem = 0,
+		},
+		.sensor_info = {
+			.current_state = SAHPI_ES_UNSPECIFIED,
+			.sensor_enable = SAHPI_TRUE,
+			.event_enable = SAHPI_FALSE,
+			.assert_mask = OA_SOAP_STM_UNSPECIFED,
+			.deassert_mask = OA_SOAP_STM_UNSPECIFED,
+			.sensor_reading = {
+				.IsSupported = SAHPI_TRUE,
+				.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with current reading */
+				.Value.SensorFloat64 = 0x0,
+			},
+			.threshold = {
+				.UpCritical.IsSupported = SAHPI_TRUE,
+				.UpCritical.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with critical threshold
+				 * reading
+				 */
+				.UpCritical.Value.SensorFloat64 = 86,
+				.UpMajor.IsSupported = SAHPI_TRUE,
+				.UpMajor.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with major threshold
+				 * reading
+				 */
+				.UpMajor.Value.SensorFloat64 = 81,
+			},
+		},
+		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
+      		.comment = "I/O Board Zone",
+	},
+	/* Power Supply zone1 sensor */
+	{
+		.sensor = {
+			.Num = OA_SOAP_SEN_BLADE_POWER_SUPPLY_ZONE1,
+			.Type = SAHPI_TEMPERATURE,
+			.Category = SAHPI_EC_THRESHOLD,
+			.EnableCtrl = SAHPI_TRUE,
+			.EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_UNSPECIFIED,
+			.DataFormat = {
+				.IsSupported = SAHPI_TRUE,
+				.ReadingType =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				.BaseUnits = SAHPI_SU_DEGREES_C,
+				.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUse = SAHPI_SMUU_NONE,
+				.Percentage = SAHPI_FALSE,
+				.Range.Flags = SAHPI_SRF_MAX |
+					       SAHPI_SRF_NORMAL_MAX,
+				.Range.Max.IsSupported = SAHPI_TRUE,
+				.Range.Max.Type = 
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Max value should be replaced
+				  * with Max value retrieved from OA
+				  */
+				.Range.Max.Value.SensorFloat64 = 100,
+				.Range.NormalMax.IsSupported = SAHPI_TRUE,
+				.Range.NormalMax.Type =
+				       SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Normal Max value should be
+				  * replaced with Normal Max value retrieved
+				  * from OA
+				  */
+				.Range.NormalMax.Value.SensorFloat64 = 85,
+				.AccuracyFactor =  0,
+			},
+			.ThresholdDefn = {
+				.IsAccessible = SAHPI_TRUE,
+				.ReadThold = SAHPI_ES_UPPER_CRIT |
+					     SAHPI_ES_UPPER_MAJOR,
+				.WriteThold = 0x0,
+			},
+			.Oem = 0,
+		},
+		.sensor_info = {
+			.current_state = SAHPI_ES_UNSPECIFIED,
+			.sensor_enable = SAHPI_TRUE,
+			.event_enable = SAHPI_FALSE,
+			.assert_mask = OA_SOAP_STM_UNSPECIFED,
+			.deassert_mask = OA_SOAP_STM_UNSPECIFED,
+			.sensor_reading = {
+				.IsSupported = SAHPI_TRUE,
+				.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with current reading */
+				.Value.SensorFloat64 = 0x0,
+			},
+			.threshold = {
+				.UpCritical.IsSupported = SAHPI_TRUE,
+				.UpCritical.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with critical threshold
+				 * reading
+				 */
+				.UpCritical.Value.SensorFloat64 = 100,
+				.UpMajor.IsSupported = SAHPI_TRUE,
+				.UpMajor.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with major threshold
+				 * reading
+				 */
+				.UpMajor.Value.SensorFloat64 = 85,
+			},
+		},
+		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
+      		.comment = "Power Supply Zone",
+	},
+	/* Power Supply zone2 sensor */
+	{
+		.sensor = {
+			.Num = OA_SOAP_SEN_BLADE_POWER_SUPPLY_ZONE2,
+			.Type = SAHPI_TEMPERATURE,
+			.Category = SAHPI_EC_THRESHOLD,
+			.EnableCtrl = SAHPI_TRUE,
+			.EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_UNSPECIFIED,
+			.DataFormat = {
+				.IsSupported = SAHPI_TRUE,
+				.ReadingType =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				.BaseUnits = SAHPI_SU_DEGREES_C,
+				.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUse = SAHPI_SMUU_NONE,
+				.Percentage = SAHPI_FALSE,
+				.Range.Flags = SAHPI_SRF_MAX |
+					       SAHPI_SRF_NORMAL_MAX,
+				.Range.Max.IsSupported = SAHPI_TRUE,
+				.Range.Max.Type = 
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Max value should be replaced
+				  * with Max value retrieved from OA
+				  */
+				.Range.Max.Value.SensorFloat64 = 100,
+				.Range.NormalMax.IsSupported = SAHPI_TRUE,
+				.Range.NormalMax.Type =
+				       SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Normal Max value should be
+				  * replaced with Normal Max value retrieved
+				  * from OA
+				  */
+				.Range.NormalMax.Value.SensorFloat64 = 85,
+				.AccuracyFactor =  0,
+			},
+			.ThresholdDefn = {
+				.IsAccessible = SAHPI_TRUE,
+				.ReadThold = SAHPI_ES_UPPER_CRIT |
+					     SAHPI_ES_UPPER_MAJOR,
+				.WriteThold = 0x0,
+			},
+			.Oem = 0,
+		},
+		.sensor_info = {
+			.current_state = SAHPI_ES_UNSPECIFIED,
+			.sensor_enable = SAHPI_TRUE,
+			.event_enable = SAHPI_FALSE,
+			.assert_mask = OA_SOAP_STM_UNSPECIFED,
+			.deassert_mask = OA_SOAP_STM_UNSPECIFED,
+			.sensor_reading = {
+				.IsSupported = SAHPI_TRUE,
+				.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with current reading */
+				.Value.SensorFloat64 = 0x0,
+			},
+			.threshold = {
+				.UpCritical.IsSupported = SAHPI_TRUE,
+				.UpCritical.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with critical threshold
+				 * reading
+				 */
+				.UpCritical.Value.SensorFloat64 = 100,
+				.UpMajor.IsSupported = SAHPI_TRUE,
+				.UpMajor.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with major threshold
+				 * reading
+				 */
+				.UpMajor.Value.SensorFloat64 = 85,
+			},
+		},
+		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
+      		.comment = "Power Supply Zone",
+	},
+	/* Power Supply zone3 sensor */
+	{
+		.sensor = {
+			.Num = OA_SOAP_SEN_BLADE_POWER_SUPPLY_ZONE3,
+			.Type = SAHPI_TEMPERATURE,
+			.Category = SAHPI_EC_THRESHOLD,
+			.EnableCtrl = SAHPI_TRUE,
+			.EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_UNSPECIFIED,
+			.DataFormat = {
+				.IsSupported = SAHPI_TRUE,
+				.ReadingType =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				.BaseUnits = SAHPI_SU_DEGREES_C,
+				.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUse = SAHPI_SMUU_NONE,
+				.Percentage = SAHPI_FALSE,
+				.Range.Flags = SAHPI_SRF_MAX |
+					       SAHPI_SRF_NORMAL_MAX,
+				.Range.Max.IsSupported = SAHPI_TRUE,
+				.Range.Max.Type = 
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Max value should be replaced
+				  * with Max value retrieved from OA
+				  */
+				.Range.Max.Value.SensorFloat64 = 100,
+				.Range.NormalMax.IsSupported = SAHPI_TRUE,
+				.Range.NormalMax.Type =
+				       SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Normal Max value should be
+				  * replaced with Normal Max value retrieved
+				  * from OA
+				  */
+				.Range.NormalMax.Value.SensorFloat64 = 85,
+				.AccuracyFactor =  0,
+			},
+			.ThresholdDefn = {
+				.IsAccessible = SAHPI_TRUE,
+				.ReadThold = SAHPI_ES_UPPER_CRIT |
+					     SAHPI_ES_UPPER_MAJOR,
+				.WriteThold = 0x0,
+			},
+			.Oem = 0,
+		},
+		.sensor_info = {
+			.current_state = SAHPI_ES_UNSPECIFIED,
+			.sensor_enable = SAHPI_TRUE,
+			.event_enable = SAHPI_FALSE,
+			.assert_mask = OA_SOAP_STM_UNSPECIFED,
+			.deassert_mask = OA_SOAP_STM_UNSPECIFED,
+			.sensor_reading = {
+				.IsSupported = SAHPI_TRUE,
+				.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with current reading */
+				.Value.SensorFloat64 = 0x0,
+			},
+			.threshold = {
+				.UpCritical.IsSupported = SAHPI_TRUE,
+				.UpCritical.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with critical threshold
+				 * reading
+				 */
+				.UpCritical.Value.SensorFloat64 = 100,
+				.UpMajor.IsSupported = SAHPI_TRUE,
+				.UpMajor.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with major threshold
+				 * reading
+				 */
+				.UpMajor.Value.SensorFloat64 = 85,
+			},
+		},
+		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
+      		.comment = "Power Supply Zone",
+	},
+	/* Power Supply zone4 sensor */
+	{
+		.sensor = {
+			.Num = OA_SOAP_SEN_BLADE_POWER_SUPPLY_ZONE4,
+			.Type = SAHPI_TEMPERATURE,
+			.Category = SAHPI_EC_THRESHOLD,
+			.EnableCtrl = SAHPI_TRUE,
+			.EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_UNSPECIFIED,
+			.DataFormat = {
+				.IsSupported = SAHPI_TRUE,
+				.ReadingType =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				.BaseUnits = SAHPI_SU_DEGREES_C,
+				.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUse = SAHPI_SMUU_NONE,
+				.Percentage = SAHPI_FALSE,
+				.Range.Flags = SAHPI_SRF_MAX |
+					       SAHPI_SRF_NORMAL_MAX,
+				.Range.Max.IsSupported = SAHPI_TRUE,
+				.Range.Max.Type = 
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Max value should be replaced
+				  * with Max value retrieved from OA
+				  */
+				.Range.Max.Value.SensorFloat64 = 100,
+				.Range.NormalMax.IsSupported = SAHPI_TRUE,
+				.Range.NormalMax.Type =
+				       SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Normal Max value should be
+				  * replaced with Normal Max value retrieved
+				  * from OA
+				  */
+				.Range.NormalMax.Value.SensorFloat64 = 85,
+				.AccuracyFactor =  0,
+			},
+			.ThresholdDefn = {
+				.IsAccessible = SAHPI_TRUE,
+				.ReadThold = SAHPI_ES_UPPER_CRIT |
+					     SAHPI_ES_UPPER_MAJOR,
+				.WriteThold = 0x0,
+			},
+			.Oem = 0,
+		},
+		.sensor_info = {
+			.current_state = SAHPI_ES_UNSPECIFIED,
+			.sensor_enable = SAHPI_TRUE,
+			.event_enable = SAHPI_FALSE,
+			.assert_mask = OA_SOAP_STM_UNSPECIFED,
+			.deassert_mask = OA_SOAP_STM_UNSPECIFED,
+			.sensor_reading = {
+				.IsSupported = SAHPI_TRUE,
+				.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with current reading */
+				.Value.SensorFloat64 = 0x0,
+			},
+			.threshold = {
+				.UpCritical.IsSupported = SAHPI_TRUE,
+				.UpCritical.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with critical threshold
+				 * reading
+				 */
+				.UpCritical.Value.SensorFloat64 = 100,
+				.UpMajor.IsSupported = SAHPI_TRUE,
+				.UpMajor.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with major threshold
+				 * reading
+				 */
+				.UpMajor.Value.SensorFloat64 = 85,
+			},
+		},
+		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
+      		.comment = "Power Supply Zone",
+	},
+	/* Power Supply zone5 sensor */
+	{
+		.sensor = {
+			.Num = OA_SOAP_SEN_BLADE_POWER_SUPPLY_ZONE5,
+			.Type = SAHPI_TEMPERATURE,
+			.Category = SAHPI_EC_THRESHOLD,
+			.EnableCtrl = SAHPI_TRUE,
+			.EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_UNSPECIFIED,
+			.DataFormat = {
+				.IsSupported = SAHPI_TRUE,
+				.ReadingType =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				.BaseUnits = SAHPI_SU_DEGREES_C,
+				.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUse = SAHPI_SMUU_NONE,
+				.Percentage = SAHPI_FALSE,
+				.Range.Flags = SAHPI_SRF_MAX |
+					       SAHPI_SRF_NORMAL_MAX,
+				.Range.Max.IsSupported = SAHPI_TRUE,
+				.Range.Max.Type = 
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Max value should be replaced
+				  * with Max value retrieved from OA
+				  */
+				.Range.Max.Value.SensorFloat64 = 100,
+				.Range.NormalMax.IsSupported = SAHPI_TRUE,
+				.Range.NormalMax.Type =
+				       SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Normal Max value should be
+				  * replaced with Normal Max value retrieved
+				  * from OA
+				  */
+				.Range.NormalMax.Value.SensorFloat64 = 85,
+				.AccuracyFactor =  0,
+			},
+			.ThresholdDefn = {
+				.IsAccessible = SAHPI_TRUE,
+				.ReadThold = SAHPI_ES_UPPER_CRIT |
+					     SAHPI_ES_UPPER_MAJOR,
+				.WriteThold = 0x0,
+			},
+			.Oem = 0,
+		},
+		.sensor_info = {
+			.current_state = SAHPI_ES_UNSPECIFIED,
+			.sensor_enable = SAHPI_TRUE,
+			.event_enable = SAHPI_FALSE,
+			.assert_mask = OA_SOAP_STM_UNSPECIFED,
+			.deassert_mask = OA_SOAP_STM_UNSPECIFED,
+			.sensor_reading = {
+				.IsSupported = SAHPI_TRUE,
+				.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with current reading */
+				.Value.SensorFloat64 = 0x0,
+			},
+			.threshold = {
+				.UpCritical.IsSupported = SAHPI_TRUE,
+				.UpCritical.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with critical threshold
+				 * reading
+				 */
+				.UpCritical.Value.SensorFloat64 = 100,
+				.UpMajor.IsSupported = SAHPI_TRUE,
+				.UpMajor.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with major threshold
+				 * reading
+				 */
+				.UpMajor.Value.SensorFloat64 = 85,
+			},
+		},
+		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
+      		.comment = "Power Supply Zone",
+	},
+	/* Power Supply zone6 sensor */
+	{
+		.sensor = {
+			.Num = OA_SOAP_SEN_BLADE_POWER_SUPPLY_ZONE6,
+			.Type = SAHPI_TEMPERATURE,
+			.Category = SAHPI_EC_THRESHOLD,
+			.EnableCtrl = SAHPI_TRUE,
+			.EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_UNSPECIFIED,
+			.DataFormat = {
+				.IsSupported = SAHPI_TRUE,
+				.ReadingType =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				.BaseUnits = SAHPI_SU_DEGREES_C,
+				.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUse = SAHPI_SMUU_NONE,
+				.Percentage = SAHPI_FALSE,
+				.Range.Flags = SAHPI_SRF_MAX |
+					       SAHPI_SRF_NORMAL_MAX,
+				.Range.Max.IsSupported = SAHPI_TRUE,
+				.Range.Max.Type = 
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Max value should be replaced
+				  * with Max value retrieved from OA
+				  */
+				.Range.Max.Value.SensorFloat64 = 100,
+				.Range.NormalMax.IsSupported = SAHPI_TRUE,
+				.Range.NormalMax.Type =
+				       SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Normal Max value should be
+				  * replaced with Normal Max value retrieved
+				  * from OA
+				  */
+				.Range.NormalMax.Value.SensorFloat64 = 85,
+				.AccuracyFactor =  0,
+			},
+			.ThresholdDefn = {
+				.IsAccessible = SAHPI_TRUE,
+				.ReadThold = SAHPI_ES_UPPER_CRIT |
+					     SAHPI_ES_UPPER_MAJOR,
+				.WriteThold = 0x0,
+			},
+			.Oem = 0,
+		},
+		.sensor_info = {
+			.current_state = SAHPI_ES_UNSPECIFIED,
+			.sensor_enable = SAHPI_TRUE,
+			.event_enable = SAHPI_FALSE,
+			.assert_mask = OA_SOAP_STM_UNSPECIFED,
+			.deassert_mask = OA_SOAP_STM_UNSPECIFED,
+			.sensor_reading = {
+				.IsSupported = SAHPI_TRUE,
+				.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with current reading */
+				.Value.SensorFloat64 = 0x0,
+			},
+			.threshold = {
+				.UpCritical.IsSupported = SAHPI_TRUE,
+				.UpCritical.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with critical threshold
+				 * reading
+				 */
+				.UpCritical.Value.SensorFloat64 = 100,
+				.UpMajor.IsSupported = SAHPI_TRUE,
+				.UpMajor.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with major threshold
+				 * reading
+				 */
+				.UpMajor.Value.SensorFloat64 = 85,
+			},
+		},
+		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
+      		.comment = "Power Supply Zone",
+	},
+	/* Power Supply zone7 sensor */
+	{
+		.sensor = {
+			.Num = OA_SOAP_SEN_BLADE_POWER_SUPPLY_ZONE7,
+			.Type = SAHPI_TEMPERATURE,
+			.Category = SAHPI_EC_THRESHOLD,
+			.EnableCtrl = SAHPI_TRUE,
+			.EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_UNSPECIFIED,
+			.DataFormat = {
+				.IsSupported = SAHPI_TRUE,
+				.ReadingType =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				.BaseUnits = SAHPI_SU_DEGREES_C,
+				.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUse = SAHPI_SMUU_NONE,
+				.Percentage = SAHPI_FALSE,
+				.Range.Flags = SAHPI_SRF_MAX |
+					       SAHPI_SRF_NORMAL_MAX,
+				.Range.Max.IsSupported = SAHPI_TRUE,
+				.Range.Max.Type = 
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Max value should be replaced
+				  * with Max value retrieved from OA
+				  */
+				.Range.Max.Value.SensorFloat64 = 100,
+				.Range.NormalMax.IsSupported = SAHPI_TRUE,
+				.Range.NormalMax.Type =
+				       SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Normal Max value should be
+				  * replaced with Normal Max value retrieved
+				  * from OA
+				  */
+				.Range.NormalMax.Value.SensorFloat64 = 85,
+				.AccuracyFactor =  0,
+			},
+			.ThresholdDefn = {
+				.IsAccessible = SAHPI_TRUE,
+				.ReadThold = SAHPI_ES_UPPER_CRIT |
+					     SAHPI_ES_UPPER_MAJOR,
+				.WriteThold = 0x0,
+			},
+			.Oem = 0,
+		},
+		.sensor_info = {
+			.current_state = SAHPI_ES_UNSPECIFIED,
+			.sensor_enable = SAHPI_TRUE,
+			.event_enable = SAHPI_FALSE,
+			.assert_mask = OA_SOAP_STM_UNSPECIFED,
+			.deassert_mask = OA_SOAP_STM_UNSPECIFED,
+			.sensor_reading = {
+				.IsSupported = SAHPI_TRUE,
+				.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with current reading */
+				.Value.SensorFloat64 = 0x0,
+			},
+			.threshold = {
+				.UpCritical.IsSupported = SAHPI_TRUE,
+				.UpCritical.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with critical threshold
+				 * reading
+				 */
+				.UpCritical.Value.SensorFloat64 = 100,
+				.UpMajor.IsSupported = SAHPI_TRUE,
+				.UpMajor.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with major threshold
+				 * reading
+				 */
+				.UpMajor.Value.SensorFloat64 = 85,
+			},
+		},
+		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
+      		.comment = "Power Supply Zone",
+	},
+	/* Power Supply zone8 sensor */
+	{
+		.sensor = {
+			.Num = OA_SOAP_SEN_BLADE_POWER_SUPPLY_ZONE8,
+			.Type = SAHPI_TEMPERATURE,
+			.Category = SAHPI_EC_THRESHOLD,
+			.EnableCtrl = SAHPI_TRUE,
+			.EventCtrl = SAHPI_SEC_READ_ONLY,
+			.Events = SAHPI_ES_UNSPECIFIED,
+			.DataFormat = {
+				.IsSupported = SAHPI_TRUE,
+				.ReadingType =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				.BaseUnits = SAHPI_SU_DEGREES_C,
+				.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUse = SAHPI_SMUU_NONE,
+				.Percentage = SAHPI_FALSE,
+				.Range.Flags = SAHPI_SRF_MAX |
+					       SAHPI_SRF_NORMAL_MAX,
+				.Range.Max.IsSupported = SAHPI_TRUE,
+				.Range.Max.Type = 
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Max value should be replaced
+				  * with Max value retrieved from OA
+				  */
+				.Range.Max.Value.SensorFloat64 = 100,
+				.Range.NormalMax.IsSupported = SAHPI_TRUE,
+				.Range.NormalMax.Type =
+				       SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				 /* This default Normal Max value should be
+				  * replaced with Normal Max value retrieved
+				  * from OA
+				  */
+				.Range.NormalMax.Value.SensorFloat64 = 85,
+				.AccuracyFactor =  0,
+			},
+			.ThresholdDefn = {
+				.IsAccessible = SAHPI_TRUE,
+				.ReadThold = SAHPI_ES_UPPER_CRIT |
+					     SAHPI_ES_UPPER_MAJOR,
+				.WriteThold = 0x0,
+			},
+			.Oem = 0,
+		},
+		.sensor_info = {
+			.current_state = SAHPI_ES_UNSPECIFIED,
+			.sensor_enable = SAHPI_TRUE,
+			.event_enable = SAHPI_FALSE,
+			.assert_mask = OA_SOAP_STM_UNSPECIFED,
+			.deassert_mask = OA_SOAP_STM_UNSPECIFED,
+			.sensor_reading = {
+				.IsSupported = SAHPI_TRUE,
+				.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with current reading */
+				.Value.SensorFloat64 = 0x0,
+			},
+			.threshold = {
+				.UpCritical.IsSupported = SAHPI_TRUE,
+				.UpCritical.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with critical threshold
+				 * reading
+				 */
+				.UpCritical.Value.SensorFloat64 = 100,
+				.UpMajor.IsSupported = SAHPI_TRUE,
+				.UpMajor.Type =
+					SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				/* Update the value with major threshold
+				 * reading
+				 */
+				.UpMajor.Value.SensorFloat64 = 85,
+			},
+		},
+		.sensor_class = OA_SOAP_BLADE_THERMAL_CLASS,
+      		.comment = "Power Supply Zone",
 	},
 	/* NULL element to end the array */
 	{}
@@ -7904,7 +10032,10 @@ const char *oa_soap_thermal_sensor_string[] = {
 	"CPU 4",
 	"Disk",
 	"Memory",
-	"Ambient"
+	"Ambient",
+	"Storage",
+	"I/O Board",
+	"Power Supply"
 };
 
 /* Array containing the name strings of the possible blade types
@@ -7913,6 +10044,9 @@ const char *oa_soap_thermal_sensor_string[] = {
 const char *oa_soap_bld_type_str[] = {
 	"BL260C",
 	"BL2x220C",
+	"BL460C GEN8",
+	"BL460C G8",
+	"BL460C G7",
 	"BL460C",
 	"BL465C",
 	"BL480C",
@@ -7965,6 +10099,48 @@ const struct oa_soap_static_thermal_sensor_info
 		{OA_SOAP_SEN_BLADE_DISK_ZONE1, DISK_ZONE, 0},
 		{OA_SOAP_SEN_BLADE_MEM_ZONE1, MEMORY_ZONE, 1},
 		{OA_SOAP_SEN_TEMP_STATUS, AMBIENT_ZONE, 1}
+	},
+	/* BL460c GEN8 blade type */
+	{
+		{OA_SOAP_SEN_BLADE_SYSTEM_ZONE1, SYSTEM_ZONE, 7},
+		{OA_SOAP_SEN_BLADE_CPU_ZONE1, CPU_ZONE, 2},
+		{OA_SOAP_SEN_BLADE_CPU1_1, CPU_1, 0},
+		{OA_SOAP_SEN_BLADE_CPU2_1, CPU_2, 0},
+		{OA_SOAP_SEN_BLADE_CPU3_1, CPU_3, 0},
+		{OA_SOAP_SEN_BLADE_CPU4_1, CPU_4, 0},
+		{OA_SOAP_SEN_BLADE_DISK_ZONE1, DISK_ZONE, 1},
+		{OA_SOAP_SEN_BLADE_MEM_ZONE1, MEMORY_ZONE, 8},
+		{OA_SOAP_SEN_TEMP_STATUS, AMBIENT_ZONE, 1},
+		{OA_SOAP_SEN_BLADE_POWER_SUPPLY_ZONE1, POWER_SUPPLY_ZONE, 6},
+		{OA_SOAP_SEN_BLADE_IO_BOARD_ZONE1, IO_BOARD_ZONE, 8}
+	},
+	/* BL460c G8 blade type */
+	{
+		{OA_SOAP_SEN_BLADE_SYSTEM_ZONE1, SYSTEM_ZONE, 7},
+		{OA_SOAP_SEN_BLADE_CPU_ZONE1, CPU_ZONE, 2},
+		{OA_SOAP_SEN_BLADE_CPU1_1, CPU_1, 0},
+		{OA_SOAP_SEN_BLADE_CPU2_1, CPU_2, 0},
+		{OA_SOAP_SEN_BLADE_CPU3_1, CPU_3, 0},
+		{OA_SOAP_SEN_BLADE_CPU4_1, CPU_4, 0},
+		{OA_SOAP_SEN_BLADE_DISK_ZONE1, DISK_ZONE, 1},
+		{OA_SOAP_SEN_BLADE_MEM_ZONE1, MEMORY_ZONE, 8},
+		{OA_SOAP_SEN_TEMP_STATUS, AMBIENT_ZONE, 1},
+		{OA_SOAP_SEN_BLADE_POWER_SUPPLY_ZONE1, POWER_SUPPLY_ZONE, 6},
+		{OA_SOAP_SEN_BLADE_IO_BOARD_ZONE1, IO_BOARD_ZONE, 8}
+	},
+	/* BL460c G7 blade type */
+	{
+		{OA_SOAP_SEN_BLADE_SYSTEM_ZONE1, SYSTEM_ZONE, 2},
+		{OA_SOAP_SEN_BLADE_CPU_ZONE1, CPU_ZONE, 2},
+		{OA_SOAP_SEN_BLADE_CPU1_1, CPU_1, 0},
+		{OA_SOAP_SEN_BLADE_CPU2_1, CPU_2, 0},
+		{OA_SOAP_SEN_BLADE_CPU3_1, CPU_3, 0},
+		{OA_SOAP_SEN_BLADE_CPU4_1, CPU_4, 0},
+		{OA_SOAP_SEN_BLADE_DISK_ZONE1, DISK_ZONE, 0},
+		{OA_SOAP_SEN_BLADE_MEM_ZONE1, MEMORY_ZONE, 4},
+		{OA_SOAP_SEN_TEMP_STATUS, AMBIENT_ZONE, 1},
+		{OA_SOAP_SEN_BLADE_STORAGE_ZONE1, STORAGE_ZONE, 1},
+		{OA_SOAP_SEN_BLADE_IO_BOARD_ZONE1, IO_BOARD_ZONE, 3}
 	},
 	/* BL460c blade type */
 	{
@@ -8144,10 +10320,18 @@ const SaHpiInt32T oa_soap_bld_thrm_sen_base_arr[] = {
 	OA_SOAP_SEN_BLADE_SYSTEM_ZONE1,
 	OA_SOAP_SEN_BLADE_SYSTEM_ZONE1,
 	OA_SOAP_SEN_BLADE_SYSTEM_ZONE1,
+	OA_SOAP_SEN_BLADE_SYSTEM_ZONE1,
+	OA_SOAP_SEN_BLADE_SYSTEM_ZONE1,
+	OA_SOAP_SEN_BLADE_SYSTEM_ZONE1,
+	OA_SOAP_SEN_BLADE_SYSTEM_ZONE1,
 	OA_SOAP_SEN_BLADE_CPU_ZONE1,
 	OA_SOAP_SEN_BLADE_CPU_ZONE1,
 	OA_SOAP_SEN_BLADE_CPU_ZONE1,
 	OA_SOAP_SEN_BLADE_CPU_ZONE1,
+	OA_SOAP_SEN_BLADE_MEM_ZONE1,
+	OA_SOAP_SEN_BLADE_MEM_ZONE1,
+	OA_SOAP_SEN_BLADE_MEM_ZONE1,
+	OA_SOAP_SEN_BLADE_MEM_ZONE1,
 	OA_SOAP_SEN_BLADE_MEM_ZONE1,
 	OA_SOAP_SEN_BLADE_MEM_ZONE1,
 	OA_SOAP_SEN_BLADE_MEM_ZONE1,
@@ -8172,6 +10356,26 @@ const SaHpiInt32T oa_soap_bld_thrm_sen_base_arr[] = {
 	OA_SOAP_SEN_BLADE_CPU4_1,
 	OA_SOAP_SEN_BLADE_CPU4_1,
 	OA_SOAP_SEN_BLADE_CPU4_1,
+	OA_SOAP_SEN_BLADE_STORAGE_ZONE1,
+	OA_SOAP_SEN_BLADE_STORAGE_ZONE1,
+	OA_SOAP_SEN_BLADE_STORAGE_ZONE1,
+	OA_SOAP_SEN_BLADE_STORAGE_ZONE1,
+	OA_SOAP_SEN_BLADE_IO_BOARD_ZONE1,
+	OA_SOAP_SEN_BLADE_IO_BOARD_ZONE1,
+	OA_SOAP_SEN_BLADE_IO_BOARD_ZONE1,
+	OA_SOAP_SEN_BLADE_IO_BOARD_ZONE1,
+	OA_SOAP_SEN_BLADE_IO_BOARD_ZONE1,
+	OA_SOAP_SEN_BLADE_IO_BOARD_ZONE1,
+	OA_SOAP_SEN_BLADE_IO_BOARD_ZONE1,
+	OA_SOAP_SEN_BLADE_IO_BOARD_ZONE1,
+	OA_SOAP_SEN_BLADE_POWER_SUPPLY_ZONE1,
+	OA_SOAP_SEN_BLADE_POWER_SUPPLY_ZONE1,
+	OA_SOAP_SEN_BLADE_POWER_SUPPLY_ZONE1,
+	OA_SOAP_SEN_BLADE_POWER_SUPPLY_ZONE1,
+	OA_SOAP_SEN_BLADE_POWER_SUPPLY_ZONE1,
+	OA_SOAP_SEN_BLADE_POWER_SUPPLY_ZONE1,
+	OA_SOAP_SEN_BLADE_POWER_SUPPLY_ZONE1,
+	OA_SOAP_SEN_BLADE_POWER_SUPPLY_ZONE1
 };
 
 /* Array which indicates the power status of the blade in different slots
