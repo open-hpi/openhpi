@@ -1107,7 +1107,7 @@ void    soap_getEventInfo(xmlNode *events, struct eventInfo *result)
         char    *str;
         xmlNode *node;
 
-	if(str = soap_tree_value(events, "event"))
+	if((str = soap_tree_value(events, "event")))
         result->event =
                 soap_enum(eventType_S, str);
 	else

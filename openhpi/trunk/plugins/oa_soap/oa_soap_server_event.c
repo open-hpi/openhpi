@@ -1009,9 +1009,16 @@ void oa_soap_serv_post_comp(struct oh_handler_state
 		err("resource RPT is NULL");
 		return;
 	}
-
 	/* Make getBladeThermalInfoArray soap call */ 
 	thermal_request.bayNumber = bay_number;
+
+	/* The sleep below is introduced to make sure
+	 * we have sufficient time for the sensor to
+	 * be available so that we do not miss any
+	 * temperatuer sensor.
+	 */
+	sleep(20);
+
 	rv = soap_getBladeThermalInfoArray(con, &thermal_request,
 					   &thermal_response);
 
@@ -1027,6 +1034,18 @@ void oa_soap_serv_post_comp(struct oh_handler_state
 		return;
 	}
 
+	 
+        /* Modify the thermal sensors IdString and send
+	 * event to the infrastructure
+	 */
+        rv = oa_soap_modify_blade_thermal_rdr(oh_handler, thermal_response, rpt);
+        
+	if (rv != SA_OK) {
+                err("oa_soap_modify_blade_thermal_rdr for rpt %d failed %d",
+			resource_id,rv);
+                return;
+	}
+
 	/* Walk through the rdr list of the resource and enable only those 
 	 * sensor which have the "SensorPresent" value as "true" in 
 	 * getBladeThermalInfoArray response. Rest of the statically modeled
@@ -1038,7 +1057,6 @@ void oa_soap_serv_post_comp(struct oh_handler_state
 		err("Failed to enable the thermal sensor");
 		return;
 	}
-	
 	return;
 }
 
