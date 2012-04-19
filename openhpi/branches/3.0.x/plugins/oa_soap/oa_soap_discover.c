@@ -4166,8 +4166,22 @@ SaErrorT oa_soap_build_blade_thermal_rdr(struct oh_handler_state *oh_handler,
 					dbg("Sensor %s not enabled for blade",
 					    bld_thrm_info.description);
 				}
+				while (bld_thrm_info.extraData) {
+						soap_getExtraData(bld_thrm_info.extraData,
+						&extra_data_info);
+					if (!(strcmp(extra_data_info.name,
+						"idString"))) {
+						oh_append_textbuffer(&(rdr.IdString),
+							" - ");
+						oh_append_textbuffer(&(rdr.IdString),
+							extra_data_info.value);
+						break;
+					}
+					bld_thrm_info.extraData =
+					soap_next_node(bld_thrm_info.extraData);
+				}			
 			}
-			
+
 			rv = oh_add_rdr(oh_handler->rptcache, rpt->ResourceId,
 					&rdr, sensor_info, 0);
 			if (rv != SA_OK) {
@@ -4179,6 +4193,180 @@ SaErrorT oa_soap_build_blade_thermal_rdr(struct oh_handler_state *oh_handler,
 	return SA_OK;
 }
 
+/**
+ * oa_soap_modify_blade_thermal_rdr:
+ *      @oh_handler		: Pointer to openhpi handler
+ *      @response	: bladeThermalInfoArrayResponse response 
+ *				  structure
+ *	@rpt			: Pointer to rpt structure
+ *
+ * Purpose: Modifies the thermal sensors of blade resource
+ *	
+ * Detailed Description: 
+ *	- Gets the first RDR by passing resource ID
+ *	- Checks for the Sensor Rdrs
+ *	- Checks for Blade Thermal Sensor Rdrs
+ *	- If the rdr is Blade Thermal Sensor rdr, calls the
+ *	  oa_soap_get_bld_thrm_sen_data function to retrieve the correct
+ *	  instance of bladeThermalInfo response
+ *	- Checks for the "SensorPresent" value in bladeThermalInfo structure.
+ *	  If the value is true, then enable the sensor
+ *	- Updates the rdr with actual upper critical threshold and upper
+ *	  caution threshold values provided by OA
+ *	- Checks for the "idString" string in bladeThermalInfo structure.
+ *	  If the string is found, then update/replace the Blade Thermal
+ *	  sensor rdr name present in rpt cache
+ *	- Constucts/sends an oh_event to update the Blade Thermal Sensor rdrs
+ *	  if the sensor is updated
+ *
+ * Return values:
+ *      SA_OK                     - on success
+ *      SA_ERR_HPI_INTERNAL_ERROR - on failure
+ **/
+SaErrorT oa_soap_modify_blade_thermal_rdr(struct oh_handler_state *oh_handler,
+                                         struct bladeThermalInfoArrayResponse
+                                                response,
+                                         SaHpiRptEntryT *rpt)
+{
+	SaErrorT rv = SA_OK;
+	SaHpiRdrT *rdr = NULL;
+	struct bladeThermalInfo bld_thrm_info;
+	struct extraDataInfo extra_data_info;
+	struct oh_event event;
+	struct oa_soap_sensor_info *sensor_info = NULL;
+	SaHpiSensorRecT *sensor = NULL;
+	int resource_updated = 0;
+	SaHpiTextBufferT tmp_IdString; 
+
+	/* Get the first RDR */
+	rdr = oh_get_rdr_next(oh_handler->rptcache, rpt->ResourceId,
+		SAHPI_FIRST_ENTRY);
+
+	while(rdr) {
+		if (rdr->RdrType == SAHPI_SENSOR_RDR) {
+			if ((rdr->RdrTypeUnion.SensorRec.Num ==
+				OA_SOAP_SEN_TEMP_STATUS) ||
+			   ((rdr->RdrTypeUnion.SensorRec.Num >=
+				OA_SOAP_BLD_THRM_SEN_START) &&
+			   (rdr->RdrTypeUnion.SensorRec.Num <=
+				OA_SOAP_BLD_THRM_SEN_END))) {
+
+				sensor_info = (struct oa_soap_sensor_info*)
+				oh_get_rdr_data(oh_handler->rptcache, rpt->ResourceId,
+					rdr->RecordId);
+
+                                /* Call the following function to retrieve
+                                 * the correct instance of bladeThermalInfo
+                                 * response.
+                                 */
+				rv = oa_soap_get_bld_thrm_sen_data(
+					rdr->RdrTypeUnion.SensorRec.Num,
+					response,
+					&bld_thrm_info);
+				if (rv != SA_OK) {
+					err("Could not find the"
+						"matching sensor");
+					return SA_ERR_HPI_INTERNAL_ERROR;
+				}
+				while (bld_thrm_info.extraData) {
+					/* Check for the "SensorPresent" value in
+					 * bladeThermalInfo structure.
+					 * If the value is true, then enable the sensor
+					 */
+					soap_getExtraData(bld_thrm_info.
+						extraData,
+						&extra_data_info);
+					if (!(strcmp(extra_data_info.name,
+						"SensorPresent")) && 
+						!(strcasecmp(extra_data_info.value,
+							 "true"))) {
+						sensor_info->sensor_enable = SAHPI_TRUE;
+
+						sensor = &(rdr->RdrTypeUnion.SensorRec);
+						/* Updating the rdr with actual upper
+						 * critical threshold value provided by
+						 * OA
+						 */
+						sensor->DataFormat.Range.Max.Value.
+							SensorFloat64 =
+						sensor_info->threshold.UpCritical.Value.
+							SensorFloat64 =
+						bld_thrm_info.criticalThreshold;
+
+						/* Updating the rdr with actual upper
+						 * caution threshold value provided by
+						 * OA
+						 */
+						sensor->DataFormat.Range.NormalMax.
+							Value.SensorFloat64 =
+						sensor_info->threshold.UpMajor.Value.
+							SensorFloat64 =
+						bld_thrm_info.cautionThreshold;
+					} else {
+						dbg("Sensor %s not enabled for blade",
+							bld_thrm_info.description);
+					}
+					/* Check for the "idString" string in
+					 * bladeThermalInfo structure.
+					 * If the string is found, then update/replace the
+					 * Blade Thermal sensor rdr name present in cache
+					 */
+					if (!(strcmp(extra_data_info.name,
+						"idString"))) {
+						tmp_IdString = rdr->IdString;
+						oh_init_textbuffer(&(rdr->IdString));
+						oh_append_textbuffer(
+							&(rdr->IdString),
+							bld_thrm_info.description);
+						oh_append_textbuffer(
+							&(rdr->IdString),
+							" - ");
+						oh_append_textbuffer(
+							&(rdr->IdString),
+							extra_data_info.value);
+						if (strcmp((char *)tmp_IdString.Data, 
+							(char *)rdr->IdString.Data) != 0) 
+							resource_updated = 1;
+						break;
+					}
+					bld_thrm_info.extraData =
+					soap_next_node(bld_thrm_info.extraData);
+				}
+
+				/* We need to constuct/send an oh_event to update the
+				 * Blade Thermal Sensor rdrs
+				 */
+				if (resource_updated){
+					memset(&event, 0, sizeof(struct oh_event));
+					event.event.EventType = SAHPI_ET_RESOURCE;
+					memcpy(&event.resource, 
+						rpt,
+						sizeof(SaHpiRptEntryT));
+					event.event.Severity = SAHPI_INFORMATIONAL;
+					event.event.Source = event.resource.ResourceId;
+					if (oh_gettimeofday(&(event.event.Timestamp))
+						!= SA_OK) {
+						event.event.Timestamp =
+							SAHPI_TIME_UNSPECIFIED;
+					}
+					event.event.EventDataUnion.ResourceEvent.
+						ResourceEventType = SAHPI_RESE_RESOURCE_UPDATED;
+					event.rdrs = g_slist_append(event.rdrs, g_memdup(rdr,
+						sizeof(SaHpiRdrT)));
+					event.hid = oh_handler->hid;
+					oh_evt_queue_push(oh_handler->eventq,
+						copy_oa_soap_event(&event));
+					resource_updated = 0;
+				}
+			}
+		}
+                /* Get the next RDR */
+		rdr = oh_get_rdr_next(oh_handler->rptcache,
+				rpt->ResourceId,
+				rdr->RecordId);
+	}
+	return SA_OK;
+}
 
 void * oh_discover_resources (void *)
                 __attribute__ ((weak, alias("oa_soap_discover_resources")));

@@ -380,7 +380,7 @@ SaErrorT process_oa_reboot_event(struct oh_handler_state *oh_handler,
      */
 	oa_soap_error_handling(oh_handler, oa);
 
-	return SA_OK;
+	return rv;
 }
 
 /**

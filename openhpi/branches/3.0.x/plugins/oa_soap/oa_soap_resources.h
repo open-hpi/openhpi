@@ -81,12 +81,15 @@ struct oa_soap_control {
 	const char *comment;
 };
 
-#define OA_SOAP_MAX_BLD_TYPE 16
+#define OA_SOAP_MAX_BLD_TYPE 19
 
 /* Enum for possible cclass blade types */
 enum oa_soap_blade_type {
 	BL260C,
 	BL2x220C,
+	BL460CGEN8,
+	BL460CG8,
+	BL460CG7,
 	BL460C,
 	BL465C,
 	BL480C,
