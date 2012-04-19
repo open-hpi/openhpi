@@ -353,6 +353,10 @@ SaErrorT oh_decode_manufacturerid(SaHpiManufacturerIdT value, SaHpiTextBufferT *
                 err = oh_append_textbuffer(&working, "OSA");
                 if (err) { return(err); }
                 break;
+        case 9:
+                err = oh_append_textbuffer(&working, "Cisco Systems, Inc.");
+                if (err) { return(err); }
+                break;
         default:
                 err = oh_append_textbuffer(&working,  "Unknown");
                 if (err) { return(err); }
