@@ -4067,6 +4067,11 @@ static void oa_soap_inv_set_field(struct oa_soap_area *area_list,
 			/* Traverse the fields till we get field_type */
 			while (field) {
 				if (field->field.Type == field_type) {
+                                        if (field->field.Type >
+                                              SAHPI_IDR_FIELDTYPE_UNSPECIFIED) {
+                                              field->field.Type =
+                                                     SAHPI_IDR_FIELDTYPE_CUSTOM;
+                                        }
                                         oa_soap_trim_whitespace(data);
 					field->field.Field.DataLength =
 						strlen(data);
@@ -4263,7 +4268,9 @@ SaErrorT oa_soap_build_fz_inv(struct oh_handler_state *oh_handler,
 	struct oa_soap_handler *oa_handler;
 	struct oa_soap_inventory *inventory = NULL;
 	char *temp, field_data[MAX_BUF_SIZE]; 
-	SaHpiInt32T len, write_size = OA_SOAP_MAX_FZ_NUM_SIZE + 1;
+        char temp1[MAX_BUF_SIZE] = {'\0'};
+        char temp2[MAX_BUF_SIZE] = {'\0'};
+        SaHpiInt32T len, write_size = OA_SOAP_MAX_FZ_NUM_SIZE + 3;
 	struct fanInfo info;
 	byte bay;
 
@@ -4306,6 +4313,11 @@ SaErrorT oa_soap_build_fz_inv(struct oh_handler_state *oh_handler,
 	len = strlen(field_data);
 	field_data[len - 1] = '\0';
 
+        /* Adding the string "Device Bays =" in the starting of field_data */
+        memcpy(temp1, field_data, len);
+        memcpy(field_data, "Device Bays = ", sizeof("Device Bays = "));
+        memcpy(field_data + strlen(field_data), temp1, strlen(temp1));
+
 	/* Set the device bays field data */
 	oa_soap_inv_set_field(inventory->info.area_list,
 			      SAHPI_IDR_AREATYPE_OEM,
@@ -4335,6 +4347,11 @@ SaErrorT oa_soap_build_fz_inv(struct oh_handler_state *oh_handler,
 	/* Remove the last ',' from data */
 	len = strlen(field_data);
 	field_data[len - 1] = '\0';
+
+        /* Adding the string "Fan Bays =" in the starting of field_data */
+        memcpy(temp2, field_data, len);
+        memcpy(field_data, "Fan Bays = ", sizeof("Fan Bays = "));
+        memcpy(field_data + strlen(field_data), temp2, strlen(temp2));
 
 	/* Set the fan bays field data */
 	oa_soap_inv_set_field(inventory->info.area_list,
@@ -4409,7 +4426,7 @@ SaErrorT oa_soap_build_fan_inv(struct oh_handler_state *oh_handler,
 	memset(field_data, 0, OA_SOAP_MAX_FZ_INV_SIZE);
 	slot = fan_info->bayNumber;
 	/* Construct the fan shared field data */
-	if (oa_soap_fz_map_arr[oa_handler->enc_type][slot].shared == SAHPI_TRUE)
+	if (oa_soap_fz_map_arr[oa_handler->enc_type][slot-1].shared == SAHPI_TRUE)
 		strcpy(field_data, "Shared=TRUE");
 	else
 		strcpy(field_data, "Shared=FALSE");
@@ -4422,14 +4439,14 @@ SaErrorT oa_soap_build_fan_inv(struct oh_handler_state *oh_handler,
 
 	/* Construct the fan zone number field data */
 	memset(field_data, 0, OA_SOAP_MAX_FZ_INV_SIZE);
-	if (oa_soap_fz_map_arr[oa_handler->enc_type][slot].secondary_zone) {
+	if (oa_soap_fz_map_arr[oa_handler->enc_type][slot-1].secondary_zone) {
 		snprintf(field_data, 13, "Fan Zone=%d,%d",
-		 	oa_soap_fz_map_arr[oa_handler->enc_type][slot].zone,
-			oa_soap_fz_map_arr[oa_handler->enc_type][slot].
+		 	oa_soap_fz_map_arr[oa_handler->enc_type][slot-1].zone,
+			oa_soap_fz_map_arr[oa_handler->enc_type][slot-1].
 				secondary_zone);
 	} else {
 		snprintf(field_data, 11, "Fan Zone=%d",
-		 	oa_soap_fz_map_arr[oa_handler->enc_type][slot].zone);
+		 	oa_soap_fz_map_arr[oa_handler->enc_type][slot-1].zone);
 	}
 
 	/* Set the shared field */
