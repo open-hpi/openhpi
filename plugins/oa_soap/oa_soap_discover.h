@@ -280,4 +280,10 @@ SaErrorT oa_soap_build_blade_thermal_rdr(
 			SaHpiRptEntryT *rpt,
 			char *name);
 
+SaErrorT oa_soap_modify_blade_thermal_rdr(
+                        struct oh_handler_state *oh_handler,
+                        struct bladeThermalInfoArrayResponse thermal_response,
+                        SaHpiRptEntryT *rpt);
+
+
 #endif
