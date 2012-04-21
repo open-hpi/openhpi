@@ -1411,23 +1411,25 @@ SaErrorT build_enclosure_inv_rdr(struct oh_handler_state *oh_handler,
         /* Create and add internal area if all/atleast one of required
          * information of resource for internal is available
          */
-        rv = add_internal_area(&local_inventory->info.area_list,
-                               response->interposerManufacturer,
-                               response->interposerName,
-                               response->interposerPartNumber,
-                               response->interposerSerialNumber,
-                               &add_success_flag);
-        if (rv != SA_OK) {
-                err("Add internal area failed");
-                return rv;
-        }
+	if(oa_handler->enc_type != OA_SOAP_ENC_C3000){
+        	rv = add_internal_area(&local_inventory->info.area_list,
+                	               response->interposerManufacturer,
+                        	       response->interposerName,
+	                               response->interposerPartNumber,
+        	                       response->interposerSerialNumber,
+                	               &add_success_flag);
+        	if (rv != SA_OK) {
+                	err("Add internal area failed");
+                	return rv;
+        	}
+	}
         if (add_success_flag != SAHPI_FALSE) {
-                (local_inventory->info.idr_info.NumAreas)++;
-                if (area_count == 0) {
-                        head_area = local_inventory->info.area_list;
-                }
-                ++area_count;
-        }
+		(local_inventory->info.idr_info.NumAreas)++;
+		if (area_count == 0) {
+			head_area = local_inventory->info.area_list;
+		}
+		++area_count;
+	}
         local_inventory->info.area_list = head_area;
         *inventory = local_inventory;
 
@@ -4398,9 +4400,20 @@ SaErrorT oa_soap_build_fan_inv(struct oh_handler_state *oh_handler,
 	}
 
 	oa_handler = (struct oa_soap_handler *) oh_handler->data;
-
-	rv = oa_soap_build_inv(oh_handler, OA_SOAP_ENT_FAN, resource_id,
-			       &inventory);
+	
+	if(oa_handler->enc_type == OA_SOAP_ENC_C3000){
+		rv = oa_soap_build_inv(oh_handler,
+				OA_SOAP_ENT_FAN_C3000,
+				resource_id,
+				&inventory);
+	}
+	else
+	{
+		rv = oa_soap_build_inv(oh_handler,
+				OA_SOAP_ENT_FAN,
+				resource_id,
+				&inventory);
+	}
 	if (rv != SA_OK) {
 		err("Building inventory RDR for Fan failed");
 		return rv;

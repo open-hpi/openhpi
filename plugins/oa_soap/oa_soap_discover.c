@@ -364,11 +364,16 @@ SaErrorT oa_soap_discover_resources(void *oh_handler)
 SaErrorT discover_oa_soap_system(struct oh_handler_state *oh_handler)
 {
         SaErrorT rv = SA_OK;
+        struct oh_handler_state *handler = NULL;
+        struct oa_soap_handler *oa_handler = NULL;
 
         if (oh_handler == NULL) {
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
+
+        handler = (struct oh_handler_state *) oh_handler;
+        oa_handler = (struct oa_soap_handler *) handler->data;
 
         dbg("Discovering HP BladeSystem c-Class");
         dbg(" Discovering Enclosure ......................");
@@ -399,11 +404,13 @@ SaErrorT discover_oa_soap_system(struct oh_handler_state *oh_handler)
 		return rv;
 	}
 
-	dbg(" Discovering Fan Zone .......................");
-	rv = oa_soap_disc_fz(oh_handler);
-	if (rv != SA_OK) {
-		err("Failed to discover Fan Zone ");
-		return rv;
+	if(oa_handler->enc_type != OA_SOAP_ENC_C3000){
+		dbg(" Discovering Fan Zone .......................");
+		rv = oa_soap_disc_fz(oh_handler);
+		if (rv != SA_OK) {
+			err("Failed to discover Fan Zone ");
+			return rv;
+		}
 	}
 
         dbg(" Discovering Fan ............................");
@@ -3469,8 +3476,16 @@ SaErrorT oa_soap_build_fan_rpt(struct oh_handler_state *oh_handler,
         }
 
 	oa_handler = (struct oa_soap_handler *) oh_handler->data;
-
-	rv = oa_soap_build_rpt(oh_handler, OA_SOAP_ENT_FAN, bay_number, &rpt);
+	if(oa_handler->enc_type == OA_SOAP_ENC_C3000)
+		rv = oa_soap_build_rpt(oh_handler,
+				OA_SOAP_ENT_FAN_C3000,
+				bay_number,
+				&rpt);
+	else
+		rv = oa_soap_build_rpt(oh_handler,
+				OA_SOAP_ENT_FAN,
+				bay_number,
+				&rpt);
 	if (rv != SA_OK) {
 		err("Build fan rpt has failed");
 		return rv;

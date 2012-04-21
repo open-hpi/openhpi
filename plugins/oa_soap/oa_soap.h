@@ -78,6 +78,8 @@
 #define OA_SOAP_ENT_FAN			10
 /* LCD */
 #define OA_SOAP_ENT_LCD			11
+/* Fan for C3000 */
+#define OA_SOAP_ENT_FAN_C3000		12
 
 /* The different enclosure types supported by OA SOAP 
  *

@@ -9346,6 +9346,39 @@ const SaHpiRptEntryT oa_soap_rpt_arr[] = {
 		.ResourceTag.DataLength = 3,
 		.ResourceTag.Data = "LCD",
 	},
+	/* OA_SOAP_ENT_FAN_C3000 */
+	{
+		.ResourceInfo = {
+			.ManufacturerId = HP_MANUFACTURING_ID,
+		},
+		.ResourceEntity = {
+			.Entry[0] =
+			{
+				.EntityType = SAHPI_ENT_FAN,
+				.EntityLocation = 0,
+			},
+			{
+				.EntityType = SAHPI_ENT_COOLING_UNIT,
+				.EntityLocation = 1,
+			},
+			{
+				.EntityType = SAHPI_ENT_ROOT,
+				.EntityLocation = 0,
+			},
+		},
+		.ResourceCapabilities = SAHPI_CAPABILITY_RDR |
+					SAHPI_CAPABILITY_RESOURCE |
+					SAHPI_CAPABILITY_SENSOR |
+					SAHPI_CAPABILITY_FRU |
+					SAHPI_CAPABILITY_INVENTORY_DATA,
+		.ResourceSeverity = SAHPI_OK,
+		.ResourceFailed = SAHPI_FALSE,
+		.HotSwapCapabilities = 0x0,
+		.ResourceTag.DataType = SAHPI_TL_TYPE_TEXT,
+		.ResourceTag.Language = SAHPI_LANG_ENGLISH,
+		.ResourceTag.DataLength = 3,
+		.ResourceTag.Data = "Fan",
+	},
 	/* NULL element to end the array */
 	{}
 };
@@ -9805,6 +9838,107 @@ const struct oa_soap_inv_rdr oa_soap_inv_arr[] = {
 							.FieldId = 1,
 							.Type =
 						SAHPI_IDR_FIELDTYPE_PART_NUMBER,
+							.ReadOnly = SAHPI_FALSE,
+							.Field.DataType =
+							SAHPI_TL_TYPE_TEXT,
+							.Field.Language =
+							SAHPI_LANG_ENGLISH,
+						},
+						.next_field = NULL,
+					},
+				},
+			},
+		},
+	},
+	/* OA_SOAP_ENT_FAN_C3000 */
+	{
+		.rdr = {
+			.RecordId = 0,
+			.RdrType = SAHPI_INVENTORY_RDR,
+			.RdrTypeUnion.InventoryRec.IdrId =
+				SAHPI_DEFAULT_INVENTORY_ID,
+			.IdString.DataType = SAHPI_TL_TYPE_TEXT,
+			.IdString.Language = SAHPI_LANG_ENGLISH,
+			.IdString.DataLength = 3,
+			.IdString.Data = "Fan",
+		},
+		.inventory = {
+			.inv_rec = {
+				.IdrId = SAHPI_DEFAULT_INVENTORY_ID,
+				.Persistent = SAHPI_FALSE,
+				.Oem = 0,
+			},
+			.info = {
+				.idr_info = {
+					.IdrId = SAHPI_DEFAULT_INVENTORY_ID,
+					.UpdateCount = 1,
+					.ReadOnly = SAHPI_FALSE,
+					.NumAreas = 2,
+				},
+				.area_list = NULL,
+			},
+		},
+		.area_array = {
+			{
+				.area = {
+					.idr_area_head = {
+						.AreaId = 1,
+						.Type =
+						SAHPI_IDR_AREATYPE_PRODUCT_INFO,
+						.ReadOnly = SAHPI_FALSE,
+						.NumFields = 1,
+					},
+					.next_area = NULL,
+				},
+				.field_array = {
+					{
+						.field = {
+							.AreaId = 1,
+							.FieldId = 1,
+							.Type =
+					SAHPI_IDR_FIELDTYPE_PRODUCT_NAME,
+							.ReadOnly = SAHPI_FALSE,
+							.Field.DataType =
+							SAHPI_TL_TYPE_TEXT,
+							.Field.Language =
+							SAHPI_LANG_ENGLISH,
+						},
+						.next_field = NULL,
+					},
+				},
+			},
+			{
+				.area = {
+					.idr_area_head = {
+						.AreaId = 2,
+						.Type =
+						SAHPI_IDR_AREATYPE_BOARD_INFO,
+						.ReadOnly = SAHPI_FALSE,
+						.NumFields = 2,
+						},
+					.next_area = NULL,
+				},
+				.field_array = {
+					{
+						.field = {
+							.AreaId = 2,
+							.FieldId = 1,
+							.Type =
+						SAHPI_IDR_FIELDTYPE_PART_NUMBER,
+							.ReadOnly = SAHPI_FALSE,
+							.Field.DataType =
+							SAHPI_TL_TYPE_TEXT,
+							.Field.Language =
+							SAHPI_LANG_ENGLISH,
+						},
+						.next_field = NULL,
+					},
+					{
+						.field = {
+							.AreaId = 2,
+							.FieldId = 2,
+							.Type =
+					SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER,
 							.ReadOnly = SAHPI_FALSE,
 							.Field.DataType =
 							SAHPI_TL_TYPE_TEXT,
