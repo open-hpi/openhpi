@@ -38,7 +38,6 @@
 #ifndef _OA_SOAP_CALLS_H_
 #define _OA_SOAP_CALLS_H_
 
-
 /* Include files */
 #include "oa_soap_callsupport.h"
 
@@ -62,6 +61,11 @@ typedef unsigned char byte;
                         "<hpoa:getBladeInfo>" \
                         "<hpoa:bayNumber>%d</hpoa:bayNumber>" \
                         "</hpoa:getBladeInfo>\n"
+
+#define GET_BLADE_PORTMAP \
+                        "<hpoa:getBladePortMap>" \
+                        "<hpoa:bayNumber>%d</hpoa:bayNumber>" \
+                        "</hpoa:getBladePortMap>\n"
 
 #define SUBSCRIBE_FOR_EVENTS \
                         "<hpoa:subscribeForEvents>" \
@@ -170,6 +174,11 @@ typedef unsigned char byte;
                         "<hpoa:getInterconnectTrayInfo>" \
                         "<hpoa:bayNumber>%d</hpoa:bayNumber>" \
                         "</hpoa:getInterconnectTrayInfo>\n"
+
+#define GET_INTERCONNECT_TRAY_PORT_MAP \
+                        "<hpoa:getInterconnectTrayPortMap>" \
+                        "<hpoa:bayNumber>%d</hpoa:bayNumber>" \
+                        "</hpoa:getInterconnectTrayPortMap>\n"
 
 #define GET_FAN_INFO \
                         "<hpoa:getFanInfo>" \
@@ -462,10 +471,16 @@ OA_SOAP_ENUM(interconnectTrayType,
         INTERCONNECT_TRAY_TYPE_SAS,
         INTERCONNECT_TRAY_TYPE_MAX)
 
-OA_SOAP_ENUM(interconnectTraySizeType,
+enum interconnectTraySizeType {
         INTERCONNECT_TRAY_SIZE_TYPE_MT,
+        INTERCONNECT_TRAY_SIZE_TYPE_0X1,
         INTERCONNECT_TRAY_SIZE_TYPE_1X1,
-        INTERCONNECT_TRAY_SIZE_TYPE_2x1)
+        INTERCONNECT_TRAY_SIZE_TYPE_2x1};
+OA_SOAP_ENUM_STRING(interconnectTraySizeType,
+        INTERCONNECT_TRAY_SIZE_TYPE_MT,
+	INTERCONNECT_TRAY_SIZE_TYPE-1X1,
+        INTERCONNECT_TRAY_SIZE_TYPE_1X1,
+        INTERCONNECT_TRAY_SIZE_TYPE_2X1)
 
 OA_SOAP_ENUM(interconnectTrayPassThroughEnabled,
         INTERCONNECT_TRAY_PASSTHROUGH_UNKNOWN,
@@ -958,6 +973,11 @@ struct getBladeInfo
 {
         int bayNumber;
 };
+/* Structures that supply information to OA SOAP calls */
+struct getBladePortMap
+{
+        int bayNumber;
+};
 
 struct diagnosticChecks
 {
@@ -1140,9 +1160,9 @@ struct bladeMpInfo
 
 struct bladeMezzSlotPort
 {
-        byte slotNumber;
-        byte interconnectTrayBayNumber;
-        byte interconnectTrayPortNumber;
+        char *slotNumber;
+        char *interconnectTrayBayNumber;
+        char *interconnectTrayPortNumber;
         xmlNode *extraData;             /* Items are struct extraDataInfo */
 };
 
@@ -1150,13 +1170,13 @@ struct bladeMezzSlotInfo
 {
         enum bladeMezzSlotType type;
         int sizeslot;
-        struct bladeMezzSlotPort slot;
+        xmlNode *slot;
         xmlNode *extraData;             /* Items are struct extraDataInfo */
 };
 
 struct bladeMezzDevPort
 {
-        byte portNumber;
+        char *portNumber;
         char *wwpn;
         enum fabricType fabric;
         enum fabricStatus status;
@@ -1169,26 +1189,25 @@ struct bladeMezzDevInfo
         enum bladeMezzDevType type;
         enum bladeMezzDevStatus status;
         int sizeport;
-        struct bladeMezzDevPort port;
+        xmlNode *port;
         xmlNode *extraData;             /* Items are struct extraDataInfo */
 };
 
 struct bladeMezzInfo
 {
-        byte mezzNumber;
-        struct bladeMezzSlotInfo mezzSlots;
-        struct bladeMezzDevInfo mezzDevices;
+        char *mezzNumber;
+        xmlNode *mezzSlots;
+        xmlNode *mezzDevices;
         xmlNode *extraData;             /* Items are struct extraDataInfo */
 };
 
 struct bladePortMap
 {
-        byte bladeBayNumber;
+        char *bladeBayNumber;
         enum portMapStatus status;
         enum bladeSizeType bladeSizeType;
-        byte numberOfMezzes;
-        int sizemezz;
-        struct bladeMezzInfo mezz;
+        char *numberOfMezzes;
+        xmlNode *mezz;
         xmlNode *extraData;             /* Items are struct extraDataInfo */
 };
 
@@ -1288,7 +1307,7 @@ struct interconnectTraySlotInfo
         byte interconnectTraySlotNumber;
         enum interconnectTrayType type;
         int sizeport;
-        struct interconnectTrayPortInfo port;
+        xmlNode *port;
         xmlNode *extraData;             /* Items are struct extraDataInfo */
 };
 
@@ -1300,7 +1319,7 @@ struct interconnectTrayPortMap
         enum interconnectTrayPassThroughEnabled passThroughModeEnabled;
         byte numberOfSlots;
         int sizeslot;
-        struct interconnectTraySlotInfo slot;
+        xmlNode *slot;
         xmlNode *extraData;             /* Items are struct extraDataInfo */
 };
 
@@ -2046,6 +2065,10 @@ int soap_getBladeInfo(SOAP_CON *connection,
                       const struct getBladeInfo *request,
                       struct bladeInfo *response);
 
+int soap_getBladePortMap(SOAP_CON *connection,
+                      const struct getBladeInfo *request,
+                      struct bladePortMap *response);
+
 int soap_getBladeMpInfo(SOAP_CON *connection,
                         const struct getBladeMpInfo *request,
                         struct bladeMpInfo *response);
@@ -2166,12 +2189,30 @@ int soap_getBladeThermalInfoArray(SOAP_CON *con,
 				  struct bladeThermalInfoArrayResponse 
 								*response);
 
+int soap_getInterconnectTrayPortMap(SOAP_CON *con,
+                                 const struct getInterconnectTrayInfo *request,
+                                 struct interconnectTrayPortMap *response);
+
+
 /* Function prototypes for OA SOAP helper functions */
 void    soap_getExtraData(xmlNode *extraData, struct extraDataInfo *result);
 void    soap_getDiagnosticChecksEx(xmlNode *diag,
                                    struct diagnosticData *result);
 void    soap_getBladeCpuInfo(xmlNode *cpus, struct bladeCpuInfo *result);
 void    soap_getBladeNicInfo(xmlNode *nics, struct bladeNicInfo *result);
+void    soap_getBladeMezzInfo(xmlNode *mezz, struct bladeMezzInfo *result);
+void    soap_getBladeMezzDevInfo(xmlNode *mezzDevices,
+				 struct bladeMezzDevInfo *result);
+void    soap_getBladeMezzSlotInfo(xmlNode *mezzSlots,
+				  struct bladeMezzSlotInfo *result);
+void    soap_getBladeMezzSlotPort(xmlNode *slot,
+				  struct bladeMezzSlotPort *result);
+void    soap_getBladeMezzDevPort(xmlNode *port,
+				 struct bladeMezzDevPort *result);
+void    soap_getInterconnectTraySlotInfo(xmlNode *slot,
+				struct interconnectTraySlotInfo *result);
+void    soap_getInterconnectTrayPortInfo(xmlNode *port,
+				 struct interconnectTrayPortInfo *result);
 void    soap_getDiagnosticData(xmlNode *data, struct diagnosticData *result);
 void    soap_getBayAccess(xmlNode *bay, struct bayAccess *result);
 void    soap_getEncLink(xmlNode *data, struct encLink *result);
