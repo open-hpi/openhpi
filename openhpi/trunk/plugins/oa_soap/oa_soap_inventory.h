@@ -209,6 +209,12 @@ SaErrorT build_server_inv_rdr(struct oh_handler_state *oh_handler,
                               SaHpiRdrT *rdr,
                               struct oa_soap_inventory **pinv);
 
+SaErrorT add_mezz_slot_idr_fields(xmlNode *mezzSlots,
+                                  struct oa_soap_inventory *local_inventory);
+
+SaErrorT add_mezz_device_idr_fields(xmlNode *mezzDevices,
+                                    struct oa_soap_inventory *local_inventory);
+
 SaErrorT build_inserted_server_inv_rdr(struct oh_handler_state *oh_handler,
                                        SaHpiInt32T bay_number,
                                        SaHpiRdrT *rdr,

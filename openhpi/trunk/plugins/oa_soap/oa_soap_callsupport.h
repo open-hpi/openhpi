@@ -159,7 +159,7 @@
 #else
 #define OA_SOAP_ENUM_STRING(name, ...)
 #endif
-
+#define OA_SOAP_CALLS_FILE              /* Defines ENUM strings in this file */
 #define OA_SOAP_ENUM(name, ...) \
         enum name { __VA_ARGS__ }; \
         OA_SOAP_ENUM_STRING(name, __VA_ARGS__)

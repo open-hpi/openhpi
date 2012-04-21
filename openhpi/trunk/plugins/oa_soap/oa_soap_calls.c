@@ -148,6 +148,20 @@ static void     parse_bladeInfo(xmlNode *node, struct bladeInfo *response)
         response->extraData = soap_walk_tree(node, "extraData");
 }
 
+/* parse_bladePortMap- Parses a bladePortMap response structure */
+static void     parse_bladePortMap(xmlNode *node, struct bladePortMap *response)
+{
+        response->bladeBayNumber = soap_tree_value(node, "bladeBayNumber");
+        response->status =
+                soap_enum(portMapStatus_S, soap_tree_value(node, "status"));
+        response->bladeSizeType =
+		soap_enum(bladeSizeType_S, 
+				soap_tree_value(node, "bladeSizeType"));
+        response->numberOfMezzes = soap_tree_value(node, "numberOfMezzes");
+        response->mezz = soap_walk_tree(node, "mezz");
+       response->extraData = soap_walk_tree(node, "extraData");
+}
+
 /* parse_bladeMpInfo - Parses a bladeMpInfo response structure */
 static void     parse_bladeMpInfo(xmlNode *node, struct bladeMpInfo *response)
 {
@@ -508,6 +522,26 @@ static void     parse_interconnectTrayInfo(xmlNode *node,
         response->powerOffWatts = atoi(soap_tree_value(node, "powerOffWatts"));
         response->extraData = soap_walk_tree(node, "extraData");
 }
+/* parse_interconnectTrayPortMap- parses an interconnectTrayPortMap response 
+ * struture.
+ */
+static void    parse_interconnectTrayPortMap(xmlNode *portmap,
+					struct interconnectTrayPortMap *result)
+{
+	result->interconnectTrayBayNumber =
+		atoi(soap_tree_value(portmap, "interconnectTrayBayNumber"));
+	result->status = soap_enum(portMapStatus_S,
+			soap_tree_value(portmap, "status"));
+	result->sizeType = soap_enum(interconnectTraySizeType_S,
+			soap_tree_value(portmap, "sizeType"));
+	result->passThroughModeEnabled = 
+		soap_enum(interconnectTrayPassThroughEnabled_S,
+				soap_tree_value(portmap, 
+					"passThroughModeEnabled"));
+	result->slot = soap_walk_tree(portmap, "slot:interconnectTrayPortMap");
+	result->numberOfSlots = atoi(soap_tree_value(portmap, "numberOfSlots"));
+	result->extraData = soap_walk_tree(portmap, "extraData");
+}
 
 /* parse_powerSupplyInfo - Parses a powerSupplyInfo response structure */
 static void     parse_powerSupplyInfo(xmlNode *node,
@@ -853,6 +887,150 @@ void    soap_getBladeNicInfo(xmlNode *nics, struct bladeNicInfo *result)
 {
         result->port = soap_tree_value(nics, "port");
         result->macAddress = soap_tree_value(nics, "macAddress");
+}
+
+/* soap_getBladeMezzInfo - Walks list of bladeMezzInfo nodes, providing details
+ *      on each Mezz Card.  
+ *
+ * Outputs:
+ *      mezzNumber:           	Mezz number
+ *      mezzSlots:  	   	Mezz slots node
+ *      mezzDevices: 		Mezz devices node
+ */
+void    soap_getBladeMezzInfo(xmlNode *mezz, struct bladeMezzInfo *result)
+{
+	result->mezzNumber = soap_tree_value(mezz, "mezzNumber");
+	result->mezzSlots = soap_walk_tree(mezz, "mezzSlots");
+	result->mezzDevices = soap_walk_tree(mezz, "mezzDevices");
+	result->extraData = soap_walk_tree(mezz, "extraData");
+
+
+}
+/* soap_getBladeMezzDevInfo- Walks list of mezzDevices nodes, providing details
+ *      on each Mezz device Info.
+ *
+ * Outputs:
+ *      name:           String containing the mezz device name
+ *      type:           enum containing the mezz device type
+ *      port:           XML node containg mezz device port info
+ */
+void    soap_getBladeMezzDevInfo(xmlNode *mezzDevices, 
+				 struct bladeMezzDevInfo *result)
+{
+	result->name = soap_tree_value(mezzDevices, "name");
+	result->type = soap_enum(bladeMezzDevType_S,
+			soap_tree_value(mezzDevices, "type"));
+	result->port = soap_walk_tree(mezzDevices, "port");
+	result->extraData = soap_walk_tree(mezzDevices, "extraData");
+}
+
+/* soap_getBladeMezzSlotInfo- Walks list of mezzSlots nodes, providing details
+ * on each Mezz Card slot.
+ *
+ * Outputs:
+ *      type:     	enum containing the mezz slot type
+ *      slot:     	XML node containing the mezz slot port info
+ */
+void    soap_getBladeMezzSlotInfo(xmlNode *mezzSlots, 
+				  struct bladeMezzSlotInfo *result)
+{
+	result->type = soap_enum(bladeMezzSlotType_S,
+			soap_tree_value(mezzSlots, "type"));
+	result->slot = soap_walk_tree(mezzSlots, "slot");
+	result->extraData = soap_walk_tree(mezzSlots, "extraData");
+}
+/* soap_getBladeMezzSlotPort- Walks list of bladeMezzSlotPort nodes, providing
+ * details on each slot port.
+ *
+ * Outputs:
+ *      slotNumber:                 String describing mezz slot number
+ *      interconnectTrayBayNumber:  String containing interconnectTrayBayNumber 
+ *      interconnectTrayPortNumber: String containing interconnectTrayPortNumber
+ */
+void    soap_getBladeMezzSlotPort(xmlNode *slot,
+				  struct bladeMezzSlotPort *result)
+{
+	result->slotNumber = soap_tree_value(slot, "slotNumber");
+	result->interconnectTrayBayNumber = 
+		soap_tree_value(slot, "interconnectTrayBayNumber");
+	result->interconnectTrayPortNumber = 
+		soap_tree_value(slot, "interconnectTrayPortNumber");
+	result->extraData = soap_walk_tree(slot, "extraData");
+}
+/* soap_getBladeMezzDevPort- Walks list of bladeMezzDevPort nodes, providing
+ * details on each Mezz DevPort.
+ *
+ * Outputs:
+ *      portNumber:             String describing Mezz Device port number
+ *      wwpn:                   String containing wwpn
+ *      fabric:                 enum containing the fabric type
+ *      status:                 enum containing fabricStatus
+ */
+void    soap_getBladeMezzDevPort(xmlNode *port, struct bladeMezzDevPort *result)
+{
+	result->portNumber = soap_tree_value(port, "portNumber");
+	result->wwpn = soap_tree_value(port, "wwpn");
+	result->fabric = soap_enum(fabricType_S,
+			soap_tree_value(port, "fabric"));
+	result->status = soap_enum(fabricStatus_S,
+			soap_tree_value(port, "status"));
+	result->extraData = soap_walk_tree(port, "extraData");
+}
+/* soap_getInterconnectTraySlotInfo- Walks list of interconnectTraySlotInfo 
+ * nodes, providing details on each InterconnectTray Slot.  
+ *
+ * Outputs:
+ *      interconnectTraySlotNumber:   InterconnectTray Slot Number
+ *      type:           Enum containing interconnect tray type
+ *      port:           XML node containing InterconnectTraySlot Port
+ */
+void    soap_getInterconnectTraySlotInfo(xmlNode *slot, 
+		struct interconnectTraySlotInfo *result)
+{
+	result->interconnectTraySlotNumber = 
+		atoi(soap_tree_value(slot, "interconnectTraySlotNumber"));
+	result->type = soap_enum(interconnectTrayType_S,
+			soap_tree_value(slot, "type"));
+	result->port = soap_walk_tree(slot, "port:slot");
+	result->extraData = soap_walk_tree(slot, "extraData");
+}
+/* soap_getInterconnectTrayPortInfo- Walks list of interconnectTrayPortInfo 
+ * nodes, providing details on each InterconnectTrayPort.
+ *
+ * Outputs:
+ *      interconnectTraySlotPortNumber:	Interconnect tray slot port number
+ *      bladeBayNumber:    	Blade Bay Number 
+ *	bladeMezzNumber:        Blade Mezz Number
+ *	bladeMezzPortNumber:    BladeMezzPortNumber
+ *	portStatus:             Enum containing Interconnect Tray Port Status
+ * 	portEnabled:            Enum containing the interconnectTray Port 
+ *                              enabled status.
+ *	portUidStatus:          Enum containing interconnect tray port 
+ *                              Uid status
+ *	portLinkLedStatus:      Enum containing interconnect tray port link 
+ *                              Led Status
+ */
+void    soap_getInterconnectTrayPortInfo(xmlNode *port,
+		struct interconnectTrayPortInfo *result)
+{
+	result->interconnectTraySlotPortNumber = 
+		atoi(soap_tree_value(port, "interconnectTraySlotPortNumber"));
+	result->bladeBayNumber = 
+		atoi(soap_tree_value(port, "bladeBayNumber"));
+	result->bladeMezzNumber = 
+		atoi(soap_tree_value(port, "bladeMezzNumber"));
+	result->bladeMezzPortNumber = 
+		atoi(soap_tree_value(port, "bladeMezzPortNumber"));
+	result->portStatus = soap_enum(interconnectTrayPortStatus_S,
+			soap_tree_value(port, "portStatus"));
+	result->portEnabled = soap_enum(interconnectTrayPortEnabled_S,
+			soap_tree_value(port, "portEnabled"));
+	result->portUidStatus = soap_enum(interconnectTrayPortUidStatus_S,
+			soap_tree_value(port, "portUidStatus"));
+	result->portLinkLedStatus = 
+		soap_enum(interconnectTrayPortLinkLedStatus_S,
+				soap_tree_value(port, "portLinkLedStatus"));
+	result->extraData = soap_walk_tree(port, "extraData");
 }
 
 #if 0                                   /* TODO: Not sure the following call
@@ -1205,6 +1383,12 @@ void    soap_getEventInfo(xmlNode *events, struct eventInfo *result)
         }
 
         /* BLADEPORTMAP */
+        if ((node = soap_walk_tree(events, "bladePortMap"))) {
+                result->enum_eventInfo = BLADEPORTMAP;
+                parse_bladePortMap(node, &(result->eventData.bladePortMap));
+                return;
+        }
+
 
         if ((node = soap_walk_tree(events, "fanInfo"))) {
                 result->enum_eventInfo = FANINFO;
@@ -1225,8 +1409,13 @@ void    soap_getEventInfo(xmlNode *events, struct eventInfo *result)
                         &(result->eventData.interconnectTrayInfo));
                 return;
         }
-
         /* INTERCONNECTTRAYPORTMAP */
+        if ((node = soap_walk_tree(events, "interconnectTrayPortMap"))) {
+                result->enum_eventInfo = INTERCONNECTTRAYPORTMAP;
+                parse_interconnectTrayPortMap(node,
+                        &(result->eventData.interconnectTrayPortMap));
+                return;
+        }
 
         if ((node = soap_walk_tree(events, "powerSupplyInfo"))) {
                 result->enum_eventInfo = POWERSUPPLYINFO;
@@ -1414,7 +1603,22 @@ int             soap_getBladeInfo(SOAP_CON *con,
         }
         return(ret);
 }
-
+int             soap_getBladePortMap(SOAP_CON *con,
+                                  const struct getBladeInfo *request,
+				  struct bladePortMap *response)
+{
+	SOAP_PARM_CHECK
+		if (! (ret = soap_request(con, GET_BLADE_PORTMAP,
+						request->bayNumber)))
+		{
+			parse_bladePortMap(soap_walk_doc(con->doc,
+						"Body:"
+						"getBladePortMapResponse:"
+						"bladePortMap"),
+					response);
+		}
+	return(ret);
+}
 int             soap_getBladeMpInfo(SOAP_CON *con,
                                     const struct getBladeMpInfo *request,
                                     struct bladeMpInfo *response)
@@ -1634,7 +1838,23 @@ int soap_getInterconnectTrayInfo(SOAP_CON *con,
         }
         return(ret);
 }
-
+int soap_getInterconnectTrayPortMap(SOAP_CON *con,
+                                 const struct getInterconnectTrayInfo *request,
+                                 struct interconnectTrayPortMap *response)
+{
+        SOAP_PARM_CHECK
+        if (! (ret = soap_request(con,
+                                  GET_INTERCONNECT_TRAY_PORT_MAP,
+                                  request->bayNumber))) {
+                parse_interconnectTrayPortMap(
+                        soap_walk_doc(con->doc,
+                                      "Body:"
+                                      "getInterconnectTrayPortMapResponse:"
+                                      "interconnectTrayPortMap"),
+                        response);
+        }
+        return(ret);
+}
 int soap_getFanInfo(SOAP_CON *con,
                     const struct getFanInfo *request,
                     struct fanInfo *response)

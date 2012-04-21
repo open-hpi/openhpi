@@ -1807,7 +1807,11 @@ SaErrorT build_server_inv_rdr(struct oh_handler_state *oh_handler,
 	SaHpiFloat64T fm_version;
 	SaHpiInt32T major;
         struct bladeNicInfo nic_info;
-        char *nic_address = NULL;
+	struct bladeMezzInfo mezz_info;
+	struct bladePortMap portmap;
+	struct bladeCpuInfo cpu_info;
+	char *tmp = NULL;
+	int cpu_no = 0;
 
         if (oh_handler == NULL || con == NULL || rdr == NULL ||
             inventory == NULL) {
@@ -1952,9 +1956,193 @@ SaErrorT build_server_inv_rdr(struct oh_handler_state *oh_handler,
 			rpt->ResourceInfo.FirmwareMajorRev = major = floor(fm_version);
 			rpt->ResourceInfo.FirmwareMinorRev = rintf((fm_version - major) * 100);
                 }
-			/* Get the Blade NIC information*/
+				/** MP Info **/
+		if (blade_mp_response.modelName  != NULL) {
+			memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
+			hpi_field.AreaId = local_inventory->info.area_list->
+				idr_area_head.AreaId;
+			hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
+			rv = asprintf(&tmp, "MP Model name = %s", 
+					blade_mp_response.modelName);
+			if(rv == -1){
+				free(tmp);
+				err("Failed to allocate memory for buffer to  \
+						hold MP Model name");
+				return SA_ERR_HPI_OUT_OF_MEMORY;
+			}
+			if(strlen(tmp) < SAHPI_MAX_TEXT_BUFFER_LENGTH){
+				strcpy ((char *)hpi_field.Field.Data,
+						tmp);
+
+				rv = idr_field_add(&(local_inventory
+							->info.area_list
+							->field_list),
+						&hpi_field);
+				if (rv != SA_OK) {
+					err("Add idr field failed");
+					free(tmp);
+					return rv;
+				}
+
+				/* Increment the field counter */
+				local_inventory->info.area_list->idr_area_head.
+					NumFields++;
+			}else {
+				err("Source String length is greater than      \
+						SAHPI_MAX_TEXT_BUFFER_LENGTH");
+			}
+			free(tmp);
+		}
+		if (blade_mp_response.ipAddress != NULL) {
+			memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
+			hpi_field.AreaId = local_inventory->info.area_list->
+				idr_area_head.AreaId;
+			hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
+			rv = asprintf(&tmp, "MP IP Address = %s", 
+					blade_mp_response.ipAddress);
+			if(rv == -1){
+				free(tmp);
+				err("Failed to allocate memory for buffer to  \
+						hold MP IP Address");
+				return SA_ERR_HPI_OUT_OF_MEMORY;
+			}
+			if(strlen(tmp) < SAHPI_MAX_TEXT_BUFFER_LENGTH){
+				strcpy ((char *)hpi_field.Field.Data,
+						tmp);
+
+				rv = idr_field_add(&(local_inventory
+							->info.area_list
+							->field_list),
+						&hpi_field);
+				if (rv != SA_OK) {
+					err("Add idr field failed");
+					free(tmp);
+					return rv;
+				}
+
+				/* Increment the field counter */
+				local_inventory->info.area_list->idr_area_head.
+					NumFields++;
+			}else {
+				err("Source String length is greater than      \
+						SAHPI_MAX_TEXT_BUFFER_LENGTH");
+			}
+			free(tmp);
+		}
+		if (blade_mp_response.macAddress != NULL) {
+			memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
+			hpi_field.AreaId = local_inventory->info.area_list->
+				idr_area_head.AreaId;
+			hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
+			rv = asprintf(&tmp, "MP MAC Address = %s", 
+					blade_mp_response.macAddress);
+			if(rv == -1){
+				free(tmp);
+				err("Failed to allocate memory for buffer to  \
+						hold MP MAC Address");
+				return SA_ERR_HPI_OUT_OF_MEMORY;
+			}
+			if(strlen(tmp) < SAHPI_MAX_TEXT_BUFFER_LENGTH){
+				strcpy ((char *)hpi_field.Field.Data,
+						tmp);
+
+				rv = idr_field_add(&(local_inventory
+							->info.area_list
+							->field_list),
+						&hpi_field);
+				if (rv != SA_OK) {
+					err("Add idr field failed");
+					free(tmp);
+					return rv;
+				}
+
+				/* Increment the field counter */
+				local_inventory->info.area_list->idr_area_head.
+					NumFields++;
+			}else {
+				err("Source String length is greater than      \
+						SAHPI_MAX_TEXT_BUFFER_LENGTH");
+			}
+			free(tmp);
+		}
+		if (blade_mp_response.dnsName != NULL) {
+			memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
+			hpi_field.AreaId = local_inventory->info.area_list->
+				idr_area_head.AreaId;
+			hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
+			rv = asprintf(&tmp, "MP DNS name = %s", 
+					blade_mp_response.dnsName);
+			if(rv == -1){
+				free(tmp);
+				err("Failed to allocate memory for buffer to  \
+						hold MP DNS name");
+				return SA_ERR_HPI_OUT_OF_MEMORY;
+			}
+			if(strlen(tmp) < SAHPI_MAX_TEXT_BUFFER_LENGTH){
+				strcpy ((char *)hpi_field.Field.Data,
+						tmp);
+
+				rv = idr_field_add(&(local_inventory
+							->info.area_list
+							->field_list),
+						&hpi_field);
+				if (rv != SA_OK) {
+					err("Add idr field failed");
+					free(tmp);
+					return rv;
+				}
+
+				/* Increment the field counter */
+				local_inventory->info.area_list->idr_area_head.
+					NumFields++;
+			}else {
+				err("Source String length is greater than      \
+						SAHPI_MAX_TEXT_BUFFER_LENGTH");
+			}
+			free(tmp);
+		}
+                       /* Get the Blade NIC information*/
 		rv = soap_getBladeInfo(con,
 				&request, &response);
+		if (rv != SOAP_OK) {
+			err("Get blade info failed");
+			return rv;
+		}	
+		/* Adding Custom Field for Number of NICs Installed*/
+		memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
+                        hpi_field.AreaId = local_inventory->info.area_list->
+                                           idr_area_head.AreaId;
+                        hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
+			rv = asprintf(&tmp, "NICs Installed = %d", 
+					response.numberOfNics);
+			if(rv == -1){
+				free(tmp);
+				err("Failed to allocate memory for buffer to  \
+						hold NICs Installed");
+				return SA_ERR_HPI_OUT_OF_MEMORY;
+			}
+			if(strlen(tmp) < SAHPI_MAX_TEXT_BUFFER_LENGTH){
+				strcpy ((char *)hpi_field.Field.Data,
+						tmp);  
+
+				rv = idr_field_add(&(local_inventory
+							->info.area_list
+							->field_list),
+						&hpi_field);
+				if (rv != SA_OK) {
+					err("Add idr field failed");
+					free(tmp);
+					return rv;
+				}
+
+				/* Increment the field counter */
+				local_inventory->info.area_list->idr_area_head.
+					NumFields++;
+			}else {
+				err("Source String length is greater than      \
+						SAHPI_MAX_TEXT_BUFFER_LENGTH");
+			}
+			free(tmp);
                 while (response.nics){
 
                 soap_getBladeNicInfo(response.nics, &nic_info);
@@ -1966,27 +2154,742 @@ SaErrorT build_server_inv_rdr(struct oh_handler_state *oh_handler,
                         hpi_field.AreaId = local_inventory->info.area_list->
                                            idr_area_head.AreaId;
                         hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
-                       rv = asprintf(&nic_address, "%s = %s", nic_info.port, 
+                       rv = asprintf(&tmp, "%s = %s", nic_info.port, 
 				nic_info.macAddress);
-                        strcpy ((char *)hpi_field.Field.Data,
-                                nic_address);
+		       if(rv == -1){
+			       free(tmp);
+			       err("Failed to allocate memory for buffer to   \
+					       hold MAC Address and NIC Port");
+			       return SA_ERR_HPI_OUT_OF_MEMORY;
+		       }
+		       if(strlen(tmp) < SAHPI_MAX_TEXT_BUFFER_LENGTH){
+			       strcpy ((char *)hpi_field.Field.Data,
+					       tmp);
 
-                        rv = idr_field_add(&(local_inventory->info.area_list
-                                           ->field_list),
-                                           &hpi_field);
-                        if (rv != SA_OK) {
-                                err("Add idr field failed");
-                                return rv;
-                        }
+			       rv = idr_field_add(&(local_inventory
+						       ->info.area_list
+						       ->field_list),
+					       &hpi_field);
+			       if (rv != SA_OK) {
+				       err("Add idr field failed");
+				       free(tmp);
+				       return rv;
+			       }
 
-                        /* Increment the field counter */
-                        local_inventory->info.area_list->idr_area_head.
-                        NumFields++;
+			       /* Increment the field counter */
+			       local_inventory->info.area_list->idr_area_head.
+				       NumFields++;
+		       }else {
+			       err("Source String length is greater than      \
+					       SAHPI_MAX_TEXT_BUFFER_LENGTH");
+		       }
+			free(tmp);
                 }
                response.nics = soap_next_node(response.nics);
               }
+
+                /* Adding the custom field for the Number of CPUs installed
+                 */
+		if(response.numberOfCpus){
+			memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
+			hpi_field.AreaId = local_inventory->info.area_list->
+				idr_area_head.AreaId;
+			hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
+			rv = asprintf(&tmp, "No. of CPUs = %d",
+					response.numberOfCpus);
+			if(rv == -1){
+				err("Failed to allocate memory for buffer to  \
+						hold No. of CPUs");
+				free(tmp);
+				return SA_ERR_HPI_OUT_OF_MEMORY;
+			}
+			if(strlen(tmp) < SAHPI_MAX_TEXT_BUFFER_LENGTH){
+				strcpy ((char *)hpi_field.Field.Data,
+						tmp);
+
+				rv = idr_field_add(&(local_inventory
+							->info.area_list
+							->field_list),
+						&hpi_field);
+				if (rv != SA_OK) {
+					err("Add idr field failed");
+					free(tmp);
+					return rv;
+				}
+
+				/* Increment the field counter */
+				local_inventory->info.area_list->idr_area_head.
+					NumFields++;	
+			}else {
+				err("Source String length is greater than      \
+						SAHPI_MAX_TEXT_BUFFER_LENGTH");
+			}
+			free(tmp);
+		}
+
+                while (response.cpus){
+
+                soap_getBladeCpuInfo(response.cpus, &cpu_info);
+                
+		if (cpu_info.cpuType != NULL && cpu_info.cpuSpeed != 0) {
+			rv = asprintf(&tmp, " CPU %d = %s, %d MHz",
+				++cpu_no,cpu_info.cpuType,cpu_info.cpuSpeed);
+			if(rv == -1){
+				free(tmp);
+				err("Failed to allocate memory for buffer to  \
+						hold CPU name and speed");
+				return SA_ERR_HPI_OUT_OF_MEMORY;
+			}
+		}
+		else {
+			rv = asprintf(&tmp, " CPU %d = Not present",++cpu_no);
+			if(rv == -1){
+				free(tmp);
+				err("Failed to allocate memory for buffer to  \
+						hold Not present CPU Number");
+				return SA_ERR_HPI_OUT_OF_MEMORY;
+			}
+		}
+			memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
+			hpi_field.AreaId = local_inventory->info.area_list->
+				idr_area_head.AreaId;
+			hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
+			if(strlen(tmp) < SAHPI_MAX_TEXT_BUFFER_LENGTH){
+				strcpy ((char *)hpi_field.Field.Data,
+						tmp);
+
+				rv = idr_field_add(&(local_inventory
+							->info.area_list
+							->field_list),
+						&hpi_field);
+				if (rv != SA_OK) {
+					err("Add idr field failed");
+					free(tmp);
+					return rv;
+				}
+
+				/* Increment the field counter */
+				local_inventory->info.area_list->idr_area_head.
+					NumFields++;
+			}else {
+				err("Source String length is greater than      \
+						SAHPI_MAX_TEXT_BUFFER_LENGTH");
+			}
+			free(tmp);
+               response.cpus = soap_next_node(response.cpus);
+              }
+
+		/* Code For Memory Starts Here */
+
+		if (response.memory != 0) {
+			memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
+			hpi_field.AreaId = local_inventory->info.area_list->
+				idr_area_head.AreaId;
+			hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
+			rv = asprintf(&tmp, "Memory(RAM) = %d MB",
+					response.memory);
+			if(rv == -1){
+				free(tmp);
+				err("Failed to allocate memory for buffer to  \
+						hold Memory(RAM) size");
+				return SA_ERR_HPI_OUT_OF_MEMORY;
+			}
+			if(strlen(tmp) < SAHPI_MAX_TEXT_BUFFER_LENGTH){
+				strcpy ((char *)hpi_field.Field.Data,
+						tmp);
+
+				rv = idr_field_add(&(local_inventory
+							->info.area_list
+							->field_list),
+						&hpi_field);
+				if (rv != SA_OK) {
+					err("Add idr field failed");
+					free(tmp);
+					return rv;
+				}
+
+				/* Increment the field counter */
+				local_inventory->info.area_list->idr_area_head.
+					NumFields++; 
+			}else {
+				err("Source String length is greater than      \
+						SAHPI_MAX_TEXT_BUFFER_LENGTH");
+			}
+			free(tmp);
+		}
+
+		rv = soap_getBladePortMap(con,
+				&request, &portmap);
+		if (rv != SA_OK) {
+			err("soap_getBladePortMap call failed");
+			return rv;
+		}
+		while(portmap.mezz){
+			soap_getBladeMezzInfo(portmap.mezz, &mezz_info);
+			if(mezz_info.mezzNumber != NULL){
+				memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
+				hpi_field.AreaId = 
+					local_inventory->info.area_list->
+					idr_area_head.AreaId;
+				hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
+				rv = asprintf(&tmp, "Mezz No. = %s",
+						mezz_info.mezzNumber);
+				if(rv == -1){
+					free(tmp);
+					err("Failed to allocate memory for    \
+							buffer to hold        \
+							Mezz No.");
+					return SA_ERR_HPI_OUT_OF_MEMORY;
+				}
+				if(strlen(tmp) < SAHPI_MAX_TEXT_BUFFER_LENGTH){
+					strcpy ((char *)hpi_field.Field.Data,
+							tmp);
+
+					rv = idr_field_add(
+							&(local_inventory
+								->info.area_list
+								->field_list),
+							&hpi_field);
+					if (rv != SA_OK) {
+						err("Add idr field failed");
+						free(tmp);
+						return rv;
+					}
+
+					/* Increment the field counter */
+					local_inventory->info.area_list
+							->idr_area_head.
+						NumFields++;
+				}else {
+					err("Source String length	     \
+							is greater than      \
+							SAHPI_MAX_TEXT_      \
+							BUFFER_LENGTH");
+				}
+				free(tmp);
+			}
+			/*** Add Mezz Slot Innventory fileds ***/
+			if(mezz_info.mezzSlots != NULL){
+				rv = add_mezz_slot_idr_fields(
+						mezz_info.mezzSlots,
+						local_inventory);
+				if(rv != SA_OK){
+					err("Add mezz_slot_idr_fields failed");
+					return rv;
+				}
+			}
+
+			/*** Add Mezz Device Inventory fields ***/
+
+			if(mezz_info.mezzDevices !=NULL){
+				rv = add_mezz_device_idr_fields(
+						mezz_info.mezzDevices,
+						local_inventory);
+				if(rv != SA_OK){
+					err("Add mezz_devices_idr_fields \
+							failed");
+					return rv;
+				}
+				
+			}
+
+			portmap.mezz = soap_next_node(portmap.mezz);
+		}
         }
         return SA_OK;
+}
+
+/**
+ * add_mezz_slot_idr_fields 
+ *      @mezzSlots: pointer to mezz slot xmlnode
+ *      @local_inventory: Rdr private data structure
+ *
+ * Purpose:
+ * This function is for adding mezzslot idr fields of server blade.
+ *
+ * Detailed Description:
+ *      - Populates the server mezzslot inventory rdr with default values
+ *      - Inventory data repository is created and associated in the private
+ *        data area of the Inventory RDR
+ *
+ * Return values:
+ *      SA_OK - Normal case
+ *      SA_ERR_HPI_INVALID_PARAMS - On wrong parameters
+ *      SA_ERR_HPI_INTERNAL_ERROR - oa_soap plugin has encountered an internal
+ *                                  error
+ *      SA_ERR_HPI_OUT_OF_MEMORY - Request failed due to insufficient memory
+ **/
+
+SaErrorT add_mezz_slot_idr_fields(xmlNode *mezzSlots,
+		struct oa_soap_inventory *local_inventory)
+{	
+	SaErrorT rv = SA_OK;
+	SaHpiIdrFieldT hpi_field;
+	struct bladeMezzSlotInfo mezzSlot_Info;
+	struct bladeMezzSlotPort mezzSlots_slot;
+	char* tmp = NULL;
+
+	if(mezzSlots == NULL || local_inventory == NULL){
+		err("Invalid parameter.");
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
+	soap_getBladeMezzSlotInfo(mezzSlots,
+			&mezzSlot_Info);
+	switch(mezzSlot_Info.type){
+		case 0: tmp = "MEZZ_SLOT_TYPE_MT";
+			break;
+		case 1: tmp = "MEZZ_SLOT_TYPE_ONE";
+			break;
+		case 2: tmp = "MEZZ_SLOT_TYPE_TWO";
+			break;
+		case 3: tmp = "MEZZ_SLOT_TYPE_FIXED";
+			break;
+		default: tmp = "MEZZ_SLOT_TYPE_UNKNOWN";
+			break;
+	}
+	memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
+	hpi_field.AreaId = 
+		local_inventory->info.area_list->
+		idr_area_head.AreaId;
+	hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
+	if(strlen(tmp) < SAHPI_MAX_TEXT_BUFFER_LENGTH){
+		strcpy ((char *)hpi_field.Field.Data,
+				tmp);
+
+		rv = idr_field_add(&(local_inventory
+					->info.area_list
+					->field_list),
+				&hpi_field);
+		if (rv != SA_OK) {
+			err("Add idr field failed");
+			return rv;
+		}
+
+		/* Increment the field counter */
+		local_inventory->info.area_list->idr_area_head.
+			NumFields++;
+	}else {
+		err("Source String length is greater than      \
+				SAHPI_MAX_TEXT_BUFFER_LENGTH");
+	}
+	while(mezzSlot_Info.slot){		
+		soap_getBladeMezzSlotPort(
+				mezzSlot_Info.slot,
+				&mezzSlots_slot);
+		if(mezzSlots_slot.slotNumber != NULL){
+			memset(&hpi_field, 0, 
+					sizeof(SaHpiIdrFieldT));
+			hpi_field.AreaId = 
+				local_inventory->
+				info.area_list->
+				idr_area_head.AreaId;
+			hpi_field.Type = 
+				SAHPI_IDR_FIELDTYPE_CUSTOM;
+
+			rv = asprintf(&tmp, "Mezz Slot No. = %s",
+					mezzSlots_slot.slotNumber);
+			if(rv == -1){
+				err("Failed to allocate memory for    \
+						buffer to hold Mezz Slot No.");
+				free(tmp);
+				return SA_ERR_HPI_OUT_OF_MEMORY;
+			}
+			if(strlen(tmp) < SAHPI_MAX_TEXT_BUFFER_LENGTH){
+				strcpy ((char *)hpi_field.Field.Data,
+						tmp);
+
+				rv = idr_field_add(&(local_inventory->
+							info.area_list
+							->field_list),
+						&hpi_field);
+				if (rv != SA_OK) {
+					err("Add idr field failed");
+					free(tmp);
+					return rv;
+				}
+
+				/* Increment the field counter */
+				local_inventory->info.area_list->idr_area_head.
+					NumFields++;
+			}else {
+				err("Source Strig length is greater than      \
+						SAHPI_MAX_TEXT_BUFFER_LENGTH");
+			}
+			free(tmp);
+
+		}
+		if(mezzSlots_slot.interconnectTrayBayNumber != NULL){
+			memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
+			hpi_field.AreaId = 
+				local_inventory->info.area_list->
+				idr_area_head.AreaId;
+			hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
+			rv = asprintf(&tmp, 
+					"InterconnectTrayBay No. = %s",
+					mezzSlots_slot.
+					interconnectTrayBayNumber);
+			if(rv == -1){
+				err("Failed to allocate memory for buffer to \
+						hold InterconnectTrayBay No.");
+				free(tmp);
+				return SA_ERR_HPI_OUT_OF_MEMORY;
+			}
+			if(strlen(tmp) < SAHPI_MAX_TEXT_BUFFER_LENGTH){
+				strcpy ((char *)hpi_field.Field.Data,
+						tmp);
+
+				rv = idr_field_add(&(local_inventory->
+							info.area_list
+							->field_list),
+						&hpi_field);
+				if (rv != SA_OK) {
+					err("Add idr field failed");
+					free(tmp);
+					return rv;
+				}
+
+				/* Increment the field counter */
+				local_inventory->info.area_list->idr_area_head.
+					NumFields++;
+			}else {
+				err("Source String length is greater than      \
+						SAHPI_MAX_TEXT_BUFFER_LENGTH");
+			}
+			free(tmp);
+		}
+		if(mezzSlots_slot.interconnectTrayPortNumber != NULL){
+			memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
+			hpi_field.AreaId = 
+				local_inventory->info.area_list->
+				idr_area_head.AreaId;
+			hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
+			rv = asprintf(&tmp, 
+					"InterconnectTrayPort No. = %s",
+					mezzSlots_slot.
+					interconnectTrayBayNumber);
+			if(rv == -1){
+				err("Failed to allocate memory for buffer to   \
+						hold InterconnectTrayPort No.");
+				free(tmp);
+				return SA_ERR_HPI_OUT_OF_MEMORY;
+			}
+			if(strlen(tmp) < SAHPI_MAX_TEXT_BUFFER_LENGTH){
+				strcpy ((char *)hpi_field.Field.Data,
+						tmp);
+				rv = idr_field_add(&(local_inventory->
+							info.area_list
+							->field_list),
+						&hpi_field);
+				if (rv != SA_OK) {
+					err("Add idr field failed");
+					free(tmp);
+					return rv;
+				}
+
+				/* Increment the field counter */
+				local_inventory->info.area_list->idr_area_head.
+					NumFields++;
+			}else {
+				err("Source String length is greater than      \
+						SAHPI_MAX_TEXT_BUFFER_LENGTH");
+			}
+			free(tmp);
+		}
+		mezzSlot_Info.slot = soap_next_node(mezzSlot_Info.slot);
+	}
+
+	return SA_OK;
+}
+
+/** This function is to add Mezz device inventory fields
+ *      @mezzDevices: Pointet to mezz devie xmlnode
+ *      @local_inventory: Rdr private data structure
+ *
+ * Purpose:
+ * This function is for adding mezzdevices idr fields of server blade.
+ *
+ * Detailed Description:
+ *      - Populates the server mezzdevices inventory rdr with default values
+ *      - Inventory data repository is created and associated in the private
+ *        data area of the Inventory RDR
+ *
+ * Return values:
+ *      SA_OK - Normal case
+ *      SA_ERR_HPI_INVALID_PARAMS - On wrong parameters
+ *      SA_ERR_HPI_INTERNAL_ERROR - oa_soap plugin has encountered an internal
+ *                                  error
+ *      SA_ERR_HPI_OUT_OF_MEMORY - Request failed due to insufficient memory
+ **/
+
+SaErrorT add_mezz_device_idr_fields(xmlNode *mezzDevices,
+		struct oa_soap_inventory *local_inventory)
+{
+	SaErrorT rv = SA_OK;
+	SaHpiIdrFieldT hpi_field;
+	struct bladeMezzDevInfo mezzDev_Info;
+	struct bladeMezzDevPort mezzDev_Port;
+	char *tmp = NULL;
+
+	if(mezzDevices ==NULL || local_inventory == NULL){
+		err("Invalid parameter.");
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
+	soap_getBladeMezzDevInfo(mezzDevices, &mezzDev_Info);
+	if(mezzDev_Info.name != NULL){
+		memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
+		hpi_field.AreaId = local_inventory->info.area_list->
+			idr_area_head.AreaId;
+		hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
+		if(strlen(mezzDev_Info.name) < SAHPI_MAX_TEXT_BUFFER_LENGTH){
+			strcpy ((char *)hpi_field.Field.Data,
+					mezzDev_Info.name);
+			rv = idr_field_add(&(local_inventory->info.area_list
+						->field_list),
+					&hpi_field);
+			if (rv != SA_OK) {
+				err("Add idr field failed");
+				return rv;
+			}
+
+			/* Increment the field counter */
+			local_inventory->info.area_list->idr_area_head.
+				NumFields++;
+		}else {
+			err("Source String length is greater than            \
+					SAHPI_MAX_TEXT_BUFFER_LENGTH");
+		}
+	}
+	switch(mezzDev_Info.type){
+		case 0: tmp = "MEZZ_DEV_TYPE_MT";
+			break;
+		case 1: tmp = "MEZZ_DEV_TYPE_ONE";
+			break;
+		case 2: tmp = "MEZZ_DEV_TYPE_TWO";
+			break;
+		case 3: tmp = "MEZZ_DEV_TYPE_FIXED";
+			break;
+		default: tmp = "MEZZ_DEV_TYPE_UNKNOWN";
+			break;
+	}
+	memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
+	hpi_field.AreaId = local_inventory->info.area_list->
+		idr_area_head.AreaId;
+	hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
+
+	if(strlen(tmp) < SAHPI_MAX_TEXT_BUFFER_LENGTH){
+
+	strcpy ((char *)hpi_field.Field.Data,
+			tmp);
+	rv = idr_field_add(&(local_inventory->info.area_list
+				->field_list),
+			&hpi_field);
+	if (rv != SA_OK) {
+		err("Add idr field failed");
+		return rv;
+	}
+
+	/* Increment the field counter */
+	local_inventory->info.area_list->idr_area_head.
+		NumFields++;
+	}else {
+		err("Source String length is greater than            \
+				SAHPI_MAX_TEXT_BUFFER_LENGTH");
+	}
+	switch(mezzDev_Info.status){
+		case 1: tmp = "MEZZ_DEV_STATUS_OK";
+			break;
+		case 2: tmp = "MEZZ_DEV_STATUS_MISMATCH";
+			break;
+		default: tmp = "MEZZ_DEV_STATUS_UNKNOWN";
+			break;
+	}
+	memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
+	hpi_field.AreaId = local_inventory->info.area_list->
+		idr_area_head.AreaId;
+	hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
+	
+	if(strlen(tmp) < SAHPI_MAX_TEXT_BUFFER_LENGTH){
+		strcpy ((char *)hpi_field.Field.Data,
+				tmp);
+
+		rv = idr_field_add(&(local_inventory->info.area_list
+					->field_list),
+				&hpi_field);
+		if (rv != SA_OK) {
+			err("Add idr field failed");
+			return rv;
+		}
+
+		/* Increment the field counter */
+		local_inventory->info.area_list->idr_area_head.
+			NumFields++;
+	} else {
+		err("Source String length is greater than            \
+				SAHPI_MAX_TEXT_BUFFER_LENGTH");
+	}
+	while(mezzDev_Info.port){	
+		soap_getBladeMezzDevPort(mezzDev_Info.port,
+				&mezzDev_Port);
+		if(mezzDev_Port.portNumber != NULL){
+			memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
+			hpi_field.AreaId = 
+				local_inventory->info.area_list->
+				idr_area_head.AreaId;
+			hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
+			rv = asprintf(&tmp, "MezzDevPort No. = %s",
+					mezzDev_Port.portNumber);
+			if(rv == -1){
+				err("Failed to allocate memory for buffer to   \
+						hold MezzDevPort No.");
+				free(tmp);
+				return SA_ERR_HPI_OUT_OF_MEMORY;
+			}
+			if(strlen(tmp) < SAHPI_MAX_TEXT_BUFFER_LENGTH){
+				strcpy ((char *)hpi_field.Field.Data,
+						tmp);
+
+				rv = idr_field_add(&(local_inventory->
+							info.area_list
+							->field_list),
+						&hpi_field);
+				if (rv != SA_OK) {
+					err("Add idr field failed");
+					free(tmp);
+					return rv;
+				}
+
+				/* Increment the field counter */
+				local_inventory->info.area_list->idr_area_head.
+					NumFields++;
+			}else {
+				err("Source String length is greater than      \
+						SAHPI_MAX_TEXT_BUFFER_LENGTH");
+			}
+			free(tmp);
+			if(mezzDev_Port.wwpn != NULL){
+				memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
+				hpi_field.AreaId = 
+					local_inventory->info.area_list->
+					idr_area_head.AreaId;
+				hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
+				rv = asprintf(&tmp, "MezzDevPort wwpn = %s",
+						mezzDev_Port.wwpn);
+				if(rv == -1){
+					err("Failed to allocate memory for    \
+							buffer to hold        \
+							MezzDevPort wwpn");
+					free(tmp);
+					return SA_ERR_HPI_OUT_OF_MEMORY;
+				}
+
+				if(strlen(tmp) < SAHPI_MAX_TEXT_BUFFER_LENGTH){
+					strcpy ((char *)hpi_field.Field.Data,
+							tmp);
+
+					rv = idr_field_add(&(local_inventory->
+								info.area_list
+								->field_list),
+							&hpi_field);
+					if (rv != SA_OK) {
+						err("Add idr field failed");
+						free(tmp);
+						return rv;
+					}
+
+					/* Increment the field counter */
+					local_inventory->info.area_list
+							->idr_area_head.
+						NumFields++;
+				}else {
+					err("Source String length            \
+							is greater than      \
+							SAHPI_MAX_TEXT_	     \
+							BUFFER_LENGTH");
+				}
+				free(tmp);
+			}
+			switch(mezzDev_Port.fabric){
+				case 0: tmp = "FABRIC_TYPE_MT";
+					break;
+				case 1: tmp = "FABRIC_TYPE_ETH";
+					break;
+				case 2: tmp = "FABRIC_TYPE_FIB";
+					break;
+				case 3: tmp = "FABRIC_TYPE_10GETH";
+					break;
+				case 4: tmp = "FABRIC_TYPE_IFB";
+					break;
+				case 5: tmp = "FABRIC_TYPE_PCI";
+					break;
+				case 6: tmp = "FABRIC_TYPE_SAS";
+					break;
+				case 7: tmp = "FABRIC_TYPE_MAX";
+					break;
+				default: tmp = "FABRIC_TYPE_UNKNOWN";
+					break;
+			}
+			memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
+			hpi_field.AreaId = local_inventory->info.area_list->
+				idr_area_head.AreaId;
+			hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
+
+			if(strlen(tmp) < SAHPI_MAX_TEXT_BUFFER_LENGTH){
+				strcpy ((char *)hpi_field.Field.Data,
+						tmp);
+
+				rv = idr_field_add(&(local_inventory
+							->info.area_list
+							->field_list),
+						&hpi_field);
+				if (rv != SA_OK) {
+					err("Add idr field failed");
+					return rv;
+				}
+
+				/* Increment the field counter */
+				local_inventory->info.area_list->idr_area_head.
+					NumFields++;
+			}else {
+				err("Source String length is greater than      \
+						SAHPI_MAX_TEXT_BUFFER_LENGTH");
+			}
+
+			switch(mezzDev_Port.status){
+				case 1: tmp = "FABRIC_STATUS_OK";
+					break;
+				case 2: tmp = "FABRIC_STATUS_MISMATCH";
+					break;
+				default: tmp = "FABRIC_STATUS_UNKNOWN";
+					break;
+			}
+			memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
+			hpi_field.AreaId = local_inventory->info.area_list->
+				idr_area_head.AreaId;
+			hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
+			if(strlen(tmp) < SAHPI_MAX_TEXT_BUFFER_LENGTH){
+				strcpy ((char *)hpi_field.Field.Data,
+						tmp);
+				rv = idr_field_add(&(local_inventory
+							->info.area_list
+							->field_list),
+						&hpi_field);
+				if (rv != SA_OK) {
+					err("Add idr field failed");
+					return rv;
+				}
+
+				/* Increment the field counter */
+				local_inventory->info.area_list->idr_area_head.
+					NumFields++;
+
+			}else {
+				err("Source String length is greater than      \
+						SAHPI_MAX_TEXT_BUFFER_LENGTH");
+			}
+		}
+		mezzDev_Info.port = soap_next_node(mezzDev_Info.port);
+	}
+	return SA_OK;
 }
 
 /**
@@ -2271,6 +3174,8 @@ SaErrorT build_interconnect_inv_rdr(struct oh_handler_state *oh_handler,
         struct extraDataInfo extra_data_info;
         SaHpiFloat64T fm_version=0;
         SaHpiInt32T major=0;
+        struct interconnectTrayPortMap portmap;
+        char *tmp = NULL;
 
         if (oh_handler == NULL || con == NULL || rdr == NULL ||
             inventory == NULL) {
@@ -2418,6 +3323,103 @@ SaErrorT build_interconnect_inv_rdr(struct oh_handler_state *oh_handler,
                         rpt->ResourceInfo.FirmwareMajorRev = major;
                         rpt->ResourceInfo.FirmwareMinorRev = rintf((fm_version - major) * 100);
                 }
+        request.bayNumber = bay_number;
+        rv = soap_getInterconnectTrayPortMap(con, &request, &portmap);
+        if (rv != SOAP_OK) {
+                err("Get Interconnect tray port map failed");
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+
+		if (portmap.interconnectTrayBayNumber) {
+                       memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
+                        hpi_field.AreaId = local_inventory->info.area_list->
+                                           idr_area_head.AreaId;
+                        hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
+			asprintf(&tmp, "InterconnectTrayBay No. = %d",
+					portmap.interconnectTrayBayNumber);
+			if(rv == -1){
+				free(tmp);
+				err("Failed to allocate memory for buffer to   \
+						hold InterconnectTrayBay No.");
+				return SA_ERR_HPI_OUT_OF_MEMORY;
+			}
+                        strcpy ((char *)hpi_field.Field.Data,
+                                tmp);
+
+                        rv = idr_field_add(&(local_inventory->info.area_list
+                                           ->field_list),
+                                           &hpi_field);
+                        if (rv != SA_OK) {
+                                err("Add idr field failed");
+				free(tmp);
+                                return rv;
+                        }
+
+                        /* Increment the field counter */
+                        local_inventory->info.area_list->idr_area_head.
+                        NumFields++;
+			free(tmp);
+                }
+		if (portmap.status) {
+                       memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
+                        hpi_field.AreaId = local_inventory->info.area_list->
+                                           idr_area_head.AreaId;
+                        hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
+			asprintf(&tmp, "portMapStatus = %d",portmap.status);
+			if(rv == -1){
+				free(tmp);
+				err("Failed to allocate memory for buffer to   \
+						hold portMapStatus");
+				return SA_ERR_HPI_OUT_OF_MEMORY;
+			}
+                        strcpy ((char *)hpi_field.Field.Data,
+                                tmp);
+
+                        rv = idr_field_add(&(local_inventory->info.area_list
+                                           ->field_list),
+                                           &hpi_field);
+                        if (rv != SA_OK) {
+                                err("Add idr field failed");
+				free(tmp);
+                                return rv;
+                        }
+
+                        /* Increment the field counter */
+                        local_inventory->info.area_list->idr_area_head.
+                        NumFields++;
+			free(tmp);
+                }
+		/* Add interconnect tray size type*/
+                       memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
+                        hpi_field.AreaId = local_inventory->info.area_list->
+                                           idr_area_head.AreaId;
+                        hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
+			switch(portmap.sizeType){
+				case 0: tmp = "INTERCONNECT_TRAY_SIZE_TYPE_MT";
+					break;
+				case 1: tmp = "INTERCONNECT_TRAY_SIZE_TYPE-1X1";
+					break;
+				case 2: tmp = "INTERCONNECT_TRAY_SIZE_TYPE_1x1";
+					break;
+				case 3: tmp = "INTERCONNECT_TRAY_SIZE_TYPE_2x1";
+					break;
+				default: tmp = "Invalid Size Type";
+					break;
+				}
+                        strcpy ((char *)hpi_field.Field.Data,
+                                tmp);
+
+                        rv = idr_field_add(&(local_inventory->info.area_list
+                                           ->field_list),
+                                           &hpi_field);
+                        if (rv != SA_OK) {
+                                err("Add idr field failed");
+                                return rv;
+                        }
+
+                        /* Increment the field counter */
+                        local_inventory->info.area_list->idr_area_head.
+                        NumFields++;
 	}
         return SA_OK;
 }
