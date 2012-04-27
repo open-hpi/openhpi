@@ -229,7 +229,7 @@ void *ilo2_ribcl_open(GHashTable *handler_config,
 	 */
 	gethostname(ilo2_ribcl_handler->ir_hostname, ILO2_HOST_NAME_MAX_LEN);
 	if (strlen(ilo2_ribcl_handler->ir_hostname) >= ILO2_HOST_NAME_MAX_LEN)
-		ilo2_ribcl_handler->ir_hostname[ILO2_HOST_NAME_MAX_LEN] = '\0';
+		ilo2_ribcl_handler->ir_hostname[ILO2_HOST_NAME_MAX_LEN-1] = '\0';
 	
 
 	/*Initialize the test and the iLO3 header pointer to NULL*/
