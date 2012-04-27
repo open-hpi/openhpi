@@ -3403,6 +3403,8 @@ SaErrorT build_interconnect_inv_rdr(struct oh_handler_state *oh_handler,
 					break;
 				case 3: tmp = "INTERCONNECT_TRAY_SIZE_TYPE_2x1";
 					break;
+				case 4: tmp = "INTERCONNECT_TRAY_SIZE_TYPE-2x1";
+					break;
 				default: tmp = "Invalid Size Type";
 					break;
 				}
