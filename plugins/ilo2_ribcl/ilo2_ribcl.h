@@ -87,7 +87,7 @@
 /*
  * ILO2 RIBCL Hostname Length defines
  */
-#define ILO2_HOST_NAME_MAX_LEN 255
+#define ILO2_HOST_NAME_MAX_LEN 256
 /* A valid IP addr will have a min. len of 7 4 digts + 3 decimal points */
 #define ILO2_HOST_NAME_MIN_LEN 7
 
