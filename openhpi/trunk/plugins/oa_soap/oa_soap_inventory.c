@@ -1422,13 +1422,13 @@ SaErrorT build_enclosure_inv_rdr(struct oh_handler_state *oh_handler,
                 	err("Add internal area failed");
                 	return rv;
         	}
-	}
-        if (add_success_flag != SAHPI_FALSE) {
-		(local_inventory->info.idr_info.NumAreas)++;
-		if (area_count == 0) {
-			head_area = local_inventory->info.area_list;
+        	if (add_success_flag != SAHPI_FALSE) {
+			(local_inventory->info.idr_info.NumAreas)++;
+			if (area_count == 0) {
+				head_area = local_inventory->info.area_list;
+			}
+			++area_count;
 		}
-		++area_count;
 	}
         local_inventory->info.area_list = head_area;
         *inventory = local_inventory;
