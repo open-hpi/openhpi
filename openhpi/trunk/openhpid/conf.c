@@ -19,6 +19,7 @@
  *     Bryan Sutula <sutula@users.sourceforge.net>
  */
 
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -163,6 +164,7 @@ static GScannerConfig oh_scanner_config =
                 TRUE                    /* char_2_token */,
                 TRUE                    /* symbol_2_token */,
                 FALSE                   /* scope_0_fallback */,
+                TRUE                    /* store_int64 */,
         };
 
 static void process_global_param(const char *name, char *value)
@@ -209,7 +211,16 @@ static void process_global_param(const char *name, char *value)
                         global_params.unconfigured = SAHPI_FALSE;
                 }
         } else if (!strcmp("OPENHPI_AUTOINSERT_TIMEOUT", name)) {
-                global_params.ai_timeout = strtoll(value, 0, 10);
+                if (!strcmp(value, "BLOCK")) {
+                    global_params.ai_timeout = SAHPI_TIMEOUT_BLOCK;
+                } else if (!strcmp(value, "IMMEDIATE")) {
+                    global_params.ai_timeout = SAHPI_TIMEOUT_IMMEDIATE;
+                } else {
+                    global_params.ai_timeout = strtoll(value, 0, 10);
+                    if (global_params.ai_timeout < 0) {
+                        global_params.ai_timeout = SAHPI_TIMEOUT_BLOCK;
+                    }
+                }
         } else if (!strcmp("OPENHPI_AUTOINSERT_TIMEOUT_READONLY", name)) {
                 if (!strcmp("YES", value)) {
                         global_params.ai_timeout_readonly = SAHPI_TRUE;
@@ -316,10 +327,18 @@ static int process_handler_token (GScanner* oh_scanner)
                         int current_token = g_scanner_get_next_token(oh_scanner);
 
                         if (current_token == G_TOKEN_INT) {
+                                // TODO seems everyone now relies that 
+                                // value shall be string.
+                                // So this code may break a plug-in expectations.
+                                // Investigate
                                 gulong *value_int = g_new0(gulong, 1);
-                                *value_int = oh_scanner->value.v_int;
+                                *value_int = (gulong)oh_scanner->value.v_int64;
                                 value = (gpointer)value_int;
                         } else if (current_token == G_TOKEN_FLOAT) {
+                                // TODO seems everyone now relies that 
+                                // value shall be string.
+                                // So this code may break a plug-in expectations.
+                                // Investigate
                                 gdouble *value_float = g_new0(gdouble, 1);
                                 *value_float = oh_scanner->value.v_float;
                                 value = (gpointer)value_float;
@@ -408,15 +427,9 @@ static int process_global_token(GScanner *scanner)
         }
 
         if (current_token == G_TOKEN_INT) {
-                guint num_chars = 0, result;
-                result = scanner->value.v_int;
-                while (result) {
-                        result = result / 10;
-                        num_chars++;
-                }
-                value = (char *)g_malloc0(++num_chars);
-                result = scanner->value.v_int;
-                snprintf(value, num_chars, "%u", result);
+                const guint max_digits = 32; // More than enough for uint64.
+                value = (char *)g_malloc0(max_digits);
+                snprintf(value, max_digits, "%" PRIu64, scanner->value.v_int64);
         } else {
                 value = g_strdup(scanner->value.v_string);
         }

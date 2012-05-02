@@ -18,6 +18,12 @@ OPENHPI_UNCONFIGURED = "YES"
 #OPENHPI_DAT_SAVE = "NO"
 #OPENHPI_PATH = "/usr/local/lib/openhpi:/usr/lib/openhpi"
 #OPENHPI_VARPATH = "/usr/local/var/lib/openhpi"
+
+## Auto insertion timeout
+## Use "BLOCK" or "IMMEDIATE" or positive integer value
+## Negative integer value shall be quoted due to Glib scanner limitation
+## For example "-1".
+## All negative values will be interpreted as "BLOCK"
 #OPENHPI_AUTOINSERT_TIMEOUT = 0
 #OPENHPI_AUTOINSERT_TIMEOUT_READONLY = "YES"
 
