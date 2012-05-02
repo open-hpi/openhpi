@@ -18,6 +18,7 @@
  *     Anton Pak <anton.pak@pigeonpoint.com>
  */
 
+#include <inttypes.h>
 #include <stddef.h>
 #include <string.h>
 
@@ -590,8 +591,8 @@ SaErrorT oh_create_handler (GHashTable *handler_config, unsigned int *hid)
                 oh_get_global_param2(OPENHPI_AUTOINSERT_TIMEOUT, &param);
                 SaHpiTimeoutT ai_timeout = param.u.ai_timeout;
                 oh_get_global_param2(OPENHPI_AUTOINSERT_TIMEOUT_READONLY, &param);
-                DBG("auto-insert timeout readonly=%d, auto-insert timeout to set=%lld",
-                       param.u.ai_timeout_readonly, ai_timeout);
+                DBG("auto-insert timeout readonly=%d, auto-insert timeout to set=%" PRId64,
+                       param.u.ai_timeout_readonly, (int64_t)ai_timeout);
                 if (!param.u.ai_timeout_readonly && ai_timeout) {
                         rv = handler->abi->set_autoinsert_timeout(handler->hnd, ai_timeout);
                         if (rv != SA_OK) {
