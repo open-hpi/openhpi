@@ -1,0 +1,45 @@
+### OpenHPI client library configuration example file ###
+
+#######
+## Section: My Entity
+##          Specifies the EntityPath of the entity upon which the HPI User is running.
+#
+## Example entity declaration:
+#
+# my_entity = "{RACK,1}{SYSTEM_CHASSIS,2}"
+
+#######
+## Section: Domains
+##          Since each openhpi daemon instance manages a hpi domain, 
+#           each domain declaration specifies domain number, hpi daemon host and hpi daemon port.
+#
+## Example domain declarations:
+#
+#domain default {                        # Has to be string "default", no quote.
+#                                        # Number 0 is not allowed.
+#       host = "my_default_domain_host"  # String value. Double quotes required.
+#       port = my_defaultdomain_port     # Integer value
+#       entity_root = "my_entity_root"   # String value. Double quotes required.
+#                                        # This entity_root will be added to all
+#                                        # entity paths exposed in the domain
+#}
+#                                        # If no "default" stanza is declared, 
+#                                        #  host = "localhost" and port = 4743
+#                                        #  are used.
+#                                        #
+#domain 1 {
+#	host = "my_domain1_host"   # String value. Double quotes required.
+#	port = my_domain1_port     # Integer value 
+#   entity_root = "{RACK,1}"
+#}
+
+#domain 2 {
+#	host = "my_domain2_host"   # String value. Double quotes required.
+#	port = my_domain2_port     # Integer value
+#}
+
+#domain 3 {
+#	host = "my_domain3_host"   # String value. Double quotes required.
+#	port = my_domain3_port     # Integer value
+#}
+
