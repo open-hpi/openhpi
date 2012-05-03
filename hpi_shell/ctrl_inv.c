@@ -20,7 +20,8 @@
 #include <string.h>
 #include <time.h>
 #include <ctype.h>
-#include <hpi_ui.h>
+
+#include "hpi_ui.h"
 #include "hpi_cmd.h"
 
 typedef struct {

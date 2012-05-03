@@ -21,15 +21,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <signal.h>
-#include <pthread.h>
+#include <glib.h>
 #include <SaHpi.h>
 #include <oh_utils.h>
+
 #include "hpi_cmd.h"
 
-static pthread_t	ge_thread;
-static pthread_t	prog_thread;
+static GThread *ge_thread;
+static GThread *prog_thread;
 int			prt_flag = 0;
 int			show_event_short = 0;
 static int		in_progress = 0;
@@ -77,7 +76,7 @@ void do_progress(char *mes)
 {
 	progress_mes = mes;
 	in_progress = 1;
-	pthread_create(&prog_thread, NULL, progress_bar, NULL);
+	prog_thread = g_thread_create(progress_bar, 0, FALSE, 0);
 }
 
 /* This function deletes thread for progress bar. */
@@ -170,7 +169,10 @@ static void* get_event(void *unused)
                                 }
 			}
 		}/*the loop for retrieving event*/
-		sleep(1);
+		if (rv == SA_ERR_HPI_INVALID_SESSION) {
+		        break;
+		}
+		g_usleep(G_USEC_PER_SEC);
 	}
 	return (void *)1;
 }
@@ -276,7 +278,7 @@ int open_session(SaHpiDomainIdT domainId, int eflag)
 	if (eflag) {
 		show_event_short = 1;
 		prt_flag = 1;
-		pthread_create(&ge_thread, NULL, get_event, NULL);
+		ge_thread = g_thread_create(get_event, 0, FALSE, 0);
 	};
 	// add main domain to the domain list
 	if (add_domain(par_domain) != SA_OK) return(-1);
@@ -285,7 +287,7 @@ int open_session(SaHpiDomainIdT domainId, int eflag)
 	printf("\tEnter a command or \"help\" for list of commands\n");
 
 	if (! eflag)
-		pthread_create(&ge_thread, NULL, get_event, NULL);
+		ge_thread = g_thread_create(get_event, 0, FALSE, 0);
 	return 0;
 }
 
@@ -293,13 +295,12 @@ int close_session()
 {
 	SaErrorT rv;
 
-	/* Bug 2171901, replace pthread_kill(ge_thread, SIGKILL); */
-	pthread_cancel(ge_thread);
-	
 	rv = saHpiSessionClose(Domain->sessionId);
 	if (rv != SA_OK) {
                 printf("saHpiSessionClose error %s\n", oh_lookup_error(rv));
                 return -1;
         }
+	// Wait a bit for get_event thread completion
+	g_usleep(G_USEC_PER_SEC / 4);
 	return 0;
 }

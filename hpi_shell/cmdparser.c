@@ -21,12 +21,21 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <unistd.h>
+
+#ifdef _WIN32
+#include <io.h>
+#include <windows.h>
+#else
 #include <sys/ioctl.h>
+#include <unistd.h>
+#endif
+
 #if defined(__sun) && defined(__SVR4)
 #include <termios.h>
 #endif
+
 #include "hpi_cmd.h"
+
 
 #define MAX_IN_FILES		10
 #define MAX_REDIRECTIONS	10
@@ -74,9 +83,17 @@ static int set_redirection(char *name, int redir)
 		printf("Can not open/create file: %s\n", name);
 		return(-1);
 	};
+#ifdef _WIN32
+	output_files[out_files_count] = _dup(1);
+#else
 	output_files[out_files_count] = dup(STDOUT_FILENO);
+#endif
 	fflush(stdout);
+#ifdef _WIN32
+	_dup2(_fileno(out), 1);
+#else
 	dup2(fileno(out), STDOUT_FILENO);
+#endif
 	fclose(out);
 	out_files_count++;
 	return(0);
@@ -87,8 +104,13 @@ static void remove_reditection(void)
 	if (out_files_count == 0) return;
 	out_files_count--;
 	fflush(stdout);
+#ifdef _WIN32
+	_dup2(output_files[out_files_count], 1);
+	_close(output_files[out_files_count]);
+#else
 	dup2(output_files[out_files_count], STDOUT_FILENO);
 	close(output_files[out_files_count]);
+#endif
 }
 
 static int delete_input_file(void)
@@ -630,9 +652,30 @@ int add_input_file(char *path)
 	return(0);
 }
 
+static void get_term_size( int * rows, int * cols )
+{
+    *rows = 24;
+    *cols = 80;
+
+#ifdef _WIN32
+    COORD ws = GetLargestConsoleWindowSize(GetStdHandle(STD_OUTPUT_HANDLE));
+    if ((ws.Y != 0) && (ws.X != 0)) {
+        *rows = ws.Y;
+        *cols = ws.X;
+    }
+#else
+    struct winsize ws;
+    int cc = ioctl(termfd, TIOCGWINSZ, &ws);
+
+    if ((cc == 0) && (ws.ws_row != 0) && (ws.ws_col != 0)) {
+        *rows = ws.ws_row;
+        *cols = ws.ws_col;
+    }
+#endif
+}
+
 Pr_ret_t ui_print(char *Str)
 {
-	struct winsize	win;
 	int		i, len, c, add_nl = 1;
 	char		*tmp, *s;
 	char		buf[LINE_BUF_SIZE];
@@ -640,14 +683,7 @@ Pr_ret_t ui_print(char *Str)
 //        const char yellow[] = "\033[0;40;33m";
         const char reset[] = "\033[0m";
 
-	i = ioctl(termfd, TIOCGWINSZ, &win);
-	if ((i != 0) || (win.ws_row == 0) || (win.ws_col == 0)) {
-		window_nrows = 24;
-		window_ncols = 80;
-	} else {
-		window_nrows = win.ws_row;
-		window_ncols = win.ws_col;
-	};
+	get_term_size(&window_nrows, &window_ncols);
 	strncpy(buf, Str, LINE_BUF_SIZE);
 	s = tmp = buf;
 	for (i = 0, len = 0; *tmp != 0; i++, tmp++) {

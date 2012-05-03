@@ -15,10 +15,13 @@
  *
  */
 
+#include <inttypes.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <hpi_ui.h>
+
+#include "hpi_ui.h"
 #include "hpi_cmd.h"
 
 typedef struct {
@@ -107,7 +110,7 @@ static ret_code_t show_test_info( SaHpiSessionIdT sessionId,
         printf( "\n" );
     }
 
-    printf( "    Expected Run Duration: %lld nsec\n", test.ExpectedRunDuration );
+    printf( "    Expected Run Duration: %" PRId64 " nsec\n", (int64_t)test.ExpectedRunDuration );
 
     oh_decode_dimitestcapabilities( test.TestCapabilities, &tmpbuf );
     printf( "    Test capabilities: %s\n", tmpbuf.Data );
@@ -372,7 +375,7 @@ static ret_code_t show_test_results( SaHpiSessionIdT sessionId,
 
     oh_decode_time( results.ResultTimeStamp, &tb );
     print_text_buffer_text("    Result timestamp: ", &tb, "\n", ui_print);
-    printf( "    Run duration: %lld nsec\n", results.RunDuration );
+    printf( "    Run duration: %" PRId64 " nsec\n", (int64_t)results.RunDuration );
     printf( "    Last run status: %s\n", oh_lookup_dimitestrunstatus( results.LastRunStatus ) );
 
     printf( "    Test error code: " );

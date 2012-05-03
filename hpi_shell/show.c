@@ -14,10 +14,13 @@
  *
  *
  */
+#include <inttypes.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <hpi_ui.h>
+
+#include "hpi_ui.h"
 
 #define SHOW_BUF_SZ     1024
 
@@ -89,12 +92,12 @@ Pr_ret_t print_thres_value(SaHpiSensorReadingT *item, char *info,
         };
         switch (item->Type) {
                 case SAHPI_SENSOR_READING_TYPE_INT64:
-                        snprintf(buf, SHOW_BUF_SZ, "%s %lld\n", mes,
-                                item->Value.SensorInt64);
+                        snprintf(buf, SHOW_BUF_SZ, "%s %" PRId64 "\n", mes,
+                                (int64_t)item->Value.SensorInt64);
                         break;
                 case SAHPI_SENSOR_READING_TYPE_UINT64:
-                        snprintf(buf, SHOW_BUF_SZ, "%s %llu\n", mes,
-                                item->Value.SensorUint64);
+                        snprintf(buf, SHOW_BUF_SZ, "%s %" PRIu64 "\n", mes,
+                                (uint64_t)item->Value.SensorUint64);
                         break;
                 case SAHPI_SENSOR_READING_TYPE_FLOAT64:
                         snprintf(buf, SHOW_BUF_SZ, "%s %10.3f\n", mes,

@@ -20,8 +20,14 @@
 #include <string.h>
 #include <time.h>
 #include <ctype.h>
-#include <termios.h>
+
+#ifdef _WIN32
+// TODO
+#else
 #include <fcntl.h>
+#include <termios.h>
+#endif
+
 #include "hpi_cmd.h"
 
 #define CTRL_A_KEY		0x01
@@ -67,7 +73,13 @@ int	termfd = -1;
 
 static char	clear_buf[READ_BUF_SIZE];
 static int	no_stty = 1;
+
+#ifdef _WIN32
+// TODO
+#else
 static struct termios saved_termio;
+#endif
+
 static int	is_insert_key = 0;
 static char	**History;
 static int	hist_ind = 0;
@@ -364,6 +376,9 @@ static int completion_func(int compl_type, char *text, compl_t *compl_def)
 
 static int set_term_flags(void)
 {
+#ifdef _WIN32
+    // TODO
+#else
 	int		res, c;
 	char		name[1024];
 	struct termios	termio;
@@ -388,14 +403,19 @@ static int set_term_flags(void)
 	termio.c_cc[VTIME] = 0;
 	res = tcsetattr(termfd, TCSANOW, &termio);
 	no_stty = 0;
+#endif
 	return(0);
 }
 
 void restore_term_flags(void)
 {
+#ifdef _WIN32
+    // TODO
+#else
 	if (no_stty) return;
 	tcsetattr(termfd, TCSANOW, &saved_termio);
 	no_stty = 1;
+#endif
 }
 
 char *get_command_line(int new_cmd, int comp_type)

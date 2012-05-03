@@ -18,7 +18,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <hpi_ui.h>
+
+#include "hpi_ui.h"
 #include "hpi_cmd.h"
 
 typedef struct {

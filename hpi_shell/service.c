@@ -13,11 +13,14 @@
  *	Kouzmich	< Mikhail.V.Kouzmich@intel.com >
  *
  */
+#include <inttypes.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <hpi_ui.h>
+
+#include "hpi_ui.h"
 
 //	function numbers for lookup_proc
 
@@ -357,10 +360,10 @@ SaErrorT thres_value(SaHpiSensorReadingT *item, char *buf, int size)
 		return(-1);
 	switch (item->Type) {
 		case SAHPI_SENSOR_READING_TYPE_INT64:
-			snprintf(buf, size, "%lld", item->Value.SensorInt64);
+			snprintf(buf, size, "%" PRId64, (int64_t)item->Value.SensorInt64);
 			break;
 		case SAHPI_SENSOR_READING_TYPE_UINT64:
-			snprintf(buf, size, "%llu", item->Value.SensorUint64);
+			snprintf(buf, size, "%" PRIu64, (uint64_t)item->Value.SensorUint64);
 			break;
 		case SAHPI_SENSOR_READING_TYPE_FLOAT64:
 			snprintf(buf, size, "%10.3f", item->Value.SensorFloat64);
