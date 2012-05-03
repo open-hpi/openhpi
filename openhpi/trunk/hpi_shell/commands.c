@@ -25,10 +25,11 @@
 #include <string.h>
 #include <time.h>
 #include <ctype.h>
-#include <unistd.h>
+#include <glib.h>
 #include <config.h>
 #include <oHpi.h>
-#include <hpi_ui.h>
+
+#include "hpi_ui.h"
 #include "hpi_cmd.h"
 
 #define SEV_BUF_SIZE    32
@@ -66,7 +67,7 @@ void help(int as)
                                 (cmd->type != block_type) &&
                                 (cmd->type != UNDEF_COM))
                                 continue;
-                        printf("%-20s", cmd->cmd);
+                        printf("%-19s", cmd->cmd);
                         if ((++width % 4) == 0)
                                 printf("\n");
                 }
@@ -171,6 +172,16 @@ static ret_code_t event(void)
 
         return HPI_SHELL_OK;
 }
+
+#ifdef _WIN32
+static int setenv(const char * var, const char * val, int dummy)
+{
+    static const size_t BUFSIZE = 1024;
+    char buf[BUFSIZE];
+    snprintf(buf, BUFSIZE, "%s=%s", var, val);
+    return _putenv(buf);
+}
+#endif
 
 static ret_code_t debugset(void)
 {
@@ -1222,7 +1233,7 @@ static ret_code_t reopen_session(void)
         };
         do {
            rv = saHpiSessionClose(Domain->sessionId);
-           sleep( 1 );
+           g_usleep(G_USEC_PER_SEC);
         } while ( ( fflag == 0 ) &&
                   ( rv != SA_OK ) &&
                   ( rv != SA_ERR_HPI_NO_RESPONSE ) &&

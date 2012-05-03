@@ -15,6 +15,7 @@ openhpi_libs := utils \
                 baselib \
                 clients \
                 clients/hpixml \
+                hpi_shell \
                 openhpid \
                 plugins/slave \
                 plugins/test_agent
@@ -58,6 +59,7 @@ out: all
 	mkdir -p ${progs}
 	cp clients/*.exe ${progs}
 	cp clients/hpixml/hpixml.exe ${progs}
+	cp hpi_shell/hpi_shell.exe ${progs}
 	cp openhpid/openhpid.exe ${progs}
 	mkdir -p ${plugins}
 	cp plugins/slave/libslave.dll ${plugins}

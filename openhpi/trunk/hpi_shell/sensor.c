@@ -15,12 +15,15 @@
  *
  */
 
+#include <inttypes.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <ctype.h>
-#include <hpi_ui.h>
+
+#include "hpi_ui.h"
 #include "hpi_cmd.h"
 
 typedef struct {
@@ -90,10 +93,10 @@ static char *get_thres_value(SaHpiSensorReadingT *item, char *buf, int len)
 		return("");
 	switch (item->Type) {
 		case SAHPI_SENSOR_READING_TYPE_INT64:
-			snprintf(buf, len, "%lld", item->Value.SensorInt64);
+			snprintf(buf, len, "%" PRId64, (int64_t)item->Value.SensorInt64);
 			break;
 		case SAHPI_SENSOR_READING_TYPE_UINT64:
-			snprintf(buf, len, "%llu", item->Value.SensorUint64);
+			snprintf(buf, len, "%" PRIu64, (uint64_t)item->Value.SensorUint64);
 			break;
 		case SAHPI_SENSOR_READING_TYPE_FLOAT64:
 			snprintf(buf, len, "%10.3f", item->Value.SensorFloat64);
@@ -539,7 +542,7 @@ static ret_code_t hs_block_getsettime(int get)
 				return(HPI_SHELL_CMD_ERROR);
 			};
             if ( timeout != SAHPI_TIMEOUT_BLOCK ) {
-    			printf("Auto-insert timeout: %lld nsec\n", timeout);
+    			printf("Auto-insert timeout: %" PRId64 " nsec\n", (int64_t)timeout);
             } else {
     			printf("Auto-insert timeout: BLOCK\n");
             }
@@ -553,7 +556,7 @@ static ret_code_t hs_block_getsettime(int get)
 			return(HPI_SHELL_CMD_ERROR);
 		};
         if ( timeout != SAHPI_TIMEOUT_BLOCK ) {
-    		printf("Auto-extract timeout: %lld nsec\n", timeout);
+    		printf("Auto-extract timeout: %" PRId64 " nsec\n", (int64_t)timeout);
         } else {
     			printf("Auto-extract timeout: BLOCK\n");
         }

@@ -18,8 +18,9 @@
 #ifndef _INC_HPI_CMD_H
 #define _INC_HPI_CMD_H
 #include <SaHpi.h>
-#include <hpi_ui.h>
 #include <glib.h>
+
+#include "hpi_ui.h"
 
 #define KUZ_DEBUG0
 
