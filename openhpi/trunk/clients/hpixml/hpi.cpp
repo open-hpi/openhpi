@@ -237,9 +237,11 @@ static bool FetchResources( SaHpiSessionIdT sid,
             resource.log.entries.clear();
 
             if ( resource.rpte.ResourceFailed == SAHPI_FALSE ) {
-                rc = FetchInstruments( sid, resource );
-                if ( !rc ) {
-                    break;
+                if ( resource.rpte.ResourceCapabilities & SAHPI_CAPABILITY_RDR ) {
+                    rc = FetchInstruments( sid, resource );
+                    if ( !rc ) {
+                        break;
+                    }
                 }
                 if ( resource.rpte.ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG ) {
                     rc = FetchLog( sid, resource.rpte.ResourceId, resource.log );
