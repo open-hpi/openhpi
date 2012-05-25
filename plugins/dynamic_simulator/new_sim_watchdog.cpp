@@ -134,7 +134,7 @@ bool NewSimulatorWatchdog::TriggerAction() {
    
    if ( now.GetMsec() >= m_wdt_data.InitialCount ) {
    	  
-   	  if ( m_state != PRETIMEOUT );
+   	  if ( m_state != PRETIMEOUT )
    	     TriggerAction( PRETIMEOUT );
       TriggerAction( TIMEOUT );
       
