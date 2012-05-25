@@ -1464,7 +1464,7 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 	}
 	/* FIXME:: Need to rewrite this section when discover multiple BEMs/blade */
 	/* Also switches aren't currently supported with the Source field - can remove this logic */
-	if ((isexpansioncard == SAHPI_TRUE)) {
+	if (isexpansioncard == SAHPI_TRUE) {
 		err = oh_set_ep_location(&ep, entity_type, 1);
 	}
 	else {

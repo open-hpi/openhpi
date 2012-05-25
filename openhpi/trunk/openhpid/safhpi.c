@@ -2157,7 +2157,7 @@ SaErrorT SAHPI_API saHpiSensorEventEnableSet (
                 return SA_ERR_HPI_NOT_PRESENT;
         }
         sec = rdr_cur->RdrTypeUnion.SensorRec.EventCtrl;
-        if ((sec  == SAHPI_SEC_READ_ONLY)) {
+        if (sec  == SAHPI_SEC_READ_ONLY) {
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_READ_ONLY;
         }

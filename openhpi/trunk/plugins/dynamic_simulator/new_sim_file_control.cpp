@@ -78,7 +78,7 @@ NewSimulatorRdr * NewSimulatorFileControl::process_token( NewSimulatorResource *
    
    if (cur_token != G_TOKEN_LEFT_CURLY) {
    	  err("Processing parse configuration: Expected left curly token.");
-      return false;
+      return NULL;
    }
    m_depth++;
    
@@ -157,7 +157,7 @@ NewSimulatorRdr * NewSimulatorFileControl::process_token( NewSimulatorResource *
             } else if (!strcmp(field, "TypeUnion.Text")) {
          	   if (cur_token != G_TOKEN_LEFT_CURLY) {
          	      err("Processing parse control rdr entry - Missing left curly at TypeUnion");
-         	      return false;
+         	      return NULL;
          	   } else {
          	      success = process_type_text();
                }
@@ -165,7 +165,7 @@ NewSimulatorRdr * NewSimulatorFileControl::process_token( NewSimulatorResource *
          	} else if (!strcmp(field, "TypeUnion.Oem")) {
          	   if (cur_token != G_TOKEN_LEFT_CURLY) {
          	      err("Processing parse control rdr entry - Missing left curly at TypeUnion");
-         	      return false;
+         	      return NULL;
          	   } else {
          	      success = process_type_oem();
                }
@@ -214,7 +214,7 @@ NewSimulatorRdr * NewSimulatorFileControl::process_token( NewSimulatorResource *
          	      field = g_strdup(m_scanner->value.v_string);
          	   } else {
          	   	 err("Processing parse control GET token - don't find field string");
-         	   	 return false;
+         	   	 return NULL;
          	   }
          	   
                cur_token = g_scanner_get_next_token(m_scanner);

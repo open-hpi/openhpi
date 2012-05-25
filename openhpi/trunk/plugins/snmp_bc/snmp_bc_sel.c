@@ -572,8 +572,8 @@ SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
 					goto out;
 				}
 				
-				if ((fetchentry->event.Event.Timestamp == 
-				     (SaHpiTimeT)mktime(&sel_entry.time) * 1000000000)) {
+				if (fetchentry->event.Event.Timestamp == 
+				     (SaHpiTimeT)mktime(&sel_entry.time) * 1000000000) {
 					current--;
 					cacheupdate = 1;	
 					break;

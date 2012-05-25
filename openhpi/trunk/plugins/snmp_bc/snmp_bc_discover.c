@@ -390,7 +390,7 @@ SaErrorT snmp_bc_create_resourcetag(SaHpiTextBufferT *buffer, const char *str, S
 	SaErrorT err;
 	SaHpiTextBufferT working;
 
-	if (!buffer || loc < 0 ||
+	if (!buffer ||
 	    loc > (pow(10, OH_MAX_LOCATION_DIGITS) - 1)) {
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}

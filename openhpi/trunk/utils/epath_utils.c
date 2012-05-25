@@ -663,11 +663,6 @@ gchar * oh_derive_string(SaHpiEntityPathT *ep,
 		return(NULL);
 	}
 
-	if (offset < 0) {
-		CRIT("Invalid location offset.");
-		return(NULL);
-	}
-
 	if (!(base == 10 || base == 16)) {
 		CRIT("Invalid base.");
 		return(NULL);
