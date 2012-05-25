@@ -29,6 +29,7 @@
 #include <config.h>
 #include <marshal_hpi.h>
 #include <oh_rpc_params.h>
+#include <oh_utils.h>
 
 #include "conf.h"
 #include "init.h"

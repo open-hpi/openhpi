@@ -23,9 +23,6 @@
 
 
 #include <SaHpi.h>
-#include <oHpi.h>
-#include <oh_utils.h>
-
 
 #ifndef dMarshal_h
 #include "marshal.h"
