@@ -56,15 +56,15 @@ AC_DEFUN([OH_SET_SIZES],
         echo "int main() {" >> $OH_SSSOURCE
         # add more here if you need them
         # the lots of slashes are needed to do the processing below right
-        echo "printf(\"unsigned char %d\\\\n\",sizeof(unsigned char));" >> $OH_SSSOURCE
-        echo "printf(\"unsigned short %d\\\\n\",sizeof(unsigned short));" >> $OH_SSSOURCE
-        echo "printf(\"unsigned int %d\\\\n\",sizeof(unsigned int));" >> $OH_SSSOURCE
-        echo "printf(\"char %d\\\\n\",sizeof(char));" >> $OH_SSSOURCE
-        echo "printf(\"short %d\\\\n\",sizeof(short));" >> $OH_SSSOURCE
-        echo "printf(\"int %d\\\\n\",sizeof(int));" >> $OH_SSSOURCE
-        echo "printf(\"long long %d\\\\n\",sizeof(long long));" >> $OH_SSSOURCE
-        echo "printf(\"float %d\\\\n\",sizeof(float));" >> $OH_SSSOURCE
-        echo "printf(\"double %d\\\\n\",sizeof(double));" >> $OH_SSSOURCE
+        echo "printf(\"unsigned char %u\\\\n\",(unsigned int)sizeof(unsigned char));" >> $OH_SSSOURCE
+        echo "printf(\"unsigned short %u\\\\n\",(unsigned int)sizeof(unsigned short));" >> $OH_SSSOURCE
+        echo "printf(\"unsigned int %u\\\\n\",(unsigned int)sizeof(unsigned int));" >> $OH_SSSOURCE
+        echo "printf(\"char %u\\\\n\",(unsigned int)sizeof(char));" >> $OH_SSSOURCE
+        echo "printf(\"short %u\\\\n\",(unsigned int)sizeof(short));" >> $OH_SSSOURCE
+        echo "printf(\"int %u\\\\n\",(unsigned int)sizeof(int));" >> $OH_SSSOURCE
+        echo "printf(\"long long %u\\\\n\",(unsigned int)sizeof(long long));" >> $OH_SSSOURCE
+        echo "printf(\"float %u\\\\n\",(unsigned int)sizeof(float));" >> $OH_SSSOURCE
+        echo "printf(\"double %u\\\\n\",(unsigned int)sizeof(double));" >> $OH_SSSOURCE
         echo "return 0;" >> $OH_SSSOURCE
         echo "}" >> $OH_SSSOURCE
     

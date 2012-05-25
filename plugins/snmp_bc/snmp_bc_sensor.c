@@ -1956,7 +1956,7 @@ SaErrorT snmp_bc_get_slot_power_sensor(void *hnd,
 	oidIndex = SNMP_BC_NOT_VALID;
 	thisOID = NULL;
 		
-	switch (res->ResourceEntity.Entry[0].EntityType)
+	switch ((int)res->ResourceEntity.Entry[0].EntityType)
 	{
 		case BLADECENTER_PERIPHERAL_BAY_SLOT:
 			oidIndex = 2;

@@ -638,7 +638,7 @@ SaErrorT oh_drt_entry_get(SaHpiDomainIdT     did,
         struct oh_domain *domain = NULL;
         GSList *node = NULL;
 
-        if (did < 0 || !nextentryid || !drtentry) {
+        if (!nextentryid || !drtentry) {
                 CRIT("Error - Invalid parameters passed.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }

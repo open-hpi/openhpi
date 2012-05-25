@@ -358,7 +358,8 @@ SaErrorT SAHPI_API oHpiGlobalParamGet (
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        p.type = param->Type;
+        // TODO fix this ugly cast
+        p.type = (oh_global_param_type)param->Type;
 
         if (oh_get_global_param(&p)) {
                 oh_release_domain(d); /* Unlock domain */
@@ -397,7 +398,8 @@ SaErrorT SAHPI_API oHpiGlobalParamSet (
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        p.type = param->Type;
+        // TODO fix this ugly cast
+        p.type = (oh_global_param_type)param->Type;
         memcpy(&p.u, &param->u, sizeof(oh_global_param_union));
 
         if (oh_set_global_param(&p)){

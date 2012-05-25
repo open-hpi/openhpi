@@ -77,7 +77,7 @@ NewSimulatorRdr * NewSimulatorFileSensor::process_token( NewSimulatorResource *r
    
    if (cur_token != G_TOKEN_LEFT_CURLY) {
    	  err("Processing parse configuration: Expected left curly token.");
-      return false;
+      return NULL;
    }
    m_depth++;
    

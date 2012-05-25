@@ -331,7 +331,7 @@ SaErrorT NewSimulatorWatchdog::GetWatchdogInfo( SaHpiWatchdogT &watchdog ) {
       cTime now( cTime::Now() );
       now -= m_start;
       
-      if ( m_wdt_data.InitialCount - now.GetMsec() < 0 ) {
+      if ( m_wdt_data.InitialCount < now.GetMsec() ) {
          watchdog.PresentCount = 0;
       } else {
       	 watchdog.PresentCount = m_wdt_data.InitialCount - now.GetMsec();

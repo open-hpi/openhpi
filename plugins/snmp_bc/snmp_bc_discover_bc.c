@@ -1167,7 +1167,7 @@ SaErrorT snmp_bc_discover_chassis(struct oh_handler_state *handle,
 	/* ---------------------------------------- */		
 	/* Find resource's rdrs: sensors, controls, etc. */
 	snmp_bc_discover_sensors(handle, snmp_bc_chassis_sensors, e);
-	if ( (custom_handle->platform == SNMP_BC_PLATFORM_BCT) ) {
+	if ( custom_handle->platform == SNMP_BC_PLATFORM_BCT ) {
 		snmp_bc_discover_sensors(handle, snmp_bc_chassis_sensors_bct_filter, e);
 	}
 	if ( (custom_handle->platform == SNMP_BC_PLATFORM_BCT) || 
@@ -3646,7 +3646,7 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 						 /* because virtual resource has loc 0 */
 	for (i=0; logsrc2res->ep.Entry[i].EntityType != SAHPI_ENT_SYSTEM_CHASSIS; i++) {
 
-		switch (logsrc2res->ep.Entry[i].EntityType) {
+		switch ((int)logsrc2res->ep.Entry[i].EntityType) {
 			case SAHPI_ENT_SBC_BLADE: 
 			case SAHPI_ENT_FAN: 
 			case SAHPI_ENT_POWER_SUPPLY: 
@@ -3708,7 +3708,7 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 			err = snmp_bc_reset_resource_slot_state_sensor(handle, res);
                 	oh_remove_resource(handle->rptcache, res->ResourceId);
 
-			switch (hotswap_entitytype) {
+			switch ((int)hotswap_entitytype) {
 				case SAHPI_ENT_SBC_BLADE:
 					/* Fetch blade installed vector */
 					get_installed_mask(SNMP_BC_PB_INSTALLED, get_value);
@@ -3794,7 +3794,7 @@ SaErrorT snmp_bc_rediscover(struct oh_handler_state *handle,
 		/* Fetch various resource installation maps from BladeCenter */
 		/* --------------------------------------------------------- */	
 
-		switch (hotswap_entitytype) {
+		switch ((int)hotswap_entitytype) {
 			case SAHPI_ENT_SBC_BLADE:
 				/* Fetch blade installed vector */
 				get_installed_mask(SNMP_BC_PB_INSTALLED, get_value);
@@ -4089,7 +4089,7 @@ SaErrorT snmp_bc_discover_slot( struct oh_handler_state *handle,
 			SAHPI_ENT_CHASSIS_SPECIFIC, entitylocation + SNMP_BC_HPI_LOCATION_BASE);
 			
 			
-	switch (entitytype) {
+	switch ((int)entitytype) {
 		case SAHPI_ENT_PHYSICAL_SLOT:
 			e->resource.ResourceEntity.Entry[0].EntityType = SAHPI_ENT_PHYSICAL_SLOT;
 			comment = SNMP_BC_PHYSICAL_SLOT;
