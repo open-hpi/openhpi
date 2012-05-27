@@ -249,5 +249,11 @@ set Mode = AUTO
 set Visible = TRUE
 cd ..
 
+# create watchdog
+new wdt-0  
+cd wdt-0
+set Visible = TRUE
+cd ..
+
 cd /
 
