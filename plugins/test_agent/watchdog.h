@@ -21,6 +21,7 @@
 #include <SaHpi.h>
 
 #include "instrument.h"
+#include "timers.h"
 
 
 namespace TA {
@@ -29,7 +30,7 @@ namespace TA {
 /**************************************************************
  * class cWatchdog
  *************************************************************/
-class cWatchdog : public cInstrument
+class cWatchdog : public cInstrument, private cTimerCallback
 {
 public:
 
@@ -39,6 +40,10 @@ public:
     virtual ~cWatchdog();
 
 public:  // HPI interface
+
+    SaErrorT Get( SaHpiWatchdogT& wdt ) const;
+    SaErrorT Set( const SaHpiWatchdogT& wdt );
+    SaErrorT Reset();
 
 protected: // cObject virtual functions
 
@@ -56,9 +61,19 @@ private:
         return SAHPI_CAPABILITY_WATCHDOG;
     }
 
+private: // cTimerCallback virtual functions
+
+    virtual void TimerEvent();
+
+private:
+
+    void ProcessTick();
+    void SendEvent( SaHpiWatchdogActionEventT ae );
+
 private: // data
 
     const SaHpiWatchdogRecT& m_rec;
+    SaHpiWatchdogT m_wdt;
 };
 
 

@@ -130,6 +130,11 @@ void cResource::UpdateCaps( SaHpiCapabilitiesT caps )
     m_rpte.ResourceCapabilities |= caps;
 }
 
+cTimers& cResource::GetTimers() const
+{
+    return m_timers;
+}
+
 
 // HPI interface
 SaErrorT cResource::SetTag( const SaHpiTextBufferT& tag )

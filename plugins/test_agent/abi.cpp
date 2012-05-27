@@ -27,11 +27,14 @@
 #include "annunciator.h"
 #include "area.h"
 #include "control.h"
+#include "dimi.h"
+#include "fumi.h"
 #include "handler.h"
 #include "inventory.h"
 #include "resource.h"
 #include "sensor.h"
 #include "utils.h"
+#include "watchdog.h"
 
 
 namespace TA {
@@ -134,6 +137,21 @@ static cArea * GetArea( cHandler * h,
     return 0;
 }
 
+static cWatchdog * GetWatchdog( cHandler * h,
+                                SaHpiResourceIdT rid,
+                                SaHpiWatchdogNumT num )
+{
+    cResource * r = GetResource( h, rid );
+    if ( r ) {
+        cWatchdog * wdt = r->GetWatchdog( num );
+        if ( wdt && wdt->IsVisible() ) {
+            return wdt;
+        }
+    }
+
+    return 0;
+}
+
 static cAnnunciator * GetAnnunciator( cHandler * h,
                                       SaHpiResourceIdT rid,
                                       SaHpiAnnunciatorNumT num )
@@ -143,6 +161,36 @@ static cAnnunciator * GetAnnunciator( cHandler * h,
         cAnnunciator * ann = r->GetAnnunciator( num );
         if ( ann && ann->IsVisible() ) {
             return ann;
+        }
+    }
+
+    return 0;
+}
+
+static cDimi * GetDimi( cHandler * h,
+                        SaHpiResourceIdT rid,
+                        SaHpiDimiNumT num )
+{
+    cResource * r = GetResource( h, rid );
+    if ( r ) {
+        cDimi * dimi = r->GetDimi( num );
+        if ( dimi && dimi->IsVisible() ) {
+            return dimi;
+        }
+    }
+
+    return 0;
+}
+
+static cFumi * GetFumi( cHandler * h,
+                        SaHpiResourceIdT rid,
+                        SaHpiFumiNumT num )
+{
+    cResource * r = GetResource( h, rid );
+    if ( r ) {
+        cFumi * fumi = r->GetFumi( num );
+        if ( fumi && fumi->IsVisible() ) {
+            return fumi;
         }
     }
 
@@ -852,7 +900,14 @@ oh_get_watchdog_info(
     SaHpiWatchdogNumT num,
     SaHpiWatchdogT * wdt )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cWatchdog * w = TA::GetWatchdog( handler, rid, num );
+    if ( !w ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    return w->Get( *wdt );
 }
 
 
@@ -866,7 +921,14 @@ oh_set_watchdog_info(
     SaHpiWatchdogNumT num,
     SaHpiWatchdogT * wdt )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cWatchdog * w = TA::GetWatchdog( handler, rid, num );
+    if ( !w ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    return w->Set( *wdt );
 }
 
 
@@ -879,7 +941,14 @@ oh_reset_watchdog(
     SaHpiResourceIdT rid,
     SaHpiWatchdogNumT num )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cWatchdog * w = TA::GetWatchdog( handler, rid, num );
+    if ( !w ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    return w->Reset();
 }
 
 
