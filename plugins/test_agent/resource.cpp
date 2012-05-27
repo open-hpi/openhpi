@@ -41,7 +41,8 @@ static void MakeDefaultRptEntry( const SaHpiEntityPathT& ep,
     SaHpiEntityPathT ep2 = ep;
     SaHpiResourceIdT rid = oh_uid_from_entity_path( &ep2 );
 
-    rpte.EntryId                = SAHPI_ENTRY_UNSPECIFIED;
+    //rpte.EntryId                = SAHPI_ENTRY_UNSPECIFIED;
+    rpte.EntryId                = rid; // NB! This is OpenHPI-specific
     rpte.ResourceId             = rid;
 
     SaHpiResourceInfoT& ri = rpte.ResourceInfo;
