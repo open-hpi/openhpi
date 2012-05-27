@@ -15,6 +15,8 @@
 
 #include <string>
 
+#include <oh_utils.h>
+
 #include "instrument.h"
 #include "resource.h"
 #include "structs.h"
@@ -33,7 +35,34 @@ static void MakeDefaultRdr( const SaHpiEntityPathT& ep,
                             const std::string& name,
                             SaHpiRdrT& rdr )
 {
-    rdr.RecordId     = SAHPI_ENTRY_UNSPECIFIED;
+    SaHpiInstrumentIdT instr_id = SAHPI_ENTRY_UNSPECIFIED;
+    switch ( type ) {
+        case SAHPI_CTRL_RDR:
+            instr_id = data.CtrlRec.Num;
+            break;
+        case SAHPI_SENSOR_RDR:
+            instr_id = data.SensorRec.Num;
+            break;
+        case SAHPI_INVENTORY_RDR:
+            instr_id = data.InventoryRec.IdrId;
+            break;
+        case SAHPI_WATCHDOG_RDR:
+            instr_id = data.WatchdogRec.WatchdogNum;
+            break;
+        case SAHPI_ANNUNCIATOR_RDR:
+            instr_id = data.AnnunciatorRec.AnnunciatorNum;
+            break;
+        case SAHPI_DIMI_RDR:
+            instr_id = data.DimiRec.DimiNum;
+            break;
+        case SAHPI_FUMI_RDR:
+            instr_id = data.FumiRec.Num;
+            break;
+        default:
+            instr_id = SAHPI_ENTRY_UNSPECIFIED;
+    }
+
+    rdr.RecordId     = oh_get_rdr_uid( type, instr_id );
     rdr.RdrType      = type;
     rdr.Entity       = ep;
     rdr.IsFru        = SAHPI_FALSE;
