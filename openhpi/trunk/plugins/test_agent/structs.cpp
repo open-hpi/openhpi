@@ -606,26 +606,32 @@ void GetVars( SaHpiWatchdogT& wd, cVars& vars )
     vars << "Watchdog.Log"
          << dtSaHpiBoolT
          << DATA( wd.Log )
+         << READONLY()
          << VAR_END();
     vars << "Watchdog.Running"
          << dtSaHpiBoolT
          << DATA( wd.Running )
+         << READONLY()
          << VAR_END();
     vars << "Watchdog.TimerUse"
          << dtSaHpiWatchdogTimerUseT
          << DATA( wd.TimerUse )
+         << READONLY()
          << VAR_END();
     vars << "Watchdog.TimerAction"
          << dtSaHpiWatchdogActionT
          << DATA( wd.TimerAction )
+         << READONLY()
          << VAR_END();
     vars << "Watchdog.PretimerInterrupt"
          << dtSaHpiWatchdogPretimerInterruptT
          << DATA( wd.PretimerInterrupt )
+         << READONLY()
          << VAR_END();
     vars << "Watchdog.PreTimeoutInterval"
          << dtSaHpiUint32T
          << DATA( wd.PreTimeoutInterval )
+         << READONLY()
          << VAR_END();
     vars << "Watchdog.TimerUseExpFlags"
          << dtSaHpiWatchdogExpFlagsT
@@ -634,10 +640,12 @@ void GetVars( SaHpiWatchdogT& wd, cVars& vars )
     vars << "Watchdog.InitialCount"
          << dtSaHpiUint32T
          << DATA( wd.InitialCount )
+         << READONLY()
          << VAR_END();
     vars << "Watchdog.PresentCount"
          << dtSaHpiUint32T
          << DATA( wd.PresentCount )
+         << READONLY()
          << VAR_END();
 }
 

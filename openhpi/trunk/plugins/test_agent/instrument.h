@@ -75,9 +75,12 @@ private: // Event generation
 
     virtual SaHpiCapabilitiesT RequiredResourceCap() const = 0;
 
-private: // data
+protected: // data
 
     cResource& m_resource;
+
+private: // data
+
     SaHpiRdrT  m_rdr;
 };
 

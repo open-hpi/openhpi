@@ -49,6 +49,7 @@ public:
     const SaHpiEntityPathT& GetEntityPath() const;
     bool IsFailed() const;
     void UpdateCaps( SaHpiCapabilitiesT caps );
+    cTimers& GetTimers() const;
 
 public:  // HPI interface
 
