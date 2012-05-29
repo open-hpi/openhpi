@@ -192,8 +192,11 @@ SaErrorT SAHPI_API oHpiHandlerInfo (
 
 	info->id = id;
         strncpy((char*)info->plugin_name, h->plugin_name, MAX_PLUGIN_NAME_LENGTH);
-	oh_encode_entitypath((const char *)g_hash_table_lookup(h->config, "entity_root"),
-			     &info->entity_root);
+        oh_init_ep(&info->entity_root);
+        const char * entity_root_str = (const char *)g_hash_table_lookup(h->config, "entity_root");
+        if ( entity_root_str ) {
+        	oh_encode_entitypath(entity_root_str, &info->entity_root);
+        }
 	
 	if (!h->hnd) info->load_failed = 1;
 	else info->load_failed = 0;
