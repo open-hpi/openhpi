@@ -47,9 +47,9 @@ typedef SaHpiUint32T oHpiHandlerIdT;
 
 typedef struct {
     oHpiHandlerIdT id;
-    char plugin_name[MAX_PLUGIN_NAME_LENGTH];
+    SaHpiUint8T plugin_name[MAX_PLUGIN_NAME_LENGTH];
     SaHpiEntityPathT entity_root;
-    int load_failed;
+    SaHpiInt32T load_failed;
 } oHpiHandlerInfoT;
 
 
@@ -92,9 +92,9 @@ typedef union {
     //unsigned char Debug; /* 1 = YES, 0 = NO */
     //unsigned char DebugTrace; /* !0 = YES, 0 = NO */
     //unsigned char DebugLock; /* !0 = YES, 0 = NO */
-    char Path[OH_PATH_PARAM_MAX_LENGTH]; /* Dir path to openhpi plugins */
-    char VarPath[OH_PATH_PARAM_MAX_LENGTH]; /* Dir path for openhpi data */
-    char Conf[OH_PATH_PARAM_MAX_LENGTH]; /* File path of openhpi configuration */
+    SaHpiUint8T Path[OH_PATH_PARAM_MAX_LENGTH]; /* Dir path to openhpi plugins */
+    SaHpiUint8T VarPath[OH_PATH_PARAM_MAX_LENGTH]; /* Dir path for openhpi data */
+    SaHpiUint8T Conf[OH_PATH_PARAM_MAX_LENGTH]; /* File path of openhpi configuration */
 } oHpiGlobalParamUnionT;
 
 

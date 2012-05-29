@@ -262,7 +262,7 @@ static SaErrorT execglobalparamget ()
              oh_lookup_error(rv));
       return rv;
    }
-   printf("OPENHPI_PATH = %s\n",param.u.Path);
+   printf("OPENHPI_PATH = %s\n",(const char*)param.u.Path);
 
    param.Type =OHPI_VARPATH;
    rv = oHpiGlobalParamGet (sessionid, &param);
@@ -271,7 +271,7 @@ static SaErrorT execglobalparamget ()
              oh_lookup_error(rv));
       return rv;
    }
-   printf("OPENHPI_VARPATH = %s\n",param.u.VarPath);
+   printf("OPENHPI_VARPATH = %s\n",(const char*)param.u.VarPath);
 
    param.Type =OHPI_CONF;
    rv = oHpiGlobalParamGet (sessionid, &param);
@@ -280,7 +280,7 @@ static SaErrorT execglobalparamget ()
              oh_lookup_error(rv));
       return rv;
    }
-   printf("OPENHPI_CONF = %s\n",param.u.Conf);
+   printf("OPENHPI_CONF = %s\n",(const char*)param.u.Conf);
 
    return SA_OK;
 }
@@ -300,9 +300,9 @@ static SaErrorT execglobalparamset (oHpiGlobalParamTypeT ptype, char *setparam)
    param.Type = ptype;
    switch (ptype){
       //strings
-      case OHPI_PATH: strcpy(param.u.Path, setparam);break;
-      case OHPI_VARPATH: strcpy(param.u.VarPath, setparam);break;
-      case OHPI_CONF: strcpy(param.u.Conf, setparam);break;
+      case OHPI_PATH: strcpy((char*)param.u.Path, setparam);break;
+      case OHPI_VARPATH: strcpy((char*)param.u.VarPath, setparam);break;
+      case OHPI_CONF: strcpy((char*)param.u.Conf, setparam);break;
       //severity
       case OHPI_LOG_ON_SEV: 
          strncpy((char *)buffer.Data, setparam, SAHPI_MAX_TEXT_BUFFER_LENGTH);
@@ -358,9 +358,9 @@ static SaErrorT execglobalparamset (oHpiGlobalParamTypeT ptype, char *setparam)
          if (param.u.DatSave) printf("TRUE\n");
          else printf("FALSE\n");
          break;
-      case OHPI_PATH: printf("OHPENPI_PATH = %s\n",param.u.Path);break;
-      case OHPI_VARPATH: printf("OPENHPI_VARPATH = %s\n",param.u.VarPath);break;
-      case OHPI_CONF: printf("OPENHPI_CONF = %s\n",param.u.Conf);break;
+      case OHPI_PATH: printf("OHPENPI_PATH = %s\n",(const char*)param.u.Path);break;
+      case OHPI_VARPATH: printf("OPENHPI_VARPATH = %s\n",(const char*)param.u.VarPath);break;
+      case OHPI_CONF: printf("OPENHPI_CONF = %s\n",(const char*)param.u.Conf);break;
       default: return SA_ERR_HPI_UNSUPPORTED_PARAMS;
    }
    return SA_OK;
