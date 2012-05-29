@@ -51,6 +51,8 @@ libtest_agent_la_SOURCES = abi.cpp \
                            instruments.h \
                            inventory.cpp \
                            inventory.h \
+                           log.cpp \
+                           log.h \
                            object.cpp \
                            object.h \
                            resource.cpp \

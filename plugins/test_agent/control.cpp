@@ -71,7 +71,7 @@ static SaHpiRdrTypeUnionT MakeDefaultCtrlRec( SaHpiCtrlNumT num )
  * class cControl
  *************************************************************/
 const std::string cControl::classname( "ctrl");
-static const std::string line_classname( "Line" );
+static const std::string line_name( "Line" );
 
 cControl::cControl( cResource& resource, SaHpiCtrlNumT num )
     : cInstrument( resource,
@@ -197,7 +197,7 @@ void cControl::GetVars( cVars& vars )
          << VAR_END();
     if ( m_rec.Type == SAHPI_CTRL_TYPE_TEXT ) {
         for ( size_t i = 0, n = m_lines.size(); i < n; ++i ) {
-            vars << AssembleNumberedObjectName( line_classname, i + 1 )
+            vars << AssembleNumberedObjectName( line_name, i + 1 )
                  << dtSaHpiTextBufferT
                  << DATA( m_lines[i] )
                  << VAR_END();
@@ -211,7 +211,7 @@ void cControl::AfterVarSet( const std::string& var_name )
 {
     cInstrument::AfterVarSet( var_name );
 
-    if ( var_name.find( line_classname ) == 0 ) {
+    if ( var_name.find( line_name ) == 0 ) {
         NormalizeLines();
     }
 }

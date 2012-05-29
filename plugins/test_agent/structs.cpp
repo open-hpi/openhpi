@@ -99,6 +99,48 @@ void GetVars( SaHpiRptEntryT& rpte, cVars& vars )
          << VAR_END();
 }
 
+void GetVars( SaHpiEventLogInfoT& info, cVars& vars )
+{
+    vars << "Info.Entries"
+         << dtSaHpiUint32T
+         << DATA( info.Entries )
+         << READONLY()
+         << VAR_END();
+    vars << "Info.Size"
+         << dtSaHpiUint32T
+         << DATA( info.Size )
+         << VAR_END();
+    vars << "Info.UserEventMaxSize"
+         << dtSaHpiUint32T
+         << DATA( info.UserEventMaxSize )
+         << VAR_END();
+    vars << "Info.UpdateTimestamp"
+         << dtSaHpiTimeT
+         << DATA( info.UpdateTimestamp )
+         << READONLY()
+         << VAR_END();
+    vars << "Info.CurrentTime"
+         << dtSaHpiTimeT
+         << DATA( info.CurrentTime )
+         << VAR_END();
+    vars << "Info.Enabled"
+         << dtSaHpiBoolT
+         << DATA( info.Enabled )
+         << VAR_END();
+    vars << "Info.OverflowFlag"
+         << dtSaHpiBoolT
+         << DATA( info.OverflowFlag )
+         << VAR_END();
+    vars << "Info.OverflowResetable"
+         << dtSaHpiBoolT
+         << DATA( info.OverflowResetable )
+         << VAR_END();
+    vars << "Info.OverflowAction"
+         << dtSaHpiEventLogOverflowActionT
+         << DATA( info.OverflowAction )
+         << VAR_END();
+}
+
 void GetVars( SaHpiLoadIdT& load_id, cVars& vars )
 {
     vars << "LoadId.LoadNumber"

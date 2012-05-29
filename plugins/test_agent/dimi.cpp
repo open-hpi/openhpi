@@ -31,7 +31,7 @@ static SaHpiRdrTypeUnionT MakeDefaultDimiRec( SaHpiDimiNumT num )
     SaHpiDimiRecT& rec = data.DimiRec;
 
     rec.DimiNum = num;
-    rec.Oem         = 0;
+    rec.Oem     = 0;
 
     return data;
 }
