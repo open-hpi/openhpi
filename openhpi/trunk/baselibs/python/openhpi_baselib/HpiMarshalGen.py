@@ -5,7 +5,7 @@ from openhpi_baselib.HpiMarshalCore import HpiMarshalCore
 #**********************************************************
 # HPI Marshal (auto-generated)
 #**********************************************************
-class HpiMarshal( HpiMarshalCore ):
+class HpiMarshalGen( HpiMarshalCore ):
 
     #**********************************************************
     # Marshal: For HPI Simple Data Types

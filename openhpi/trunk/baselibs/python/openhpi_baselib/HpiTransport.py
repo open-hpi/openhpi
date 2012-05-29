@@ -1,6 +1,7 @@
 import binascii, ctypes, socket, struct
 from openhpi_baselib.HpiDataTypes import *
 from openhpi_baselib.HpiException import HpiException
+from openhpi_baselib.OhpiDataTypes import *
 
 
 ######################################################################
@@ -43,7 +44,8 @@ class Structs:
                   SAHPI_SENSOR_BUFFER_LENGTH, SAHPI_CTRL_MAX_STREAM_LENGTH,
                   SAHPI_CTRL_MAX_OEM_BODY_LENGTH, SAHPI_CTRL_OEM_CONFIG_LENGTH,
                   SAHPI_DIMITEST_PARAM_NAME_LEN, SAHPI_DIMITEST_PARAM_NAME_LEN,
-                  SAHPI_FUMI_MAX_OEM_BODY_LENGTH, SA_HPI_MAX_NAME_LENGTH ]
+                  SAHPI_FUMI_MAX_OEM_BODY_LENGTH, SA_HPI_MAX_NAME_LENGTH,
+                  MAX_PLUGIN_NAME_LENGTH ]
         for s in sizes:
             self.arrays[s] = struct.Struct( "=%ss" % s )
 

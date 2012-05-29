@@ -172,7 +172,7 @@ def IdrFields( sid, rid, iid, aid, ftype = SAHPI_IDR_FIELDTYPE_UNSPECIFIED ):
         yield field
 
 #**********************************************************
-# Iterate over annuncuator announcements 
+# Iterate over annuncuator announcements
 # Provides SaHpiAnnouncementT
 #**********************************************************
 def Announcements( sid, rid, annnum, severity, unacknowledged_only = False ):
