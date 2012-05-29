@@ -360,7 +360,7 @@ SaErrorT exechandlerinfo(oHpiHandlerIdT handlerid)
    if (copt.domainid==SAHPI_UNSPECIFIED_DOMAIN_ID) 
       printf("\n\nInfo for handler %u in default domain:\n\n",handlerid);
    else printf("\n\nInfo for handler %u in domain %u:\n\n",handlerid, copt.domainid);
-   printf("Plugin name: %s\n",handlerinfo.plugin_name);
+   printf("Plugin name: %s\n",(const char *)handlerinfo.plugin_name);
 
    printf("Root ");
    oh_print_ep (&(handlerinfo.entity_root),0);
@@ -368,7 +368,7 @@ SaErrorT exechandlerinfo(oHpiHandlerIdT handlerid)
    printf("Failed attempts to load handler: %u\n",handlerinfo.load_failed);
 
    printf("\nHandler configuration:\n");
-   printf ("   plugin %s\n", handlerinfo.plugin_name);
+   printf ("   plugin %s\n", (const char *)handlerinfo.plugin_name);
    printf ("   entity_root \"%s\"\n",(const char *) g_hash_table_lookup(handlerconfig, "entity_root")); 
    g_hash_table_foreach(handlerconfig, print_pair, NULL);
    printf("\n\n");
@@ -495,7 +495,7 @@ static SaErrorT exechandlerlist()
          }
          else {
             printf("Handler %u: %s, ",
-               nexthandlerid, handlerinfo.plugin_name);
+               nexthandlerid, (const char *)handlerinfo.plugin_name);
             oh_print_ep (&(handlerinfo.entity_root),0);
          }
          g_hash_table_destroy(config);

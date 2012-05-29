@@ -236,9 +236,9 @@ static int select_ep(Rpt_t *Rpt)
 	}
 	
 	/* If this resource belongs to the ipmi handler, then display it*/
-	if (strcmp(handler_info.plugin_name, "libipmi") == 0) {
+	if (strcmp((const char*)handler_info.plugin_name, "libipmi") == 0) {
 		return(1);
-	} else if(strcmp(handler_info.plugin_name, "libsnmp_bc") == 0) {
+	} else if(strcmp((const char*)handler_info.plugin_name, "libsnmp_bc") == 0) {
         	for (i=0; i<SAHPI_MAX_ENTITY_PATH; i++) {
                 	if ((Rpt->Rpt.ResourceEntity.Entry[i].EntityType == SAHPI_ENT_PHYSICAL_SLOT) 
 			&& (Rpt->Rpt.ResourceEntity.Entry[i].EntityLocation == blade_slot)) 
