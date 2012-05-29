@@ -1,6 +1,6 @@
 import collections, threading
 from openhpi_baselib.HpiDomain import HpiDomain
-from openhpi_baselib.HpiMarshalGen import HpiMarshal
+from openhpi_baselib.OhpiMarshal import OhpiMarshal
 
 
 class HpiSession:
@@ -46,7 +46,7 @@ class HpiSession:
             m = self.marshals.pop()
         self.marshals_lock.release()
         if m is None:
-            m = HpiMarshal()
+            m = OhpiMarshal()
             rc = m.open( self.domain.getRemoteHost(), self.domain.getRemotePort() )
             if not rc:
                 m = None

@@ -141,3 +141,32 @@ RPC_SAHPI_FUMI_CLEANUP                           = 128
 DEFAULT_PORT = 4743
 DEFAULT_DOMAIN_ID = 0
 
+MAX_PLUGIN_NAME_LENGTH = 32
+
+
+#**********************************************************
+#* OHPI Complex Data Types
+#**********************************************************
+#**
+# OHPI struct SaHpiTextBufferT
+#**
+class oHpiHandlerInfoT:
+    def __init__( self ):
+        # oHpiHandlerIdT
+        self.id = None
+        # SaHpiUint8T[MAX_PLUGIN_NAME_LENGTH]
+        self.plugin_name = None
+        # SaHpiEntityPathT
+        self.entity_root = None
+        # SaHpiInt32T
+        self.load_failed = None
+
+#**
+# OHPI struct oHpiHandlerConfigT
+#**
+class oHpiHandlerConfigT:
+    def __init__( self ):
+        # list of ( name, value ) tuples
+        # Both name and value are SaHpiUint8T[SAHPI_MAX_TEXT_BUFFER_LENGTH]
+        self.items = None
+

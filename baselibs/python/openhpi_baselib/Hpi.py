@@ -19,25 +19,25 @@ def saHpiSessionOpen(
         return ( SA_ERR_HPI_INVALID_DOMAIN, None )
     m = s.getMarshal()
     if m is None:
-        HpiCore.removeSession( s );
+        HpiCore.removeSession( s )
         return ( SA_ERR_HPI_NO_RESPONSE, None )
 
-    m.marshalSaHpiDomainIdT( s.getRemoteDid() );
+    m.marshalSaHpiDomainIdT( s.getRemoteDid() )
     rc = m.interchange( OhpiDataTypes.RPC_SAHPI_SESSION_OPEN )
     if not rc:
         m.close()
-        HpiCore.removeSession( s );
+        HpiCore.removeSession( s )
         return ( SA_ERR_HPI_NO_RESPONSE, None )
     rv = m.demarshalSaErrorT()
     if rv == SA_OK:
         SessionId = m.demarshalSaHpiSessionIdT()
-        s.setRemoteSid( SessionId );
-        SessionId = s.getLocalSid();
+        s.setRemoteSid( SessionId )
+        SessionId = s.getLocalSid()
 
     s.putMarshal( m )
 
     if rv != SA_OK:
-        HpiCore.removeSession( s );
+        HpiCore.removeSession( s )
         return ( rv, None )
     return ( SA_OK, SessionId )
 
