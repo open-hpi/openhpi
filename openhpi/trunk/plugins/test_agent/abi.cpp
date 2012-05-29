@@ -31,6 +31,7 @@
 #include "fumi.h"
 #include "handler.h"
 #include "inventory.h"
+#include "log.h"
 #include "resource.h"
 #include "sensor.h"
 #include "utils.h"
@@ -71,6 +72,19 @@ static cResource * GetResource( cHandler * h, SaHpiResourceIdT rid )
     cResource * r = h->GetResource( rid );
     if ( r && r->IsVisible() ) {
         return r;
+    }
+
+    return 0;
+}
+
+static cLog * GetLog( cHandler * h, SaHpiResourceIdT rid )
+{
+    cResource * r = GetResource( h, rid );
+    if ( r ) {
+        cLog * log = r->GetLog();
+        if ( log && log->IsVisible() ) {
+            return log;
+        }
     }
 
     return 0;
@@ -333,7 +347,14 @@ oh_get_el_info(
     SaHpiResourceIdT rid,
     SaHpiEventLogInfoT * info )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cLog * log = TA::GetLog( handler, rid );
+    if ( !log ) {
+        return SA_ERR_HPI_CAPABILITY;
+    }
+
+    return log->GetInfo( *info );
 }
 
 
@@ -346,7 +367,14 @@ oh_get_el_caps(
     SaHpiResourceIdT rid,
     SaHpiEventLogCapabilitiesT * caps )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cLog * log = TA::GetLog( handler, rid );
+    if ( !log ) {
+        return SA_ERR_HPI_CAPABILITY;
+    }
+
+    return log->GetCapabilities( *caps );
 }
 
 
@@ -359,7 +387,14 @@ oh_set_el_time(
     SaHpiResourceIdT rid,
     SaHpiTimeT time )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cLog * log = TA::GetLog( handler, rid );
+    if ( !log ) {
+        return SA_ERR_HPI_CAPABILITY;
+    }
+
+    return log->SetTime( time );
 }
 
 
@@ -372,7 +407,14 @@ oh_add_el_entry(
     SaHpiResourceIdT rid,
     const SaHpiEventT * event )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cLog * log = TA::GetLog( handler, rid );
+    if ( !log ) {
+        return SA_ERR_HPI_CAPABILITY;
+    }
+
+    return log->AddEntry( *event );
 }
 
 
@@ -390,7 +432,14 @@ oh_get_el_entry(
     SaHpiRdrT * rdr,
     SaHpiRptEntryT * rpte )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cLog * log = TA::GetLog( handler, rid );
+    if ( !log ) {
+        return SA_ERR_HPI_CAPABILITY;
+    }
+
+    return log->GetEntry( current, *prev, *next, *entry, *rdr, *rpte );
 }
 
 
@@ -402,7 +451,14 @@ oh_clear_el(
     void * hnd,
     SaHpiResourceIdT rid )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cLog * log = TA::GetLog( handler, rid );
+    if ( !log ) {
+        return SA_ERR_HPI_CAPABILITY;
+    }
+
+    return log->Clear();
 }
 
 
@@ -415,7 +471,14 @@ oh_set_el_state(
     SaHpiResourceIdT rid,
     SaHpiBoolT e )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cLog * log = TA::GetLog( handler, rid );
+    if ( !log ) {
+        return SA_ERR_HPI_CAPABILITY;
+    }
+
+    return log->SetState( e );
 }
 
 
@@ -427,7 +490,14 @@ oh_reset_el_overflow(
     void * hnd,
     SaHpiResourceIdT rid )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cLog * log = TA::GetLog( handler, rid );
+    if ( !log ) {
+        return SA_ERR_HPI_CAPABILITY;
+    }
+
+    return log->ResetOverflow();
 }
 
 

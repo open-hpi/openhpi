@@ -16,6 +16,7 @@ SRC := abi.cpp \
        instrument.cpp \
        instruments.cpp \
        inventory.cpp \
+       log.cpp \
        object.cpp \
        resource.cpp \
        sensor.cpp \

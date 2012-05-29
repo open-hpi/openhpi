@@ -19,6 +19,7 @@
 
 #include "codec.h"
 #include "handler.h"
+#include "log.h"
 #include "resource.h"
 #include "structs.h"
 #include "timers.h"
@@ -83,7 +84,8 @@ cResource::cResource( cHandler& handler,
     : cObject( AssembleResourceObjectName( ep ), SAHPI_FALSE ),
       cInstruments( *this ),
       m_handler( handler ),
-      m_timers( timers )
+      m_timers( timers ),
+      m_log( 0 )
 {
     MakeDefaultRptEntry( ep, m_rpte );
     m_failed             = m_rpte.ResourceFailed;
@@ -102,8 +104,10 @@ cResource::cResource( cHandler& handler,
 
 cResource::~cResource()
 {
-    SetVisible( false );
+    delete m_log;
+    m_log = 0;
     m_timers.CancelTimer( this );
+    SetVisible( false );
 }
 
 const SaHpiRptEntryT& cResource::GetRptEntry() const
@@ -136,6 +140,10 @@ cTimers& cResource::GetTimers() const
     return m_timers;
 }
 
+cLog * cResource::GetLog() const
+{
+    return m_log;
+}
 
 // HPI interface
 SaErrorT cResource::SetTag( const SaHpiTextBufferT& tag )
@@ -415,6 +423,20 @@ void cResource::PostEvent( SaHpiEventTypeT type,
                            const InstrumentList& updates,
                            const InstrumentList& removals ) const
 {
+    if ( m_log ) {
+        const cInstrument * instr = 0;
+        if ( !updates.empty() ) {
+            instr = updates.front();
+        } else if ( !removals.empty() ) {
+            instr = removals.front();
+        }
+        if ( instr ) {
+            const SaHpiRdrT& rdr = instr->GetRdr();
+            m_log->AddEntry( type, data, severity, &rdr, &m_rpte );
+        } else {
+            m_log->AddEntry( type, data, severity, 0, &m_rpte );
+        }
+    }
     if ( !IsVisible() ) {
         return;
     }
@@ -512,6 +534,10 @@ bool cResource::CreateChild( const std::string& name )
     if ( rc ) {
         return true;
     }
+    if ( name == cLog::classname ) {
+        CreateLog();
+        return true;
+    }
     rc = CreateInstrument( name );
     if ( rc ) {
         return true;
@@ -528,6 +554,10 @@ bool cResource::RemoveChild( const std::string& name )
     if ( rc ) {
         return true;
     }
+    if ( name == cLog::classname ) {
+        RemoveLog();
+        return true;
+    }
     rc = RemoveInstrument( name );
     if ( rc ) {
         return true;
@@ -539,6 +569,9 @@ bool cResource::RemoveChild( const std::string& name )
 void cResource::GetChildren( Children& children ) const
 {
     cObject::GetChildren( children );
+    if ( m_log ) {
+        children.push_back( m_log );
+    }
     cInstruments::GetChildren( children );
 }
 
@@ -619,6 +652,24 @@ void cResource::AfterVarSet( const std::string& var_name )
     CommitChanges();
 }
 
+void cResource::CreateLog()
+{
+    if ( m_log == 0 ) {
+        m_log = new cLog();
+        m_rpte.ResourceCapabilities |= cLog::RequiredResourceCap();
+        PostResourceEvent( SAHPI_RESE_RESOURCE_UPDATED );
+    }
+}
+
+void cResource::RemoveLog()
+{
+    if ( m_log ) {
+        delete m_log;
+        m_log = 0;
+        m_rpte.ResourceCapabilities &= ~cLog::RequiredResourceCap();
+        PostResourceEvent( SAHPI_RESE_RESOURCE_UPDATED );
+    }
+}
 
 void cResource::TimerEvent()
 {

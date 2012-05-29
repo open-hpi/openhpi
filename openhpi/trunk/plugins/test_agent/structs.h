@@ -32,6 +32,7 @@ namespace Structs {
  * Helpers to get vars from common HPI structures
  *************************************************************/
 void GetVars( SaHpiRptEntryT& rpte, cVars& vars );
+void GetVars( SaHpiEventLogInfoT& info, cVars& vars );
 void GetVars( SaHpiLoadIdT& load_id, cVars& vars );
 void GetVars( SaHpiRdrT& rdr, cVars& vars );
 void GetVars( SaHpiCtrlStateT& state, cVars& vars );

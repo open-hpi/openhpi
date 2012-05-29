@@ -32,6 +32,7 @@ namespace TA {
  * class cResource
  *************************************************************/
 class cHandler;
+class cLog;
 
 class cResource : public cObject, public cInstruments, private cTimerCallback
 {
@@ -50,6 +51,8 @@ public:
     bool IsFailed() const;
     void UpdateCaps( SaHpiCapabilitiesT caps );
     cTimers& GetTimers() const;
+
+    cLog * GetLog() const;
 
 public:  // HPI interface
 
@@ -103,6 +106,8 @@ private: // cObject virtual functions
 
 private: // cTimerCallback virtual functions
 
+    void CreateLog();
+    void RemoveLog();
     virtual void TimerEvent();
 
 private:
@@ -115,6 +120,7 @@ private: // data
 
     cHandler&              m_handler;
     cTimers&               m_timers;
+    cLog *                 m_log;
     SaHpiRptEntryT         m_rpte;
     SaHpiBoolT             m_failed;
     SaHpiBoolT             m_new_failed;
