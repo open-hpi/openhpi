@@ -1,10 +1,7 @@
 #!/usr/bin/python
 
 import sys
-from openhpi_baselib.HpiDataTypes import *
-from openhpi_baselib.Hpi import *
-from openhpi_baselib import HpiUtil
-from openhpi_baselib import HpiIterators
+from openhpi_baselib import *
 
 if len( sys.argv ) != 2:
     print "Usage: %s <entity_path>" % sys.argv[0]
