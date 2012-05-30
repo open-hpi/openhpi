@@ -1,11 +1,6 @@
 #!/usr/bin/python
 
-from openhpi_baselib.HpiDataTypes import *
-from openhpi_baselib.Hpi import *
-from openhpi_baselib import HpiUtil
-from openhpi_baselib.OhpiDataTypes import *
-from openhpi_baselib.Ohpi import *
-from openhpi_baselib import OhpiUtil
+from openhpi_baselib import *
 
 ( rv, sid ) = saHpiSessionOpen( SAHPI_UNSPECIFIED_DOMAIN_ID, None )
 if rv != SA_OK:
@@ -13,14 +8,8 @@ if rv != SA_OK:
     exit()
 
 # List all handlers
-last_hid = SAHPI_FIRST_ENTRY
-hid = SAHPI_FIRST_ENTRY
-while id != SAHPI_LAST_ENTRY:
-    ( rv, hid ) = oHpiHandlerGetNext( sid, hid )
-    if rv != SA_OK:
-        if rv != SA_ERR_HPI_NOT_PRESENT:
-            print "ERROR: oHpiHandlerGetNext: %s " % HpiUtil.fromSaErrorT( rv )
-        break
+last_hid = None
+for hid in OhpiIterators.Handlers( sid ):
     last_hid = hid
     print "Handler %d" % hid
     ( rv, hinfo, hconf ) = oHpiHandlerInfo( sid, hid )
