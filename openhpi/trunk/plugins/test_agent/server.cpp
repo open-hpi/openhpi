@@ -150,6 +150,7 @@ static eWaitCc WaitOnSocket( SockFdT s )
 cServer::cServer( unsigned short port )
 
     : m_port( port ),
+      m_initialized( false ),
       m_stop( false ),
       m_thread( 0 ),
       m_csock( InvalidSockFd )
@@ -169,8 +170,7 @@ cServer::~cServer()
 
 bool cServer::Init()
 {
-    static bool initialized = false;
-    if ( initialized ) {
+    if ( m_initialized ) {
         return true;
     }
 
@@ -184,7 +184,7 @@ bool cServer::Init()
         return false;
     }
 
-    initialized = true;
+    m_initialized = true;
 
     return true;
 }

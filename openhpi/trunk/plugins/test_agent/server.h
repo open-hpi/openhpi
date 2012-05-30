@@ -79,6 +79,7 @@ private:
 private: // data
 
     uint16_t               m_port;
+    bool                   m_initialized;
     volatile bool          m_stop;
     GThread *              m_thread;
     SockFdT                m_csock;
