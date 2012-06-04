@@ -147,7 +147,9 @@ static void* get_event(void *unused)
 			rv = saHpiEventGet(Domain->sessionId,
 				SAHPI_TIMEOUT_BLOCK, &event,
 				&rdr, &rptentry, NULL);		
-			if (rv != SA_OK ) {
+                        if ((rv == SA_ERR_HPI_INVALID_SESSION) && (Domain->session_opened == 0)) {
+				break;
+                        } else if (rv != SA_OK ) {
 				printf("saHpiEventGet failed with error <%d>\n", rv);
 				break;
 			}
@@ -203,7 +205,7 @@ void set_Subscribe(Domain_t *domain, int as)
 	}
 }
 
-SaErrorT get_sessionId(Domain_t *domain)
+static SaErrorT get_sessionId(Domain_t *domain)
 {
 	SaErrorT		rv;
 	SaHpiDomainInfoT	info;
@@ -224,7 +226,7 @@ SaErrorT get_sessionId(Domain_t *domain)
 	return(SA_OK);
 }
 
-SaErrorT do_discover(Domain_t *domain)
+static SaErrorT do_discover(Domain_t *domain)
 {
 	SaErrorT rv;
 
@@ -295,6 +297,7 @@ int close_session()
 {
 	SaErrorT rv;
 
+	Domain->session_opened = 0;
 	rv = saHpiSessionClose(Domain->sessionId);
 	if (rv != SA_OK) {
                 printf("saHpiSessionClose error %s\n", oh_lookup_error(rv));
