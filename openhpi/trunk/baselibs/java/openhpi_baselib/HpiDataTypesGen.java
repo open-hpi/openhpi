@@ -431,11 +431,11 @@ public class HpiDataTypesGen
     public static final long SAHPI_ENT_REMOTE = 38L;
     public static final long SAHPI_ENT_EXTERNAL_ENVIRONMENT = 39L;
     public static final long SAHPI_ENT_BATTERY = 40L;
-    public static final long SAHPI_ENT_RESERVED_1 = 41L;
-    public static final long SAHPI_ENT_RESERVED_2 = 42L;
-    public static final long SAHPI_ENT_RESERVED_3 = 43L;
-    public static final long SAHPI_ENT_RESERVED_4 = 44L;
-    public static final long SAHPI_ENT_RESERVED_5 = 45L;
+    public static final long SAHPI_ENT_PROCESSING_BLADE = 41L;
+    public static final long SAHPI_ENT_CONNECTIVITY_SWITCH = 42L;
+    public static final long SAHPI_ENT_PROCESSOR_MEMORY_MODULE = 43L;
+    public static final long SAHPI_ENT_IO_MODULE = 44L;
+    public static final long SAHPI_ENT_PROCESSOR_IO_MODULE = 45L;
     public static final long SAHPI_ENT_MC_FIRMWARE = 46L;
     public static final long SAHPI_ENT_IPMI_CHANNEL = 47L;
     public static final long SAHPI_ENT_PCI_BUS = 48L;

@@ -612,6 +612,25 @@ typedef enum
     SAHPI_ENT_RESERVED_3,
     SAHPI_ENT_RESERVED_4,
     SAHPI_ENT_RESERVED_5,
+    /**
+     * The following five symbols are not defined by the SAF HPI specification,
+     * but are included here to align with the IPMI 2.0 specification
+     **/
+    /* Processing blade (a blade module that contain processor, memory,
+       and I/O connections that enable it to operate as a processing entity) */
+    SAHPI_ENT_PROCESSING_BLADE = SAHPI_ENT_RESERVED_1,
+    /* Connectivity switch (a blade module that provides the fabric or network
+       connection for one or more processing blades or modules) */
+    SAHPI_ENT_CONNECTIVITY_SWITCH = SAHPI_ENT_RESERVED_2,
+    /* Processor/memory module (processor and memory together on a module) */
+    SAHPI_ENT_PROCESSOR_MEMORY_MODULE = SAHPI_ENT_RESERVED_3,
+    /* I/O module
+       (a module that contains the main elements of an I/O interface) */
+    SAHPI_ENT_IO_MODULE = SAHPI_ENT_RESERVED_4,
+    /* Processor/ IO module (a module that contains the main elements of an I/O
+       interface combination processor and i/O module) */
+    SAHPI_ENT_PROCESSOR_IO_MODULE = SAHPI_ENT_RESERVED_5,
+
     SAHPI_ENT_MC_FIRMWARE    ,     /* Management Controller Firmware,
                          represents firmware or software
                         running on a management controller */

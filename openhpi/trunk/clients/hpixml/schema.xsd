@@ -409,11 +409,11 @@
     <xs:enumeration value="REMOTE"/>
     <xs:enumeration value="EXTERNAL_ENVIRONMENT"/>
     <xs:enumeration value="BATTERY"/>
-    <xs:enumeration value="RESERVED_1"/>
-    <xs:enumeration value="RESERVED_2"/>
-    <xs:enumeration value="RESERVED_3"/>
-    <xs:enumeration value="RESERVED_4"/>
-    <xs:enumeration value="RESERVED_5"/>
+    <xs:enumeration value="PROCESSING_BLADE"/>
+    <xs:enumeration value="CONNECTIVITY_SWITCH"/>
+    <xs:enumeration value="PROCESSOR_MEMORY_MODULE"/>
+    <xs:enumeration value="IO_MODULE"/>
+    <xs:enumeration value="PROCESSOR_IO_MODULE"/>
     <xs:enumeration value="MC_FIRMWARE"/>
     <xs:enumeration value="IPMI_CHANNEL"/>
     <xs:enumeration value="PCI_BUS"/>

@@ -668,16 +668,16 @@ char * oh_lookup_entitytype(SaHpiEntityTypeT value)
                 return "EXTERNAL_ENVIRONMENT";
         case SAHPI_ENT_BATTERY:
                 return "BATTERY";
-        case SAHPI_ENT_RESERVED_1:
-                return "RESERVED_1";
-        case SAHPI_ENT_RESERVED_2:
-                return "RESERVED_2";
-        case SAHPI_ENT_RESERVED_3:
-                return "RESERVED_3";
-        case SAHPI_ENT_RESERVED_4:
-                return "RESERVED_4";
-        case SAHPI_ENT_RESERVED_5:
-                return "RESERVED_5";
+        case SAHPI_ENT_PROCESSING_BLADE:
+                return "PROCESSING_BLADE";
+        case SAHPI_ENT_CONNECTIVITY_SWITCH:
+                return "CONNECTIVITY_SWITCH";
+        case SAHPI_ENT_PROCESSOR_MEMORY_MODULE:
+                return "PROCESSOR_MEMORY_MODULE";
+        case SAHPI_ENT_IO_MODULE:
+                return "IO_MODULE";
+        case SAHPI_ENT_PROCESSOR_IO_MODULE:
+                return "PROCESSOR_IO_MODULE";
         case SAHPI_ENT_MC_FIRMWARE:
                 return "MC_FIRMWARE";
         case SAHPI_ENT_IPMI_CHANNEL:
@@ -841,11 +841,11 @@ struct oh_entitytype_map entitytype_strings[] = {
        {SAHPI_ENT_REMOTE, "REMOTE"},
        {SAHPI_ENT_EXTERNAL_ENVIRONMENT, "EXTERNAL_ENVIRONMENT"},
        {SAHPI_ENT_BATTERY, "BATTERY"},
-       {SAHPI_ENT_RESERVED_1, "RESERVED_1"},
-       {SAHPI_ENT_RESERVED_2, "RESERVED_2"},
-       {SAHPI_ENT_RESERVED_3, "RESERVED_3"},
-       {SAHPI_ENT_RESERVED_4, "RESERVED_4"},
-       {SAHPI_ENT_RESERVED_5, "RESERVED_5"},
+       {SAHPI_ENT_PROCESSING_BLADE, "PROCESSING_BLADE"},
+       {SAHPI_ENT_CONNECTIVITY_SWITCH, "CONNECTIVITY_SWITCH"},
+       {SAHPI_ENT_PROCESSOR_MEMORY_MODULE, "PROCESSOR_MEMORY_MODULE"},
+       {SAHPI_ENT_IO_MODULE, "IO_MODULE"},
+       {SAHPI_ENT_PROCESSOR_IO_MODULE, "PROCESSOR_IO_MODULE"},
        {SAHPI_ENT_MC_FIRMWARE, "MC_FIRMWARE"},
        {SAHPI_ENT_IPMI_CHANNEL, "IPMI_CHANNEL"},
        {SAHPI_ENT_PCI_BUS, "PCI_BUS"},
