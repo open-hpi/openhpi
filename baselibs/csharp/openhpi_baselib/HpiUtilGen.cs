@@ -2215,16 +2215,16 @@ public static partial class HpiUtil
                 return "EXTERNAL_ENVIRONMENT";
             case HpiConst.SAHPI_ENT_BATTERY:
                 return "BATTERY";
-            case HpiConst.SAHPI_ENT_RESERVED_1:
-                return "RESERVED_1";
-            case HpiConst.SAHPI_ENT_RESERVED_2:
-                return "RESERVED_2";
-            case HpiConst.SAHPI_ENT_RESERVED_3:
-                return "RESERVED_3";
-            case HpiConst.SAHPI_ENT_RESERVED_4:
-                return "RESERVED_4";
-            case HpiConst.SAHPI_ENT_RESERVED_5:
-                return "RESERVED_5";
+            case HpiConst.SAHPI_ENT_PROCESSING_BLADE:
+                return "PROCESSING_BLADE";
+            case HpiConst.SAHPI_ENT_CONNECTIVITY_SWITCH:
+                return "CONNECTIVITY_SWITCH";
+            case HpiConst.SAHPI_ENT_PROCESSOR_MEMORY_MODULE:
+                return "PROCESSOR_MEMORY_MODULE";
+            case HpiConst.SAHPI_ENT_IO_MODULE:
+                return "IO_MODULE";
+            case HpiConst.SAHPI_ENT_PROCESSOR_IO_MODULE:
+                return "PROCESSOR_IO_MODULE";
             case HpiConst.SAHPI_ENT_MC_FIRMWARE:
                 return "MC_FIRMWARE";
             case HpiConst.SAHPI_ENT_IPMI_CHANNEL:
@@ -2497,20 +2497,20 @@ public static partial class HpiUtil
         if ( s == "BATTERY" ) {
             return HpiConst.SAHPI_ENT_BATTERY;
         }
-        if ( s == "RESERVED_1" ) {
-            return HpiConst.SAHPI_ENT_RESERVED_1;
+        if ( s == "PROCESSING_BLADE" ) {
+            return HpiConst.SAHPI_ENT_PROCESSING_BLADE;
         }
-        if ( s == "RESERVED_2" ) {
-            return HpiConst.SAHPI_ENT_RESERVED_2;
+        if ( s == "CONNECTIVITY_SWITCH" ) {
+            return HpiConst.SAHPI_ENT_CONNECTIVITY_SWITCH;
         }
-        if ( s == "RESERVED_3" ) {
-            return HpiConst.SAHPI_ENT_RESERVED_3;
+        if ( s == "PROCESSOR_MEMORY_MODULE" ) {
+            return HpiConst.SAHPI_ENT_PROCESSOR_MEMORY_MODULE;
         }
-        if ( s == "RESERVED_4" ) {
-            return HpiConst.SAHPI_ENT_RESERVED_4;
+        if ( s == "IO_MODULE" ) {
+            return HpiConst.SAHPI_ENT_IO_MODULE;
         }
-        if ( s == "RESERVED_5" ) {
-            return HpiConst.SAHPI_ENT_RESERVED_5;
+        if ( s == "PROCESSOR_IO_MODULE" ) {
+            return HpiConst.SAHPI_ENT_PROCESSOR_IO_MODULE;
         }
         if ( s == "MC_FIRMWARE" ) {
             return HpiConst.SAHPI_ENT_MC_FIRMWARE;

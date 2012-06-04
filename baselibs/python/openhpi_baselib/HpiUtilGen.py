@@ -2591,16 +2591,16 @@ def fromSaHpiEntityTypeT( x ):
         return "EXTERNAL_ENVIRONMENT"
     if x == SAHPI_ENT_BATTERY:
         return "BATTERY"
-    if x == SAHPI_ENT_RESERVED_1:
-        return "RESERVED_1"
-    if x == SAHPI_ENT_RESERVED_2:
-        return "RESERVED_2"
-    if x == SAHPI_ENT_RESERVED_3:
-        return "RESERVED_3"
-    if x == SAHPI_ENT_RESERVED_4:
-        return "RESERVED_4"
-    if x == SAHPI_ENT_RESERVED_5:
-        return "RESERVED_5"
+    if x == SAHPI_ENT_PROCESSING_BLADE:
+        return "PROCESSING_BLADE"
+    if x == SAHPI_ENT_CONNECTIVITY_SWITCH:
+        return "CONNECTIVITY_SWITCH"
+    if x == SAHPI_ENT_PROCESSOR_MEMORY_MODULE:
+        return "PROCESSOR_MEMORY_MODULE"
+    if x == SAHPI_ENT_IO_MODULE:
+        return "IO_MODULE"
+    if x == SAHPI_ENT_PROCESSOR_IO_MODULE:
+        return "PROCESSOR_IO_MODULE"
     if x == SAHPI_ENT_MC_FIRMWARE:
         return "MC_FIRMWARE"
     if x == SAHPI_ENT_IPMI_CHANNEL:
@@ -2828,16 +2828,16 @@ def toSaHpiEntityTypeT( s ):
         return SAHPI_ENT_EXTERNAL_ENVIRONMENT
     if s == "BATTERY":
         return SAHPI_ENT_BATTERY
-    if s == "RESERVED_1":
-        return SAHPI_ENT_RESERVED_1
-    if s == "RESERVED_2":
-        return SAHPI_ENT_RESERVED_2
-    if s == "RESERVED_3":
-        return SAHPI_ENT_RESERVED_3
-    if s == "RESERVED_4":
-        return SAHPI_ENT_RESERVED_4
-    if s == "RESERVED_5":
-        return SAHPI_ENT_RESERVED_5
+    if s == "PROCESSING_BLADE":
+        return SAHPI_ENT_PROCESSING_BLADE
+    if s == "CONNECTIVITY_SWITCH":
+        return SAHPI_ENT_CONNECTIVITY_SWITCH
+    if s == "PROCESSOR_MEMORY_MODULE":
+        return SAHPI_ENT_PROCESSOR_MEMORY_MODULE
+    if s == "IO_MODULE":
+        return SAHPI_ENT_IO_MODULE
+    if s == "PROCESSOR_IO_MODULE":
+        return SAHPI_ENT_PROCESSOR_IO_MODULE
     if s == "MC_FIRMWARE":
         return SAHPI_ENT_MC_FIRMWARE
     if s == "IPMI_CHANNEL":
