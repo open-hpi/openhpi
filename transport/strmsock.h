@@ -120,7 +120,7 @@ protected:
         return m_sockfd;
     }
 
-    bool Create( const struct addrinfo * ainfo );
+    bool CreateAttempt( const struct addrinfo * ainfo, bool last_attempt );
 
 private:
 
@@ -163,7 +163,7 @@ private:
     cClientStreamSock( const cClientStreamSock& );
     cClientStreamSock& operator =( const cClientStreamSock& );
 
-    bool Create( const struct addrinfo * ainfo );
+    bool CreateAttempt( const struct addrinfo * ainfo, bool last_attempt );
 };
 
 
@@ -186,7 +186,7 @@ private:
     cServerStreamSock( const cServerStreamSock& );
     cServerStreamSock& operator =( const cServerStreamSock& );
 
-    bool Create( const struct addrinfo * ainfo );
+    bool CreateAttempt( const struct addrinfo * ainfo, bool last_attempt );
 };
 
 

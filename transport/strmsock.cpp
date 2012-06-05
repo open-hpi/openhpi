@@ -314,7 +314,7 @@ cStreamSock::eWaitCc cStreamSock::Wait()
     return eWaitSuccess;
 }
 
-bool cStreamSock::Create( const struct addrinfo * info )
+bool cStreamSock::CreateAttempt( const struct addrinfo * info, bool last_attempt )
 {
     bool rc = Close();
     if ( !rc ) {
@@ -324,7 +324,9 @@ bool cStreamSock::Create( const struct addrinfo * info )
     SockFdT new_sock;
     new_sock = socket( info->ai_family, info->ai_socktype, info->ai_protocol );
     if ( new_sock == InvalidSockFd ) {
-        CRIT( "cannot create stream socket." );
+        if ( last_attempt ) {
+            CRIT( "cannot create stream socket." );
+        }
         return false;
     }
 
@@ -359,7 +361,7 @@ bool cClientStreamSock::Create( const char * host, uint16_t port )
     while ( !infos.empty() ) {
         info = *infos.begin();
         if ( !connected ) {
-            connected = Create( info );
+            connected = CreateAttempt( info, infos.size() == 1 );
         }
         freeaddrinfo( info );
         infos.pop_front();
@@ -405,16 +407,16 @@ bool cClientStreamSock::EnableKeepAliveProbes( int keepalive_time,
 
 #else
 
-    CRIT( "TCP Keep-Alive Probes are not supported." );
+    WARN( "TCP Keep-Alive Probes are not supported." );
 
     return false;
 
 #endif /* __linux__ */
 }
 
-bool cClientStreamSock::Create( const struct addrinfo * info )
+bool cClientStreamSock::CreateAttempt( const struct addrinfo * info, bool last_attempt )
 {
-    bool rc = cStreamSock::Create( info );
+    bool rc = cStreamSock::CreateAttempt( info, last_attempt );
     if ( !rc ) {
         return false;
     }
@@ -422,7 +424,9 @@ bool cClientStreamSock::Create( const struct addrinfo * info )
     int cc = connect( SockFd(), info->ai_addr, info->ai_addrlen );
     if ( cc != 0 ) {
         Close();
-        CRIT( "connect failed." );
+        if ( last_attempt ) {
+            CRIT( "connect failed." );
+        }
         return false;
     }
 
@@ -455,7 +459,7 @@ bool cServerStreamSock::Create( int ipvflags, const char * bindaddr, uint16_t po
     while ( !infos.empty() ) {
         info = *infos.begin();
         if ( !bound ) {
-            bound = Create( info );
+            bound = CreateAttempt( info, infos.size() == 1 );
         }
         freeaddrinfo( info );
         infos.pop_front();
@@ -464,9 +468,9 @@ bool cServerStreamSock::Create( int ipvflags, const char * bindaddr, uint16_t po
     return bound;
 }
 
-bool cServerStreamSock::Create( const struct addrinfo * info )
+bool cServerStreamSock::CreateAttempt( const struct addrinfo * info, bool last_attempt )
 {
-    bool rc = cStreamSock::Create( info );
+    bool rc = cStreamSock::CreateAttempt( info, last_attempt );
     if ( !rc ) {
         return false;
     }
@@ -488,19 +492,25 @@ bool cServerStreamSock::Create( const struct addrinfo * info )
 #endif
     if ( cc != 0 ) {
         Close();
-        CRIT( "failed to set SO_REUSEADDR option." );
+        if ( last_attempt ) {
+            CRIT( "failed to set SO_REUSEADDR option." );
+        }
         return false;
     }
     cc = bind( SockFd(), info->ai_addr, info->ai_addrlen );
     if ( cc != 0 ) {
         Close();
-        CRIT( "bind failed." );
+        if ( last_attempt ) {
+            CRIT( "bind failed." );
+        }
         return false;
     }
     cc = listen( SockFd(), 5 /* TODO */ );
     if ( cc != 0 ) {
         Close();
-        CRIT( "listen failed." );
+        if ( last_attempt ) {
+            CRIT( "listen failed." );
+        }
         return false;
     }
 
