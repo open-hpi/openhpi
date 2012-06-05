@@ -13,6 +13,9 @@
  *        Anton Pak <anton.pak@pigeonpoint.com>
  */
 
+#include <stddef.h>
+#include <stdio.h>
+
 #include "structs.h"
 #include "vars.h"
 
@@ -757,6 +760,109 @@ void GetVars( SaHpiAnnouncementT& a, cVars& vars )
          << dtSaHpiTextBufferT
          << DATA( c.Data )
          << VAR_END();
+}
+
+static void GetVars( const std::string& name,
+                     SaHpiDimiTestParamsDefinitionT& pd,
+                     cVars& vars )
+{
+    vars << name + ".ParamName"
+         << dtDimiTestParamName
+         << DATA( pd.ParamName )
+         << VAR_END();
+    vars << name + ".ParamInfo"
+         << dtSaHpiTextBufferT
+         << DATA( pd.ParamInfo )
+         << VAR_END();
+    vars << name + ".ParamType"
+         << dtSaHpiDimiTestParamTypeT
+         << DATA( pd.ParamType )
+         << VAR_END();
+    if ( pd.ParamType == SAHPI_DIMITEST_PARAM_TYPE_INT32 ) {
+        vars << name + ".MinValue.IntValue"
+             << dtSaHpiInt32T
+             << DATA( pd.MinValue.IntValue )
+             << VAR_END();
+        vars << name + ".MaxValue.IntValue"
+             << dtSaHpiInt32T
+             << DATA( pd.MaxValue.IntValue )
+             << VAR_END();
+    } else if ( pd.ParamType == SAHPI_DIMITEST_PARAM_TYPE_FLOAT64 ) {
+        vars << name + ".MinValue.FloatValue"
+             << dtSaHpiFloat64T
+             << DATA( pd.MinValue.FloatValue )
+             << VAR_END();
+        vars << name + ".MaxValue.FloatValue"
+             << dtSaHpiFloat64T
+             << DATA( pd.MaxValue.FloatValue )
+             << VAR_END();
+    }
+    if ( pd.ParamType == SAHPI_DIMITEST_PARAM_TYPE_BOOLEAN ) {
+        vars << name + ".DefaultParam.parambool"
+             << dtSaHpiBoolT
+             << DATA( pd.DefaultParam.parambool )
+             << VAR_END();
+    } else if ( pd.ParamType == SAHPI_DIMITEST_PARAM_TYPE_INT32 ) {
+        vars << name + ".DefaultParam.paramint"
+             << dtSaHpiInt32T
+             << DATA( pd.DefaultParam.paramint )
+             << VAR_END();
+    } else if ( pd.ParamType == SAHPI_DIMITEST_PARAM_TYPE_FLOAT64 ) {
+        vars << name + ".DefaultParam.paramfloat"
+             << dtSaHpiFloat64T
+             << DATA( pd.DefaultParam.paramfloat )
+             << VAR_END();
+    } else if ( pd.ParamType == SAHPI_DIMITEST_PARAM_TYPE_TEXT ) {
+        vars << name + ".DefaultParam.paramtext"
+             << dtSaHpiTextBufferT
+             << DATA( pd.DefaultParam.paramtext )
+             << VAR_END();
+    }
+}
+
+void GetVars( SaHpiDimiTestT& info, cVars& vars )
+{
+    char prefix[256];
+
+    vars << "TestInfo.TestName"
+         << dtSaHpiTextBufferT
+         << DATA( info.TestName )
+         << VAR_END();
+    vars << "TestInfo.ServiceImpact"
+         << dtSaHpiDimiTestServiceImpactT
+         << DATA( info.ServiceImpact )
+         << VAR_END();
+    for ( size_t i = 0; i < SAHPI_DIMITEST_MAX_ENTITIESIMPACTED; ++i ) {
+        snprintf( &prefix[0], sizeof(prefix), "TestInfo.EntitiesImpacted[%u]", (unsigned int)i );
+        vars << std::string( prefix ) + ".EntityImpacted"
+             << dtSaHpiEntityPathT
+             << DATA( info.EntitiesImpacted[i].EntityImpacted )
+             << VAR_END();
+        vars << std::string( prefix ) + ".ServiceImpact"
+             << dtSaHpiDimiTestServiceImpactT
+             << DATA( info.EntitiesImpacted[i].ServiceImpact )
+             << VAR_END();
+    }
+    vars << "TestInfo.NeedServiceOS"
+         << dtSaHpiBoolT
+         << DATA( info.NeedServiceOS )
+         << VAR_END();
+    vars << "TestInfo.ServiceOS"
+         << dtSaHpiTextBufferT
+         << DATA( info.ServiceOS )
+         << VAR_END();
+    vars << "TestInfo.ExpectedRunDuration"
+         << dtSaHpiTimeT
+         << DATA( info.ExpectedRunDuration )
+         << VAR_END();
+    vars << "TestInfo.TestCapabilities"
+         << dtSaHpiDimiTestCapabilityT
+         << DATA( info.TestCapabilities )
+         << VAR_END();
+    for ( size_t i = 0; i < SAHPI_DIMITEST_MAX_PARAMETERS; ++i ) {
+        snprintf( &prefix[0], sizeof(prefix), "TestInfo.TestParameters[%u]", (unsigned int)i );
+        GetVars( prefix, info.TestParameters[i], vars );
+    }
 }
 
 

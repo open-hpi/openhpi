@@ -16,6 +16,7 @@
 #include <string>
 
 #include "codec.h"
+#include "handler.h"
 #include "resource.h"
 #include "structs.h"
 #include "watchdog.h"
@@ -98,8 +99,11 @@ static SaHpiWatchdogActionEventT ActionEvent( SaHpiWatchdogActionT action )
  *************************************************************/
 const std::string cWatchdog::classname( "wdt" );
 
-cWatchdog::cWatchdog( cResource& resource, SaHpiWatchdogNumT num )
-    : cInstrument( resource,
+cWatchdog::cWatchdog( cHandler& handler,
+                      cResource& resource,
+                      SaHpiWatchdogNumT num )
+    : cInstrument( handler,
+                   resource,
                    AssembleNumberedObjectName( classname, num ),
                    SAHPI_WATCHDOG_RDR,
                    MakeDefaultWatchdogRec( num ) ),
@@ -111,7 +115,7 @@ cWatchdog::cWatchdog( cResource& resource, SaHpiWatchdogNumT num )
 
 cWatchdog::~cWatchdog()
 {
-    // empty
+    m_handler.CancelTimer( this );
 }
 
 
@@ -138,7 +142,7 @@ SaErrorT cWatchdog::Set( const SaHpiWatchdogT& wdt )
     m_wdt.InitialCount       = wdt.InitialCount;
 
     if ( wdt.Running == SAHPI_FALSE ) {
-        m_resource.GetTimers().CancelTimer( this );
+        m_handler.CancelTimer( this );
         m_wdt.Running = SAHPI_FALSE;
     } else {
         m_wdt.PresentCount = m_wdt.InitialCount;
@@ -160,7 +164,7 @@ SaErrorT cWatchdog::Reset()
     m_wdt.Running = SAHPI_TRUE;
     m_wdt.PresentCount = m_wdt.InitialCount;
     if ( m_wdt.InitialCount != 0 ) {
-        m_resource.GetTimers().SetTimer( this, 1000000LL ); // 1 ms tick
+        m_handler.SetTimer( this, 1000000LL ); // 1 ms tick
     } else {
         ProcessTick();
     }
@@ -192,23 +196,23 @@ void cWatchdog::ProcessTick()
     if ( m_wdt.PretimerInterrupt != SAHPI_WPI_NONE ) {
         if ( m_wdt.PresentCount == m_wdt.PreTimeoutInterval ) {
             // Pre-timer interrupt
-            SendEvent( SAHPI_WAE_TIMER_INT );
+            PostEvent( SAHPI_WAE_TIMER_INT );
         }
     }
     if ( m_wdt.PresentCount == 0 ) {
         // Expired
         m_wdt.TimerUseExpFlags |= TimerUseToExpFlags( m_wdt.TimerUse );
         m_wdt.Running = SAHPI_FALSE;
-        SendEvent( ActionEvent( m_wdt.TimerAction ) );
+        PostEvent( ActionEvent( m_wdt.TimerAction ) );
     }
 
     // Schedule next tick
     if ( m_wdt.Running != SAHPI_FALSE ) {
-        m_resource.GetTimers().SetTimer( this, 1000000LL ); // 1 ms tick
+        m_handler.SetTimer( this, 1000000LL ); // 1 ms tick
     }
 }
 
-void cWatchdog::SendEvent( SaHpiWatchdogActionEventT ae )
+void cWatchdog::PostEvent( SaHpiWatchdogActionEventT ae )
 {
     if ( m_wdt.Log == SAHPI_FALSE ) {
         return;
@@ -216,13 +220,13 @@ void cWatchdog::SendEvent( SaHpiWatchdogActionEventT ae )
 
     SaHpiEventUnionT data;
     SaHpiWatchdogEventT& we = data.WatchdogEvent;
-    
+
     we.WatchdogNum            = m_rec.WatchdogNum;
     we.WatchdogAction         = ae;
     we.WatchdogPreTimerAction = m_wdt.PretimerInterrupt;
     we.WatchdogUse            = m_wdt.TimerUse;
 
-    PostEvent( SAHPI_ET_WATCHDOG, data, SAHPI_INFORMATIONAL );
+    cInstrument::PostEvent( SAHPI_ET_WATCHDOG, data, SAHPI_INFORMATIONAL );
 }
 
 

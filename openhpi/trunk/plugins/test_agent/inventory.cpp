@@ -128,8 +128,9 @@ struct AreaMaxId
  *************************************************************/
 const std::string cInventory::classname = "inv";
 
-cInventory::cInventory( cResource& resource, SaHpiIdrIdT num )
-    : cInstrument( resource,
+cInventory::cInventory( cHandler& handler, cResource& resource, SaHpiIdrIdT num )
+    : cInstrument( handler,
+                   resource,
                    AssembleNumberedObjectName( classname, num ),
                    SAHPI_INVENTORY_RDR,
                    MakeDefaultInvRec( num ) ),

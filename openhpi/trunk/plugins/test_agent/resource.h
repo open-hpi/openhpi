@@ -39,7 +39,6 @@ class cResource : public cObject, public cInstruments, private cTimerCallback
 public:
 
     explicit cResource( cHandler& handler,
-                        cTimers& timers,
                         const SaHpiEntityPathT& ep );
     virtual ~cResource();
 
@@ -50,7 +49,6 @@ public:
     const SaHpiEntityPathT& GetEntityPath() const;
     bool IsFailed() const;
     void UpdateCaps( SaHpiCapabilitiesT caps );
-    cTimers& GetTimers() const;
 
     cLog * GetLog() const;
 
@@ -119,7 +117,6 @@ private:
 private: // data
 
     cHandler&              m_handler;
-    cTimers&               m_timers;
     cLog *                 m_log;
     SaHpiRptEntryT         m_rpte;
     SaHpiBoolT             m_failed;

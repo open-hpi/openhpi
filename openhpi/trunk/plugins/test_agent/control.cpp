@@ -73,8 +73,9 @@ static SaHpiRdrTypeUnionT MakeDefaultCtrlRec( SaHpiCtrlNumT num )
 const std::string cControl::classname( "ctrl");
 static const std::string line_name( "Line" );
 
-cControl::cControl( cResource& resource, SaHpiCtrlNumT num )
-    : cInstrument( resource,
+cControl::cControl( cHandler& handler, cResource& resource, SaHpiCtrlNumT num )
+    : cInstrument( handler,
+                   resource,
                    AssembleNumberedObjectName( classname, num ),
                    SAHPI_CTRL_RDR,
                    MakeDefaultCtrlRec( num ) ),

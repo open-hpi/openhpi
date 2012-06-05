@@ -34,6 +34,7 @@
 #include "log.h"
 #include "resource.h"
 #include "sensor.h"
+#include "test.h"
 #include "utils.h"
 #include "watchdog.h"
 
@@ -190,6 +191,22 @@ static cDimi * GetDimi( cHandler * h,
         cDimi * dimi = r->GetDimi( num );
         if ( dimi && dimi->IsVisible() ) {
             return dimi;
+        }
+    }
+
+    return 0;
+}
+
+static cTest * GetTest( cHandler * h,
+                        SaHpiResourceIdT rid,
+                        SaHpiDimiNumT num,
+                        SaHpiDimiTestNumT tnum )
+{
+    cDimi * dimi = GetDimi( h, rid, num );
+    if ( dimi ) {
+        cTest * test = dimi->GetTest( tnum );
+        if ( test && test->IsVisible() ) {
+            return test;
         }
     }
 
@@ -1184,7 +1201,14 @@ oh_get_dimi_info(
     SaHpiDimiNumT num,
     SaHpiDimiInfoT * info )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cDimi * dimi = TA::GetDimi( handler, rid, num );
+    if ( !dimi ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    return dimi->GetInfo( *info );
 }
 
 
@@ -1199,7 +1223,14 @@ oh_get_dimi_test(
     SaHpiDimiTestNumT testnum,
     SaHpiDimiTestT * test )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cTest * t = TA::GetTest( handler, rid, num, testnum );
+    if ( !t ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    return t->GetInfo( *test );
 }
 
 
@@ -1214,7 +1245,14 @@ oh_get_dimi_test_ready(
     SaHpiDimiTestNumT testnum,
     SaHpiDimiReadyT * ready )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cTest * t = TA::GetTest( handler, rid, num, testnum );
+    if ( !t ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    return t->GetReadiness( *ready );
 }
 
 
@@ -1230,7 +1268,14 @@ oh_start_dimi_test(
     SaHpiUint8T numparams,
     SaHpiDimiTestVariableParamsT * paramslist )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cTest * t = TA::GetTest( handler, rid, num, testnum );
+    if ( !t ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    return t->Start( numparams, paramslist );
 }
 
 
@@ -1244,7 +1289,14 @@ oh_cancel_dimi_test(
     SaHpiDimiNumT num,
     SaHpiDimiTestNumT testnum )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cTest * t = TA::GetTest( handler, rid, num, testnum );
+    if ( !t ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    return t->Cancel();
 }
 
 
@@ -1260,7 +1312,14 @@ oh_get_dimi_test_status(
     SaHpiDimiTestPercentCompletedT * percentcompleted,
     SaHpiDimiTestRunStatusT * runstatus )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cTest * t = TA::GetTest( handler, rid, num, testnum );
+    if ( !t ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    return t->GetStatus( *percentcompleted, *runstatus );
 }
 
 
@@ -1275,7 +1334,14 @@ oh_get_dimi_test_results(
     SaHpiDimiTestNumT testnum,
     SaHpiDimiTestResultsT * testresults )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cTest * t = TA::GetTest( handler, rid, num, testnum );
+    if ( !t ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    return t->GetResults( *testresults );
 }
 
 

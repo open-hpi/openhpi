@@ -64,13 +64,14 @@ struct cConsoleCmd
 /**************************************************************
  * class cConsole
  *************************************************************/
+class cHandler;
 typedef std::list<std::string> ObjectPath;
 
 class cConsole : private cServer
 {
 public:
 
-    explicit cConsole( uint16_t port, cObject& root );
+    explicit cConsole( cHandler& handler, uint16_t port, cObject& root );
     virtual ~cConsole();
 
     bool Init();
@@ -110,10 +111,11 @@ private:
 
 private: // data
 
+    cHandler&                 m_handler;
     std::vector<cConsoleCmd > m_cmds;
-    bool                 m_quit;
-    ObjectPath           m_path;
-    cObject&             m_root;
+    bool                      m_quit;
+    ObjectPath                m_path;
+    cObject&                  m_root;
 };
 
 

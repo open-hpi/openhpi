@@ -36,7 +36,7 @@ public:
 
     static const std::string classname;
 
-    explicit cControl( cResource& resource, SaHpiCtrlNumT num );
+    explicit cControl( cHandler& handler, cResource& resource, SaHpiCtrlNumT num );
     virtual ~cControl();
 
 public:  // HPI interface

@@ -22,6 +22,7 @@ SRC := abi.cpp \
        sensor.cpp \
        server.cpp \
        structs.cpp \
+       test.cpp \
        timers.cpp \
        utils.cpp \
        vars.cpp \

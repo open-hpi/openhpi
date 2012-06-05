@@ -32,6 +32,7 @@ namespace TA {
 /**************************************************************
  * class cInstruments
  *************************************************************/
+class cHandler;
 class cResource;
 class cControl;
 class cSensor;
@@ -58,7 +59,7 @@ public:
 
 protected:
 
-    explicit cInstruments( cResource& resource );
+    explicit cInstruments( cHandler& handler, cResource& resource );
     virtual ~cInstruments();
 
 protected:
@@ -76,6 +77,7 @@ private:
 
 private: // data
 
+    cHandler&  m_handler;
     cResource& m_resource;
 
     typedef std::map<SaHpiCtrlNumT, cControl *> Controls;

@@ -82,6 +82,12 @@ private: // data
 
 
 /**************************************************************
+ * Entity Path Helpers
+ *************************************************************/
+void MakeUnspecifiedHpiEntityPath( SaHpiEntityPathT& ep );
+
+
+/**************************************************************
  * Text Buffer Helpers
  *************************************************************/
 void MakeHpiTextBuffer( SaHpiTextBufferT& tb, const char * s );

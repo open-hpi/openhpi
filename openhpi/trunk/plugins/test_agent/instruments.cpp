@@ -22,6 +22,7 @@
 #include "control.h"
 #include "dimi.h"
 #include "fumi.h"
+#include "handler.h"
 #include "instruments.h"
 #include "inventory.h"
 #include "sensor.h"
@@ -81,8 +82,9 @@ struct ObjectCollector
 /**************************************************************
  * class cInstruments
  *************************************************************/
-cInstruments::cInstruments( cResource& resource )
-    : m_resource( resource )
+cInstruments::cInstruments( cHandler& handler, cResource& resource )
+    : m_handler( handler ),
+      m_resource( resource )
 {
     // empty
 }
@@ -266,43 +268,43 @@ bool cInstruments::CreateInstrument( const std::string& name )
 
     if ( cname == cControl::classname ) {
         if ( !GetControl( num ) ) {
-            m_controls[num] = new cControl( m_resource, num );
+            m_controls[num] = new cControl( m_handler, m_resource, num );
             return true;
         }
     }
     if ( cname == cSensor::classname ) {
         if ( !GetSensor( num ) ) {
-            m_sensors[num] = new cSensor( m_resource, num );
+            m_sensors[num] = new cSensor( m_handler, m_resource, num );
             return true;
         }
     }
     if ( cname == cInventory::classname ) {
         if ( !GetInventory( num ) ) {
-            m_invs[num] = new cInventory( m_resource, num );
+            m_invs[num] = new cInventory( m_handler, m_resource, num );
             return true;
         }
     }
     if ( cname == cWatchdog::classname ) {
         if ( !GetWatchdog( num ) ) {
-            m_wdts[num] = new cWatchdog( m_resource, num );
+            m_wdts[num] = new cWatchdog( m_handler, m_resource, num );
             return true;
         }
     }
     if ( cname == cAnnunciator::classname ) {
         if ( !GetAnnunciator( num ) ) {
-            m_anns[num] = new cAnnunciator( m_resource, num );
+            m_anns[num] = new cAnnunciator( m_handler, m_resource, num );
             return true;
         }
     }
     if ( cname == cDimi::classname ) {
         if ( !GetDimi( num ) ) {
-            m_dimis[num] = new cDimi( m_resource, num );
+            m_dimis[num] = new cDimi( m_handler, m_resource, num );
             return true;
         }
     }
     if ( cname == cFumi::classname ) {
         if ( !GetFumi( num ) ) {
-            m_fumis[num] = new cFumi( m_resource, num );
+            m_fumis[num] = new cFumi( m_handler, m_resource, num );
             return true;
         }
     }

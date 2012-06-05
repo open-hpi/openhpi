@@ -78,13 +78,11 @@ static void MakeDefaultRptEntry( const SaHpiEntityPathT& ep,
  * class cResource
  *************************************************************/
 cResource::cResource( cHandler& handler,
-                      cTimers& timers,
                       const SaHpiEntityPathT& ep )
 
     : cObject( AssembleResourceObjectName( ep ), SAHPI_FALSE ),
-      cInstruments( *this ),
+      cInstruments( handler, *this ),
       m_handler( handler ),
-      m_timers( timers ),
       m_log( 0 )
 {
     MakeDefaultRptEntry( ep, m_rpte );
@@ -106,7 +104,7 @@ cResource::~cResource()
 {
     delete m_log;
     m_log = 0;
-    m_timers.CancelTimer( this );
+    m_handler.CancelTimer( this );
     SetVisible( false );
 }
 
@@ -133,11 +131,6 @@ bool cResource::IsFailed() const
 void cResource::UpdateCaps( SaHpiCapabilitiesT caps )
 {
     m_rpte.ResourceCapabilities |= caps;
-}
-
-cTimers& cResource::GetTimers() const
-{
-    return m_timers;
 }
 
 cLog * cResource::GetLog() const
@@ -174,7 +167,7 @@ SaErrorT cResource::CancelHsPolicy( const SaHpiTimeoutT& timeout )
             return SA_ERR_HPI_INVALID_REQUEST;
     }
 
-    m_timers.CancelTimer( this );
+    m_handler.CancelTimer( this );
 
     return SA_OK;
 }
@@ -234,7 +227,7 @@ SaErrorT cResource::SetHsState( SaHpiHsStateT state )
             return SA_ERR_HPI_INVALID_REQUEST;
     }
 
-    m_timers.CancelTimer( this );
+    m_handler.CancelTimer( this );
     m_new_hs_state = state;
     CommitChanges();
 
@@ -269,7 +262,7 @@ SaErrorT cResource::RequestHsAction( SaHpiHsActionT action )
     }
 
     CommitChanges();
-    m_timers.SetTimer( this, t );
+    m_handler.SetTimer( this, t );
 
     return SA_OK;
 }
@@ -716,10 +709,10 @@ void cResource::CommitChanges()
     SaHpiTimeoutT ait, aet, t;
     if ( m_hs_state == SAHPI_HS_STATE_INSERTION_PENDING ) {
         GetTimeouts( t, aet );
-        m_timers.SetTimer( this, t );
+        m_handler.SetTimer( this, t );
     } else if ( m_hs_state == SAHPI_HS_STATE_EXTRACTION_PENDING ) {
         GetTimeouts( ait, t );
-        m_timers.SetTimer( this, t );
+        m_handler.SetTimer( this, t );
     }
 }
 

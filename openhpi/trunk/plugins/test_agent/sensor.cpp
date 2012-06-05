@@ -232,8 +232,9 @@ SaHpiSeverityT GetEventSeverity( SaHpiEventCategoryT cat,
  *************************************************************/
 const std::string cSensor::classname( "sen" );
 
-cSensor::cSensor( cResource& resource, SaHpiSensorNumT num )
-    : cInstrument( resource,
+cSensor::cSensor( cHandler& handler, cResource& resource, SaHpiSensorNumT num )
+    : cInstrument( handler,
+                   resource,
                    AssembleNumberedObjectName( classname, num ),
                    SAHPI_SENSOR_RDR,
                    MakeDefaultSensorRec( num ) ),
@@ -586,7 +587,7 @@ void cSensor::CommitChanges()
     }
 
     if ( send_enable_event ) {
-        SendEnableChangeEvent();
+        PostEnableChangeEvent();
     }
 
     // Check if event shall be generated
@@ -605,15 +606,15 @@ void cSensor::CommitChanges()
     for ( size_t i = 0; i < 15; ++i ) {
         SaHpiEventStateT s = ( 1 << i );
         if ( s & a ) {
-            SendEvent( true, s );
+            PostEvent( true, s );
         }
         if ( s & d ) {
-            SendEvent( false, s );
+            PostEvent( false, s );
         }
     }
 }
 
-void cSensor::SendEnableChangeEvent() const
+void cSensor::PostEnableChangeEvent() const
 {
     SaHpiEventUnionT data;
     SaHpiSensorEnableChangeEventT& sece = data.SensorEnableChangeEvent;
@@ -628,10 +629,10 @@ void cSensor::SendEnableChangeEvent() const
     sece.OptionalDataPresent = SAHPI_SEOD_CURRENT_STATE;
     sece.CurrentState        = m_states;
 
-    PostEvent( SAHPI_ET_SENSOR_ENABLE_CHANGE, data, SAHPI_INFORMATIONAL );
+    cInstrument::PostEvent( SAHPI_ET_SENSOR_ENABLE_CHANGE, data, SAHPI_INFORMATIONAL );
 }
 
-void cSensor::SendEvent( bool assertion, SaHpiEventStateT state ) const
+void cSensor::PostEvent( bool assertion, SaHpiEventStateT state ) const
 {
     SaHpiEventUnionT data;
     SaHpiSensorEventT& se = data.SensorEvent;
@@ -653,7 +654,7 @@ void cSensor::SendEvent( bool assertion, SaHpiEventStateT state ) const
     if ( m_rec.Category == SAHPI_EC_THRESHOLD ) {
         se.OptionalDataPresent |= SAHPI_SOD_TRIGGER_READING;
         se.TriggerReading = m_reading;
-// TODO
+// TODO SAHPI_SOD_TRIGGER_THRESHOLD
 #if 0
 #define SAHPI_SOD_TRIGGER_THRESHOLD (SaHpiSensorOptionalDataT)0x02
 #endif
@@ -662,7 +663,7 @@ void cSensor::SendEvent( bool assertion, SaHpiEventStateT state ) const
 
     SaHpiSeverityT sev = GetEventSeverity( m_rec.Category, assertion, state );
 
-    PostEvent( SAHPI_ET_SENSOR, data, sev );
+    cInstrument::PostEvent( SAHPI_ET_SENSOR, data, sev );
 }
 
 

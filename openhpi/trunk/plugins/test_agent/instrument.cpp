@@ -74,11 +74,13 @@ static void MakeDefaultRdr( const SaHpiEntityPathT& ep,
 /**************************************************************
  * class cInstrument
  *************************************************************/
-cInstrument::cInstrument( cResource& resource,
+cInstrument::cInstrument( cHandler& handler,
+                          cResource& resource,
                           const std::string& name,
                           SaHpiRdrTypeT type,
                           const SaHpiRdrTypeUnionT& data )
     : cObject( name, SAHPI_FALSE ),
+      m_handler( handler ),
       m_resource( resource )
 {
     MakeDefaultRdr( resource.GetEntityPath(),
@@ -138,6 +140,7 @@ void cInstrument::AfterVarSet( const std::string& var_name )
     }
 }
 
+
 // Event generation
 void cInstrument::PostEvent( SaHpiEventTypeT type,
                              const SaHpiEventUnionT& data,
@@ -157,6 +160,7 @@ void cInstrument::PostEvent( SaHpiEventTypeT type,
 
     m_resource.PostEvent( type, data, severity, l, l_remove );
 }
+
 
 void cInstrument::PostUpdateEvent( bool remove ) const
 {

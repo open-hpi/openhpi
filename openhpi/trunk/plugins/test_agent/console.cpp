@@ -25,6 +25,8 @@
 
 #include "codec.h"
 #include "console.h"
+#include "handler.h"
+#include "utils.h"
 
 
 namespace TA {
@@ -112,8 +114,10 @@ static void ParseLine( const std::vector<char>& line,
 /**************************************************************
  * class cConsole
  *************************************************************/
-cConsole::cConsole( uint16_t port, cObject& root )
-    : cServer( port ), m_root( root )
+cConsole::cConsole( cHandler& handler, uint16_t port, cObject& root )
+    : cServer( port ),
+      m_handler( handler ),
+      m_root( root )
 {
     // empty
 }
@@ -197,7 +201,6 @@ void cConsole::WelcomeUser() const
 
 void cConsole::ProcessUserLine( const std::vector<char>& line, bool& quit )
 {
-// TODO lock handler
     m_quit = false;
 
     bool rc = IsNonCommand( line );
@@ -212,6 +215,8 @@ void cConsole::ProcessUserLine( const std::vector<char>& line, bool& quit )
     if ( name.empty() ) {
         return;
     }
+
+    cLocker<cHandler> al( &m_handler );
 
     for ( size_t i = 0, n = m_cmds.size(); i < n; ++i ) {
         const cConsoleCmd& cmd = m_cmds[i];

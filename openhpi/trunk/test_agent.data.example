@@ -48,6 +48,9 @@ new {SYSTEM_BLADE,7}
 cd {SYSTEM_BLADE,7}
 set Visible = TRUE
 
+# create log
+new log
+
 # create controls
 new ctrl-1
 cd ctrl-1
@@ -235,6 +238,12 @@ cd field-2
 set ReadOnly = FALSE
 cd ../../../
 
+# create watchdog
+new wdt-0  
+cd wdt-0
+set Visible = TRUE
+cd ..
+
 # create annunciator
 new ann-1
 cd ann-1
@@ -249,11 +258,13 @@ set Mode = AUTO
 set Visible = TRUE
 cd ..
 
-# create watchdog
-new wdt-0  
-cd wdt-0
+# create dimi with single test
+new dimi-1
+cd dimi-1
 set Visible = TRUE
+new test-0
 cd ..
+
 
 cd /
 
