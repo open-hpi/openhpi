@@ -200,8 +200,8 @@ void cServer::Send( const char * data, size_t len ) const
 
 gpointer cServer::ThreadProcAdapter( gpointer data )
 {
-    cServer * handler = reinterpret_cast<cServer*>(data);
-    handler->ThreadProc();
+    cServer * me = reinterpret_cast<cServer*>(data);
+    me->ThreadProc();
 
     return 0;
 }

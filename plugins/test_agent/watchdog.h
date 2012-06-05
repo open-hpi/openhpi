@@ -36,7 +36,9 @@ public:
 
     static const std::string classname;
 
-    explicit cWatchdog( cResource& resource, SaHpiWatchdogNumT num );
+    explicit cWatchdog( cHandler& handler,
+                        cResource& resource,
+                        SaHpiWatchdogNumT num );
     virtual ~cWatchdog();
 
 public:  // HPI interface
@@ -68,7 +70,7 @@ private: // cTimerCallback virtual functions
 private:
 
     void ProcessTick();
-    void SendEvent( SaHpiWatchdogActionEventT ae );
+    void PostEvent( SaHpiWatchdogActionEventT ae );
 
 private: // data
 

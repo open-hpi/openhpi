@@ -45,7 +45,7 @@ cHandler::cHandler( unsigned int id,
                     oh_evt_queue& eventq )
 
     : cObject( "root" ),
-      cConsole( port, *this ),
+      cConsole( *this, port, *this ),
       m_id( id ),
       m_eventq( eventq ),
       m_ai_timeout( SAHPI_TIMEOUT_IMMEDIATE )
@@ -75,7 +75,7 @@ bool cHandler::Init()
         CRIT( "cannot initialize console" );
         return false;
     }
-    rc = m_timers.Start();
+    rc = cTimers::Start();
     if ( !rc ) {
         CRIT( "cannot start timers" );
         return false;
@@ -197,7 +197,7 @@ bool cHandler::CreateChild( const std::string& name )
         return false;
     }
 
-    cResource * r = new cResource( *this, m_timers, ep );
+    cResource * r = new cResource( *this, ep );
     m_resources[r->GetResourceId()] = r;
 
     return true;

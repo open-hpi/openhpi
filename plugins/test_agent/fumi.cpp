@@ -45,8 +45,9 @@ static SaHpiRdrTypeUnionT MakeDefaultFumiRec( SaHpiFumiNumT num )
  *************************************************************/
 const std::string cFumi::classname( "fumi" );
 
-cFumi::cFumi( cResource& resource, SaHpiFumiNumT num )
-    : cInstrument( resource,
+cFumi::cFumi( cHandler& handler, cResource& resource, SaHpiFumiNumT num )
+    : cInstrument( handler,
+                   resource,
                    AssembleNumberedObjectName( classname, num ),
                    SAHPI_FUMI_RDR,
                    MakeDefaultFumiRec( num ) ),
@@ -62,14 +63,14 @@ cFumi::~cFumi()
 
 
 // HPI interface
-// TODO
+// TODO hpi interface
 
 // cObject virtual functions
 void cFumi::GetVars( cVars& vars )
 {
     cInstrument::GetVars( vars );
 
-    // TODO
+    // TODO getvars
 }
 
 

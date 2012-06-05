@@ -37,7 +37,9 @@ public:
 
     static const std::string classname;
 
-    explicit cAnnunciator( cResource& resource, SaHpiAnnunciatorNumT num );
+    explicit cAnnunciator( cHandler& handler,
+                           cResource& resource,
+                           SaHpiAnnunciatorNumT num );
     virtual ~cAnnunciator();
 
 public:

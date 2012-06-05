@@ -35,7 +35,7 @@ public:
 
     static const std::string classname;
 
-    explicit cSensor( cResource& resource, SaHpiSensorNumT num );
+    explicit cSensor( cHandler& handler, cResource& resource, SaHpiSensorNumT num );
     virtual ~cSensor();
 
 public:  // HPI interface
@@ -75,8 +75,8 @@ private:
         return SAHPI_CAPABILITY_SENSOR;
     }
 
-    void SendEnableChangeEvent() const;
-    void SendEvent( bool assertion, SaHpiEventStateT state ) const;
+    void PostEnableChangeEvent() const;
+    void PostEvent( bool assertion, SaHpiEventStateT state ) const;
     SaHpiEventStateT CalculateThresholdEventStates() const;
     void CommitChanges();
 

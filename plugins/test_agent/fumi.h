@@ -35,7 +35,7 @@ public:
 
     static const std::string classname;
 
-    explicit cFumi( cResource& resource, SaHpiFumiNumT num );
+    explicit cFumi( cHandler& handler, cResource& resource, SaHpiFumiNumT num );
     virtual ~cFumi();
 
 public:  // HPI interface

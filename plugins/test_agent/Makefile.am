@@ -63,6 +63,8 @@ libtest_agent_la_SOURCES = abi.cpp \
                            server.h \
                            structs.cpp \
                            structs.h \
+                           test.cpp \
+                           test.h \
                            timers.cpp \
                            timers.h \
                            utils.cpp \

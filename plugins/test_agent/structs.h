@@ -40,6 +40,7 @@ void GetVars( const std::string& name, SaHpiSensorReadingT& r, cVars& vars );
 void GetVars( SaHpiSensorThresholdsT& ths, cVars& vars );
 void GetVars( SaHpiWatchdogT& wd, cVars& vars );
 void GetVars( SaHpiAnnouncementT& a, cVars& vars );
+void GetVars( SaHpiDimiTestT& info, cVars& vars );
 
 
 }; // namespace Structs

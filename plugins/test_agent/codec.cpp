@@ -1330,7 +1330,7 @@ static void ToTxt_Buffer( const SaHpiTextTypeT type,
 
     switch ( type ) {
         case SAHPI_TL_TYPE_UNICODE:
-            // TODO
+            // TODO unicode
             break;
         case SAHPI_TL_TYPE_BCDPLUS:
         case SAHPI_TL_TYPE_ASCII6:
@@ -1371,7 +1371,7 @@ static bool FromTxt_Buffer( const std::string& txt,
 
     switch ( type ) {
         case SAHPI_TL_TYPE_UNICODE:
-            // TODO
+            // TODO unicode
             return false;
         case SAHPI_TL_TYPE_BCDPLUS:
         case SAHPI_TL_TYPE_ASCII6:

@@ -13,6 +13,7 @@
  *        Anton Pak <anton.pak@pigeonpoint.com>
  */
 
+#include <stddef.h>
 #include <string.h>
 
 #include <algorithm>
@@ -22,6 +23,18 @@
 
 
 namespace TA {
+
+
+/**************************************************************
+ * Entity Path Helpers
+ *************************************************************/
+void MakeUnspecifiedHpiEntityPath( SaHpiEntityPathT& ep )
+{
+    for ( size_t i = 0; i < SAHPI_MAX_ENTITY_PATH; ++i ) {
+        ep.Entry[i].EntityType     = SAHPI_ENT_UNSPECIFIED;
+        ep.Entry[i].EntityLocation = 0;
+    }
+}
 
 
 /**************************************************************

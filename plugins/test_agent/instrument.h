@@ -29,13 +29,16 @@ namespace TA {
 /**************************************************************
  * class cInstrument
  *************************************************************/
+class cHandler;
 class cResource;
+class cTimers;
 
 class cInstrument : public cObject
 {
 public:
 
-    explicit cInstrument( cResource& resource,
+    explicit cInstrument( cHandler& handler,
+                          cResource& resource,
                           const std::string& name,
                           SaHpiRdrTypeT type,
                           const SaHpiRdrTypeUnionT& data );
@@ -77,6 +80,7 @@ private: // Event generation
 
 protected: // data
 
+    cHandler&  m_handler;
     cResource& m_resource;
 
 private: // data

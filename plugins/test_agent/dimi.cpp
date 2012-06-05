@@ -13,10 +13,12 @@
  *        Anton Pak <anton.pak@pigeonpoint.com>
  */
 
+#include <algorithm>
 #include <string>
 
 #include "codec.h"
 #include "dimi.h"
+#include "test.h"
 
 
 namespace TA {
@@ -38,35 +40,183 @@ static SaHpiRdrTypeUnionT MakeDefaultDimiRec( SaHpiDimiNumT num )
 
 
 /**************************************************************
+ * Functors for working with tests
+ *************************************************************/
+struct TestDeleter
+{
+    void operator ()( cTest * test )
+    {
+        delete test;
+    }
+};
+
+struct ObjectCollector
+{
+    explicit ObjectCollector( cObject::Children& _children )
+        : children( _children )
+    {
+        // empty
+    }
+
+    void operator ()( cTest * test )
+    {
+        if ( test ) {
+            children.push_back( test );
+        }
+    }
+
+    cObject::Children& children;
+};
+
+
+/**************************************************************
  * class cDimi
  *************************************************************/
 const std::string cDimi::classname( "dimi" );
 
-cDimi::cDimi( cResource& resource, SaHpiDimiNumT num )
-    : cInstrument( resource,
+cDimi::cDimi( cHandler& handler, cResource& resource, SaHpiDimiNumT num )
+    : cInstrument( handler,
+                   resource,
                    AssembleNumberedObjectName( classname, num ),
                    SAHPI_DIMI_RDR,
                    MakeDefaultDimiRec( num ) ),
-      m_rec( GetRdr().RdrTypeUnion.DimiRec )
+      m_rec( GetRdr().RdrTypeUnion.DimiRec ),
+      m_update_count( 0 )
 {
     // empty
 }
 
 cDimi::~cDimi()
 {
-    // empty
+    TestDeleter deleter;
+    std::for_each( m_tests.begin(), m_tests.end(), deleter );
+    m_tests.clear();
+}
+
+
+cTest * cDimi::GetTest( SaHpiDimiTestNumT tnum ) const
+{
+    return ( tnum < m_tests.size() ) ? m_tests[tnum] : 0;
+}
+
+void cDimi::PostEvent( SaHpiDimiTestNumT tnum, 
+                       SaHpiDimiTestRunStatusT status,     
+                       SaHpiDimiTestPercentCompletedT progress )
+{
+    SaHpiEventUnionT data;
+    SaHpiDimiEventT& de = data.DimiEvent;
+
+    de.DimiNum                  = m_rec.DimiNum;
+    de.TestNum                  = tnum;
+    de.DimiTestRunStatus        = status;
+    de.DimiTestPercentCompleted = progress;
+
+    cInstrument::PostEvent( SAHPI_ET_DIMI, data, SAHPI_INFORMATIONAL );
 }
 
 
 // HPI interface
-// TODO
+SaErrorT cDimi::GetInfo( SaHpiDimiInfoT& info ) const
+{
+    info.NumberOfTests        = m_tests.size();
+    info.TestNumUpdateCounter = m_update_count;
+
+    return SA_OK;
+}
+
 
 // cObject virtual functions
-void cDimi::GetVars( cVars& vars )
+void cDimi::GetNewNames( cObject::NewNames& names ) const
 {
-    cInstrument::GetVars( vars );
+    cObject::GetNewNames( names );
+    names.push_back( cTest::classname + "-XXX" );
+}
 
-    // TODO
+bool cDimi::CreateChild( const std::string& name )
+{
+    bool rc;
+
+    rc = cObject::CreateChild( name );
+    if ( rc ) {
+        return true;
+    }
+
+    std::string cname;
+    SaHpiUint32T id;
+    rc = DisassembleNumberedObjectName( name, cname, id );
+    if ( !rc ) {
+        return false;
+    }
+
+    if ( cname != cTest::classname ) {
+        return false;
+    }
+
+    if ( id > m_tests.size() ) {
+        return false;
+    }
+    if ( id == m_tests.size() ) {
+        m_tests.push_back( 0 );
+    }
+    if ( m_tests[id] ) {
+        return false;
+    }
+
+    m_tests[id] = new cTest( m_handler, *this, id );
+    Update();
+
+    return true;
+}
+
+bool cDimi::RemoveChild( const std::string& name )
+{
+    bool rc;
+
+    rc = cObject::RemoveChild( name );
+    if ( rc ) {
+        return true;
+    }
+
+    std::string cname;
+    SaHpiUint32T id;
+    rc = DisassembleNumberedObjectName( name, cname, id );
+    if ( !rc ) {
+        return false;
+    }
+
+    if ( id >= m_tests.size() ) {
+        return false;
+    }
+    if ( m_tests[id] == 0 ) {
+        return false;
+    }
+
+    delete m_tests[id];
+    m_tests[id] = 0;
+    Update();
+
+    return true;
+}
+
+void cDimi::GetChildren( Children& children ) const
+{
+    cObject::GetChildren( children );
+
+    ObjectCollector collector( children );
+    std::for_each( m_tests.begin(), m_tests.end(), collector );
+}
+
+
+void cDimi::Update()
+{
+    ++m_update_count;
+
+    SaHpiEventUnionT data;
+    SaHpiDimiUpdateEventT& due = data.DimiUpdateEvent;
+
+    due.DimiNum = m_rec.DimiNum;
+
+    cInstrument::PostEvent( SAHPI_ET_DIMI_UPDATE, data, SAHPI_INFORMATIONAL );
 }
 
 

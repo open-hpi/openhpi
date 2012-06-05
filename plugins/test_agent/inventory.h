@@ -38,7 +38,7 @@ public:
 
     static const std::string classname;
 
-    explicit cInventory( cResource& resource, SaHpiIdrIdT num );
+    explicit cInventory( cHandler& handler, cResource& resource, SaHpiIdrIdT num );
     virtual ~cInventory();
 
 public:

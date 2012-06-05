@@ -40,7 +40,7 @@ namespace TA {
  *************************************************************/
 class cResource;
 
-class cHandler : private cObject, private cConsole
+class cHandler : public cTimers, private cObject, private cConsole
 {
 public:
 
@@ -95,7 +95,6 @@ private: // data
     GStaticMutex  m_lock;
     Resources     m_resources;
     SaHpiTimeoutT m_ai_timeout;
-    cTimers       m_timers;
 };
 
 

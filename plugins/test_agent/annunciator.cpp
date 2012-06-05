@@ -171,8 +171,11 @@ struct ObjectCollector
  *************************************************************/
 const std::string cAnnunciator::classname( "ann" );
 
-cAnnunciator::cAnnunciator( cResource& resource, SaHpiAnnunciatorNumT num )
-    : cInstrument( resource,
+cAnnunciator::cAnnunciator( cHandler& handler,
+                            cResource& resource,
+                            SaHpiAnnunciatorNumT num )
+    : cInstrument( handler,
+                   resource,
                    AssembleNumberedObjectName( classname, num ),
                    SAHPI_ANNUNCIATOR_RDR,
                    MakeDefaultAnnunciatorRec( num ) ),
