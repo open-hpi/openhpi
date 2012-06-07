@@ -1,9 +1,9 @@
-MCS := /home/avpak/usr/mono/bin/dmcs
-MONO := /home/avpak/usr/mono/bin/mono
+MCS := dmcs
+MONO := mono
 
-.PHONY: all run example openhpi_baselib
+.PHONY: all openhpi_baselib example example_iterators
 
-all: run
+all: example example_iterators
 
 openhpi_baselib:
 	${MCS} @openhpi_baselib.rsp
@@ -11,8 +11,8 @@ openhpi_baselib:
 example: openhpi_baselib
 	${MCS} @example.rsp
 
-run: example
-	${MONO} example.exe
+example_iterators: openhpi_baselib 
+	${MCS} @example_iterators.rsp
 
 clean:
-	rm -f example.exe openhpi_baselib.dll
+	rm -f example.exe example_iterators.exe openhpi_baselib.dll
