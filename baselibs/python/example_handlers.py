@@ -9,7 +9,7 @@ if rv != SA_OK:
 
 # List all handlers
 last_hid = None
-for hid in OhpiIterators.Handlers( sid ):
+for hid in OhpiIterators.HandlerIds( sid ):
     last_hid = hid
     print "Handler %d" % hid
     ( rv, hinfo, hconf ) = oHpiHandlerInfo( sid, hid )
