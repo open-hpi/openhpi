@@ -7,6 +7,7 @@ openhpi_baselib/HpiDataTypesGen.cs
 openhpi_baselib/HpiDomain.cs
 openhpi_baselib/HpiException.cs
 openhpi_baselib/HpiGen.cs
+openhpi_baselib/HpiIterators.cs
 openhpi_baselib/HpiMarshalCore.cs
 openhpi_baselib/HpiMarshalGen.cs
 openhpi_baselib/HpiSession.cs
