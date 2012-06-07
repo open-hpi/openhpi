@@ -9,7 +9,7 @@ from openhpi_baselib.Ohpi import *
 # Iterate over Handlers
 # Provides handler id
 #**********************************************************
-def Handlers( sid ):
+def HandlerIds( sid ):
     hid = SAHPI_FIRST_ENTRY
     while hid != SAHPI_LAST_ENTRY:
         ( rv, hid ) = oHpiHandlerGetNext( sid, hid )

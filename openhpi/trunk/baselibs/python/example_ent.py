@@ -23,7 +23,7 @@ print "Entity %s" % HpiUtil.fromSaHpiEntityPathT( parent )
 for child in HpiIterators.ChildEntities( sid, parent ):
     print " Child Entity %s" % HpiUtil.fromSaHpiEntityPathT( child )
 
-for rid in HpiIterators.EntityResources( sid, parent ):
+for rid in HpiIterators.EntityResourceIds( sid, parent ):
     print " Resource %d" % rid
 
 for rdrtype in [ SAHPI_CTRL_RDR,
@@ -33,7 +33,7 @@ for rdrtype in [ SAHPI_CTRL_RDR,
                  SAHPI_ANNUNCIATOR_RDR,
                  SAHPI_DIMI_RDR,
                  SAHPI_FUMI_RDR ]:
-    for ( rid, instrid ) in HpiIterators.EntityInstruments( sid, parent, rdrtype ):
+    for ( rid, instrid ) in HpiIterators.EntityInstrumentIds( sid, parent, rdrtype ):
         print " Resource %d Instrument %d (%s)" % ( rid, instrid, HpiUtil.fromSaHpiRdrTypeT( rdrtype ) )
 
 rv = saHpiSessionClose( sid )

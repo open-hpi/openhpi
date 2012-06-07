@@ -62,7 +62,7 @@ def Drt( sid ):
 # Iterate over DAT
 # Provides SaHpiAlarmT
 #**********************************************************
-def Dat( sid, severity, unacknowledged_only = False ):
+def Dat( sid, severity = SAHPI_ALL_SEVERITIES, unacknowledged_only = SAHPI_FALSE ):
     id = SAHPI_FIRST_ENTRY
     timestamp = 0L
     while id != SAHPI_LAST_ENTRY:
@@ -88,10 +88,10 @@ def EventLogEntries( sid, rid, readforward = True ):
         yield ( entry, rdr, rpte )
 
 #**********************************************************
-# Iterate over entity resources
+# Iterate over entity resource ids
 # Provides SaHpiResourceIdT
 #**********************************************************
-def EntityResources( sid, ep ):
+def EntityResourceIds( sid, ep ):
     id = SAHPI_FIRST_ENTRY
     while id != SAHPI_LAST_ENTRY:
         ( rv, id, rid, instrid, rptcnt ) = saHpiGetIdByEntityPath( sid, ep, SAHPI_NO_RECORD, id )
@@ -100,10 +100,10 @@ def EntityResources( sid, ep ):
         yield rid
 
 #**********************************************************
-# Iterate over entity instruments
+# Iterate over entity instrument ids
 # Provides ( SaHpiResourceIdT, SaHpiInstrumentIdT ) tuple
 #**********************************************************
-def EntityInstruments( sid, ep, rdrtype ):
+def EntityInstrumentIds( sid, ep, rdrtype ):
     id = SAHPI_FIRST_ENTRY
     while id != SAHPI_LAST_ENTRY:
         ( rv, id, rid, instrid, rptcnt ) = saHpiGetIdByEntityPath( sid, ep, rdrtype, id )
@@ -151,7 +151,7 @@ def Rdrs( sid, rid ):
 # Iterate over Idr Areas
 # Provides SaHpiIdrAreaHeaderT
 #**********************************************************
-def IdrAreas( sid, rid, iid, atype = SAHPI_IDR_AREATYPE_UNSPECIFIED ):
+def IdrAreaHeaders( sid, rid, iid, atype = SAHPI_IDR_AREATYPE_UNSPECIFIED ):
     id = SAHPI_FIRST_ENTRY
     while id != SAHPI_LAST_ENTRY:
         ( rv, id, ahdr ) = saHpiIdrAreaHeaderGet( sid, rid, iid, atype, id )
@@ -163,7 +163,7 @@ def IdrAreas( sid, rid, iid, atype = SAHPI_IDR_AREATYPE_UNSPECIFIED ):
 # Iterate over Idr Area Fields
 # Provides SaHpiIdrFieldT
 #**********************************************************
-def IdrFields( sid, rid, iid, aid, ftype = SAHPI_IDR_FIELDTYPE_UNSPECIFIED ):
+def IdrAreaFields( sid, rid, iid, aid, ftype = SAHPI_IDR_FIELDTYPE_UNSPECIFIED ):
     id = SAHPI_FIRST_ENTRY
     while id != SAHPI_LAST_ENTRY:
         ( rv, id, field ) = saHpiIdrFieldGet( sid, rid, iid, aid, ftype, id )
@@ -175,7 +175,7 @@ def IdrFields( sid, rid, iid, aid, ftype = SAHPI_IDR_FIELDTYPE_UNSPECIFIED ):
 # Iterate over annuncuator announcements
 # Provides SaHpiAnnouncementT
 #**********************************************************
-def Announcements( sid, rid, annnum, severity, unacknowledged_only = False ):
+def Announcements( sid, rid, annnum, severity = SAHPI_ALL_SEVERITIES, unacknowledged_only = SAHPI_FALSE ):
     id = SAHPI_FIRST_ENTRY
     timestamp = 0L
     while id != SAHPI_LAST_ENTRY:
