@@ -418,17 +418,19 @@ AC_ARG_ENABLE([oa_soap],
 
 # configure argument for the slave plugin
 AC_ARG_ENABLE([slave],
-    [  --enable-slave      build slave plugin [[default=no]]],
+    [  --enable-slave      build slave plugin [[default=yes]]],
     [if test "x$enableval" = "xyes"; then
         AC_SUBST(SLAVE,slave)
-    fi])
+    fi],
+    [AC_SUBST(SLAVE,slave)])
 
 # configure argument for the test_agent plugin
 AC_ARG_ENABLE([test_agent],
-    [  --enable-test_agent      build test_agent plugin [[default=no]]],
+    [  --enable-test_agent      build test_agent plugin [[default=yes]]],
     [if test "x$enableval" = "xyes"; then
         AC_SUBST(TEST_AGENT,test_agent)
-    fi])
+    fi],
+    [AC_SUBST(TEST_AGENT,test_agent)])
 
 dnl setup SNMPFLAGS
 AC_SUBST(SNMPFLAGS)
