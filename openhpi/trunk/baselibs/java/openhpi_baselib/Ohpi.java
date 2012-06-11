@@ -12,6 +12,7 @@ import static org.openhpi.OhpiDataTypes.*;
 /**********************************************************
  * OHPI API (NB: Partly implemented)
  *********************************************************/
+// TODO Implement the rest of OHPI API
 public class Ohpi
 {
     // Just to ensure nobody creates it
@@ -84,6 +85,230 @@ public class Ohpi
         return SA_OK;
     }
 
-    // TODO other OHPI API
+    public static long oHpiHandlerCreate(
+        long SessionId,
+        oHpiHandlerConfigT HandlerConfig,
+        oHpiHandlerCreateOutputParamsT out
+    ) throws HpiException
+    {
+        if ( out == null ) {
+            return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        long rv;
+        boolean rc;
+
+        rc = OhpiUtil.check( HandlerConfig );
+        if ( !rc ) {
+            return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        HpiSession s = HpiCore.getSession( SessionId );
+        if ( s == null ) {
+            return SA_ERR_HPI_INVALID_SESSION;
+        }
+        OhpiMarshal m = s.getMarshal();
+        if ( m == null ) {
+            return SA_ERR_HPI_NO_RESPONSE;
+        }
+
+        m.marshalSaHpiSessionIdT( s.getRemoteSid() );
+        m.marshaloHpiHandlerConfigT( HandlerConfig );
+        rc = m.interchange( RPC_OHPI_HANDLER_CREATE );
+        if ( !rc ) {
+            m.close();
+            return SA_ERR_HPI_NO_RESPONSE;
+        }
+        rv = m.demarshalSaErrorT();
+        if ( rv == SA_OK ) {
+            out.HandlerId = m.demarshaloHpiHandlerIdT();
+        }
+        s.putMarshal( m );
+
+        return rv;
+    }
+
+    public static long oHpiHandlerDestroy(
+        long SessionId,
+        long HandlerId
+    ) throws HpiException
+    {
+        long rv;
+        boolean rc;
+
+        HpiSession s = HpiCore.getSession( SessionId );
+        if ( s == null ) {
+            return SA_ERR_HPI_INVALID_SESSION;
+        }
+        OhpiMarshal m = s.getMarshal();
+        if ( m == null ) {
+            return SA_ERR_HPI_NO_RESPONSE;
+        }
+
+        m.marshalSaHpiSessionIdT( s.getRemoteSid() );
+        m.marshaloHpiHandlerIdT( HandlerId );
+        rc = m.interchange( RPC_OHPI_HANDLER_DESTROY );
+        if ( !rc ) {
+            m.close();
+            return SA_ERR_HPI_NO_RESPONSE;
+        }
+        rv = m.demarshalSaErrorT();
+        if ( rv == SA_OK ) {
+            // No output arguments
+        }
+        s.putMarshal( m );
+
+        return rv;
+    }
+
+    public static long oHpiHandlerInfo(
+        long SessionId,
+        long HandlerId,
+        oHpiHandlerInfoOutputParamsT out
+    ) throws HpiException
+    {
+        if ( out == null ) {
+            return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        long rv;
+        boolean rc;
+
+        HpiSession s = HpiCore.getSession( SessionId );
+        if ( s == null ) {
+            return SA_ERR_HPI_INVALID_SESSION;
+        }
+        OhpiMarshal m = s.getMarshal();
+        if ( m == null ) {
+            return SA_ERR_HPI_NO_RESPONSE;
+        }
+
+        m.marshalSaHpiSessionIdT( s.getRemoteSid() );
+        m.marshaloHpiHandlerIdT( HandlerId );
+        rc = m.interchange( RPC_OHPI_HANDLER_INFO );
+        if ( !rc ) {
+            m.close();
+            return SA_ERR_HPI_NO_RESPONSE;
+        }
+        rv = m.demarshalSaErrorT();
+        if ( rv == SA_OK ) {
+            out.HandlerInfo = m.demarshaloHpiHandlerInfoT();
+            out.HandlerConfig = m.demarshaloHpiHandlerConfigT();
+        }
+        s.putMarshal( m );
+
+        return rv;
+    }
+
+    public static long oHpiHandlerGetNext(
+        long SessionId,
+        long HandlerId,
+        oHpiHandlerGetNextOutputParamsT out
+    ) throws HpiException
+    {
+        if ( out == null ) {
+            return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        long rv;
+        boolean rc;
+
+        HpiSession s = HpiCore.getSession( SessionId );
+        if ( s == null ) {
+            return SA_ERR_HPI_INVALID_SESSION;
+        }
+        OhpiMarshal m = s.getMarshal();
+        if ( m == null ) {
+            return SA_ERR_HPI_NO_RESPONSE;
+        }
+
+        m.marshalSaHpiSessionIdT( s.getRemoteSid() );
+        m.marshaloHpiHandlerIdT( HandlerId );
+        rc = m.interchange( RPC_OHPI_HANDLER_GET_NEXT );
+        if ( !rc ) {
+            m.close();
+            return SA_ERR_HPI_NO_RESPONSE;
+        }
+        rv = m.demarshalSaErrorT();
+        if ( rv == SA_OK ) {
+            out.NextHandlerId = m.demarshaloHpiHandlerIdT();
+        }
+        s.putMarshal( m );
+
+        return rv;
+    }
+
+    public static long oHpiHandlerFind(
+        long SessionId,
+        long ResourceId,
+        oHpiHandlerFindOutputParamsT out
+    ) throws HpiException
+    {
+        if ( out == null ) {
+            return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        long rv;
+        boolean rc;
+
+        HpiSession s = HpiCore.getSession( SessionId );
+        if ( s == null ) {
+            return SA_ERR_HPI_INVALID_SESSION;
+        }
+        OhpiMarshal m = s.getMarshal();
+        if ( m == null ) {
+            return SA_ERR_HPI_NO_RESPONSE;
+        }
+
+        m.marshalSaHpiSessionIdT( s.getRemoteSid() );
+        m.marshalSaHpiResourceIdT( ResourceId );
+        rc = m.interchange( RPC_OHPI_HANDLER_FIND );
+        if ( !rc ) {
+            m.close();
+            return SA_ERR_HPI_NO_RESPONSE;
+        }
+        rv = m.demarshalSaErrorT();
+        if ( rv == SA_OK ) {
+            out.HandlerId = m.demarshaloHpiHandlerIdT();
+        }
+        s.putMarshal( m );
+
+        return rv;
+    }
+
+    public static long oHpiHandlerRetry(
+        long SessionId,
+        long HandlerId
+    ) throws HpiException
+    {
+        long rv;
+        boolean rc;
+
+        HpiSession s = HpiCore.getSession( SessionId );
+        if ( s == null ) {
+            return SA_ERR_HPI_INVALID_SESSION;
+        }
+        OhpiMarshal m = s.getMarshal();
+        if ( m == null ) {
+            return SA_ERR_HPI_NO_RESPONSE;
+        }
+
+        m.marshalSaHpiSessionIdT( s.getRemoteSid() );
+        m.marshaloHpiHandlerIdT( HandlerId );
+        rc = m.interchange( RPC_OHPI_HANDLER_RETRY );
+        if ( !rc ) {
+            m.close();
+            return SA_ERR_HPI_NO_RESPONSE;
+        }
+        rv = m.demarshalSaErrorT();
+        if ( rv == SA_OK ) {
+            // No output arguments
+        }
+        s.putMarshal( m );
+
+        return rv;
+    }
+
+
 };
 

@@ -10,10 +10,10 @@ class HpiSession
     private static AtomicLong next_local_sid = new AtomicLong( 1L );
 
 
-    private long                   local_sid;
-    private long                   remote_sid;
-    private HpiDomain              domain;
-    private LinkedList<HpiMarshal> marshals;
+    private long                    local_sid;
+    private long                    remote_sid;
+    private HpiDomain               domain;
+    private LinkedList<OhpiMarshal> marshals;
 
 
     public HpiSession( HpiDomain domain )
@@ -21,13 +21,13 @@ class HpiSession
         this.local_sid  = next_local_sid.getAndIncrement();
         this.remote_sid = 0;
         this.domain     = new HpiDomain( domain );
-        this.marshals   = new LinkedList<HpiMarshal>();
+        this.marshals   = new LinkedList<OhpiMarshal>();
     }
 
     public synchronized void close()
     {
         while( !marshals.isEmpty() ) {
-            HpiMarshal m = marshals.removeFirst();
+            OhpiMarshal m = marshals.removeFirst();
             m.close();
         }
     }
@@ -52,13 +52,13 @@ class HpiSession
         return domain.getRemoteDid();
     }
 
-    public synchronized HpiMarshal getMarshal()
+    public synchronized OhpiMarshal getMarshal()
     {
-        HpiMarshal m;
+        OhpiMarshal m;
         if ( !marshals.isEmpty() ) {
             m = marshals.removeFirst();
         } else {
-            m = new HpiMarshal();
+            m = new OhpiMarshal();
             boolean rc = m.open( domain.getRemoteHost(), domain.getRemotePort() );
             if ( !rc ) {
                 m = null;
@@ -70,7 +70,7 @@ class HpiSession
         return m;
     }
 
-    public synchronized void putMarshal( HpiMarshal m )
+    public synchronized void putMarshal( OhpiMarshal m )
     {
         m.reset();
         marshals.addFirst( m );

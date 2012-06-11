@@ -39,7 +39,7 @@ public class Hpi extends HpiGen
         if ( s == null ) {
             return SA_ERR_HPI_INVALID_DOMAIN;
         }
-        HpiMarshal m = s.getMarshal();
+        OhpiMarshal m = s.getMarshal();
         if ( m == null ) {
             HpiCore.removeSession( s );
             return SA_ERR_HPI_NO_RESPONSE;
@@ -78,7 +78,7 @@ public class Hpi extends HpiGen
         if ( s == null ) {
             return SA_ERR_HPI_INVALID_SESSION;
         }
-        HpiMarshal m = s.getMarshal();
+        OhpiMarshal m = s.getMarshal();
         if ( m == null ) {
             return SA_ERR_HPI_NO_RESPONSE;
         }
@@ -153,7 +153,7 @@ public class Hpi extends HpiGen
         if ( s == null ) {
             return SA_ERR_HPI_INVALID_SESSION;
         }
-        HpiMarshal m = s.getMarshal();
+        OhpiMarshal m = s.getMarshal();
         if ( m == null ) {
             return SA_ERR_HPI_NO_RESPONSE;
         }
