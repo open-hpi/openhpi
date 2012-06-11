@@ -175,7 +175,7 @@ public class oHpiHandlerConfigT
     // List of ( name, value ) pairs
     // Both name and value are arrays if SAHPI_MAX_TEXT_BUFFER_LENGTH elements
     public List< KeyValuePair<byte[], byte[]> > items;
-}
+};
 
 
 }; // namespace openhpi

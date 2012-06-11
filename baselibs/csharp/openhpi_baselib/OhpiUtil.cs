@@ -57,9 +57,9 @@ public static partial class OhpiUtil
     /**********************************************************
      * oHpiHandlerConfigT Helpers
      *********************************************************/
-    public static Dictionary<String, String> FromoHpiHandlerConfigT( oHpiHandlerConfigT config )
+    public static Dictionary<string, string> FromoHpiHandlerConfigT( oHpiHandlerConfigT config )
     {
-        var d = new Dictionary<String, String>();
+        var d = new Dictionary<string, string>();
         foreach ( var kv in config.items ) {
             d.Add( ascii.GetString( kv.Key ), ascii.GetString( kv.Value ) );
         }
@@ -67,7 +67,7 @@ public static partial class OhpiUtil
         return d;
     }
 
-    public static oHpiHandlerConfigT TooHpiHandlerConfigT( Dictionary<String, String> d )
+    public static oHpiHandlerConfigT TooHpiHandlerConfigT( Dictionary<string, string> d )
     {
         var config = new oHpiHandlerConfigT();
         config.items = new List< KeyValuePair<byte[], byte[]> >();

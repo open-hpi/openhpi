@@ -31,7 +31,7 @@ public static partial class Api
     {
         DomainId = 0;
 
-        String s = HpiUtil.FromSaHpiTextBufferT( Host );
+        string s = HpiUtil.FromSaHpiTextBufferT( Host );
         if ( s == null ) {
             return HpiConst.SA_ERR_HPI_INVALID_PARAMS;
         }
