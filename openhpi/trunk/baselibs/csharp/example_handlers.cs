@@ -18,8 +18,9 @@ class Example
             return;
         }
 
-        // List all handlers
         long last_hid = HpiConst.SAHPI_LAST_ENTRY;
+
+        // List all handlers
         ASCIIEncoding ascii = new ASCIIEncoding();
         foreach ( long hid in OhpiIterators.HandlerIds( sid ) ) {
             last_hid = hid;
