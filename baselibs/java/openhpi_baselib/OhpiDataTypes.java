@@ -1,5 +1,10 @@
 package org.openhpi;
 
+import java.util.List;
+import java.util.Map.Entry;
+
+import static org.openhpi.HpiDataTypes.*;
+
 
 public class OhpiDataTypes
 {
@@ -152,9 +157,47 @@ public class OhpiDataTypes
     public static final int  OPENHPI_DEFAULT_DAEMON_PORT = 4743;
     public static final long OPENHPI_DEFAULT_DOMAIN_ID = 0L;
 
+    public static final int OPENHPI_MAX_PLUGIN_NAME_LENGTH = 32;
+
 
     /**********************************************************
-     * HPI API Returns Types (NB: Partly implemented)
+     * OHPI Simple Data Types Map
+     *********************************************************/
+
+    /**********************************************************
+     *  oHpiHandlerIdT : long
+     *********************************************************/
+
+
+    /**********************************************************
+     * OHPI Complex Data Types
+     *********************************************************/
+
+    /**
+     * OHPI struct oHpiHandlerInfoT
+     */
+    public static class oHpiHandlerInfoT
+    {
+        public long id;
+        // Byte[OPENHPI_MAX_PLUGIN_NAME_LENGTH]
+        public byte[] plugin_name;
+        public SaHpiEntityPathT entity_root;
+        public long load_failed;
+    };
+
+    /**
+     * OHPI struct oHpiHandlerConfigT
+     */
+    public static class oHpiHandlerConfigT
+    {
+        // List of ( name, value ) pairs
+        // Both name and value are arrays if SAHPI_MAX_TEXT_BUFFER_LENGTH elements
+        public List< Entry<byte[], byte[]> > items;
+    };
+
+
+    /**********************************************************
+     * OHPI API Returns Types (NB: Partly implemented)
      *********************************************************/
 
     /**
@@ -165,6 +208,44 @@ public class OhpiDataTypes
     {
         public long DomainId;
     };
+
+    /**
+     * Represents output parameters
+     * for oHpiHandlerCreate().
+     */
+    public static class oHpiHandlerCreateOutputParamsT
+    {
+        public long HandlerId;
+    };
+
+    /**
+     * Represents output parameters
+     * for oHpiHandlerInfo().
+     */
+    public static class oHpiHandlerInfoOutputParamsT
+    {
+        public oHpiHandlerInfoT HandlerInfo;
+        public oHpiHandlerConfigT HandlerConfig;
+    };
+
+    /**
+     * Represents output parameters
+     * for oHpiHandlerGetNext().
+     */
+    public static class oHpiHandlerGetNextOutputParamsT
+    {
+        public long NextHandlerId;
+    };
+
+    /**
+     * Represents output parameters
+     * for oHpiHandlerFind().
+     */
+    public static class oHpiHandlerFindOutputParamsT
+    {
+        public long HandlerId;
+    };
+
 
 };
 

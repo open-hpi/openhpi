@@ -6,7 +6,7 @@ import static org.openhpi.HpiDataTypes.*;
 /**********************************************************
  * HPI Marshal (auto-generated)
  *********************************************************/
-class HpiMarshal extends HpiMarshalCore
+class HpiMarshalGen extends HpiMarshalCore
 {
     /**********************************************************
      * Marshal: For HPI Simple Data Types
