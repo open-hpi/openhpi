@@ -31,7 +31,7 @@ public static partial class Api
         if ( s == null ) {
             return HpiConst.SA_ERR_HPI_INVALID_DOMAIN;
         }
-        HpiMarshal m = s.GetMarshal();
+        OhpiMarshal m = s.GetMarshal();
         if ( m == null ) {
             HpiCore.RemoveSession( s );
             return HpiConst.SA_ERR_HPI_NO_RESPONSE;
@@ -68,7 +68,7 @@ public static partial class Api
         if ( s == null ) {
             return HpiConst.SA_ERR_HPI_INVALID_SESSION;
         }
-        HpiMarshal m = s.GetMarshal();
+        OhpiMarshal m = s.GetMarshal();
         if ( m == null ) {
             return HpiConst.SA_ERR_HPI_NO_RESPONSE;
         }
@@ -139,7 +139,7 @@ public static partial class Api
         if ( s == null ) {
             return HpiConst.SA_ERR_HPI_INVALID_SESSION;
         }
-        HpiMarshal m = s.GetMarshal();
+        OhpiMarshal m = s.GetMarshal();
         if ( m == null ) {
             return HpiConst.SA_ERR_HPI_NO_RESPONSE;
         }

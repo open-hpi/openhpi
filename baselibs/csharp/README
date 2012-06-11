@@ -22,6 +22,9 @@ Usage Example:
 See example.cs as an example of using the C# OpenHPI baselib.
 Run "make example" to compile it.
 
+See example_iterators.cs as an example of using the C# OpenHPI iterators.
+See example_handlers.cs as an example of using the oHpiHandler*() API.
+
 Default domain address is "localhost" or OPENHPI_DAEMON_HOST env. var. value.
 Default domain address is 4743 or OPENHPI_DAEMON_PORT env. var. value.
 
@@ -113,7 +116,7 @@ the array length is valid.
 ================================================================================
 Current Limitations:
 
-- Only oHpiVersionGet() and oHpiDomainAdd() OpenHPI API are supported
+- Only oHpiVersionGet(), oHpiDomainAdd() and oHpiHandler*() OpenHPI API are supported
 - openhpiclient.conf is not supported
 
 ================================================================================

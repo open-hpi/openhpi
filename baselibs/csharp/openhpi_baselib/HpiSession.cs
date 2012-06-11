@@ -12,10 +12,10 @@ internal class HpiSession
     private static long cnt = 0;
 
 
-    private long                   local_sid;
-    private long                   remote_sid;
-    private HpiDomain              domain;
-    private LinkedList<HpiMarshal> marshals;
+    private long                    local_sid;
+    private long                    remote_sid;
+    private HpiDomain               domain;
+    private LinkedList<OhpiMarshal> marshals;
 
 
     public HpiSession( HpiDomain domain )
@@ -24,7 +24,7 @@ internal class HpiSession
         this.local_sid  = Interlocked.Increment( ref cnt );
         this.remote_sid = 0;
         this.domain     = new HpiDomain( domain );
-        this.marshals   = new LinkedList<HpiMarshal>();
+        this.marshals   = new LinkedList<OhpiMarshal>();
     }
 
     public void Close()
@@ -32,7 +32,7 @@ internal class HpiSession
         lock ( marshals )
         {
             while( marshals.Count > 0 ) {
-                HpiMarshal m = marshals.First.Value;
+                OhpiMarshal m = marshals.First.Value;
                 marshals.RemoveFirst();
                 m.Close();
             }
@@ -59,9 +59,9 @@ internal class HpiSession
         return domain.GetRemoteDid();
     }
 
-    public HpiMarshal GetMarshal()
+    public OhpiMarshal GetMarshal()
     {
-        HpiMarshal m;
+        OhpiMarshal m;
 
         lock ( marshals )
         {
@@ -69,7 +69,7 @@ internal class HpiSession
                 m = marshals.First.Value;
                 marshals.RemoveFirst();
             } else {
-                m = new HpiMarshal();
+                m = new OhpiMarshal();
                 bool rc = m.Open( domain.GetRemoteHost(), domain.GetRemotePort() );
                 if ( !rc ) {
                     m = null;
@@ -83,7 +83,7 @@ internal class HpiSession
         return m;
     }
 
-    public void PutMarshal( HpiMarshal m )
+    public void PutMarshal( OhpiMarshal m )
     {
         m.Reset();
         lock ( marshals )
