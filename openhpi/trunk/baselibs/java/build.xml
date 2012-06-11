@@ -1,5 +1,5 @@
 <project name="OpenHPI" default="all">
-    <target name="all" depends="example:compile,example_handlers:compile"/>
+    <target name="all" depends="example:compile,example_handlers:compile,example_collections:compile"/>
 
     <target name="example:compile" depends="openhpi_baselib:jar">
         <javac destdir="build">
@@ -10,6 +10,12 @@
     <target name="example_handlers:compile" depends="openhpi_baselib:jar">
         <javac destdir="build">
             <src path="example_handlers"/>
+        </javac>
+    </target>
+
+    <target name="example_collections:compile" depends="openhpi_baselib:jar">
+        <javac destdir="build">
+            <src path="example_collections"/>
         </javac>
     </target>
 

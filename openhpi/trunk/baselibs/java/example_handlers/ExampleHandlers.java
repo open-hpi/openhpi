@@ -8,6 +8,7 @@ import static org.openhpi.Ohpi.*;
 import static org.openhpi.OhpiDataTypes.*;
 import org.openhpi.HpiUtil;
 import org.openhpi.OhpiUtil;
+import org.openhpi.OhpiCollections;
 
 
 public class ExampleHandlers
@@ -68,6 +69,12 @@ public class ExampleHandlers
                 }
 
             } while ( hid != SAHPI_LAST_ENTRY );
+
+            // List all handlers with OhpiCollections
+            System.out.printf( "List all handlers with OhpiCollections:\n" );
+            for ( long hid2 : OhpiCollections.HandlerIds( sid ) ) {
+                System.out.printf( " Handler %d\n", hid2 );
+            }
 
             // Retry last handler
             if ( last_hid != SAHPI_LAST_ENTRY ) {
