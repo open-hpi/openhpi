@@ -259,6 +259,7 @@ SaErrorT SAHPI_API oHpiHandlerInfo (
 **      returned.
 **   SA_ERR_HPI_NOT_PRESENT is returned when the:
 **   * handler identified by id is not present.
+*    * there is no next handler after the specified one.
 **   * id is SAHPI_FIRST_ENTRY and there are no loaded handlers in the targeted
 **     OpenHPI daemon.
 **   SA_ERR_HPI_INVALID_PARAMS is returned if the:
@@ -272,7 +273,8 @@ SaErrorT SAHPI_API oHpiHandlerInfo (
 **   OpenHPI daemon. To retrieve an entire list of ids for the targeted
 **   OpenHPI daemon call this function first with an id of SAHPI_FIRST_ENTRY,
 **   and then use the returned next_id the next call.
-**   Proceed until the next_id returned is SAHPI_LAST_ENTRY.
+**   Proceed until the next_id returned is SAHPI_LAST_ENTRY or
+**   the call returned SA_ERR_HPI_NOT_PRESENT.
 **   TODO: Implement a check that the id is and invalid reserved value.
 **
 ***************************************************************************/
