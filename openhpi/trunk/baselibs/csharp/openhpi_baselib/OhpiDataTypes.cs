@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 
 
 namespace org {
@@ -145,7 +146,36 @@ public static class OhpiConst
 
     public const int  DEFAULT_PORT = 4743;
     public const long DEFAULT_DOMAIN_ID = 0;
+
+    public const int MAX_PLUGIN_NAME_LENGTH = 32;
 };
+
+
+/**********************************************************
+ * OHPI Complex Data Types
+ *********************************************************/
+
+/**
+ * OHPI struct oHpiHandlerInfoT
+ */
+public class oHpiHandlerInfoT
+{
+    public long id;
+    // Array of MAX_PLUGIN_NAME_LENGTH elements
+    public byte[] plugin_name;
+    public SaHpiEntityPathT entity_root;
+    public long load_failed;
+};
+
+/**
+ * OHPI struct oHpiHandlerConfigT
+ */
+public class oHpiHandlerConfigT
+{
+    // List of ( name, value ) pairs
+    // Both name and value are arrays if SAHPI_MAX_TEXT_BUFFER_LENGTH elements
+    public List< KeyValuePair<byte[], byte[]> > items;
+}
 
 
 }; // namespace openhpi

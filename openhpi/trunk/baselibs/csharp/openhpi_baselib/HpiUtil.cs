@@ -15,6 +15,11 @@ public static partial class HpiUtil
      * NB: ToXXX throws FormatException if lookup fails
      *********************************************************/
 
+
+    // For encoding
+    private static ASCIIEncoding ascii = new ASCIIEncoding();
+
+
     /**********************************************************
      * Text Buffer Helpers
      *********************************************************/
@@ -52,7 +57,6 @@ public static partial class HpiUtil
         tb.DataLength = 0;
         tb.Data = new byte[HpiConst.SAHPI_MAX_TEXT_BUFFER_LENGTH];
 
-        ASCIIEncoding ascii = new ASCIIEncoding();
         byte[] encoded = ascii.GetBytes( s );
         tb.DataLength = Math.Min( encoded.Length, HpiConst.SAHPI_MAX_TEXT_BUFFER_LENGTH );
         Array.Copy( encoded, tb.Data, tb.DataLength );

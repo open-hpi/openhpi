@@ -16,4 +16,7 @@ openhpi_baselib/HpiUtil.cs
 openhpi_baselib/HpiUtilGen.cs
 openhpi_baselib/Ohpi.cs
 openhpi_baselib/OhpiDataTypes.cs
+openhpi_baselib/OhpiIterators.cs
+openhpi_baselib/OhpiMarshal.cs
+openhpi_baselib/OhpiUtil.cs
 

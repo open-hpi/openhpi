@@ -8,7 +8,7 @@ namespace openhpi {
 /**********************************************************
  * HPI Marshal (auto-generated)
  *********************************************************/
-internal class HpiMarshal: HpiMarshalCore
+internal class HpiMarshalGen: HpiMarshalCore
 {
     /**********************************************************
      * Marshal: For HPI Simple Data Types
