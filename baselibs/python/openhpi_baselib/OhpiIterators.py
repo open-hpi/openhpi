@@ -6,8 +6,7 @@ from openhpi_baselib.Ohpi import *
 #**********************************************************
 
 #**********************************************************
-# Iterate over Handlers
-# Provides handler id
+# Iterate over Handler ids
 #**********************************************************
 def HandlerIds( sid ):
     hid = SAHPI_FIRST_ENTRY

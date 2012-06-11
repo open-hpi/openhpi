@@ -8,13 +8,14 @@ if rv != SA_OK:
     exit()
 
 # List all handlers
-last_hid = None
+last_hid = SAHPI_LAST_ENTRY
 for hid in OhpiIterators.HandlerIds( sid ):
     last_hid = hid
     print "Handler %d" % hid
     ( rv, hinfo, hconf ) = oHpiHandlerInfo( sid, hid )
     if rv != SA_OK:
         print "ERROR: oHpiHandlerInfo: %s " % HpiUtil.fromSaErrorT( rv )
+        continue
     print " Info"
     print "  id %d" % hinfo.id
     print "  name %s" % hinfo.plugin_name
@@ -25,14 +26,14 @@ for hid in OhpiIterators.HandlerIds( sid ):
     print "\n".join( [ "  %s = %s" % ( name, value ) for ( name, value ) in d.iteritems() ] )
 
 # Retry last handler
-if last_hid != SAHPI_FIRST_ENTRY:
+if last_hid != SAHPI_LAST_ENTRY:
     print "Re-trying last handler: %d" % last_hid
     rv = oHpiHandlerRetry( sid, last_hid )
     if rv != SA_OK:
         print "ERROR: oHpiHandlerRetry: %s " % HpiUtil.fromSaErrorT( rv )
 
 # Destroy last handler
-if last_hid != SAHPI_FIRST_ENTRY:
+if last_hid != SAHPI_LAST_ENTRY:
     print "Destroying last handler: %d" % last_hid
     rv = oHpiHandlerDestroy( sid, last_hid )
     if rv != SA_OK:
@@ -44,7 +45,7 @@ rid = 120
 if rv != SA_OK:
     print "ERROR: oHpiHandlerFind: %s " % HpiUtil.fromSaErrorT( rv )
 if hid is not None:
-    print "Resource %s is provided by handler %d" % ( rid, hid )
+    print "Resource %d is provided by handler %d" % ( rid, hid )
 
 # Create new instance of test_agent plugin
 print "Creating new handler"

@@ -29,7 +29,7 @@ def oHpiHandlerCreate( sid, config ):
         return ( SA_ERR_HPI_NO_RESPONSE, None )
 
     m.marshalSaHpiSessionIdT( s.getRemoteSid() )
-    m.marshaloHpiHandlerConfigType( config )
+    m.marshaloHpiHandlerConfigT( config )
     rc = m.interchange( OhpiDataTypes.RPC_OHPI_HANDLER_CREATE )
     if not rc:
         m.close()

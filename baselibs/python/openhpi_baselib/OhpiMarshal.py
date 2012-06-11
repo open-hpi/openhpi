@@ -21,7 +21,7 @@ class OhpiMarshal( HpiMarshalGen ):
     #**********************************************************
     # Marshal: For OHPI Structs and Unions
     #**********************************************************
-    def marshaloHpiHandlerConfigType( self, x ):
+    def marshaloHpiHandlerConfigT( self, x ):
         self.marshalSaHpiUint8T( len( x.items ) )
         for ( name, value ) in x.items:
             self.marshalByteArray( name, SAHPI_MAX_TEXT_BUFFER_LENGTH )
