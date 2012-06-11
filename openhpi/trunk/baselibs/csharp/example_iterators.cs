@@ -133,7 +133,7 @@ class Example
             Console.WriteLine( "  Resource {0}: Annunciator {1}:", ri.rid, ri.annnum );
             // Announcements
             foreach ( var a in HpiIterators.Announcements( sid, ri.rid, ri.annnum ) ) {
-                Console.WriteLine( "    Announcement {0}: {1}:",
+                Console.WriteLine( "    Announcement {0}: {1}: {2}",
                                    a.EntryId,
                                    HpiUtil.FromSaHpiSeverityT( a.Severity ),
                                    HpiUtil.FromSaHpiStatusCondTypeT( a.StatusCond.Type ) );
