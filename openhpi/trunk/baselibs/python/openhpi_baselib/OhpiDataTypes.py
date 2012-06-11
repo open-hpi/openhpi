@@ -148,7 +148,7 @@ MAX_PLUGIN_NAME_LENGTH = 32
 #* OHPI Complex Data Types
 #**********************************************************
 #**
-# OHPI struct SaHpiTextBufferT
+# OHPI struct oHpiHandlerInfoT
 #**
 class oHpiHandlerInfoT:
     def __init__( self ):

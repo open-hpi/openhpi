@@ -15,6 +15,8 @@ See example.py as an example of using the Python OpenHPI baselib.
 See example_lsres.py and example_ent.py as examples of using iteration
 utility functions.
 
+See example_handlers.py as an example of using the oHpiHandler*() API.
+
 Default domain address is "localhost" or OPENHPI_DAEMON_HOST env. var. value.
 Default domain address is 4743 or OPENHPI_DAEMON_PORT env. var. value.
 
@@ -117,7 +119,7 @@ the array length is valid.
 ================================================================================
 Current Limitations:
 
-- Only oHpiVersionGet() and oHpiDomainAdd() OpenHPI API are supported
+- Only oHpiVersionGet(), oHpiDomainAdd() and oHpiHandler*() OpenHPI API are supported
 - openhpiclient.conf is not supported
 
 ================================================================================
