@@ -30,6 +30,7 @@
 #include <oh_domain.h>
 #include <oh_error.h>
 #include <oh_plugin.h>
+#include <oh_utils.h>
 
 #include "conf.h"
 #include "event.h"
@@ -642,6 +643,59 @@ int oh_destroy_handler(unsigned int hid)
                 oh_release_handler(handler);
 
         return 0;
+}
+
+/**
+ * oh_get_handler_info
+ *
+ * Returns: SA_OK on success.
+ **/
+
+// helper function to copy hash table
+static void copy_hashed_config_info (gpointer key, gpointer value, gpointer newhash)
+{
+        g_hash_table_insert ( newhash, g_strdup(key), g_strdup(value) );
+}
+
+SaErrorT oh_get_handler_info(unsigned int hid, oHpiHandlerInfoT *info, GHashTable *conf_params)
+{
+        struct oh_handler *h = NULL;
+        GSList *node = NULL;
+
+        if ((hid == 0) || (!info) || (!conf_params)) {
+               return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        g_static_rec_mutex_lock(&oh_handlers.lock);
+        node = g_hash_table_lookup(oh_handlers.table, &hid);
+        h = node ? (struct oh_handler *)(node->data) : NULL;
+        if (!h) {
+                g_static_rec_mutex_unlock(&oh_handlers.lock);
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+
+        info->id = hid;
+        strncpy((char*)info->plugin_name, (const char*)h->plugin_name, MAX_PLUGIN_NAME_LENGTH);
+        oh_init_ep(&info->entity_root);
+        const char * entity_root_str = (const char *)g_hash_table_lookup(h->config, "entity_root");
+        if ( entity_root_str ) {
+                oh_encode_entitypath(entity_root_str, &info->entity_root);
+        }
+
+        info->load_failed = (!h->hnd) ? 1 : 0;
+
+        // copy h->config to the output hash table
+        g_hash_table_foreach(h->config,copy_hashed_config_info,conf_params);
+
+        //Don't transmit passwords in case the handler has a password in its config
+        if (g_hash_table_lookup(conf_params,"password"))
+           g_hash_table_replace(conf_params,
+                                g_strdup("password"),
+                                g_strdup("********"));
+
+        g_static_rec_mutex_unlock(&oh_handlers.lock);
+
+        return SA_OK;
 }
 
 /**

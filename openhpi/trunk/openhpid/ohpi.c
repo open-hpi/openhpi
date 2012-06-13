@@ -153,20 +153,15 @@ SaErrorT SAHPI_API oHpiHandlerDestroy (
 /**
  * oHpiHandlerInfo
  **/
-// function to copy hash table
-static void copy_hashed_config_info (gpointer key, gpointer value, gpointer newhash)
-{
-   g_hash_table_insert ( newhash, g_strdup(key), g_strdup(value) );
-}  
 SaErrorT SAHPI_API oHpiHandlerInfo (
      SAHPI_IN    SaHpiSessionIdT sid,
      SAHPI_IN    oHpiHandlerIdT id,
      SAHPI_OUT   oHpiHandlerInfoT *info,
      SAHPI_INOUT GHashTable *conf_params )
 {
+        SaErrorT error = SA_OK;
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
-        struct oh_handler *h = NULL;
 
         if (sid == 0)
                return SA_ERR_HPI_INVALID_SESSION;
@@ -184,35 +179,11 @@ SaErrorT SAHPI_API oHpiHandlerInfo (
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        h = oh_get_handler(id);
-        if (!h) {
-                oh_release_domain(d); /* Unlock domain */
-                return SA_ERR_HPI_NOT_PRESENT;
-        }
+        error = oh_get_handler_info(id, info, conf_params);
 
-	info->id = id;
-        strncpy((char*)info->plugin_name, h->plugin_name, MAX_PLUGIN_NAME_LENGTH);
-        oh_init_ep(&info->entity_root);
-        const char * entity_root_str = (const char *)g_hash_table_lookup(h->config, "entity_root");
-        if ( entity_root_str ) {
-        	oh_encode_entitypath(entity_root_str, &info->entity_root);
-        }
-	
-	if (!h->hnd) info->load_failed = 1;
-	else info->load_failed = 0;
-
-        // copy h->config to the output hash table
-        g_hash_table_foreach(h->config,copy_hashed_config_info,conf_params);
-
-        //Don't transmit passwords in case the handler has a password in its config
-        if (g_hash_table_lookup(conf_params,"password"))
-           g_hash_table_replace(conf_params,
-                                g_strdup("password"), g_strdup("********"));
-
-        oh_release_handler(h);
         oh_release_domain(d); /* Unlock domain */
 
-        return SA_OK;
+        return error;
 }
 
 /**
