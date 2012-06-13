@@ -1995,7 +1995,6 @@ static SaErrorT process_msg(cHpiMarshal * hm,
 
             RpcParams oparams(&rv, &info, &cfg);
             MARSHAL_RP(hm, data, data_len, oparams);
-// TODO memory leak
             // cleanup
             g_hash_table_destroy(cfg_tbl);
         }
