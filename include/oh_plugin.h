@@ -19,6 +19,7 @@
 #include <glib.h>
 #include <gmodule.h>
 
+#include <oHpi.h>
 #include <oh_handler.h>
 
 #ifdef __cplusplus
@@ -96,6 +97,7 @@ void oh_release_handler(struct oh_handler *handler);
 int oh_getnext_handler_id(unsigned int hid, unsigned int *next_hid);
 SaErrorT oh_create_handler(GHashTable *handler_config, unsigned int *hid);
 int oh_destroy_handler(unsigned int hid);
+SaErrorT oh_get_handler_info(unsigned int hid, oHpiHandlerInfoT *info, GHashTable *conf_params);
 SaErrorT oh_discovery(void);
 
 /* Bind abi functions into plugin */
