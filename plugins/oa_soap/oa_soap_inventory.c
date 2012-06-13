@@ -5448,12 +5448,18 @@ SaErrorT oa_soap_build_fan_inv(struct oh_handler_state *oh_handler,
 	else
 		strcpy(field_data, "Shared=FALSE");
 
-	/* Set the fan shared field */
-	oa_soap_inv_set_field(inventory->info.area_list,
+	/* Set the fan shared field
+	 * we don't want to execute this for a c3000 enclosure
+	 * we don't have any fan shared and also we don't have 
+	 * area_list created for shared fan
+	 */
+	if(oa_handler->enc_type != OA_SOAP_ENC_C3000){
+		oa_soap_inv_set_field(inventory->info.area_list,
 			      SAHPI_IDR_AREATYPE_OEM,
 			      OA_SOAP_INV_FAN_SHARED,
 			      field_data);
 
+	}
 	/* Construct the fan zone number field data */
 	memset(field_data, 0, OA_SOAP_MAX_FZ_INV_SIZE);
 	if (oa_soap_fz_map_arr[oa_handler->enc_type][slot-1].secondary_zone) {
@@ -5466,12 +5472,17 @@ SaErrorT oa_soap_build_fan_inv(struct oh_handler_state *oh_handler,
 		 	oa_soap_fz_map_arr[oa_handler->enc_type][slot-1].zone);
 	}
 
-	/* Set the shared field */
-	oa_soap_inv_set_field(inventory->info.area_list,
+	/* Set the shared field
+	 * Since we don't have fan zone assigned to each fan
+	 * we don't want to assign/set a fan zone number field
+	 */
+        if(oa_handler->enc_type != OA_SOAP_ENC_C3000){
+		oa_soap_inv_set_field(inventory->info.area_list,
 			      SAHPI_IDR_AREATYPE_OEM,
 			      OA_SOAP_INV_FZ_NUM,
 			      field_data);
-	
+
+	}
 	return SA_OK;
 }
 
