@@ -642,6 +642,8 @@ SaErrorT oa_soap_build_control_rdr(struct oh_handler_state *oh_handler,
                   analogLimitLow;
                 rdr->RdrTypeUnion.CtrlRec.TypeUnion.Analog.Max =
                   analogLimitHigh;
+		rdr->RdrTypeUnion.CtrlRec.TypeUnion.Analog.Default = 
+		  analogLimitLow;
         } 
         return SA_OK;
 }
