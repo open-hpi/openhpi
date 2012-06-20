@@ -994,8 +994,6 @@ static ret_code_t wdt_get(void)
                         str = "POWER_DOWN"; break;
                 case SAHPI_WA_POWER_CYCLE:
                         str = "POWER_CYCLE"; break;
-                //case SAHPI_WAE_TIMER_INT:           
-                //        str = "TIMER_INT"; break;
                 default: str = "Unknown"; break;
         };
         printf("  Action: %s", str);
@@ -1094,7 +1092,7 @@ static ret_code_t wdt_set(void)
         };
 
         i = get_string_param(
-                "TimerAction(no|reset|pwr_down|pwr_cycle|int): ",
+                "TimerAction(no|reset|pwr_down|pwr_cycle): ",
                 tmp, 255);
         if (i != 0) {
                 printf("Invalid TimerAction value: %s\n", tmp);
