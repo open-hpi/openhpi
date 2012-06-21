@@ -317,7 +317,9 @@ static GList * sessions_get_ref_all()
 {
     ohc_lock();
     GList * sessions_list = 0;
-    g_hash_table_foreach( sessions, dehash_func, &sessions_list );
+    if ( sessions ) {
+        g_hash_table_foreach( sessions, dehash_func, &sessions_list );
+    }
     ohc_unlock();
 
     return sessions_list;
