@@ -6,6 +6,7 @@ SRC := abi.cpp \
        announcement.cpp \
        annunciator.cpp \
        area.cpp \
+       bank.cpp \
        codec.cpp \
        console.cpp \
        control.cpp \

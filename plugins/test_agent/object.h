@@ -56,6 +56,7 @@ public:
 
 public: // Extensible interface
 
+    virtual void GetNB( std::string& nb ) const;
     virtual void BeforeVisibilityChange();
     virtual void AfterVisibilityChange();
     virtual void GetNewNames( NewNames& names ) const;

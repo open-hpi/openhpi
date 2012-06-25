@@ -18,11 +18,29 @@
 
 #include <stdarg.h>
 #include <stddef.h>
+#include <stdint.h>
 
 #include <SaHpi.h>
 
 
 namespace TA {
+
+
+/**************************************************************
+ * uint16_t <-> uint8_t
+ *************************************************************/
+inline uint16_t MakeUint16T( uint8_t high, uint8_t low )
+{
+    return ( ( (uint16_t)high ) << 8 ) | ( (uint16_t)low );
+}
+
+inline uint8_t GetHighByte( uint16_t x ) {
+    return (uint8_t)( x >> 8 );
+}
+
+inline uint8_t GetLowByte( uint16_t x ) {
+    return (uint8_t)( x & 0xFFU );
+}
 
 
 /**************************************************************

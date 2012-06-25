@@ -134,9 +134,8 @@ void cInstrument::AfterVarSet( const std::string& var_name )
     cObject::AfterVarSet( var_name );
 
     if ( var_name.find( "Rdr." ) == 0 ) {
-        // RDR was changed
-        HandleRdrChange( var_name, m_rdr.RdrTypeUnion );
-        PostUpdateEvent();
+        // RDR has been changed
+        HandleRdrChange( var_name );
     }
 }
 
@@ -171,8 +170,14 @@ void cInstrument::PostUpdateEvent( bool remove ) const
 
 
 // Handling RDR changes
-void cInstrument::HandleRdrChange( const std::string& var_name,
-                                   SaHpiRdrTypeUnionT& data )
+void cInstrument::HandleRdrChange( const std::string& field_name )
+{
+    UpdateRdr( field_name, m_rdr.RdrTypeUnion );
+    PostUpdateEvent();
+}
+
+void cInstrument::UpdateRdr( const std::string& field_name,
+                             SaHpiRdrTypeUnionT& data )
 {
     // extend in inherited classes
 }

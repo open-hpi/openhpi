@@ -91,6 +91,10 @@ bool cObject::GetVar( const std::string& name, Var& var )
 
 
 // Extensible interface
+void cObject::GetNB( std::string& nb ) const
+{
+    nb.clear();
+}
 
 void cObject::BeforeVisibilityChange()
 {

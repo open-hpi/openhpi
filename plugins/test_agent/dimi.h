@@ -54,6 +54,7 @@ public:  // HPI interface
 
 protected: // cObject virtual functions
 
+    virtual void GetNB( std::string& nb ) const;
     virtual void GetNewNames( cObject::NewNames& names ) const;
     virtual bool CreateChild( const std::string& name );
     virtual bool RemoveChild( const std::string& name );

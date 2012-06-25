@@ -50,7 +50,7 @@ public: // HPI interface
     SaErrorT Start( SaHpiUint8T nparams,
                     const SaHpiDimiTestVariableParamsT * params );
     SaErrorT Cancel();
-    SaErrorT GetStatus( SaHpiDimiTestPercentCompletedT& progress, 
+    SaErrorT GetStatus( SaHpiDimiTestPercentCompletedT& progress,
                         SaHpiDimiTestRunStatusT& status ) const;
     SaErrorT GetResults( SaHpiDimiTestResultsT& results ) const;
 

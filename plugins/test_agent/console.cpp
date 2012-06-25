@@ -336,6 +336,15 @@ void cConsole::CmdCd( const cConsoleCmd::Args& args )
     Send( "Current object: " );
     SendCurrentPath();
     Send( "\n" );
+
+    std::string nb;
+    obj->GetNB( nb );
+    if ( !nb.empty() ) {
+        Send( sepline, sizeof(sepline) );
+        Send( "NB!:\n\n" );
+        Send( nb );
+    }
+
     SendOK( "Object changed." );
 }
 

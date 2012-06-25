@@ -219,12 +219,12 @@ void cControl::AfterVarSet( const std::string& var_name )
 
 
 // Handling RDR changes
-void cControl::HandleRdrChange( const std::string& var_name,
-                                   SaHpiRdrTypeUnionT& data )
+void cControl::UpdateRdr( const std::string& field_name,
+                          SaHpiRdrTypeUnionT& data )
 {
-    cInstrument::HandleRdrChange( var_name, data );
+    cInstrument::UpdateRdr( field_name, data );
 
-    if ( var_name == "Rdr.CtrlRec.Type" ) {
+    if ( field_name == "Rdr.CtrlRec.Type" ) {
         m_state.Type = data.CtrlRec.Type;
     }
 }

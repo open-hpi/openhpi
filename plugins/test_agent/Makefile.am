@@ -31,6 +31,8 @@ libtest_agent_la_SOURCES = abi.cpp \
                            annunciator.h \
                            area.cpp \
                            area.h \
+                           bank.cpp \
+                           bank.h \
                            codec.cpp \
                            codec.h \
                            console.cpp \
