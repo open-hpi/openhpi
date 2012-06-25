@@ -26,6 +26,7 @@
 #include "abi.h"
 #include "annunciator.h"
 #include "area.h"
+#include "bank.h"
 #include "control.h"
 #include "dimi.h"
 #include "fumi.h"
@@ -222,6 +223,22 @@ static cFumi * GetFumi( cHandler * h,
         cFumi * fumi = r->GetFumi( num );
         if ( fumi && fumi->IsVisible() ) {
             return fumi;
+        }
+    }
+
+    return 0;
+}
+
+static cBank * GetBank( cHandler * h,
+                        SaHpiResourceIdT rid,
+                        SaHpiFumiNumT num,
+                        SaHpiBankNumT bnum )
+{
+    cFumi * fumi = GetFumi( h, rid, num );
+    if ( fumi ) {
+        cBank * bank = fumi->GetBank( bnum );
+        if ( bank && bank->IsVisible() ) {
+            return bank;
         }
     }
 
@@ -1355,7 +1372,14 @@ oh_get_fumi_spec(
     SaHpiFumiNumT num,
     SaHpiFumiSpecInfoT * specinfo  )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cFumi * fumi = TA::GetFumi( handler, rid, num );
+    if ( !fumi ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    return fumi->GetSpecInfo( *specinfo );
 }
 
 
@@ -1369,7 +1393,14 @@ oh_get_fumi_service_impact(
     SaHpiFumiNumT num,
     SaHpiFumiServiceImpactDataT * serviceimpact  )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cFumi * fumi = TA::GetFumi( handler, rid, num );
+    if ( !fumi ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    return fumi->GetServiceImpact( *serviceimpact );
 }
 
 
@@ -1384,7 +1415,14 @@ oh_set_fumi_source(
     SaHpiBankNumT banknum,
     SaHpiTextBufferT * sourceuri )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cBank * b = TA::GetBank( handler, rid, num, banknum );
+    if ( !b ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    return b->SetSource( *sourceuri );
 }
 
 
@@ -1398,7 +1436,14 @@ oh_validate_fumi_source(
     SaHpiFumiNumT num,
     SaHpiBankNumT banknum )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cBank * b = TA::GetBank( handler, rid, num, banknum );
+    if ( !b ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    return b->StartSourceValidation();
 }
 
 
@@ -1413,7 +1458,14 @@ oh_get_fumi_source(
     SaHpiBankNumT banknum,
     SaHpiFumiSourceInfoT * sourceinfo )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cBank * b = TA::GetBank( handler, rid, num, banknum );
+    if ( !b ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    return b->GetSourceInfo( *sourceinfo );
 }
 
 
@@ -1430,7 +1482,14 @@ oh_get_fumi_source_component(
     SaHpiEntryIdT * nextcompid,
     SaHpiFumiComponentInfoT * compinfo )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cBank * b = TA::GetBank( handler, rid, num, banknum );
+    if ( !b ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    return b->GetSourceComponentInfo( compid, *nextcompid, *compinfo );
 }
 
 
@@ -1445,7 +1504,14 @@ oh_get_fumi_target(
     SaHpiBankNumT banknum,
     SaHpiFumiBankInfoT * bankinfo )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cBank * b = TA::GetBank( handler, rid, num, banknum );
+    if ( !b ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    return b->GetTargetInfo( *bankinfo );
 }
 
 
@@ -1462,7 +1528,14 @@ oh_get_fumi_target_component(
     SaHpiEntryIdT * nextcompid,
     SaHpiFumiComponentInfoT * compinfo )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cBank * b = TA::GetBank( handler, rid, num, banknum );
+    if ( !b ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    return b->GetTargetComponentInfo( compid, *nextcompid, *compinfo );
 }
 
 
@@ -1476,7 +1549,14 @@ oh_get_fumi_logical_target(
     SaHpiFumiNumT num,
     SaHpiFumiLogicalBankInfoT * bankinfo )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cBank * b = TA::GetBank( handler, rid, num, 0 );
+    if ( !b ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    return b->GetLogicalTargetInfo( *bankinfo );
 }
 
 
@@ -1492,7 +1572,14 @@ oh_get_fumi_logical_target_component(
     SaHpiEntryIdT * nextcompid,
     SaHpiFumiLogicalComponentInfoT * compinfo )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cBank * b = TA::GetBank( handler, rid, num, 0 );
+    if ( !b ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    return b->GetLogicalTargetComponentInfo( compid, *nextcompid, *compinfo );
 }
 
 
@@ -1505,7 +1592,14 @@ oh_start_fumi_backup(
     SaHpiResourceIdT rid,
     SaHpiFumiNumT num )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cBank * b = TA::GetBank( handler, rid, num, 0 );
+    if ( !b ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    return b->StartBackup();
 }
 
 
@@ -1520,7 +1614,14 @@ oh_set_fumi_bank_order(
     SaHpiBankNumT banknum,
     SaHpiUint32T position )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cFumi * fumi = TA::GetFumi( handler, rid, num );
+    if ( !fumi ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    return fumi->SetBootOrder( banknum, position );
 }
 
 
@@ -1535,7 +1636,14 @@ oh_start_fumi_bank_copy(
     SaHpiBankNumT sourcebanknum,
     SaHpiBankNumT targetbanknum )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cBank * b = TA::GetBank( handler, rid, num, sourcebanknum );
+    if ( !b ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    return b->StartCopy( targetbanknum );
 }
 
 
@@ -1549,7 +1657,14 @@ oh_start_fumi_install(
     SaHpiFumiNumT num,
     SaHpiBankNumT banknum )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cBank * b = TA::GetBank( handler, rid, num, banknum );
+    if ( !b ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    return b->StartInstallation();
 }
 
 
@@ -1564,7 +1679,14 @@ oh_get_fumi_status(
     SaHpiBankNumT banknum,
     SaHpiFumiUpgradeStatusT * status )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cBank * b = TA::GetBank( handler, rid, num, banknum );
+    if ( !b ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    return b->GetUpgradeStatus( *status );
 }
 
 
@@ -1578,7 +1700,14 @@ oh_start_fumi_verify(
     SaHpiFumiNumT num,
     SaHpiBankNumT banknum )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cBank * b = TA::GetBank( handler, rid, num, banknum );
+    if ( !b ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    return b->StartTargetVerification();
 }
 
 
@@ -1591,7 +1720,14 @@ oh_start_fumi_verify_main(
     SaHpiResourceIdT rid,
     SaHpiFumiNumT num  )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cBank * b = TA::GetBank( handler, rid, num, 0 );
+    if ( !b ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    return b->StartTargetMainVerification();
 }
 
 
@@ -1605,7 +1741,14 @@ oh_cancel_fumi_upgrade(
     SaHpiFumiNumT num,
     SaHpiBankNumT banknum )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cBank * b = TA::GetBank( handler, rid, num, banknum );
+    if ( !b ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    return b->CancelUpgrade();
 }
 
 
@@ -1619,7 +1762,14 @@ oh_get_fumi_autorollback_disable(
     SaHpiFumiNumT num,
     SaHpiBoolT * disable )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cFumi * fumi = TA::GetFumi( handler, rid, num );
+    if ( !fumi ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    return fumi->GetAutoRollbackDisabled( *disable );
 }
 
 
@@ -1633,7 +1783,14 @@ oh_set_fumi_autorollback_disable(
     SaHpiFumiNumT num,
     SaHpiBoolT disable )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cFumi * fumi = TA::GetFumi( handler, rid, num );
+    if ( !fumi ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    return fumi->SetAutoRollbackDisabled( disable );
 }
 
 
@@ -1646,7 +1803,14 @@ oh_start_fumi_rollback(
     SaHpiResourceIdT rid,
     SaHpiFumiNumT num )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cBank * b = TA::GetBank( handler, rid, num, 0 );
+    if ( !b ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    return b->StartRollback();
 }
 
 
@@ -1673,7 +1837,14 @@ oh_start_fumi_activate(
     SaHpiFumiNumT num,
     SaHpiBoolT logical )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cFumi * fumi = TA::GetFumi( handler, rid, num );
+    if ( !fumi ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    return fumi->StartActivation( logical );
 }
 
 
@@ -1687,7 +1858,14 @@ oh_cleanup_fumi(
     SaHpiFumiNumT num,
     SaHpiBankNumT banknum )
 {
-    return SA_ERR_HPI_UNSUPPORTED_API;
+    TA::cHandler * handler = TA::GetHandler( hnd );
+    TA::cLocker<TA::cHandler> al( handler );
+    TA::cBank * b = TA::GetBank( handler, rid, num, banknum );
+    if ( !b ) {
+        return SA_ERR_HPI_NOT_PRESENT;
+    }
+
+    return b->Cleanup();
 }
 
 

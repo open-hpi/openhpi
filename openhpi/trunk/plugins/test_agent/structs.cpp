@@ -487,6 +487,7 @@ static void GetVars( SaHpiFumiRecT& rec, cVars& vars )
     vars << "Rdr.FumiRec.NumBanks"
          << dtSaHpiUint8T
          << DATA( rec.NumBanks )
+         << READONLY()
          << VAR_END();
     vars << "Rdr.FumiRec.Oem"
          << dtSaHpiUint32T
@@ -863,6 +864,223 @@ void GetVars( SaHpiDimiTestT& info, cVars& vars )
         snprintf( &prefix[0], sizeof(prefix), "TestInfo.TestParameters[%u]", (unsigned int)i );
         GetVars( prefix, info.TestParameters[i], vars );
     }
+}
+
+void GetVars( SaHpiFumiSpecInfoT& info, cVars& vars )
+{
+    vars << "SpecInfo.SpecInfoType"
+         << dtSaHpiFumiSpecInfoTypeT
+         << DATA( info.SpecInfoType )
+         << VAR_END();
+
+    vars << IF( info.SpecInfoType == SAHPI_FUMI_SPEC_INFO_SAF_DEFINED )
+         << "SpecInfo.SafDefined.SpecID"
+         << dtSaHpiFumiSafDefinedSpecIdT
+         << DATA( info.SpecInfoTypeUnion.SafDefined.SpecID )
+         << VAR_END();
+    vars << IF( info.SpecInfoType == SAHPI_FUMI_SPEC_INFO_SAF_DEFINED )
+         << "SpecInfo.SafDefined.RevisionID"
+         << dtSaHpiUint32T
+         << DATA( info.SpecInfoTypeUnion.SafDefined.RevisionID )
+         << VAR_END();
+
+    vars << IF( info.SpecInfoType == SAHPI_FUMI_SPEC_INFO_OEM_DEFINED )
+         << "SpecInfo.OemDefined.Mid"
+         << dtSaHpiManufacturerIdT
+         << DATA( info.SpecInfoTypeUnion.OemDefined.Mid )
+         << VAR_END();
+    vars << IF( info.SpecInfoType == SAHPI_FUMI_SPEC_INFO_OEM_DEFINED )
+         << "SpecInfo.OemDefined.Body"
+         << dtSaHpiFumiOemDefinedSpecInfoTWithoutMid
+         << DATA( info.SpecInfoTypeUnion.OemDefined )
+         << VAR_END();
+}
+
+void GetVars( SaHpiFumiServiceImpactDataT& data, cVars& vars )
+{
+    char prefix[256];
+
+    vars << "ServiceImpact.NumEntities"
+         << dtSaHpiUint32T
+         << DATA( data.NumEntities )
+         << VAR_END();
+
+    for ( size_t i = 0; i < data.NumEntities; ++i ) {
+        snprintf( &prefix[0], sizeof(prefix), "ServiceImpact.ImpactedEntities[%u]", (unsigned int)i );
+        vars << std::string( prefix ) + ".ImpactedEntity"
+             << dtSaHpiEntityPathT
+             << DATA( data.ImpactedEntities[i].ImpactedEntity )
+             << VAR_END();
+        vars << std::string( prefix ) + ".ServiceImpact"
+             << dtSaHpiFumiServiceImpactT
+             << DATA( data.ImpactedEntities[i].ServiceImpact )
+             << VAR_END();
+    }
+}
+
+void GetVars( SaHpiFumiBankInfoT& info, cVars& vars )
+{
+    vars << "BankInfo.BankId"
+         << dtSaHpiUint8T
+         << DATA( info.BankId )
+         << READONLY()
+         << VAR_END();
+    vars << "BankInfo.BankSize"
+         << dtSaHpiUint32T
+         << DATA( info.BankSize )
+         << VAR_END();
+    vars << "BankInfo.Position"
+         << dtSaHpiUint32T
+         << DATA( info.Position )
+         << READONLY()
+         << VAR_END();
+    vars << "BankInfo.BankState"
+         << dtSaHpiFumiBankStateT
+         << DATA( info.BankState )
+         << VAR_END();
+    vars << "BankInfo.Identifier"
+         << dtSaHpiTextBufferT
+         << DATA( info.Identifier )
+         << VAR_END();
+    vars << "BankInfo.Description"
+         << dtSaHpiTextBufferT
+         << DATA( info.Description )
+         << VAR_END();
+    vars << "BankInfo.DateTime"
+         << dtSaHpiTextBufferT
+         << DATA( info.DateTime )
+         << VAR_END();
+    vars << "BankInfo.MajorVersion"
+         << dtSaHpiUint32T
+         << DATA( info.MajorVersion )
+         << VAR_END();
+    vars << "BankInfo.MinorVersion"
+         << dtSaHpiUint32T
+         << DATA( info.MinorVersion )
+         << VAR_END();
+    vars << "BankInfo.AuxVersion"
+         << dtSaHpiUint32T
+         << DATA( info.AuxVersion )
+         << VAR_END();
+}
+
+void GetVars( const std::string& name, SaHpiFumiSourceInfoT& info, bool uri_and_status, cVars& vars )
+{
+    // This function does provide Source URI and Status.
+    vars << IF( uri_and_status )
+         << name + ".SourceUri"
+         << dtSaHpiTextBufferT
+         << DATA( info.SourceUri )
+         << VAR_END();
+    vars << IF( uri_and_status )
+         << name + ".SourceStatus"
+         << dtSaHpiFumiSourceStatusT
+         << DATA( info.SourceStatus )
+         << VAR_END();
+    vars << name + ".Identifier"
+         << dtSaHpiTextBufferT
+         << DATA( info.Identifier )
+         << VAR_END();
+    vars << name + ".Description"
+         << dtSaHpiTextBufferT
+         << DATA( info.Description )
+         << VAR_END();
+    vars << name + ".DateTime"
+         << dtSaHpiTextBufferT
+         << DATA( info.DateTime )
+         << VAR_END();
+    vars << name + ".MajorVersion"
+         << dtSaHpiUint32T
+         << DATA( info.MajorVersion )
+         << VAR_END();
+    vars << name + ".MinorVersion"
+         << dtSaHpiUint32T
+         << DATA( info.MinorVersion )
+         << VAR_END();
+    vars << name + ".AuxVersion"
+         << dtSaHpiUint32T
+         << DATA( info.AuxVersion )
+         << VAR_END();
+}
+
+static void GetVars( const std::string& name, SaHpiFumiFirmwareInstanceInfoT& info, cVars& vars )
+{
+    vars << name + ".InstancePresent"
+         << dtSaHpiBoolT
+         << DATA( info.InstancePresent )
+         << VAR_END();
+    vars << IF( info.InstancePresent != SAHPI_FALSE )
+         << name + ".Identifier"
+         << dtSaHpiTextBufferT
+         << DATA( info.Identifier )
+         << VAR_END();
+    vars << IF( info.InstancePresent != SAHPI_FALSE )
+         << name + ".Description"
+         << dtSaHpiTextBufferT
+         << DATA( info.Description )
+         << VAR_END();
+    vars << IF( info.InstancePresent != SAHPI_FALSE )
+         << name + ".DateTime"
+         << dtSaHpiTextBufferT
+         << DATA( info.DateTime )
+         << VAR_END();
+    vars << IF( info.InstancePresent != SAHPI_FALSE )
+         << name + ".MajorVersion"
+         << dtSaHpiUint32T
+         << DATA( info.MajorVersion )
+         << VAR_END();
+    vars << IF( info.InstancePresent != SAHPI_FALSE )
+         << name + ".MinorVersion"
+         << dtSaHpiUint32T
+         << DATA( info.MinorVersion )
+         << VAR_END();
+    vars << IF( info.InstancePresent != SAHPI_FALSE )
+         << name + ".AuxVersion"
+         << dtSaHpiUint32T
+         << DATA( info.AuxVersion )
+         << VAR_END();
+}
+
+void GetVars( const std::string& name, SaHpiFumiComponentInfoT& info, cVars& vars )
+{
+    GetVars( name + ".MainFwInstance", info.MainFwInstance, vars );
+
+    vars << name + ".ComponentFlags"
+         << dtSaHpiUint32T
+         << DATA( info.ComponentFlags )
+         << VAR_END();
+}
+
+void GetVars( SaHpiFumiLogicalBankInfoT& info, cVars& vars )
+{
+    vars << "LogicalBankInfo.FirmwarePersistentLocationCount"
+         << dtSaHpiUint8T
+         << DATA( info.FirmwarePersistentLocationCount )
+         << VAR_END();
+    vars << "LogicalBankInfo.BankStateFlags"
+         << dtSaHpiFumiLogicalBankStateFlagsT
+         << DATA( info.BankStateFlags )
+         << VAR_END();
+
+    // Do not show pending/rollback fw info
+/*
+    GetVars( "LogicalBankInfo.PendingFwInstance", info.PendingFwInstance, vars );
+    GetVars( "LogicalBankInfo.RollbackFwInstance", info.RollbackFwInstance, vars );
+*/
+}
+
+void GetVars( const std::string& name, SaHpiFumiLogicalComponentInfoT& info, cVars& vars )
+{
+    // Do not show pending/rollback fw info
+/*
+    GetVars( name + ".PendingFwInstance", info.PendingFwInstance, vars );
+    GetVars( name + ".RollbackFwInstance", info.RollbackFwInstance, vars );
+*/
+
+    vars << name + ".ComponentFlags"
+         << dtSaHpiUint32T
+         << DATA( info.ComponentFlags )
+         << VAR_END();
 }
 
 

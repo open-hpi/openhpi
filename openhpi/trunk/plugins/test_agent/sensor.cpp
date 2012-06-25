@@ -478,17 +478,17 @@ void cSensor::AfterVarSet( const std::string& var_name )
 
 
 // Handling RDR changes
-void cSensor::HandleRdrChange( const std::string& var_name,
-                               SaHpiRdrTypeUnionT& data )
+void cSensor::UpdateRdr( const std::string& field_name,
+                         SaHpiRdrTypeUnionT& data )
 {
-    cInstrument::HandleRdrChange( var_name, data );
+    cInstrument::UpdateRdr( field_name, data );
 
     SaHpiSensorRecT& rec       = data.SensorRec;
     SaHpiSensorDataFormatT& df = rec.DataFormat;
     SaHpiSensorRangeT& range   = df.Range;
     SaHpiSensorThdDefnT& thd   = rec.ThresholdDefn;
 
-    if ( var_name == "Rdr.SensorRec.Category" ) {
+    if ( field_name == "Rdr.SensorRec.Category" ) {
         if ( rec.Category == SAHPI_EC_THRESHOLD ) {
             thd.IsAccessible = SAHPI_TRUE;
         } else {
@@ -497,10 +497,10 @@ void cSensor::HandleRdrChange( const std::string& var_name,
             thd.WriteThold   = 0;
         }
     }
-    if ( var_name == "Rdr.SensorRec.DataFormat.IsSupported" ) {
+    if ( field_name == "Rdr.SensorRec.DataFormat.IsSupported" ) {
         m_reading.IsSupported = df.IsSupported;
     }
-    if ( var_name == "Rdr.SensorRec.DataFormat.ReadingType" ) {
+    if ( field_name == "Rdr.SensorRec.DataFormat.ReadingType" ) {
         range.Max.Type       = df.ReadingType;
         range.Min.Type       = df.ReadingType;
         range.Nominal.Type   = df.ReadingType;

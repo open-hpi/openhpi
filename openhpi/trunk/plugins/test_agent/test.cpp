@@ -49,7 +49,7 @@ static SaHpiDimiTestT MakeDefaultTestInfo( SaHpiDimiTestNumT num )
     info.NeedServiceOS = SAHPI_FALSE;
     MakeHpiTextBuffer( info.ServiceOS, "Unspecified OS" );
     info.ExpectedRunDuration = 2000000000LL; // 2 sec
-    info.TestCapabilities = SAHPI_DIMITEST_CAPABILITY_TESTCANCEL; 
+    info.TestCapabilities = SAHPI_DIMITEST_CAPABILITY_TESTCANCEL;
 
     for ( size_t i = 0; i < SAHPI_DIMITEST_MAX_PARAMETERS; ++i ) {
         SaHpiDimiTestParamsDefinitionT& pd = info.TestParameters[i];
@@ -63,7 +63,6 @@ static SaHpiDimiTestT MakeDefaultTestInfo( SaHpiDimiTestNumT num )
         pd.MinValue.IntValue     = 0;
         pd.MaxValue.IntValue     = 255;
         pd.DefaultParam.paramint = i;
-        
     }
 
     return info;
@@ -171,7 +170,7 @@ SaErrorT cTest::Cancel()
     return SA_OK;
 }
 
-SaErrorT cTest::GetStatus( SaHpiDimiTestPercentCompletedT& progress, 
+SaErrorT cTest::GetStatus( SaHpiDimiTestPercentCompletedT& progress,
                            SaHpiDimiTestRunStatusT& status ) const
 {
     progress = m_progress;
@@ -305,14 +304,6 @@ void cTest::ChangeStatus( SaHpiDimiTestRunStatusT status )
     if ( !IsVisible() ) {
         return;
     }
-
-    SaHpiEventUnionT data;
-
-    SaHpiDimiEventT& de = data.DimiEvent; 
-    de.DimiNum                  = m_dimi.GetRdr().RdrTypeUnion.DimiRec.DimiNum;
-    de.TestNum                  = m_num;
-    de.DimiTestRunStatus        = status;
-    de.DimiTestPercentCompleted = m_progress;
 
     m_dimi.PostEvent( m_num, m_status, m_progress );
 }

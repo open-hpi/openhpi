@@ -265,6 +265,23 @@ set Visible = TRUE
 new test-0
 cd ..
 
+# create fumi with logical bank
+new fumi-1
+cd fumi-1
+set Visible = TRUE
+cd ..
+
+# create fumi with explicit banks
+new fumi-2
+cd fumi-2
+set Rdr.FumiRec.Capability = BANKCOPY | TARGET_VERIFY | COMPONENTS | BANKREORDER
+new bank-1
+new bank-2
+new bank-3
+new bank-4
+new bank-5
+set Visible = TRUE
+cd ..
 
 cd /
 

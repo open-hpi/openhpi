@@ -41,6 +41,13 @@ void GetVars( SaHpiSensorThresholdsT& ths, cVars& vars );
 void GetVars( SaHpiWatchdogT& wd, cVars& vars );
 void GetVars( SaHpiAnnouncementT& a, cVars& vars );
 void GetVars( SaHpiDimiTestT& info, cVars& vars );
+void GetVars( SaHpiFumiSpecInfoT& info, cVars& vars );
+void GetVars( SaHpiFumiServiceImpactDataT& data, cVars& vars );
+void GetVars( SaHpiFumiBankInfoT& info, cVars& vars );
+void GetVars( const std::string& name, SaHpiFumiSourceInfoT& info, bool uri_and_status, cVars& vars );
+void GetVars( const std::string& name, SaHpiFumiComponentInfoT& info, cVars& vars );
+void GetVars( SaHpiFumiLogicalBankInfoT& info, cVars& vars );
+void GetVars( const std::string& name, SaHpiFumiLogicalComponentInfoT& info, cVars& vars );
 
 
 }; // namespace Structs

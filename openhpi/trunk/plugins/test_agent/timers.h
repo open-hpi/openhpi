@@ -73,6 +73,7 @@ public:
     bool Start();
     void SetTimer( cTimerCallback * callback, SaHpiTimeoutT timeout );
     void CancelTimer( const cTimerCallback * callback );
+    bool HasTimerSet( const cTimerCallback * callback );
 
 private:
 

@@ -99,8 +99,8 @@ cTest * cDimi::GetTest( SaHpiDimiTestNumT tnum ) const
     return ( tnum < m_tests.size() ) ? m_tests[tnum] : 0;
 }
 
-void cDimi::PostEvent( SaHpiDimiTestNumT tnum, 
-                       SaHpiDimiTestRunStatusT status,     
+void cDimi::PostEvent( SaHpiDimiTestNumT tnum,
+                       SaHpiDimiTestRunStatusT status,
                        SaHpiDimiTestPercentCompletedT progress )
 {
     SaHpiEventUnionT data;
@@ -126,6 +126,18 @@ SaErrorT cDimi::GetInfo( SaHpiDimiInfoT& info ) const
 
 
 // cObject virtual functions
+void cDimi::GetNB( std::string& nb ) const
+{
+    cObject::GetNB( nb );
+    nb += "- Test Agent supports creation of a DIMI test with\n";
+    nb += "    id == current number of tests.\n";
+    nb += "- Test Agent supports removal of a DIMI test with\n";
+    nb += "    id == (current number of tests - 1).\n";
+    nb += "- Be careful when removing a test:\n";
+    nb += "-- Any DIMI API directed to the removed test will fail.\n";
+    nb += "-- Any DIMI asynchronous operation on the test can fail or cause crash.\n";
+}
+
 void cDimi::GetNewNames( cObject::NewNames& names ) const
 {
     cObject::GetNewNames( names );
@@ -152,17 +164,11 @@ bool cDimi::CreateChild( const std::string& name )
         return false;
     }
 
-    if ( id > m_tests.size() ) {
-        return false;
-    }
-    if ( id == m_tests.size() ) {
-        m_tests.push_back( 0 );
-    }
-    if ( m_tests[id] ) {
+    if ( id != m_tests.size() ) {
         return false;
     }
 
-    m_tests[id] = new cTest( m_handler, *this, id );
+    m_tests.push_back( new cTest( m_handler, *this, id ) );
     Update();
 
     return true;
@@ -184,15 +190,13 @@ bool cDimi::RemoveChild( const std::string& name )
         return false;
     }
 
-    if ( id >= m_tests.size() ) {
-        return false;
-    }
-    if ( m_tests[id] == 0 ) {
+    if ( ( id + 1 ) != m_tests.size() ) {
         return false;
     }
 
     delete m_tests[id];
     m_tests[id] = 0;
+    m_tests.resize( id );
     Update();
 
     return true;

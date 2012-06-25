@@ -56,8 +56,8 @@ private:
 
 private: // Handling RDR changes
 
-    virtual void HandleRdrChange( const std::string& var_name,
-                                  SaHpiRdrTypeUnionT& data );
+    virtual void UpdateRdr( const std::string& field_name,
+                            SaHpiRdrTypeUnionT& data );
 
 private:
 

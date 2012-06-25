@@ -9,6 +9,8 @@
  *        Anton Pak <anton.pak@pigeonpoint.com>
  */
 
+#include <algorithm>
+
 #include "timers.h"
 
 
@@ -105,7 +107,6 @@ void cTimers::SetTimer( cTimerCallback * callback, SaHpiTimeoutT timeout )
 
 void cTimers::CancelTimer( const cTimerCallback * callback )
 {
-
     g_mutex_lock( m_mutex );
 
     CallbackPred pred;
@@ -115,6 +116,21 @@ void cTimers::CancelTimer( const cTimerCallback * callback )
     g_cond_signal( m_cond );
     g_mutex_unlock( m_mutex );
 }
+
+bool cTimers::HasTimerSet( const cTimerCallback * callback )
+{
+    g_mutex_lock( m_mutex );
+
+    CallbackPred pred;
+    pred.callback = callback;
+    Timers::const_iterator iter = std::find_if( m_timers.begin(), m_timers.end(), pred );
+    bool has = iter != m_timers.end();
+
+    g_mutex_unlock( m_mutex );
+
+    return has;
+}
+
 
 gpointer cTimers::ThreadFuncAdapter( gpointer data )
 {
