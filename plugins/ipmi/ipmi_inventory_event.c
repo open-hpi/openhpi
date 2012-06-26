@@ -79,7 +79,7 @@ static void init_inventory_info(
 				(1 << SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER);
 		}
 		for (i = 0; ;i++) {
-			if (ipmi_fru_get_chassis_info_custom_len(fru, i, &len) == 0) {
+			if (ipmi_fru_get_chassis_info_custom_len(fru, i, &len) != 0) {
 				break;
 			}
 			i_info->ci_fld_msk |=
