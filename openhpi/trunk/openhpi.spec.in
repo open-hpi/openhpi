@@ -45,6 +45,10 @@
 %define with_slave 1
 %endif
 
+%if "x@TEST_AGENT@" == "xtest_agent"
+%define with_test_agent 1
+%endif
+
 Name: @HPI_PKG@
 Version: @VERSION@
 Release: 1
@@ -165,6 +169,13 @@ Group: System/Monitoring
 Requires: openhpi = %{version}
 %endif
 
+%if 0%{?with_test_agent}
+%package test_agent
+Summary: OpenHPI plugin for simulation with runtime configuration changes support
+Group: System/Monitoring
+Requires: openhpi = %{version}
+%endif
+
 %description 
 An open implementation of the Service Availability Forum (SAF)
 Hardware Platform Interface (HPI). It includes support for multiple types of
@@ -248,7 +259,11 @@ using an XML-encoded SOAP interface.
 OpenHPI plug-in that allows to aggregate resources from different domains 
 (slave domains) and to provide aggregated resources as part of the one domain 
 (master domain).
+%endif
 
+%if 0%{?with_test_agent}
+%description test_agent
+OpenHPI plugin that reports fakes hardware and allows runtime configuration changes.
 %endif
 
 ###################################################
@@ -397,5 +412,13 @@ make DESTDIR=%{buildroot} install
 ###################################################
 %defattr(-,root,root)
 %{_libdir}/%{name}/libslave.*
+%endif
+
+###################################################
+%if 0%{?with_test_agent}
+%files test_agent
+###################################################
+%defattr(-,root,root)
+%{_libdir}/%{name}/libtest_agent.*
 %endif
 
