@@ -5967,6 +5967,282 @@ public class HpiUtilGen
     }
 
     /**
+     * For AtcaHpiLedColorT
+     */
+    public static String fromAtcaHpiLedColorT( long x )
+    {
+        if ( x == ATCAHPI_LED_COLOR_RESERVED ) {
+            return "RESERVED";
+        }
+        if ( x == ATCAHPI_LED_COLOR_BLUE ) {
+            return "BLUE";
+        }
+        if ( x == ATCAHPI_LED_COLOR_RED ) {
+            return "RED";
+        }
+        if ( x == ATCAHPI_LED_COLOR_GREEN ) {
+            return "GREEN";
+        }
+        if ( x == ATCAHPI_LED_COLOR_AMBER ) {
+            return "AMBER";
+        }
+        if ( x == ATCAHPI_LED_COLOR_ORANGE ) {
+            return "ORANGE";
+        }
+        if ( x == ATCAHPI_LED_COLOR_WHITE ) {
+            return "WHITE";
+        }
+        if ( x == ATCAHPI_LED_COLOR_NO_CHANGE ) {
+            return "NO_CHANGE";
+        }
+        if ( x == ATCAHPI_LED_COLOR_USE_DEFAULT ) {
+            return "USE_DEFAULT";
+        }
+
+        return Long.toString( x );
+    }
+
+    public static long toAtcaHpiLedColorT( String s )
+        throws IllegalArgumentException
+    {
+        if ( s.equals( "RESERVED" ) ) {
+            return ATCAHPI_LED_COLOR_RESERVED;
+        }
+        if ( s.equals( "BLUE" ) ) {
+            return ATCAHPI_LED_COLOR_BLUE;
+        }
+        if ( s.equals( "RED" ) ) {
+            return ATCAHPI_LED_COLOR_RED;
+        }
+        if ( s.equals( "GREEN" ) ) {
+            return ATCAHPI_LED_COLOR_GREEN;
+        }
+        if ( s.equals( "AMBER" ) ) {
+            return ATCAHPI_LED_COLOR_AMBER;
+        }
+        if ( s.equals( "ORANGE" ) ) {
+            return ATCAHPI_LED_COLOR_ORANGE;
+        }
+        if ( s.equals( "WHITE" ) ) {
+            return ATCAHPI_LED_COLOR_WHITE;
+        }
+        if ( s.equals( "NO_CHANGE" ) ) {
+            return ATCAHPI_LED_COLOR_NO_CHANGE;
+        }
+        if ( s.equals( "USE_DEFAULT" ) ) {
+            return ATCAHPI_LED_COLOR_USE_DEFAULT;
+        }
+
+        throw new IllegalArgumentException();
+    }
+
+    /**
+     * For AtcaHpiResourceLedModeT
+     */
+    public static String fromAtcaHpiResourceLedModeT( long x )
+    {
+        if ( x == ATCAHPI_LED_AUTO ) {
+            return "AUTO";
+        }
+        if ( x == ATCAHPI_LED_MANUAL ) {
+            return "MANUAL";
+        }
+        if ( x == ATCAHPI_LED_LAMP_TEST ) {
+            return "LAMP_TEST";
+        }
+
+        return Long.toString( x );
+    }
+
+    public static long toAtcaHpiResourceLedModeT( String s )
+        throws IllegalArgumentException
+    {
+        if ( s.equals( "AUTO" ) ) {
+            return ATCAHPI_LED_AUTO;
+        }
+        if ( s.equals( "MANUAL" ) ) {
+            return ATCAHPI_LED_MANUAL;
+        }
+        if ( s.equals( "LAMP_TEST" ) ) {
+            return ATCAHPI_LED_LAMP_TEST;
+        }
+
+        throw new IllegalArgumentException();
+    }
+
+    /**
+     * For AtcaHpiLedBrSupportT
+     */
+    public static String fromAtcaHpiLedBrSupportT( long x )
+    {
+        if ( x == ATCAHPI_LED_BR_SUPPORTED ) {
+            return "SUPPORTED";
+        }
+        if ( x == ATCAHPI_LED_BR_NOT_SUPPORTED ) {
+            return "NOT_SUPPORTED";
+        }
+        if ( x == ATCAHPI_LED_BR_UNKNOWN ) {
+            return "UNKNOWN";
+        }
+
+        return Long.toString( x );
+    }
+
+    public static long toAtcaHpiLedBrSupportT( String s )
+        throws IllegalArgumentException
+    {
+        if ( s.equals( "SUPPORTED" ) ) {
+            return ATCAHPI_LED_BR_SUPPORTED;
+        }
+        if ( s.equals( "NOT_SUPPORTED" ) ) {
+            return ATCAHPI_LED_BR_NOT_SUPPORTED;
+        }
+        if ( s.equals( "UNKNOWN" ) ) {
+            return ATCAHPI_LED_BR_UNKNOWN;
+        }
+
+        throw new IllegalArgumentException();
+    }
+
+    /**
+     * For XtcaHpiLedColorT
+     */
+    public static String fromXtcaHpiLedColorT( long x )
+    {
+        if ( x == XTCAHPI_LED_COLOR_RESERVED ) {
+            return "RESERVED";
+        }
+        if ( x == XTCAHPI_LED_COLOR_BLUE ) {
+            return "BLUE";
+        }
+        if ( x == XTCAHPI_LED_COLOR_RED ) {
+            return "RED";
+        }
+        if ( x == XTCAHPI_LED_COLOR_GREEN ) {
+            return "GREEN";
+        }
+        if ( x == XTCAHPI_LED_COLOR_AMBER ) {
+            return "AMBER";
+        }
+        if ( x == XTCAHPI_LED_COLOR_ORANGE ) {
+            return "ORANGE";
+        }
+        if ( x == XTCAHPI_LED_COLOR_WHITE ) {
+            return "WHITE";
+        }
+        if ( x == XTCAHPI_LED_COLOR_NO_CHANGE ) {
+            return "NO_CHANGE";
+        }
+        if ( x == XTCAHPI_LED_COLOR_USE_DEFAULT ) {
+            return "USE_DEFAULT";
+        }
+
+        return Long.toString( x );
+    }
+
+    public static long toXtcaHpiLedColorT( String s )
+        throws IllegalArgumentException
+    {
+        if ( s.equals( "RESERVED" ) ) {
+            return XTCAHPI_LED_COLOR_RESERVED;
+        }
+        if ( s.equals( "BLUE" ) ) {
+            return XTCAHPI_LED_COLOR_BLUE;
+        }
+        if ( s.equals( "RED" ) ) {
+            return XTCAHPI_LED_COLOR_RED;
+        }
+        if ( s.equals( "GREEN" ) ) {
+            return XTCAHPI_LED_COLOR_GREEN;
+        }
+        if ( s.equals( "AMBER" ) ) {
+            return XTCAHPI_LED_COLOR_AMBER;
+        }
+        if ( s.equals( "ORANGE" ) ) {
+            return XTCAHPI_LED_COLOR_ORANGE;
+        }
+        if ( s.equals( "WHITE" ) ) {
+            return XTCAHPI_LED_COLOR_WHITE;
+        }
+        if ( s.equals( "NO_CHANGE" ) ) {
+            return XTCAHPI_LED_COLOR_NO_CHANGE;
+        }
+        if ( s.equals( "USE_DEFAULT" ) ) {
+            return XTCAHPI_LED_COLOR_USE_DEFAULT;
+        }
+
+        throw new IllegalArgumentException();
+    }
+
+    /**
+     * For XtcaHpiResourceLedModeT
+     */
+    public static String fromXtcaHpiResourceLedModeT( long x )
+    {
+        if ( x == XTCAHPI_LED_AUTO ) {
+            return "AUTO";
+        }
+        if ( x == XTCAHPI_LED_MANUAL ) {
+            return "MANUAL";
+        }
+        if ( x == XTCAHPI_LED_LAMP_TEST ) {
+            return "LAMP_TEST";
+        }
+
+        return Long.toString( x );
+    }
+
+    public static long toXtcaHpiResourceLedModeT( String s )
+        throws IllegalArgumentException
+    {
+        if ( s.equals( "AUTO" ) ) {
+            return XTCAHPI_LED_AUTO;
+        }
+        if ( s.equals( "MANUAL" ) ) {
+            return XTCAHPI_LED_MANUAL;
+        }
+        if ( s.equals( "LAMP_TEST" ) ) {
+            return XTCAHPI_LED_LAMP_TEST;
+        }
+
+        throw new IllegalArgumentException();
+    }
+
+    /**
+     * For XtcaHpiLedBrSupportT
+     */
+    public static String fromXtcaHpiLedBrSupportT( long x )
+    {
+        if ( x == XTCAHPI_LED_BR_SUPPORTED ) {
+            return "SUPPORTED";
+        }
+        if ( x == XTCAHPI_LED_BR_NOT_SUPPORTED ) {
+            return "NOT_SUPPORTED";
+        }
+        if ( x == XTCAHPI_LED_BR_UNKNOWN ) {
+            return "UNKNOWN";
+        }
+
+        return Long.toString( x );
+    }
+
+    public static long toXtcaHpiLedBrSupportT( String s )
+        throws IllegalArgumentException
+    {
+        if ( s.equals( "SUPPORTED" ) ) {
+            return XTCAHPI_LED_BR_SUPPORTED;
+        }
+        if ( s.equals( "NOT_SUPPORTED" ) ) {
+            return XTCAHPI_LED_BR_NOT_SUPPORTED;
+        }
+        if ( s.equals( "UNKNOWN" ) ) {
+            return XTCAHPI_LED_BR_UNKNOWN;
+        }
+
+        throw new IllegalArgumentException();
+    }
+
+    /**
      * For SaErrorT
      */
     public static String fromSaErrorT( long x )

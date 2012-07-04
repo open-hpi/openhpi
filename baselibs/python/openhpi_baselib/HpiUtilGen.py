@@ -4899,6 +4899,180 @@ def toSaHpiEventLogOverflowActionT( s ):
     raise ValueError()
 
 #**
+# For AtcaHpiLedColorT
+#**
+def fromAtcaHpiLedColorT( x ):
+    if x == ATCAHPI_LED_COLOR_RESERVED:
+        return "RESERVED"
+    if x == ATCAHPI_LED_COLOR_BLUE:
+        return "BLUE"
+    if x == ATCAHPI_LED_COLOR_RED:
+        return "RED"
+    if x == ATCAHPI_LED_COLOR_GREEN:
+        return "GREEN"
+    if x == ATCAHPI_LED_COLOR_AMBER:
+        return "AMBER"
+    if x == ATCAHPI_LED_COLOR_ORANGE:
+        return "ORANGE"
+    if x == ATCAHPI_LED_COLOR_WHITE:
+        return "WHITE"
+    if x == ATCAHPI_LED_COLOR_NO_CHANGE:
+        return "NO_CHANGE"
+    if x == ATCAHPI_LED_COLOR_USE_DEFAULT:
+        return "USE_DEFAULT"
+    return repr( x )
+
+def toAtcaHpiLedColorT( s ):
+    if s == "RESERVED":
+        return ATCAHPI_LED_COLOR_RESERVED
+    if s == "BLUE":
+        return ATCAHPI_LED_COLOR_BLUE
+    if s == "RED":
+        return ATCAHPI_LED_COLOR_RED
+    if s == "GREEN":
+        return ATCAHPI_LED_COLOR_GREEN
+    if s == "AMBER":
+        return ATCAHPI_LED_COLOR_AMBER
+    if s == "ORANGE":
+        return ATCAHPI_LED_COLOR_ORANGE
+    if s == "WHITE":
+        return ATCAHPI_LED_COLOR_WHITE
+    if s == "NO_CHANGE":
+        return ATCAHPI_LED_COLOR_NO_CHANGE
+    if s == "USE_DEFAULT":
+        return ATCAHPI_LED_COLOR_USE_DEFAULT
+    raise ValueError()
+
+#**
+# For AtcaHpiResourceLedModeT
+#**
+def fromAtcaHpiResourceLedModeT( x ):
+    if x == ATCAHPI_LED_AUTO:
+        return "AUTO"
+    if x == ATCAHPI_LED_MANUAL:
+        return "MANUAL"
+    if x == ATCAHPI_LED_LAMP_TEST:
+        return "LAMP_TEST"
+    return repr( x )
+
+def toAtcaHpiResourceLedModeT( s ):
+    if s == "AUTO":
+        return ATCAHPI_LED_AUTO
+    if s == "MANUAL":
+        return ATCAHPI_LED_MANUAL
+    if s == "LAMP_TEST":
+        return ATCAHPI_LED_LAMP_TEST
+    raise ValueError()
+
+#**
+# For AtcaHpiLedBrSupportT
+#**
+def fromAtcaHpiLedBrSupportT( x ):
+    if x == ATCAHPI_LED_BR_SUPPORTED:
+        return "SUPPORTED"
+    if x == ATCAHPI_LED_BR_NOT_SUPPORTED:
+        return "NOT_SUPPORTED"
+    if x == ATCAHPI_LED_BR_UNKNOWN:
+        return "UNKNOWN"
+    return repr( x )
+
+def toAtcaHpiLedBrSupportT( s ):
+    if s == "SUPPORTED":
+        return ATCAHPI_LED_BR_SUPPORTED
+    if s == "NOT_SUPPORTED":
+        return ATCAHPI_LED_BR_NOT_SUPPORTED
+    if s == "UNKNOWN":
+        return ATCAHPI_LED_BR_UNKNOWN
+    raise ValueError()
+
+#**
+# For XtcaHpiLedColorT
+#**
+def fromXtcaHpiLedColorT( x ):
+    if x == XTCAHPI_LED_COLOR_RESERVED:
+        return "RESERVED"
+    if x == XTCAHPI_LED_COLOR_BLUE:
+        return "BLUE"
+    if x == XTCAHPI_LED_COLOR_RED:
+        return "RED"
+    if x == XTCAHPI_LED_COLOR_GREEN:
+        return "GREEN"
+    if x == XTCAHPI_LED_COLOR_AMBER:
+        return "AMBER"
+    if x == XTCAHPI_LED_COLOR_ORANGE:
+        return "ORANGE"
+    if x == XTCAHPI_LED_COLOR_WHITE:
+        return "WHITE"
+    if x == XTCAHPI_LED_COLOR_NO_CHANGE:
+        return "NO_CHANGE"
+    if x == XTCAHPI_LED_COLOR_USE_DEFAULT:
+        return "USE_DEFAULT"
+    return repr( x )
+
+def toXtcaHpiLedColorT( s ):
+    if s == "RESERVED":
+        return XTCAHPI_LED_COLOR_RESERVED
+    if s == "BLUE":
+        return XTCAHPI_LED_COLOR_BLUE
+    if s == "RED":
+        return XTCAHPI_LED_COLOR_RED
+    if s == "GREEN":
+        return XTCAHPI_LED_COLOR_GREEN
+    if s == "AMBER":
+        return XTCAHPI_LED_COLOR_AMBER
+    if s == "ORANGE":
+        return XTCAHPI_LED_COLOR_ORANGE
+    if s == "WHITE":
+        return XTCAHPI_LED_COLOR_WHITE
+    if s == "NO_CHANGE":
+        return XTCAHPI_LED_COLOR_NO_CHANGE
+    if s == "USE_DEFAULT":
+        return XTCAHPI_LED_COLOR_USE_DEFAULT
+    raise ValueError()
+
+#**
+# For XtcaHpiResourceLedModeT
+#**
+def fromXtcaHpiResourceLedModeT( x ):
+    if x == XTCAHPI_LED_AUTO:
+        return "AUTO"
+    if x == XTCAHPI_LED_MANUAL:
+        return "MANUAL"
+    if x == XTCAHPI_LED_LAMP_TEST:
+        return "LAMP_TEST"
+    return repr( x )
+
+def toXtcaHpiResourceLedModeT( s ):
+    if s == "AUTO":
+        return XTCAHPI_LED_AUTO
+    if s == "MANUAL":
+        return XTCAHPI_LED_MANUAL
+    if s == "LAMP_TEST":
+        return XTCAHPI_LED_LAMP_TEST
+    raise ValueError()
+
+#**
+# For XtcaHpiLedBrSupportT
+#**
+def fromXtcaHpiLedBrSupportT( x ):
+    if x == XTCAHPI_LED_BR_SUPPORTED:
+        return "SUPPORTED"
+    if x == XTCAHPI_LED_BR_NOT_SUPPORTED:
+        return "NOT_SUPPORTED"
+    if x == XTCAHPI_LED_BR_UNKNOWN:
+        return "UNKNOWN"
+    return repr( x )
+
+def toXtcaHpiLedBrSupportT( s ):
+    if s == "SUPPORTED":
+        return XTCAHPI_LED_BR_SUPPORTED
+    if s == "NOT_SUPPORTED":
+        return XTCAHPI_LED_BR_NOT_SUPPORTED
+    if s == "UNKNOWN":
+        return XTCAHPI_LED_BR_UNKNOWN
+    raise ValueError()
+
+#**
 # For SaErrorT
 #**
 def fromSaErrorT( x ):

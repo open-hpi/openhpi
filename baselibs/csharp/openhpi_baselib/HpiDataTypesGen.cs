@@ -256,6 +256,204 @@ public static class HpiConst
     public const long SAHPI_OLDEST_ENTRY = 0L;
     public const long SAHPI_NEWEST_ENTRY = 4294967295L;
     public const long SAHPI_NO_MORE_ENTRIES = 4294967294L;
+    public const long ATCAHPI_PICMG_MID = 12634L;
+    public const long ATCAHPI_BLINK_COLOR_LED = 128L;
+    public const long ATCAHPI_LED_WHITE = 64L;
+    public const long ATCAHPI_LED_ORANGE = 32L;
+    public const long ATCAHPI_LED_AMBER = 16L;
+    public const long ATCAHPI_LED_GREEN = 8L;
+    public const long ATCAHPI_LED_RED = 4L;
+    public const long ATCAHPI_LED_BLUE = 2L;
+    public const long ATCAHPI_CTRL_NUM_BLUE_LED = 0L;
+    public const long ATCAHPI_CTRL_NUM_LED1 = 1L;
+    public const long ATCAHPI_CTRL_NUM_LED2 = 2L;
+    public const long ATCAHPI_CTRL_NUM_LED3 = 3L;
+    public const long ATCAHPI_CTRL_NUM_APP_LED = 4L;
+    public const long ATCAHPI_RESOURCE_AGGREGATE_LED = 255L;
+    public const long ATCAHPI_ENT_POWER_ENTRY_MODULE_SLOT = 145L;
+    public const long ATCAHPI_ENT_SHELF_FRU_DEVICE_SLOT = 146L;
+    public const long ATCAHPI_ENT_SHELF_MANAGER_SLOT = 147L;
+    public const long ATCAHPI_ENT_FAN_TRAY_SLOT = 148L;
+    public const long ATCAHPI_ENT_FAN_FILTER_TRAY_SLOT = 149L;
+    public const long ATCAHPI_ENT_ALARM_SLOT = 150L;
+    public const long ATCAHPI_ENT_AMC_SLOT = 151L;
+    public const long ATCAHPI_ENT_PMC_SLOT = 152L;
+    public const long ATCAHPI_ENT_RTM_SLOT = 153L;
+    public const long ATCAHPI_ENT_PICMG_FRONT_BLADE = 65558L;
+    public const long ATCAHPI_ENT_SHELF_FRU_DEVICE = 65559L;
+    public const long ATCAHPI_ENT_FILTRATION_UNIT = 65560L;
+    public const long ATCAHPI_ENT_AMC = 65561L;
+    public const long ATCAHPI_SENSOR_NUM_SHELF_INFO_VALID = 4096L;
+    public const long ATCAHPI_CTRL_NUM_SHELF_ADDRESS = 4096L;
+    public const long ATCAHPI_CTRL_NUM_SHELF_IP_ADDRESS = 4097L;
+    public const long ATCAHPI_CTRL_NUM_SHELF_STATUS = 4098L;
+    public const long ATCAHPI_SENSOR_NUM_PWRONSEQ_COMMIT_STATUS = 4864L;
+    public const long ATCAHPI_CTRL_NUM_FRU_POWER_ON_SEQUENCE_COMMIT = 4864L;
+    public const long ATCAHPI_CTRL_NUM_FRU_POWER_ON_SEQUENCE = 4865L;
+    public const long ATCAHPI_CS_CPS_PWR_ON = 1L;
+    public const long ATCAHPI_CS_CPS_PWR_OVERLOAD = 2L;
+    public const long ATCAHPI_CS_CPS_INTERLOCK = 4L;
+    public const long ATCAHPI_CS_CPS_PWR_FAULT = 8L;
+    public const long ATCAHPI_CS_CPS__PWR_CTRL_FAULT = 16L;
+    public const long ATCAHPI_CS_CPS_PWR_RESTORE_PWR_UP_PREV = 32L;
+    public const long ATCAHPI_CS_CPS_PWR_RESTORE_PWR_UP = 64L;
+    public const long ATCAHPI_CS_CPS_PWR_RESTORE_UNKNOWN = 96L;
+    public const long ATCAHPI_CS_LPEVT_AC_FAILED = 1L;
+    public const long ATCAHPI_CS_LPEVT_PWR_OVERLOAD = 2L;
+    public const long ATCAHPI_CS_LPEVT_PWR_INTERLOCK = 4L;
+    public const long ATCAHPI_CS_LPEVT_PWR_FAULT = 8L;
+    public const long ATCAHPI_CS_LPEVT_PWRON_IPMI = 16L;
+    public const long ATCAHPI_CS_MISC_CS_INTRUSION_ACTIVE = 1L;
+    public const long ATCAHPI_CS_MISC_CS_FP_LOCKOUT_ACTIVE = 2L;
+    public const long ATCAHPI_CS_MISC_CS_DRIVE_FAULT = 4L;
+    public const long ATCAHPI_CS_MISC_CS_COOLING_FAULT = 8L;
+    public const long ATCAHPI_CS_FP_BUTTON_PWR_OFF = 1L;
+    public const long ATCAHPI_CS_FP_BUTTON_RESET_OFF = 2L;
+    public const long ATCAHPI_CS_FP_BUTTON_DIAGINTR_OFF = 4L;
+    public const long ATCAHPI_CS_FP_BUTTON_STANDBY_OFF = 8L;
+    public const long ATCAHPI_CS_FP_BUTTON_ALLOW_PWR_OFF = 16L;
+    public const long ATCAHPI_CS_FP_BUTTON_ALLOW_RESET_OFF = 32L;
+    public const long ATCAHPI_CS_FP_BUTTON_ALLOW_DIAGINTR_OFF = 64L;
+    public const long ATCAHPI_CS_FP_BUTTON_ALLOW_STANDBY_OFF = 128L;
+    public const long ATCAHPI_SENSOR_NUM_SHMGR_REDUNDANCY = 4097L;
+    public const long ATCAHPI_SENSOR_NUM_SHMGR_ACTIVE = 4098L;
+    public const long ATCAHPI_SENSOR_NUM_SHMGR_STANDBY = 4099L;
+    public const long ATCAHPI_CTRL_NUM_SHMGR_FAILOVER = 4112L;
+    public const long ATCAHPI_CTRL_NUM_FAILED_RESOURCE_EXTRACT = 4126L;
+    public const long ATCAHPI_SENSOR_NUM_SLOT_STATE = 4112L;
+    public const long ATCAHPI_SENSOR_NUM_ASSIGNED_PWR = 4113L;
+    public const long ATCAHPI_SENSOR_NUM_MAX_PWR = 4114L;
+    public const long ATCAHPI_CTRL_NUM_FRU_ACTIVATION = 4128L;
+    public const long ATCAHPI_SENSOR_NUM_IPMB0 = 4352L;
+    public const long ATCAHPI_CTRL_NUM_DESIRED_PWR = 4144L;
+    public const long ATCAHPI_CTRL_NUM_IPMB_A_STATE = 4353L;
+    public const long ATCAHPI_CTRL_NUM_IPMB_B_STATE = 4354L;
+    public const long ATCAHPI_CTRL_NUM_FRU_CONTROL = 4608L;
+    public const long ATCAHPI_CTRL_NUM_FRU_IPMC_RESET = 4609L;
+    public const long ATCAHPI_SENSOR_NUM_AMC_PWRONSEQ_COMMIT_STATUS = 5376L;
+    public const long ATCAHPI_CTRL_NUM_AMC_POWER_ON_SEQUENCE_COMMIT = 5376L;
+    public const long ATCAHPI_CTRL_NUM_AMC_POWER_ON_SEQUENCE = 5377L;
+    public const long ATCAHPI_CTRL_NUM_FAN_SPEED = 5120L;
+    public const long ATCAHPI_PICMG_CT_CHASSIS_STATUS = 16789850L;
+    public const long ATCAHPI_PICMG_CT_ATCA_LED = 33567066L;
+    public const long XTCAHPI_SPEC_VERSION = 4228711L;
+    public const long XTCAHPI_PICMG_MID = 12634L;
+    public const long XTCAHPI_ENT_POWER_SLOT = 145L;
+    public const long XTCAHPI_ENT_SHELF_FRU_DEVICE_SLOT = 146L;
+    public const long XTCAHPI_ENT_SHELF_MANAGER_SLOT = 147L;
+    public const long XTCAHPI_ENT_FAN_TRAY_SLOT = 148L;
+    public const long XTCAHPI_ENT_FAN_FILTER_TRAY_SLOT = 149L;
+    public const long XTCAHPI_ENT_ALARM_SLOT = 150L;
+    public const long XTCAHPI_ENT_AMC_SLOT = 151L;
+    public const long XTCAHPI_ENT_PMC_SLOT = 152L;
+    public const long XTCAHPI_ENT_RTM_SLOT = 153L;
+    public const long XTCAHPI_ENT_CARRIER_MANAGER_SLOT = 154L;
+    public const long XTCAHPI_ENT_CARRIER_SLOT = 155L;
+    public const long XTCAHPI_ENT_COM_E_SLOT = 156L;
+    public const long XTCAHPI_CTRL_NUM_IP_ADDRESS_0 = 4097L;
+    public const long XTCAHPI_CTRL_NUM_IP_ADDRESS_1 = 4099L;
+    public const long XTCAHPI_CTRL_NUM_POWER_ON_SEQUENCE = 4865L;
+    public const long XTCAHPI_CTRL_NUM_POWER_ON_SEQUENCE_COMMIT = 4864L;
+    public const long XTCAHPI_SENSOR_NUM_PWRONSEQ_COMMIT_STATUS = 4864L;
+    public const long XTCAHPI_ANN_NUM_TELCO_ALARM = 4096L;
+    public const long XTCAHPI_SENSOR_NUM_REDUNDANCY = 4097L;
+    public const long XTCAHPI_SENSOR_NUM_ACTIVE = 4098L;
+    public const long XTCAHPI_SENSOR_NUM_STANDBY = 4099L;
+    public const long XTCAHPI_CTRL_NUM_FAILOVER = 4112L;
+    public const long XTCAHPI_CTRL_NUM_ACTIVATION = 4128L;
+    public const long XTCAHPI_CTRL_NUM_DEACTIVATION = 4129L;
+    public const long XTCAHPI_SENSOR_NUM_FRU_INFO_VALID = 4096L;
+    public const long XTCAHPI_SENSOR_NUM_ASSIGNED_PWR = 4113L;
+    public const long XTCAHPI_SENSOR_NUM_SLOT_ASSIGNED_PWR = 6144L;
+    public const long XTCAHPI_IDR_NUM_CONFIG_INFO = 1L;
+    public const long XTCAHPI_CTRL_NUM_SHELF_ADDRESS = 4096L;
+    public const long XTCAHPI_CTRL_NUM_SHELF_STATUS = 4098L;
+    public const long XTCAHPI_CTRL_NUM_SHELF_MANAGER_RMCP_USERNAME = 4177L;
+    public const long XTCAHPI_CTRL_NUM_SHELF_MANAGER_RMCP_PASSWORD = 4178L;
+    public const long XTCAHPI_CTRL_NUM_IN_SHELF_ACTIVATION = 4192L;
+    public const long XTCAHPI_CTRL_NUM_IN_SHELF_DEACTIVATION = 4193L;
+    public const long XTCAHPI_CTRL_NUM_DESIRED_PWR = 4144L;
+    public const long XTCAHPI_SENSOR_NUM_IPMB0 = 4352L;
+    public const long XTCAHPI_CTRL_NUM_IPMB_A_STATE = 4353L;
+    public const long XTCAHPI_CTRL_NUM_IPMB_B_STATE = 4354L;
+    public const long XTCAHPI_CTRL_NUM_FRU_CONTROL = 4608L;
+    public const long XTCAHPI_CTRL_NUM_FRU_IPMC_RESET = 4609L;
+    public const long XTCAHPI_CTRL_NUM_BLUE_LED = 0L;
+    public const long XTCAHPI_CTRL_NUM_LED1 = 1L;
+    public const long XTCAHPI_CTRL_NUM_LED2 = 2L;
+    public const long XTCAHPI_CTRL_NUM_LED3 = 3L;
+    public const long XTCAHPI_CTRL_NUM_APP_LED = 4L;
+    public const long XTCAHPI_RESOURCE_AGGREGATE_LED = 255L;
+    public const long XTCAHPI_CTRL_NUM_AMC_POWER_ON_SEQUENCE = 5377L;
+    public const long XTCAHPI_CTRL_NUM_AMC_POWER_ON_SEQUENCE_COMMIT = 5376L;
+    public const long XTCAHPI_SENSOR_NUM_AMC_PWRONSEQ_COMMIT_STATUS = 5376L;
+    public const long XTCAHPI_CTRL_NUM_FAN_SPEED = 5120L;
+    public const long XTCAHPI_SENSOR_NUM_HPM1_IPMC_GLOBAL_CAPS = 5888L;
+    public const long XTCAHPI_SENSOR_NUM_HPM1_IMAGE_CAPS = 5889L;
+    public const long XTCAHPI_SENSOR_NUM_HPM1_ROLLBACK_TIMEOUT = 5890L;
+    public const long XTCAHPI_CTRL_NUM_CRITICAL_TELCO_ALARM = 5632L;
+    public const long XTCAHPI_CTRL_NUM_MAJOR_TELCO_ALARM = 5633L;
+    public const long XTCAHPI_CTRL_NUM_MINOR_TELCO_ALARM = 5634L;
+    public const long XTCAHPI_CTRL_NUM_POWER_TELCO_ALARM = 5635L;
+    public const long XTCAHPI_CTRL_NUM_TELCO_ALARM_CUTOFF = 5636L;
+    public const long XTCAHPI_SENSOR_NUM_TELCO_ALARM_INPUT = 5632L;
+    public const long XTCAHPI_INDICATOR_LOC_MINOR_ALARM = 0L;
+    public const long XTCAHPI_INDICATOR_LOC_MAJOR_ALARM = 1L;
+    public const long XTCAHPI_INDICATOR_LOC_CRITICAL_ALARM = 2L;
+    public const long XTCAHPI_INDICATOR_LOC_POWER_ALARM = 3L;
+    public const long XTCAHPI_CONFIG_DATA_AREA_SPEC_VERSION = 0L;
+    public const long XTCAHPI_CONFIG_DATA_FIELD_LABEL = 0L;
+    public const long XTCAHPI_CS_CPS_PWR_ON = 1L;
+    public const long XTCAHPI_CS_CPS_PWR_OVERLOAD = 2L;
+    public const long XTCAHPI_CS_CPS_INTERLOCK = 4L;
+    public const long XTCAHPI_CS_CPS_PWR_FAULT = 8L;
+    public const long XTCAHPI_CS_CPS_PWR_CTRL_FAULT = 16L;
+    public const long XTCAHPI_CS_CPS_PWR_RESTORE_PWR_UP_PREV = 32L;
+    public const long XTCAHPI_CS_CPS_PWR_RESTORE_PWR_UP = 64L;
+    public const long XTCAHPI_CS_CPS_PWR_RESTORE_UNKNOWN = 96L;
+    public const long XTCAHPI_CS_LPEVT_AC_FAILED = 1L;
+    public const long XTCAHPI_CS_LPEVT_PWR_OVERLOAD = 2L;
+    public const long XTCAHPI_CS_LPEVT_PWR_INTERLOCK = 4L;
+    public const long XTCAHPI_CS_LPEVT_PWR_FAULT = 8L;
+    public const long XTCAHPI_CS_LPEVT_PWRON_IPMI = 16L;
+    public const long XTCAHPI_CS_MISC_CS_INTRUSION_ACTIVE = 1L;
+    public const long XTCAHPI_CS_MISC_CS_FP_LOCKOUT_ACTIVE = 2L;
+    public const long XTCAHPI_CS_MISC_CS_DRIVE_FAULT = 4L;
+    public const long XTCAHPI_CS_MISC_CS_COOLING_FAULT = 8L;
+    public const long XTCAHPI_CS_FP_BUTTON_PWR_OFF = 1L;
+    public const long XTCAHPI_CS_FP_BUTTON_RESET_OFF = 2L;
+    public const long XTCAHPI_CS_FP_BUTTON_DIAGINTR_OFF = 4L;
+    public const long XTCAHPI_CS_FP_BUTTON_STANDBY_OFF = 8L;
+    public const long XTCAHPI_CS_FP_BUTTON_ALLOW_PWR_OFF = 16L;
+    public const long XTCAHPI_CS_FP_BUTTON_ALLOW_RESET_OFF = 32L;
+    public const long XTCAHPI_CS_FP_BUTTON_ALLOW_DIAGINTR_OFF = 64L;
+    public const long XTCAHPI_CS_FP_BUTTON_ALLOW_STANDBY_OFF = 128L;
+    public const long XTCAHPI_BLINK_COLOR_LED = 128L;
+    public const long XTCAHPI_LED_WHITE = 64L;
+    public const long XTCAHPI_LED_ORANGE = 32L;
+    public const long XTCAHPI_LED_AMBER = 16L;
+    public const long XTCAHPI_LED_GREEN = 8L;
+    public const long XTCAHPI_LED_RED = 4L;
+    public const long XTCAHPI_LED_BLUE = 2L;
+    public const long XTCAHPI_IF_FABRIC = 1L;
+    public const long XTCAHPI_IF_SYNC_CLOCK = 2L;
+    public const long XTCAHPI_IF_BASE = 3L;
+    public const long XTCAHPI_IF_UPDATE_CHANNEL = 4L;
+    public const long XTCAHPI_IF_METALLIC_TEST = 5L;
+    public const long XTCAHPI_IF_RINGING_GENERATOR_BUS = 6L;
+    public const long XTCAHPI_CONFIG_DATA_LOC_DEFAULT = 0L;
+    public const long XTCAHPI_CONFIG_DATA_LOC_SHELF_ADDRESS = 1L;
+    public const long XTCAHPI_CONFIG_DATA_LOC_POWER_ON_SEQUENCE = 2L;
+    public const long XTCAHPI_CONFIG_DATA_LOC_CHASSIS_STATUS = 3L;
+    public const long XTCAHPI_CONFIG_DATA_LOC_ACTIVATION = 4L;
+    public const long XTCAHPI_CONFIG_DATA_LOC_DEACTIVATION = 5L;
+    public const long XTCAHPI_CONFIG_DATA_LOC_IN_SHELF_ACTIVATION = 6L;
+    public const long XTCAHPI_CONFIG_DATA_LOC_IN_SHELF_DEACTIVATION = 7L;
+    public const long XTCAHPI_CONFIG_DATA_LOC_USERNAME = 8L;
+    public const long XTCAHPI_CONFIG_DATA_LOC_PASSWORD = 9L;
+    public const long XTCAHPI_CONFIG_DATA_LOC_FUMI_GLOBAL_UPGRADE_CAP = 10L;
+    public const long XTCAHPI_CONFIG_DATA_LOC_FUMI_UPGRADE_IMAGE_CAP = 11L;
+    public const long XTCAHPI_CONFIG_DATA_LOC_FUMI_ROLLBACK_TIMEOUT = 12L;
     public const long SAHPI_LANG_UNDEF = 0L;
     public const long SAHPI_LANG_AFAR = 1L;
     public const long SAHPI_LANG_ABKHAZIAN = 2L;
@@ -938,6 +1136,36 @@ public static class HpiConst
     public const long SAHPI_EL_OVERFLOW_DROP = 0L;
     public const long SAHPI_EL_OVERFLOW_OVERWRITE = 1L;
     public const long SAHPI_EL_OVERFLOW_ACTION_MAX_TYPE = 1L;
+    public const long ATCAHPI_LED_COLOR_RESERVED = 0L;
+    public const long ATCAHPI_LED_COLOR_BLUE = 1L;
+    public const long ATCAHPI_LED_COLOR_RED = 2L;
+    public const long ATCAHPI_LED_COLOR_GREEN = 3L;
+    public const long ATCAHPI_LED_COLOR_AMBER = 4L;
+    public const long ATCAHPI_LED_COLOR_ORANGE = 5L;
+    public const long ATCAHPI_LED_COLOR_WHITE = 6L;
+    public const long ATCAHPI_LED_COLOR_NO_CHANGE = 14L;
+    public const long ATCAHPI_LED_COLOR_USE_DEFAULT = 15L;
+    public const long ATCAHPI_LED_AUTO = 0L;
+    public const long ATCAHPI_LED_MANUAL = 1L;
+    public const long ATCAHPI_LED_LAMP_TEST = 2L;
+    public const long ATCAHPI_LED_BR_SUPPORTED = 0L;
+    public const long ATCAHPI_LED_BR_NOT_SUPPORTED = 1L;
+    public const long ATCAHPI_LED_BR_UNKNOWN = 2L;
+    public const long XTCAHPI_LED_COLOR_RESERVED = 0L;
+    public const long XTCAHPI_LED_COLOR_BLUE = 1L;
+    public const long XTCAHPI_LED_COLOR_RED = 2L;
+    public const long XTCAHPI_LED_COLOR_GREEN = 3L;
+    public const long XTCAHPI_LED_COLOR_AMBER = 4L;
+    public const long XTCAHPI_LED_COLOR_ORANGE = 5L;
+    public const long XTCAHPI_LED_COLOR_WHITE = 6L;
+    public const long XTCAHPI_LED_COLOR_NO_CHANGE = 14L;
+    public const long XTCAHPI_LED_COLOR_USE_DEFAULT = 15L;
+    public const long XTCAHPI_LED_AUTO = 0L;
+    public const long XTCAHPI_LED_MANUAL = 1L;
+    public const long XTCAHPI_LED_LAMP_TEST = 2L;
+    public const long XTCAHPI_LED_BR_SUPPORTED = 0L;
+    public const long XTCAHPI_LED_BR_NOT_SUPPORTED = 1L;
+    public const long XTCAHPI_LED_BR_UNKNOWN = 2L;
     public const long SA_ERR_HPI_OK = 0L;
 };
 
@@ -1000,6 +1228,17 @@ public static class HpiConst
  *  SaHpiAlarmIdT : long
  *  SaHpiEventLogCapabilitiesT : long
  *  SaHpiEventLogEntryIdT : long
+ *  AtcaHpiColorCapabilitiesT : long
+ *  AtcaHpiEntityTypeT : long
+ *  AtcaHpiCsCurrentPwrState : long
+ *  AtcaHpiCsLastPwrEvent : long
+ *  AtcaHpiCsMiscChassisState : long
+ *  AtcaHpiCsFpButtonCap : long
+ *  XtcaHpiCsCurrentPwrState : long
+ *  XtcaHpiCsLastPwrEvent : long
+ *  XtcaHpiCsMiscChassisState : long
+ *  XtcaHpiCsFpButtonCap : long
+ *  XtcaHpiColorCapabilitiesT : long
  *  SaHpiLanguageT : long
  *  SaHpiTextTypeT : long
  *  SaHpiEntityTypeT : long
@@ -1047,6 +1286,12 @@ public static class HpiConst
  *  SaHpiResetActionT : long
  *  SaHpiPowerStateT : long
  *  SaHpiEventLogOverflowActionT : long
+ *  AtcaHpiLedColorT : long
+ *  AtcaHpiResourceLedModeT : long
+ *  AtcaHpiLedBrSupportT : long
+ *  XtcaHpiLedColorT : long
+ *  XtcaHpiResourceLedModeT : long
+ *  XtcaHpiLedBrSupportT : long
  *  SaHpiUint8T[] : byte[]
  *********************************************************/
 
