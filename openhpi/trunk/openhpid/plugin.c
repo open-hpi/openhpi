@@ -77,7 +77,9 @@ void oh_close_handlers()
         for (node = oh_handlers.list; node; node = node->next) {
                 h = node->data;
                 if (h && h->abi && h->abi->close) {
-                        h->abi->close(h->hnd);
+                        if (h->hnd) {
+                            h->abi->close(h->hnd);
+                        }
                 }
         }
         g_static_rec_mutex_unlock(&oh_handlers.lock);
@@ -628,8 +630,11 @@ int oh_destroy_handler(unsigned int hid)
                 return -1;
         }
 
-        if (handler->abi && handler->abi->close)
-                handler->abi->close(handler->hnd);
+        if (handler->abi && handler->abi->close) {
+                if (handler->hnd) {
+                        handler->abi->close(handler->hnd);
+                }
+        }
 
         g_static_rec_mutex_lock(&oh_handlers.lock);
         g_hash_table_remove(oh_handlers.table, &handler->id);
