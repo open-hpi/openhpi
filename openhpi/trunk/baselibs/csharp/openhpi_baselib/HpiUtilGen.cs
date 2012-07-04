@@ -5373,6 +5373,258 @@ public static partial class HpiUtil
     }
 
     /**
+     * For AtcaHpiLedColorT
+     */
+    public static string FromAtcaHpiLedColorT( long x )
+    {
+        switch( x ) {
+            case HpiConst.ATCAHPI_LED_COLOR_RESERVED:
+                return "RESERVED";
+            case HpiConst.ATCAHPI_LED_COLOR_BLUE:
+                return "BLUE";
+            case HpiConst.ATCAHPI_LED_COLOR_RED:
+                return "RED";
+            case HpiConst.ATCAHPI_LED_COLOR_GREEN:
+                return "GREEN";
+            case HpiConst.ATCAHPI_LED_COLOR_AMBER:
+                return "AMBER";
+            case HpiConst.ATCAHPI_LED_COLOR_ORANGE:
+                return "ORANGE";
+            case HpiConst.ATCAHPI_LED_COLOR_WHITE:
+                return "WHITE";
+            case HpiConst.ATCAHPI_LED_COLOR_NO_CHANGE:
+                return "NO_CHANGE";
+            case HpiConst.ATCAHPI_LED_COLOR_USE_DEFAULT:
+                return "USE_DEFAULT";
+            default:
+                return Convert.ToString( x );
+        }
+    }
+
+    public static long ToAtcaHpiLedColorT( string s )
+    {
+        if ( s == "RESERVED" ) {
+            return HpiConst.ATCAHPI_LED_COLOR_RESERVED;
+        }
+        if ( s == "BLUE" ) {
+            return HpiConst.ATCAHPI_LED_COLOR_BLUE;
+        }
+        if ( s == "RED" ) {
+            return HpiConst.ATCAHPI_LED_COLOR_RED;
+        }
+        if ( s == "GREEN" ) {
+            return HpiConst.ATCAHPI_LED_COLOR_GREEN;
+        }
+        if ( s == "AMBER" ) {
+            return HpiConst.ATCAHPI_LED_COLOR_AMBER;
+        }
+        if ( s == "ORANGE" ) {
+            return HpiConst.ATCAHPI_LED_COLOR_ORANGE;
+        }
+        if ( s == "WHITE" ) {
+            return HpiConst.ATCAHPI_LED_COLOR_WHITE;
+        }
+        if ( s == "NO_CHANGE" ) {
+            return HpiConst.ATCAHPI_LED_COLOR_NO_CHANGE;
+        }
+        if ( s == "USE_DEFAULT" ) {
+            return HpiConst.ATCAHPI_LED_COLOR_USE_DEFAULT;
+        }
+
+        throw new FormatException();
+    }
+
+    /**
+     * For AtcaHpiResourceLedModeT
+     */
+    public static string FromAtcaHpiResourceLedModeT( long x )
+    {
+        switch( x ) {
+            case HpiConst.ATCAHPI_LED_AUTO:
+                return "AUTO";
+            case HpiConst.ATCAHPI_LED_MANUAL:
+                return "MANUAL";
+            case HpiConst.ATCAHPI_LED_LAMP_TEST:
+                return "LAMP_TEST";
+            default:
+                return Convert.ToString( x );
+        }
+    }
+
+    public static long ToAtcaHpiResourceLedModeT( string s )
+    {
+        if ( s == "AUTO" ) {
+            return HpiConst.ATCAHPI_LED_AUTO;
+        }
+        if ( s == "MANUAL" ) {
+            return HpiConst.ATCAHPI_LED_MANUAL;
+        }
+        if ( s == "LAMP_TEST" ) {
+            return HpiConst.ATCAHPI_LED_LAMP_TEST;
+        }
+
+        throw new FormatException();
+    }
+
+    /**
+     * For AtcaHpiLedBrSupportT
+     */
+    public static string FromAtcaHpiLedBrSupportT( long x )
+    {
+        switch( x ) {
+            case HpiConst.ATCAHPI_LED_BR_SUPPORTED:
+                return "SUPPORTED";
+            case HpiConst.ATCAHPI_LED_BR_NOT_SUPPORTED:
+                return "NOT_SUPPORTED";
+            case HpiConst.ATCAHPI_LED_BR_UNKNOWN:
+                return "UNKNOWN";
+            default:
+                return Convert.ToString( x );
+        }
+    }
+
+    public static long ToAtcaHpiLedBrSupportT( string s )
+    {
+        if ( s == "SUPPORTED" ) {
+            return HpiConst.ATCAHPI_LED_BR_SUPPORTED;
+        }
+        if ( s == "NOT_SUPPORTED" ) {
+            return HpiConst.ATCAHPI_LED_BR_NOT_SUPPORTED;
+        }
+        if ( s == "UNKNOWN" ) {
+            return HpiConst.ATCAHPI_LED_BR_UNKNOWN;
+        }
+
+        throw new FormatException();
+    }
+
+    /**
+     * For XtcaHpiLedColorT
+     */
+    public static string FromXtcaHpiLedColorT( long x )
+    {
+        switch( x ) {
+            case HpiConst.XTCAHPI_LED_COLOR_RESERVED:
+                return "RESERVED";
+            case HpiConst.XTCAHPI_LED_COLOR_BLUE:
+                return "BLUE";
+            case HpiConst.XTCAHPI_LED_COLOR_RED:
+                return "RED";
+            case HpiConst.XTCAHPI_LED_COLOR_GREEN:
+                return "GREEN";
+            case HpiConst.XTCAHPI_LED_COLOR_AMBER:
+                return "AMBER";
+            case HpiConst.XTCAHPI_LED_COLOR_ORANGE:
+                return "ORANGE";
+            case HpiConst.XTCAHPI_LED_COLOR_WHITE:
+                return "WHITE";
+            case HpiConst.XTCAHPI_LED_COLOR_NO_CHANGE:
+                return "NO_CHANGE";
+            case HpiConst.XTCAHPI_LED_COLOR_USE_DEFAULT:
+                return "USE_DEFAULT";
+            default:
+                return Convert.ToString( x );
+        }
+    }
+
+    public static long ToXtcaHpiLedColorT( string s )
+    {
+        if ( s == "RESERVED" ) {
+            return HpiConst.XTCAHPI_LED_COLOR_RESERVED;
+        }
+        if ( s == "BLUE" ) {
+            return HpiConst.XTCAHPI_LED_COLOR_BLUE;
+        }
+        if ( s == "RED" ) {
+            return HpiConst.XTCAHPI_LED_COLOR_RED;
+        }
+        if ( s == "GREEN" ) {
+            return HpiConst.XTCAHPI_LED_COLOR_GREEN;
+        }
+        if ( s == "AMBER" ) {
+            return HpiConst.XTCAHPI_LED_COLOR_AMBER;
+        }
+        if ( s == "ORANGE" ) {
+            return HpiConst.XTCAHPI_LED_COLOR_ORANGE;
+        }
+        if ( s == "WHITE" ) {
+            return HpiConst.XTCAHPI_LED_COLOR_WHITE;
+        }
+        if ( s == "NO_CHANGE" ) {
+            return HpiConst.XTCAHPI_LED_COLOR_NO_CHANGE;
+        }
+        if ( s == "USE_DEFAULT" ) {
+            return HpiConst.XTCAHPI_LED_COLOR_USE_DEFAULT;
+        }
+
+        throw new FormatException();
+    }
+
+    /**
+     * For XtcaHpiResourceLedModeT
+     */
+    public static string FromXtcaHpiResourceLedModeT( long x )
+    {
+        switch( x ) {
+            case HpiConst.XTCAHPI_LED_AUTO:
+                return "AUTO";
+            case HpiConst.XTCAHPI_LED_MANUAL:
+                return "MANUAL";
+            case HpiConst.XTCAHPI_LED_LAMP_TEST:
+                return "LAMP_TEST";
+            default:
+                return Convert.ToString( x );
+        }
+    }
+
+    public static long ToXtcaHpiResourceLedModeT( string s )
+    {
+        if ( s == "AUTO" ) {
+            return HpiConst.XTCAHPI_LED_AUTO;
+        }
+        if ( s == "MANUAL" ) {
+            return HpiConst.XTCAHPI_LED_MANUAL;
+        }
+        if ( s == "LAMP_TEST" ) {
+            return HpiConst.XTCAHPI_LED_LAMP_TEST;
+        }
+
+        throw new FormatException();
+    }
+
+    /**
+     * For XtcaHpiLedBrSupportT
+     */
+    public static string FromXtcaHpiLedBrSupportT( long x )
+    {
+        switch( x ) {
+            case HpiConst.XTCAHPI_LED_BR_SUPPORTED:
+                return "SUPPORTED";
+            case HpiConst.XTCAHPI_LED_BR_NOT_SUPPORTED:
+                return "NOT_SUPPORTED";
+            case HpiConst.XTCAHPI_LED_BR_UNKNOWN:
+                return "UNKNOWN";
+            default:
+                return Convert.ToString( x );
+        }
+    }
+
+    public static long ToXtcaHpiLedBrSupportT( string s )
+    {
+        if ( s == "SUPPORTED" ) {
+            return HpiConst.XTCAHPI_LED_BR_SUPPORTED;
+        }
+        if ( s == "NOT_SUPPORTED" ) {
+            return HpiConst.XTCAHPI_LED_BR_NOT_SUPPORTED;
+        }
+        if ( s == "UNKNOWN" ) {
+            return HpiConst.XTCAHPI_LED_BR_UNKNOWN;
+        }
+
+        throw new FormatException();
+    }
+
+    /**
      * For SaErrorT
      */
     public static string FromSaErrorT( long x )
