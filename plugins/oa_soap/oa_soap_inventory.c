@@ -4151,7 +4151,7 @@ SaErrorT add_internal_area(struct oa_soap_area **area,
  *        newly created area will be added to end of area list
  *        If the area list is empty then the created area will become head node
  *        (first area) for the area list
- *      - Area id is will start from 0  and will increment for every new area
+ *      - Area id is will start from 1  and will increment for every new area
  *        added
  *
  * Return values:
@@ -4184,7 +4184,7 @@ SaErrorT idr_area_add(struct oa_soap_area **head_area,
                  * the area list
                  */
                 *head_area = local_area;
-                local_area_id = 0;
+                local_area_id = 1;
         } else {
                 /* Area list is not empty, traverse to the end of the list
                  * and add the IDR area
@@ -4543,7 +4543,7 @@ SaErrorT fetch_idr_area_header(struct oa_soap_inventory_info *inventory_info,
  *        newly created field will be added to end of field list.
  *        If the field list is empty then the created field will become head
  *        node (first field) of the field list
- *      - Field id is will start from 0  and will increment for every new field
+ *      - Field id is will start from 1  and will increment for every new field
  *        added
  *
  * Return values:
@@ -4576,7 +4576,7 @@ SaErrorT  idr_field_add(struct oa_soap_field **oa_field,
                         return SA_ERR_HPI_OUT_OF_MEMORY;
                 }
                 *oa_field = field;
-                field_id = 0;
+                field_id = 1;
         } else {
                 /* Field list is not empty, traverse to the end of the list
                  * and add the IDR field
