@@ -46,19 +46,21 @@ typedef enum
 /***************************************************************
  * Message Header
  **************************************************************/
-typedef struct
-{
-	uint8_t	 type;
-    uint8_t  flags; // bits 0-3 : flags, bit 4-7 : OpenHPI RPC version
-	uint32_t id;
-	uint32_t len;
-} MessageHeader;
+const size_t dMhSize = 12;
+typedef uint8_t MessageHeader[dMhSize];
+const size_t dMhOffType      = 0;
+const size_t dMhOffFlags     = 1;
+const size_t dMhOffReserved1 = 2;
+const size_t dMhOffReserved2 = 3;
+const size_t dMhOffId        = 4;
+const size_t dMhOffLen       = 8;
 
 const uint8_t eMhMsg   = 1;
 const uint8_t eMhError = 2;
 
 // message flags
-// if bit is set the byte order is Little Endian
+// bits 0-3 : flags, bit 4-7 : OpenHPI RPC version
+// if endian bit is set the byte order is Little Endian
 const uint8_t dMhEndianBit  = 1;
 const uint8_t dMhRpcVersion = 1;
 

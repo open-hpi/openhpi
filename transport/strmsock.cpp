@@ -67,6 +67,19 @@ static void Finalize( void )
 /***************************************************************
  * Helper functions
  **************************************************************/
+static uint32_t DecodeUint32( const uint8_t * bytes, int byte_order )
+{
+    uint32_t x;
+    memcpy( &x, bytes, sizeof( x ) );
+    return ( byte_order == G_BYTE_ORDER ) ? x : GUINT32_SWAP_LE_BE( x );
+}
+
+static void EncodeUint32( uint8_t * bytes, uint32_t x, int byte_order )
+{
+    uint32_t x2 = ( byte_order == G_BYTE_ORDER ) ? x : GUINT32_SWAP_LE_BE( x );
+    memcpy( bytes, &x2, sizeof( x ) );
+}
+ 
 static void SelectAddresses( int ipvflags,
                              int hintflags,
                              const char * node,
@@ -160,6 +173,7 @@ bool cStreamSock::ReadMsg( uint8_t& type,
                            uint32_t& payload_len,
                            int& payload_byte_order )
 {
+    // Windows recv() takes char * so we need the workaround below.
     union {
         MessageHeader hdr;
         char rawhdr[sizeof(MessageHeader)];
@@ -167,7 +181,7 @@ bool cStreamSock::ReadMsg( uint8_t& type,
 
     char * dst = rawhdr;
     size_t got  = 0;
-    size_t need = sizeof(MessageHeader);
+    size_t need = dMhSize;
     while ( got < need ) {
         ssize_t len = recv( m_sockfd, dst + got, need - got, 0 );
         if ( len < 0 ) {
@@ -181,36 +195,33 @@ bool cStreamSock::ReadMsg( uint8_t& type,
 
         if ( ( got == need ) && ( dst == rawhdr ) ) {
             // we got header
-            uint8_t ver = hdr.flags >> 4;
+            uint8_t ver = hdr[dMhOffFlags] >> 4;
             if ( ver != dMhRpcVersion ) {
                 CRIT( "unsupported version 0x%x != 0x%x.",
                      ver,
                      dMhRpcVersion );
                 return false;
             }
-            payload_byte_order = ( ( hdr.flags & dMhEndianBit ) != 0 ) ?
+            type = hdr[dMhOffType];
+            payload_byte_order = ( ( hdr[dMhOffFlags] & dMhEndianBit ) != 0 ) ?
                                  G_LITTLE_ENDIAN : G_BIG_ENDIAN;
-            // swap id and len if nessesary in the reply header
-            if ( payload_byte_order != G_BYTE_ORDER ) {
-                hdr.id  = GUINT32_SWAP_LE_BE( hdr.id );
-                hdr.len = GUINT32_SWAP_LE_BE( hdr.len );
-            }
+            id = DecodeUint32( &hdr[dMhOffId], payload_byte_order );
+            payload_len = DecodeUint32( &hdr[dMhOffLen], payload_byte_order );
+
             // now prepare to get payload
             dst  = reinterpret_cast<char *>(payload);
             got  = 0;
-            need = hdr.len;
+            need = payload_len;
         }
     }
 
-    type = hdr.type;
-    id   = hdr.id;
     payload_len = got;
 
 /*
     printf( "Transport: got message of %u bytes in buffer %p:\n",
             sizeof(MessageHeader) + got,
             payload );
-    for ( size_t i = 0; i < sizeof(MessageHeader); ++i ) {
+    for ( size_t i = 0; i < dMhSize; ++i ) {
         union {
             char c;
             unsigned char uc;
@@ -245,24 +256,26 @@ bool cStreamSock::WriteMsg( uint8_t type,
         return false;
     }
 
+    // Windows send() takes char * so we need the workaround below.
     union {
         MessageHeader hdr;
         char msg[dMaxMessageLength];
     };
 
-    hdr.type  = type;
-    hdr.flags = dMhRpcVersion << 4;
+    hdr[dMhOffType] = type;
+    hdr[dMhOffFlags] = dMhRpcVersion << 4;
     if ( G_BYTE_ORDER == G_LITTLE_ENDIAN ) {
-        hdr.flags |= dMhEndianBit;
+        hdr[dMhOffFlags] |= dMhEndianBit;
     }
-    hdr.id    = id;
-    hdr.len   = payload_len;
+    hdr[dMhOffReserved1] = 0;
+    hdr[dMhOffReserved2] = 0;
+    EncodeUint32( &hdr[dMhOffId], id, G_BYTE_ORDER );
+    EncodeUint32( &hdr[dMhOffLen], payload_len, G_BYTE_ORDER );
 
     if ( payload ) {
-        memcpy( &msg[sizeof(MessageHeader)], payload, hdr.len );
+        memcpy( &msg[dMhSize], payload, payload_len );
     }
-
-    size_t msg_len = sizeof(MessageHeader) + hdr.len;
+    size_t msg_len = dMhSize + payload_len;
 
 /*
     printf("Transport: sending message of %d bytes:\n", msg_len );
