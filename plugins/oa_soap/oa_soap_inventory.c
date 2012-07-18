@@ -5024,6 +5024,8 @@ SaErrorT free_inventory_info(struct oh_handler_state *handler,
                 }
         }
 
+        g_free(inventory->comment);
+        g_free(inventory);
         return SA_OK;
 }
 

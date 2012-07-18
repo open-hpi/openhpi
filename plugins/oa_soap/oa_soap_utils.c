@@ -219,7 +219,7 @@ SaErrorT get_oa_state(struct oh_handler_state *oh_handler,
         SaHpiInt32T i, bay = 0, active_bay = 0, standby_bay = 0;
         SOAP_CON *hpi_con = NULL, *event_con = NULL;
         struct oa_info *this_oa = NULL, *other_oa = NULL;
-        char *endptr;
+        char *endptr = NULL;
 
         if (oh_handler == NULL|| server == NULL) {
                 err("Invalid parameters");
@@ -246,17 +246,20 @@ SaErrorT get_oa_state(struct oh_handler_state *oh_handler,
         /* Estabish the connection with OA */
         hpi_con = soap_open(url, user_name, password, HPI_CALL_TIMEOUT);
         if (hpi_con == NULL) {
+                free(url);
                 err("hpi_con intialization for OA - %s has failed", server);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
         event_con = soap_open(url, user_name, password, EVENT_CALL_TIMEOUT);
         if (event_con == NULL) {
+                free(url);
                 err("event_con intialization for OA - %s has failed", server);
                 soap_close(hpi_con);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
+        free(url);
         /* Check whether user_name has admin rights */
         rv = check_oa_user_permissions(oa_handler, hpi_con, user_name);
         if (rv != SA_OK) {
@@ -416,7 +419,6 @@ SaErrorT get_oa_state(struct oh_handler_state *oh_handler,
         if (active_bay == 0 || standby_bay == 0)
                 return SA_OK;
 
-        memset(url, 0, MAX_URL_LEN);
         memset(other_oa->server, 0, MAX_URL_LEN);
         /* Construct the other OA url and copy the IP address to oa_info
          * structure
@@ -453,6 +455,7 @@ SaErrorT get_oa_state(struct oh_handler_state *oh_handler,
                                       password, HPI_CALL_TIMEOUT);
         if (other_oa->hpi_con == NULL) {
                 err("Initializing the hpi_con for OA %s failed", url);
+                free(url);
                 /* If this OA status is ACTIVE, then return error, else ignore
                  * If standby OA is not accessible, then the recovery from
                  * this problem will be done by the event thread.
@@ -475,6 +478,7 @@ SaErrorT get_oa_state(struct oh_handler_state *oh_handler,
                                         password, EVENT_CALL_TIMEOUT);
         if (other_oa->event_con == NULL) {
                 err("Initializing the event_con for OA %s failed", url);
+                free(url);
                 /* If this OA status is ACTIVE, then return error, else
                  * ignore
                  */
@@ -1136,6 +1140,7 @@ SaErrorT initialize_oa_con(struct oa_info *oa,
         oa->hpi_con = soap_open(url, user_name, password,
                                 HPI_CALL_TIMEOUT);
         if (oa->hpi_con == NULL) {
+                free(url);
                 /* OA may not be reachable */
                 g_mutex_unlock(oa->mutex);
                 return SA_ERR_HPI_INTERNAL_ERROR;
@@ -1147,6 +1152,7 @@ SaErrorT initialize_oa_con(struct oa_info *oa,
         oa->event_con = soap_open(url, user_name, password,
                                   EVENT_CALL_TIMEOUT);
         if (oa->event_con == NULL) {
+                free(url);
                 /* OA may not be reachable */
                 g_mutex_unlock(oa->mutex);
                 soap_close(oa->hpi_con);
