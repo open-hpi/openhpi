@@ -471,7 +471,7 @@ SOAP_CON        *soap_open(char *server,
                            char *username, char *password,
                            long timeout)
 {
-        SOAP_CON        *connection;
+        SOAP_CON        *connection = NULL;
 
         /* Basic pass parameter checking */
         if ((server == NULL) || (*server == '\0')) {
@@ -620,11 +620,11 @@ void            soap_close(SOAP_CON *connection)
 static int      soap_message(SOAP_CON *connection, char *request,
                              xmlDocPtr *doc)
 {
-        int             nbytes;
-        int             ret;
+        int             nbytes = 0;
+        int             ret = 0;
         char *          header=NULL;                              
         char            response[OA_SOAP_RESP_BUFFER_SIZE];
-        xmlParserCtxtPtr parse;
+        xmlParserCtxtPtr parse = NULL;
 
         /* Error checking */
         if (! connection) {
@@ -668,9 +668,11 @@ static int      soap_message(SOAP_CON *connection, char *request,
                          connection->timeout)) {
                 (void) oh_ssl_disconnect(connection->bio, OH_SSL_BI);
                 err("oh_ssl_write() failed");
+                free(header);
                 return(-1);
         }
 
+        free(header);
         /* Write request to server */
         dbg("OA request(2):\n%s\n", request);
         if (oh_ssl_write(connection->bio, request, nbytes,
@@ -772,7 +774,6 @@ static int      soap_message(SOAP_CON *connection, char *request,
                 xmlFreeParserCtxt(parse);
                 return(-1);
         }
-	free(header);
         xmlFreeParserCtxt(parse);
         return(0);
 }
@@ -830,8 +831,10 @@ static int      soap_login(SOAP_CON *connection)
         /* Perform login request */
         if (soap_message(connection, buf, &doc)) {
                 err("failed to communicate with OA during login");
+                free(buf);
                 return(-1);
         }
+        free(buf);
 
 
         /* Parse looking for session ID.
@@ -846,7 +849,6 @@ static int      soap_login(SOAP_CON *connection)
                         OA_SOAP_SESSIONKEY_SIZE);
                 dbg("Opened session ID %s", connection->session_id);
                 /* Free the XML document */
-                free(buf);
                 xmlFreeDoc(doc);
                 return(0);              /* Normal, successful return */
         }
@@ -867,7 +869,6 @@ static int      soap_login(SOAP_CON *connection)
         else {
                 err("failed to find session ID during OA login");
         }
-        free(buf);
         xmlFreeDoc(doc);
         return(-1);
 }

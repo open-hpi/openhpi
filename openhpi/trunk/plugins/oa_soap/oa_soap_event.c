@@ -222,6 +222,7 @@ gpointer oa_soap_event_thread(gpointer oa_pointer)
                 if (oa->event_con2 == NULL) 
                         sleep(2);
         }
+        free(url);
 
         /* Intialize the event request structure */
         request.pid = oa->event_pid;
@@ -303,7 +304,7 @@ oa->event_con2 failed\n");
                 } /* end of else (SOAP call failure handling) */
 
         } /* end of 'while(listen_for_events == SAHPI_TRUE)' loop */
-	free(url);
+        free(url);
         return (gpointer *) SA_OK;
 }
 
