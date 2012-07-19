@@ -573,9 +573,13 @@ SaErrorT process_server_info_event(struct oh_handler_state
         SaHpiInt32T bay_number, len;
         char *serial_number = NULL;
         char *name = NULL;
+        char *Name = NULL;
 	struct bladeInfo *response;
         SaHpiResourceIdT resource_id;
        	char blade_name[MAX_NAME_LEN];
+        SaHpiRptEntryT *rpt = NULL;
+        struct oh_event event;
+        SaHpiRdrT *rdr = NULL;
 
         if (oh_handler == NULL || oa_event == NULL) {
                 err("Invalid oh_handler and/or oa_event parameters");
@@ -593,16 +597,7 @@ SaErrorT process_server_info_event(struct oh_handler_state
                 return rv;
         }
       
-        len = strlen(oa_event->eventData.bladeInfo.serialNumber);
-        serial_number = (char *)g_malloc0(sizeof(char) * len + 1);
-        if(serial_number == 0){
-                g_free(serial_number);
-                return SA_ERR_HPI_OUT_OF_MEMORY;
-        }
-        strcpy(serial_number, oa_event->eventData.bladeInfo.serialNumber);
-        serial_number[len]='\0';
-        if (strcmp(serial_number,"[Unknown]") == 0 )  {
-                g_free(serial_number);
+        if (strcmp(oa_event->eventData.bladeInfo.serialNumber,"[Unknown]") == 0 )  {
                 return rv;
         }
        
@@ -615,12 +610,33 @@ SaErrorT process_server_info_event(struct oh_handler_state
          resource_id = oa_handler->
                 oa_soap_resources.server.resource_id[bay_number - 1];
 
+        if (strcmp(name,"[Unknown]") == 0 ) {
+                err("Server Blade name is Unknown...bay_number = %d\n", bay_number);
+		return rv;
+        }
+
+        len = strlen(oa_event->eventData.bladeInfo.serialNumber);
+        serial_number = (char *)g_malloc0(sizeof(char) * len + 1);
+        if(serial_number == NULL){
+                return SA_ERR_HPI_OUT_OF_MEMORY;
+        }
+        strcpy(serial_number, oa_event->eventData.bladeInfo.serialNumber);
+        serial_number[len]='\0';
+
         /* Update resource_status structure with resource_id,
          * serial_number, and presence status
          */
         oa_soap_update_resource_status(
                  &oa_handler->oa_soap_resources.server, bay_number,
                  serial_number, resource_id, RES_PRESENT);
+
+        /* Get the rpt entry of the resource */
+        rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+        if (rpt == NULL) {
+                err("resource RPT is NULL");
+                g_free(serial_number);
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
 
         /* Convert Blade name lower to upper */
         convert_lower_to_upper(name, strlen(name),
@@ -631,6 +647,56 @@ SaErrorT process_server_info_event(struct oh_handler_state
          */
         rv = build_server_rdr(oh_handler, con,
                                     bay_number, resource_id, blade_name);
+        if (rv != SA_OK) {
+        	err("Failed to add Server rdr");
+                g_free(serial_number);
+        	return rv;
+        }	
+
+        Name = (char *)rpt->ResourceTag.Data;
+        if (strcmp(Name, "[Unknown]") == 0) {
+        	oa_soap_trim_whitespace(name);
+        	rpt->ResourceTag.DataLength = strlen(name);
+        	memset(rpt->ResourceTag.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+        	snprintf((char *) (rpt->ResourceTag.Data),
+                	 rpt->ResourceTag.DataLength + 1, "%s", name);
+        	/* Add the server rpt to the plugin RPTable */
+        	rv = oh_add_resource(oh_handler->rptcache, rpt, NULL, 0);
+        	if (rv != SA_OK) {
+                	err("Failed to add Server rpt");
+                        g_free(serial_number);
+                	return rv;
+        	}
+
+		/* Get the inventory RDR */
+		rdr = oh_get_rdr_by_type(oh_handler->rptcache, resource_id,
+					SAHPI_INVENTORY_RDR,
+					SAHPI_DEFAULT_INVENTORY_ID);
+		if (rdr == NULL) {
+			err("Inventory RDR is not found");
+                        g_free(serial_number);
+			return SA_ERR_HPI_NOT_PRESENT;
+		}
+		
+                memset(&event, 0, sizeof(struct oh_event));
+                event.event.EventType = SAHPI_ET_RESOURCE;
+                memcpy(&event.resource,
+                        rpt,
+                        sizeof(SaHpiRptEntryT));
+                event.event.Severity = SAHPI_INFORMATIONAL;
+                event.event.Source = event.resource.ResourceId;
+                if (oh_gettimeofday(&(event.event.Timestamp)) != SA_OK) {
+                	event.event.Timestamp = SAHPI_TIME_UNSPECIFIED;
+                }
+                event.event.EventDataUnion.ResourceEvent.
+                        ResourceEventType = SAHPI_RESE_RESOURCE_UPDATED;
+                event.rdrs = g_slist_append(event.rdrs, g_memdup(rdr,
+                        sizeof(SaHpiRdrT)));
+                event.hid = oh_handler->hid;
+                oh_evt_queue_push(oh_handler->eventq,
+                        copy_oa_soap_event(&event));
+        }
+
         g_free(serial_number);
         return SA_OK;
 }
