@@ -139,8 +139,8 @@ handler libsimulator {
 ## the dummy plugin is compiled in.
 ## It is possible to use simulator and libsimulator
 ## at the same time.
-#handler simulator {
-#        entity_root = "{SYSTEMk_CHASSIS,5}"
+#handler libsimulator {
+#        entity_root = "{SYSTEM_CHASSIS,5}"
 #        name = "test"
 #}
 
@@ -197,6 +197,20 @@ handler libsimulator {
 #handler libsysfs2hpi {
 #        # Mandatory.
 #        entity_root = "{SYSTEM_CHASSIS,9}"
+#}
+
+## Section for Run-Time Abstraction Services (RTAS) plugin:
+#handler librtas {
+#        # Mandatory.
+#        entity_root = "{SYSTEM_CHASSIS,50}"
+#}
+
+## Section for watchdog plugin for Linux watchdog device interface:
+#handler libwatchdog {
+#        # Mandatory.
+#        entity_root = "{SYSTEM_CHASSIS,51}"
+#        # Watchdog device path. Mandatory.
+#        addr = "/dev/watchdog"
 #}
 
 ## Section for dynamic_simulator plugin
