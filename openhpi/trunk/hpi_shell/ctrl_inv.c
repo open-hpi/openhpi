@@ -246,7 +246,6 @@ static ret_code_t sa_show_inv(SaHpiResourceIdT resourceid)
 	SaHpiEntryIdT		areaId;
 	SaHpiEntryIdT		nextareaId;
 	SaHpiIdrAreaTypeT	areaType;
-	int			numAreas;
 	SaHpiEntryIdT		fieldId;
 	SaHpiEntryIdT		nextFieldId;
 	SaHpiIdrFieldTypeT	fieldType;
@@ -274,7 +273,6 @@ static ret_code_t sa_show_inv(SaHpiResourceIdT resourceid)
 			return HPI_SHELL_CMD_ERROR;
 		}
 		
-		numAreas = idrInfo.NumAreas;
 		areaType = SAHPI_IDR_AREATYPE_UNSPECIFIED;
 		areaId = SAHPI_FIRST_ENTRY; 
 		while (areaId != SAHPI_LAST_ENTRY) {
