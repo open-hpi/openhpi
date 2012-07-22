@@ -404,7 +404,7 @@ static int set_term_flags(void)
 	res = tcsetattr(termfd, TCSANOW, &termio);
 	no_stty = 0;
 #endif
-	return(0);
+	return(res);
 }
 
 void restore_term_flags(void)
