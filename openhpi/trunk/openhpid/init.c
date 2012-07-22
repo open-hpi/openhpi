@@ -14,6 +14,8 @@
  *      Bryan Sutula <sutula@users.sourceforge.net>
  *
  */
+#include <inttypes.h>
+#include <stdint.h>
 #ifdef _WIN32
 #include <windows.h>
 #endif /* _WIN32 */
@@ -125,7 +127,7 @@ int oh_init(void)
         INFO("Creating default domain.");
         oh_get_global_param2(OPENHPI_AUTOINSERT_TIMEOUT, &param);
         SaHpiTimeoutT ai_timeout = param.u.ai_timeout;
-        INFO("Auto-Insert Timeout is %lld nsec.", ai_timeout);
+        INFO("Auto-Insert Timeout is %" PRId64 " nsec.", (int64_t)ai_timeout);
         oh_get_global_param2(OPENHPI_AUTOINSERT_TIMEOUT_READONLY, &param);
         SaHpiDomainCapabilitiesT caps = 0;
         if ( param.u.ai_timeout_readonly != SAHPI_FALSE ) {
