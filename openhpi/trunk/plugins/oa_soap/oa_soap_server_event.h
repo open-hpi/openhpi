@@ -65,6 +65,11 @@ SaErrorT process_server_info_event(struct oh_handler_state
 SaErrorT process_server_extraction_event(struct oh_handler_state *oh_handler,
                                          struct eventInfo *oa_event);
 
+SaErrorT process_server_mp_info_event(struct oh_handler_state
+                                               *oh_handler,
+                                               SOAP_CON *con,
+                                               struct eventInfo *oa_event);
+
 SaErrorT build_inserted_server_rpt(struct oh_handler_state *oh_handler,
                                    struct bladeInfo *response,
                                    SaHpiRptEntryT *rpt);

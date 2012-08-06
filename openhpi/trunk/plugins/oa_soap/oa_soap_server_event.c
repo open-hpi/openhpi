@@ -1339,3 +1339,126 @@ void oa_soap_proc_server_thermal(struct oh_handler_state *oh_handler,
  
         return;
 }
+
+/**
+ * process_server_mp_info_event
+ *      @oh_handler: Pointer to openhpi handler structure
+ *      @con:        Pointer to the SOAP_CON structure
+ *      @oa_event:   Pointer to OA event structure
+ *
+ * Purpose:
+ *      Process the blade mp info event
+ *
+ * Detailed Description: NA
+ *
+ * Return values:
+ *      SA_OK                     - success.
+ *      SA_ERR_HPI_INVALID_PARAMS - Invalid parameters
+ *      SA_ERR_HPI_NOT_PRESENT - RDR is not present
+ **/
+SaErrorT process_server_mp_info_event(struct oh_handler_state
+                                               *oh_handler,
+                                               SOAP_CON *con,
+                                               struct eventInfo *oa_event)
+{
+        SaErrorT rv = SA_OK;
+        struct oa_soap_handler *oa_handler = NULL;
+        SaHpiInt32T bay_number;
+        SaHpiResourceIdT resource_id;
+        SaHpiRptEntryT *rpt = NULL;
+        struct oh_event event;
+        SaHpiRdrT *rdr = NULL;
+        SaHpiIdrIdT IdrId = 0;
+        SaHpiIdrFieldT field;
+        SaHpiFloat64T fm_version;
+        SaHpiInt32T major;
+        SaHpiInt32T minor;
+        char *fwVersion = NULL;
+
+        if (oh_handler == NULL || oa_event == NULL || con == NULL) {
+                err("Invalid parameters");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        oa_handler = (struct oa_soap_handler *) oh_handler->data;
+        bay_number = oa_event->eventData.bladeMpInfo.bayNumber;
+        fwVersion = oa_event->eventData.bladeMpInfo.fwVersion;
+
+        resource_id = oa_handler->
+                oa_soap_resources.server.resource_id[bay_number - 1];
+
+        rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+        if (rpt == NULL) {
+                err("Not able to find the resource. Invalid resource id");
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+
+        /* Get the inventory RDR */
+        rdr = oh_get_rdr_by_type(oh_handler->rptcache, resource_id,
+                                SAHPI_INVENTORY_RDR,
+                                SAHPI_DEFAULT_INVENTORY_ID);
+        if (rdr == NULL) {
+                err("Inventory RDR is not found");
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+
+        IdrId = rdr->RdrTypeUnion.InventoryRec.IdrId;
+
+        if (strcmp(fwVersion,"[Unknown]") == 0 )  {
+                err("fwVersion is Unknown");
+                return rv;
+        }
+
+        fm_version = atof(fwVersion);
+        major = floor(fm_version);
+        minor = rintf((fm_version - major) * 100);
+
+        if(rpt->ResourceInfo.FirmwareMajorRev == major &&
+                   rpt->ResourceInfo.FirmwareMinorRev == minor){
+                   return rv;
+        }
+
+        if(major < rpt->ResourceInfo.FirmwareMajorRev ||
+                   minor < rpt->ResourceInfo.FirmwareMinorRev){
+                err("Blade Firmware for Bay %d is going to be downgraded", bay_number);
+        }
+
+        if (fwVersion != NULL) {
+                field.Type = SAHPI_IDR_FIELDTYPE_PRODUCT_VERSION;
+                field.Field.DataType = SAHPI_TL_TYPE_TEXT;
+                field.Field.Language = SAHPI_LANG_ENGLISH;
+                oa_soap_trim_whitespace(fwVersion);
+                field.Field.DataLength = strlen (fwVersion) + 1;
+                field.AreaId = 1;
+                field.FieldId = 3;
+
+                snprintf((char *)field.Field.Data, field.Field.DataLength,
+                        "%s", fwVersion);
+
+                rv = oa_soap_set_idr_field(oh_handler, resource_id, IdrId, &field);
+                if (rv != SOAP_OK) {
+                        err("oa_soap_set_idr_field failed");
+                        return rv;
+                }
+
+                //Event Handling
+                memset(&event, 0, sizeof(struct oh_event));
+                event.event.EventType = SAHPI_ET_RESOURCE;
+                memcpy(&event.resource,
+                        rpt,
+                        sizeof(SaHpiRptEntryT));
+                event.event.Severity = SAHPI_INFORMATIONAL;
+                event.event.Source = event.resource.ResourceId;
+                if (oh_gettimeofday(&(event.event.Timestamp)) != SA_OK) {
+                        event.event.Timestamp = SAHPI_TIME_UNSPECIFIED;
+                }
+                event.event.EventDataUnion.ResourceEvent.
+                        ResourceEventType = SAHPI_RESE_RESOURCE_UPDATED;
+                event.rdrs = g_slist_append(event.rdrs, g_memdup(rdr,
+                        sizeof(SaHpiRdrT)));
+                event.hid = oh_handler->hid;
+                oh_evt_queue_push(oh_handler->eventq,
+                        copy_oa_soap_event(&event));
+        }
+        return SA_OK;
+}
