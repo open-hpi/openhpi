@@ -104,6 +104,7 @@ int ilo2_ribcl_ssl_send_command( ilo2_ribcl_handler_t *ir_handler,
 						sizeof(ILO2_RIBCL_XML_HDR), 0);
 			break;
 		case ILO3:
+		case ILO4:
 			hostname = ir_handler->ir_hostname;
 			itoascii(cmnd_bufsize, strlen(cmnd_buf));
 			ilo_header_len = strlen( ILO3_RIBCL_XML_HDR)\
@@ -247,7 +248,7 @@ int ilo_ribcl_detect_ilo_type(ilo2_ribcl_handler_t *ir_handler)
 	 */
 	free( d_response);
 	if(strcmp(ILO_RIBCL_TEST_RESPONSE, firstline)==0){
-		dbg("Found iLO3 MP");
+		dbg("Found iLO3/iLO4 MP");
 		return ILO3;
 	} else {
 		dbg("Found iLO2 MP");

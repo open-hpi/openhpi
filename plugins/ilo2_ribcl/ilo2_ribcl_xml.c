@@ -107,7 +107,9 @@ char *ir_xml_cmd_templates[] = {
 	[IR_CMD_SERVER_AUTO_PWR_30]	ILO2_RIBCL_SERVER_AUTO_PWR_30,
 	[IR_CMD_SERVER_AUTO_PWR_45]	ILO2_RIBCL_SERVER_AUTO_PWR_45,
 	[IR_CMD_SERVER_AUTO_PWR_60]	ILO2_RIBCL_SERVER_AUTO_PWR_60,
-	[IR_CMD_SERVER_AUTO_PWR_RANDOM]	ILO2_RIBCL_SERVER_AUTO_PWR_RANDOM
+	[IR_CMD_SERVER_AUTO_PWR_RANDOM]	ILO2_RIBCL_SERVER_AUTO_PWR_RANDOM,
+	[IR_CMD_SERVER_AUTO_PWR_RESTORE]	ILO2_RIBCL_SERVER_AUTO_PWR_RESTORE,
+	[IR_CMD_SERVER_AUTO_PWR_OFF]	ILO2_RIBCL_SERVER_AUTO_PWR_OFF
 		};
 /**
  * ir_xml_parse_status
@@ -630,6 +632,9 @@ int ir_xml_parse_uid_status(char *ribcl_outbuf, int *uid_status,
 	else if(xmlStrcmp(status, (const xmlChar *)"OFF") == 0) {
 		*uid_status = ILO2_RIBCL_UID_OFF;
 	}
+	else if(xmlStrcmp(status, (const xmlChar *)"FLASHING") == 0) {
+		*uid_status = ILO2_RIBCL_UID_FLASHING;
+	}
 	else {
 		xmlFree( status);
 		xmlFreeDoc( doc);
@@ -782,7 +787,13 @@ int ir_xml_parse_auto_power_status(char *ribcl_outbuf, int *ps_status,
 	if(xmlStrcmp(status, (const xmlChar *)"No") == 0) {
 		*ps_status = ILO2_RIBCL_AUTO_POWER_DISABLED;
 	}
+	else if(xmlStrcmp(status, (const xmlChar *)"OFF") == 0) {
+		*ps_status = ILO2_RIBCL_AUTO_POWER_OFF;
+	}
 	else if(xmlStrcmp(status, (const xmlChar *)"Yes") == 0) {
+		*ps_status = ILO2_RIBCL_AUTO_POWER_ENABLED;
+	}
+	else if(xmlStrcmp(status, (const xmlChar *)"ON") == 0) {
 		*ps_status = ILO2_RIBCL_AUTO_POWER_ENABLED;
 	}
 	else if(xmlStrcmp(status, (const xmlChar *)"15") == 0) {
@@ -800,6 +811,9 @@ int ir_xml_parse_auto_power_status(char *ribcl_outbuf, int *ps_status,
 	else if(xmlStrcmp(status, (const xmlChar *)"RANDOM") == 0) {
 		*ps_status = ILO2_RIBCL_AUTO_POWER_DELAY_RANDOM;
 	}
+        else if(xmlStrcmp(status, (const xmlChar *)"RESTORE") == 0) {
+                *ps_status = ILO2_RIBCL_AUTO_POWER_RESTORE;
+        }
 	else {
 		xmlFree( status);
 		xmlFreeDoc( doc);
