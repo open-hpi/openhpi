@@ -1084,6 +1084,7 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                         case EVENT_OA_REBOOT:
                                 dbg("EVENT_OA_REBOOT");
                                 rv = process_oa_reboot_event(oh_handler, oa);
+                                response->eventInfoArray = NULL; 
                                 break;
                         case EVENT_OA_LOGOFF_REQUEST:
                                 dbg("EVENT_OA_LOGOFF_REQUEST -- Not processed");
