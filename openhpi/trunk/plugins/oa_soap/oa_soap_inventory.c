@@ -3593,6 +3593,9 @@ SaErrorT build_power_inv_rdr(struct oh_handler_state *oh_handler,
         struct oa_soap_handler *oa_handler = NULL;
         SaHpiResourceIdT resource_id;
         SaHpiRptEntryT *rpt = NULL;
+        SaHpiInt32T product_area_success_flag = 0;
+        xmlNode *extra_data=NULL;
+        struct extraDataInfo extra_data_info;
 
         if (oh_handler == NULL || rdr == NULL ||
             inventory == NULL) {
@@ -3641,6 +3644,41 @@ SaErrorT build_power_inv_rdr(struct oh_handler_state *oh_handler,
 
         strcpy(local_inventory->comment, power_inv_str);		  
 	
+        /* Get the Product name from the extradata */
+        extra_data = response->extraData;
+        while (extra_data) {
+                soap_getExtraData(extra_data, &extra_data_info);
+                if (!(strcmp(extra_data_info.name, "productName"))) {
+                        response->product_name = extra_data_info.value;
+                        break;
+                }
+                extra_data = soap_next_node(extra_data);
+       }
+
+        /* Create and add product area if resource name and/or manufacturer
+         * information exist
+         */
+        rv = add_product_area(&local_inventory->info.area_list,
+                              response->product_name,
+                              NULL,
+                              &add_success_flag);
+        if (rv != SA_OK) {
+                err("Add product area failed");
+                return rv;
+        }
+
+        /* add_success_flag will be true if product area is added,
+         * if this is the first successful creation of IDR area, then have
+         * area pointer stored as the head node for area list
+         */
+        if (add_success_flag != SAHPI_FALSE) {
+                product_area_success_flag = SAHPI_TRUE;
+                (local_inventory->info.idr_info.NumAreas)++;
+                if (area_count == 0) {
+                        head_area = local_inventory->info.area_list;
+                }
+                ++area_count;
+        }
 
         /* Create and add board area if resource part number and/or
          * serial number exist
