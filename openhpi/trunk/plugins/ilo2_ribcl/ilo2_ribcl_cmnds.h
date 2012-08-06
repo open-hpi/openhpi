@@ -61,7 +61,7 @@ TE: chunked\r\nConnection: Close\r\nContent-length: %s\r\n\r\n"
  * ilo2_ribcl_xml.c.
  */
 
-#define IR_NUM_COMMANDS	22
+#define IR_NUM_COMMANDS	24
 
 /*
  * GET_SERVER_DATA command.
@@ -169,5 +169,13 @@ TE: chunked\r\nConnection: Close\r\nContent-length: %s\r\n\r\n"
 /* Enable automatic power on with random delay up to 60 seconds. */
 #define IR_CMD_SERVER_AUTO_PWR_RANDOM 21
 #define ILO2_RIBCL_SERVER_AUTO_PWR_RANDOM		"<LOCFG version=\"2.21\"/> <RIBCL VERSION=\"2.0\"> <LOGIN USER_LOGIN=\"%s\" PASSWORD=\"%s\"> <SERVER_INFO MODE=\"write\"> <SERVER_AUTO_PWR VALUE=\"Random\"/> </SERVER_INFO> </LOGIN> </RIBCL>\r\n"
+
+/* Enable automatic power on with restore. */
+#define IR_CMD_SERVER_AUTO_PWR_RESTORE 22
+#define ILO2_RIBCL_SERVER_AUTO_PWR_RESTORE		"<LOCFG version=\"2.21\"/> <RIBCL VERSION=\"2.0\"> <LOGIN USER_LOGIN=\"%s\" PASSWORD=\"%s\"> <SERVER_INFO MODE=\"write\"> <SERVER_AUTO_PWR VALUE=\"Restore\"/> </SERVER_INFO> </LOGIN> </RIBCL>\r\n"
+
+/*  Always Remain Off automatic power on. */
+#define IR_CMD_SERVER_AUTO_PWR_OFF 23
+#define ILO2_RIBCL_SERVER_AUTO_PWR_OFF		"<LOCFG version=\"2.21\"/> <RIBCL VERSION=\"2.0\"> <LOGIN USER_LOGIN=\"%s\" PASSWORD=\"%s\"> <SERVER_INFO MODE=\"write\"> <SERVER_AUTO_PWR VALUE=\"Off\"/> </SERVER_INFO> </LOGIN> </RIBCL>\r\n"
 
 #endif /*_INC_ILO2_RIBCL_CMNDS_H_*/

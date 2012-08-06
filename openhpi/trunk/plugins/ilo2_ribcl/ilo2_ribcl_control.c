@@ -433,6 +433,7 @@ static SaErrorT ilo2_ribcl_get_uid_status(ilo2_ribcl_handler_t *hnd,
 					hnd->ilo2_hostport);
 			break;
 		case ILO3:
+		case ILO4:
 			new_response = ir_xml_decode_chunked(response);
 			/* Now, parse the response. */
 			ret = ir_xml_parse_uid_status(new_response, &uid_status,
@@ -457,6 +458,8 @@ static SaErrorT ilo2_ribcl_get_uid_status(ilo2_ribcl_handler_t *hnd,
 		*status = SAHPI_CTRL_STATE_ON;
 	} else if (uid_status == ILO2_RIBCL_UID_OFF) {
 		*status = SAHPI_CTRL_STATE_OFF;
+	} else if (uid_status == ILO2_RIBCL_UID_FLASHING) {
+		*status = SAHPI_CTRL_STATE_PULSE_ON;
 	} else {
 		return( SA_ERR_HPI_INTERNAL_ERROR);
 	}
@@ -529,6 +532,7 @@ static SaErrorT ilo2_ribcl_set_uid_status(ilo2_ribcl_handler_t *hnd,
 						hnd->ilo2_hostport);
 			break;
 		case ILO3:
+		case ILO4:
 			new_response = ir_xml_decode_chunked(response);
 			/* Now, parse the response. */
 			ret = ir_xml_parse_status(new_response,
@@ -607,6 +611,7 @@ static SaErrorT ilo2_ribcl_get_power_saver_status(ilo2_ribcl_handler_t *hnd,
 					hnd->ilo2_hostport);
 			break;
 		case ILO3:
+		case ILO4:
 			new_response = ir_xml_decode_chunked(response);
 			/* Now, parse the response. */
 			ret = ir_xml_parse_power_saver_status(new_response, 
@@ -709,6 +714,7 @@ static SaErrorT ilo2_ribcl_set_power_saver_status(ilo2_ribcl_handler_t *hnd,
 			ret = ir_xml_parse_status(response, hnd->ilo2_hostport);
 			break;
 		case ILO3:
+		case ILO4:
 			new_response = ir_xml_decode_chunked(response);
 			/* Now, parse the response. */
 			ret = ir_xml_parse_status(new_response,
@@ -791,6 +797,7 @@ static SaErrorT ilo2_ribcl_get_auto_power_status(ilo2_ribcl_handler_t *hnd,
 					hnd->ilo2_hostport);
 			break;
 		case ILO3:
+		case ILO4:
 			new_response = ir_xml_decode_chunked(response);
 			/* Now, parse the response. */
 			ret = ir_xml_parse_auto_power_status(new_response, 
@@ -845,16 +852,33 @@ static SaErrorT ilo2_ribcl_set_auto_power_status(ilo2_ribcl_handler_t *hnd,
 	char *new_response = NULL;
 	int ret;
 
-	if((status != ILO2_RIBCL_AUTO_POWER_ENABLED) &&
-		(status != ILO2_RIBCL_AUTO_POWER_DISABLED) &&
-		(status != ILO2_RIBCL_AUTO_POWER_DELAY_RANDOM) &&
-		(status != ILO2_RIBCL_AUTO_POWER_DELAY_15) &&
-		(status != ILO2_RIBCL_AUTO_POWER_DELAY_30) &&
-		(status != ILO2_RIBCL_AUTO_POWER_DELAY_45) &&
-		(status != ILO2_RIBCL_AUTO_POWER_DELAY_60)) {
-		return(SA_ERR_HPI_INVALID_PARAMS);
+	if(hnd->ilo_type==ILO2) {
+		if((status != ILO2_RIBCL_AUTO_POWER_ENABLED) &&
+			(status != ILO2_RIBCL_AUTO_POWER_DISABLED) &&
+			(status != ILO2_RIBCL_AUTO_POWER_DELAY_RANDOM) &&
+			(status != ILO2_RIBCL_AUTO_POWER_DELAY_15) &&
+			(status != ILO2_RIBCL_AUTO_POWER_DELAY_30) &&
+			(status != ILO2_RIBCL_AUTO_POWER_DELAY_45) &&
+			(status != ILO2_RIBCL_AUTO_POWER_DELAY_60)) {
+			return(SA_ERR_HPI_INVALID_PARAMS);
+		}
 	}
 
+        if(hnd->ilo_type==ILO3){
+                if((status != ILO2_RIBCL_AUTO_POWER_ENABLED) &&
+                        (status != ILO2_RIBCL_AUTO_POWER_OFF) &&    
+                        (status != ILO2_RIBCL_AUTO_POWER_DELAY_RANDOM)) {
+                        return(SA_ERR_HPI_INVALID_PARAMS);
+                }
+         }
+        if(hnd->ilo_type==ILO4){
+                if((status != ILO2_RIBCL_AUTO_POWER_ENABLED) &&
+                        (status != ILO2_RIBCL_AUTO_POWER_OFF) &&    
+                        (status != ILO2_RIBCL_AUTO_POWER_RESTORE) &&
+                        (status != ILO2_RIBCL_AUTO_POWER_DELAY_RANDOM)) {
+                        return(SA_ERR_HPI_INVALID_PARAMS);
+                }
+         }
 	/* Allocate a temporary response buffer. */
 	response = malloc(ILO2_RIBCL_BUFFER_LEN);
 	if( response == NULL){
@@ -867,6 +891,8 @@ static SaErrorT ilo2_ribcl_set_auto_power_status(ilo2_ribcl_handler_t *hnd,
 		ps_cmd = hnd->ribcl_xml_cmd[IR_CMD_SERVER_AUTO_PWR_YES];
 	} else if(status == ILO2_RIBCL_AUTO_POWER_DISABLED) {
 		ps_cmd = hnd->ribcl_xml_cmd[IR_CMD_SERVER_AUTO_PWR_NO];
+	} else if(status == ILO2_RIBCL_AUTO_POWER_OFF) {
+		ps_cmd = hnd->ribcl_xml_cmd[IR_CMD_SERVER_AUTO_PWR_OFF];
 	} else if(status == ILO2_RIBCL_AUTO_POWER_DELAY_RANDOM) {
 		ps_cmd = hnd->ribcl_xml_cmd[IR_CMD_SERVER_AUTO_PWR_RANDOM];
 	} else if(status == ILO2_RIBCL_AUTO_POWER_DELAY_15) {
@@ -877,6 +903,8 @@ static SaErrorT ilo2_ribcl_set_auto_power_status(ilo2_ribcl_handler_t *hnd,
 		ps_cmd = hnd->ribcl_xml_cmd[IR_CMD_SERVER_AUTO_PWR_45];
 	} else if(status == ILO2_RIBCL_AUTO_POWER_DELAY_60) {
 		ps_cmd = hnd->ribcl_xml_cmd[IR_CMD_SERVER_AUTO_PWR_60];
+	} else if(status == ILO2_RIBCL_AUTO_POWER_RESTORE) {
+		ps_cmd = hnd->ribcl_xml_cmd[IR_CMD_SERVER_AUTO_PWR_RESTORE];
 	} else {
 		free( response);
 		return(SA_ERR_HPI_INVALID_PARAMS);
@@ -905,6 +933,7 @@ static SaErrorT ilo2_ribcl_set_auto_power_status(ilo2_ribcl_handler_t *hnd,
 			ret = ir_xml_parse_status(response, hnd->ilo2_hostport);
 			break;
 		case ILO3:
+		case ILO4:
 			new_response = ir_xml_decode_chunked(response);
 			/* Now, parse the response. */
 			ret = ir_xml_parse_status(new_response, 

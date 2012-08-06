@@ -143,6 +143,7 @@
 #define ILO	1
 #define ILO2	2
 #define ILO3	3
+#define ILO4	4
 #define ILO2_RIBCL_CMD_MAX_LEN 5
 /******************************************************************************
  * The following data structures and macros are used for our implementation
@@ -457,6 +458,7 @@ typedef struct ilo2_ribcl_resource_info {
 */
 #define ILO2_RIBCL_UID_OFF	0
 #define ILO2_RIBCL_UID_ON	1
+#define ILO2_RIBCL_UID_FLASHING	2
 #define ILO2_RIBCL_UID_SET_SUCCESS	1
 #define ILO2_RIBCL_UID_SET_FAILED	0
 
@@ -487,6 +489,7 @@ typedef struct ilo2_ribcl_resource_info {
    server. The values are
 	Yes = Enable automatic power on with a minimum delay.
 	No = Disable automatic power on.
+	Restore = Restore Previous state.
 	15 = Enable automatic power on with 15 seconds delay.
 	30 = Enable automatic power on with 30 seconds delay.
 	45 = Enable automatic power on with 45 seconds delay.
@@ -497,6 +500,8 @@ typedef struct ilo2_ribcl_resource_info {
 #define ILO2_RIBCL_AUTO_POWER_ENABLED 1
 #define ILO2_RIBCL_AUTO_POWER_DISABLED 2
 #define ILO2_RIBCL_AUTO_POWER_DELAY_RANDOM 3
+#define ILO2_RIBCL_AUTO_POWER_RESTORE 4
+#define ILO2_RIBCL_AUTO_POWER_OFF 5 
 #define ILO2_RIBCL_AUTO_POWER_DELAY_15 15
 #define ILO2_RIBCL_AUTO_POWER_DELAY_30 30
 #define ILO2_RIBCL_AUTO_POWER_DELAY_45 45

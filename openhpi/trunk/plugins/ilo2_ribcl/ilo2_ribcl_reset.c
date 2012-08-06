@@ -219,6 +219,7 @@ SaErrorT ilo2_ribcl_set_reset_state(void *hnd,
 					ilo2_ribcl_handler->ilo2_hostport);
 			break;
 		case ILO3:
+		case ILO4:
 			new_response = ir_xml_decode_chunked(response);
 			ret = ir_xml_parse_reset_server(new_response,
 					ilo2_ribcl_handler->ilo2_hostport);

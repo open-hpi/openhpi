@@ -141,6 +141,7 @@ SaErrorT ilo2_ribcl_get_power_state(void *hnd,
 					ilo2_ribcl_handler->ilo2_hostport);
 			break;
 		case ILO3:
+		case ILO4:
 			new_response = ir_xml_decode_chunked(response);
 			/* Now, parse the response.*/
 			ret = ir_xml_parse_host_power_status(new_response, 
@@ -291,6 +292,7 @@ SaErrorT ilo2_ribcl_set_power_state(void *hnd,
 					ilo2_ribcl_handler->ilo2_hostport);
 			break;
 		case ILO3:
+		case ILO4:
 			new_response = ir_xml_decode_chunked(response);
 			/* Now, parse the response. */
 			ret = ir_xml_parse_set_host_power(new_response,
@@ -371,6 +373,7 @@ SaErrorT ilo2_ribcl_set_power_state(void *hnd,
 					ilo2_ribcl_handler->ilo2_hostport);
 				break;
 			case ILO3:
+			case ILO4:
 				new_response = ir_xml_decode_chunked(response);
 				/* Now, parse the response. */
 				ret = ir_xml_parse_set_host_power(new_response,

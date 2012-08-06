@@ -316,6 +316,14 @@ static SaErrorT ilo2_ribcl_do_discovery( ilo2_ribcl_handler_t *ir_handler)
 		/* Send the command to iLO2 and get the response. */
 		ret = ilo2_ribcl_ssl_send_command( ir_handler, discover_cmd,
 				d_response, ILO2_RIBCL_DISCOVER_RESP_MAX);
+		if(ir_handler->ilo_type == ILO3) {
+			if(strstr(d_response,"Gen8")) {
+				dbg("Found iLO4 MP");
+				ir_handler->ilo_type = ILO4;
+			} else
+				dbg("Found iLO3 MP");
+		}
+
 	}
 
 #else /* ILO2_RIBCL_SIMULATE_iLO2_RESPONSE not defined. This the the
@@ -337,6 +345,15 @@ static SaErrorT ilo2_ribcl_do_discovery( ilo2_ribcl_handler_t *ir_handler)
 	/* Send the command to iLO2 and get the response. */
 	ret = ilo2_ribcl_ssl_send_command( ir_handler, discover_cmd,
 				d_response, ILO2_RIBCL_DISCOVER_RESP_MAX);
+	if(ir_handler->ilo_type == ILO3) {
+		if(strstr(d_response,"Gen8")) {
+			dbg("Found iLO4 MP");
+			ir_handler->ilo_type = ILO4;
+		}else
+			dbg("Found iLO3 MP");
+
+	}
+
 
 #endif /* ILO2_RIBCL_SIMULATE_iLO2_RESPONSE */
 
@@ -361,6 +378,7 @@ static SaErrorT ilo2_ribcl_do_discovery( ilo2_ribcl_handler_t *ir_handler)
 							d_response);
 			break;
 		case ILO3:
+		case ILO4:
 			new_buffer = ir_xml_decode_chunked(d_response);
 			ret = ir_xml_parse_discoveryinfo( ir_handler, 
 							new_buffer);
@@ -471,7 +489,7 @@ static SaErrorT ilo2_ribcl_discover_chassis(
 	struct oh_event *ev = NULL;
 	ilo2_ribcl_handler_t *ir_handler = NULL;
 	ilo2_ribcl_resource_info_t *res_info = NULL;
-	char *tmptag = NULL;
+	char *tmptag = NULL,*autopower= NULL;
 	size_t tagsize;
 	SaErrorT  ret;
 
@@ -605,9 +623,31 @@ static SaErrorT ilo2_ribcl_discover_chassis(
 	} else {
 		err("iLO2 RIBCL: Failed to setup Power Saver Control RDR. Plug-in will run without this control feature");
 	}
+	switch(ir_handler->ilo_type){
+		case ILO:
+		case ILO2:
+			autopower = "Auto Power On Control Delay: Min.(1)"
+				"/Disabled(2)/Random (3)"
+				"/15 sec (15)/30 sec (30)"
+				"/45 sec(45)/60 sec(60)";
+			break;
+		case ILO3:
+                        autopower = "Auto Power On Control Delay: "
+                                "Min.(1)/Random (3)/Always Off (5)";
+                        break;
+		case ILO4:
+			autopower = "Auto Power On Control Delay: " 
+				"Min.(1)/Random (3)"    
+				"/Restore (4)/Always Off (5)";
+			break;
+		default:
+			err("ilo2_ribcl_discover_chassis():"
+					"failed to detect ilo type.");
+			return SA_OK;
+	}
 
 	if(ilo2_ribcl_controls(oh_handler, ILO2_RIBCL_CTL_AUTO_POWER, ev,
-		"Auto Power Control Delay:Min.(1)/Disabled(2)/random (3)/15 sec (15)/30 sec (30)/45 sec(45)/60 sec(60)") == SA_OK) {
+		autopower) == SA_OK) {
 		/* Auto Power control RDR has beeen added successfully.
 		   Set RDR and CONTROL capability flags. Please note that
 		   failing to add control rdr is not treated as a critical
