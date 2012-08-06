@@ -1332,6 +1332,7 @@ struct powerSupplyInfo
         enum presence presence;
         char modelNumber[MAX_MODEL_NUM_LENGTH];
         char sparePartNumber[MAX_PART_NUM_LENGTH];
+        char *product_name;
         char serialNumber[MAX_SERIAL_NUM_LENGTH];
         int capacity;
         int actualOutput;
