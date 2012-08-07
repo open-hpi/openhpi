@@ -1,0 +1,130 @@
+================================================================================
+This is Java implementation of OpenHPI baselib.
+The implementation is a file named openhpi_baselib.jar.
+The implementation has been tested with Oracle JDK 1.6 and 1.7.
+
+================================================================================
+Build and Install Instructions:
+
+- Run "ant".
+
+================================================================================
+Usage Example:
+
+See example/ as an example of using the Java OpenHPI baselib.
+See example_handlers/ as an example of using the oHpiHandler*() API.
+See example_collections/ as an example of using the Java OpenHPI collections.
+
+Default domain address is "localhost" or OPENHPI_DAEMON_HOST env. var. value.
+Default domain address is 4743 or OPENHPI_DAEMON_PORT env. var. value.
+
+================================================================================
+Datatypes and API Representation:
+
+All SAF HPI integer data types:
+- SaHpiBoolT, SaHpiUint8(16,32,64)T, SaHpiInt8(16,32,64)T, enum types
+are mapped to Java long type.
+One exception: arrays of SaHpiUint8T are mapped to Java byte[] type.
+
+Every SAF HPI struct or union is mapped to Java class.
+The class name is the same as for the corresponding SAF HPI struct or union.
+The class contais only public fields with the same names as 
+the corresponding SAF HPI struct or union fields have. 
+
+SAF HPI constants are defined in the HpiDataTypes class.
+OpenHPI-specific constants are defined in the OhpiDataTypes class.
+
+SAF HPI API are defined in the Hpi class. 
+OpenHPI API are defined in the OHpi class. 
+
+API parameters are mapped as the following:
+- SAHPI_IN parameter is mapped to the ordinary Java function parameter.
+- SAHPI_INOUT, SAHPI_OUT and SAHPI_OUTNN parameters are collected to a
+single holder parameter.
+So user only has to allocate holder parameter and its SAHPI_INOUT content.
+
+Example:
+
+SaErrorT SAHPI_API saHpiGetIdByEntityPath (
+    SAHPI_IN    SaHpiSessionIdT    SessionId,
+    SAHPI_IN    SaHpiEntityPathT   EntityPath,
+    SAHPI_IN    SaHpiRdrTypeT      InstrumentType,
+    SAHPI_INOUT SaHpiUint32T       *InstanceId,
+    SAHPI_OUT   SaHpiResourceIdT   *ResourceId,
+    SAHPI_OUT   SaHpiInstrumentIdT *InstrumentId,
+    SAHPI_OUT   SaHpiUint32T       *RptUpdateCount
+);
+
+is represented as
+
+public static long saHpiGetIdByEntityPath(
+    long SessionId,
+    SaHpiEntityPathT EntityPath,
+    long InstrumentType,
+    long InstanceId,
+    saHpiGetIdByEntityPathOutputParamsT out
+) throws HpiException;
+
+where saHpiGetIdByEntityPathOutputParamsT is
+
+public static class saHpiGetIdByEntityPathOutputParamsT
+{
+    public long InstanceId;
+    public long ResourceId;
+    public long InstrumentId;
+    public long RptUpdateCount;
+};
+
+
+================================================================================
+Utilities:
+
+HpiUtil class provides the following utility functions:
+
+- Set of functions for checking validity of an object of
+a complex HPI data type X (representation of SAF HPI struct X):
+-- public static bool check( X x )
+--- The validation checks are:
+---- x is not null
+---- Any member of x that is of a complex data types is valid
+---- If a member of x is a SaHpiUint8T[] array then the array length is valid.
+
+- Set of functions for checking validity of an object of
+a complex HPI data type X (representation of SAF HPI union X):
+-- public static bool check( X x, long mod )
+---- x is not null
+---- A member of x that matches modifier mod and is of a complex data types
+is valid
+---- If a member of x that matches modifier mod is a SaHpiUint8T[] array then
+the array length is valid.
+
+- For string <-> integer HPI Data Type X conversion:
+-- public static string fromX( long x ) - (for example FromSaHpiEventCategoryT)
+-- public static long toX( string s )   - (for example ToSaHpiEventCategoryT)
+
+- For string <-> complex HPI Data Type conversion:
+-- public static string fromSaHpiTextBufferT( SaHpiTextBufferT tb )
+-- public static SaHpiTextBufferT toSaHpiTextBufferT( string s )
+-- public static string fromSaHpiEntityPathT( SaHpiEntityPathT ep )
+-- public static SaHpiEntityPathT toSaHpiEntityPathT( string s )
+
+- For making unspecified, empty entity path and for entity path cloning:
+- public static SaHpiEntityPathT makeUnspecifiedSaHpiEntityPathT()
+- public static SaHpiEntityPathT makeRootSaHpiEntityPathT()
+- public static SaHpiEntityPathT cloneSaHpiEntityPathT( SaHpiEntityPathT ep )
+
+================================================================================
+Current Limitations:
+
+- Only oHpiVersionGet(), oHpiDomainAdd() and oHpiHandler*() OpenHPI API are supported
+- openhpiclient.conf is not supported
+
+================================================================================
+TODO List:
+
+- Implemented openhpiclient.conf support
+- Implement the rest of OpenHPI API
+- Domain ID translation for SAF HPI API
+- Entity root translation for SAF HPI API
+- XTCA entity types in HpiUtils
+
