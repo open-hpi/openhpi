@@ -378,6 +378,7 @@ static int set_term_flags(void)
 {
 #ifdef _WIN32
     // TODO
+    return 0;
 #else
 	int		res, c;
 	char		name[1024];
@@ -403,8 +404,8 @@ static int set_term_flags(void)
 	termio.c_cc[VTIME] = 0;
 	res = tcsetattr(termfd, TCSANOW, &termio);
 	no_stty = 0;
-#endif
 	return(res);
+#endif
 }
 
 void restore_term_flags(void)
