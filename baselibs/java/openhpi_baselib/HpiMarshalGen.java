@@ -780,10 +780,10 @@ class HpiMarshalGen extends HpiMarshalCore
         if ( mod == SAHPI_DIMITEST_PARAM_TYPE_INT32 ) {
             marshalSaHpiInt32T( x.paramint );
         }
-        if ( mod == SAHPI_DIMITEST_PARAM_TYPE_FLOAT64 ) {
+        if ( mod == SAHPI_DIMITEST_PARAM_TYPE_BOOLEAN ) {
             marshalSaHpiBoolT( x.parambool );
         }
-        if ( mod == SAHPI_DIMITEST_PARAM_TYPE_BOOLEAN ) {
+        if ( mod == SAHPI_DIMITEST_PARAM_TYPE_FLOAT64 ) {
             marshalSaHpiFloat64T( x.paramfloat );
         }
         if ( mod == SAHPI_DIMITEST_PARAM_TYPE_TEXT ) {
@@ -2285,10 +2285,10 @@ class HpiMarshalGen extends HpiMarshalCore
         if ( mod == SAHPI_DIMITEST_PARAM_TYPE_INT32 ) {
             x.paramint = demarshalSaHpiInt32T();
         }
-        if ( mod == SAHPI_DIMITEST_PARAM_TYPE_FLOAT64 ) {
+        if ( mod == SAHPI_DIMITEST_PARAM_TYPE_BOOLEAN ) {
             x.parambool = demarshalSaHpiBoolT();
         }
-        if ( mod == SAHPI_DIMITEST_PARAM_TYPE_BOOLEAN ) {
+        if ( mod == SAHPI_DIMITEST_PARAM_TYPE_FLOAT64 ) {
             x.paramfloat = demarshalSaHpiFloat64T();
         }
         if ( mod == SAHPI_DIMITEST_PARAM_TYPE_TEXT ) {
