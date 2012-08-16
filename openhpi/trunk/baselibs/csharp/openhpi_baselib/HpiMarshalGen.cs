@@ -782,10 +782,10 @@ internal class HpiMarshalGen: HpiMarshalCore
         if ( mod == HpiConst.SAHPI_DIMITEST_PARAM_TYPE_INT32 ) {
             MarshalSaHpiInt32T( x.paramint );
         }
-        if ( mod == HpiConst.SAHPI_DIMITEST_PARAM_TYPE_FLOAT64 ) {
+        if ( mod == HpiConst.SAHPI_DIMITEST_PARAM_TYPE_BOOLEAN ) {
             MarshalSaHpiBoolT( x.parambool );
         }
-        if ( mod == HpiConst.SAHPI_DIMITEST_PARAM_TYPE_BOOLEAN ) {
+        if ( mod == HpiConst.SAHPI_DIMITEST_PARAM_TYPE_FLOAT64 ) {
             MarshalSaHpiFloat64T( x.paramfloat );
         }
         if ( mod == HpiConst.SAHPI_DIMITEST_PARAM_TYPE_TEXT ) {
@@ -2163,10 +2163,10 @@ internal class HpiMarshalGen: HpiMarshalCore
         if ( mod == HpiConst.SAHPI_DIMITEST_PARAM_TYPE_INT32 ) {
             x.paramint = DemarshalSaHpiInt32T();
         }
-        if ( mod == HpiConst.SAHPI_DIMITEST_PARAM_TYPE_FLOAT64 ) {
+        if ( mod == HpiConst.SAHPI_DIMITEST_PARAM_TYPE_BOOLEAN ) {
             x.parambool = DemarshalSaHpiBoolT();
         }
-        if ( mod == HpiConst.SAHPI_DIMITEST_PARAM_TYPE_BOOLEAN ) {
+        if ( mod == HpiConst.SAHPI_DIMITEST_PARAM_TYPE_FLOAT64 ) {
             x.paramfloat = DemarshalSaHpiFloat64T();
         }
         if ( mod == HpiConst.SAHPI_DIMITEST_PARAM_TYPE_TEXT ) {
