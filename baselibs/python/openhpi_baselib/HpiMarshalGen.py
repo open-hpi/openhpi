@@ -516,9 +516,9 @@ class HpiMarshalGen( HpiMarshalCore ):
     def marshalSaHpiDimiTestParamValueT( self, x, mod ):
         if mod == SAHPI_DIMITEST_PARAM_TYPE_INT32:
             self.marshalSaHpiInt32T( x.paramint )
-        if mod == SAHPI_DIMITEST_PARAM_TYPE_FLOAT64:
-            self.marshalSaHpiBoolT( x.parambool )
         if mod == SAHPI_DIMITEST_PARAM_TYPE_BOOLEAN:
+            self.marshalSaHpiBoolT( x.parambool )
+        if mod == SAHPI_DIMITEST_PARAM_TYPE_FLOAT64:
             self.marshalSaHpiFloat64T( x.paramfloat )
         if mod == SAHPI_DIMITEST_PARAM_TYPE_TEXT:
             self.marshalSaHpiTextBufferT( x.paramtext )
@@ -1442,9 +1442,9 @@ class HpiMarshalGen( HpiMarshalCore ):
         x = SaHpiDimiTestParamValueT()
         if mod == SAHPI_DIMITEST_PARAM_TYPE_INT32:
             x.paramint = self.demarshalSaHpiInt32T()
-        if mod == SAHPI_DIMITEST_PARAM_TYPE_FLOAT64:
-            x.parambool = self.demarshalSaHpiBoolT()
         if mod == SAHPI_DIMITEST_PARAM_TYPE_BOOLEAN:
+            x.parambool = self.demarshalSaHpiBoolT()
+        if mod == SAHPI_DIMITEST_PARAM_TYPE_FLOAT64:
             x.paramfloat = self.demarshalSaHpiFloat64T()
         if mod == SAHPI_DIMITEST_PARAM_TYPE_TEXT:
             x.paramtext = self.demarshalSaHpiTextBufferT()
