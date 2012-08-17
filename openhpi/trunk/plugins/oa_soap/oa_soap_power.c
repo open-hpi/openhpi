@@ -310,6 +310,9 @@ SaErrorT get_interconnect_power_state(SOAP_CON *con,
                         err("Wrong (REBOOT) Power State detected");
                         return SA_ERR_HPI_INTERNAL_ERROR;
                         break;
+                case (POWER_UNKNOWN):
+                        *state = SAHPI_POWER_OFF;
+                        break;
                 default:
                         err("Unknown Power State detected");
                         return SA_ERR_HPI_INTERNAL_ERROR;
