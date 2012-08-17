@@ -524,6 +524,12 @@ SaErrorT process_interconnect_info_event(struct oh_handler_state
 
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
         bay_number = oa_event->eventData.interconnectTrayInfo.bayNumber;
+
+        if(!oa_event->eventData.interconnectTrayInfo.serialNumber){
+                err("Serial Number is NULL");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
         len = strlen(oa_event->eventData.interconnectTrayInfo.serialNumber);
         serial_number = (char *)g_malloc0(sizeof(char) * len + 1);
         strcpy(serial_number, oa_event->eventData.interconnectTrayInfo.serialNumber);
