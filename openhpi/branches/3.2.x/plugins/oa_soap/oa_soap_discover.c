@@ -2922,6 +2922,7 @@ SaErrorT discover_power_supply(struct oh_handler_state *oh_handler)
                 response->modelNumber[0] = '\0';
                 response->sparePartNumber[0] = '\0';
                 response->serialNumber[0] = '\0';
+                response->productName[0] = '\0';
 
                 request.bayNumber = i;
                 rv = soap_getPowerSupplyInfo(oa_handler->active_con,

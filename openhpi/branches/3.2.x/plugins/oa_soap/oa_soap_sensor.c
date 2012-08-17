@@ -1219,6 +1219,7 @@ SaErrorT update_sensor_rdr(struct oh_handler_state *oh_handler,
                         power_supply_response->modelNumber[0] = '\0';
                         power_supply_response->sparePartNumber[0] = '\0';
                         power_supply_response->serialNumber[0] = '\0';
+                        power_supply_response->productName[0] = '\0';
 
                         rv = soap_getPowerSupplyInfo(oa_handler->active_con,
                                                      &power_supply_request,

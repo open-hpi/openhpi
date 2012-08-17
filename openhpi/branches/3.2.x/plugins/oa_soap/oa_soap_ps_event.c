@@ -87,6 +87,7 @@ SaErrorT process_ps_insertion_event(struct oh_handler_state *oh_handler,
         response->modelNumber[0] = '\0';
         response->sparePartNumber[0] = '\0';
         response->serialNumber[0] = '\0';
+        response->productName[0] = '\0';
 
         rv = soap_getPowerSupplyInfo(con, &info, response);
         if (rv != SOAP_OK) {

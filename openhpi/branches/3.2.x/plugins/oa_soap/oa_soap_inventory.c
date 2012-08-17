@@ -3645,11 +3645,13 @@ SaErrorT build_power_inv_rdr(struct oh_handler_state *oh_handler,
         strcpy(local_inventory->comment, power_inv_str);		  
 	
         /* Get the Product name from the extradata */
+        response->productName[0] = '\0';
         extra_data = response->extraData;
         while (extra_data) {
                 soap_getExtraData(extra_data, &extra_data_info);
-                if (!(strcmp(extra_data_info.name, "productName"))) {
-                        response->product_name = extra_data_info.value;
+                if ((!(strcmp(extra_data_info.name, "productName"))) &&
+                        (extra_data_info.value != NULL)) {
+                        strcpy(response->productName, extra_data_info.value);
                         break;
                 }
                 extra_data = soap_next_node(extra_data);
@@ -3659,7 +3661,7 @@ SaErrorT build_power_inv_rdr(struct oh_handler_state *oh_handler,
          * information exist
          */
         rv = add_product_area(&local_inventory->info.area_list,
-                              response->product_name,
+                              response->productName,
                               NULL,
                               &add_success_flag);
         if (rv != SA_OK) {
