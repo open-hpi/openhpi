@@ -2077,6 +2077,7 @@ SaErrorT re_discover_ps_unit(struct oh_handler_state *oh_handler,
                 response->modelNumber[0] = '\0';
                 response->sparePartNumber[0] = '\0';
                 response->serialNumber[0] = '\0';
+                response->productName[0] = '\0';
 
                 rv = soap_getPowerSupplyInfo(con, &request, response);
                 if (rv != SOAP_OK) {
@@ -2299,6 +2300,7 @@ SaErrorT add_ps_unit(struct oh_handler_state *oh_handler,
         response->modelNumber[0] = '\0';
         response->sparePartNumber[0] = '\0';
         response->serialNumber[0] = '\0';
+        response->productName[0] = '\0';
 
         rv = soap_getPowerSupplyInfo(con, &request, response);
         if (rv != SOAP_OK) {
@@ -2326,7 +2328,7 @@ SaErrorT add_ps_unit(struct oh_handler_state *oh_handler,
                       response->serialNumber, resource_id, RES_PRESENT);
 
         /* Build the RDRs */
-        rv = build_power_supply_rdr(oh_handler, con, info, resource_id);
+        rv = build_power_supply_rdr(oh_handler, con, response, resource_id);
         if (rv != SA_OK) {
                 err("build power supply RDR failed");
                 /* Free the inventory info from inventory RDR */

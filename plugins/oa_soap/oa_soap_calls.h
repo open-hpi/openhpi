@@ -45,6 +45,7 @@
 #define MAX_SERIAL_NUM_LENGTH 32
 #define MAX_PART_NUM_LENGTH 32
 #define MAX_MODEL_NUM_LENGTH 32
+#define MAX_PRODUCT_NAME_LENGTH 32
 
 /* Moved these #defines from oa_soap.h - which includes this header file. */
 /* Max Blade in HP BladeSystem c7000 c-Class enclosure*/
@@ -1332,7 +1333,7 @@ struct powerSupplyInfo
         enum presence presence;
         char modelNumber[MAX_MODEL_NUM_LENGTH];
         char sparePartNumber[MAX_PART_NUM_LENGTH];
-        char *product_name;
+        char productName[MAX_PRODUCT_NAME_LENGTH];
         char serialNumber[MAX_SERIAL_NUM_LENGTH];
         int capacity;
         int actualOutput;
