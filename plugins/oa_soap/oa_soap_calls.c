@@ -360,6 +360,7 @@ static void parse_powerCapConfig(xmlNode *node, struct powerCapConfig *response)
                 /* Copy optOutBayArray data for later use:  */
                 /* data is either "true" or "false"         */
                 strncpy(response->optOutBayArray[i], soap_value(bay_data), 6);
+                response->optOutBayArray[i][6] = '\0';
                 bay_data = soap_next_node(bay_data);
                 i++;
         }
