@@ -511,6 +511,9 @@ SOAP_CON        *soap_open(char *server,
         strncpy(connection->server, server, OA_SOAP_SERVER_SIZE);
         strncpy(connection->username, username, OA_SOAP_USER_SIZE);
         strncpy(connection->password, password, OA_SOAP_USER_SIZE);
+        connection->server[OA_SOAP_SERVER_SIZE] = '\0';
+        connection->username[OA_SOAP_USER_SIZE] = '\0';
+        connection->password[OA_SOAP_USER_SIZE] = '\0';
         connection->timeout = timeout;
         connection->session_id[0] = '\0';
         connection->doc = NULL;
@@ -847,6 +850,7 @@ static int      soap_login(SOAP_CON *connection)
         if ((sess_id = soap_value(login_element))) {
                 strncpy(connection->session_id, sess_id,
                         OA_SOAP_SESSIONKEY_SIZE);
+                connection->session_id[OA_SOAP_SESSIONKEY_SIZE] = '\0';
                 dbg("Opened session ID %s", connection->session_id);
                 /* Free the XML document */
                 xmlFreeDoc(doc);
@@ -1075,6 +1079,7 @@ int             soap_call(SOAP_CON *connection)
                         /* Substitute the current session key */
                         strncpy(session_pos, connection->session_id,
                                 OA_SOAP_SESSIONKEY_SIZE);
+                        connection->session_id[OA_SOAP_SESSIONKEY_SIZE] = '\0';
 
                         /* Perform SOAP call */
                         err = soap_message(connection,
