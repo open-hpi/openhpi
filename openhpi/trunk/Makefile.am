@@ -44,7 +44,10 @@ EXTRA_DIST              = openhpi.spec.in \
 	simulation.data.example \
 	test_agent.data.example \
 	openhpiclient.conf.example \
+	README.csharp \
 	README.daemon \
+	README.java \
+	README.python \
 	README.windows \
 	Makefile.mingw32 \
 	Makefile.mingw32.def \
