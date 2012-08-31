@@ -172,6 +172,7 @@ typedef enum
 typedef struct
 {
   int                  m_id;
+  const char          *m_name;
   const cMarshalType **m_request;
   const cMarshalType **m_reply; // the first param is the result
 } cHpiMarshal;
@@ -180,6 +181,7 @@ typedef struct
 #define dHpiMarshalEntry(name) \
 {                              \
   eF ## name,                  \
+  #name,                       \
   name ## In,                  \
   name ## Out                  \
 }

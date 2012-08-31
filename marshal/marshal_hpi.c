@@ -22,6 +22,8 @@
 
 #include <stddef.h>
 
+#include <oh_error.h>
+
 #include "marshal_hpi.h"
 
 
@@ -2168,7 +2170,11 @@ HpiMarshalFind( int id )
 int
 HpiMarshalRequest( cHpiMarshal *m, void *buffer, const void **param )
 {
-  return MarshalArray( m->m_request, param, buffer );
+    int cc = MarshalArray( m->m_request, param, buffer );
+    if ( cc < 0 ) {
+        CRIT( "%s: HpiMarshalRequest: failure, cc = %d", m->m_name, cc );
+    }
+    return cc;
 }
 
 
@@ -2253,7 +2259,11 @@ HpiMarshalRequest6( cHpiMarshal *m, void *buffer, const void *p1, const void *p2
 int
 HpiDemarshalRequest( int byte_order, cHpiMarshal *m, const void *buffer, void **params )
 {
-  return DemarshalArray( byte_order, m->m_request, params, buffer );
+    int cc = DemarshalArray( byte_order, m->m_request, params, buffer );
+    if ( cc < 0 ) {
+        CRIT( "%s: HpiDemarshalRequest: failure, cc = %d", m->m_name, cc );
+    }
+    return cc;
 }
 
 
@@ -2335,13 +2345,20 @@ HpiDemarshalRequest6( int byte_order, cHpiMarshal *m, const void *buffer, void *
 int
 HpiMarshalReply( cHpiMarshal *m, void *buffer, const void **params )
 {
-  // the first value is the result.
-  SaErrorT err = *(const SaErrorT *)params[0];
+    // the first value is the result.
+    SaErrorT err = *(const SaErrorT *)params[0];
 
-  if ( err == SA_OK )
-       return MarshalArray( m->m_reply, params, buffer );
+    int cc;
+    if ( err == SA_OK ) {
+        cc = MarshalArray( m->m_reply, params, buffer );
+    } else {
+        cc = Marshal( &SaErrorType, &err, buffer );
+    }
+    if ( cc < 0 ) {
+        CRIT( "%s: HpiMarshalReply: failure, cc = %d", m->m_name, cc );
+    }
 
-  return Marshal( &SaErrorType, &err, buffer );
+    return cc;
 }
 
 
@@ -2427,18 +2444,20 @@ HpiMarshalReply5( cHpiMarshal *m, void *buffer, const void *result, const void *
 int
 HpiDemarshalReply( int byte_order, cHpiMarshal *m, const void *buffer, void **params )
 {
-  // the first value is the error code
-  int rv = Demarshal( byte_order, &SaErrorType, params[0], buffer );
+    int cc;
+    // the first value is the error code
+    cc = Demarshal( byte_order, &SaErrorType, params[0], buffer );
+    if ( cc > 0 ) {
+        SaErrorT err = *(SaErrorT *)params[0];
+        if ( err == SA_OK ) {
+            cc = DemarshalArray( byte_order, m->m_reply, params, buffer );
+        }
+    }
+    if ( cc < 0 ) {
+        CRIT( "%s: HpiDemarshalReply: failure, cc = %d", m->m_name, cc );
+    }
 
-  if ( rv < 0 )
-       return -1;
-
-  SaErrorT err = *(SaErrorT *)params[0];
-
-  if ( err == SA_OK )
-       return DemarshalArray( byte_order, m->m_reply, params, buffer );
-
-  return rv;
+    return cc;
 }
 
 
