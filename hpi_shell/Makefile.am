@@ -4,7 +4,7 @@
 MAINTAINERCLEANFILES 	= Makefile.in
 MOSTLYCLEANFILES	= @TEST_CLEAN@
 
-EXTRA_DIST		= hpi_ui.h
+EXTRA_DIST		= hpi_ui.h Makefile.mingw32 version.rc
 
 AM_CPPFLAGS = -DG_LOG_DOMAIN=\"hpi_shell\"
 
