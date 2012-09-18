@@ -1086,7 +1086,7 @@ SaErrorT add_server_blade(struct oh_handler_state *oh_handler,
         rv = build_discovered_server_rpt(oh_handler, con, &response,
                                          &resource_id);
         if (rv != SA_OK) {
-                err("build inserted server rpt failed");
+                err("build added server rpt failed for slot %d",bay_number);
                 return rv;
         }
 

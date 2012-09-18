@@ -1610,8 +1610,9 @@ SaErrorT build_server_rpt(struct oh_handler_state *oh_handler,
                                      SAHPI_CAPABILITY_MANAGED_HOTSWAP);
                 break;
                 default:
-                        err("Invalid blade type: "
-                            "expecting server/storage/IO blade");
+                        err("Invalid blade type %d in slot %d.",
+                            response->bladeType, response->bayNumber);
+                        err("Expecting server(2)/storage(3)/IO blade(5).");
                         return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
@@ -1931,7 +1932,7 @@ SaErrorT discover_server(struct oh_handler_state *oh_handler)
                 rv = build_discovered_server_rpt(oh_handler,
                           oa_handler->active_con, &response, &resource_id);
                 if (rv != SA_OK) {
-                        err("Failed to get Server rpt");
+                        err("Failed to get Server rpt for bay %d.",i);
                         return SA_ERR_HPI_INTERNAL_ERROR;
                 }
 
