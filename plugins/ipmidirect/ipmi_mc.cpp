@@ -601,14 +601,15 @@ cIpmiMc::FindRdr( cIpmiRdr *r )
 
 
 cIpmiSensor *
-cIpmiMc::FindSensor( unsigned int lun, unsigned int sensor_id )
+cIpmiMc::FindSensor( unsigned int lun, unsigned int sensor_id, unsigned int sa)
 {
+  stdlog << "mc.FindSensor(" << lun << "," << sensor_id << "," << sa << ") called, Num = " << Num() << "\n";
   for( int i = 0; i < Num(); i++ )
      {
        cIpmiResource *res = operator[]( i );
 
        cIpmiRdr *r = res->FindRdr( this, SAHPI_SENSOR_RDR,
-				   sensor_id, lun );
+				   sensor_id, lun, sa);
 
        if ( r )
 	    return (cIpmiSensor *)r;

@@ -49,7 +49,7 @@ public:
 cIpmiMcThread::cIpmiMcThread( cIpmiDomain *domain,
                               unsigned char addr,
                               unsigned int properties )
-  : m_domain( domain ), m_addr( addr ),
+  : m_domain( domain ), m_addr( addr ), m_chan( 0 ),
     m_mc( 0 ),
     m_properties( properties ),
     m_exit( false ), m_tasks( 0 ),
@@ -145,8 +145,13 @@ cIpmiMcThread::RemMcTask( void *userdata )
 
        rv = true;
      }
-  else
-       assert( 0 );
+  else {
+       /* got assert(0) here with this ME event:
+	*    ME #17 SPS FW Health FW Health, BMC Comm Error 75 [a0 06 00] 
+	* Handle it better instead. */
+       stdlog << "cIpmiMcThread::RemMcTask current = " << current << ", userdata = " << current->m_userdata << "\n";
+       rv = false;
+  }
 
   return rv;
 }
@@ -254,7 +259,8 @@ cIpmiMcThread::Run()
 void
 cIpmiMcThread::Discover( cIpmiMsg *get_device_id_rsp )
 {
-  cIpmiAddr addr( eIpmiAddrTypeIpmb, 0, 0, m_addr );
+  if (m_addr == 0x2c) m_chan = 0x06;
+  cIpmiAddr addr( eIpmiAddrTypeIpmb, m_chan, 0, m_addr );
   cIpmiMsg gdi_rsp;
 
   if ( !get_device_id_rsp )
@@ -271,7 +277,7 @@ cIpmiMcThread::Discover( cIpmiMsg *get_device_id_rsp )
        get_device_id_rsp = &gdi_rsp;
      }
 
-  stdlog << "MC at " << m_addr << " found:\n";
+  stdlog << "MC at [" << m_addr << "," << m_chan << "] found:\n";
   stdlog << "\tdevice id             : " <<  get_device_id_rsp->m_data[1] << "\n";
   stdlog << "\tdevice SDR            : " << ((get_device_id_rsp->m_data[2] & 0x80) ? "yes" : "no") << "\n";
   stdlog << "\tdevice revision       : " << (get_device_id_rsp->m_data[2] & 0x0f ) << "\n";
@@ -441,7 +447,7 @@ void
 cIpmiMcThread::HandleEvent( cIpmiEvent *event )
 {
   // can handle only events for that mc thread
-  assert( event->m_data[4] == m_addr );
+  // assert( event->m_data[4] == m_addr );
 
   stdlog << "event: ";
   event->Dump( stdlog, "event" );
@@ -452,11 +458,30 @@ cIpmiMcThread::HandleEvent( cIpmiEvent *event )
        return;
      }
 
-  if ( (event->m_data[4] & 0x01) != 0 )
+  /* Do not handle every System Event from BIOS on boot, but other
+   * BIOS-generated events should be handled.  
+   * For example: 
+     offset    0  1  2  3  4  5  6  7  8
+     10 03 02 7a b9 3b 50 01 00 04 12 83 6f 01 ff ff  --BIOS System Event
+     12 03 02 70 c3 3b 50 33 00 03 0c 02 6f a0 00 21  --ME Memory Event
+   */
+  if ((event->m_data[4] & 0x01) != 0)  /* SlaveAddr 0x01 or 0x33 */
+  {
+     if (event->m_data[7] == 0x12)    /* SensorType == System Event */
      {
        stdlog << "remove event: system software event.\n";
        return;
+     } 
+     else 
+     {
+       m_addr = dIpmiBmcSlaveAddr; /*0x20*/
+       m_chan = 0;
+       cIpmiAddr addr( eIpmiAddrTypeIpmb, m_chan, 0, m_addr );
+       m_mc = m_domain->FindMcByAddr( addr );
+       stdlog << "BIOS event: addr = " << (unsigned char)m_addr << " sa = " << 
+		event->m_data[4] << ", mc: " << (int)m_mc << "\n"; 
      }
+  }
 
   // reveive an event from an unknown MC
   // => discover
@@ -490,7 +515,7 @@ cIpmiMcThread::HandleEvent( cIpmiEvent *event )
        return;
      }
 
-  cIpmiSensor *sensor = m_mc->FindSensor( (event->m_data[5] & 0x3), event->m_data[8] );
+  cIpmiSensor *sensor = m_mc->FindSensor( (event->m_data[5] & 0x3), event->m_data[8] , event->m_data[4]);
 
   if ( sensor == 0 )
      {
@@ -626,10 +651,10 @@ cIpmiMcThread::PollAddr( void *userdata )
   cIpmiMc *mc = (cIpmiMc *)userdata;
 
   if ( m_domain->ConLogLevel( dIpmiConLogCmd ) )
-       stdlog << "poll MC at " << m_addr << ".\n";
+       stdlog << "poll MC at [" << m_addr << "," << m_chan << "]\n";
 
   // send a get device id
-  cIpmiAddr addr( eIpmiAddrTypeIpmb, 0, 0, m_addr );
+  cIpmiAddr addr( eIpmiAddrTypeIpmb, m_chan, 0, m_addr );
   cIpmiMsg msg( eIpmiNetfnApp, eIpmiCmdGetDeviceId );
   cIpmiMsg rsp;
 
