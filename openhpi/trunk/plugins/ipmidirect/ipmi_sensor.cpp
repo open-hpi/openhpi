@@ -202,6 +202,7 @@ cIpmiSensor::GetDataFromSdr( cIpmiMc *mc, cIpmiSdr *sdr )
   m_mc = mc;
 
   m_source_mc = mc;
+  m_sdr_type                = sdr->m_data[3]; /*or sdr->m_type; */
   m_owner                   = sdr->m_data[5];
   m_channel                 = sdr->m_data[6] >> 4;
   m_lun                     = sdr->m_data[6] & 0x03;
@@ -357,6 +358,14 @@ cIpmiSensor::GetSensorData( cIpmiMsg &rsp )
   cIpmiMsg msg( eIpmiNetfnSensorEvent, eIpmiCmdGetSensorReading );
   msg.m_data_len = 1;
   msg.m_data[0]  = m_num;
+
+  if (m_sdr_type == eSdrTypeEventOnlySensorRecord) 
+     {
+       /* EventOnly sensors do not support readings, so just return 0 */
+       memset(rsp.m_data,0,4);
+       rsp.m_data_len = 4;
+       return SA_OK;
+     }
 
   SaErrorT rv = Resource()->SendCommandReadLock( this, msg, rsp, m_lun );
 

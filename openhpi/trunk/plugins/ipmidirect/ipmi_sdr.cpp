@@ -69,6 +69,7 @@ static cIpmiSdrTypeToName type_to_name[] =
 {
   { eSdrTypeFullSensorRecord                     , "FullSensor" },
   { eSdrTypeCompactSensorRecord                  , "CompactSensor" },
+  { eSdrTypeEventOnlySensorRecord                , "EventOnlySensor" },
   { eSdrTypeEntityAssociationRecord              , "EntityAssociation" },
   { eSdrTypeDeviceRelativeEntityAssociationRecord, "DeviceRelativeEntityAssociation" },
   { eSdrTypeGenericDeviceLocatorRecord           , "GenericDeviceLocator" },
@@ -877,7 +878,8 @@ cIpmiSdrs::ReadRecords( cIpmiSdr **&records, unsigned short &working_num_sdrs,
 
 	    GList *list = 0;
 
-	    if ( sdr->m_type == eSdrTypeCompactSensorRecord )
+	    if (( sdr->m_type == eSdrTypeCompactSensorRecord ) ||
+	        ( sdr->m_type == eSdrTypeEventOnlySensorRecord ))
 	       {
 		 // convert compact sensor record to full sensor records
 		 list = CreateFullSensorRecords( sdr );
@@ -925,8 +927,10 @@ GList *
 cIpmiSdrs::CreateFullSensorRecords( cIpmiSdr *sdr )
 {
   int n = 1;
+  int itag, len;
 
-  if ( sdr->m_data[23] & 0x0f )
+  if (sdr->m_data[3] == eSdrTypeEventOnlySensorRecord ) n = 1; 
+  else if ( sdr->m_data[23] & 0x0f )
        n = sdr->m_data[23] & 0x0f;
 
   GList *list = 0;
@@ -946,22 +950,31 @@ cIpmiSdrs::CreateFullSensorRecords( cIpmiSdr *sdr )
        if ( sdr->m_data[24] & 0x80 )
             s->m_data[9] = sdr->m_data[9] + i;
 
-       // positive-going threshold hysteresis value
-       s->m_data[42] = sdr->m_data[25];
-       // negativ-going threshold hysteresis value
-       s->m_data[43] = sdr->m_data[26];
-
-       // oem
-       s->m_data[46] = sdr->m_data[30];
-
-       // id
-       int len = sdr->m_data[31] & 0x3f;
-       int val = (sdr->m_data[24] & 0x7f) + i;
-
-       memcpy( s->m_data + 47, sdr->m_data + 31, len + 1 );
-
-       if (n > 1)
+       if (sdr->m_data[3] == eSdrTypeEventOnlySensorRecord )
        {
+ 	 itag = 16;   /* sdr[17] = tag*/
+         len = sdr->m_data[itag] & 0x3f;
+         memcpy( s->m_data + 47, sdr->m_data + itag, len + 1 );
+       }
+       else  /*Compact SDRs*/
+       {
+	 itag = 31; /*Compact: sdr[32] = tag*/
+
+         // positive-going threshold hysteresis value
+         s->m_data[42] = sdr->m_data[25];
+         // negativ-going threshold hysteresis value
+         s->m_data[43] = sdr->m_data[26];
+
+         // oem
+         s->m_data[46] = sdr->m_data[30];
+
+         // id (tag)
+         int val = (sdr->m_data[24] & 0x7f) + i;
+         len = sdr->m_data[itag] & 0x3f;
+         memcpy( s->m_data + 47, sdr->m_data + itag, len + 1 );
+
+         if (n > 1)
+         {
             int base  = 0;
             int start = 0;
         
@@ -992,7 +1005,8 @@ cIpmiSdrs::CreateFullSensorRecords( cIpmiSdr *sdr )
                     s->m_data[48+len] = 0;
                     s->m_data[47] = (sdr->m_data[31] & 0xc0) | len;
                 }
-       }
+         }
+       } /*end-else compact*/
 
        list = g_list_append( list, s );
      }

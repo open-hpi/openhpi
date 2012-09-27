@@ -201,7 +201,8 @@ public:
   unsigned int GetChannel() const;
   unsigned int GetAddress() const;
   void         SetActive();
-  cIpmiSensor *FindSensor( unsigned int lun, unsigned int sensor_id );
+  cIpmiSensor *FindSensor( unsigned int lun, unsigned int sensor_id, 
+			   unsigned int sa );
   cIpmiRdr *FindRdr( cIpmiRdr *r );
 
   void SetVendor( cIpmiMcVendor *mv )

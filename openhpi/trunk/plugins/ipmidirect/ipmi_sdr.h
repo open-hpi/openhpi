@@ -55,6 +55,7 @@ enum tIpmiSdrType
   eSdrTypeUnknown = 0,
   eSdrTypeFullSensorRecord = 0x01,
   eSdrTypeCompactSensorRecord = 0x02,
+  eSdrTypeEventOnlySensorRecord = 0x03,
   eSdrTypeEntityAssociationRecord = 0x08,
   eSdrTypeDeviceRelativeEntityAssociationRecord = 0x09,
   eSdrTypeGenericDeviceLocatorRecord = 0x10,

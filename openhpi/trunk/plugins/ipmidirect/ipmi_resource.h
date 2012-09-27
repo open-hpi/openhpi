@@ -44,7 +44,7 @@ public:
               // which provides access to SEL
 
   // find a specific rdr
-  cIpmiRdr *FindRdr( cIpmiMc *mc, SaHpiRdrTypeT type, unsigned int num, unsigned int lun = 0 );
+  cIpmiRdr *FindRdr( cIpmiMc *mc, SaHpiRdrTypeT type, unsigned int num, unsigned int lun = 0, unsigned int sa = 0x20 );
   cIpmiRdr *FindRdr( cIpmiMc *mc, SaHpiRdrTypeT type, cIpmiRdr *rdr );
 
   bool AddRdr( cIpmiRdr *rdr );

@@ -166,6 +166,7 @@ protected:
   unsigned char m_owner;
   unsigned char m_channel;
   unsigned char m_num;
+  unsigned char m_sdr_type;
 
   unsigned int  m_virtual_num; // virtual sensor number
 
@@ -211,6 +212,8 @@ public:
   cIpmiMc *&SourceMc() { return m_source_mc; }
 
   virtual unsigned int Num() const { return m_num; }
+
+  virtual unsigned char Sa() const { return m_owner; }
 
   cIpmiSdr *GetSdr() { return m_sdr; }
   void SetSdr( cIpmiSdr *sdr ) { m_sdr = sdr; }
