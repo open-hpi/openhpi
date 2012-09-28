@@ -479,7 +479,7 @@ cIpmiMcThread::HandleEvent( cIpmiEvent *event )
        cIpmiAddr addr( eIpmiAddrTypeIpmb, m_chan, 0, m_addr );
        m_mc = m_domain->FindMcByAddr( addr );
        stdlog << "BIOS event: addr = " << (unsigned char)m_addr << " sa = " << 
-		event->m_data[4] << ", mc: " << (int)m_mc << "\n"; 
+		event->m_data[4] << ", mc: " << m_mc << "\n"; 
      }
   }
 
