@@ -256,7 +256,7 @@ cIpmiResource::Destroy()
 
 cIpmiRdr *
 cIpmiResource::FindRdr( cIpmiMc *mc, SaHpiRdrTypeT type,
-			unsigned int num, unsigned int lun, unsigned int sa )
+			unsigned int num, unsigned int lun, unsigned int sa ) 
 {
   for( int i = 0; i < NumRdr(); i++ )
      {

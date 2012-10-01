@@ -359,7 +359,7 @@ cIpmiSensor::GetSensorData( cIpmiMsg &rsp )
   msg.m_data_len = 1;
   msg.m_data[0]  = m_num;
 
-  if (m_sdr_type == eSdrTypeEventOnlySensorRecord) 
+  if (m_sdr_type == eSdrTypeEventOnlySensorRecord)
      {
        /* EventOnly sensors do not support readings, so just return 0 */
        memset(rsp.m_data,0,4);
