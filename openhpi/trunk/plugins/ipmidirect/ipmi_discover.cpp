@@ -259,7 +259,7 @@ cIpmiMcThread::Run()
 void
 cIpmiMcThread::Discover( cIpmiMsg *get_device_id_rsp )
 {
-  if (m_addr == 0x2c) m_chan = 0x06;
+  // if (m_addr == 0x2c) m_chan = 0x06;  set channel for Intel ME 
   cIpmiAddr addr( eIpmiAddrTypeIpmb, m_chan, 0, m_addr );
   cIpmiMsg gdi_rsp;
 

@@ -603,7 +603,7 @@ cIpmiMc::FindRdr( cIpmiRdr *r )
 cIpmiSensor *
 cIpmiMc::FindSensor( unsigned int lun, unsigned int sensor_id, unsigned int sa)
 {
-  stdlog << "mc.FindSensor(" << lun << "," << sensor_id << "," << sa << ") called, Num = " << Num() << "\n";
+  stdlog << "mc.FindSensor(" << lun << "," << sensor_id << "," << sa << ") called, Num = " << Num() << "\n"; 
   for( int i = 0; i < Num(); i++ )
      {
        cIpmiResource *res = operator[]( i );

@@ -1158,7 +1158,7 @@ cIpmiMcVendor::CreateInv( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdr *sdr, cIpmi
        type   = (SaHpiEntityTypeT)sdr->m_data[12];
        /* chan = (sdr->m_data[7] >> 5) & 0x07;; */
      }
-  else if ( sdr->m_type == eSdrTypeFruDeviceLocatorRecord ) /*0x11*/
+  else if ( sdr->m_type == eSdrTypeFruDeviceLocatorRecord ) /*0x11*/ 
      {
        fru_id = sdr->m_data[6]; 
        lun    = (sdr->m_data[7] >> 3) & 3;

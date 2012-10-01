@@ -40,7 +40,7 @@ private:
   void WriteUnlock();
 
   unsigned char m_addr;
-  unsigned char m_chan;
+  unsigned char m_chan; 
   cIpmiMc      *m_mc;
 
   // properties

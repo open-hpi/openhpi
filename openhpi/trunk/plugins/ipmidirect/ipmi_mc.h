@@ -202,7 +202,7 @@ public:
   unsigned int GetAddress() const;
   void         SetActive();
   cIpmiSensor *FindSensor( unsigned int lun, unsigned int sensor_id, 
-			   unsigned int sa );
+			   unsigned int sa ); 
   cIpmiRdr *FindRdr( cIpmiRdr *r );
 
   void SetVendor( cIpmiMcVendor *mv )

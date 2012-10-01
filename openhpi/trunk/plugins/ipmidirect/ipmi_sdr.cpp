@@ -69,7 +69,7 @@ static cIpmiSdrTypeToName type_to_name[] =
 {
   { eSdrTypeFullSensorRecord                     , "FullSensor" },
   { eSdrTypeCompactSensorRecord                  , "CompactSensor" },
-  { eSdrTypeEventOnlySensorRecord                , "EventOnlySensor" },
+  { eSdrTypeEventOnlySensorRecord                , "EventOnlySensor" }, 
   { eSdrTypeEntityAssociationRecord              , "EntityAssociation" },
   { eSdrTypeDeviceRelativeEntityAssociationRecord, "DeviceRelativeEntityAssociation" },
   { eSdrTypeGenericDeviceLocatorRecord           , "GenericDeviceLocator" },
