@@ -2941,12 +2941,13 @@ SaErrorT discover_power_supply(struct oh_handler_state *oh_handler)
 
                 /* If the power supply unit does not have the power cord
                  * plugged in, then power supply unit will be in faulty
-                 * condition. In this case, all the information in the
-                 * response structure is NULL. Consider the faulty power supply
-                 *  unit as ABSENT
+                 * condition. If the power supply is reported as PRESENT by OA
+                 * then add the power supply to the RPT
                  */
-                if (response->serialNumber[0] == '\0')
-                        continue;
+                if (response->serialNumber[0] == '\0') {
+                        strcpy((char *)response->serialNumber, "Not_Reported");
+                        WARN("No Serial Number reported for PSU in slot %d",i);
+                }
 
                 /* Build the rpt entry for power supply unit */
                 rv = build_power_supply_rpt(oh_handler, power_supply,

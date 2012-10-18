@@ -740,7 +740,9 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                                 dbg("EVENT_AC_FAILURE -- Not processed");
                                 break;
                         case EVENT_PS_INFO:
-                                dbg("EVENT_PS_INFO -- Not processed");
+                                dbg("EVENT_PS_INFO");
+                                oa_soap_proc_ps_info(oh_handler, 
+                                        oa->event_con2, &event);
                                 break;
                         case EVENT_PS_SUBSYSTEM_STATUS:
 				dbg("EVENT_PS_SUBSYSTEM_STATUS");

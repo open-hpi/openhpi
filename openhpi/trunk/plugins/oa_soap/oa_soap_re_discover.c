@@ -2089,12 +2089,10 @@ SaErrorT re_discover_ps_unit(struct oh_handler_state *oh_handler,
 
                 /* If the power supply unit does not have the power cord
                  * plugged in, then power supply unit will be in faulty
-                 * condition. In this case, all the information in the
-                 * response structure is NULL. Consider the faulty power supply
-                 * unit as ABSENT
+                 * condition. If the power supply reports itself as PRESENT
+                 * then add it to the RPT
                  */
-                if (response->presence != PRESENT ||
-                    (response->serialNumber == NULL || response->serialNumber[0] == '\0')) {
+                if (response->presence != PRESENT ) {
                         /* The power supply unit is absent.  Is the power
                          * supply unit absent in the presence matrix?
                          */
@@ -2105,6 +2103,10 @@ SaErrorT re_discover_ps_unit(struct oh_handler_state *oh_handler,
                         else
                                 state = RES_ABSENT;
                 } else {
+                        if ((response->serialNumber == NULL || response->serialNumber[0] == '\0')) {
+                               strcpy(response->serialNumber,"Not_Reported");
+                               err("PSU in slot %d has some problem, please check",i);
+                        }
                         /* The power supply unit is present.  Is the power
                          * supply unit present in the presence matrix?
                          */

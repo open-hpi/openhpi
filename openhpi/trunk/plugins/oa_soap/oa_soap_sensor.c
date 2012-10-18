@@ -192,13 +192,15 @@ SaErrorT oa_soap_get_sensor_reading(void *oh_handler,
         sensor_info = (struct oa_soap_sensor_info*)
                 oh_get_rdr_data(handler->rptcache, resource_id, rdr->RecordId);
         if (sensor_info == NULL) {
-                err("No sensor data. Sensor=%s", rdr->IdString.Data);
+                err("No data for Sensor %s in Resource %d",
+                       rdr->IdString.Data, resource_id);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
         /* Check whether sensor is enabled */
         if (sensor_info->sensor_enable == SAHPI_FALSE) {
-                err("Sensor not enabled");
+                err("Sensor %s not enabled for resource %d", 
+                       rdr->IdString.Data, resource_id);
                 return(SA_ERR_HPI_INVALID_REQUEST);
         }
 
@@ -207,7 +209,8 @@ SaErrorT oa_soap_get_sensor_reading(void *oh_handler,
 	    SAHPI_FALSE) {
 		data->IsSupported = SAHPI_FALSE;
 		*state = sensor_info->current_state;
-		dbg("sensor reading is not supported");
+		dbg("Reading Sensor %s in resource %d is not supported",
+                       rdr->IdString.Data, resource_id);
 		return SA_OK;
 	}
 
