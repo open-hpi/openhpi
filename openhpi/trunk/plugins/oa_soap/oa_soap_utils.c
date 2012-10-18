@@ -837,7 +837,7 @@ SaErrorT check_oa_user_permissions(struct oa_soap_handler *oa_handler,
 
 SaErrorT check_discovery_failure(struct oh_handler_state *oh_handler)
 {
-        SaErrorT oa1_rv, oa2_rv;
+        SaErrorT oa1_rv, oa2_rv, rv;
         struct oa_soap_handler *oa_handler = NULL;
 
         if (oh_handler == NULL) {
@@ -851,6 +851,12 @@ SaErrorT check_discovery_failure(struct oh_handler_state *oh_handler)
         oa2_rv = SA_ERR_HPI_INTERNAL_ERROR;
 
         /* If the hpi_con is NULL, then OA is not reachable */
+        rv = get_oa_soap_info(oh_handler);
+       	if (rv != SA_OK) {
+                oa_handler->status = PLUGIN_NOT_INITIALIZED;
+                err("Get OA SOAP info failed");
+                return rv;
+        }
         if (oa_handler->oa_1->hpi_con != NULL) {
                 /* Get the status of the OA in slot 1 */
                 oa1_rv = check_oa_status(oa_handler, oa_handler->oa_1,
