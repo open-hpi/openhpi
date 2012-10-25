@@ -38,11 +38,14 @@ public:
   tIpmiCmd       m_cmd;
   unsigned short m_data_len;
   unsigned char  m_data[dIpmiMaxMsgLength];
+  unsigned char  m_sa;
+  unsigned char  m_chan;
 
 public:
   cIpmiMsg();
   cIpmiMsg( tIpmiNetfn netfn, tIpmiCmd cmd,
-            unsigned short data_len = 0, unsigned char *data = 0 );
+            unsigned short data_len = 0, unsigned char *data = 0 ,
+            unsigned char sa = 0, unsigned char chan = 0 );
 
   bool Equal( const cIpmiMsg &msg2 ) const;
 };

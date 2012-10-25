@@ -208,7 +208,7 @@ cIpmiMcThread::Run()
            m_domain->m_bmc_discovered = true;
        }
        else {
-           stdlog << "BMC Discovery (" << m_addr << ") done\n";
+           stdlog << "BMC Discovery (" << m_addr << ", " << m_chan << ") done\n";
 	   if (m_domain->m_initial_discover == 0) 
 		stdlog << "All BMC Discoveries Completed\n";
        }

@@ -15,19 +15,21 @@
 
 
 #include <string.h>
+#include <ipmi_addr.h>
 
 #include "ipmi_msg.h"
 
 
 cIpmiMsg::cIpmiMsg()
   : m_netfn( eIpmiNetfnChassis ), m_cmd( eIpmiCmdGetChassisCapabilities ),
-    m_data_len( 0 )
+    m_data_len( 0 ), m_sa( 0 ), m_chan ( 0 )
 {
 }
 
 
 cIpmiMsg::cIpmiMsg( tIpmiNetfn netfn, tIpmiCmd cmd,
-                    unsigned short data_len, unsigned char *data )
+                    unsigned short data_len, unsigned char *data,
+                    unsigned char sa, unsigned char chan )
   : m_netfn( netfn ), m_cmd( cmd )
 {
   if ( data_len <= dIpmiMaxMsgLength )
@@ -39,6 +41,13 @@ cIpmiMsg::cIpmiMsg( tIpmiNetfn netfn, tIpmiCmd cmd,
      {
        memcpy( m_data, data, m_data_len );
      }
+  if (chan != 0) {
+     m_sa = sa;
+     m_chan = chan;
+  } else {
+     m_sa = dIpmiBmcSlaveAddr;  //0x20
+     m_chan = 0;
+  }
 }
 
 

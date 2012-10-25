@@ -257,7 +257,8 @@ cIpmiConSmi::IfOpen()
   parms.retries       = 0;
   parms.retry_time_ms = 1000;
 
-  rv = ioctl( fd, IPMICTL_SET_TIMING_PARMS_CMD, &parms );
+  /* Some sensors take longer than 1 sec, use driver default.  ARCress */
+  // rv = ioctl( fd, IPMICTL_SET_TIMING_PARMS_CMD, &parms );
 
   if ( rv == -1 )
        stdlog << "Warning: Could not set timing parms !\n";

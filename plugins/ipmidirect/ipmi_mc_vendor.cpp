@@ -78,12 +78,16 @@ cIpmiMcVendorFactory::InitFactory()
        m_factory->Register( new cIpmiMcVendorIntelBmc( 0x0022 ) );
        m_factory->Register( new cIpmiMcVendorIntelBmc( 0x0026 ) );
        m_factory->Register( new cIpmiMcVendorIntelBmc( 0x0028 ) );
+       m_factory->Register( new cIpmiMcVendorIntelBmc( 0x0029 ) );
        m_factory->Register( new cIpmiMcVendorIntelBmc( 0x0100 ) );
        m_factory->Register( new cIpmiMcVendorIntelBmc( 0x4311 ) );
        m_factory->Register( new cIpmiMcVendorIntelBmc( 0x0811 ) );
        m_factory->Register( new cIpmiMcVendorIntelBmc( 0x0900 ) ); /*HSC*/
        m_factory->Register( new cIpmiMcVendorIntelBmc( 0x0911 ) ); /*HSC*/
        m_factory->Register( new cIpmiMcVendorIntelBmc( 0x0A0C ) ); /*HSC*/
+       m_factory->Register( new cIpmiMcVendorIntelBmc( 0x003E ) );
+       for (int i = 0x0048; i <= 0x005D; i++) 
+          m_factory->Register( new cIpmiMcVendorIntelBmc( i ) ); /*Romley*/
        // Sun BMC specific stuff
        m_factory->Register( new cIpmiMcVendorSunBmc( 0x4701 ) );
 
