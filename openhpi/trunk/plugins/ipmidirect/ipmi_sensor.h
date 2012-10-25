@@ -165,7 +165,7 @@ protected:
 
   unsigned char m_owner;
   unsigned char m_channel;
-  unsigned char m_num;
+  unsigned int  m_num;
   unsigned char m_sdr_type; 
 
   unsigned int  m_virtual_num; // virtual sensor number
