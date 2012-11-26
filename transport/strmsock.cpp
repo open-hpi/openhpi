@@ -16,6 +16,7 @@
  *
  */
 
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -338,7 +339,27 @@ bool cStreamSock::CreateAttempt( const struct addrinfo * info, bool last_attempt
     new_sock = socket( info->ai_family, info->ai_socktype, info->ai_protocol );
     if ( new_sock == InvalidSockFd ) {
         if ( last_attempt ) {
-            CRIT( "cannot create stream socket." );
+#ifdef _WIN32
+            bool noaif = ( WSAGetLastError() == WSAEAFNOSUPPORT );
+#else
+            bool noaif = ( errno == EAFNOSUPPORT );
+#endif
+            if ( noaif ) {
+                const char * aif; 
+                switch ( info->ai_family ) {
+                    case AF_INET:
+                        aif = "IPv4";
+                        break;
+                    case AF_INET6:
+                        aif = "IPv6";
+                        break;
+                    default:
+                        aif = "";
+                }
+                CRIT( "cannot create %s stream socket, address family is not supported on this platform", aif );
+            } else {
+                CRIT( "cannot create stream socket." );
+            }
         }
         return false;
     }
