@@ -1410,7 +1410,7 @@ SaErrorT process_server_mp_info_event(struct oh_handler_state
         }
 
         fm_version = atof(fwVersion);
-        major = floor(fm_version);
+        major = (SaHpiUint8T)floor(fm_version);
         minor = rintf((fm_version - major) * 100);
 
         if(rpt->ResourceInfo.FirmwareMajorRev == major &&
