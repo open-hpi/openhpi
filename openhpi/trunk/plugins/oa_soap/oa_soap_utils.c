@@ -1441,7 +1441,8 @@ SaErrorT update_oa_info(struct oh_handler_state *oh_handler,
          * 'yy' is the minor version
          */
         fm_version = atof(response->fwVersion);
-        rpt->ResourceInfo.FirmwareMajorRev = major = rintf(fm_version);
+        rpt->ResourceInfo.FirmwareMajorRev = major = 
+				(SaHpiUint8T)floor(fm_version);
         rpt->ResourceInfo.FirmwareMinorRev = rintf((fm_version - major) * 100);
 
         return SA_OK;

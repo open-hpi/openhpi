@@ -1953,7 +1953,8 @@ SaErrorT build_server_inv_rdr(struct oh_handler_state *oh_handler,
 
 			/* Store Firmware MajorRev & MinorRev data in rpt */
 			fm_version = atof(blade_mp_response.fwVersion);
-			rpt->ResourceInfo.FirmwareMajorRev = major = floor(fm_version);
+			rpt->ResourceInfo.FirmwareMajorRev = major = 
+					(SaHpiUint8T)floor(fm_version);
 			rpt->ResourceInfo.FirmwareMinorRev = rintf((fm_version - major) * 100);
                 }
 				/** MP Info **/
