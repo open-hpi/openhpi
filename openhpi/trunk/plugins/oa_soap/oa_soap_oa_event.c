@@ -43,6 +43,9 @@
  *                                        with current status of the system
  *
  *      process_oa_info_event()         - Processes the OA info event
+ *                                        If OA info event has the updated 
+ *                                        OA firmware version, same will be
+ *                                        updated to RPT and IDR entry.
  *                                        If OA info event is just after OA
  *                                        insertion event, then it processed.
  *                                        Else, it is ignored
@@ -401,6 +404,9 @@ SaErrorT process_oa_reboot_event(struct oh_handler_state *oh_handler,
  *        the stabilization of OA.
  *      - When OA insertion event received, OA will not be stabilized
  *        On recieving this event, ACTIVE hot swap event will be generated
+ *      - If the OA_INFO event has the updated OA firmware
+ *        version information then the new firmware version
+ *        will be updated to RPT and IDR entry.
  *
  * Return values:
  *      SA_OK                     - on success.
@@ -414,6 +420,9 @@ SaErrorT process_oa_info_event(struct oh_handler_state *oh_handler,
         SaErrorT rv = SA_OK;
         SaHpiInt32T bay_number;
         struct oa_soap_handler *oa_handler = NULL;
+        int i = 0;
+        struct oaInfo response;
+        SaHpiResourceIdT resource_id;
 
         if (oh_handler == NULL || con == NULL || oa_event == NULL) {
                 err("Invalid parameters");
@@ -422,10 +431,22 @@ SaErrorT process_oa_info_event(struct oh_handler_state *oh_handler,
 
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
         bay_number = oa_event->eventData.oaInfo.bayNumber;
+        response = oa_event->eventData.oaInfo;
 
         if (oa_handler->oa_soap_resources.oa.presence[bay_number - 1] ==
                             RES_PRESENT) {
-                dbg("OA is present. Ignore event");
+                if(oa_event->eventData.oaInfo.fwVersion != NULL) {
+                        for (i = 0;
+                        i < oa_handler->oa_soap_resources.oa.max_bays; i++) {
+                                resource_id = oa_handler->oa_soap_resources.oa.
+                                resource_id[i];
+                                rv = update_oa_fw_version(oh_handler,
+                                                &response, resource_id);
+                                if (rv != SA_OK) {
+                                        err("OA Firmware Version not updated");
+                                }
+                        }
+                }
                 return SA_OK;
         }
 
