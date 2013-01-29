@@ -114,4 +114,8 @@ void oa_soap_update_resource_status(resource_status_t *res_status,
                                     resource_presence_status_t presence);
 
 char * oa_soap_trim_whitespace(char *s);
+
+SaErrorT update_oa_fw_version(struct oh_handler_state *oh_handler,
+                              struct oaInfo *response,
+                              SaHpiResourceIdT resource_id);
 #endif

@@ -102,6 +102,9 @@
  *
  *      convert_lower_to_upper          - Converts the lower case to upper case
  *
+ *      update_oa_fw_version()          - Updates the RPT entry and IDR entry
+ *                                        with OA firmware version
+ *
  **/
 
 #include "oa_soap_utils.h"
@@ -1542,3 +1545,119 @@ char * oa_soap_trim_whitespace(char *s) {
   return(s);
 }
 
+/**
+ * update_oa_fw_version
+ *      @oh_handler:  Pointer to the plugin handler
+ *      @response:    Pointer to the oaInfo structure
+ *      @resource_id: Resource Id
+ *
+ * Purpose:
+ *      Updates the RPT entry and IDR entry with OA firmware version
+ *
+ * Detailed Descrption: NA
+ *
+ * Return values:
+ *      SA_HPI_ERR_INAVLID_PARAMS - on invalid parameters
+ *      SA_HPI_ERR_INTERNAL_ERROR - on failure
+ *      SA_OK                     - on success
+ **/
+
+SaErrorT update_oa_fw_version(struct oh_handler_state *oh_handler,
+                              struct oaInfo *response,
+                              SaHpiResourceIdT resource_id)
+{
+        SaErrorT rv = SA_OK;
+        SaHpiFloat64T fm_version;
+        SaHpiRptEntryT *rpt = NULL;
+        SaHpiRdrT *rdr = NULL;
+        SaHpiIdrIdT IdrId = 0;
+        SaHpiIdrFieldT field;
+        struct oh_event event;
+        SaHpiInt32T major;
+        SaHpiInt32T minor;
+
+        if (oh_handler == NULL || response == NULL) {
+                printf("Invalid parameter");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+        if (rpt == NULL) {
+                err("OA rpt is not present");
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+
+        if (strlen(response->fwVersion) == 0) {
+                err("Firmware version is null string");
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+
+        fm_version = atof(response->fwVersion);
+        major = (SaHpiUint8T)floor(fm_version);
+        minor = rintf((fm_version - major) * 100);
+
+        if(rpt->ResourceInfo.FirmwareMajorRev == major &&
+                rpt->ResourceInfo.FirmwareMinorRev == minor){
+                return rv;
+        }
+
+        if(( major == rpt->ResourceInfo.FirmwareMajorRev &&
+        minor < rpt->ResourceInfo.FirmwareMinorRev ) ||
+        major < rpt->ResourceInfo.FirmwareMajorRev ) {
+                WARN("OA Firmware Version downgraded");
+        }
+	
+        rpt->ResourceInfo.FirmwareMajorRev = major;
+        rpt->ResourceInfo.FirmwareMinorRev = minor;
+
+        /* Get the inventory RDR */
+        rdr = oh_get_rdr_by_type(oh_handler->rptcache, resource_id,
+                                SAHPI_INVENTORY_RDR,
+                                SAHPI_DEFAULT_INVENTORY_ID);
+        if (rdr == NULL) {
+                err("Inventory RDR is not found");
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+
+        IdrId = rdr->RdrTypeUnion.InventoryRec.IdrId;
+
+        memset(&field, 0, sizeof(SaHpiIdrFieldT));
+        field.Type = SAHPI_IDR_FIELDTYPE_PRODUCT_VERSION;
+        field.Field.DataType = SAHPI_TL_TYPE_TEXT;
+        field.Field.Language = SAHPI_LANG_ENGLISH;
+        oa_soap_trim_whitespace(response->fwVersion);
+        field.Field.DataLength = strlen(response->fwVersion);
+        field.AreaId = 1;
+        field.FieldId = 3;
+        snprintf((char *)field.Field.Data,
+                        strlen(response->fwVersion)+ 1,
+                        "%s",response->fwVersion);
+
+        rv = oa_soap_set_idr_field(oh_handler, resource_id, IdrId,
+                                                &field);
+        if (rv != SOAP_OK) {
+                err("oa_soap_set_idr_field failed");
+                return rv;
+        }
+
+        /* Event Handling */
+        memset(&event, 0, sizeof(struct oh_event));
+        event.event.EventType = SAHPI_ET_RESOURCE;
+        memcpy(&event.resource,
+                    rpt,
+                    sizeof(SaHpiRptEntryT));
+        event.event.Severity = SAHPI_INFORMATIONAL;
+        event.event.Source = event.resource.ResourceId;
+        if (oh_gettimeofday(&(event.event.Timestamp)) != SA_OK) {
+                event.event.Timestamp = SAHPI_TIME_UNSPECIFIED;
+        }
+        event.event.EventDataUnion.ResourceEvent.
+        ResourceEventType = SAHPI_RESE_RESOURCE_UPDATED;
+        event.rdrs = g_slist_append(event.rdrs, g_memdup(rdr,
+                     sizeof(SaHpiRdrT)));
+        event.hid = oh_handler->hid;
+        oh_evt_queue_push(oh_handler->eventq,
+        copy_oa_soap_event(&event));
+
+        return SA_OK;
+}
