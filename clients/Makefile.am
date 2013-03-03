@@ -10,7 +10,7 @@ DIST_SUBDIRS = hpixml
 
 EXTRA_DIST       = Makefile.mingw32 version.rc
 
-COMMONLIBS	     = $(top_builddir)/baselib/libopenhpi.la
+COMMONLIBS	     = $(top_builddir)/baselib/libopenhpi.la $(top_builddir)/utils/libopenhpiutils.la
 
 CLIENTS_SRC 	     = clients.c oh_clients.h
 
