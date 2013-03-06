@@ -299,18 +299,36 @@ int main(int argc, char **argv)
 
                 if (Action <= SAHPI_POWER_CYCLE)
                 {
+                        PowerState = 0;
+                        Status = saHpiResourcePowerStateGet(SessionId,
+                                                            ComputerPtr->ResID,
+                                                            &PowerState);
+                        if (Status != SA_OK)
+                        {
+                                printf("%s does not support PowerStateGet",ComputerPtr->NameStr);
+                        }
+                        if (Action == PowerState)
+                        {
+                                printf("\n%s -- %20s is already powered %s\n",argv[0],
+                                                                        ComputerPtr->NameStr,
+                                                                        PowerStateString[Action]);
+                        }
+                        else
+                        {
+
                         HPI_POWER_DEBUG_PRINT("Setting a New Power State");
                         // Set the new power status for this computer
                         Status = saHpiResourcePowerStateSet(SessionId,
                                                             ComputerPtr->ResID,
                                                             Action);
-                        /* return status */
-                        if (Status == SA_OK)
-                        {
-                                printf("\n%s -- %20s has been successfully powered %s\n",
-                                       argv[0],
-                                       ComputerPtr->NameStr,
-                                       PowerStateString[Action]);
+                                 /* return status */
+                               if (Status == SA_OK)
+                               {
+                                        printf("\n%s -- %20s has been successfully powered %s\n",
+                                               argv[0],
+                                               ComputerPtr->NameStr,
+                                               PowerStateString[Action]);
+                                }
                         }
                 }
                 else   // Report Power status for the system
