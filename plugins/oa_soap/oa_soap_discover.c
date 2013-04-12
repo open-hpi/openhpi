@@ -2138,6 +2138,7 @@ SaErrorT build_interconnect_rpt(struct oh_handler_state *oh_handler,
  *      @con:           Pointer to the soap client handler.
  *      @info_response: Interconnect info response structure
  *      @resource_id:   Resource id
+ *      @build_sensors: Flag to build sensor RDR's for Interconnect tray status
  *
  * Purpose:
  *      Populate the interconnect blade RDR.
@@ -2153,6 +2154,11 @@ SaErrorT build_interconnect_rpt(struct oh_handler_state *oh_handler,
  * 	  device missing, duplicate management IP address, health operational
  * 	  status and health predictive failure sensor RDR
  * 	- Creates UID and power control RDR
+ * 	- This funtion callers
+ * 	  discover_interconnect
+ * 	  process_interconnect_insertion_event
+ * 	  process_interconnect_info_event
+ * 	  add_interconnect
  *
  * Return values:
  *      SA_OK                     - on success.
@@ -2162,7 +2168,8 @@ SaErrorT build_interconnect_rpt(struct oh_handler_state *oh_handler,
 SaErrorT build_interconnect_rdr(struct oh_handler_state *oh_handler,
                                 SOAP_CON* con,
                                 SaHpiInt32T bay_number,
-                                SaHpiResourceIdT resource_id)
+                                SaHpiResourceIdT resource_id,
+                                int build_sensors)
 {
         SaErrorT rv = SA_OK;
         struct oa_soap_inventory *inventory = NULL;
@@ -2224,100 +2231,102 @@ SaErrorT build_interconnect_rdr(struct oh_handler_state *oh_handler,
         /* Build UID control rdr for server */
         OA_SOAP_BUILD_CONTROL_RDR(OA_SOAP_UID_CNTRL, 0, 0)
 
-	status_request.bayNumber = bay_number;
-	rv = soap_getInterconnectTrayStatus(con, &status_request,
-					    &status_response);
-	if (rv != SOAP_OK) {
-		err("Get Interconnect tray status SOAP call failed");
-		return SA_ERR_HPI_INTERNAL_ERROR;
-	}
+        if(build_sensors == TRUE){
+                status_request.bayNumber = bay_number;
+                rv = soap_getInterconnectTrayStatus(con, &status_request,
+                                &status_response);
+                if (rv != SOAP_OK) {
+                        err("Get Interconnect tray status SOAP call failed");
+                        return SA_ERR_HPI_INTERNAL_ERROR;
+                }
 
-	/* Build operational status sensor rdr */
-	OA_SOAP_BUILD_ENABLE_SENSOR_RDR(OA_SOAP_SEN_OPER_STATUS,
-					status_response.operationalStatus)
+                /* Build operational status sensor rdr */
+                OA_SOAP_BUILD_ENABLE_SENSOR_RDR(OA_SOAP_SEN_OPER_STATUS,
+                                status_response.operationalStatus)
 
-	/* Build predictive failure sensor rdr */
-	OA_SOAP_BUILD_ENABLE_SENSOR_RDR(OA_SOAP_SEN_PRED_FAIL,
-					status_response.operationalStatus)
+                /* Build predictive failure sensor rdr */
+                OA_SOAP_BUILD_ENABLE_SENSOR_RDR(OA_SOAP_SEN_PRED_FAIL,
+                                status_response.operationalStatus)
 
-	/* Build interconnect CPU fault sensor rdr */
-	OA_SOAP_BUILD_ENABLE_SENSOR_RDR(OA_SOAP_SEN_CPU_FAULT,
-					status_response.cpuFault)
+                /* Build interconnect CPU fault sensor rdr */
+                OA_SOAP_BUILD_ENABLE_SENSOR_RDR(OA_SOAP_SEN_CPU_FAULT,
+                                status_response.cpuFault)
 
-	/* Build interconnect health LED sensor rdr */
-	OA_SOAP_BUILD_ENABLE_SENSOR_RDR(OA_SOAP_SEN_HEALTH_LED,
-					status_response.healthLed)
+                /* Build interconnect health LED sensor rdr */
+                OA_SOAP_BUILD_ENABLE_SENSOR_RDR(OA_SOAP_SEN_HEALTH_LED,
+                                status_response.healthLed)
 
-	/* Build internal data error sensor rdr */
-	OA_SOAP_BUILD_ENABLE_SENSOR_RDR(OA_SOAP_SEN_INT_DATA_ERR,
-					status_response.diagnosticChecks.
-						internalDataError)
+                /* Build internal data error sensor rdr */
+                OA_SOAP_BUILD_ENABLE_SENSOR_RDR(OA_SOAP_SEN_INT_DATA_ERR,
+                                status_response.diagnosticChecks.
+                                internalDataError)
 
-	/* Build management processor error sensor rdr */
-	OA_SOAP_BUILD_ENABLE_SENSOR_RDR(OA_SOAP_SEN_MP_ERR,
-					status_response.diagnosticChecks.
-						managementProcessorError)
+                /* Build management processor error sensor rdr */
+                OA_SOAP_BUILD_ENABLE_SENSOR_RDR(OA_SOAP_SEN_MP_ERR,
+                                status_response.diagnosticChecks.
+                                managementProcessorError)
 
-	/* Build thermal waring sensor rdr */
-	OA_SOAP_BUILD_ENABLE_SENSOR_RDR(OA_SOAP_SEN_THERM_WARN,
-					status_response.diagnosticChecks.
-						thermalWarning)
+                /* Build thermal waring sensor rdr */
+                OA_SOAP_BUILD_ENABLE_SENSOR_RDR(OA_SOAP_SEN_THERM_WARN,
+                                status_response.diagnosticChecks.
+                                thermalWarning)
 
-	/* Build thermal danger sensor rdr */
-	OA_SOAP_BUILD_ENABLE_SENSOR_RDR(OA_SOAP_SEN_THERM_DANGER,
-					status_response.diagnosticChecks.
-						thermalDanger)
+                /* Build thermal danger sensor rdr */
+                OA_SOAP_BUILD_ENABLE_SENSOR_RDR(OA_SOAP_SEN_THERM_DANGER,
+                                status_response.diagnosticChecks.
+                                thermalDanger)
 
-	/* Build IO configuration error sensor rdr */
-	OA_SOAP_BUILD_ENABLE_SENSOR_RDR(OA_SOAP_SEN_IO_CONFIG_ERR,
-					status_response.diagnosticChecks.
-						ioConfigurationError)
+                /* Build IO configuration error sensor rdr */
+                OA_SOAP_BUILD_ENABLE_SENSOR_RDR(OA_SOAP_SEN_IO_CONFIG_ERR,
+                                status_response.diagnosticChecks.
+                                ioConfigurationError)
 
-	/* Build device power request error sensor rdr */
-	OA_SOAP_BUILD_ENABLE_SENSOR_RDR(OA_SOAP_SEN_DEV_PWR_REQ,
-					status_response.diagnosticChecks.
-						devicePowerRequestError)
+                /* Build device power request error sensor rdr */
+                OA_SOAP_BUILD_ENABLE_SENSOR_RDR(OA_SOAP_SEN_DEV_PWR_REQ,
+                                status_response.diagnosticChecks.
+                                devicePowerRequestError)
 
-	/* Build device failure error sensor rdr */
-	OA_SOAP_BUILD_ENABLE_SENSOR_RDR(OA_SOAP_SEN_DEV_FAIL,
-					status_response.diagnosticChecks.
-						deviceFailure)
+                /* Build device failure error sensor rdr */
+                OA_SOAP_BUILD_ENABLE_SENSOR_RDR(OA_SOAP_SEN_DEV_FAIL,
+                                status_response.diagnosticChecks.
+                                deviceFailure)
 
-	/* Build device degraded error sensor rdr */
-	OA_SOAP_BUILD_ENABLE_SENSOR_RDR(OA_SOAP_SEN_DEV_DEGRAD,
-					status_response.diagnosticChecks.
-						deviceDegraded)
+                /* Build device degraded error sensor rdr */
+                OA_SOAP_BUILD_ENABLE_SENSOR_RDR(OA_SOAP_SEN_DEV_DEGRAD,
+                                status_response.diagnosticChecks.
+                                deviceDegraded)
 
-	/* Parse the diganosticChecksEx structure */
-	oa_soap_parse_diag_ex(status_response.diagnosticChecksEx,
-			      diag_ex_status);
+                /* Parse the diganosticChecksEx structure */
+                oa_soap_parse_diag_ex(status_response.diagnosticChecksEx,
+                                diag_ex_status);
 
-	/* Build device not supported sensor rdr */
-	OA_SOAP_BUILD_ENABLE_SENSOR_RDR(OA_SOAP_SEN_DEV_NOT_SUPPORT,
-				diag_ex_status[DIAG_EX_DEV_NOT_SUPPORT])
+                /* Build device not supported sensor rdr */
+                OA_SOAP_BUILD_ENABLE_SENSOR_RDR(OA_SOAP_SEN_DEV_NOT_SUPPORT,
+                                diag_ex_status[DIAG_EX_DEV_NOT_SUPPORT])
 
-	/* Build Device informational sensor rdr */
-	OA_SOAP_BUILD_ENABLE_SENSOR_RDR(OA_SOAP_SEN_DEV_INFO,
-					diag_ex_status[DIAG_EX_DEV_INFO])
+                /* Build Device informational sensor rdr */
+                OA_SOAP_BUILD_ENABLE_SENSOR_RDR(OA_SOAP_SEN_DEV_INFO,
+                                diag_ex_status[DIAG_EX_DEV_INFO])
 
-	/* Build Storage device missing sensor rdr */
-	OA_SOAP_BUILD_ENABLE_SENSOR_RDR(OA_SOAP_SEN_STORAGE_DEV_MISS,
-				diag_ex_status[DIAG_EX_STORAGE_DEV_MISS])
+                /* Build Storage device missing sensor rdr */
+                OA_SOAP_BUILD_ENABLE_SENSOR_RDR(OA_SOAP_SEN_STORAGE_DEV_MISS,
+                                diag_ex_status[DIAG_EX_STORAGE_DEV_MISS])
 
-	/* Build Duplicate management IP address sensor rdr */
-	OA_SOAP_BUILD_ENABLE_SENSOR_RDR(OA_SOAP_SEN_DUP_MGMT_IP_ADDR,
-				diag_ex_status[DIAG_EX_DUP_MGMT_IP_ADDR])
+                /* Build Duplicate management IP address sensor rdr */
+                OA_SOAP_BUILD_ENABLE_SENSOR_RDR(OA_SOAP_SEN_DUP_MGMT_IP_ADDR,
+                                diag_ex_status[DIAG_EX_DUP_MGMT_IP_ADDR])
 
-	/* Get the healthStatus enum from extraData structure */
-	oa_soap_get_health_val(status_response.extraData, &status);
+                /* Get the healthStatus enum from extraData structure */
+                oa_soap_get_health_val(status_response.extraData, &status);
 
-	/* Build health status operational sensor */
-	OA_SOAP_BUILD_ENABLE_SENSOR_RDR(OA_SOAP_SEN_HEALTH_OPER,
-					status)
+                /* Build health status operational sensor */
+                OA_SOAP_BUILD_ENABLE_SENSOR_RDR(OA_SOAP_SEN_HEALTH_OPER,
+                                status)
 
-	/* Build health status predictive failure sensor */
-	OA_SOAP_BUILD_ENABLE_SENSOR_RDR(OA_SOAP_SEN_HEALTH_PRED_FAIL,
-					status)
+                /* Build health status predictive failure sensor */
+                OA_SOAP_BUILD_ENABLE_SENSOR_RDR(OA_SOAP_SEN_HEALTH_PRED_FAIL,
+                                status)
+        }
 
         return SA_OK;
 }
@@ -2397,7 +2406,7 @@ SaErrorT discover_interconnect(struct oh_handler_state *oh_handler)
                       info_response.serialNumber, resource_id, RES_PRESENT);
                 /* Build rdr entry for interconnect */
                 rv = build_interconnect_rdr(oh_handler, oa_handler->active_con,
-                                            i, resource_id);
+                                            i, resource_id, TRUE);
                 if (rv != SA_OK) {
                        err("Failed to get interconnect RDR");
                         /* Reset resource_status structure to default values */

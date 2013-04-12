@@ -208,7 +208,8 @@ SaErrorT build_interconnect_rpt(struct oh_handler_state *oh_handler,
 SaErrorT build_interconnect_rdr(struct oh_handler_state *oh_handler,
                                 SOAP_CON *con,
                                 SaHpiInt32T bay_number,
-                                SaHpiResourceIdT resource_id);
+                                SaHpiResourceIdT resource_id,
+                                int build_sensors);
 
 SaErrorT discover_interconnect(struct oh_handler_state *oh_handler);
 
