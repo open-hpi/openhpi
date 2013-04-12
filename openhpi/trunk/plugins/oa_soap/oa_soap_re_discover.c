@@ -1665,7 +1665,7 @@ SaErrorT add_interconnect(struct oh_handler_state *oh_handler,
 
         /* Build the RDRs */
         rv = build_interconnect_rdr(oh_handler, con,
-                                    bay_number, resource_id);
+                                    bay_number, resource_id, TRUE);
         if (rv != SA_OK) {
                 err("Failed to get interconnect inventory RDR");
                 /* Free the inventory info from inventory RDR */

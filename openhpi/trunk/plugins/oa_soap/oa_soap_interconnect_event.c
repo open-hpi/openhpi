@@ -413,7 +413,7 @@ SaErrorT process_interconnect_insertion_event(struct oh_handler_state
 
         /* Build the inserted interconnect RDRs */
         rv = build_interconnect_rdr(oh_handler, con,
-                                    bay_number, resource_id);
+                                    bay_number, resource_id, TRUE);
         if (rv != SA_OK) {
                 err("Failed to build the interconnect RDR");
                 rv = oh_remove_resource(oh_handler->rptcache,
@@ -563,7 +563,7 @@ SaErrorT process_interconnect_info_event(struct oh_handler_state
          * take care of already existing RDR. 
          */
         rv = build_interconnect_rdr(oh_handler, con,
-                                    bay_number, resource_id);
+                                    bay_number, resource_id, FALSE);
 	
         g_free(serial_number);
         return SA_OK;
