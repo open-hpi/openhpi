@@ -251,6 +251,8 @@ struct ilo2_ribcl_sensinfo {
 	SaHpiEventStateT  sens_assertmask;
 	SaHpiEventStateT  sens_deassertmask;
 	int		  sens_value;
+	SaHpiSensorThresholdsT threshold;
+	char *status;
 };
 
 /* Structure used by ilo2_ribcl_get_sensor_rdr_data() to return a pointer to
@@ -351,6 +353,10 @@ typedef struct ir_tsdata{
 	char *reading;
 	char *readingunits;
         SaHpiResourceIdT rid;
+	char *cautionvalue;
+	char *cautionunit;
+	char *criticalvalue;
+	char *criticalunit;
 } ir_tsdata_t;
 
 /* Firmware Revision Information */
@@ -605,5 +611,7 @@ extern SaErrorT ilo2_ribcl_get_sensor_event_masks(void *, SaHpiResourceIdT,
 extern SaErrorT ilo2_ribcl_set_sensor_event_masks(void *, SaHpiResourceIdT,
 				SaHpiSensorNumT, SaHpiSensorEventMaskActionT,
 				SaHpiEventStateT, SaHpiEventStateT);
+extern SaErrorT ilo2_ribcl_get_sensor_thresholds(void *, SaHpiResourceIdT,
+                                SaHpiSensorNumT, SaHpiSensorThresholdsT *);
 
 #endif /* _INC_ILO2_RIBCL_H_ */

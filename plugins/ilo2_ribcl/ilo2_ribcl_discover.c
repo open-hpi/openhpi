@@ -1542,6 +1542,48 @@ static void ilo2_ribcl_discover_temp_sensors(
 			si_initial.sens_deassertmask = SAHPI_ES_UNSPECIFIED;
 			si_initial.sens_value = I2R_SEN_VAL_UNINITIALIZED;
 
+			si_initial.status =  tsdata->status;
+			si_initial.threshold.LowCritical.IsSupported =
+								SAHPI_FALSE;
+			si_initial.threshold.LowMajor.IsSupported = SAHPI_FALSE;
+			si_initial.threshold.LowMinor.IsSupported = SAHPI_FALSE;
+
+			si_initial.threshold.UpCritical.IsSupported =
+								SAHPI_TRUE;
+			si_initial.threshold.UpCritical.Type =
+						SAHPI_SENSOR_READING_TYPE_INT64;
+			si_initial.threshold.UpCritical.Value.SensorInt64 =
+						atoi(tsdata->criticalvalue);
+
+			si_initial.threshold.UpMajor.IsSupported = SAHPI_TRUE;
+			si_initial.threshold.UpMajor.Type =
+						SAHPI_SENSOR_READING_TYPE_INT64;
+			si_initial.threshold.UpMajor.Value.SensorInt64 =
+						atoi(tsdata->cautionvalue);
+
+			si_initial.threshold.UpMinor.IsSupported = SAHPI_FALSE;
+			si_initial.threshold.PosThdHysteresis.IsSupported =
+								SAHPI_FALSE;
+			si_initial.threshold.NegThdHysteresis.IsSupported =
+								SAHPI_FALSE;
+
+			/* Update the sensor info with current reading, this
+			 * reading will be utilized sensor event assetion post
+			 * discovery.
+			 */
+			if ((cur_reading >=
+                             si_initial.threshold.UpMajor.Value.SensorInt64) &&
+                             (cur_reading <
+                             si_initial.threshold.UpCritical.
+                                                Value.SensorInt64)) {
+                                si_initial.sens_ev_state = SAHPI_ES_UPPER_MAJOR;
+			} else if (cur_reading >
+                                   si_initial.threshold.UpCritical.Value.
+                                   SensorInt64) {
+                                        si_initial.sens_ev_state =
+                                                SAHPI_ES_UPPER_CRIT;
+			}
+
 			label = tsdata->label;
 			location = tsdata->location;
 			description = (char*)malloc(snprintf(NULL, 0, "%s %s",
@@ -1858,7 +1900,36 @@ void ilo2_ribcl_free_discoverydata( ilo2_ribcl_handler_t *ir_handle)
 		}
 	}
 
-	/* Temperature data not yet implemented */
+	/* Free the temp sensor data */
+	for( idex = 4; idex <= ILO2_RIBCL_DISCOVER_TS_MAX; idex++){
+                if( ddata->tsdata[idex].label){
+                        free( ddata->tsdata[idex].label);
+                }
+                if( ddata->tsdata[idex].location){
+                        free( ddata->tsdata[idex].location);
+                }
+                if( ddata->tsdata[idex].status){
+                        free( ddata->tsdata[idex].status);
+                }
+                if( ddata->tsdata[idex].reading){
+                        free( ddata->tsdata[idex].reading);
+                }
+                if( ddata->tsdata[idex].readingunits){
+                        free( ddata->tsdata[idex].readingunits);
+                }
+                if( ddata->tsdata[idex].cautionvalue){
+                        free( ddata->tsdata[idex].cautionvalue);
+                }
+                if( ddata->tsdata[idex].cautionunit){
+                        free( ddata->tsdata[idex].cautionunit);
+                }
+                if( ddata->tsdata[idex].criticalvalue){
+                        free( ddata->tsdata[idex].criticalvalue);
+                }
+                if( ddata->tsdata[idex].criticalunit){
+                        free( ddata->tsdata[idex].criticalunit);
+                }
+        }
 	
 }
 
@@ -2198,7 +2269,25 @@ static SaErrorT ilo2_ribcl_add_threshold_sensor(
 	sensor_rec->DataFormat.Percentage  = SAHPI_FALSE;
 	/* Range and AccuracyFactor have been cleared by g_malloc0() */
 
-	sensor_rec->ThresholdDefn.IsAccessible = SAHPI_FALSE;
+	sensor_rec->DataFormat.ModifierUnits = SAHPI_SU_UNSPECIFIED;
+	sensor_rec->DataFormat.Range.Flags = SAHPI_SRF_MAX |
+                                                SAHPI_SRF_NORMAL_MAX;
+        sensor_rec->DataFormat.Range.Max.IsSupported = SAHPI_TRUE;
+        sensor_rec->DataFormat.Range.Max.Type = SAHPI_SENSOR_READING_TYPE_INT64;
+        sensor_rec->DataFormat.Range.Max.Value.SensorInt64 =
+                        sens_info->threshold.UpCritical.Value.SensorInt64;
+
+        sensor_rec->DataFormat.Range.NormalMax.IsSupported = SAHPI_TRUE;
+        sensor_rec->DataFormat.Range.NormalMax.Type =
+                                        SAHPI_SENSOR_READING_TYPE_INT64;
+        sensor_rec->DataFormat.Range.NormalMax.Value.SensorInt64 =
+                                sens_info->threshold.UpMajor.Value.SensorInt64;
+        sensor_rec->DataFormat.AccuracyFactor =  0;
+
+        sensor_rec->ThresholdDefn.IsAccessible = SAHPI_TRUE;
+        sensor_rec->ThresholdDefn.ReadThold = SAHPI_ES_UPPER_CRIT |
+                                SAHPI_ES_UPPER_MAJOR;
+        sensor_rec->ThresholdDefn.WriteThold = 0x0;
 
 	oh_init_textbuffer(&(rdr->IdString));
 	oh_append_textbuffer(&(rdr->IdString), description);

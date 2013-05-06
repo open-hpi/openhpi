@@ -62,7 +62,8 @@ static int ir_xml_record_fandata( ilo2_ribcl_handler_t *, char *, char *,
 		char *, char *, char *);
 static int ir_xml_scan_temperature( ilo2_ribcl_handler_t *, xmlNodePtr);
 static int ir_xml_record_temperaturedata( ilo2_ribcl_handler_t *,
-                char *, char *,char *, char *, char *, int);
+                char *, char *,char *, char *, char *, char *, char *, char *,
+                char *, int);
 static void ir_xml_scan_firmware_revision(ilo2_ribcl_handler_t *, xmlNodePtr);
 static int ir_xml_scan_vrm( ilo2_ribcl_handler_t *, xmlNodePtr);
 static int ir_xml_record_vrmdata( ilo2_ribcl_handler_t *, char *, char *);
@@ -1517,6 +1518,10 @@ static int ir_xml_scan_temperature( ilo2_ribcl_handler_t *ir_handler,
 	xmlChar *stat = NULL;
 	xmlChar *cur_reading = NULL;
 	xmlChar *unit = NULL;
+	xmlChar *caution_reading = NULL;
+	xmlChar *critical_reading = NULL;
+	xmlChar *cautionunit = NULL;
+	xmlChar *criticalunit = NULL;
         int ret = 0;
 	int temp_index;
 
@@ -1548,14 +1553,32 @@ static int ir_xml_scan_temperature( ilo2_ribcl_handler_t *ir_handler,
 				unit = xmlGetProp( n, (const xmlChar *)"UNIT");
 			}
 
-			/* Extract Caution value here, if needed */
+			n =  ir_xml_find_node( t_node, "CAUTION");
+			if( n != NULL){
+				caution_reading = xmlGetProp( n,
+					(const xmlChar *)"VALUE");
+				cautionunit = xmlGetProp( n,
+					(const xmlChar *)"UNIT");
+			}
+
+			n =  ir_xml_find_node( t_node, "CRITICAL");
+			if( n != NULL){
+				critical_reading = xmlGetProp( n,
+					(const xmlChar *)"VALUE");
+				criticalunit = xmlGetProp( n,
+					(const xmlChar *)"UNIT");
+			}
+
 			temp_index++;
 
                         /* Call to process temperature data */
 			if(temp_index != 0)
-                        ret = ir_xml_record_temperaturedata( ir_handler,
-                                  ( char *)lbl,( char *)loc, ( char *)stat,
-                                  ( char *)cur_reading,( char *)unit, temp_index);
+			ret = ir_xml_record_temperaturedata( ir_handler,
+				( char *)lbl,( char *)loc, ( char *)stat,
+				( char *)cur_reading,( char *)unit,
+				( char *)caution_reading,( char *)cautionunit,
+				( char *)critical_reading,(char *)criticalunit,
+				temp_index);
 			if( lbl){
 				xmlFree( lbl);
 			}
@@ -1570,6 +1593,18 @@ static int ir_xml_scan_temperature( ilo2_ribcl_handler_t *ir_handler,
 			}
 			if( unit){
 				xmlFree( unit);
+			}
+			if( caution_reading){
+				xmlFree( caution_reading);
+			}
+			if( cautionunit){
+				xmlFree( cautionunit);
+			}
+			if( critical_reading){
+				xmlFree( critical_reading);
+			}
+			if( criticalunit){
+				xmlFree( criticalunit);
 			}
 
                         if( ret != RIBCL_SUCCESS){
@@ -1595,6 +1630,12 @@ static int ir_xml_scan_temperature( ilo2_ribcl_handler_t *ir_handler,
  * @temperaturestat:    string status for the temperature sensor from iLO2.
  * @temperaturereading: string reading for the temperature sensor from iLO2.
  * @temperatureunits:   string units for the temperature.
+ * @temperaturecautionvalue: string reading for the temperature caution
+ *                           value from iLO2.
+ * @temperaturecautionunit: string units for the temperature caution value.
+ * @temperaturecriticalvalue: string reading for the temperature critical
+ *                            value from iLO2.
+ * @temperaturecriticalunit: string units for the temperature critical value.
  *
  * This routine records the data for a temperature sensor reported by iLO2
  * into the DiscoveryData structure within the plugin's private handler.
@@ -1613,7 +1654,9 @@ static int ir_xml_scan_temperature( ilo2_ribcl_handler_t *ir_handler,
 static int ir_xml_record_temperaturedata( ilo2_ribcl_handler_t *ir_handler,
               char *temperaturelabel, char *temperaturelocation,
               char *temperaturestat,char *temperaturereading,
-              char *temperatureunits, int temperatureindex)
+              char *temperatureunits, char *temperaturecautionvalue,
+              char *temperaturecautionunit, char *temperaturecriticalvalue,
+              char *temperaturecriticalunit, int temperatureindex)
 {
 
         ir_tsdata_t *tsdat = NULL;
@@ -1674,6 +1717,37 @@ static int ir_xml_record_temperaturedata( ilo2_ribcl_handler_t *ir_handler,
                                                    != RIBCL_SUCCESS){
                   err("ir_xml_record_temperaturedata: could not update "
                       "temperature units: %s", temperatureunits);
+                  return( -1);
+        }
+
+        if( ir_xml_replacestr( &(tsdat->cautionvalue), temperaturecautionvalue)
+                                                   != RIBCL_SUCCESS){
+                  err("ir_xml_record_temperaturedata: could not update "
+                      "temperature caution reading: %s",
+                        temperaturecautionvalue);
+                  return( -1);
+        }
+
+        if( ir_xml_replacestr( &(tsdat->cautionunit), temperaturecautionunit)
+                                                   != RIBCL_SUCCESS){
+                  err("ir_xml_record_temperaturedata: could not update "
+                      "temperature caution units: %s", temperaturecautionunit);
+                  return( -1);
+        }
+
+        if( ir_xml_replacestr( &(tsdat->criticalvalue),
+                        temperaturecriticalvalue)!= RIBCL_SUCCESS){
+                  err("ir_xml_record_temperaturedata: could not update "
+                      "temperature critical reading: %s",
+                        temperaturecriticalvalue);
+                  return( -1);
+        }
+
+        if( ir_xml_replacestr( &(tsdat->criticalunit), temperaturecriticalunit)
+                                                   != RIBCL_SUCCESS){
+                  err("ir_xml_record_temperaturedata: could not update "
+                      "temperature critical units: %s",
+                        temperaturecriticalunit);
                   return( -1);
         }
 
