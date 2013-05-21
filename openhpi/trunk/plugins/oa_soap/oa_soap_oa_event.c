@@ -562,6 +562,8 @@ void oa_soap_proc_oa_network_info(struct oh_handler_state *oh_handler,
         SaHpiInt32T bay_number;
         struct oa_soap_handler *oa_handler = NULL;
 	SaHpiResourceIdT resource_id;
+        struct extraDataInfo extra_data_info;
+        xmlNode *extra_data = NULL;
 
         if (oh_handler == NULL || nw_info == NULL) {
                 err("Invalid parameters");
@@ -572,6 +574,23 @@ void oa_soap_proc_oa_network_info(struct oh_handler_state *oh_handler,
         bay_number = nw_info->bayNumber;
 	resource_id =
 		oa_handler->oa_soap_resources.oa.resource_id[bay_number - 1];
+        extra_data = nw_info->extraData;
+        while (extra_data) {
+                soap_getExtraData(extra_data, &extra_data_info);
+                if ((!(strcmp(extra_data_info.name, "IpSwap"))) &&
+                         (extra_data_info.value != NULL)) {
+                          if(!(strcasecmp(extra_data_info.value,
+                                                  "true"))){
+                                    oa_handler->ipswap = HPOA_TRUE;
+                                    dbg("Enclosure IP Mode is Enabled");
+                          } else {
+                                    oa_handler->ipswap = HPOA_FALSE;
+                                    dbg("Enclosure IP Mode is Disabled");
+                          }
+                          break;
+                }
+                extra_data = soap_next_node(extra_data);
+        }        
 
 	/* Process the OA link status sensor */
 	OA_SOAP_PROCESS_SENSOR_EVENT(OA_SOAP_SEN_OA_LINK_STATUS,

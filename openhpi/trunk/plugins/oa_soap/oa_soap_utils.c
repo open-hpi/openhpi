@@ -223,6 +223,8 @@ SaErrorT get_oa_state(struct oh_handler_state *oh_handler,
         SOAP_CON *hpi_con = NULL, *event_con = NULL;
         struct oa_info *this_oa = NULL, *other_oa = NULL;
         char *endptr = NULL;
+        struct extraDataInfo extra_data_info;
+        xmlNode *extra_data = NULL;
 
         if (oh_handler == NULL|| server == NULL) {
                 err("Invalid parameters");
@@ -346,6 +348,23 @@ SaErrorT get_oa_state(struct oh_handler_state *oh_handler,
                         soap_close(event_con);
                         return SA_ERR_HPI_INTERNAL_ERROR;
                 }
+
+                extra_data = network_info_response.extraData;
+                while (extra_data) {
+                        soap_getExtraData(extra_data, &extra_data_info);
+                        if ((!(strcmp(extra_data_info.name, "IpSwap"))) &&
+                                    (extra_data_info.value != NULL)) {
+                                    if(!(strcasecmp(extra_data_info.value,
+                                                  "true"))) {
+                                             oa_handler->ipswap = HPOA_TRUE;
+                                    } else {
+                                             oa_handler->ipswap = HPOA_FALSE;
+                                    }
+                                    break;
+                        }
+                        extra_data = soap_next_node(extra_data);
+                }
+
 
                 /* Find the active and standby bay number, IP address
                  * and firmware version */
@@ -691,7 +710,12 @@ SaErrorT check_oa_status(struct oa_soap_handler *oa_handler,
                  }
         }
 
-        oa->oa_status = status_response.oaRole;
+       /* If Enclosure IP mode is enabled then ipswap becomes true, then Active OA IP is always same. So do not change the Role */
+
+        if(!oa_handler->ipswap) {
+                oa->oa_status = status_response.oaRole;
+        }
+
         if (oa->oa_status == ACTIVE) {
                 g_mutex_unlock(oa->mutex);
                 /* Always lock the oa_handler mutex and then oa_info mutex
