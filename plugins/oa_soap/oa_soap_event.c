@@ -250,6 +250,12 @@ gpointer oa_soap_event_thread(gpointer oa_pointer)
                          * 2.21. Re-try the getAllEvents SOAP XML call skipping
                          * the error handling.
                          */
+                         
+                         /* If Enclosure IP Mode is enabled, 
+                          * then make the Standby thread to sleep */ 
+                         while (oa_handler->ipswap && (oa->oa_status == STANDBY)) {
+                                 sleep(20);
+                         }
                         if (oa->oa_status == STANDBY &&
                             get_oa_fw_version(handler) >= OA_2_21 &&
                             retry_on_switchover < MAX_RETRY_ON_SWITCHOVER) {
@@ -260,7 +266,7 @@ gpointer oa_soap_event_thread(gpointer oa_pointer)
                                 retry_on_switchover++;
                         } else {
                                 /* Try to recover from the error */
-                                err("OA %s may not be accessible", oa->server);
+                                dbg("OA %s may not be accessible", oa->server);
                                 oa_soap_error_handling(handler, oa);
                                 request.pid = oa->event_pid;
 
