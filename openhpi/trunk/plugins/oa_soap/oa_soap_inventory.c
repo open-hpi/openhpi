@@ -3336,7 +3336,7 @@ SaErrorT build_interconnect_inv_rdr(struct oh_handler_state *oh_handler,
                         hpi_field.AreaId = local_inventory->info.area_list->
                                            idr_area_head.AreaId;
                         hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
-			asprintf(&tmp, "InterconnectTrayBay No. = %d",
+			rv = asprintf(&tmp, "InterconnectTrayBay No. = %d",
 					portmap.interconnectTrayBayNumber);
 			if(rv == -1){
 				free(tmp);
@@ -3366,7 +3366,7 @@ SaErrorT build_interconnect_inv_rdr(struct oh_handler_state *oh_handler,
                         hpi_field.AreaId = local_inventory->info.area_list->
                                            idr_area_head.AreaId;
                         hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
-			asprintf(&tmp, "portMapStatus = %d",portmap.status);
+			rv = asprintf(&tmp, "portMapStatus = %d",portmap.status);
 			if(rv == -1){
 				free(tmp);
 				err("Failed to allocate memory for buffer to   \
