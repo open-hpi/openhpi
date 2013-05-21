@@ -130,14 +130,14 @@ SaErrorT oa_soap_re_discover_resources(struct oh_handler_state *oh_handler,
         SaErrorT rv = SA_OK;
         struct oa_soap_handler *oa_handler = NULL;
 
-        oa_handler = (struct oa_soap_handler *) oh_handler->data;
-
         if (oh_handler == NULL || oa == NULL) {
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
         err("Re-discovery started");
+
+        oa_handler = (struct oa_soap_handler *) oh_handler->data;
 
 	/* The following is applicable only to OA Switchover cases
 	Just rediscover oa and end the whole thing. If some other hardware
