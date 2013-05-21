@@ -689,13 +689,14 @@ int oh_get_global_param(struct oh_global_param *param)
 
             if (!param) {
                 CRIT("Invalid parameters param NULL.");
+                return -1;
             }
 
             if (!param->type) {
                 CRIT("Invalid parameters param->type NULL.");
+                return -1;
             }
 
-                return -1;
         }
 
         read_globals_from_env(0);
