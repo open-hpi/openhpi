@@ -1840,7 +1840,7 @@ void ilo2_ribcl_free_discoverydata( ilo2_ribcl_handler_t *ir_handle)
 		free(  ddata->fwdata.version_string);
 	}
 
-	if( ddata->serial_number != NULL){
+	if( ddata->system_cpu_speed != NULL){
 		free( ddata->system_cpu_speed);
 	}
 
