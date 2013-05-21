@@ -1571,7 +1571,8 @@ SaErrorT remove_interconnect(struct oh_handler_state *oh_handler,
         event.event.EventDataUnion.HotSwapEvent.HotSwapState =
                 SAHPI_HS_STATE_NOT_PRESENT;
 
-        if (hotswap_state->currentHsState == SAHPI_HS_STATE_INACTIVE) {
+        if ((hotswap_state) && 
+            (hotswap_state->currentHsState == SAHPI_HS_STATE_INACTIVE)) {
                 /* INACTIVE to NOT_PRESENT state change happened due to
                  * operator action
                  */
