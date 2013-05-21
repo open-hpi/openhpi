@@ -2567,7 +2567,7 @@ SaErrorT add_mezz_slot_idr_fields(xmlNode *mezzSlots,
 			rv = asprintf(&tmp, 
 					"InterconnectTrayPort No. = %s",
 					mezzSlots_slot.
-					interconnectTrayBayNumber);
+					interconnectTrayPortNumber);
 			if(rv == -1){
 				err("Failed to allocate memory for buffer to   \
 						hold InterconnectTrayPort No.");
