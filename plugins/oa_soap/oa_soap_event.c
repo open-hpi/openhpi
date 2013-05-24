@@ -223,6 +223,7 @@ gpointer oa_soap_event_thread(gpointer oa_pointer)
                         sleep(2);
         }
         free(url);
+        url = NULL;
 
         /* Intialize the event request structure */
         request.pid = oa->event_pid;
