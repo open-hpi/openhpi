@@ -1420,7 +1420,7 @@ static int ir_xml_record_fandata( ilo2_ribcl_handler_t *ir_handler,
 
 	speedval = atoi(fanspeed);
 	if( fandat->speed != speedval){
-		fandat->fanflags != IR_SPEED_UPDATED;
+		fandat->fanflags |= IR_SPEED_UPDATED;
 		fandat->speed = speedval;
 	}
 
