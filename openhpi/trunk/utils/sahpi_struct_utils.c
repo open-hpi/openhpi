@@ -3616,12 +3616,13 @@ static SaErrorT oh_build_event_user(oh_big_textbuffer *buffer, const SaHpiEventT
 static SaErrorT oh_build_event_dimi(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets)
 {
         char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
-        const SaHpiDimiEventT* de = &(event->EventDataUnion.DimiEvent);
+        const SaHpiDimiEventT* de;
 
         if ( !buffer || !event) {
                 DBG("Invalid parameter.");
                 return(SA_ERR_HPI_INVALID_PARAMS);
         }
+	de = &(event->EventDataUnion.DimiEvent);
 
         oh_append_offset(buffer, offsets);
         snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "DimiEventData:\n");
@@ -3664,12 +3665,13 @@ static SaErrorT oh_build_event_dimi(oh_big_textbuffer *buffer, const SaHpiEventT
 static SaErrorT oh_build_event_dimi_update(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets)
 {
         char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
-        const SaHpiDimiUpdateEventT* de = &(event->EventDataUnion.DimiUpdateEvent);
+        const SaHpiDimiUpdateEventT* de; 
 
         if ( !buffer || !event) {
                 DBG("Invalid parameter.");
                 return(SA_ERR_HPI_INVALID_PARAMS);
         }
+        de = &(event->EventDataUnion.DimiUpdateEvent);
 
         oh_append_offset(buffer, offsets);
         snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "DimiUpdateEventData:\n");
@@ -3697,12 +3699,13 @@ static SaErrorT oh_build_event_dimi_update(oh_big_textbuffer *buffer, const SaHp
 static SaErrorT oh_build_event_fumi(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets)
 {
         char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
-        const SaHpiFumiEventT* fe = &(event->EventDataUnion.FumiEvent);
+        const SaHpiFumiEventT* fe;
 
         if ( !buffer || !event) {
                 DBG("Invalid parameter.");
                 return(SA_ERR_HPI_INVALID_PARAMS);
         }
+        fe = &(event->EventDataUnion.FumiEvent);
 
         oh_append_offset(buffer, offsets);
         snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "FumiEventData:\n");
