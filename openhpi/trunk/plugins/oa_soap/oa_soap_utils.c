@@ -265,6 +265,7 @@ SaErrorT get_oa_state(struct oh_handler_state *oh_handler,
         }
 
         free(url);
+        url = NULL;
         /* Check whether user_name has admin rights */
         rv = check_oa_user_permissions(oa_handler, hpi_con, user_name);
         if (rv != SA_OK) {

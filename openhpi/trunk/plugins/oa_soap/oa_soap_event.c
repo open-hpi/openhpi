@@ -309,6 +309,8 @@ gpointer oa_soap_event_thread(gpointer oa_pointer)
 oa->event_con2 failed\n");
                                         }
                                 }
+                                free(url);
+                                url = NULL;
                         } /* end of else (non-switchover error handling) */
                 } /* end of else (SOAP call failure handling) */
 

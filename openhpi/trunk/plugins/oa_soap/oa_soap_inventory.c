@@ -1993,6 +1993,7 @@ SaErrorT build_server_inv_rdr(struct oh_handler_state *oh_handler,
 						SAHPI_MAX_TEXT_BUFFER_LENGTH");
 			}
 			free(tmp);
+			tmp = NULL;
 		}
 		if (blade_mp_response.ipAddress != NULL) {
 			memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
@@ -2029,6 +2030,7 @@ SaErrorT build_server_inv_rdr(struct oh_handler_state *oh_handler,
 						SAHPI_MAX_TEXT_BUFFER_LENGTH");
 			}
 			free(tmp);
+			tmp = NULL;
 		}
 		if (blade_mp_response.macAddress != NULL) {
 			memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
@@ -2065,6 +2067,7 @@ SaErrorT build_server_inv_rdr(struct oh_handler_state *oh_handler,
 						SAHPI_MAX_TEXT_BUFFER_LENGTH");
 			}
 			free(tmp);
+			tmp = NULL;
 		}
 		if (blade_mp_response.dnsName != NULL) {
 			memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
@@ -2101,6 +2104,7 @@ SaErrorT build_server_inv_rdr(struct oh_handler_state *oh_handler,
 						SAHPI_MAX_TEXT_BUFFER_LENGTH");
 			}
 			free(tmp);
+			tmp = NULL;
 		}
                        /* Get the Blade NIC information*/
 		rv = soap_getBladeInfo(con,
@@ -2144,6 +2148,7 @@ SaErrorT build_server_inv_rdr(struct oh_handler_state *oh_handler,
 						SAHPI_MAX_TEXT_BUFFER_LENGTH");
 			}
 			free(tmp);
+			tmp = NULL;
                 while (response.nics){
 
                 soap_getBladeNicInfo(response.nics, &nic_info);
@@ -2185,6 +2190,7 @@ SaErrorT build_server_inv_rdr(struct oh_handler_state *oh_handler,
 					       SAHPI_MAX_TEXT_BUFFER_LENGTH");
 		       }
 			free(tmp);
+			tmp = NULL;
                 }
                response.nics = soap_next_node(response.nics);
               }
@@ -2226,6 +2232,7 @@ SaErrorT build_server_inv_rdr(struct oh_handler_state *oh_handler,
 						SAHPI_MAX_TEXT_BUFFER_LENGTH");
 			}
 			free(tmp);
+			tmp = NULL;
 		}
 
                 while (response.cpus){
@@ -2277,6 +2284,7 @@ SaErrorT build_server_inv_rdr(struct oh_handler_state *oh_handler,
 						SAHPI_MAX_TEXT_BUFFER_LENGTH");
 			}
 			free(tmp);
+			tmp = NULL;
                response.cpus = soap_next_node(response.cpus);
               }
 
@@ -2317,6 +2325,7 @@ SaErrorT build_server_inv_rdr(struct oh_handler_state *oh_handler,
 						SAHPI_MAX_TEXT_BUFFER_LENGTH");
 			}
 			free(tmp);
+			tmp = NULL;
 		}
 
 		rv = soap_getBladePortMap(con,
@@ -2368,6 +2377,7 @@ SaErrorT build_server_inv_rdr(struct oh_handler_state *oh_handler,
 							BUFFER_LENGTH");
 				}
 				free(tmp);
+				tmp = NULL;
 			}
 			/*** Add Mezz Slot Innventory fileds ***/
 			if(mezz_info.mezzSlots != NULL){
@@ -2517,6 +2527,7 @@ SaErrorT add_mezz_slot_idr_fields(xmlNode *mezzSlots,
 						SAHPI_MAX_TEXT_BUFFER_LENGTH");
 			}
 			free(tmp);
+			tmp = NULL;
 
 		}
 		if(mezzSlots_slot.interconnectTrayBayNumber != NULL){
@@ -2557,6 +2568,7 @@ SaErrorT add_mezz_slot_idr_fields(xmlNode *mezzSlots,
 						SAHPI_MAX_TEXT_BUFFER_LENGTH");
 			}
 			free(tmp);
+			tmp = NULL;
 		}
 		if(mezzSlots_slot.interconnectTrayPortNumber != NULL){
 			memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
@@ -2595,6 +2607,7 @@ SaErrorT add_mezz_slot_idr_fields(xmlNode *mezzSlots,
 						SAHPI_MAX_TEXT_BUFFER_LENGTH");
 			}
 			free(tmp);
+			tmp = NULL;
 		}
 		mezzSlot_Info.slot = soap_next_node(mezzSlot_Info.slot);
 	}
@@ -2767,6 +2780,7 @@ SaErrorT add_mezz_device_idr_fields(xmlNode *mezzDevices,
 						SAHPI_MAX_TEXT_BUFFER_LENGTH");
 			}
 			free(tmp);
+			tmp = NULL;
 			if(mezzDev_Port.wwpn != NULL){
 				memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
 				hpi_field.AreaId = 
@@ -2808,6 +2822,7 @@ SaErrorT add_mezz_device_idr_fields(xmlNode *mezzDevices,
 							BUFFER_LENGTH");
 				}
 				free(tmp);
+				tmp = NULL;
 			}
 			switch(mezzDev_Port.fabric){
 				case 0: tmp = "FABRIC_TYPE_MT";
@@ -3360,6 +3375,7 @@ SaErrorT build_interconnect_inv_rdr(struct oh_handler_state *oh_handler,
                         local_inventory->info.area_list->idr_area_head.
                         NumFields++;
 			free(tmp);
+			tmp = NULL;
                 }
 		if (portmap.status) {
                        memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
@@ -3389,6 +3405,7 @@ SaErrorT build_interconnect_inv_rdr(struct oh_handler_state *oh_handler,
                         local_inventory->info.area_list->idr_area_head.
                         NumFields++;
 			free(tmp);
+			tmp = NULL;
                 }
 		/* Add interconnect tray size type*/
                        memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
