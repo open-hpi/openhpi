@@ -255,6 +255,8 @@ gpointer oa_soap_event_thread(gpointer oa_pointer)
                          /* If Enclosure IP Mode is enabled, 
                           * then make the Standby thread to sleep */ 
                          while (oa_handler->ipswap && (oa->oa_status == STANDBY)) {
+                                 dbg("Stand By Thread is going to Sleep for"
+                                     "20 secs as Enclosure IP Mode Is enabled");
                                  sleep(20);
                          }
                         if (oa->oa_status == STANDBY &&
@@ -1024,8 +1026,9 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                                 dbg("EVENT_OA_VCM -- Not processed");
                                 break;
                         case EVENT_NETWORK_INFO_CHANGED:
-                                dbg("EVENT_NETWORK_INFO_CHANGED "
-                                    "-- Not processed");
+                                dbg("EVENT_NETWORK_INFO_CHANGED");
+                                oa_soap_proc_enc_network_info_changed(oh_handler,
+ 				      &(event.eventData.enclosureNetworkInfo));
                                 break;
                         case EVENT_SNMP_INFO_CHANGED:
                                 dbg("EVENT_SNMP_INFO_CHANGED -- Not processed");
