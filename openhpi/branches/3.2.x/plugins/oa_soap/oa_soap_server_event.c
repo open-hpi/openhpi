@@ -1024,7 +1024,7 @@ void oa_soap_proc_server_status(struct oh_handler_state *oh_handler,
 			 * oa_soap_bay_pwr_status array
 			 */
 			oa_soap_bay_pwr_status[rpt->ResourceEntity.Entry[0].
-							EntityLocation -1] == 
+							EntityLocation -1] = 
 							SAHPI_POWER_ON;
 		} else if (status->powered == POWER_OFF) {
 			dbg("thermal sensors of blade already in disable state,"
@@ -1410,7 +1410,7 @@ SaErrorT process_server_mp_info_event(struct oh_handler_state
         }
 
         fm_version = atof(fwVersion);
-        major = floor(fm_version);
+        major = (SaHpiUint8T)floor(fm_version);
         minor = rintf((fm_version - major) * 100);
 
         if(rpt->ResourceInfo.FirmwareMajorRev == major &&

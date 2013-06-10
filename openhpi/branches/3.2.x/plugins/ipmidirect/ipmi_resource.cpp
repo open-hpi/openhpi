@@ -256,17 +256,23 @@ cIpmiResource::Destroy()
 
 cIpmiRdr *
 cIpmiResource::FindRdr( cIpmiMc *mc, SaHpiRdrTypeT type,
-			unsigned int num, unsigned int lun )
+			unsigned int num, unsigned int lun, unsigned int sa ) 
 {
+  int found = 0;
+
   for( int i = 0; i < NumRdr(); i++ )
      {
        cIpmiRdr *r = GetRdr( i );
 
        if (    r->Mc()   == mc 
             && r->Type() == type
-            && r->Num()  == num
-            && r->Lun()  == lun )
-	    return r;
+            && r->Lun()  == lun )  
+       {
+	  if (type == SAHPI_SENSOR_RDR) {
+              if ((r->SNum() == num) && (r->Sa() == sa)) found = 1;
+          } else if (r->Num() == num) found = 1;
+	  if (found)  return r;
+       }
      }
 
   return 0;

@@ -196,3 +196,49 @@ void oa_soap_proc_enc_thermal(struct oh_handler_state *oh_handler,
  
         return;
 }
+/** 
+ * oa_soap_proc_enc_network_info_changed 
+ * 	@oh_handler:  Pointer to openhpi handler structure
+ * 	@response:    Pointer to the Enclosure thermal Info structure	
+ *
+ * Purpose:
+ * 	Precesses and updates the ipswap(Enclosure IP Mode) Status
+ *
+ * Detailed Description: NA
+ *
+ * Retunr values:
+ * 	NONE
+ */ 	
+void oa_soap_proc_enc_network_info_changed(struct oh_handler_state *oh_handler,
+                                    struct  enclosureNetworkInfo *response)    
+{
+        struct extraDataInfo extra_data_info;
+        xmlNode *extra_data = NULL;
+        struct oa_soap_handler *oa_handler = NULL;
+
+        if (oh_handler == NULL || response == NULL) {
+                err("Invalid parameters");
+                return;
+        }
+
+        oa_handler = (struct oa_soap_handler *) oh_handler->data;
+        extra_data = response->extraData;
+        while (extra_data) {
+                soap_getExtraData(extra_data, &extra_data_info);
+                if ((!(strcmp(extra_data_info.name, "IpSwap"))) &&
+                         (extra_data_info.value != NULL)) {
+                          if(!(strcasecmp(extra_data_info.value,
+                                                  "true"))){
+                                    oa_handler->ipswap = HPOA_TRUE;
+                                    dbg("Enclosure IP Mode is Enabled");
+                          } else {
+                                    oa_handler->ipswap = HPOA_FALSE;
+                                    dbg("Enclosure IP Mode is Disabled");
+                          }
+                          break;
+                }
+                extra_data = soap_next_node(extra_data);
+        }
+
+        return;
+}

@@ -21,9 +21,10 @@ hpixml_SOURCES = \
     schema.S \
     xml_writer.cpp \
     xml_writer.h \
-    $(top_srcdir)/clients/clients.c
+    $(top_srcdir)/clients/clients.c \
+    $(top_srcdir)/clients/oh_clients.h
 
-hpixml_LDADD   = $(top_builddir)/baselib/libopenhpi.la
+hpixml_LDADD   = $(top_builddir)/baselib/libopenhpi.la $(top_builddir)/utils/libopenhpiutils.la
 
 clean-local:
 	rm -f *~ *.o

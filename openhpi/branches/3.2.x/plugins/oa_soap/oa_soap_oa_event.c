@@ -43,6 +43,9 @@
  *                                        with current status of the system
  *
  *      process_oa_info_event()         - Processes the OA info event
+ *                                        If OA info event has the updated 
+ *                                        OA firmware version, same will be
+ *                                        updated to RPT and IDR entry.
  *                                        If OA info event is just after OA
  *                                        insertion event, then it processed.
  *                                        Else, it is ignored
@@ -401,6 +404,9 @@ SaErrorT process_oa_reboot_event(struct oh_handler_state *oh_handler,
  *        the stabilization of OA.
  *      - When OA insertion event received, OA will not be stabilized
  *        On recieving this event, ACTIVE hot swap event will be generated
+ *      - If the OA_INFO event has the updated OA firmware
+ *        version information then the new firmware version
+ *        will be updated to RPT and IDR entry.
  *
  * Return values:
  *      SA_OK                     - on success.
@@ -414,6 +420,9 @@ SaErrorT process_oa_info_event(struct oh_handler_state *oh_handler,
         SaErrorT rv = SA_OK;
         SaHpiInt32T bay_number;
         struct oa_soap_handler *oa_handler = NULL;
+        int i = 0;
+        struct oaInfo response;
+        SaHpiResourceIdT resource_id;
 
         if (oh_handler == NULL || con == NULL || oa_event == NULL) {
                 err("Invalid parameters");
@@ -422,10 +431,22 @@ SaErrorT process_oa_info_event(struct oh_handler_state *oh_handler,
 
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
         bay_number = oa_event->eventData.oaInfo.bayNumber;
+        response = oa_event->eventData.oaInfo;
 
         if (oa_handler->oa_soap_resources.oa.presence[bay_number - 1] ==
                             RES_PRESENT) {
-                dbg("OA is present. Ignore event");
+                if(oa_event->eventData.oaInfo.fwVersion != NULL) {
+                        for (i = 0;
+                        i < oa_handler->oa_soap_resources.oa.max_bays; i++) {
+                                resource_id = oa_handler->oa_soap_resources.oa.
+                                resource_id[i];
+                                rv = update_oa_fw_version(oh_handler,
+                                                &response, resource_id);
+                                if (rv != SA_OK) {
+                                        err("OA Firmware Version not updated");
+                                }
+                        }
+                }
                 return SA_OK;
         }
 
@@ -541,6 +562,8 @@ void oa_soap_proc_oa_network_info(struct oh_handler_state *oh_handler,
         SaHpiInt32T bay_number;
         struct oa_soap_handler *oa_handler = NULL;
 	SaHpiResourceIdT resource_id;
+        struct extraDataInfo extra_data_info;
+        xmlNode *extra_data = NULL;
 
         if (oh_handler == NULL || nw_info == NULL) {
                 err("Invalid parameters");
@@ -551,6 +574,23 @@ void oa_soap_proc_oa_network_info(struct oh_handler_state *oh_handler,
         bay_number = nw_info->bayNumber;
 	resource_id =
 		oa_handler->oa_soap_resources.oa.resource_id[bay_number - 1];
+        extra_data = nw_info->extraData;
+        while (extra_data) {
+                soap_getExtraData(extra_data, &extra_data_info);
+                if ((!(strcmp(extra_data_info.name, "IpSwap"))) &&
+                         (extra_data_info.value != NULL)) {
+                          if(!(strcasecmp(extra_data_info.value,
+                                                  "true"))){
+                                    oa_handler->ipswap = HPOA_TRUE;
+                                    dbg("Enclosure IP Mode is Enabled");
+                          } else {
+                                    oa_handler->ipswap = HPOA_FALSE;
+                                    dbg("Enclosure IP Mode is Disabled");
+                          }
+                          break;
+                }
+                extra_data = soap_next_node(extra_data);
+        }        
 
 	/* Process the OA link status sensor */
 	OA_SOAP_PROCESS_SENSOR_EVENT(OA_SOAP_SEN_OA_LINK_STATUS,

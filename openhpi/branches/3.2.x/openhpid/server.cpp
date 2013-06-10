@@ -239,12 +239,12 @@ static void service_thread(gpointer sock_ptr, gpointer /* user_data */)
                 process_rv = SA_ERR_HPI_UNSUPPORTED_API;
             }
             if (process_rv != SA_OK) {
-                int mr = HpiMarshalReply0(hm, data, &process_rv);
-                if (mr < 0) {
-                    CRIT("%p Marshal failed.", thrdid);
+                int cc = HpiMarshalReply0(hm, data, &process_rv);
+                if (cc < 0) {
+                    CRIT("%p Marshal failed, cc = %d", thrdid, cc);
                     break;
                 }
-                data_len = (uint32_t)mr;
+                data_len = (uint32_t)cc;
             }
             rc = sock->WriteMsg(eMhMsg, id, data, data_len);
             if (stop) {
@@ -285,19 +285,19 @@ static void service_thread(gpointer sock_ptr, gpointer /* user_data */)
 
 #define DEMARSHAL_RQ(rq_byte_order, hm, data, iparams) \
 { \
-    int mr = HpiDemarshalRequest(rq_byte_order, hm, data, iparams.array); \
-    if (mr < 0) { \
+    int cc = HpiDemarshalRequest(rq_byte_order, hm, data, iparams.array); \
+    if (cc < 0) { \
         return SA_ERR_HPI_INVALID_PARAMS; \
     } \
 }
 
 #define MARSHAL_RP(hm, data, data_len, oparams) \
 { \
-    int mr = HpiMarshalReply(hm, data, oparams.const_array); \
-    if (mr < 0) { \
+    int cc = HpiMarshalReply(hm, data, oparams.const_array); \
+    if (cc < 0) { \
         return SA_ERR_HPI_INTERNAL_ERROR; \
     } \
-    data_len = (uint32_t)mr; \
+    data_len = (uint32_t)cc; \
 }
 
 

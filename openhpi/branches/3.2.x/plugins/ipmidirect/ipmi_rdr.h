@@ -53,6 +53,9 @@ protected:
   SaHpiRdrTypeT   m_type;
   cIpmiTextBuffer m_id_string;
   unsigned int    m_lun;
+  unsigned int    m_chan;
+  unsigned int    m_sa;
+  unsigned int    m_snum;
   cIpmiEntityPath m_entity_path;
 
 public:
@@ -63,6 +66,8 @@ public:
   cIpmiResource  *&Resource() { return m_resource; }
   SaHpiEntryIdT   &RecordId() { return m_record_id; }
   SaHpiRdrTypeT    Type() const { return m_type; }
+  unsigned int     Sa() const { return m_sa; }
+  unsigned int     Channel() const { return m_chan; }
   cIpmiTextBuffer &IdString() { return m_id_string; }
   const cIpmiTextBuffer &IdString() const { return m_id_string; }
   cIpmiEntityPath &EntityPath() { return m_entity_path; }
@@ -73,6 +78,9 @@ public:
 
   // sensor num, control num, fru device id
   virtual unsigned int Num() const = 0;
+  virtual unsigned int SNum() const { return m_snum; }
+  virtual void SetSNum(unsigned int n)  { m_snum = n; }
+  virtual void SetSa(unsigned int n)  { m_sa = n; }
   virtual unsigned int Lun() const { return m_lun; }
 
   //virtual void Dump( cIpmiLog &dump ) = 0;

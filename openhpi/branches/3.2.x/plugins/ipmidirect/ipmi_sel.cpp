@@ -910,7 +910,7 @@ cIpmiSel::GetSelEntry( SaHpiEventLogEntryIdT current,
   mc = Mc()->Domain()->FindMcByAddr( addr );
 
   if ( mc )
-       sensor = mc->FindSensor( (e.m_data[5] & 0x3), e.m_data[8] );
+       sensor = mc->FindSensor((e.m_data[5] & 0x3), e.m_data[8], e.m_data[4]);
 
   prev = p;
   next = n;

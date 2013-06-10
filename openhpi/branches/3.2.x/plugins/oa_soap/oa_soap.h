@@ -192,6 +192,7 @@ struct oa_soap_resource_status
 /* Structure for storing the OA SOAP plugin information */
 struct oa_soap_handler
 {
+        enum hpoa_boolean ipswap;
         enum oa_soap_plugin_status status;
         struct oa_soap_resource_status oa_soap_resources;
         SOAP_CON *active_con;

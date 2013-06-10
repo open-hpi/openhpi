@@ -106,7 +106,7 @@ you set $sysconfdir when you ran ./configure as shown above.
 
 FOR SUBVERSION EXTRACTS
 
-svn co https://openhpi.svn.sf.net/svnroot/openhpi/openhpi/trunk mydir
+svn co https://openhpi.svn.sourceforge.net/svnroot/openhpi/openhpi/trunk mydir
 
 It will extract OpenHPI trunk to mydir.
 First time after extracting the code:

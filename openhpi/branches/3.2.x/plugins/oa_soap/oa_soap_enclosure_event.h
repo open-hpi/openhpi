@@ -46,4 +46,7 @@ void oa_soap_proc_enc_status(struct oh_handler_state *oh_handler,
 void oa_soap_proc_enc_thermal(struct oh_handler_state *oh_handler,
                                        SOAP_CON *con,
                                         struct thermalInfo *response);
+
+void oa_soap_proc_enc_network_info_changed(struct oh_handler_state *oh_handler,
+			                struct  enclosureNetworkInfo *response);
 #endif

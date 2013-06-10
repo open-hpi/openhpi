@@ -223,6 +223,7 @@ gpointer oa_soap_event_thread(gpointer oa_pointer)
                         sleep(2);
         }
         free(url);
+        url = NULL;
 
         /* Intialize the event request structure */
         request.pid = oa->event_pid;
@@ -250,6 +251,14 @@ gpointer oa_soap_event_thread(gpointer oa_pointer)
                          * 2.21. Re-try the getAllEvents SOAP XML call skipping
                          * the error handling.
                          */
+                         
+                         /* If Enclosure IP Mode is enabled, 
+                          * then make the Standby thread to sleep */ 
+                         while (oa_handler->ipswap && (oa->oa_status == STANDBY)) {
+                                 dbg("Stand By Thread is going to Sleep for"
+                                     "20 secs as Enclosure IP Mode Is enabled");
+                                 sleep(20);
+                         }
                         if (oa->oa_status == STANDBY &&
                             get_oa_fw_version(handler) >= OA_2_21 &&
                             retry_on_switchover < MAX_RETRY_ON_SWITCHOVER) {
@@ -260,7 +269,7 @@ gpointer oa_soap_event_thread(gpointer oa_pointer)
                                 retry_on_switchover++;
                         } else {
                                 /* Try to recover from the error */
-                                err("OA %s may not be accessible", oa->server);
+                                dbg("OA %s may not be accessible", oa->server);
                                 oa_soap_error_handling(handler, oa);
                                 request.pid = oa->event_pid;
 
@@ -300,6 +309,8 @@ gpointer oa_soap_event_thread(gpointer oa_pointer)
 oa->event_con2 failed\n");
                                         }
                                 }
+                                free(url);
+                                url = NULL;
                         } /* end of else (non-switchover error handling) */
                 } /* end of else (SOAP call failure handling) */
 
@@ -740,7 +751,9 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                                 dbg("EVENT_AC_FAILURE -- Not processed");
                                 break;
                         case EVENT_PS_INFO:
-                                dbg("EVENT_PS_INFO -- Not processed");
+                                dbg("EVENT_PS_INFO");
+                                oa_soap_proc_ps_info(oh_handler, 
+                                        oa->event_con2, &event);
                                 break;
                         case EVENT_PS_SUBSYSTEM_STATUS:
 				dbg("EVENT_PS_SUBSYSTEM_STATUS");
@@ -1015,8 +1028,9 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                                 dbg("EVENT_OA_VCM -- Not processed");
                                 break;
                         case EVENT_NETWORK_INFO_CHANGED:
-                                dbg("EVENT_NETWORK_INFO_CHANGED "
-                                    "-- Not processed");
+                                dbg("EVENT_NETWORK_INFO_CHANGED");
+                                oa_soap_proc_enc_network_info_changed(oh_handler,
+ 				      &(event.eventData.enclosureNetworkInfo));
                                 break;
                         case EVENT_SNMP_INFO_CHANGED:
                                 dbg("EVENT_SNMP_INFO_CHANGED -- Not processed");

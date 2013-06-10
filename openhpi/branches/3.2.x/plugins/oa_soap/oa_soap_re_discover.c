@@ -130,14 +130,14 @@ SaErrorT oa_soap_re_discover_resources(struct oh_handler_state *oh_handler,
         SaErrorT rv = SA_OK;
         struct oa_soap_handler *oa_handler = NULL;
 
-        oa_handler = (struct oa_soap_handler *) oh_handler->data;
-
         if (oh_handler == NULL || oa == NULL) {
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
         err("Re-discovery started");
+
+        oa_handler = (struct oa_soap_handler *) oh_handler->data;
 
 	/* The following is applicable only to OA Switchover cases
 	Just rediscover oa and end the whole thing. If some other hardware
@@ -1086,7 +1086,7 @@ SaErrorT add_server_blade(struct oh_handler_state *oh_handler,
         rv = build_discovered_server_rpt(oh_handler, con, &response,
                                          &resource_id);
         if (rv != SA_OK) {
-                err("build inserted server rpt failed");
+                err("build added server rpt failed for slot %d",bay_number);
                 return rv;
         }
 
@@ -1571,7 +1571,8 @@ SaErrorT remove_interconnect(struct oh_handler_state *oh_handler,
         event.event.EventDataUnion.HotSwapEvent.HotSwapState =
                 SAHPI_HS_STATE_NOT_PRESENT;
 
-        if (hotswap_state->currentHsState == SAHPI_HS_STATE_INACTIVE) {
+        if ((hotswap_state) && 
+            (hotswap_state->currentHsState == SAHPI_HS_STATE_INACTIVE)) {
                 /* INACTIVE to NOT_PRESENT state change happened due to
                  * operator action
                  */
@@ -1665,7 +1666,7 @@ SaErrorT add_interconnect(struct oh_handler_state *oh_handler,
 
         /* Build the RDRs */
         rv = build_interconnect_rdr(oh_handler, con,
-                                    bay_number, resource_id);
+                                    bay_number, resource_id, TRUE);
         if (rv != SA_OK) {
                 err("Failed to get interconnect inventory RDR");
                 /* Free the inventory info from inventory RDR */
@@ -2089,12 +2090,10 @@ SaErrorT re_discover_ps_unit(struct oh_handler_state *oh_handler,
 
                 /* If the power supply unit does not have the power cord
                  * plugged in, then power supply unit will be in faulty
-                 * condition. In this case, all the information in the
-                 * response structure is NULL. Consider the faulty power supply
-                 * unit as ABSENT
+                 * condition. If the power supply reports itself as PRESENT
+                 * then add it to the RPT
                  */
-                if (response->presence != PRESENT ||
-                    (response->serialNumber == NULL || response->serialNumber[0] == '\0')) {
+                if (response->presence != PRESENT ) {
                         /* The power supply unit is absent.  Is the power
                          * supply unit absent in the presence matrix?
                          */
@@ -2105,6 +2104,10 @@ SaErrorT re_discover_ps_unit(struct oh_handler_state *oh_handler,
                         else
                                 state = RES_ABSENT;
                 } else {
+                        if ((response->serialNumber == NULL || response->serialNumber[0] == '\0')) {
+                               strcpy(response->serialNumber,"Not_Reported");
+                               err("PSU in slot %d has some problem, please check",i);
+                        }
                         /* The power supply unit is present.  Is the power
                          * supply unit present in the presence matrix?
                          */

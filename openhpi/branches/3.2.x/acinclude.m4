@@ -211,10 +211,13 @@ AC_DEFUN([OH_CHECK_OPENIPMI],
 
 AC_DEFUN([PKG_CFG_SETPATH],
 [
-	if test -f "/etc/ld.so.conf"; then
-		TEMP=`cat /etc/ld.so.conf | grep "/lib$"`
-		TEMP=`echo $TEMP | sed -e 's/\/lib \|\/lib$/\/lib\/pkgconfig:/g'`
-		PKG_CONFIG_PATH="${PKG_CONFIG_PATH}:${TEMP}"
+	if test "x$cross_compiling" != "xyes"; then
+		if test -f "/etc/ld.so.conf"; then
+			TEMP=`cat /etc/ld.so.conf | grep "/lib$"`
+			TEMP=`echo $TEMP | sed -e 's/\/lib \|\/lib$/\/lib\/pkgconfig:/g'`
+			PKG_CONFIG_PATH="${PKG_CONFIG_PATH}:${TEMP}"
+			export PKG_CONFIG_PATH
+		fi
 	fi
 ])
 

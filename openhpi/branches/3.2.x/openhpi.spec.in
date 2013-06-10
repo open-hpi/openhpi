@@ -294,8 +294,8 @@ make DESTDIR=%{buildroot} install
 %{_docdir}/README*
 %{_docdir}/COPYING
 %dir %{_sysconfdir}/%{name}/
-%config(noreplace) %attr(0640,root,root) %{_sysconfdir}/%{name}/%{name}.conf
-%config(noreplace) %attr(0640,root,root) %{_sysconfdir}/%{name}/simulation.data
+%config(noreplace) %attr(0600,root,root) %{_sysconfdir}/%{name}/%{name}.conf
+%config(noreplace) %attr(0600,root,root) %{_sysconfdir}/%{name}/simulation.data
 %dir %{_libdir}/%{name}
 %dir /var/lib/%{name}
 %{_libdir}/libopenhpi*.so.*

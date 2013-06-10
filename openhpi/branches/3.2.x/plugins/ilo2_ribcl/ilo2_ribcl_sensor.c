@@ -613,6 +613,78 @@ SaErrorT ilo2_ribcl_set_sensor_event_masks(void *hnd,
 } /* end ilo2_ribcl_set_sensor_event_masks() */
 
 
+/**
+ * ilo2_ribcl_get_sensor_thresholds:
+ *      @hnd: Handler data pointer
+ *      @rid: Resource ID
+ *      @s_num: Sensor rdr number
+ *      @threshold: Location to store sensor's threshold values
+ *
+ * Purpose:
+ *      Retrieves sensor's threshold values, if defined
+ *
+ * Detailed Description:
+ *      - Fetches sensor info structure from the private data area of
+ *        sensor rdr of specified rdr number
+ *      - Threshold details are returned if the event category of the sensor
+ *        is set to threshold type
+ *
+ * Return values:
+ *      SA_OK - Normal case
+ *      SA_ERR_HPI_INVALID_PARAMS - On wrong parameters
+ *      SA_ERR_HPI_INVALID_REQUEST - Sensor is currently disabled.
+ *      SA_ERR_HPI_INVALID_CMD - Sensor not of threshold type, or is not enabled
+ *                               for reading
+ **/
+SaErrorT ilo2_ribcl_get_sensor_thresholds(void *hnd,
+                                      SaHpiResourceIdT rid,
+                                      SaHpiSensorNumT s_num,
+                                      SaHpiSensorThresholdsT *threshold)
+{
+        SaErrorT ret;
+        struct oh_handler_state *oh_handler = NULL;
+        struct ilo2_ribcl_sens_allinfo sens_allinfo;
+        struct ilo2_ribcl_sensinfo *sensinfo = NULL;
+
+	if (hnd == NULL || threshold == NULL) {
+		err("ilo2_ribcl_get_sensor_thresholds: Invalid parameters");
+		return( SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+        oh_handler = (struct oh_handler_state *)hnd;
+
+        /* Look up our sensor RDR, and it's associated data */
+        ret = ilo2_ribcl_get_sensor_allinfo( oh_handler, rid, s_num,
+                                              &sens_allinfo);
+
+        if( ret != SA_OK){
+                return( ret);
+        }
+
+        sensinfo = sens_allinfo.sens_dat;
+
+        /* if  the sensor is disable; just return. */
+        if( !sensinfo->sens_enabled){
+                return( SA_ERR_HPI_INVALID_REQUEST);
+        }
+
+        if ( sens_allinfo.rdr->RdrTypeUnion.SensorRec.Category !=
+                SAHPI_EC_THRESHOLD || sens_allinfo.rdr->
+                RdrTypeUnion.SensorRec.ThresholdDefn.IsAccessible ==
+                SAHPI_FALSE ||
+                sens_allinfo.rdr->
+                RdrTypeUnion.SensorRec.ThresholdDefn.ReadThold == 0) {
+                err("Invalid command");
+                return SA_ERR_HPI_INVALID_CMD;
+        }
+        /* setting the return value with the threshold value from the
+         * sensor info structutre
+         */
+        *threshold = sensinfo->threshold;
+        return( SA_OK);
+}
+
+
 
 /**
  * ilo2_ribcl_get_sensor_allinfo:
@@ -1127,8 +1199,12 @@ static void ilo2_ribcl_process_temperaturesensor(
         }
 
         /* Update our stored HPI sensor value with the current iLo2 RIBCL
-         * sensor reading.*/
+         * sensor reading, caution and critical value.*/
         sensinfo->sens_value = atoi(ir_tsdata->reading);
+	sensinfo->threshold.UpMajor.Value.SensorInt64 =
+				atoi(ir_tsdata->cautionvalue);
+	sensinfo->threshold.UpCritical.Value.SensorInt64 =
+				atoi(ir_tsdata->criticalvalue);
 
 } /* end  ilo2_ribcl_process_temperaturesensor () */
 
@@ -1195,4 +1271,9 @@ void * oh_set_sensor_event_masks (void *, SaHpiResourceIdT, SaHpiSensorNumT,
 				  SaHpiSensorEventMaskActionT,
 				  SaHpiEventStateT , SaHpiEventStateT )
 	__attribute__ ((weak, alias("ilo2_ribcl_set_sensor_event_masks")));
+
+void * oh_get_sensor_thresholds (void *, SaHpiResourceIdT,
+                                 SaHpiSensorNumT,
+                                 SaHpiSensorThresholdsT *)
+        __attribute__ ((weak, alias("ilo2_ribcl_get_sensor_thresholds")));
 

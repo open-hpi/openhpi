@@ -666,7 +666,7 @@ cIpmiInventoryParser::ParseFruInfo( const unsigned char *data, unsigned int size
   // checksum of common header
   if ( IpmiChecksum( data, 8 ) )
      {
-       stdlog << "wrong common header checksum !\n";
+       stdlog << "wrong common header checksum for " << idr_id << ".\n";
        stdlog.Hex( data, 8 );
        stdlog << "\n";
 
