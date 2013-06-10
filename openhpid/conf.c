@@ -23,7 +23,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 
+#ifndef _WIN32
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <libgen.h>
+#endif // _WIN32
+ 
 #include <config.h>
 #include <oh_plugin.h>
 #include <oh_error.h>
@@ -483,10 +491,14 @@ static void scanner_msg_handler (GScanner *scanner, gchar *message, gboolean is_
  **/
 int oh_load_config (char *filename, struct oh_parsed_config *config)
 {
-        FILE * fp;
-        int i;
+        FILE * fp = NULL;
+#ifndef _WIN32
+        struct stat fst, dst; 
+        char *dir_name = NULL;
+        char dup_filename[PATH_MAX];
+#endif
         GScanner *oh_scanner;
-        int done = 0;
+        int i, done = 0;
         int num_tokens = sizeof(oh_conf_tokens) / sizeof(oh_conf_tokens[0]);
 
         if (!filename || !config) {
@@ -504,6 +516,62 @@ int oh_load_config (char *filename, struct oh_parsed_config *config)
         oh_scanner->msg_handler = scanner_msg_handler;
         oh_scanner->input_name = filename;
 
+#ifndef _WIN32
+
+        if (stat (filename, &fst) == -1) {
+                CRIT("stat of %s failed.", filename);
+                return -3;
+        } 
+        
+        if (fst.st_uid != geteuid()) {
+                if (fst.st_uid == 0) {
+                     CRIT("%s owner is root (0)!", filename);
+                     CRIT("Run as sudo or create a config with UID=%d.", (int)geteuid());
+                     return -3;
+               } else  {
+                     CRIT("%s owner(%d) is insecure!", filename, fst.st_uid);
+                     CRIT("Owner UID shall be %d.", (int)geteuid());
+                     return -3;
+               }
+        }
+
+        if (((fst.st_mode & (S_IRWXG | S_IRWXO)) != 0)) {
+                CRIT("%s permissions are insecure!", filename);
+                CRIT("Shall not contain bits for group/others.");
+                return -3;
+        }
+
+        if ((fst.st_mode & S_IFMT) != S_IFREG) {
+                CRIT("%s permissions are insecure!", filename);
+                CRIT("It needs to be a regular file");
+                return -3;
+        }
+
+        /* Now check the directory permissions */ 
+        if (strlen(filename) >= PATH_MAX) {
+               CRIT("%s is too long",filename);
+               return -3;
+        } 
+        strcpy(dup_filename, filename);
+        dir_name=dirname(dup_filename);
+        if (stat(dir_name, &dst) == -1) {
+                CRIT("stat of %s failed.", dir_name);
+                return -3;
+        }
+
+        if ((fst.st_uid != dst.st_uid)) {
+                CRIT("%s directory is insecure", dir_name);
+                CRIT("Owner UID shall be %d",fst.st_uid);
+                return -3;
+        }
+        if ((dst.st_mode & (S_IWOTH | S_IWGRP)) != 0 ) {
+                CRIT("%s directory is insecure",dir_name);
+                CRIT("Shall not be writable by group or others");
+                return -3;
+        }
+
+#endif // _WIN32
+         
         fp = fopen(filename, "r");
         if (!fp) {
                 CRIT("Configuration file '%s' could not be opened.", filename);
@@ -621,13 +689,14 @@ int oh_get_global_param(struct oh_global_param *param)
 
             if (!param) {
                 CRIT("Invalid parameters param NULL.");
+                return -1;
             }
 
             if (!param->type) {
                 CRIT("Invalid parameters param->type NULL.");
+                return -1;
             }
 
-                return -1;
         }
 
         read_globals_from_env(0);

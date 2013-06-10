@@ -42,6 +42,8 @@
  *	oa_soap_proc_ps_subsys_info() - Processes the power subsystem info event
  *
  *	oa_soap_proc_ps_status()      - Processes the power supply status event
+ *
+ *	oa_soap_proc_ps_info()      - Processes the power supply info event
  */
 
 #include "oa_soap_ps_event.h"
@@ -98,15 +100,15 @@ SaErrorT process_ps_insertion_event(struct oh_handler_state *oh_handler,
         }
 
         /* If the power supply unit does not have the power cord plugged in,
-         * then power supply unit will be in faulty condition. In this case,
-         * all the information in the response structure is NULL. Consider the
-         * faulty power supply unit as ABSENT
+         * then power supply unit will be in faulty condition. If the power
+         * supply is reported as PRESENT by the OA, add the power supply in 
+         * a ResourceFailed state.
          */
+
+
         if (response->serialNumber[0] == '\0') {
-                err("Inserted power supply unit may be faulty");
-                g_free(response);
-                response = NULL;
-                return SA_ERR_HPI_INTERNAL_ERROR;
+                err("No Serial Number for PSU at slot %d. Please check", 
+                        info.bayNumber);
         }
 
         rv = add_ps_unit(oh_handler, con, response);
@@ -609,4 +611,104 @@ void oa_soap_proc_ps_status(struct oh_handler_state *oh_handler,
 				     0, 0)
 
 	return;
+}
+
+/**
+ * oa_soap_proc_ps_info
+ *      @oh_handler	: Pointer to openhpi handler structure
+ *      @con            : Pointer to the SOAP_CON structure
+ *      @oa_event	: Pointer to OA event structure
+ *
+ * Purpose:
+ *	Processes the power supply info event
+ *
+ * Detailed Description: NA
+ *
+ * Return values:
+ *      SA_OK                     - success.
+ *      SA_ERR_HPI_INVALID_PARAMS - Invalid parameters
+ *      SA_ERR_HPI_OUT_OF_MEMORY  - Out of memory
+ **/
+SaErrorT oa_soap_proc_ps_info(struct oh_handler_state *oh_handler,
+                                  SOAP_CON *con,
+                                  struct eventInfo *oa_event)
+
+{
+        SaErrorT rv = SA_OK;
+        struct oa_soap_handler *oa_handler = NULL;
+        SaHpiInt32T bay_number, len;
+        char *serial_number = NULL;
+        xmlNode *extra_data;
+        struct extraDataInfo extra_data_info;
+        char name[MAX_PRODUCT_NAME_LENGTH+1];
+	SaHpiResourceIdT resource_id;
+
+        if (oh_handler == NULL || oa_event == NULL) {
+                err("Invalid parameters");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        oa_handler = (struct oa_soap_handler *) oh_handler->data;
+        bay_number = oa_event->eventData.powerSupplyInfo.bayNumber;
+
+        if(!oa_event->eventData.powerSupplyInfo.serialNumber){
+                err("Serial # of PSU at %d is NULL", bay_number);
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        if( oa_event->eventData.powerSupplyInfo.presence != PRESENT ) {
+                err("Serial # of PSU at %d is NOT PRESENT", bay_number);
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+
+        len = strlen(oa_event->eventData.powerSupplyInfo.serialNumber);
+        serial_number = (char *)g_malloc0(sizeof(char) * len + 1);
+        strcpy(serial_number, oa_event->eventData.powerSupplyInfo.serialNumber);
+        serial_number[len]='\0';
+        if (strcmp(serial_number,"[Unknown]") == 0 )  {
+                err("Serial # of PSU at %d is [Unknown]", bay_number);
+                g_free(serial_number);
+                return SA_ERR_HPI_OUT_OF_MEMORY;
+        }
+
+        name[0] = '\0';
+        extra_data = oa_event->eventData.powerSupplyInfo.extraData;
+        while (extra_data) {
+                soap_getExtraData(extra_data, &extra_data_info);
+                if (!(strcmp(extra_data_info.name, "productName"))) {
+                   strncpy(name,extra_data_info.value,MAX_PRODUCT_NAME_LENGTH);
+                   name[MAX_PRODUCT_NAME_LENGTH] = '\0';
+                }
+                extra_data = soap_next_node(extra_data);
+        }
+
+        resource_id = oa_handler->
+                oa_soap_resources.ps_unit.resource_id[bay_number - 1];
+        /* Build the inserted ps_unit RPT entry */
+        rv = build_power_supply_rpt(oh_handler, name,
+                                    bay_number, &resource_id);
+        if (rv != SA_OK) {
+                err("Failed to build the ps_unit RPT for PSU at %d", bay_number);
+                g_free(serial_number);
+                return rv;
+        }
+
+        /* Update resource_status structure with resource_id,
+         * serial_number, and presence status
+         */
+        oa_soap_update_resource_status(
+                 &oa_handler->oa_soap_resources.ps_unit, bay_number,
+                 serial_number, resource_id, RES_PRESENT);
+
+        /* The RDR already exist, but the relevant data is available only now
+         * So just go ahead and correct it. When building the RDR the code does
+         * take care of already existing RDR.
+         */
+        rv = build_power_supply_rdr(oh_handler, con,
+                                    &(oa_event->eventData.powerSupplyInfo), resource_id);
+
+        g_free(serial_number);
+        return SA_OK;
+
 }

@@ -27,7 +27,7 @@
 
 
 // SaHpiTextBuffer
-static cMarshalType SaHpiTextBufferDataArray = dArray( SAHPI_MAX_TEXT_BUFFER_LENGTH, SaHpiUint8T, SaHpiUint8Type );
+static cMarshalType SaHpiTextBufferDataArray = dArray( "SaHpiTextBufferDataArray", SAHPI_MAX_TEXT_BUFFER_LENGTH, SaHpiUint8T, SaHpiUint8Type );
 
 static cMarshalType SaHpiTextBufferElements[] =
 {
@@ -41,8 +41,8 @@ static cMarshalType SaHpiTextBufferElements[] =
 cMarshalType SaHpiTextBufferType = dStruct( SaHpiTextBufferElements );
 
 // oHpi
-static cMarshalType oHpiHandlerConfigParamTypeNameArray = dArray( SAHPI_MAX_TEXT_BUFFER_LENGTH, SaHpiUint8T, SaHpiUint8Type );
-static cMarshalType oHpiHandlerConfigParamTypeValueArray = dArray( SAHPI_MAX_TEXT_BUFFER_LENGTH, SaHpiUint8T, SaHpiUint8Type );
+static cMarshalType oHpiHandlerConfigParamTypeNameArray = dArray( "oHpiHandlerConfigParamTypeNameArray", SAHPI_MAX_TEXT_BUFFER_LENGTH, SaHpiUint8T, SaHpiUint8Type );
+static cMarshalType oHpiHandlerConfigParamTypeValueArray = dArray( "oHpiHandlerConfigParamTypeValueArray", SAHPI_MAX_TEXT_BUFFER_LENGTH, SaHpiUint8T, SaHpiUint8Type );
 static cMarshalType oHpiHandlerConfigParamTypeElements[] =
 {
 	dStructElement( oHpiHandlerConfigParamT, Name, oHpiHandlerConfigParamTypeNameArray ),
@@ -51,7 +51,7 @@ static cMarshalType oHpiHandlerConfigParamTypeElements[] =
 };
 cMarshalType oHpiHandlerConfigParamType = dStruct( oHpiHandlerConfigParamTypeElements );
 
-static cMarshalType HandlerConfigParamsArray = dVarArray( 0, oHpiHandlerConfigParamT, oHpiHandlerConfigParamType );
+static cMarshalType HandlerConfigParamsArray = dVarArray( "HandlerConfigParamsArray", 0, oHpiHandlerConfigParamT, oHpiHandlerConfigParamType );
 static cMarshalType oHpiHandlerConfigTypeElements[] =
 {
 	dStructElement( oHpiHandlerConfigT, NumberOfParams, SaHpiUint8Type ),
@@ -71,7 +71,7 @@ static cMarshalType SaHpiEntityElements[] =
 cMarshalType SaHpiEntityType = dStruct( SaHpiEntityElements );
 
 // entity path
-static cMarshalType SaHpiEntityPathEntryArray = dArray( SAHPI_MAX_ENTITY_PATH, SaHpiEntityT, SaHpiEntityType );
+static cMarshalType SaHpiEntityPathEntryArray = dArray( "SaHpiEntityPathEntryArray", SAHPI_MAX_ENTITY_PATH, SaHpiEntityT, SaHpiEntityType );
 
 
 static cMarshalType SaHpiEntityPathElements[] =
@@ -83,7 +83,7 @@ static cMarshalType SaHpiEntityPathElements[] =
 cMarshalType SaHpiEntityPathType = dStruct( SaHpiEntityPathElements );
 
 // sensors
-static cMarshalType SaHpiSensorInterpretedUnionBufferArray = dArray( SAHPI_SENSOR_BUFFER_LENGTH, SaHpiUint8T, SaHpiUint8Type );
+static cMarshalType SaHpiSensorInterpretedUnionBufferArray = dArray( "SaHpiSensorInterpretedUnionBufferArray", SAHPI_SENSOR_BUFFER_LENGTH, SaHpiUint8T, SaHpiUint8Type );
 
 static cMarshalType SaHpiSensorReadingUnionElements[] =
 {
@@ -196,7 +196,7 @@ cMarshalType SaHpiSensorRecType = dStruct( SaHpiSensorRecElements );
 
 // stream control state
 
-static cMarshalType SaHpiCtrlStateStreamArray = dArray( SAHPI_CTRL_MAX_STREAM_LENGTH, SaHpiUint8T, SaHpiUint8Type );
+static cMarshalType SaHpiCtrlStateStreamArray = dArray( "SaHpiCtrlStateStreamArray", SAHPI_CTRL_MAX_STREAM_LENGTH, SaHpiUint8T, SaHpiUint8Type );
 
 
 static cMarshalType SaHpiCtrlStateStreamElements[] =
@@ -224,7 +224,7 @@ cMarshalType SaHpiCtrlStateTextType = dStruct( SaHpiCtrlStateTextElements );
 
 // OEM control state
 
-static cMarshalType SaHpiCtrlStateOemBodyArray = dArray( SAHPI_CTRL_MAX_OEM_BODY_LENGTH, SaHpiUint8T, SaHpiUint8Type );
+static cMarshalType SaHpiCtrlStateOemBodyArray = dArray( "SaHpiCtrlStateOemBodyArray", SAHPI_CTRL_MAX_OEM_BODY_LENGTH, SaHpiUint8T, SaHpiUint8Type );
 
 static cMarshalType SaHpiCtrlStateOemElements[] =
 {
@@ -314,7 +314,7 @@ static cMarshalType SaHpiCtrlRecTextElements[] =
 cMarshalType SaHpiCtrlRecTextType = dStruct( SaHpiCtrlRecTextElements );
 
 
-static cMarshalType SaHpiCtrlRecOemConfigDataArray = dArray( SAHPI_CTRL_OEM_CONFIG_LENGTH, SaHpiUint8T, SaHpiUint8Type );
+static cMarshalType SaHpiCtrlRecOemConfigDataArray = dArray( "SaHpiCtrlRecOemConfigDataArray", SAHPI_CTRL_OEM_CONFIG_LENGTH, SaHpiUint8T, SaHpiUint8Type );
 
 static cMarshalType SaHpiCtrlRecOemElements[] =
 {
@@ -452,7 +452,7 @@ cMarshalType SaHpiWatchdogRecType = dStruct( SaHpiWatchdogRecElements );
 
 // annunciators
 
-static cMarshalType SaHpiNameDataArray = dArray( SA_HPI_MAX_NAME_LENGTH, SaHpiUint8T, SaHpiUint8Type );
+static cMarshalType SaHpiNameDataArray = dArray( "SaHpiNameDataArray", SA_HPI_MAX_NAME_LENGTH, SaHpiUint8T, SaHpiUint8Type );
 
 static cMarshalType SaHpiNameElements[] =
 {
@@ -551,7 +551,7 @@ static cMarshalType SaHpiDimiTestParamValue1TypeElements[] =
 };
 cMarshalType SaHpiDimiTestParamValue1Type = dUnion( 1, SaHpiDimiTestParamValue1TypeElements );
 
-static cMarshalType ParamNameArray = dArray( SAHPI_DIMITEST_PARAM_NAME_LEN, SaHpiUint8T, SaHpiUint8Type );
+static cMarshalType ParamNameArray = dArray( "ParamNameArray", SAHPI_DIMITEST_PARAM_NAME_LEN, SaHpiUint8T, SaHpiUint8Type );
 static cMarshalType SaHpiDimiTestParamsDefinitionTypeElements[] =
 {
         dStructElement( SaHpiDimiTestParamsDefinitionT, ParamName, ParamNameArray ),
@@ -572,8 +572,8 @@ static cMarshalType SaHpiDimiTestAffectedEntityTypeElements[] =
 };
 cMarshalType SaHpiDimiTestAffectedEntityType = dStruct( SaHpiDimiTestAffectedEntityTypeElements );
 
-static cMarshalType EntitiesImpactedArray = dArray( SAHPI_DIMITEST_MAX_ENTITIESIMPACTED, SaHpiDimiTestAffectedEntityT, SaHpiDimiTestAffectedEntityType );
-static cMarshalType TestParametersArray = dArray( SAHPI_DIMITEST_MAX_PARAMETERS, SaHpiDimiTestParamsDefinitionT, SaHpiDimiTestParamsDefinitionType );
+static cMarshalType EntitiesImpactedArray = dArray( "EntitiesImpactedArray", SAHPI_DIMITEST_MAX_ENTITIESIMPACTED, SaHpiDimiTestAffectedEntityT, SaHpiDimiTestAffectedEntityType );
+static cMarshalType TestParametersArray = dArray( "TestParametersArray", SAHPI_DIMITEST_MAX_PARAMETERS, SaHpiDimiTestParamsDefinitionT, SaHpiDimiTestParamsDefinitionType );
 static cMarshalType SaHpiDimiTestTypeElements[] =
 {
         dStructElement( SaHpiDimiTestT, TestName,  SaHpiTextBufferType ),
@@ -609,7 +609,7 @@ static cMarshalType SaHpiDimiTestVariableParamsTypeElements[] =
 };
 cMarshalType SaHpiDimiTestVariableParamsType = dStruct( SaHpiDimiTestVariableParamsTypeElements );
 
-static cMarshalType ParamsListArray = dVarArray( 0, SaHpiDimiTestVariableParamsT, SaHpiDimiTestVariableParamsType );
+static cMarshalType ParamsListArray = dVarArray( "ParamsListArray", 0, SaHpiDimiTestVariableParamsT, SaHpiDimiTestVariableParamsType );
 static cMarshalType SaHpiDimiTestVariableParamsListTypeElements[] =
 {
         dStructElement( SaHpiDimiTestVariableParamsListT, NumberOfParams, SaHpiUint8Type ),
@@ -637,7 +637,7 @@ static cMarshalType SaHpiFumiSafDefinedSpecInfoElements[] =
 };
 static cMarshalType SaHpiFumiSafDefinedSpecInfoType = dStruct( SaHpiFumiSafDefinedSpecInfoElements );
 
-static cMarshalType SaHpiFumiOemDefinedSpecInfoBodyArray = dArray( SAHPI_FUMI_MAX_OEM_BODY_LENGTH, SaHpiUint8T, SaHpiUint8Type );
+static cMarshalType SaHpiFumiOemDefinedSpecInfoBodyArray = dArray( "SaHpiFumiOemDefinedSpecInfoBodyArray", SAHPI_FUMI_MAX_OEM_BODY_LENGTH, SaHpiUint8T, SaHpiUint8Type );
 
 static cMarshalType SaHpiFumiOemDefinedSpecInfoElements[] =
 {
@@ -665,7 +665,7 @@ static cMarshalType SaHpiFumiSpecInfoTypeElements[] =
         dStructElementEnd()
 };
 cMarshalType SaHpiFumiSpecInfoType = dStruct( SaHpiFumiSpecInfoTypeElements );
- 
+
 static cMarshalType SaHpiFumiImpactedEntityTypeElements[] =
 {
         dStructElement( SaHpiFumiImpactedEntityT, ImpactedEntity, SaHpiEntityPathType ),
@@ -674,7 +674,7 @@ static cMarshalType SaHpiFumiImpactedEntityTypeElements[] =
 };
 static cMarshalType SaHpiFumiImpactedEntityType = dStruct( SaHpiFumiImpactedEntityTypeElements );
 
-static cMarshalType SaHpiFumiServiceImpactDataImpactedEntitiesArray = dArray( SAHPI_FUMI_MAX_ENTITIES_IMPACTED, SaHpiFumiImpactedEntityT, SaHpiFumiImpactedEntityType );
+static cMarshalType SaHpiFumiServiceImpactDataImpactedEntitiesArray = dArray( "SaHpiFumiServiceImpactDataImpactedEntitiesArray", SAHPI_FUMI_MAX_ENTITIES_IMPACTED, SaHpiFumiImpactedEntityT, SaHpiFumiImpactedEntityType );
 
 static cMarshalType SaHpiFumiServiceImpactDataElements[] =
 {
@@ -974,7 +974,7 @@ cMarshalType SaHpiEventType = dStruct( SaHpiEventElements );
 // resource presence table
 
 
-static cMarshalType GuidDataArray = dArray( 16, SaHpiUint8T, SaHpiUint8Type );
+static cMarshalType GuidDataArray = dArray( "GuidDataArray", 16, SaHpiUint8T, SaHpiUint8Type );
 
 static cMarshalType SaHpiResourceInfoElements[] =
 {
@@ -997,13 +997,13 @@ static cMarshalType SaHpiRptEntryElements[] =
 {
 	dStructElement( SaHpiRptEntryT, EntryId, SaHpiEntryIdType ),
 	dStructElement( SaHpiRptEntryT, ResourceId, SaHpiResourceIdType ),
-	dStructElement( SaHpiRptEntryT, ResourceInfo, SaHpiResourceInfoType ),	
+	dStructElement( SaHpiRptEntryT, ResourceInfo, SaHpiResourceInfoType ),
 	dStructElement( SaHpiRptEntryT, ResourceEntity, SaHpiEntityPathType ),
 	dStructElement( SaHpiRptEntryT, ResourceCapabilities,SaHpiCapabilitiesType ),
 	dStructElement( SaHpiRptEntryT, HotSwapCapabilities, SaHpiHsCapabilitiesType ),
 	dStructElement( SaHpiRptEntryT, ResourceSeverity, SaHpiSeverityType ),
 	dStructElement( SaHpiRptEntryT, ResourceFailed, SaHpiBoolType ),
-	dStructElement( SaHpiRptEntryT, ResourceTag, SaHpiTextBufferType ),	
+	dStructElement( SaHpiRptEntryT, ResourceTag, SaHpiTextBufferType ),
 	dStructElementEnd()
 };
 
@@ -1099,7 +1099,7 @@ cMarshalType SaHpiEventLogEntryType = dStruct( SaHpiEventLogEntryElements );
 
 
 // handler info
-static cMarshalType plugin_nameBufferArray = dArray( MAX_PLUGIN_NAME_LENGTH, SaHpiUint8T, SaHpiUint8Type );
+static cMarshalType plugin_nameBufferArray = dArray( "plugin_nameBufferArray", MAX_PLUGIN_NAME_LENGTH, SaHpiUint8T, SaHpiUint8Type );
 
 static cMarshalType oHpiHandlerInfoElements[] =
 {
@@ -1114,9 +1114,9 @@ cMarshalType oHpiHandlerInfoType = dStruct( oHpiHandlerInfoElements );
 
 
 // global param
-static cMarshalType GlobalParamPathArray = dArray( OH_PATH_PARAM_MAX_LENGTH, SaHpiUint8T, SaHpiUint8Type );
-static cMarshalType GlobalParamVarPathArray = dArray( OH_PATH_PARAM_MAX_LENGTH, SaHpiUint8T, SaHpiUint8Type );
-static cMarshalType GlobalParamConfArray = dArray( OH_PATH_PARAM_MAX_LENGTH, SaHpiUint8T, SaHpiUint8Type );
+static cMarshalType GlobalParamPathArray = dArray( "GlobalParamPathArray", OH_PATH_PARAM_MAX_LENGTH, SaHpiUint8T, SaHpiUint8Type );
+static cMarshalType GlobalParamVarPathArray = dArray( "GlobalParamVarPathArray", OH_PATH_PARAM_MAX_LENGTH, SaHpiUint8T, SaHpiUint8Type );
+static cMarshalType GlobalParamConfArray = dArray( "GlobalParamConfArray", OH_PATH_PARAM_MAX_LENGTH, SaHpiUint8T, SaHpiUint8Type );
 
 static cMarshalType oHpiGlobalParamUnionTypeElements[] =
 {

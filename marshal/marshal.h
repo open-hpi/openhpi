@@ -74,9 +74,10 @@ typedef enum
 
 
 // helper macro for arrays
-#define dArray( nelements, element_type, element )  \
+#define dArray( name, nelements, element_type, element )  \
 {                                               \
   .m_type = eMtArray,                           \
+  .m_name = name,                               \
   .u.m_array =                                  \
   {                                             \
     .m_nelements      = nelements,              \
@@ -86,9 +87,10 @@ typedef enum
 }
 
 // helper macro for var arrays
-#define dVarArray( nelements_idx, element_type, element )  \
+#define dVarArray( name, nelements_idx, element_type, element )  \
 {                                               \
   .m_type = eMtVarArray,                        \
+  .m_name = name,                               \
   .u.m_var_array =                              \
   {                                             \
     .m_nelements_idx  = nelements_idx,          \
@@ -101,6 +103,7 @@ typedef enum
 #define dStruct( elements ) \
 {                              \
   .m_type = eMtStruct,         \
+  .m_name = #elements,         \
   .u.m_struct =                \
   {                            \
     .m_elements = &elements[0] \
@@ -111,6 +114,7 @@ typedef enum
 #define dStructElement( struct_type, field, element ) \
 {                                                \
   .m_type = eMtStructElement,                    \
+  .m_name = #field,                              \
   .u.m_struct_element =                          \
   {                                              \
     .m_offset  = offsetof( struct_type, field ), \
@@ -121,13 +125,15 @@ typedef enum
 // helper marco for struct end
 #define dStructElementEnd() \
 {                            \
-  .m_type = eMtUnknown       \
+  .m_type = eMtUnknown,      \
+  .m_name = ""               \
 }
 
 // helper marco for unions
 #define dUnion( mod_idx, elements ) \
 {                               \
   .m_type = eMtUnion,           \
+  .m_name = #elements,          \
   .u.m_union =                  \
   {                             \
     .m_mod_idx = mod_idx,       \
@@ -139,6 +145,7 @@ typedef enum
 #define dUnionElement( mod, element ) \
 {                                     \
   .m_type = eMtUnionElement,          \
+  .m_name = #mod,                     \
   .u.m_union_element =                \
   {                                   \
     .m_mod     = mod,                 \
@@ -149,13 +156,15 @@ typedef enum
 // helper marco for union end
 #define dUnionElementEnd() \
 {                          \
-  .m_type = eMtUnknown     \
+  .m_type = eMtUnknown,    \
+  .m_name = ""             \
 }
 
 // helper macro for user define mashaller
 #define dUserDefined( marshaller, demarshaller, user_data )    \
 {                                     \
   .m_type = eMtUserDefined,           \
+  .m_name = "user",                   \
   .u.m_user_defined =                 \
   {                                   \
     .m_marshaller   = marshaller,     \
@@ -176,6 +185,7 @@ typedef int (*tDemarshalFunction)( int byte_order, const cMarshalType *type, voi
 struct sMarshalType
 {
   tMarshalType m_type;
+  const char * m_name;
 
   union
   {

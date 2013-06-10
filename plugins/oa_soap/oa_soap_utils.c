@@ -102,6 +102,9 @@
  *
  *      convert_lower_to_upper          - Converts the lower case to upper case
  *
+ *      update_oa_fw_version()          - Updates the RPT entry and IDR entry
+ *                                        with OA firmware version
+ *
  **/
 
 #include "oa_soap_utils.h"
@@ -220,6 +223,8 @@ SaErrorT get_oa_state(struct oh_handler_state *oh_handler,
         SOAP_CON *hpi_con = NULL, *event_con = NULL;
         struct oa_info *this_oa = NULL, *other_oa = NULL;
         char *endptr = NULL;
+        struct extraDataInfo extra_data_info;
+        xmlNode *extra_data = NULL;
 
         if (oh_handler == NULL|| server == NULL) {
                 err("Invalid parameters");
@@ -260,6 +265,7 @@ SaErrorT get_oa_state(struct oh_handler_state *oh_handler,
         }
 
         free(url);
+        url = NULL;
         /* Check whether user_name has admin rights */
         rv = check_oa_user_permissions(oa_handler, hpi_con, user_name);
         if (rv != SA_OK) {
@@ -343,6 +349,23 @@ SaErrorT get_oa_state(struct oh_handler_state *oh_handler,
                         soap_close(event_con);
                         return SA_ERR_HPI_INTERNAL_ERROR;
                 }
+
+                extra_data = network_info_response.extraData;
+                while (extra_data) {
+                        soap_getExtraData(extra_data, &extra_data_info);
+                        if ((!(strcmp(extra_data_info.name, "IpSwap"))) &&
+                                    (extra_data_info.value != NULL)) {
+                                    if(!(strcasecmp(extra_data_info.value,
+                                                  "true"))) {
+                                             oa_handler->ipswap = HPOA_TRUE;
+                                    } else {
+                                             oa_handler->ipswap = HPOA_FALSE;
+                                    }
+                                    break;
+                        }
+                        extra_data = soap_next_node(extra_data);
+                }
+
 
                 /* Find the active and standby bay number, IP address
                  * and firmware version */
@@ -688,7 +711,12 @@ SaErrorT check_oa_status(struct oa_soap_handler *oa_handler,
                  }
         }
 
-        oa->oa_status = status_response.oaRole;
+       /* If Enclosure IP mode is enabled then ipswap becomes true, then Active OA IP is always same. So do not change the Role */
+
+        if(!oa_handler->ipswap) {
+                oa->oa_status = status_response.oaRole;
+        }
+
         if (oa->oa_status == ACTIVE) {
                 g_mutex_unlock(oa->mutex);
                 /* Always lock the oa_handler mutex and then oa_info mutex
@@ -837,7 +865,7 @@ SaErrorT check_oa_user_permissions(struct oa_soap_handler *oa_handler,
 
 SaErrorT check_discovery_failure(struct oh_handler_state *oh_handler)
 {
-        SaErrorT oa1_rv, oa2_rv;
+        SaErrorT oa1_rv, oa2_rv, rv;
         struct oa_soap_handler *oa_handler = NULL;
 
         if (oh_handler == NULL) {
@@ -851,6 +879,12 @@ SaErrorT check_discovery_failure(struct oh_handler_state *oh_handler)
         oa2_rv = SA_ERR_HPI_INTERNAL_ERROR;
 
         /* If the hpi_con is NULL, then OA is not reachable */
+        rv = get_oa_soap_info(oh_handler);
+       	if (rv != SA_OK) {
+                oa_handler->status = PLUGIN_NOT_INITIALIZED;
+                err("Get OA SOAP info failed");
+                return rv;
+        }
         if (oa_handler->oa_1->hpi_con != NULL) {
                 /* Get the status of the OA in slot 1 */
                 oa1_rv = check_oa_status(oa_handler, oa_handler->oa_1,
@@ -1435,7 +1469,8 @@ SaErrorT update_oa_info(struct oh_handler_state *oh_handler,
          * 'yy' is the minor version
          */
         fm_version = atof(response->fwVersion);
-        rpt->ResourceInfo.FirmwareMajorRev = major = rintf(fm_version);
+        rpt->ResourceInfo.FirmwareMajorRev = major = 
+				(SaHpiUint8T)floor(fm_version);
         rpt->ResourceInfo.FirmwareMinorRev = rintf((fm_version - major) * 100);
 
         return SA_OK;
@@ -1535,3 +1570,119 @@ char * oa_soap_trim_whitespace(char *s) {
   return(s);
 }
 
+/**
+ * update_oa_fw_version
+ *      @oh_handler:  Pointer to the plugin handler
+ *      @response:    Pointer to the oaInfo structure
+ *      @resource_id: Resource Id
+ *
+ * Purpose:
+ *      Updates the RPT entry and IDR entry with OA firmware version
+ *
+ * Detailed Descrption: NA
+ *
+ * Return values:
+ *      SA_HPI_ERR_INAVLID_PARAMS - on invalid parameters
+ *      SA_HPI_ERR_INTERNAL_ERROR - on failure
+ *      SA_OK                     - on success
+ **/
+
+SaErrorT update_oa_fw_version(struct oh_handler_state *oh_handler,
+                              struct oaInfo *response,
+                              SaHpiResourceIdT resource_id)
+{
+        SaErrorT rv = SA_OK;
+        SaHpiFloat64T fm_version;
+        SaHpiRptEntryT *rpt = NULL;
+        SaHpiRdrT *rdr = NULL;
+        SaHpiIdrIdT IdrId = 0;
+        SaHpiIdrFieldT field;
+        struct oh_event event;
+        SaHpiInt32T major;
+        SaHpiInt32T minor;
+
+        if (oh_handler == NULL || response == NULL) {
+                printf("Invalid parameter");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+        if (rpt == NULL) {
+                err("OA rpt is not present");
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+
+        if (strlen(response->fwVersion) == 0) {
+                err("Firmware version is null string");
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+
+        fm_version = atof(response->fwVersion);
+        major = (SaHpiUint8T)floor(fm_version);
+        minor = rintf((fm_version - major) * 100);
+
+        if(rpt->ResourceInfo.FirmwareMajorRev == major &&
+                rpt->ResourceInfo.FirmwareMinorRev == minor){
+                return rv;
+        }
+
+        if(( major == rpt->ResourceInfo.FirmwareMajorRev &&
+        minor < rpt->ResourceInfo.FirmwareMinorRev ) ||
+        major < rpt->ResourceInfo.FirmwareMajorRev ) {
+                WARN("OA Firmware Version downgraded");
+        }
+	
+        rpt->ResourceInfo.FirmwareMajorRev = major;
+        rpt->ResourceInfo.FirmwareMinorRev = minor;
+
+        /* Get the inventory RDR */
+        rdr = oh_get_rdr_by_type(oh_handler->rptcache, resource_id,
+                                SAHPI_INVENTORY_RDR,
+                                SAHPI_DEFAULT_INVENTORY_ID);
+        if (rdr == NULL) {
+                err("Inventory RDR is not found");
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+
+        IdrId = rdr->RdrTypeUnion.InventoryRec.IdrId;
+
+        memset(&field, 0, sizeof(SaHpiIdrFieldT));
+        field.Type = SAHPI_IDR_FIELDTYPE_PRODUCT_VERSION;
+        field.Field.DataType = SAHPI_TL_TYPE_TEXT;
+        field.Field.Language = SAHPI_LANG_ENGLISH;
+        oa_soap_trim_whitespace(response->fwVersion);
+        field.Field.DataLength = strlen(response->fwVersion);
+        field.AreaId = 1;
+        field.FieldId = 3;
+        snprintf((char *)field.Field.Data,
+                        strlen(response->fwVersion)+ 1,
+                        "%s",response->fwVersion);
+
+        rv = oa_soap_set_idr_field(oh_handler, resource_id, IdrId,
+                                                &field);
+        if (rv != SOAP_OK) {
+                err("oa_soap_set_idr_field failed");
+                return rv;
+        }
+
+        /* Event Handling */
+        memset(&event, 0, sizeof(struct oh_event));
+        event.event.EventType = SAHPI_ET_RESOURCE;
+        memcpy(&event.resource,
+                    rpt,
+                    sizeof(SaHpiRptEntryT));
+        event.event.Severity = SAHPI_INFORMATIONAL;
+        event.event.Source = event.resource.ResourceId;
+        if (oh_gettimeofday(&(event.event.Timestamp)) != SA_OK) {
+                event.event.Timestamp = SAHPI_TIME_UNSPECIFIED;
+        }
+        event.event.EventDataUnion.ResourceEvent.
+        ResourceEventType = SAHPI_RESE_RESOURCE_UPDATED;
+        event.rdrs = g_slist_append(event.rdrs, g_memdup(rdr,
+                     sizeof(SaHpiRdrT)));
+        event.hid = oh_handler->hid;
+        oh_evt_queue_push(oh_handler->eventq,
+        copy_oa_soap_event(&event));
+
+        return SA_OK;
+}

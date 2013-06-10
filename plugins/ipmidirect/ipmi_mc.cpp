@@ -554,6 +554,12 @@ cIpmiMc::SendCommand( const cIpmiMsg &msg, cIpmiMsg &rsp_msg,
   cIpmiAddr addr = m_addr;
 
   addr.m_lun = lun;
+  if (msg.m_chan != 0) { /* if ME command, set correct sa/chan */
+     stdlog << "SendCommand: sa=" << msg.m_sa << " chan=" << 
+		msg.m_chan << "\n";
+     addr.m_channel = msg.m_chan;
+     addr.m_slave_addr = msg.m_sa;
+  }
 
   return m_domain->SendCommand( addr, msg, rsp_msg, retries );
 }
@@ -601,17 +607,19 @@ cIpmiMc::FindRdr( cIpmiRdr *r )
 
 
 cIpmiSensor *
-cIpmiMc::FindSensor( unsigned int lun, unsigned int sensor_id )
+cIpmiMc::FindSensor( unsigned int lun, unsigned int sensor_id, unsigned int sa)
 {
   for( int i = 0; i < Num(); i++ )
      {
        cIpmiResource *res = operator[]( i );
 
        cIpmiRdr *r = res->FindRdr( this, SAHPI_SENSOR_RDR,
-				   sensor_id, lun );
+				   sensor_id, lun, sa);
 
-       if ( r )
+       if ( r ) {
+            stdlog << "mc.FindSensor(" << lun << "," << sensor_id << "," << sa << ") found RecordId " << r->RecordId() << "\n";
 	    return (cIpmiSensor *)r;
+       }
      }
 
   return 0;

@@ -172,13 +172,18 @@ SaErrorT cSession::DoRpc( uint32_t id,
         return SA_ERR_HPI_UNSUPPORTED_API;
     }
 
+    int cc;
     char data[dMaxPayloadLength];
     uint32_t data_len;
     uint8_t  rp_type;
     uint32_t rp_id;
     int      rp_byte_order;
 
-    data_len = HpiMarshalRequest( hm, data, iparams.const_array );
+    cc = HpiMarshalRequest( hm, data, iparams.const_array );
+    if ( cc < 0 ) {
+        return SA_ERR_HPI_INTERNAL_ERROR;
+    }
+    data_len = cc;
 
     bool rc = false;
     for ( size_t attempt = 0; attempt < RPC_ATTEMPTS; ++attempt ) {
@@ -207,10 +212,13 @@ SaErrorT cSession::DoRpc( uint32_t id,
     }
 
     oparams.SetFirst( &rv );
-    int mr = HpiDemarshalReply( rp_byte_order, hm, data, oparams.array );
+    cc = HpiDemarshalReply( rp_byte_order, hm, data, oparams.array );
 
-    if ( ( mr <= 0 ) || ( rp_type != eMhMsg ) || ( id != rp_id ) ) {
-        g_static_private_set( &m_sockets, 0, 0 ); // close socket
+    if ( ( cc <= 0 ) || ( rp_type != eMhMsg ) || ( id != rp_id ) ) {
+        //Closing main socket(the socket that was used for saHpiSessionOpen)
+        // may disrupt HPI session on remote side.
+        // TODO: Investigate and fix on OpenHPI daemon side and then uncomment.
+        //g_static_private_set( &m_sockets, 0, 0 ); // close socket
         return SA_ERR_HPI_NO_RESPONSE;
     }
 

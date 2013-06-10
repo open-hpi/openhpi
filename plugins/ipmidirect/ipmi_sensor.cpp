@@ -202,6 +202,7 @@ cIpmiSensor::GetDataFromSdr( cIpmiMc *mc, cIpmiSdr *sdr )
   m_mc = mc;
 
   m_source_mc = mc;
+  m_sdr_type                = sdr->m_data[3]; /*or sdr->m_type; */
   m_owner                   = sdr->m_data[5];
   m_channel                 = sdr->m_data[6] >> 4;
   m_lun                     = sdr->m_data[6] & 0x03;
@@ -321,6 +322,12 @@ cIpmiSensor::CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr )
        return false;
      }
 
+  /* IPMI sensors have a unique index, a number, and a slave addr.
+   * We need to save the real number and slave addr so that FindRdr 
+   * will always work properly.  */
+  SetSNum(Num());
+  SetSa(m_owner);
+
   m_virtual_num = v;
 
   rec.Num       = v;
@@ -354,9 +361,21 @@ cIpmiSensor::CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr )
 SaErrorT
 cIpmiSensor::GetSensorData( cIpmiMsg &rsp )
 {
-  cIpmiMsg msg( eIpmiNetfnSensorEvent, eIpmiCmdGetSensorReading );
-  msg.m_data_len = 1;
-  msg.m_data[0]  = m_num;
+  unsigned char sa, chan = 0;
+  unsigned char n = m_num;
+  if (m_channel != 0) {  /* Get sensor reading for ME/NM has diff channel */
+     chan = m_channel;
+     sa = m_owner;
+  } else sa = dIpmiBmcSlaveAddr;
+  cIpmiMsg msg( eIpmiNetfnSensorEvent, eIpmiCmdGetSensorReading, 1,&n, sa,chan);
+
+  if (m_sdr_type == eSdrTypeEventOnlySensorRecord)
+     {
+       /* EventOnly sensors do not support readings, so just return 0 */
+       memset(rsp.m_data,0,5);
+       rsp.m_data_len = 5;
+       return SA_OK;
+     }
 
   SaErrorT rv = Resource()->SendCommandReadLock( this, msg, rsp, m_lun );
 
@@ -369,17 +388,24 @@ cIpmiSensor::GetSensorData( cIpmiMsg &rsp )
 
   if ( rsp.m_data[0] != 0 )
      {
-       stdlog << "IPMI error getting reading: " << rsp.m_data[0] << " !\n";
+       stdlog << "IPMI error getting " << m_num << " reading: " << rsp.m_data[0] << " !\n";
 
        return SA_ERR_HPI_INVALID_DATA;
      }
 
   if ( rsp.m_data_len < 4 )
      {
-       stdlog << "IPMI error getting reading: data to small "
+       stdlog << "IPMI error getting reading: data too small "
               << rsp.m_data_len << " !\n";
 
        return SA_ERR_HPI_INVALID_DATA;
+     }
+
+  if ( (m_sdr_type == eSdrTypeFullSensorRecord) 
+	&& ((rsp.m_data[2] & 0x20) != 0) )
+     {  
+	stdlog << "IPMI sensor " << m_num << " is in Init state\n";
+	return SA_ERR_HPI_INVALID_REQUEST;
      }
 
   return SA_OK;

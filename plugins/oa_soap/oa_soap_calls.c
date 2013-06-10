@@ -748,6 +748,13 @@ static void     parse_fanZoneArray(xmlNode *node,
         response->fanZoneArray = soap_walk_tree(node, "fanZoneArray:fanZone");
 }
 
+/* parse_enclosureNetworkInfo - Parses a enclosureNetworkInfo structure */
+static void      parse_enclosureNetworkInfo(xmlNode *node,
+                                       struct  enclosureNetworkInfo *response)
+{
+        response->extraData = soap_walk_tree(node, "extraData");
+}
+
 /* parse_enclosureStatus - Parses a enclosureStatus structure */
 static void      parse_enclosureStatus(xmlNode *node,
                                        struct enclosureStatus *response)
@@ -1327,6 +1334,13 @@ void    soap_getEventInfo(xmlNode *events, struct eventInfo *result)
         if ((node = soap_walk_tree(events, "rackTopology"))) {
                 result->enum_eventInfo = RACKTOPOLOGY;
                 parse_rackTopology(node, &(result->eventData.rackTopology));
+                return;
+        }
+
+        if ((node = soap_walk_tree(events, "enclosureNetworkInfo"))) {
+                result->enum_eventInfo = ENCLOSURENETWORKINFO;
+                parse_enclosureNetworkInfo(node,
+                                     &(result->eventData.enclosureNetworkInfo));
                 return;
         }
 

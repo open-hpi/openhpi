@@ -601,7 +601,6 @@ SaErrorT SAHPI_API saHpiResourceFailedRemove (
         saved_res = *rpte;
         OH_HANDLER_GET(d, ResourceId, h);        
         oh_release_domain(d);
-        hid = h->id;
 
         if (h && h->abi->resource_failed_remove) {
                 OH_CALL_ABI(h, resource_failed_remove, SA_ERR_HPI_INTERNAL_ERROR, error,
@@ -609,6 +608,7 @@ SaErrorT SAHPI_API saHpiResourceFailedRemove (
        	        oh_release_handler(h);
 	        return error;
         }
+        hid = h->id;
 
 	/* If the resource_failed_remove ABI is not defined, then remove the
 	 * resource from rptcache */

@@ -218,7 +218,10 @@ SaErrorT oa_soap_set_reset_state(void *oh_handler,
                                          * Reset the server blade
                                          */
                                         server_request.bayNumber = bay_number;
-                                        server_request.power = RESET;
+                                        if(action == SAHPI_COLD_RESET)
+                                                server_request.power = COLD_BOOT;
+                                        else
+                                                server_request.power = RESET;
                                         rv = soap_setBladePower(
                                                 oa_handler->active_con,
                                                 &server_request);

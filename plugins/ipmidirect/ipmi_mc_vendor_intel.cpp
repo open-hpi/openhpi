@@ -51,8 +51,20 @@ cIpmiMcVendorIntelBmc::InitMc( cIpmiMc *mc, const cIpmiMsg &devid )
      case 0x001B: m_busid = PRIVATE_BUS_ID; break;    /*TIGPR2U*/
      case 0x4311: m_busid = PERIPHERAL_BUS_ID; break; /*TIGPT1U mBMC*/
      case 0x0026:
-     case 0x0028:
+     case 0x0028:  /*S5000PAL*/
+     case 0x0029:
      case 0x0811: m_busid = PRIVATE_BUS_ID7; break;   /*TIGW1U*/
+     case 0x003E:  /*S5520UR*/
+     case 0x0048:  /*S1200BT*/
+     case 0x0049:  /*S2600GL*/
+     case 0x004A:  /*S2600CP*/
+     case 0x004D:  /*S2600JF*/
+     case 0x004F:  /*S2400SC*/
+     case 0x0051:  /*S2400EP*/
+     case 0x0055:  /*S2600IP*/
+     case 0x0056:  /*W2600CR*/
+     case 0x005C:  /*S4600LH*/
+     case 0x005D:  /*S2600CO*/
      case 0x0900:   /*TIGPR2U HSC*/
      case 0x0911:   /*TIGI2U HSC*/
      case 0x0A0C:   /*TIGW1U HSC*/

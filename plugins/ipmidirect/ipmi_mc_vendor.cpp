@@ -78,12 +78,16 @@ cIpmiMcVendorFactory::InitFactory()
        m_factory->Register( new cIpmiMcVendorIntelBmc( 0x0022 ) );
        m_factory->Register( new cIpmiMcVendorIntelBmc( 0x0026 ) );
        m_factory->Register( new cIpmiMcVendorIntelBmc( 0x0028 ) );
+       m_factory->Register( new cIpmiMcVendorIntelBmc( 0x0029 ) );
        m_factory->Register( new cIpmiMcVendorIntelBmc( 0x0100 ) );
        m_factory->Register( new cIpmiMcVendorIntelBmc( 0x4311 ) );
        m_factory->Register( new cIpmiMcVendorIntelBmc( 0x0811 ) );
        m_factory->Register( new cIpmiMcVendorIntelBmc( 0x0900 ) ); /*HSC*/
        m_factory->Register( new cIpmiMcVendorIntelBmc( 0x0911 ) ); /*HSC*/
        m_factory->Register( new cIpmiMcVendorIntelBmc( 0x0A0C ) ); /*HSC*/
+       m_factory->Register( new cIpmiMcVendorIntelBmc( 0x003E ) );
+       for (int i = 0x0048; i <= 0x005D; i++) 
+          m_factory->Register( new cIpmiMcVendorIntelBmc( i ) ); /*Romley*/
        // Sun BMC specific stuff
        m_factory->Register( new cIpmiMcVendorSunBmc( 0x4701 ) );
 
@@ -315,11 +319,12 @@ cIpmiMcVendor::CreateResources( cIpmiDomain *domain, cIpmiMc *source_mc, cIpmiSd
       if ( addr.m_slave_addr != source_mc->GetAddress() )
           stdlog << "WARNING : SDR slave address " << addr.m_slave_addr << " NOT equal to MC slave address " << (unsigned char)source_mc->GetAddress() << "\n";
 
-      if ( addr.m_channel != source_mc->GetChannel() )
+      if ( addr.m_channel != source_mc->GetChannel() ) 
           stdlog << "WARNING : SDR channel " << addr.m_channel << " NOT equal to MC channel " << source_mc->GetChannel() << "\n";
 
-       if ( FindOrCreateResource( domain, source_mc, fru_id, sdr, sdrs ) == false )
+       if ( FindOrCreateResource( domain, source_mc, fru_id, sdr, sdrs ) == false ) {
 	    return false;
+	}
      }
 
   return true;
@@ -356,6 +361,7 @@ cIpmiMcVendor::FindResource( cIpmiDomain *domain, cIpmiMc *mc,
 
   SaHpiEntityTypeT     type = SAHPI_ENT_UNKNOWN;
   SaHpiEntityLocationT instance = GetUniqueInstance();
+  unsigned char snum;
 
   if ( sdr )
      {
@@ -364,16 +370,18 @@ cIpmiMcVendor::FindResource( cIpmiDomain *domain, cIpmiMc *mc,
 	  {
 	    type     = (SaHpiEntityTypeT)sdr->m_data[12];
 	    instance = (SaHpiEntityLocationT)sdr->m_data[13];
+	    snum = 0;
 	  }
        else if ( sdr->m_type == eSdrTypeFullSensorRecord )
 	  {
 	    type     = (SaHpiEntityTypeT)sdr->m_data[8];
 	    instance = (SaHpiEntityLocationT)sdr->m_data[9];	    
+	    snum = sdr->m_data[7];	    
 	  }
        else
 	    assert( 0 );
      }
-  stdlog << "FindResource mc " << mc->GetAddress() << " FRU " << fru_id << " type " << type << " instance " << instance << "\n";
+  stdlog << "FindResource mc " << mc->GetAddress() << " FRU " << fru_id << " type " << type << " instance " << instance << " snum " << snum << "\n";
 
   cIpmiEntityPath ep = CreateEntityPath( domain, mc->GetAddress(), fru_id,
 					 type, instance, sdrs );
@@ -420,7 +428,7 @@ cIpmiMcVendor::FindOrCreateResource( cIpmiDomain *domain, cIpmiMc *mc,
 
   cIpmiResource *res = mc->FindResource( ep );
 
-  if ( res )
+  if ( res ) 
        return res;
 
   return CreateResource( domain, mc, fru_id, sdr, sdrs );
@@ -557,13 +565,14 @@ cIpmiMcVendor::CreateEntityPath( cIpmiDomain *domain, unsigned int mc_addr, unsi
 
 
 static cIpmiSensor *
-FindSensor( GList *list, unsigned int num, unsigned char lun )
+FindSensor( GList *list, unsigned char sa, unsigned int num, unsigned char lun )
 {
   for( ; list; list = g_list_next( list ) )
      {
        cIpmiSensor *sensor = (cIpmiSensor *)list->data;
 
        if (    sensor->Num() == num
+            && sensor->Sa()  == sa
             && sensor->Lun() == lun )
             return sensor;
      }
@@ -587,7 +596,7 @@ cIpmiMcVendor::CreateSensors( cIpmiDomain *domain, cIpmiMc *source_mc, cIpmiSdrs
        cIpmiSensor *sensor = (cIpmiSensor *)sensors->data;
        sensors = g_list_remove( sensors, sensor );
 
-       cIpmiSensor *old_sensor = FindSensor( old_sensors, sensor->Num(), sensor->Lun() );
+       cIpmiSensor *old_sensor = FindSensor( old_sensors, sensor->Sa(), sensor->Num(), sensor->Lun() );
 
        if ( old_sensor && sensor->Cmp( *old_sensor ) )
           {
@@ -608,7 +617,7 @@ cIpmiMcVendor::CreateSensors( cIpmiDomain *domain, cIpmiMc *source_mc, cIpmiSdrs
           }
 
        // check if the sensor is defined twice
-       if ( FindSensor( new_sensors, sensor->Num(), sensor->Lun() ) )
+       if ( FindSensor( new_sensors, sensor->Sa(), sensor->Num(), sensor->Lun() ) )
           {
             stdlog << "sensor " << sensor->IdString() << " defined twice in SDR !\n";
             delete sensor;
@@ -858,21 +867,29 @@ cIpmiMcVendor::CreateSensorEntityPath( cIpmiDomain *domain, cIpmiSensor *s,
 cIpmiMc *
 cIpmiMcVendor::FindMcBySdr( cIpmiDomain *domain, cIpmiSdr *sdr )
 {
+  unsigned char chan = 0;
+  int findok = 0;
   switch( sdr->m_type )
      {
        case eSdrTypeCompactSensorRecord:
+            findok = 1; break;
        case eSdrTypeFullSensorRecord:
+            findok = 1; break;
        case eSdrTypeMcDeviceLocatorRecord:
-       case eSdrTypeFruDeviceLocatorRecord:
-            {
-              cIpmiAddr addr( eIpmiAddrTypeIpmb, 0, 0, sdr->m_data[5] );
-
-              return domain->FindMcByAddr( addr );
-            }
-
+	    chan = sdr->m_data[6] & 0xf;
+            findok = 1; break;
+       case eSdrTypeFruDeviceLocatorRecord: 
+	    chan = (sdr->m_data[8]  >> 4) & 0xf;
+            findok = 1; break;
        default:
             break;
      }
+     if (findok)
+            {
+              cIpmiAddr addr( eIpmiAddrTypeIpmb, chan, 0, sdr->m_data[5] );
+
+              return domain->FindMcByAddr( addr );
+            }
 
   return 0;
 }
@@ -1128,15 +1145,36 @@ cIpmiMcVendor::CreateInv( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdr *sdr, cIpmi
   unsigned int sa = mc->GetAddress();
   SaHpiEntityTypeT     type;
 
-  if ( sdr->m_type == eSdrTypeMcDeviceLocatorRecord )
+  if ( sdr->m_type == eSdrTypeMcDeviceLocatorRecord ) /*0x12*/
      {
        fru_id = 0;
        lun    = 0;
        sa     = sdr->m_data[5];
        type   = (SaHpiEntityTypeT)sdr->m_data[12];
+       /* chan = sdr->m_data[6]; */
      }
-  else
+  else if ( sdr->m_type == eSdrTypeGenericDeviceLocatorRecord ) /*0x10*/
      {
+       if ( sdr->m_data[5] != 0) 
+          sa  = (sdr->m_data[5] >> 1);  /*access addr*/
+       fru_id = (sdr->m_data[6] >> 1) & 0x7f;  /*sa*/
+       lun    = (sdr->m_data[7] >> 3) & 0x03;  /*lun*/
+       type   = (SaHpiEntityTypeT)sdr->m_data[12];
+       /* chan = (sdr->m_data[7] >> 5) & 0x07;; */
+     }
+  else if ( sdr->m_type == eSdrTypeFruDeviceLocatorRecord ) /*0x11*/ 
+     {
+       fru_id = sdr->m_data[6]; 
+       lun    = (sdr->m_data[7] >> 3) & 3;
+       sa     = sdr->m_data[5];
+       type   = (SaHpiEntityTypeT)sdr->m_data[12];
+       /* chan = sdr->m_data[8]; */
+     }
+  else  /* other/unknown sdr type */
+     {
+       stdlog << "mc.CreateInv, unknown m_type=" << sdr->m_type << 
+        ", sdr[3]=" << sdr->m_data[3] << ", sdr[5]=" << sdr->m_data[5] << 
+	", sdr[6]=" << sdr->m_data[6] << "\n";
        fru_id = sdr->m_data[6];
        lun    = (sdr->m_data[7] >> 3) & 3;
        type     = SAHPI_ENT_UNKNOWN;
