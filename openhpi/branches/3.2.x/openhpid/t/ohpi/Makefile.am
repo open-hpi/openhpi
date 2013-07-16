@@ -26,6 +26,7 @@ TESTS_ENVIRONMENT += OPENHPI_CONF=$(top_srcdir)/openhpid/t/ohpi/openhpi.conf
 TESTS_ENVIRONMENT += LD_LIBRARY_PATH=$(top_srcdir)/openhpid/.libs:$(top_srcdir)/ssl/.libs:$(top_srcdir)/utils/.libs
 
 TESTS = \
+        setup_conf \
         ohpi_007 \
         ohpi_008 \
         ohpi_009 \
@@ -50,6 +51,8 @@ TESTS = \
 	hpiinjector
 
 check_PROGRAMS = $(TESTS)
+
+setup_conf_SOURCES = setup_conf.c
 
 ohpi_007_SOURCES = ohpi_007.c
 ohpi_007_LDADD   = $(TDEPLIB)

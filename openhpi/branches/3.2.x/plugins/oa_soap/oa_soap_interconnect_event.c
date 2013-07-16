@@ -794,7 +794,8 @@ void oa_soap_proc_interconnect_thermal(struct oh_handler_state *oh_handler,
 
 	rdr = oh_get_rdr_by_type(oh_handler->rptcache, resource_id,
 				 SAHPI_SENSOR_RDR, OA_SOAP_SEN_TEMP_STATUS);
-	sensor_info = (struct oa_soap_sensor_info *)
+        if (rdr)
+	        sensor_info = (struct oa_soap_sensor_info *)
 			oh_get_rdr_data(oh_handler->rptcache, resource_id,
 					rdr->RecordId);
 
