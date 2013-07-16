@@ -25,7 +25,9 @@ TESTS_ENVIRONMENT += OPENHPI_UID_MAP=$(top_builddir)/plugins/simulator/t/uid_map
 TESTS_ENVIRONMENT += OPENHPI_CONF=$(top_srcdir)/plugins/simulator/t/openhpi.conf
 TESTS_ENVIRONMENT += LD_LIBRARY_PATH=$(top_srcdir)/openhpid/.libs:$(top_srcdir)/ssl/.libs:$(top_srcdir)/utils/.libs
 
-TESTS = sim_sanity_000 \
+TESTS = \
+	setup_conf \
+	sim_sanity_000 \
 	sim_sanity_001 \
 	sim_sanity_002 \
 	sim_sanity_003 \
@@ -73,6 +75,8 @@ TESTS = sim_sanity_000 \
 	sim_sanity_045
 
 check_PROGRAMS = $(TESTS)
+
+setup_conf_SOURCES = setup_conf.c
 
 sim_sanity_000_SOURCES = sim_sanity_000.c
 sim_sanity_000_LDADD = $(TDEPLIB)
