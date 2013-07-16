@@ -14,6 +14,7 @@ OPENHPI_DAEMON_PORT=4743
 
 if [ ! -f @abs_top_srcdir@/openhpi.conf ]; then
         cp @abs_top_srcdir@/openhpi.conf.example @abs_top_srcdir@/openhpi.conf
+	chmod 600 @abs_top_srcdir@/openhpi.conf
 fi
 
 if [ ! -f @abs_top_srcdir@/openhpiclient.conf ]; then

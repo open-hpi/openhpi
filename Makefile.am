@@ -135,10 +135,10 @@ install-data-local: openhpi.pc openhpi.conf.example simulation.data.example open
 	chmod 777 $(DESTDIR)$(VARPATH)
 	$(mkinstalldirs) $(DESTDIR)$(sysconfdir)/openhpi
 	if test ! -e  $(DESTDIR)$(sysconfdir)/openhpi/openhpi.conf; then \
-		$(INSTALL_DATA) $(top_srcdir)/openhpi.conf.example $(DESTDIR)$(sysconfdir)/openhpi/openhpi.conf; \
+		$(INSTALL) -m 600 $(top_srcdir)/openhpi.conf.example $(DESTDIR)$(sysconfdir)/openhpi/openhpi.conf; \
 	fi
 	if test ! -e  $(DESTDIR)$(sysconfdir)/openhpi/simulation.data; then \
-		$(INSTALL_DATA) $(top_srcdir)/simulation.data.example $(DESTDIR)$(sysconfdir)/openhpi/simulation.data; \
+		$(INSTALL) -m 600 $(top_srcdir)/simulation.data.example $(DESTDIR)$(sysconfdir)/openhpi/simulation.data; \
 	fi
 	if test ! -e  $(DESTDIR)$(sysconfdir)/openhpi/openhpiclient.conf; then \
 		$(INSTALL_DATA) $(top_srcdir)/openhpiclient.conf.example $(DESTDIR)$(sysconfdir)/openhpi/openhpiclient.conf; \
@@ -163,6 +163,12 @@ rpm: dist
 	mkdir $(top_srcdir)/rpm/BUILD
 	mkdir $(top_srcdir)/rpm/INSTALL
 	$(RPM) $(RPMFLAGS) $(PACKAGE_NAME).spec </dev/null;
+
+dist-hook:
+	$(shell find $(distdir) -name openhpi.conf -exec chmod 600 "{}" ";")
+
+distcheck-hook:
+	$(shell find $(distdir) -name openhpi.conf -exec chmod 600 "{}" ";")
 
 documentation:
 	$(MAKE) -C docs

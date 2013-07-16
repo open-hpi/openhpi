@@ -27,7 +27,7 @@ typedef struct
   tUint8 m_pad3;
 } cTest;
 
-cMarshalType TestVarArrayType = dVarArray( 1, SaHpiDimiTestVariableParamsT, SaHpiDimiTestVariableParamsType );
+cMarshalType TestVarArrayType = dVarArray("TestVarArrayType", 1, SaHpiDimiTestVariableParamsT, SaHpiDimiTestVariableParamsType );
 cMarshalType StructElements[] =
 {
   dStructElement( cTest, m_pad1 , Marshal_Uint8Type ),
