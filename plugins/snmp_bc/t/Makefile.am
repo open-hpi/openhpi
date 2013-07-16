@@ -102,6 +102,7 @@ TESTS_ENVIRONMENT += OPENHPI_UID_MAP=$(shell pwd)/uid_map
 TESTS_ENVIRONMENT += OPENHPI_PATH=$(shell pwd)
 
 TESTS = \
+	setup_conf \
 	tsim_file \
 	tevent \
 	tcontrol_parms \
@@ -178,6 +179,9 @@ TESTS = \
 # XFAIL_TESTS = thotswap_reset
 
 check_PROGRAMS = $(TESTS)
+
+# Unit test using normal IF calls and simulation library
+setup_conf_SOURCES = setup_conf.c
 
 # Unit test using normal IF calls and simulation library
 tsim_file_SOURCES = tsim_file.c

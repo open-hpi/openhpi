@@ -13,7 +13,7 @@ With Mono:
 With Visual C#:
 - Create assembly project
 - Include all .cs files from openhpi_baselib dir to the project
-- Set output assembly name to "openhpi_baselib.dll"
+- Set output assembly name to "openhpi_baselib"
 - Build the project
 
 ================================================================================
