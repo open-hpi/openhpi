@@ -87,6 +87,8 @@ Library Usage instructions:
 
 Header file SaHpi.h contains declarations on provided HPI functions.
 Header file oHpi.h contains declarations on provided OpenHPI extension functions.
+Make sure to use the oHpi.h and SaHpi.h files from  openhpi-3.3.0-win32-x86 or 
+openhpi-3.3.0-win32-amd64 directory, not the ones from trunk/include directory.
 The functions are in libopenhpi.dll.
 
 Define "SAHPI_API" macro as "__declspec(dllimport)".
