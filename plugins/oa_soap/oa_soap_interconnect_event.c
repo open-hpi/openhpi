@@ -779,7 +779,7 @@ void oa_soap_proc_interconnect_thermal(struct oh_handler_state *oh_handler,
 	SaHpiFloat64T trigger_threshold;
 	struct getThermalInfo thermal_request;
 	struct thermalInfo thermal_response;
-	struct oa_soap_sensor_info *sensor_info;
+	struct oa_soap_sensor_info *sensor_info = NULL;
 	SaHpiRdrT *rdr;
 
         if (oh_handler == NULL || con== NULL || response == NULL) {

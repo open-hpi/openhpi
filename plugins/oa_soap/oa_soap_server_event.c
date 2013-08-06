@@ -161,7 +161,6 @@ SaErrorT process_server_power_on_event(struct oh_handler_state *oh_handler,
                                        SaHpiInt32T bay_number)
 {
         SaErrorT rv = SA_OK;
-        struct oa_soap_handler *oa_handler;
         struct oa_soap_hotswap_state *hotswap_state = NULL;
         struct oa_soap_sensor_info *sensor_info=NULL;
         SaHpiRdrT *rdr = NULL;
@@ -172,7 +171,6 @@ SaErrorT process_server_power_on_event(struct oh_handler_state *oh_handler,
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        oa_handler = (struct oa_soap_handler *) oh_handler->data;
         hotswap_state = (struct oa_soap_hotswap_state *)
                 oh_get_resource_data(oh_handler->rptcache,
                                      event->resource.ResourceId);
@@ -291,7 +289,6 @@ SaErrorT process_server_power_event(struct oh_handler_state *oh_handler,
         SaErrorT rv = SA_OK;
         SaHpiRptEntryT *rpt = NULL;
         struct oa_soap_handler *oa_handler = NULL;
-        struct oa_soap_hotswap_state hotswap_state;
         SaHpiInt32T bay_number, loc=1;
         struct oh_event event;
         SaHpiResourceIdT resource_id;
@@ -381,7 +378,6 @@ SaErrorT process_server_power_event(struct oh_handler_state *oh_handler,
 
                 /* Currently, OA is not sending the REBOOT event*/
                 case (POWER_REBOOT):
-                        hotswap_state.currentHsState = SAHPI_HS_STATE_ACTIVE;
                         event.event.EventDataUnion.HotSwapEvent.
                                 PreviousHotSwapState =
                                 SAHPI_HS_STATE_INSERTION_PENDING;
@@ -574,7 +570,6 @@ SaErrorT process_server_info_event(struct oh_handler_state
         char *serial_number = NULL;
         char *name = NULL;
         char *Name = NULL;
-	struct bladeInfo *response;
         SaHpiResourceIdT resource_id;
        	char blade_name[MAX_NAME_LEN];
         SaHpiRptEntryT *rpt = NULL;
@@ -606,8 +601,7 @@ SaErrorT process_server_info_event(struct oh_handler_state
         }
 
         name = oa_event->eventData.bladeInfo.name;
-	response = (struct bladeInfo *)&oa_event->eventData.bladeInfo;
-         resource_id = oa_handler->
+        resource_id = oa_handler->
                 oa_soap_resources.server.resource_id[bay_number - 1];
 
         if (strcmp(name,"[Unknown]") == 0 ) {

@@ -1693,7 +1693,6 @@ SaErrorT build_server_rdr(struct oh_handler_state *oh_handler,
 	struct getBladeStatus status_request;
 	struct bladeStatus status_response;
 	SaHpiInt32T sensor_status;
-        SaHpiBoolT event_support = SAHPI_FALSE;
 	enum diagnosticStatus diag_ex_status[OA_SOAP_MAX_DIAG_EX];
 
         if (oh_handler == NULL || con == NULL) {
@@ -1738,7 +1737,6 @@ SaErrorT build_server_rdr(struct oh_handler_state *oh_handler,
 		err("Failed to build thermal rdr");
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
-        event_support = SAHPI_TRUE;
 
         /* Build power sensor rdr for server */
 	OA_SOAP_BUILD_SENSOR_RDR(OA_SOAP_SEN_PWR_STATUS)
@@ -3297,7 +3295,6 @@ static SaErrorT oa_soap_build_fz_rdr(struct oh_handler_state *oh_handler,
 {
         SaErrorT rv = SA_OK;
         SaHpiRdrT rdr;
-	struct oa_soap_handler *oa_handler = NULL;
         struct oa_soap_sensor_info *sensor_info = NULL;
 	SaHpiInt32T sensor_status;
 
@@ -3305,8 +3302,6 @@ static SaErrorT oa_soap_build_fz_rdr(struct oh_handler_state *oh_handler,
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
-
-	oa_handler = (struct oa_soap_handler *) oh_handler->data;
 
 	/* Build the fan zone inventory rdr */
 	rv = oa_soap_build_fz_inv(oh_handler, resource_id, fan_zone);
@@ -3953,7 +3948,6 @@ SaErrorT oa_soap_populate_event(struct oh_handler_state *oh_handler,
  **/
 static void oa_soap_push_disc_res(struct oh_handler_state *oh_handler)
 {
-        SaErrorT rv = SA_OK;
         SaHpiRptEntryT *rpt = NULL;
         struct oh_event event;
         struct oa_soap_hotswap_state *hotswap_state = NULL;
@@ -3970,7 +3964,7 @@ static void oa_soap_push_disc_res(struct oh_handler_state *oh_handler)
 		/* Populate the event structure with default values and get the
 		 * asserted sensor list 
 		 */
-                rv = oa_soap_populate_event(oh_handler, rpt->ResourceId, &event,
+                 oa_soap_populate_event(oh_handler, rpt->ResourceId, &event,
 					    &assert_sensor_list);
 
                 /* Check whether the resource has hotswap capability */
