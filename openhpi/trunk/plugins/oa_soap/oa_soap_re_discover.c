@@ -2404,7 +2404,6 @@ static SaErrorT oa_soap_re_disc_oa_sen(struct oh_handler_state *oh_handler,
 				       SaHpiInt32T bay_number)
 {
 	SaErrorT rv = SA_OK;
-	struct oa_soap_handler *oa_handler = NULL;
 	struct getOaStatus request;
 	struct oaStatus response;
 	struct getOaNetworkInfo nw_info_request;
@@ -2414,8 +2413,6 @@ static SaErrorT oa_soap_re_disc_oa_sen(struct oh_handler_state *oh_handler,
 		err("Invalid parameters");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
-
-	oa_handler = (struct oa_soap_handler *) oh_handler->data;
 
 	request.bayNumber = bay_number;
 	rv = soap_getOaStatus(con, &request, &response);

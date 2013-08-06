@@ -299,7 +299,7 @@ Marshal( const cMarshalType *type, const void *d, void *b )
 		   int cc = Marshal( elem, data, buffer );
 		   if ( cc < 0 )
 		      {
-			   CRIT( "Marshal: %s[%d]: failure, cc = %d!", type->m_name, i, cc );
+			   CRIT( "Marshal: %s[%zd]: failure, cc = %d!", type->m_name, i, cc );
 			   return cc;
 		      }
 
@@ -357,7 +357,7 @@ Marshal( const cMarshalType *type, const void *d, void *b )
 			     int cc2 = Marshal( elem2, data2, buffer2 );
 			     if ( cc2 < 0 )
 				{
-			          CRIT( "Marshal: %s:%s[%d]: failure, cc = %d!",
+			          CRIT( "Marshal: %s:%s[%zd]: failure, cc = %d!",
 			                 type->m_name, elems[i].m_name, i2, cc2 );
 				  return cc2;
 				}
@@ -561,7 +561,7 @@ Demarshal( int byte_order, const cMarshalType *type, void *d, const void *b )
 		   int cc = Demarshal( byte_order, elem, data, buffer );
 		   if ( cc < 0 )
 		      {
-			   CRIT( "Demarshal: %s[%d]: failure, cc = %d!", type->m_name, i, cc );
+			   CRIT( "Demarshal: %s[%zd]: failure, cc = %d!", type->m_name, i, cc );
 			   return cc;
 		      }
 
@@ -633,7 +633,7 @@ Demarshal( int byte_order, const cMarshalType *type, void *d, const void *b )
 			     int cc2 = Demarshal( byte_order, elem2, data2, buffer2 );
 			     if ( cc2 < 0 )
 				{
-			          CRIT( "Demarshal: %s:%s[%d]: failure, cc = %d!",
+			          CRIT( "Demarshal: %s:%s[%zd]: failure, cc = %d!",
 			                 type->m_name, elems[i].m_name, i2, cc2 );
 				  return cc2;
 				}

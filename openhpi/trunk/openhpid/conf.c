@@ -497,7 +497,6 @@ int oh_load_config (char *filename, struct oh_parsed_config *config)
         struct stat fst, dst; 
         char *dir_name = NULL;
         char dup_filename[PATH_MAX];
-        extern int errno;
 #endif
         GScanner *oh_scanner;
         int i, done = 0;

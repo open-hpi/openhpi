@@ -624,7 +624,6 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                        struct oa_info *oa,
                        struct getAllEventsResponse *response)
 {
-        SaErrorT rv;
         SaHpiInt32T loc=0;
         struct eventInfo event;
         struct oa_soap_handler *oa_handler = NULL;
@@ -689,14 +688,14 @@ void process_oa_events(struct oh_handler_state *oh_handler,
 
                         case EVENT_FAN_INSERTED:
                                 dbg("EVENT_FAN_INSERTED");
-                                rv = process_fan_insertion_event(oh_handler,
+                                process_fan_insertion_event(oh_handler,
                                                                  oa->event_con2,
                                                                  &event);
                                 break;
 
                         case EVENT_FAN_REMOVED:
                                 dbg("EVENT_FAN_REMOVED");
-                                rv = process_fan_extraction_event(oh_handler,
+                                process_fan_extraction_event(oh_handler,
                                                                   &event);
                                 break;
 
@@ -726,14 +725,14 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                                 break;
                         case EVENT_PS_INSERTED:
                                 dbg("EVENT_PS_INSERTED");
-                                rv = process_ps_insertion_event(oh_handler,
+                                process_ps_insertion_event(oh_handler,
                                                                 oa->event_con2,
                                                                 &event);
                                 break;
 
                         case EVENT_PS_REMOVED:
                                 dbg("EVENT_PS_REMOVED");
-                                rv = process_ps_extraction_event(oh_handler,
+                                process_ps_extraction_event(oh_handler,
                                                                  &event);
                                 break;
 
@@ -772,7 +771,7 @@ void process_oa_events(struct oh_handler_state *oh_handler,
 
                         case EVENT_INTERCONNECT_RESET:
                                 dbg("EVENT_INTERCONNECT_RESET");
-                                rv = process_interconnect_reset_event(
+                                process_interconnect_reset_event(
                                         oh_handler, &event);
                                 break;
                         case EVENT_INTERCONNECT_UID:
@@ -780,19 +779,19 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                                 break;
                         case EVENT_INTERCONNECT_INSERTED:
                                 dbg("EVENT_INTERCONNECT_INSERTED");
-                                rv = process_interconnect_insertion_event(
+                                process_interconnect_insertion_event(
                                         oh_handler, oa->event_con2, &event);
                                 break;
 
                         case EVENT_INTERCONNECT_REMOVED:
                                 dbg("EVENT_INTERCONNECT_REMOVED");
-                                rv = process_interconnect_extraction_event(
+                                process_interconnect_extraction_event(
                                         oh_handler, &event);
                                 break;
 
                         case EVENT_INTERCONNECT_INFO:
                                 dbg("EVENT_INTERCONNECT_INFO");
-                                rv = process_interconnect_info_event(
+                                process_interconnect_info_event(
                                         oh_handler, oa->event_con2, &event);
                                 break;
                         case EVENT_INTERCONNECT_HEALTH_LED:
@@ -811,7 +810,7 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                                 break;
                         case EVENT_INTERCONNECT_POWER:
                                 dbg("EVENT_INTERCONNECT_POWER");
-                                rv = process_interconnect_power_event(
+                                process_interconnect_power_event(
                                         oh_handler, &event);
                                 break;
                         case EVENT_INTERCONNECT_PORTMAP:
@@ -846,7 +845,7 @@ void process_oa_events(struct oh_handler_state *oh_handler,
 
                         case EVENT_BLADE_REMOVED:
                                 dbg("EVENT_BLADE_REMOVED");
-                                rv = process_server_extraction_event(oh_handler,
+                                process_server_extraction_event(oh_handler,
                                                                      &event);
                                 break;
 
@@ -883,12 +882,12 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                                 break;
                         case EVENT_BLADE_INFO:
                                 dbg("EVENT_BLADE_INFO");
-				rv = process_server_info_event(oh_handler, 
+				process_server_info_event(oh_handler, 
 						oa->event_con2, &event);
                                 break;
                         case EVENT_BLADE_MP_INFO:
                                 dbg("EVENT_BLADE_MP_INFO");
-                                rv = process_server_mp_info_event(oh_handler,
+                                process_server_mp_info_event(oh_handler,
                                                     oa->event_con2, &event);
                                 break;
                         case EVENT_ILO_READY:
@@ -1000,19 +999,19 @@ void process_oa_events(struct oh_handler_state *oh_handler,
 
                         case EVENT_OA_REMOVED:
                                 dbg("EVENT_OA_REMOVED");
-                                rv = process_oa_extraction_event(oh_handler,
+                                process_oa_extraction_event(oh_handler,
                                                                  &event);
                                 break;
 
                         case EVENT_OA_INFO:
                                 dbg("EVENT_OA_INFO");
-                                rv = process_oa_info_event(oh_handler,
+                                process_oa_info_event(oh_handler,
                                                            oa->event_con2,
 							   &event);
                                 break;
                         case EVENT_OA_FAILOVER:
                                 dbg("EVENT_OA_FAILOVER");
-                                rv = process_oa_failover_event(oh_handler, oa);
+                                process_oa_failover_event(oh_handler, oa);
                                 /* We have done the re-discovery as part of
                                  * FAILOVER event processing.  Ignore the
                                  * events that are recived along with FAILOVER.
@@ -1099,7 +1098,7 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                                 break;
                         case EVENT_OA_REBOOT:
                                 dbg("EVENT_OA_REBOOT");
-                                rv = process_oa_reboot_event(oh_handler, oa);
+                                process_oa_reboot_event(oh_handler, oa);
                                 response->eventInfoArray = NULL; 
                                 break;
                         case EVENT_OA_LOGOFF_REQUEST:
@@ -1270,7 +1269,7 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                                 break;
                         case EVENT_BLADE_INSERT_COMPLETED:
                                 dbg("EVENT_BLADE_INSERT_COMPLETED");
-                                rv = process_server_insertion_event(oh_handler,
+                                process_server_insertion_event(oh_handler,
                                                                  oa->event_con2,
                                                                  &event, loc);
                                 break;

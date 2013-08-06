@@ -211,7 +211,6 @@ SaErrorT oa_soap_get_control_state(void *oh_handler,
         SaHpiCtrlTypeT type;
         SaHpiCtrlModeT ctrl_mode;
         SaHpiCtrlStateT ctrl_state;
-        SaHpiCtrlRecDigitalT *digital = NULL;
         SaHpiCtrlRecT *ctrl = NULL;
 	SaHpiCtrlStateDigitalT control_digital_state = 0;
 	SaHpiCtrlStateDiscreteT control_discrete_state = 0;
@@ -249,8 +248,6 @@ SaErrorT oa_soap_get_control_state(void *oh_handler,
         *mode = ctrl_mode;
         type = ctrl->Type;
         ctrl_state.Type = type;
-
-        digital = &(ctrl->TypeUnion.Digital);
 
         switch (rdr_num){
                 case OA_SOAP_PWR_CNTRL:
@@ -414,7 +411,6 @@ SaErrorT oa_soap_set_control_state(void *oh_handler,
 {
         SaErrorT rv = SA_OK;
         struct oh_handler_state *handler = NULL;
-        struct oa_soap_handler *oa_handler = NULL;
         SaHpiRptEntryT *rpt = NULL;
         SaHpiRdrT *rdr = NULL;
         SaHpiCtrlRecT *ctrl = NULL;
@@ -425,7 +421,6 @@ SaErrorT oa_soap_set_control_state(void *oh_handler,
         }
 
         handler = (struct oh_handler_state *) oh_handler;
-        oa_handler = (struct oa_soap_handler *) handler->data;
 
         rpt = oh_get_resource_by_id (handler->rptcache, resource_id);
         if (rpt == NULL) {
@@ -1783,7 +1778,6 @@ static SaErrorT oa_soap_set_dynamic_pwr_cap_cntrl(
   SaHpiCtrlStateAnalogT control_state)
 {
         SaErrorT rv = SA_OK;
-        struct powerConfigInfo *power_config_info;
         struct powerCapConfig *power_cap_config;
         struct oa_soap_handler *oa_handler = NULL;
 
@@ -1793,7 +1787,6 @@ static SaErrorT oa_soap_set_dynamic_pwr_cap_cntrl(
 	}
 	
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
-        power_config_info = &(oa_handler->power_config_info);
         power_cap_config = &(oa_handler->power_cap_config);
 
         oa_handler->desired_dynamic_pwr_cap = control_state;
@@ -1894,7 +1887,6 @@ static SaErrorT oa_soap_set_derated_circuit_cap_cntrl(
   SaHpiCtrlStateAnalogT control_state)
 {
         SaErrorT rv = SA_OK;
-        struct powerConfigInfo *power_config_info;
         struct powerCapConfig *power_cap_config;
         struct oa_soap_handler *oa_handler = NULL;
 
@@ -1904,7 +1896,6 @@ static SaErrorT oa_soap_set_derated_circuit_cap_cntrl(
 	}
 	
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
-        power_config_info = &(oa_handler->power_config_info);
         power_cap_config = &(oa_handler->power_cap_config);
 
         oa_handler->desired_derated_circuit_cap = control_state;
@@ -2006,7 +1997,6 @@ static SaErrorT oa_soap_set_rated_circuit_cap_cntrl(
   SaHpiCtrlStateAnalogT control_state)
 {
         SaErrorT rv = SA_OK;
-        struct powerConfigInfo *power_config_info;
         struct powerCapConfig *power_cap_config;
         struct oa_soap_handler *oa_handler = NULL;
 
@@ -2016,7 +2006,6 @@ static SaErrorT oa_soap_set_rated_circuit_cap_cntrl(
 	}
 	
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
-        power_config_info = &(oa_handler->power_config_info);
         power_cap_config = &(oa_handler->power_cap_config);
 
         oa_handler->desired_rated_circuit_cap = control_state;

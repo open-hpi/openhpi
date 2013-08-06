@@ -3611,7 +3611,6 @@ SaErrorT build_power_inv_rdr(struct oh_handler_state *oh_handler,
         struct oa_soap_handler *oa_handler = NULL;
         SaHpiResourceIdT resource_id;
         SaHpiRptEntryT *rpt = NULL;
-        SaHpiInt32T product_area_success_flag = 0;
         xmlNode *extra_data=NULL;
         struct extraDataInfo extra_data_info;
 
@@ -3692,7 +3691,6 @@ SaErrorT build_power_inv_rdr(struct oh_handler_state *oh_handler,
          * area pointer stored as the head node for area list
          */
         if (add_success_flag != SAHPI_FALSE) {
-                product_area_success_flag = SAHPI_TRUE;
                 (local_inventory->info.idr_info.NumAreas)++;
                 if (area_count == 0) {
                         head_area = local_inventory->info.area_list;
@@ -5330,7 +5328,6 @@ SaErrorT oa_soap_build_fz_inv(struct oh_handler_state *oh_handler,
 			      struct fanZone *fan_zone)
 {
 	SaErrorT rv;
-	struct oa_soap_handler *oa_handler;
 	struct oa_soap_inventory *inventory = NULL;
 	char *temp, field_data[MAX_BUF_SIZE]; 
         char temp1[MAX_BUF_SIZE] = {'\0'};
@@ -5351,8 +5348,6 @@ SaErrorT oa_soap_build_fz_inv(struct oh_handler_state *oh_handler,
 		return rv;
 	}
 	
-	oa_handler = (struct oa_soap_handler *) oh_handler->data;
-
 	/* Construct the device bays field data*/
 	/* Set the field_data to 0. This helps the strlen (5 lines down) to get
 	 * correct string length

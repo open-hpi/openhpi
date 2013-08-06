@@ -66,14 +66,11 @@ SaErrorT oa_soap_get_reset_state(void *oh_handler,
 {
         SaErrorT rv = SA_OK;
         SaHpiPowerStateT state;
-        struct oh_handler_state *handler = NULL;
 
         if (oh_handler == NULL || action == NULL) {
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
-
-        handler = (struct oh_handler_state *) oh_handler;
 
         /* Get the current power state of the resource */
         rv = oa_soap_get_power_state(oh_handler, resource_id, &state);
