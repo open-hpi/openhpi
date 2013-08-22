@@ -118,4 +118,8 @@ char * oa_soap_trim_whitespace(char *s);
 SaErrorT update_oa_fw_version(struct oh_handler_state *oh_handler,
                               struct oaInfo *response,
                               SaHpiResourceIdT resource_id);
+
+SaErrorT oa_soap_get_oa_ip(char *server,
+                      struct oaNetworkInfo network_info_response,
+                      char *oa_ip);
 #endif

@@ -1558,6 +1558,14 @@ struct oaNetworkInfo
         enum hpoa_boolean dynDnsEnabled;
         char *macAddress;
         char *ipAddress;
+        char ipv6Address0[255];
+        char ipv6Address1[255];
+        char ipv6Address2[255];
+        char ipv6Address3[255];
+        char *ipv6AddressType0;
+        char *ipv6AddressType1;
+        char *ipv6AddressType2;
+        char *ipv6AddressType3;
         char *netmask;
         char *gateway;
         xmlNode *dns;                   /* Items are char *ipAddress */

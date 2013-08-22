@@ -373,10 +373,15 @@ SaErrorT get_oa_state(struct oh_handler_state *oh_handler,
                         case ACTIVE:
                                 active_bay = i;
                                 memset(active_ip, 0, MAX_URL_LEN);
-                                strncpy(active_ip,
-                                        network_info_response.ipAddress,
-                                        strlen(network_info_response.
-                                                       ipAddress));
+                                rv = oa_soap_get_oa_ip(server,
+                                                       network_info_response,
+                                                       active_ip);
+                                if (rv != SOAP_OK) {
+                                        err("Get Active OA IP failed");
+                                        soap_close(hpi_con);
+                                        soap_close(event_con);
+                                        return SA_ERR_HPI_INTERNAL_ERROR;
+                                }
 
                                 memset(active_fm, 0, MAX_BUF_SIZE);
                                 strncpy(active_fm, firmware, strlen(firmware));
@@ -394,10 +399,15 @@ SaErrorT get_oa_state(struct oh_handler_state *oh_handler,
                         case STANDBY:
                                 standby_bay = i;
                                 memset(standby_ip, 0, MAX_URL_LEN);
-                                strncpy(standby_ip,
-                                        network_info_response.ipAddress,
-                                        strlen(network_info_response.
-                                                       ipAddress));
+                                rv = oa_soap_get_oa_ip(server,
+                                                       network_info_response,
+                                                       standby_ip);
+                                if (rv != SOAP_OK) {
+                                        err("Get Standby OA IP failed");
+                                        soap_close(hpi_con);
+                                        soap_close(event_con);
+                                        return SA_ERR_HPI_INTERNAL_ERROR;
+                                }
 
                                 memset(standby_fm, 0, MAX_BUF_SIZE);
                                 strncpy(standby_fm, firmware, strlen(firmware));
@@ -1684,5 +1694,137 @@ SaErrorT update_oa_fw_version(struct oh_handler_state *oh_handler,
         oh_evt_queue_push(oh_handler->eventq,
         copy_oa_soap_event(&event));
 
+        return SA_OK;
+}
+
+/**
+ * oa_soap_get_oa_ip
+ *      @server:     Pointer to hostname/IP address of the OA
+ *      @network_info_response: Pointer to oaNetworkInfo response structure
+ *      @oa_ip:     Pointer to Active/Standby OA IP address
+ *
+ * Purpose:
+ *      Gets the active/standby OA IP address
+ *
+ * Detailed Description: NA
+ *
+ * Return values:
+ *      SA_OK  - on success.
+ *      SA_ERR_HPI_INVALID_PARAMS - on wrong parameters
+ **/
+SaErrorT oa_soap_get_oa_ip(char *server, 
+                           struct oaNetworkInfo network_info_response,
+                           char *oa_ip)
+{
+        int ipv6, local_ipv6;
+        char *interface_name;
+        struct extraDataInfo extra_data_info;
+        xmlNode *extra_data = NULL;
+
+        if (&network_info_response == NULL || server == NULL) {
+                err("Invalid parameters");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        /* intialize the flags for ipv6  */
+        ipv6 = strstr(server, ":") == NULL ? 0 : 1;
+        local_ipv6 = (strstr(server, "fe80")- server) == 0 ? 1 : 0;
+
+        extra_data = network_info_response.extraData;
+        while (extra_data) {
+                soap_getExtraData(extra_data, &extra_data_info);
+                if ((!(strcmp(extra_data_info.name, "Ipv6Address0"))) 
+                       && (extra_data_info.value != NULL)) {
+                        memcpy(network_info_response.ipv6Address0,
+                               extra_data_info.value,
+                               strlen(extra_data_info.value) -
+                               strlen(strchr(extra_data_info.value, '/')));
+                }
+                if ((!(strcmp(extra_data_info.name, "Ipv6Address1")))
+                       && (extra_data_info.value != NULL)) {
+                        memcpy(network_info_response.ipv6Address1,
+                               extra_data_info.value,
+                               strlen(extra_data_info.value) -
+                               strlen(strchr(extra_data_info.value, '/')));
+                }
+                if ((!(strcmp(extra_data_info.name, "Ipv6Address2")))
+                       && (extra_data_info.value != NULL)) {
+                        memcpy(network_info_response.ipv6Address2,
+                               extra_data_info.value,
+                               strlen(extra_data_info.value) -
+                               strlen(strchr(extra_data_info.value, '/')));
+                }
+                if ((!(strcmp(extra_data_info.name, "Ipv6Address3")))
+                       && (extra_data_info.value != NULL)) {
+                        memcpy(network_info_response.ipv6Address3,
+                               extra_data_info.value,
+                               strlen(extra_data_info.value) -
+                               strlen(strchr(extra_data_info.value, '/')));
+                }
+                if ((!(strcmp(extra_data_info.name, "Ipv6AddressType0"))) &&
+                                           (extra_data_info.value != NULL)) {
+                        network_info_response.ipv6AddressType0 = 
+                                                 extra_data_info.value;
+                }
+                if ((!(strcmp(extra_data_info.name, "Ipv6AddressType1"))) &&
+                                           (extra_data_info.value != NULL)) {
+                        network_info_response.ipv6AddressType1 =
+                                                extra_data_info.value;
+                }
+                if ((!(strcmp(extra_data_info.name, "Ipv6AddressType2"))) &&
+                                           (extra_data_info.value != NULL)) {
+                        network_info_response.ipv6AddressType2 =
+                                                extra_data_info.value;
+                }
+                if ((!(strcmp(extra_data_info.name, "Ipv6AddressType3"))) &&
+                                           (extra_data_info.value != NULL)) {
+                        network_info_response.ipv6AddressType3 =
+                                                extra_data_info.value;
+                }
+                extra_data = soap_next_node(extra_data);
+        }
+
+        if(!ipv6) {
+                strncpy(oa_ip, network_info_response.ipAddress,
+                        strlen(network_info_response.ipAddress));
+        } else if(!local_ipv6) {
+                if ((!(strcmp(network_info_response.ipv6AddressType0,
+                                                              "STATIC")))) {
+                        strncpy(oa_ip, network_info_response.ipv6Address0,
+                                strlen(network_info_response.ipv6Address0));
+                } else if ((!(strcmp(network_info_response.ipv6AddressType1,
+                                                              "STATIC")))) {
+                        strncpy(oa_ip, network_info_response.ipv6Address1,
+                                strlen(network_info_response.ipv6Address1));
+                } else if ((!(strcmp(network_info_response.ipv6AddressType2,
+                                                              "STATIC")))) {
+                        strncpy(oa_ip, network_info_response.ipv6Address2,
+                                strlen(network_info_response.ipv6Address2));
+                } else if ((!(strcmp(network_info_response.ipv6AddressType3,
+                                                              "STATIC")))) {
+                        strncpy(oa_ip, network_info_response.ipv6Address3,
+                                strlen(network_info_response.ipv6Address3));
+                }
+        } else {
+                if ((!(strcmp(network_info_response.ipv6AddressType0,
+                                                           "LINKLOCAL")))) {
+                        strncpy(oa_ip, network_info_response.ipv6Address0,
+                                strlen(network_info_response.ipv6Address0));
+                } else if ((!(strcmp(network_info_response.ipv6AddressType1,
+                                                           "LINKLOCAL")))) {
+                        strncpy(oa_ip, network_info_response.ipv6Address1,
+                                strlen(network_info_response.ipv6Address1));
+                } else if ((!(strcmp(network_info_response.ipv6AddressType2,
+                                                           "LINKLOCAL")))) {
+                        strncpy(oa_ip, network_info_response.ipv6Address2,
+                                strlen(network_info_response.ipv6Address2));
+                } else if ((!(strcmp(network_info_response.ipv6AddressType3,
+                                                           "LINKLOCAL")))) {
+                        strncpy(oa_ip, network_info_response.ipv6Address3,
+                                strlen(network_info_response.ipv6Address3));
+                }
+                interface_name = strchr(server, '%');
+                strcat(oa_ip, interface_name);
+        }
         return SA_OK;
 }
