@@ -74,6 +74,11 @@
 #include <oh_ssl.h>
 #include <oh_error.h>
 
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <arpa/inet.h>
+#include <netdb.h>
 
 /* Data types used by this module */
 struct CRYPTO_dynlock_value {
@@ -441,11 +446,17 @@ BIO             *oh_ssl_connect(char *hostname, SSL_CTX *ctx, long timeout)
 {
         BIO             *bio;
         SSL             *ssl;
-        fd_set          readfds;
-        fd_set          writefds;
-        struct timeval  tv;
-        int             fd;
         int             err;
+        int len, retval = 0;
+        int RetVal, socket_desc = 0;
+        char *Server = NULL;
+        char *Port = NULL;
+        struct addrinfo Hints, *AddrInfo = NULL, *ai = NULL;
+
+        memset(&Hints, 0, sizeof(Hints));
+        Hints.ai_family = AF_UNSPEC;
+        Hints.ai_socktype = SOCK_STREAM;
+        len = strlen(hostname);
 
         if (hostname == NULL) {
                 CRIT("NULL hostname in oh_ssl_connect()");
@@ -460,98 +471,88 @@ BIO             *oh_ssl_connect(char *hostname, SSL_CTX *ctx, long timeout)
                 return(NULL);
         }
 
-        /* Start with a new SSL BIO */
-        bio = BIO_new_ssl_connect(ctx);
-        if (bio == NULL) {
-                CRIT("BIO_new_ssl_connect() failed");
-                return(NULL);
+        /* Allocate memory to a char pointer "Server" */
+        Server = (char *) g_malloc0(sizeof(char) * len);
+        if (Server == NULL){
+                CRIT("out of memory");
+                return NULL;
         }
-
-        /* Set up connection parameters for this BIO */
-        BIO_set_conn_hostname(bio, hostname);
-        BIO_set_nbio(bio, 1);           /* Set underlying socket to
-                                         * non-blocking mode
-                                         */
-
-        /* Set up SSL session parameters */
-        BIO_get_ssl(bio, &ssl);
-        if (ssl == NULL) {
-                CRIT("BIO_get_ssl() failed");
-                BIO_free_all(bio);
-                return(NULL);
-        }
-        SSL_set_mode(ssl, SSL_MODE_ENABLE_PARTIAL_WRITE);
-
-        /* Ready to open the connection.  Note that this call will probably
-         * take a while, so we need to retry it, watching for a timeout.
+        memset(Server, 0, len);
+        /* hostname contains "Port" along with "IP Address". As, only
+         * "IP Address" is needed for some of the below operations, so copy
+         * "IP Address" from hostname to "Server".
          */
-        while (1) {
-                if (BIO_do_connect(bio) == 1) {
-                        break;          /* Connection established */
-                }
-                if (! BIO_should_retry(bio)) { /* Hard error? */
-                        CRIT("BIO_do_connect() failed");
-                        CRIT("SSL error: %s",
-                            ERR_reason_error_string(ERR_get_error()));
-                        BIO_free_all(bio);
-                        return(NULL);
-                }
+        strncpy(Server, hostname, (len - 4));
 
-                /* Wait until there's a change in the socket's status or until
-                 * the timeout period.
-                 *
-                 * Get underlying file descriptor, needed for the select call.
-                 */
-                fd = BIO_get_fd(bio, NULL);
-                if (fd == -1) {
-                        CRIT("BIO isn't initialized in oh_ssl_connect()");
-                        BIO_free_all(bio);
-                        return(NULL);
-                }
-
-                FD_ZERO(&readfds);
-                FD_ZERO(&writefds);
-                if (BIO_should_read(bio)) {
-                        FD_SET(fd, &readfds);
-                }
-                else if (BIO_should_write(bio)) {
-                        FD_SET(fd, &writefds);
-                }
-                else {                  /* This is BIO_should_io_special().
-                                         * Not sure what "special" needs to
-                                         * wait for, but both read and write
-                                         * seems to work without unnecessary
-                                         * retries.
-                                         */
-                        FD_SET(fd, &readfds);
-                        FD_SET(fd, &writefds);
-                }
-                if (timeout) {
-                        tv.tv_sec = timeout;
-                        tv.tv_usec = 0;
-                        err = select(fd + 1, &readfds, &writefds, NULL, &tv);
-                }
-                else {                  /* No timeout */
-                        err = select(fd + 1, &readfds, &writefds, NULL, NULL);
-                }
-
-                /* Evaluate select() return code */
-                if (err < 0) {
-                        CRIT("error during select()");
-                        BIO_free_all(bio);
-                        return(NULL);
-                }
-                if (err == 0) {
-                        CRIT("connection timeout to %s", hostname);
-                        BIO_free_all(bio);
-                        return(NULL);   /* Timeout */
-                }
+        /* Allocate memory to a char pointer "Port" */
+        Port = (char *) g_malloc0(sizeof(char) * 4);
+        if (Port == NULL){
+                CRIT("out of memory");
+                g_free(Server);
+                return NULL;
         }
+        /* As Port number is needed separately for some of the below
+         * operations, so copy port number from hostname to "Port".
+         */
+        strncpy(Port, hostname + (len - 3), 3);
+        
+        /* Create socket address structure to prepare client socket */
+        RetVal = getaddrinfo(Server, Port, &Hints, &AddrInfo);
+        if (RetVal != 0) {
+                CRIT("Cannot resolve address [%s] and port [%s],"
+                     " error %d: %s",
+                       Server, Port, RetVal, gai_strerror(RetVal));
+                g_free(Server);
+                g_free(Port);
+                return NULL;
+        }
+        
+        ai = AddrInfo;
+        /* Create a socket point */
+        socket_desc = socket(ai->ai_family, ai->ai_socktype,
+                                            ai->ai_protocol);
+        if (socket_desc == -1) {
+                CRIT("Socket failed with error: %s", 
+                      strerror(errno));
+                g_free(Server);
+                g_free(Port);
+                return NULL;
+        }
+
+        /* Now connect to target IP Address */
+        retval = connect(socket_desc, ai->ai_addr, ai->ai_addrlen);
+        if (retval != 0) {
+                CRIT("Socket connect failed with error: %s",
+                      strerror(errno));
+                g_free(Server);
+                g_free(Port);
+                return NULL;
+        }
+
+        /* Create new SSL structure for connection */
+        ssl = SSL_new(ctx);
+
+        /* Connect ssl object with a socket descriptor */
+        SSL_set_fd(ssl, socket_desc);
+
+        /* Initiate SSL connection */
+        err = SSL_connect(ssl);
+        if (err != 1) {
+                CRIT("SSL connection failed");
+                g_free(Server);
+                g_free(Port);
+                return (NULL);
+        }
+
+        bio = BIO_new(BIO_f_ssl());             /* create an ssl BIO */
+        BIO_set_ssl(bio, ssl, BIO_CLOSE);       /* assign the ssl BIO to SSL */
 
         /* TODO: Do I need to set the client or server mode here?  I don't
          * think so.
          */
 
+        g_free(Server);
+        g_free(Port);
         return(bio);
 }
 
