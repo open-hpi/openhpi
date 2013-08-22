@@ -516,6 +516,7 @@ BIO             *oh_ssl_connect(char *hostname, SSL_CTX *ctx, long timeout)
                       strerror(errno));
                 g_free(Server);
                 g_free(Port);
+                freeaddrinfo(AddrInfo);	
                 return NULL;
         }
 
@@ -526,6 +527,8 @@ BIO             *oh_ssl_connect(char *hostname, SSL_CTX *ctx, long timeout)
                       strerror(errno));
                 g_free(Server);
                 g_free(Port);
+                freeaddrinfo(AddrInfo);	
+                close(socket_desc);
                 return NULL;
         }
 
@@ -541,6 +544,8 @@ BIO             *oh_ssl_connect(char *hostname, SSL_CTX *ctx, long timeout)
                 CRIT("SSL connection failed");
                 g_free(Server);
                 g_free(Port);
+                freeaddrinfo(AddrInfo);	
+                close(socket_desc);
                 return (NULL);
         }
 
@@ -553,6 +558,7 @@ BIO             *oh_ssl_connect(char *hostname, SSL_CTX *ctx, long timeout)
 
         g_free(Server);
         g_free(Port);
+        freeaddrinfo(AddrInfo);	
         return(bio);
 }
 
@@ -570,7 +576,7 @@ BIO             *oh_ssl_connect(char *hostname, SSL_CTX *ctx, long timeout)
 int             oh_ssl_disconnect(BIO *bio, enum OH_SSL_SHUTDOWN_TYPE shutdown)
 {
         SSL             *ssl;
-        int             ret;
+        int             ret, fd;
 
         if (bio == NULL) {
                 CRIT("NULL bio in oh_ssl_disconnect()");
@@ -602,6 +608,13 @@ int             oh_ssl_disconnect(BIO *bio, enum OH_SSL_SHUTDOWN_TYPE shutdown)
                         /* Continuing on to free BIO memory */
                 }
         }
+        /* Close the socket */
+        fd = SSL_get_fd(ssl);
+        if (fd == -1) {
+                CRIT("SSL_get_fd() failed");
+                return(-1);
+        }
+        close(fd);
 
         /* Free the connection */
         BIO_free_all(bio);
@@ -742,7 +755,7 @@ int             oh_ssl_read(BIO *bio, char *buf, int size, long timeout)
                                 break;
                         default:
                                 /* Some other sort of error */
-                                CRIT("error %d from SSL_read", bytes);
+                                CRIT("SSL_read reported error%d",SSL_get_error(ssl, bytes));
                                 return(-1);
                 }
         }
