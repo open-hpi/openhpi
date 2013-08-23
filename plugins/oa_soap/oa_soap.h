@@ -107,7 +107,7 @@
 #define OA_SOAP_RES_CNTRL_NUM              (SaHpiCtrlNumT)   0x001
 
 /* SOAP XML calls timeout values for event thread and hpi calls */
-#define HPI_CALL_TIMEOUT 20
+#define HPI_CALL_TIMEOUT 40
 #define EVENT_CALL_TIMEOUT 40
 
 /* Error code for SOAP XML calls */
