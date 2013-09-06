@@ -1,7 +1,8 @@
 MAINTAINERCLEANFILES = Makefile.in
 MOSTLYCLEANFILES     = @TEST_CLEAN@
 
-AM_CPPFLAGS = -DG_LOG_DOMAIN=\"client\"
+AM_CPPFLAGS = -DG_LOG_DOMAIN=\"client\" @CRYPT_FLAG@
+AM_CFLAGS = @CRYPT_FLAG@
 
 INCLUDES             = @OPENHPI_INCLUDES@
 
@@ -27,6 +28,7 @@ bin_PROGRAMS = \
     hpialarms \
     hpireset \
     hpiwdt \
+    $(HPICRYPT) \
     hpithres \
     hpitop   \
     hpisettime \
@@ -34,6 +36,8 @@ bin_PROGRAMS = \
     ohdomainlist \
     ohhandler \
     ohparam
+
+EXTRA_PROGRAMS = hpicrypt
 
 include_HEADERS         =
 
@@ -66,6 +70,9 @@ hpisensor_LDADD         = $(COMMONLIBS)
 
 hpiwdt_SOURCES          = hpiwdt.c $(CLIENTS_SRC)
 hpiwdt_LDADD            = $(COMMONLIBS)
+
+hpicrypt_SOURCES          = hpicrypt.c $(CLIENTS_SRC)
+hpicrypt_LDADD            = $(COMMONLIBS)
 
 hpiinv_SOURCES          = hpiinv.c $(CLIENTS_SRC)
 hpiinv_LDADD            = $(COMMONLIBS)

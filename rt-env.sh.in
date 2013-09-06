@@ -11,6 +11,7 @@ OPENHPI_PATH=${OPENHPI_PLUGIN_ROOT}/dummy:${OPENHPI_PLUGIN_ROOT}/ipmi:${OPENHPI_
 # the following entries are for the hpi daemon and client
 OPENHPI_DAEMON_HOST=localhost
 OPENHPI_DAEMON_PORT=4743
+OPENHPI_GCRYPT=0
 
 if [ ! -f @abs_top_srcdir@/openhpi.conf ]; then
         cp @abs_top_srcdir@/openhpi.conf.example @abs_top_srcdir@/openhpi.conf
@@ -22,4 +23,4 @@ if [ ! -f @abs_top_srcdir@/openhpiclient.conf ]; then
 fi
 
 export OPENHPI_DEBUG OPENHPI_DEBUG_TRACE OPENHPI_UID_MAP OPENHPI_CONF OPENHPI_PATH OPENHPICLIENT_CONF
-export OPENHPI_DAEMON_HOST OPENHPI_DAEMON_PORT
+export OPENHPI_DAEMON_HOST OPENHPI_DAEMON_PORT OPENHPI_GCRYPT

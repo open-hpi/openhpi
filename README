@@ -34,6 +34,7 @@ autoconf >= 2.57
 automake >= 1.8
 gcc      >= 3.2.0
 glib2    >= 2.12
+gcrypt   >= 1.4
 pkgconfig (may be called pkg-config depending on distro)
 
 The follow libraries are needed to build certain plugins
@@ -169,6 +170,8 @@ interactively.
 The following client programs are provided:
 
 hpialarms -      show Alarm Control management instruments.
+hpicrypt -       Encrypt or decrypt a file. Back up the file to a secure
+                 location before encrypting the file.
 hpidomain -      show information about domains or set the domain tag.
 hpiel -          displays HPI event log entries
 hpievents -      polls for events
@@ -184,7 +187,7 @@ hpisettime -     Invoke Event Log clock APIs.
 hpithres -       display sensor thresholds and sensor info.
 hpitop -         display highlevel topology for a managed openHPI complex.
 hpitree -        show in details the resources (rpt's) and resources' 
-                 manamegement instruments (rdr's) data structures
+                 management instruments (rdr's) data structures
 hpiwdt -         read and enables the watchdog timer.
 hpixml -         display system view in XML
 

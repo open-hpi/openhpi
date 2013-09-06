@@ -497,7 +497,13 @@ int oh_load_config (char *filename, struct oh_parsed_config *config)
         struct stat fst, dst; 
         char *dir_name = NULL;
         char dup_filename[PATH_MAX];
-#endif
+#ifdef HAVE_ENCRYPT
+        SaHpiUint32T type = OHPI_DECRYPT;
+        gchar *confile_txt = NULL;
+#endif /* HAVE_ENCRYPT */
+#endif /* _WIN32 */
+        gchar * gcrypt_str = NULL;
+        gboolean g_decrypt = SAHPI_FALSE;
         GScanner *oh_scanner;
         int i, done = 0;
         int num_tokens = sizeof(oh_conf_tokens) / sizeof(oh_conf_tokens[0]);
@@ -523,6 +529,7 @@ int oh_load_config (char *filename, struct oh_parsed_config *config)
         if (stat (filename, &fst) == -1) {
                 if (errno != ENOENT) {
                         CRIT("stat of %s failed.", filename);
+                        g_scanner_destroy(oh_scanner);
                         return -3;
                 }
         } 
@@ -531,10 +538,12 @@ int oh_load_config (char *filename, struct oh_parsed_config *config)
                         if (fst.st_uid == 0) {
                              CRIT("%s owner is root (0)!", filename);
                              CRIT("Run as sudo or create a config with UID=%d.", (int)geteuid());
+                             g_scanner_destroy(oh_scanner);
                              return -3;
                        } else  {
                              CRIT("%s owner(%d) is insecure!", filename, fst.st_uid);
                              CRIT("Owner UID shall be %d.", (int)geteuid());
+                             g_scanner_destroy(oh_scanner);
                              return -3;
                        }
                 }
@@ -542,52 +551,86 @@ int oh_load_config (char *filename, struct oh_parsed_config *config)
                 if (((fst.st_mode & (S_IRWXG | S_IRWXO)) != 0)) {
                         CRIT("%s permissions are insecure!", filename);
                         CRIT("Shall not contain bits for group/others.");
+                        g_scanner_destroy(oh_scanner);
                         return -3;
                 }
 
                 if ((fst.st_mode & S_IFMT) != S_IFREG) {
                         CRIT("%s permissions are insecure!", filename);
                         CRIT("It needs to be a regular file");
+                        g_scanner_destroy(oh_scanner);
                         return -3;
                 }
 
                 /* Now check the directory permissions */ 
                 if (strlen(filename) >= PATH_MAX) {
-                       CRIT("%s is too long",filename);
-                       return -3;
+                        CRIT("%s is too long",filename);
+                        g_scanner_destroy(oh_scanner);
+                        return -3;
                 } 
                 strcpy(dup_filename, filename);
                 dir_name=dirname(dup_filename);
                 if (stat(dir_name, &dst) == -1) {
                         CRIT("stat of %s failed.", dir_name);
+                        g_scanner_destroy(oh_scanner);
                         return -3;
                 }
 
                 if ((fst.st_uid != dst.st_uid)) {
                         CRIT("%s directory is insecure", dir_name);
                         CRIT("Owner UID shall be %d",fst.st_uid);
+                        g_scanner_destroy(oh_scanner);
                         return -3;
                 }
                 if ((dst.st_mode & (S_IWOTH | S_IWGRP)) != 0 ) {
                         CRIT("%s directory is insecure",dir_name);
                         CRIT("Shall not be writable by group or others");
+                        g_scanner_destroy(oh_scanner);
                         return -3;
                 }
 	}
 
 #endif // _WIN32
          
-        fp = fopen(filename, "r");
-        if (!fp) {
-                CRIT("Configuration file '%s' could not be opened.", filename);
-                g_scanner_destroy(oh_scanner);
+        gcrypt_str = getenv("OPENHPI_GCRYPT");
+        if(gcrypt_str)
+               g_decrypt = atoi((const char *)gcrypt_str);
+        if(g_decrypt) {
+#ifndef _WIN32
+#ifdef HAVE_ENCRYPT
+                confile_txt = oh_crypt(filename, type);
+                if(!confile_txt) {
+                        CRIT("Unable to decrypt %s\n",filename);
+                        g_scanner_destroy(oh_scanner);
+                        return -3;
+                }
+
+                g_scanner_input_text(oh_scanner, confile_txt, fst.st_size);
+#else
+                CRIT("gcrypt asked for but not compiled with. Internal Error");
                 return -4;
+#endif /* HAVE_ENCRYPT */
+
+
+#else
+                WARN("Encrypting %s not supported",filename);
+                WARN("Assuming plain file");
+#endif
+        } else {
+               fp = fopen(filename, "r");
+               if (!fp) {
+                       CRIT("Configuration file '%s' could not be opened.", filename);
+                       g_scanner_destroy(oh_scanner);
+                       return -4;
+               }
         }
 
 #ifdef _WIN32
         g_scanner_input_file(oh_scanner, _fileno(fp));
 #else
-        g_scanner_input_file(oh_scanner, fileno(fp));
+        if(!g_decrypt) {
+                 g_scanner_input_file(oh_scanner, fileno(fp));
+        }
 #endif
 
         for (i = 0; i < num_tokens; i++) {
@@ -623,15 +666,21 @@ int oh_load_config (char *filename, struct oh_parsed_config *config)
 
         read_globals_from_env(1);
 
-        fclose(fp);
+        if (fp)
+                fclose(fp);
 
         done = oh_scanner->parse_errors;
 
         g_scanner_destroy(oh_scanner);
 
+
         DBG("Done processing conf file. Parse errors: %d", done);
 
         config->handler_configs = handler_configs;
+
+#ifdef HAVE_ENCRYPT
+        free(confile_txt);
+#endif
 
         handler_configs = NULL;
 

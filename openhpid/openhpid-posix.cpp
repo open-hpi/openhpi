@@ -61,6 +61,11 @@ static bool daemonized   = false;
 static gboolean enableIPv4      = FALSE;
 static gboolean enableIPv6      = FALSE;
 
+#ifdef HAVE_ENCRYPT
+static gboolean g_decrypt       = FALSE;
+static gchar * gcrypt_str         = NULL;
+#endif
+
 static GOptionEntry daemon_options[] =
 {
   { "cfg",       'c', 0, G_OPTION_ARG_FILENAME, &cfgfile,       "Sets path/name of the configuration file.\n"
@@ -85,6 +90,9 @@ static GOptionEntry daemon_options[] =
   { "nondaemon", 'n', 0, G_OPTION_ARG_NONE,   &runasforeground, "Forces the code to run as a foreground process\n"
                                     "                            and NOT as a daemon. The default is to run as\n"
                                     "                            a daemon. The option is optional.",                 NULL },
+#ifdef HAVE_ENCRYPT
+  { "decrypt",   'd', 0, G_OPTION_ARG_NONE,   &g_decrypt,       "Config file encrypted with hpicrypt. Decrypt and read",  NULL },
+#endif
   { "ipv6",      '6', 0, G_OPTION_ARG_NONE,   &enableIPv6,      "The daemon will try to bind IPv6 socket.",          NULL },
   { "ipv4",      '4', 0, G_OPTION_ARG_NONE,   &enableIPv4,      "The daemon will try to bind IPv4 socket (default).\n"
                                     "                            IPv6 option takes precedence over IPv6 option.",    NULL },
@@ -132,6 +140,9 @@ void display_help(void)
     printf("  -n, --nondaemon           Forces the code to run as a foreground process\n");
     printf("                            and NOT as a daemon. The default is to run as\n");
     printf("                            a daemon. The option is optional.\n");
+#ifdef HAVE_ENCRYPT
+    printf("  -d, --decrypt             Configuration file is encrypted. Decrypt and read.\n");
+#endif
     printf("  -6, --ipv6                The daemon will try to bind IPv6 socket.\n");
     printf("  -4, --ipv4                The daemon will try to bind IPv4 socket (default).\n");
     printf("                            IPv6 option takes precedence over IPv6 option.\n\n");
@@ -349,6 +360,15 @@ int main(int argc, char *argv[])
     if (portstr) {
         port = atoi(portstr);
     }
+
+#ifdef HAVE_ENCRYPT
+    if (g_decrypt) {
+        setenv("OPENHPI_GCRYPT", "1", 1);
+    } else {
+         gcrypt_str = getenv("OPENHPI_GCRYPT");
+    }
+#endif
+
     ipvflags = ( enableIPv6 == TRUE ) ? FlagIPv6 : FlagIPv4;
     if (optpidfile) {
         pidfile = g_strdup(optpidfile);
@@ -362,7 +382,7 @@ int main(int argc, char *argv[])
 
     // see if we have a valid configuration file
     if ((!cfgfile) || (!g_file_test(cfgfile, G_FILE_TEST_EXISTS))) {
-        CRIT("Cannot find configuration file. Exiting.");
+        CRIT("Cannot find configuration file %s. Exiting.",cfgfile);
         display_help();
         exit(-1);
     }

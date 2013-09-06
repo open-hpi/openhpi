@@ -49,6 +49,10 @@
 %define with_test_agent 1
 %endif
 
+%if "x@HPICRYPT@" == "xhpicrypt"
+%define with_gcrypt 1
+%endif
+
 Name: @HPI_PKG@
 Version: @VERSION@
 Release: 1
@@ -69,9 +73,15 @@ BuildRequires: pkgconfig automake autoconf libtool gcc-c++ glib2-devel libstdc++
 %if 0%{?with_openssl}
 BuildRequires: openssl-devel
 %endif
+%if 0%{?with_gcrypt}
+BuildRequires: libgcrypt-devel
+%endif
 Requires: glib2 libstdc++
 %if 0%{?with_openssl}
 Requires: openssl
+%endif
+%if 0%{?with_gcrypt}
+Requires: libgcrypt
 %endif
 
 %package devel
