@@ -31,7 +31,9 @@
 
 MAINTAINERCLEANFILES = Makefile.in
 
-AM_CPPFLAGS = -DG_LOG_DOMAIN=\"utils\"
+AM_CPPFLAGS = -DG_LOG_DOMAIN=\"utils\" @CRYPT_FLAG@
+AM_CFLAGS = @CRYPT_FLAG@
+
 
 GENERATED_HEADER_FILES = \
 			sahpi_enum_utils.h \
@@ -84,11 +86,13 @@ libopenhpiutils_la_SOURCES = \
     sahpi_struct_utils.h \
     sahpi_time_utils.c \
     sahpi_time_utils.h \
+    sahpi_gcrypt_utils.c \
+    sahpi_gcrypt_utils.h \
     uid_utils.c \
     uid_utils.h
 
 libopenhpiutils_la_LDFLAGS = -version-info @HPI_LIB_VERSION@
-libopenhpiutils_la_LIBADD =
+libopenhpiutils_la_LIBADD = @GCRYPT_LIB@
 
 # FIXME:: Add when we can auto-generate files for SMP systems
 #$(GENERATED_FILES): $(top_srcdir)/include/SaHpi.h $(top_srcdir)/scripts/SaHpi2code.pl

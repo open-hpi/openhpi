@@ -33,5 +33,6 @@
 #include <sahpixtca_enum_utils.h>
 #include <sahpiatca_enum_utils.h>
 #include <uid_utils.h>
+#include <sahpi_gcrypt_utils.h>
 
 #endif

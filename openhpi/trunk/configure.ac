@@ -163,6 +163,10 @@ OH_CHECK_NETSNMP
 
 AC_CHECK_LIB([uuid], [uuid_generate], [have_uuid=yes])
 
+dnl gcrypt is used for encrypting the conf file
+AC_CHECK_LIB([gcrypt],[gcry_control],[have_gcrypt_lib=yes],[have_gcrypt_lib=no])
+AC_CHECK_HEADERS([gcrypt.h],[have_gcrypt=yes],[have_gcrypt=no])
+
 dnl ssl is used for md2/md5 authentification in ipmidirect
 dnl and for SSL-based communication in ilo2_ribcl and oa_soap
 AC_CHECK_LIB([crypto],[MD5_Init],[CRYPTO_LIB=-lcrypto],[CRYPTO_LIB=])
@@ -413,6 +417,41 @@ AC_ARG_ENABLE([oa_soap],
         AC_SUBST(WITH_OA_SOAP,1)
      else
         AC_SUBST(WITH_OA_SOAP,0)
+     fi
+    ])
+
+# configure argument for enabling file encryption
+AC_ARG_ENABLE([encryption],
+    [  --enable-encryption        Enable File Encryption [[default=yes if libgcrypt and gcrypt.h exist]]],
+    [if test "x$enableval" = "xyes"; then
+        if test "x$have_gcrypt" = "xyes"; then
+            if test "x$have_gcrypt_lib" = "xyes"; then 
+                AC_SUBST(HPICRYPT,hpicrypt)
+                AC_SUBST(HPICRYPT_POD,hpicrypt.1.pod)
+                AC_SUBST(HPICRYPT_MAN,hpicrypt.1)
+                CRYPT_FLAG="-DHAVE_ENCRYPT" 
+                AC_SUBST(CRYPT_FLAG)
+                GCRYPT_LIB="-lgcrypt"
+                AC_SUBST(GCRYPT_LIB)
+            else
+	        OH_CHECK_FAIL(libgcrypt,libgcrypt,,
+                       Can not enable encryption without gcrypt library)
+            fi
+	else
+	    OH_CHECK_FAIL(libgcrypt-devel,libgcrypt-devel,,
+                       Can not enable encryption without gcrypt headers)
+	fi
+    fi],
+    [if test "x$have_gcrypt" = "xyes"; then
+        if test "x$have_gcrypt_lib" = "xyes"; then 
+              AC_SUBST(HPICRYPT,hpicrypt)
+              AC_SUBST(HPICRYPT_POD,hpicrypt.1.pod)
+              AC_SUBST(HPICRYPT_MAN,hpicrypt.1)
+              CRYPT_FLAG="-DHAVE_ENCRYPT" 
+              AC_SUBST(CRYPT_FLAG)
+              GCRYPT_LIB="-lgcrypt"
+              AC_SUBST(GCRYPT_LIB)
+        fi
      fi
     ])
 
