@@ -436,6 +436,12 @@ static void     parse_oaInfo(xmlNode *node, struct oaInfo *response)
         response->extraData = soap_walk_tree(node, "extraData");
 }
 
+/* parse_oaId - Parses an oaId response structure */
+static void     parse_oaId(xmlNode *node, struct OaId *response)
+{
+        response->bayNumber = atoi(soap_tree_value(node, "oaId")); 
+}
+
 /* parse_bladeStatus - Parses a bladeStatus response structure */
 static void     parse_bladeStatus(xmlNode *node, struct bladeStatus *response)
 {
@@ -1813,6 +1819,19 @@ int soap_getOaInfo(SOAP_CON *con,
                                            "Body:"
                                            "getOaInfoResponse:"
                                            "oaInfo"),
+                             response);
+        }
+        return(ret);
+}
+
+int soap_getOaId(SOAP_CON *con,
+                 struct OaId *response)
+{
+        SOAP_PARM_CHECK_NRQ 
+        if (! (ret = soap_request(con, GET_OA_ID))) {
+                parse_oaId(soap_walk_doc(con->doc,
+                                           "Body:"
+                                           "getOaIdResponse:"),
                              response);
         }
         return(ret);
