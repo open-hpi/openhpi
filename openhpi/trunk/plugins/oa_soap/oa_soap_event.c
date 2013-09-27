@@ -344,6 +344,8 @@ void oa_soap_error_handling(struct oh_handler_state *oh_handler,
         struct oa_soap_handler *oa_handler = NULL;
         SaHpiInt32T error_code;
         char *user_name = NULL, *password = NULL;
+        struct OaId oaId;
+        SaHpiResourceIdT resource_id;
 
         if (oh_handler == NULL || oa == NULL) {
                 err("Invalid parameters");
@@ -436,6 +438,16 @@ void oa_soap_error_handling(struct oh_handler_state *oh_handler,
         }
 
         err("OA %s is accessible", oa->server);
+        /* Push the OA Link Status event*/
+        rv = soap_getOaId(oa->event_con, &oaId);
+        if(rv == SA_OK) {
+             resource_id = oa_handler->oa_soap_resources.oa.
+                                       resource_id[oaId.bayNumber - 1];
+             /* Process the OA link status sensor */
+             OA_SOAP_PROCESS_SENSOR_EVENT(
+                   OA_SOAP_SEN_OA_LINK_STATUS, 1,
+                            0, 0)
+        }
         return;
 }
 

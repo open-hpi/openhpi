@@ -124,6 +124,10 @@ typedef unsigned char byte;
                         "<hpoa:bayNumber>%d</hpoa:bayNumber>" \
                         "</hpoa:getOaInfo>\n"
 
+#define GET_OA_ID \
+                        "<hpoa:getOaId>" \
+                        "</hpoa:getOaId>\n"
+
 #define GET_POWER_CONFIG_INFO \
                         "<hpoa:getPowerConfigInfo>" \
                         "</hpoa:getPowerConfigInfo>\n"
@@ -1135,6 +1139,11 @@ struct oaInfo
         xmlNode *extraData;             /* Items are struct extraDataInfo */
 };
 
+struct OaId
+{
+        byte bayNumber;	
+};
+
 struct getOaInfo
 {
         int bayNumber;
@@ -2112,6 +2121,9 @@ int soap_getOaStatus(SOAP_CON *connection,
 int soap_getOaInfo(SOAP_CON *connection,
                    const struct getOaInfo *request,
                    struct oaInfo *response);
+
+int soap_getOaId(SOAP_CON *connection,
+                 struct OaId *oaId);
 
 int soap_getInterconnectTrayStatus(SOAP_CON *connection,
                 const struct getInterconnectTrayStatus *request,
