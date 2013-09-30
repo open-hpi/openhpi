@@ -18,6 +18,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include <glib.h>
 #include <config.h>
@@ -449,19 +452,33 @@ static gint uid_map_from_file()
 {
         FILE *fp;
         int rval;
+#ifndef _WIN32
+	mode_t prev_umask;
+#endif
 
         if (!oh_uid_map_file) {
                 return 0;
         }
-         fp = fopen(oh_uid_map_file, "rb");
-         if(!fp) {
+        fp = fopen(oh_uid_map_file, "rb");
+        if(!fp) {
                  /* create map file with resource id initial value */
-                 CRIT("Configuration file '%s' does not exist, initializing", oh_uid_map_file);
+                 WARN("uid_map file '%s' could not be opened, initializing", oh_uid_map_file);
+#ifndef _WIN32
+		 prev_umask = umask(022);
+#endif
                  fp = fopen(oh_uid_map_file, "wb");
                  if(!fp) {
                          CRIT("Could not initialize uid map file, %s", oh_uid_map_file );
-                                         return -1;
+#ifndef _WIN32
+                         if (geteuid() != 0) 
+                              INFO("Use OPENHPI_UID_MAP env var to set uid_map file path");
+			 umask (prev_umask);
+#endif
+			 return -1;
                  }
+#ifndef _WIN32
+		 umask (prev_umask);
+#endif
                  /* write initial uid value */
                  if(fwrite(&resource_id, sizeof(resource_id), 1, fp) != 1 ) {
                          CRIT("failed to write uid, on uid map file initialization");
