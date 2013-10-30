@@ -1593,18 +1593,19 @@ int soap_getEvent(SOAP_CON *con,
         return(ret);
 }
 
-int soap_getAllEvents(SOAP_CON *con,
-                      const struct getAllEvents *request,
+int soap_getAllEventsEx(SOAP_CON *con,
+                      const struct getAllEventsEx *request,
                       struct getAllEventsResponse *response)
 {
         SOAP_PARM_CHECK
-        if (! (ret = soap_request(con, GET_ALL_EVENTS,
+        if (! (ret = soap_request(con, GET_ALL_EVENTSEX,
                            request->pid,
                            request->waitTilEventHappens, /* xsd:boolean */
-                           request->lcdEvents))) {       /* xsd:boolean */
+                           request->lcdEvents, /* xsd:boolean */
+                           request->oaFwVersion))) {
                 parse_getAllEvents(soap_walk_doc(con->doc,
                                                  "Body:"
-                                                 "getAllEventsResponse"),
+                                                 "getAllEventsExResponse"),
                                    response);
         }
         return(ret);
