@@ -159,13 +159,14 @@ SaErrorT process_oa_failover_event(struct oh_handler_state *oh_handler,
         SaHpiBoolT is_transition_complete = SAHPI_FALSE;
         SaHpiInt32T sleep_time = 0;
         struct oa_soap_handler *oa_handler = NULL;
-        struct getAllEvents request;
+        struct getAllEventsEx request;
         struct getAllEventsResponse response;
         struct eventInfo event;
         GTimer *timer = NULL;
         gulong micro_seconds;
         gdouble time_elapsed = 0;
         int is_switchover = SAHPI_TRUE;
+	 char oa_fw_buf[SAHPI_MAX_TEXT_BUFFER_LENGTH];
 
         if (oh_handler == NULL || oa == NULL) {
                 err("Invalid parameters");
@@ -215,6 +216,9 @@ SaErrorT process_oa_failover_event(struct oh_handler_state *oh_handler,
         request.pid = oa->event_pid;
         request.waitTilEventHappens = HPOA_TRUE;
         request.lcdEvents = HPOA_FALSE;
+	 memset(oa_fw_buf,0,SAHPI_MAX_TEXT_BUFFER_LENGTH);
+	 snprintf(oa_fw_buf,SAHPI_MAX_TEXT_BUFFER_LENGTH,"%.2f",oa->fm_version);
+        request.oaFwVersion = oa_fw_buf;
 
         /* Start the timer */
         timer = g_timer_new();
@@ -227,7 +231,7 @@ SaErrorT process_oa_failover_event(struct oh_handler_state *oh_handler,
 		OA_SOAP_CHEK_SHUTDOWN_REQ(oa_handler, oa_handler->mutex, NULL,
 					  timer);
                 g_mutex_lock(oa->mutex);
-                rv = soap_getAllEvents(oa->event_con, &request, &response);
+                rv = soap_getAllEventsEx(oa->event_con, &request, &response);
                 g_mutex_unlock(oa->mutex);
                 if (rv != SOAP_OK) {
                         err("Get all events failed during OA switchover"
@@ -319,7 +323,7 @@ SaErrorT process_oa_failover_event(struct oh_handler_state *oh_handler,
         /* Call getAllEvents to flush the OA event queue
          * Any resource state change will be handled as part of the re-discovery
          */
-        rv = soap_getAllEvents(oa->event_con, &request, &response);
+        rv = soap_getAllEventsEx(oa->event_con, &request, &response);
 
         /* Re-discover the resources as there is a high chances
          * that we might have missed some events

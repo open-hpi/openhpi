@@ -100,7 +100,7 @@ int oa_soap_get_event(void *oh_handler)
 gpointer oa_soap_event_thread(gpointer oa_pointer)
 {
         SaErrorT rv = SA_OK;
-        struct getAllEvents request;
+	 struct getAllEventsEx request;
         struct getAllEventsResponse response;
         struct oh_handler_state *handler = NULL;
         struct oa_info *oa = NULL;
@@ -111,6 +111,7 @@ gpointer oa_soap_event_thread(gpointer oa_pointer)
         SaHpiBoolT is_discovery_completed = SAHPI_FALSE;
         SaHpiBoolT listen_for_events = SAHPI_TRUE;
         char *user_name, *password, *url = NULL;  
+	char oa_fw_buf[SAHPI_MAX_TEXT_BUFFER_LENGTH];
 
         if (oa_pointer == NULL) {
                 err("Invalid parameter");
@@ -229,12 +230,15 @@ gpointer oa_soap_event_thread(gpointer oa_pointer)
         request.pid = oa->event_pid;
         request.waitTilEventHappens = HPOA_TRUE;
         request.lcdEvents = HPOA_FALSE;
+	 memset(oa_fw_buf,0,SAHPI_MAX_TEXT_BUFFER_LENGTH);
+	 snprintf(oa_fw_buf,SAHPI_MAX_TEXT_BUFFER_LENGTH,"%.2f",oa->fm_version);
+        request.oaFwVersion = oa_fw_buf;
 
         /* Listen for the events from OA */
         while (listen_for_events == SAHPI_TRUE) {
                 request.pid = oa->event_pid;
         	OA_SOAP_CHEK_SHUTDOWN_REQ(oa_handler, NULL, NULL, NULL);
-                rv = soap_getAllEvents(oa->event_con, &request, &response);
+                rv = soap_getAllEventsEx(oa->event_con, &request, &response);
                 if (rv == SOAP_OK) {
                         retry_on_switchover = 0;
                         /* OA returns empty event response payload for LCD
@@ -263,9 +267,9 @@ gpointer oa_soap_event_thread(gpointer oa_pointer)
                             get_oa_fw_version(handler) >= OA_2_21 &&
                             retry_on_switchover < MAX_RETRY_ON_SWITCHOVER) {
                                 sleep(WAIT_ON_SWITCHOVER);
-                                dbg("getAllEvents call failed, may be due to "
+                                dbg("getAllEventsEx call failed, may be due to "
                                     "OA switchover");
-                                dbg("Re-try the getAllEvents SOAP call");
+                                dbg("Re-try the getAllEventsEx SOAP call");
                                 retry_on_switchover++;
                         } else {
                                 /* Try to recover from the error */

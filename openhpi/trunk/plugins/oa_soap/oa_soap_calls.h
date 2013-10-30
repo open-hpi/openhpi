@@ -85,13 +85,14 @@ typedef unsigned char byte;
                         "<hpoa:lcdEvents>%d</hpoa:lcdEvents>" \
                         "</hpoa:getEvent>\n"
 
-#define GET_ALL_EVENTS \
-                        "<hpoa:getAllEvents>" \
+#define GET_ALL_EVENTSEX \
+                        "<hpoa:getAllEventsEx>" \
                         "<hpoa:pid>%d</hpoa:pid>" \
                         "<hpoa:waitTilEventHappens>" \
                                 "%d</hpoa:waitTilEventHappens>" \
                         "<hpoa:lcdEvents>%d</hpoa:lcdEvents>" \
-                        "</hpoa:getAllEvents>\n"
+                        "<hpoa:oaFwVersion>%s</hpoa:oaFwVersion>" \
+                        "</hpoa:getAllEventsEx>\n"
 
 #define SET_BLADE_POWER \
                         "<hpoa:setBladePower>" \
@@ -824,7 +825,36 @@ OA_SOAP_ENUM(eventType,
         EVENT_MEDIA_DRIVE_REMOVED2,
         EVENT_MEDIA_INSERTED2,
         EVENT_MEDIA_REMOVED2,
-        EVENT_ENC_GRP_CAP)
+        EVENT_ENC_GRP_CAP,
+        EVENT_BLADE_GRP_CAP_TIMEOUT,
+        EVENT_VLAN_INFO_CHANGED,
+        EVENT_SESSION_TIMEOUT_CHANGED,
+        EVENT_SBL_DOMAIN_INFO_CHANGED,
+        EVENT_FW_MGMT_SETTINGS_CHANGED,
+        EVENT_FW_DISCOVERY,
+        EVENT_FW_UPDATE,
+        EVENT_NET_SERVICE_RESTART,
+        EVENT_PS_OVERLOAD_REPAIRED,
+        EVENT_VCM_IPV6_URL_CHANGED,
+        EVENT_VCM_MIN_OA_FW_VER_CHANGED,
+        EVENT_SNMPV3_INFO_CHANGED,
+        EVENT_OA_ERS_CONFIG_CHANGED,
+        EVENT_OA_ERS_TEST_MANUAL,
+        EVENT_OA_ERS_DATACOLLECTION_MANUAL,
+        EVENT_OA_ERS_DATACOLLECTION_SUCCESS,
+        EVENT_OA_ERS_DATACOLLECTION_FAILURE,
+        EVENT_OA_ERS_MAINTENANCE_SET,
+        EVENT_OA_ERS_MAINTENANCE_CLEARED,
+        EVENT_OA_ERS_STATUS,
+        EVENT_OA_LOGIN_BANNER_SETTINGS_CHANGED,
+        EVENT_OA_ERS_EVENTS_CLEARED,
+        EVENT_ERS_CA_CERT_ADDED,
+        EVENT_ERS_CA_CERT_REMOVED,
+        EVENT_FW_MGMT_LOG_CLEARED,
+        EVENT_FW_MGMT_ISO_STATUS,
+        EVENT_LANG_PACK_ADDED,
+        EVENT_LANG_PACK_REMOVED,
+        EVENT_TCP_TIMEOUT_CHANGED)
 
 /* This is not part of the SOAP response data from the OA, but is useful
  * for identifying the type of data that comes back from getAllEvents().
@@ -1921,11 +1951,12 @@ struct getEvent
         enum hpoa_boolean lcdEvents;
 };
 
-struct getAllEvents
+struct getAllEventsEx
 {
         int pid;
         enum hpoa_boolean waitTilEventHappens;
         enum hpoa_boolean lcdEvents;
+        char *oaFwVersion;
 };
 
 union _hpoa__data
@@ -2079,8 +2110,8 @@ int soap_getEvent(SOAP_CON *connection,
                   const struct getEvent *request,
                   struct eventInfo *response);
 
-int soap_getAllEvents(SOAP_CON *connection,
-                      const struct getAllEvents *request,
+int soap_getAllEventsEx(SOAP_CON *connection,
+                      const struct getAllEventsEx *request,
                       struct getAllEventsResponse *response);
 
 int soap_getBladeInfo(SOAP_CON *connection,

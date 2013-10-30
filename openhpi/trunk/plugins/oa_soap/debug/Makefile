@@ -95,7 +95,7 @@ PROGS	= hpi_power_status_get \
 
 EXTRAS	= soaptest
 
-all:	$(PROGS)
+all:	$(PROGS) $(EXTRAS)
 
 hpi_power_status_get:	hpi_power_status_get.c
 	$(CC) $(CFLAGS) -o $@ hpi_power_status_get.c hpi_common.c $(LIBS)
@@ -234,7 +234,7 @@ soaptest:	soaptest.c ../oa_soap_callsupport.h ../oa_soap_calls.h \
 		../../../ssl/oh_ssl.h
 	$(CC) -Wall -g -O -I.. $(OPENHPI_INCLUDE) -I/usr/include/libxml2 \
 	-I../../../ssl -DHAVE_OPENSSL \
-	-o $@ soaptest.c \
+	-o $@ `pkg-config --cflags glib-2.0` soaptest.c \
 	../../../ssl/oh_ssl.o ../oa_soap_calls.o ../oa_soap_callsupport.o \
 	-lglib-2.0 -lxml2 -lssl -lpthread
 

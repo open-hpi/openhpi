@@ -76,6 +76,8 @@
 int main(int argc, char *argv[])
 {
     SOAP_CON			*con;
+    struct getOaInfo		oaInfo_request;
+    struct oaInfo		oaInfo_response;
     struct getBladeInfo		bladeInfo_request;
     struct bladeInfo		bladeInfo_response;
     struct getBladeStatus	bladeStatus_request;
@@ -92,7 +94,7 @@ int main(int argc, char *argv[])
     struct thermalInfo		getThermalInfo_response;
     struct getUserInfo		getUserInfo_request;
     struct userInfo		getUserInfo_response;
-    struct getAllEvents		getAllEvents_request;
+    struct getAllEventsEx	getAllEventsEx_request;
     struct getAllEventsResponse	getAllEvents_response;
     struct eventInfo		event;
     struct bayAccess		bayAccess;
@@ -118,6 +120,7 @@ int main(int argc, char *argv[])
     int				ret;
     int				old_timeout = 0;
     char			*str;
+    char			oa_fw_buf[255];
 #if 0				/* Don't use this all the time */
     struct getEvent		getEvent_request;
 #endif
@@ -1010,15 +1013,25 @@ int main(int argc, char *argv[])
     (void) getchar();
 #endif
 
+    /* Get OA fw_version to make the soap_getAllEventsEx calls */
+    memset(oa_fw_buf,0,255);
+    ret = soap_getOaInfo(con, &oaInfo_request, &oaInfo_response);
+    if (ret == 0) {
+           strncpy(oa_fw_buf, oaInfo_response.fwVersion, 
+                     strlen(oaInfo_response.fwVersion));
+    } else 
+           printf("soap_getOaInfo failed. Assuming OA FW ver as 4.00\n");
 
     /* Loop for events for a while.  Note that with the 20 second timeout
      * set above, we won't get an event the first time, but will get a
      * a timeout.  The second time, we increase the timeout to 40 seconds
      * in order to at least capture a heartbeat event.
      */
-    getAllEvents_request.pid = subscribeForEvents_response.pid;
-    getAllEvents_request.waitTilEventHappens = HPOA_TRUE;
-    getAllEvents_request.lcdEvents = HPOA_FALSE;
+    getAllEventsEx_request.pid = subscribeForEvents_response.pid;
+    getAllEventsEx_request.waitTilEventHappens = HPOA_TRUE;
+    getAllEventsEx_request.lcdEvents = HPOA_FALSE;
+    getAllEventsEx_request.oaFwVersion = oa_fw_buf;
+
     for (i = 0; i < 2; i++) {
 	/* Get the next set of events */
 	if (i == 1) {			/* Change timeout 2nd time through */
@@ -1026,7 +1039,7 @@ int main(int argc, char *argv[])
 	    soap_timeout(con) = 40;	/* New timeout of 40 seconds */
 	}
 	printf("\nGetting an event from the OA:\n");
-	if ((ret = soap_getAllEvents(con, &getAllEvents_request,
+	if ((ret = soap_getAllEventsEx(con, &getAllEventsEx_request,
 			      &getAllEvents_response))) {
 	    if (ret == -2) {
 		err("timeout from soap_getAllEvents()");
