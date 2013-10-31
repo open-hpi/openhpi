@@ -259,6 +259,7 @@ gpointer oa_soap_event_thread(gpointer oa_pointer)
                          /* If Enclosure IP Mode is enabled, 
                           * then make the Standby thread to sleep */ 
                          while (oa_handler->ipswap && (oa->oa_status == STANDBY)) {
+        			OA_SOAP_CHEK_SHUTDOWN_REQ(oa_handler, NULL, NULL, NULL);
                                  dbg("Stand By Thread is going to Sleep for"
                                      "20 secs as Enclosure IP Mode Is enabled");
                                  sleep(20);
