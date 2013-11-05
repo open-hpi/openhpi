@@ -1177,6 +1177,7 @@ SaErrorT initialize_oa_con(struct oa_info *oa,
                 free(url);
                 err("Failed to allocate memory for buffer to        \
                                              hold OA credentials");
+                g_mutex_unlock(oa->mutex);
                 return SA_ERR_HPI_OUT_OF_MEMORY;
         }
 
