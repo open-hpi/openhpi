@@ -42,7 +42,8 @@
  *
  *      process_server_power_event()      - Processes the server power event
  *
- *      process_server_insertion_event()  - Processes the server insertion event
+ *      process_server_insert_completed()  - Processes the server 
+ *                                           insert completed event
  *
  *      process_server_extraction_event() - Processes the server extraction
  *                                          event
@@ -61,6 +62,7 @@
 
 #include "oa_soap_server_event.h"
 #include "oa_soap_discover.h"           /* for build_server_rpt() prototype */
+extern time_t server_insert_timer[];
 
 /**
  * process_server_power_off_event
@@ -336,7 +338,8 @@ SaErrorT process_server_power_event(struct oh_handler_state *oh_handler,
                    get executed at all. */
 
                 dbg("resource RPT is NULL, starting Workaround");
-                rv = process_server_insertion_event(oh_handler, con, oa_event, loc); 
+                rv = process_server_insert_completed(oh_handler, con, oa_event,
+                                                     loc);
                 return rv;
         }
 
@@ -401,7 +404,37 @@ SaErrorT process_server_power_event(struct oh_handler_state *oh_handler,
 }
 
 /**
- * process_server_insertion_event
+ *  oa_soap_proc_server_inserted_event
+ *       @oh_handler: Pointer to openhpi handler structure
+ *       @con:        Pointer to SOAP_CON structure
+ *       @oa_event:   Pointer to the OA event structure
+ *
+ * Initializes the timer when EVENT_BLADE_INSERTED is received
+ * This event doesnot contain valid information
+ * Blade is added when  EVENT_BLADE_INSERT_COMPLETED event arrives.
+ *
+ **/
+
+SaErrorT oa_soap_proc_server_inserted_event(struct oh_handler_state *oh_handler,
+                                        SOAP_CON *con,
+                                        struct eventInfo *oa_event)
+{
+        SaHpiInt32T bay_number = 0;
+        time_t now = 0;
+
+        if (oh_handler == NULL || con == NULL || oa_event == NULL) {
+                err("Invalid parameters");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+        time(&now);
+        bay_number =
+                oa_event->eventData.bladeStatus.bayNumber;
+        server_insert_timer[bay_number - 1] = now;
+        return SA_OK;
+}
+
+/**
+ * process_server_insert_completed
  *      @oh_handler: Pointer to openhpi handler structure
  *      @con:        Pointer to SOAP_CON structure
  *      @oa_event:   Pointer to the OA event structure
@@ -421,10 +454,10 @@ SaErrorT process_server_power_event(struct oh_handler_state *oh_handler,
  *      SA_ERR_HPI_INVALID_PARAMS - on wrong parameters.
  *      SA_ERR_HPI_INTERNAL_ERROR - on failure
  **/
-SaErrorT process_server_insertion_event(struct oh_handler_state *oh_handler,
-                                        SOAP_CON *con,
-                                        struct eventInfo *oa_event,
-                                        SaHpiInt32T loc)
+SaErrorT process_server_insert_completed(struct oh_handler_state 
+                           *oh_handler, SOAP_CON *con,
+                           struct eventInfo *oa_event,
+                           SaHpiInt32T loc)
 {
         SaErrorT rv = SA_OK;
         struct getBladeInfo info;
@@ -447,14 +480,13 @@ SaErrorT process_server_insertion_event(struct oh_handler_state *oh_handler,
 
         if ((oa_event->eventData.bladeStatus.powered == POWER_ON) &&
             (loc == 0)) {
-                /* Usually power ON event comes after insertion complete, but 5% of the
-                   time it comes first. So out of order events are processed out of order.
-                   The power_on event code calls this function with loc=1 to avoid 
-                   recursion */
+                /* Usually power ON event comes after insertion complete, 
+                   but 5% of the time it comes first. So out of order events 
+                   are processed out of order.  The power_on event code calls 
+                   this function with loc=1 to avoid recursion */
                 rv = process_server_power_event(oh_handler, con, oa_event);
                 return rv;
         }
-
         info.bayNumber = bay_number;
         rv = soap_getBladeInfo(con, &info, &response);
         if (rv != SOAP_OK) {
@@ -463,6 +495,7 @@ SaErrorT process_server_insertion_event(struct oh_handler_state *oh_handler,
         }
 
         if (strcmp(response.name,"[Unknown]") == 0 ) {
+              err("Server type at bay %d is unknown. Please check",bay_number);
               return rv;
         }
 
@@ -476,6 +509,13 @@ SaErrorT process_server_insertion_event(struct oh_handler_state *oh_handler,
                 err("build inserted server rpt failed");
                 return rv;
         }
+
+        time_t now = 0;
+        time(&now);
+        int delay = now - server_insert_timer[bay_number - 1];
+        if (delay)
+               dbg("Took %d secs to add blade at bay %d\n",delay, bay_number);
+        server_insert_timer[bay_number - 1] = 0;
 
         /* Update resource_status structure with resource_id, serial_number,
          * and presence status
@@ -627,7 +667,11 @@ SaErrorT process_server_info_event(struct oh_handler_state
         /* Get the rpt entry of the resource */
         rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
         if (rpt == NULL) {
-                err("resource RPT is NULL");
+		if (server_insert_timer[bay_number-1]){
+                        g_free(serial_number);
+                        return SA_OK;
+		}
+		err("server RPT NULL at bay %d",bay_number);
                 g_free(serial_number);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
@@ -831,7 +875,13 @@ void oa_soap_proc_server_status(struct oh_handler_state *oh_handler,
 	/* Get the rpt entry of the resource */
 	rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
 	if (rpt == NULL) {
-		err("resource RPT is NULL");
+                /* RPT is null. It may yet to be added. If the timer is
+                   on event comes early.  Just return */
+                if ((server_insert_timer[status->bayNumber - 1]) || 
+                    (status->powered == POWER_UNKNOWN)) {
+                        return;
+                } 
+                err("RPT of Server bay at %d is NULL",status->bayNumber);
 		return;
 	}
 
@@ -1384,7 +1434,10 @@ SaErrorT process_server_mp_info_event(struct oh_handler_state
 
         rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
         if (rpt == NULL) {
-                err("Not able to find the resource. Invalid resource id");
+                if (server_insert_timer[bay_number - 1]) {
+                        return SA_OK;
+                }
+                err("Server RPT at bay %d is NULL",bay_number);
                 return SA_ERR_HPI_NOT_PRESENT;
         }
 
@@ -1400,7 +1453,7 @@ SaErrorT process_server_mp_info_event(struct oh_handler_state
         IdrId = rdr->RdrTypeUnion.InventoryRec.IdrId;
 
         if (strcmp(fwVersion,"[Unknown]") == 0 )  {
-                err("fwVersion is Unknown");
+                WARN("fwVersion is Unknown for server at bay %d",bay_number);
                 return rv;
         }
 
