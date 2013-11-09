@@ -39,7 +39,6 @@
 
 /* Include files */
 #include "oa_soap_re_discover.h"
-
 SaErrorT process_server_power_off_event(struct oh_handler_state *oh_handler,
                                         struct oh_event *event);
 
@@ -52,7 +51,11 @@ SaErrorT process_server_power_event(struct oh_handler_state *oh_handler,
                                     SOAP_CON *con,
                                     struct eventInfo *oa_event);
 
-SaErrorT process_server_insertion_event(struct oh_handler_state *oh_handler,
+SaErrorT oa_soap_proc_server_inserted_event(struct oh_handler_state *oh_handler,
+                                        SOAP_CON *con,
+                                        struct eventInfo *oa_event);
+
+SaErrorT process_server_insert_completed(struct oh_handler_state *oh_handler,
                                         SOAP_CON *con,
                                         struct eventInfo *oa_event,
                                         SaHpiInt32T loc);

@@ -54,6 +54,9 @@
  **/
 
 #include "oa_soap_event.h"
+#include <time.h>
+/* Global Variables */
+time_t server_insert_timer[16] = {0};
 
 /**
  * oa_soap_get_event
@@ -857,7 +860,10 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                                 break;
 
                         case EVENT_BLADE_INSERTED:
-                                dbg("EVENT_BLADE_INSERTED -- Not processed");
+                                dbg("EVENT_BLADE_INSERTED");
+                                oa_soap_proc_server_inserted_event(oh_handler,
+                                                             oa->event_con2,
+                                                             &event);
                                 break;
 
                         case EVENT_BLADE_REMOVED:
@@ -1286,7 +1292,7 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                                 break;
                         case EVENT_BLADE_INSERT_COMPLETED:
                                 dbg("EVENT_BLADE_INSERT_COMPLETED");
-                                process_server_insertion_event(oh_handler,
+                                process_server_insert_completed(oh_handler,
                                                                  oa->event_con2,
                                                                  &event, loc);
                                 break;
