@@ -314,7 +314,7 @@ gpointer oa_soap_event_thread(gpointer oa_pointer)
                                                 else
                                                           sleep(5);
                                                 err("soap_open for \
-oa->event_con2 failed\n");
+                                                        oa->event_con2 failed");
                                         }
                                 }
                                 free(url);
