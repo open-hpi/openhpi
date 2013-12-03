@@ -192,16 +192,19 @@ SaErrorT oa_soap_get_sensor_reading(void *oh_handler,
         sensor_info = (struct oa_soap_sensor_info*)
                 oh_get_rdr_data(handler->rptcache, resource_id, rdr->RecordId);
         if (sensor_info == NULL) {
-                err("No data for Sensor %s in Resource %d",
-                       rdr->IdString.Data, resource_id);
+                err("No data for Sensor '%s' in Resource '%s' at location %d",
+                       rdr->IdString.Data, rpt->ResourceTag.Data,
+                       rpt->ResourceEntity.Entry[0].EntityLocation);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
         /* Check whether sensor is enabled */
         if (sensor_info->sensor_enable == SAHPI_FALSE) {
-                err("Sensor %s not enabled for resource %d", 
-                       rdr->IdString.Data, resource_id);
-                return(SA_ERR_HPI_INVALID_REQUEST);
+                warn("Sensor '%s' is not enabled for resource '%s'" 
+                     " at location %d",
+                       rdr->IdString.Data, rpt->ResourceTag.Data,
+                       rpt->ResourceEntity.Entry[0].EntityLocation);
+                return(SA_ERR_HPI_NOT_PRESENT);
         }
 
 	/* Check whether the reading is supported or not */
@@ -209,8 +212,9 @@ SaErrorT oa_soap_get_sensor_reading(void *oh_handler,
 	    SAHPI_FALSE) {
 		data->IsSupported = SAHPI_FALSE;
 		*state = sensor_info->current_state;
-		dbg("Reading Sensor %s in resource %d is not supported",
-                       rdr->IdString.Data, resource_id);
+                dbg("Reading Sensor '%s' in resource '%s' at location %d is" 
+                    " not supported", rdr->IdString.Data, rpt->ResourceTag.Data,
+                       rpt->ResourceEntity.Entry[0].EntityLocation);
 		return SA_OK;
 	}
 
