@@ -101,7 +101,7 @@ int main(int argc, char **argv)
         g_option_context_free (context);
 
 	if ( !findate || !fintime) {
-		CRIT("Please enter date and time to be set.");
+		CRIT("Please enter date and time to be set, or try --help.");
 		EXIT1;
 	}
 
