@@ -35,7 +35,7 @@
 #      Bhaskara Bhatt <bhaskara.hg@hp.com>
 
 CC=gcc
-LIBS	= -lopenhpi 
+LIBS	= -lopenhpi -lopenhpiutils
 GLIB_INCLUDE = -I/usr/include/glib-2.0
 GLIB_CONF_INCLUDE = -I/usr/lib64/glib-2.0/include
 GLIB_CONF_INCLUDE32 = -I/usr/lib/glib-2.0/include
@@ -233,10 +233,10 @@ hpi_set_tag:	hpi_set_tag.c
 soaptest:	soaptest.c ../oa_soap_callsupport.h ../oa_soap_calls.h \
 		../../../ssl/oh_ssl.h
 	$(CC) -Wall -g -O -I.. $(OPENHPI_INCLUDE) -I/usr/include/libxml2 \
-	-I../../../ssl -DHAVE_OPENSSL \
-	-o $@ `pkg-config --cflags glib-2.0` soaptest.c \
+	-I../../../ssl `pkg-config --cflags glib-2.0` -DHAVE_OPENSSL \
+	-o $@ soaptest.c \
 	../../../ssl/oh_ssl.o ../oa_soap_calls.o ../oa_soap_callsupport.o \
-	-lglib-2.0 -lxml2 -lssl -lpthread
+	-lglib-2.0 -lxml2 -lssl -lcrypto
 
 clean: 
 	-rm -rf *.core $(PROGS) $(EXTRAS)
