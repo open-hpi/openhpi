@@ -2240,7 +2240,7 @@ SaErrorT build_server_inv_rdr(struct oh_handler_state *oh_handler,
                 soap_getBladeCpuInfo(response.cpus, &cpu_info);
                 
 		if (cpu_info.cpuType != NULL && cpu_info.cpuSpeed != 0) {
-			rv = asprintf(&tmp, " CPU %d = %s, %d MHz",
+			rv = asprintf(&tmp, "CPU %d = %s, %d MHz",
 				++cpu_no,cpu_info.cpuType,cpu_info.cpuSpeed);
 			if(rv == -1){
 				free(tmp);
@@ -2250,7 +2250,7 @@ SaErrorT build_server_inv_rdr(struct oh_handler_state *oh_handler,
 			}
 		}
 		else {
-			rv = asprintf(&tmp, " CPU %d = Not present",++cpu_no);
+			rv = asprintf(&tmp, "CPU %d = Not present",++cpu_no);
 			if(rv == -1){
 				free(tmp);
 				err("Failed to allocate memory for buffer to  \
@@ -5498,9 +5498,9 @@ SaErrorT oa_soap_build_fan_inv(struct oh_handler_state *oh_handler,
 	slot = fan_info->bayNumber;
 	/* Construct the fan shared field data */
 	if (oa_soap_fz_map_arr[oa_handler->enc_type][slot-1].shared == SAHPI_TRUE)
-		strcpy(field_data, "Shared=TRUE");
+		strcpy(field_data, "Shared = TRUE");
 	else
-		strcpy(field_data, "Shared=FALSE");
+		strcpy(field_data, "Shared = FALSE");
 
 	/* Set the fan shared field
 	 * we don't want to execute this for a c3000 enclosure
@@ -5517,12 +5517,12 @@ SaErrorT oa_soap_build_fan_inv(struct oh_handler_state *oh_handler,
 	/* Construct the fan zone number field data */
 	memset(field_data, 0, OA_SOAP_MAX_FZ_INV_SIZE);
 	if (oa_soap_fz_map_arr[oa_handler->enc_type][slot-1].secondary_zone) {
-		snprintf(field_data, 13, "Fan Zone=%d,%d",
+		snprintf(field_data, 15, "Fan Zone = %d,%d",
 		 	oa_soap_fz_map_arr[oa_handler->enc_type][slot-1].zone,
 			oa_soap_fz_map_arr[oa_handler->enc_type][slot-1].
 				secondary_zone);
 	} else {
-		snprintf(field_data, 11, "Fan Zone=%d",
+		snprintf(field_data, 13, "Fan Zone = %d",
 		 	oa_soap_fz_map_arr[oa_handler->enc_type][slot-1].zone);
 	}
 
