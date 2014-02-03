@@ -557,6 +557,12 @@ SaErrorT add_oa(struct oh_handler_state *oh_handler,
                         return SA_ERR_HPI_INTERNAL_ERROR;
                 }
 
+		if (!strcmp(network_info_response.ipAddress,"0.0.0.0")){
+                        err("Get OA network info at bay %d says 0.0.0.0",
+				bay_number);
+                        return SA_ERR_HPI_INVALID_DATA;
+                }
+
                 /* Copy the server IP address to oa_info structure*/
                 g_mutex_lock(temp->mutex);
                 memset(temp->server, 0, MAX_URL_LEN);

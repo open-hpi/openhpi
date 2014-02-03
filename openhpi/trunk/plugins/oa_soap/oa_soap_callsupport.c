@@ -479,6 +479,11 @@ SOAP_CON        *soap_open(char *server,
                 return(NULL);
         }
 
+	if (!strcmp(server,"0.0.0.0:443")) {
+                err("Invalid OA IP 0.0.0.0.");
+                return(NULL);
+        }
+
         if ((username == NULL) || (*username == '\0')) {
                 err("missing OA username");
                 return(NULL);
