@@ -231,6 +231,11 @@ SaErrorT get_oa_state(struct oh_handler_state *oh_handler,
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
+	if (!strcmp(server,"0.0.0.0")) {
+                err("Invalid OA IP 0.0.0.0");
+                return SA_ERR_HPI_INVALID_PARAMS;
+	}
+
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
 
         /* Create the OA URL */
@@ -1168,6 +1173,11 @@ SaErrorT initialize_oa_con(struct oa_info *oa,
         
         if (oa == NULL || user_name == NULL || password == NULL) {
                 err("Invalid parameters");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+	if (!strcmp(oa->server,"0.0.0.0")) {
+                err("Invalid OA IP  0.0.0.0");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
