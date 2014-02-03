@@ -1523,6 +1523,7 @@ static void ilo2_ribcl_discover_temp_sensors(
         char *label = NULL, *location = NULL, *description = NULL;
 
         ir_handler = ( ilo2_ribcl_handler_t *) oh_handler->data;
+        memset( &si_initial, 0, sizeof( struct ilo2_ribcl_sensinfo));
 
         /* Look for the all temperature isensors from the RIBCL */
 	for( idex = 4; idex <= ILO2_RIBCL_DISCOVER_TS_MAX; idex++){
