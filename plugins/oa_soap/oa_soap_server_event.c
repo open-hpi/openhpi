@@ -860,30 +860,44 @@ void oa_soap_proc_server_status(struct oh_handler_state *oh_handler,
 	SaHpiRptEntryT *rpt = NULL;
 	struct oa_soap_handler *oa_handler = NULL;
 	SaHpiResourceIdT resource_id;
+        SaHpiInt32T bay = 0;
 	enum diagnosticStatus diag_ex_status[OA_SOAP_MAX_DIAG_EX];
 	struct getBladeThermalInfoArray thermal_request;
 	struct bladeThermalInfoArrayResponse thermal_response;
+	xmlNode *extra_data = NULL;
+	struct extraDataInfo extra_data_info;
 
-	if (oh_handler == NULL || status == NULL) {
+	if (oh_handler == NULL || con == NULL || status == NULL) {
 		err("Invalid parameters");
 		return;
 	}
 
 	oa_handler = (struct oa_soap_handler *) oh_handler->data;
+        bay = status->bayNumber;
 	resource_id = oa_handler->oa_soap_resources.server.
-			resource_id[status->bayNumber - 1];
+			resource_id[bay - 1];
 	/* Get the rpt entry of the resource */
 	rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
 	if (rpt == NULL) {
                 /* RPT is null. It may yet to be added. If the timer is
                    on event comes early.  Just return */
-                if ((server_insert_timer[status->bayNumber - 1]) || 
+                if ((server_insert_timer[bay - 1]) || 
                     (status->powered == POWER_UNKNOWN)) {
                         return;
                 } 
-                err("RPT of Server bay at %d is NULL",status->bayNumber);
+                err("RPT of Server bay at %d is NULL",bay);
 		return;
 	}
+
+	extra_data = status->extraData;
+	while (extra_data) {
+                soap_getExtraData(extra_data, &extra_data_info);
+                if (!(strcmp(extra_data_info.name, "mainMemoryErrors"))) {
+                   err("openhpid[%d]: Blade (id=%d) at %d has Memory Error: %s",
+                    getpid(), resource_id, bay, extra_data_info.value);
+                }
+                extra_data = soap_next_node(extra_data);
+        }
 
 	/* Process operational status sensor */
 	OA_SOAP_PROCESS_SENSOR_EVENT(OA_SOAP_SEN_OPER_STATUS,
@@ -1019,8 +1033,7 @@ void oa_soap_proc_server_status(struct oh_handler_state *oh_handler,
 							EntityLocation -1] == 
 							SAHPI_POWER_ON) {
 			dbg("Ignore the blade status event from the partner"
-			    " blade %d which is in POWER ON state",
-			    status->bayNumber);
+			    " blade %d which is in POWER ON state", bay);
 			return;
 		}
 				
@@ -1029,7 +1042,7 @@ void oa_soap_proc_server_status(struct oh_handler_state *oh_handler,
 			    " enable thermal sensors");
 
 			/* Make getBladeThermalInfoArray soap call */ 
-			thermal_request.bayNumber = status->bayNumber;
+			thermal_request.bayNumber = bay;
 			rv = soap_getBladeThermalInfoArray(con, 
 						&thermal_request, 
 						&thermal_response);
@@ -1042,8 +1055,7 @@ void oa_soap_proc_server_status(struct oh_handler_state *oh_handler,
 			if ((rv != SA_OK) ||
 			    (thermal_response.bladeThermalInfoArray == NULL)) {
 				err("getBladeThermalInfo failed for blade or"
-				    "the blade %d is not in stable state",
-				    status->bayNumber);
+				    "the blade %d is not in stable state",bay);
 				return;
 			}
 
