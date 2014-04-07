@@ -696,6 +696,8 @@ SaErrorT re_discover_blade(struct oh_handler_state *oh_handler,
 
         for (i = 1; i <= oa_handler->oa_soap_resources.server.max_bays; i++) {
                 request.bayNumber = i;
+                state = RES_ABSENT;
+                replace_resource = SAHPI_FALSE;
                 rv = soap_getBladeInfo(con, &request, &response);
                 if (rv != SOAP_OK) {
                         err("Get blade info failed");
@@ -779,7 +781,6 @@ SaErrorT re_discover_blade(struct oh_handler_state *oh_handler,
                         } else
                                 err("Server in slot %d is added", i);
 
-                        replace_resource = SAHPI_FALSE;
                 }
         } /* End of for loop */
         return SA_OK;
@@ -1278,6 +1279,8 @@ SaErrorT re_discover_interconnect(struct oh_handler_state *oh_handler,
              i <= oa_handler->oa_soap_resources.interconnect.max_bays;
              i++) {
                 request.bayNumber = i;
+                state = RES_ABSENT;
+                replace_resource = SAHPI_FALSE;
                 rv = soap_getInterconnectTrayStatus(con, &request, &response);
                 if (rv != SOAP_OK) {
                         err("Get interconnect tray status failed");
