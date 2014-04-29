@@ -854,7 +854,11 @@ OA_SOAP_ENUM(eventType,
         EVENT_FW_MGMT_ISO_STATUS,
         EVENT_LANG_PACK_ADDED,
         EVENT_LANG_PACK_REMOVED,
-        EVENT_TCP_TIMEOUT_CHANGED)
+        EVENT_TCP_TIMEOUT_CHANGED,
+        EVENT_BLADE_FQDN_INFO_REFRESH,
+        EVENT_TRAY_FQDN_INFO_REFRESH,
+        EVENT_VCM_FQDN_INFO_REFRESH,
+        EVENT_EBIPAV6_INFO_CHANGED_EX)
 
 /* This is not part of the SOAP response data from the OA, but is useful
  * for identifying the type of data that comes back from getAllEvents().

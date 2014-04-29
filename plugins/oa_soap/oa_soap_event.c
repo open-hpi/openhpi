@@ -1300,6 +1300,23 @@ void process_oa_events(struct oh_handler_state *oh_handler,
                                 dbg("EVENT_EBIPA_INFO_CHANGED_EX "
                                     "-- Not processed");
                                 break;
+                        case EVENT_BLADE_FQDN_INFO_REFRESH:
+                                dbg("EVENT_BLADE_FQDN_INFO_REFRESH"
+                                    " -- Not processed");
+                                break;
+                        case EVENT_TRAY_FQDN_INFO_REFRESH:
+                                dbg("EVENT_TRAY_FQDN_INFO_REFRESH"
+                                    " -- Not processed");
+                                break;
+                        case EVENT_VCM_FQDN_INFO_REFRESH:
+                                dbg("EVENT_VCM_FQDN_INFO_REFRESH"
+                                    " -- Not processed");
+                                break;
+                        case EVENT_EBIPAV6_INFO_CHANGED_EX:
+                                dbg("EVENT_EBIPAV6_INFO_CHANGED_EX"
+                                    " -- Not processed");
+                                break;
+
                         default:
                                 dbg("EVENT NOT REGISTERED, Event id %d",
                                     event.event);
