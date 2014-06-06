@@ -98,14 +98,15 @@ includedir=$(base_includedir)/openhpi
 include_HEADERS = $(top_srcdir)/include/SaHpi.h \
                   $(top_srcdir)/include/SaHpiXtca.h \
                   $(top_srcdir)/include/SaHpiAtca.h \
-		  $(top_srcdir)/include/SaHpiBladeCenter.h \
+                  $(top_srcdir)/include/SaHpiBladeCenter.h \
                   $(top_srcdir)/include/oHpi.h \
                   $(top_srcdir)/utils/oh_utils.h \
                   $(top_srcdir)/utils/announcement_utils.h \
                   $(top_srcdir)/utils/rpt_utils.h \
                   $(top_srcdir)/utils/sahpi_enum_utils.h \
-		  $(top_srcdir)/utils/sahpixtca_enum_utils.h \
-		  $(top_srcdir)/utils/sahpiatca_enum_utils.h \
+                  $(top_srcdir)/utils/sahpi_gcrypt_utils.h \
+                  $(top_srcdir)/utils/sahpixtca_enum_utils.h \
+                  $(top_srcdir)/utils/sahpiatca_enum_utils.h \
                   $(top_srcdir)/utils/sahpi_event_encode.h \
                   $(top_srcdir)/utils/sahpi_event_utils.h \
                   $(top_srcdir)/utils/sahpi_struct_utils.h \
