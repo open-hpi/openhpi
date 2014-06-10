@@ -273,20 +273,6 @@ SaErrorT oa_soap_discover_resources(void *oh_handler)
          */
         g_mutex_lock(oa_handler->mutex);
         if (oa_handler->oa_1->thread_handler == NULL) {
-                /* Subscribe for events, so that we don't lose any changes
-                 * to resource states which may happen during discovery
-                 */
-                rv = create_event_session(oa_handler->oa_1);
-                if (rv != SOAP_OK) {
-                        /* If the subscription for events fails,
-                         * then discovery will fail.
-                         * Discovery method has the recovery mechanism.
-                         * Hence the error is not handled here
-                         */
-                        dbg("Subscribe for events failed for OA %s",
-                            oa_handler->oa_1->server);
-                }
-
                 oa_handler->oa_1->thread_handler =
                         g_thread_create(oa_soap_event_thread,
                                         oa_handler->oa_1,
@@ -302,12 +288,6 @@ SaErrorT oa_soap_discover_resources(void *oh_handler)
 
         /* Create the event thread for OA in slot 2 */
         if (oa_handler->oa_2->thread_handler == NULL) {
-                rv = create_event_session(oa_handler->oa_2);
-                if (rv != SOAP_OK) {
-                        dbg("Subscribe for events failed OA %s",
-                            oa_handler->oa_2->server);
-                }
-
                 oa_handler->oa_2->thread_handler =
                         g_thread_create(oa_soap_event_thread,
                                         oa_handler->oa_2,

@@ -109,6 +109,8 @@
 /* SOAP XML calls timeout values for event thread and hpi calls */
 #define HPI_CALL_TIMEOUT 40
 #define EVENT_CALL_TIMEOUT 40
+/* getAllEventEx needs to be issues within 300 seconds */
+#define SUBSCRIBE_TIMEOUT 295
 
 /* Error code for SOAP XML calls */
 #define SOAP_OK 0

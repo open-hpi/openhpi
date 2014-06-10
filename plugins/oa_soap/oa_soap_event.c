@@ -54,7 +54,7 @@
  **/
 
 #include "oa_soap_event.h"
-#include <time.h>
+#include <sys/time.h>
 /* Global Variables */
 time_t server_insert_timer[16] = {0};
 
@@ -114,6 +114,7 @@ gpointer oa_soap_event_thread(gpointer oa_pointer)
         SaHpiBoolT is_discovery_completed = SAHPI_FALSE;
         SaHpiBoolT listen_for_events = SAHPI_TRUE;
         char *user_name, *password, *url = NULL;  
+        struct timeval time1 = {0}, time2 = {0};
 	char oa_fw_buf[SAHPI_MAX_TEXT_BUFFER_LENGTH];
 
         if (oa_pointer == NULL) {
@@ -126,7 +127,17 @@ gpointer oa_soap_event_thread(gpointer oa_pointer)
 	handler = oa->oh_handler;
 	oa_handler = handler->data;
 
-        dbg("OA SOAP event thread started for OA %s", oa->server);
+        dbg("Threadid= %p OA SOAP event thread started for OA %s", 
+                     g_thread_self(), oa->server);
+
+        /* subscribe to the events here. Use the same session if the
+           session is not expired.
+         */
+        rv = create_event_session(oa);
+        if (rv != SOAP_OK) {
+                err("Subscribe for events failed OA %s", oa->server);
+        }
+                gettimeofday(&time1, NULL);
 
         /* Check whether the plugin is initialized.
          * If not, wait till plugin gets initialized
@@ -229,12 +240,25 @@ gpointer oa_soap_event_thread(gpointer oa_pointer)
         free(url);
         url = NULL;
 
+        gettimeofday(&time2, NULL);
+        if (time2.tv_sec-time1.tv_sec > SUBSCRIBE_TIMEOUT) {
+              rv = create_event_session(oa);
+              if (rv != SOAP_OK) {
+                       err("Subscribe for events failed OA %s",
+                              oa->server);
+              } else {
+                        warn("Re-discovery took %ld secs.",
+                                      (time2.tv_sec-time1.tv_sec));
+                        warn("Events might have been lost");
+              } 
+        }
+
         /* Intialize the event request structure */
         request.pid = oa->event_pid;
         request.waitTilEventHappens = HPOA_TRUE;
         request.lcdEvents = HPOA_FALSE;
-	 memset(oa_fw_buf,0,SAHPI_MAX_TEXT_BUFFER_LENGTH);
-	 snprintf(oa_fw_buf,SAHPI_MAX_TEXT_BUFFER_LENGTH,"%.2f",oa->fm_version);
+        memset(oa_fw_buf,0,SAHPI_MAX_TEXT_BUFFER_LENGTH);
+        snprintf(oa_fw_buf,SAHPI_MAX_TEXT_BUFFER_LENGTH,"%.2f",oa->fm_version);
         request.oaFwVersion = oa_fw_buf;
 
         /* Listen for the events from OA */
@@ -354,6 +378,7 @@ void oa_soap_error_handling(struct oh_handler_state *oh_handler,
         char *user_name = NULL, *password = NULL;
         struct OaId oaId;
         SaHpiResourceIdT resource_id;
+        struct timeval time1 = {0}, time2 = {0};
 
         if (oh_handler == NULL || oa == NULL) {
                 err("Invalid parameters");
@@ -401,7 +426,6 @@ void oa_soap_error_handling(struct oh_handler_state *oh_handler,
                         process_oa_out_of_access(oh_handler, oa);
                 }
 
-                /* Create a fresh event session */
                 rv = create_event_session(oa);
                 if (rv != SA_OK) {
                         /* Set the error code to  -1 to make sure
@@ -409,7 +433,8 @@ void oa_soap_error_handling(struct oh_handler_state *oh_handler,
                          */
                         error_code = -1;
                         continue;
-                }
+                } else 
+                       gettimeofday(&time1, NULL);
 
                 /* Sleep for a second, let OA stabilize
                  * TODO: Remove this workaround, when OA has the fix
@@ -441,6 +466,24 @@ void oa_soap_error_handling(struct oh_handler_state *oh_handler,
                                  * is done
                                  */
                                 error_code = -1;
+                        }
+                }
+                /* Create a fresh event session, PID  expires in 5 mins.  */
+                gettimeofday(&time2, NULL);
+                
+                if (time2.tv_sec-time1.tv_sec > SUBSCRIBE_TIMEOUT) {
+                        rv = create_event_session(oa);
+                        if (rv != SA_OK) {
+                                 /* Set the error code to  -1 to make sure
+                                    * recovery for OA out of access is done
+                                    */
+                                 err("create_event_session failed");
+                                 error_code = -1;
+                                 continue;
+                        } else {
+                                 err("Re-discovery took %ld secs.",
+                                      (time2.tv_sec-time1.tv_sec));
+                                 err("Events might have been lost");
                         }
                 }
         }
