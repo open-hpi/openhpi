@@ -1106,7 +1106,7 @@ SaErrorT add_server_blade(struct oh_handler_state *oh_handler,
 
         /* Build the server RDR */
         rv = build_server_rdr(oh_handler, con, bay_number, resource_id, 
-			      blade_name);
+			      blade_name, TRUE);
         if (rv != SA_OK) {
                 err("build inserted server RDR failed");
                 /* Free the inventory info from inventory RDR */

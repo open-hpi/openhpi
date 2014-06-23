@@ -194,7 +194,8 @@ SaErrorT build_server_rdr(struct oh_handler_state *oh_handler,
                           SOAP_CON *con,
                           SaHpiInt32T bay_number,
                           SaHpiResourceIdT resource_id,
-			  char *name);
+			  char *name,
+			  int build_sensors);
 
 SaErrorT discover_server(struct oh_handler_state *oh_handler);
 
