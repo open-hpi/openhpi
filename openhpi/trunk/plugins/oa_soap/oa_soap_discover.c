@@ -1633,6 +1633,7 @@ SaErrorT build_server_rpt(struct oh_handler_state *oh_handler,
  *      @response:    Server blade info response structure
  *      @resource_id: Resource id
  *      @name: Blade resource name
+ *      @build_sensor: Flag to build sensors
  *
  * Purpose:
  *      Populate the server blade RDR.
@@ -1661,7 +1662,8 @@ SaErrorT build_server_rdr(struct oh_handler_state *oh_handler,
                           SOAP_CON *con,
                           SaHpiInt32T bay_number,
                           SaHpiResourceIdT resource_id,
-			  char *name)
+			  char *name, 
+			  int build_sensors)
 {
         SaErrorT rv = SA_OK;
         SaHpiRdrT rdr;
@@ -1730,6 +1732,9 @@ SaErrorT build_server_rdr(struct oh_handler_state *oh_handler,
 	}
 	/* Build UID control rdr for server */
         OA_SOAP_BUILD_CONTROL_RDR(OA_SOAP_UID_CNTRL, 0, 0)
+
+        if(build_sensors != TRUE) 
+                return SA_OK;
 
 	status_request.bayNumber = bay_number;
 	rv = soap_getBladeStatus(con, &status_request, &status_response);
@@ -1923,7 +1928,7 @@ SaErrorT discover_server(struct oh_handler_state *oh_handler)
 
                 /* Build rdr entry for server */
                 rv = build_server_rdr(oh_handler, oa_handler->active_con, i,
-                                      resource_id, blade_name);
+                                      resource_id, blade_name, TRUE);
                 if (rv != SA_OK) {
                         err("Failed to add Server rdr");
                         /* Reset resource_status structure to default values */
