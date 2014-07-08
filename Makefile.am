@@ -118,7 +118,7 @@ include_HEADERS = $(top_srcdir)/include/SaHpi.h \
                   $(top_srcdir)/clients/oh_clients.h
 
 docsdir=$(datadir)/doc/$(PACKAGE_NAME)-$(VERSION)
-docs_DATA = README README.daemon COPYING
+docs_DATA = README README.daemon COPYING ChangeLog
 
 $(top_srcdir)/utils/sahpi_enum_utils.h:
 	make -C $(top_builddir)/utils sahpi_enum_utils.h
