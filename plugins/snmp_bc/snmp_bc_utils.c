@@ -314,7 +314,6 @@ SaErrorT snmp_bc_set_resource_add_oh_event(struct oh_event *e,
 	if (e->resource.ResourceCapabilities & SAHPI_CAPABILITY_FRU) {
 		e->event.EventType = SAHPI_ET_HOTSWAP;
 		e->event.EventDataUnion.HotSwapEvent.HotSwapState = 
-			e->event.EventDataUnion.HotSwapEvent.HotSwapState = 
 						res_info_ptr->cur_state;
 		
 	} else {
