@@ -186,7 +186,8 @@ bool cStreamSock::ReadMsg( uint8_t& type,
     while ( got < need ) {
         ssize_t len = recv( m_sockfd, dst + got, need - got, 0 );
         if ( len < 0 ) {
-            CRIT( "error while reading message." );
+            CRIT( "error while reading message in thread %p.", 
+            g_thread_self() );
             return false;
         } else if ( len == 0 ) {
             //CRIT( "peer closed connection." );
@@ -318,7 +319,7 @@ cStreamSock::eWaitCc cStreamSock::Wait()
     if ( cc == 0 ) { // timeout
         return eWaitTimeout;
     } else if ( cc != 1 ) {
-        CRIT( "select failed" );
+        // CRIT( "select failed" );
         return eWaitError;
     } else if ( FD_ISSET( m_sockfd, &fds ) == 0 ) {
         CRIT( "unexpected select behaviour" );
