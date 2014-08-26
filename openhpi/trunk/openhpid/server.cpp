@@ -158,16 +158,34 @@ bool oh_server_run( int ipvflags,
     GThreadPool *pool;
     pool = g_thread_pool_new(service_thread, 0, max_threads, FALSE, 0);
 
+    cStreamSock::eWaitCc wc;
     // wait for a connection and then service the connection
     while (!stop) {
+        if ( ( wc = ssock->Wait() ) == cStreamSock::eWaitError ) {
+            if (stop) {
+                break;
+            }
+            g_usleep( 1000000 ); // in case the problem is persistent
+            CRIT( "Waiting on server socket failed" );
+            continue;
+        }
+
+        if ( wc == cStreamSock::eWaitTimeout ) {
+            continue;
+        }
+
         cStreamSock * sock = ssock->Accept();
+
+        if (!sock) {
+            CRIT("Error accepting server socket.");
+            g_usleep( 1000000 ); // in case the problem is persistent
+            continue;
+        }
+
         if (stop) {
             break;
         }
-        if (!sock) {
-            CRIT("Error accepting server socket.");
-            break;
-        }
+
         LogIp( sock );
         add_socket_to_list( sock );
         DBG("### Spawning thread to handle connection. ###");
@@ -224,7 +242,10 @@ static void service_thread(gpointer sock_ptr, gpointer /* user_data */)
             break;
         }
         if (!rc) {
-            CRIT("%p Error or Timeout while reading socket.", thrdid);
+            // The following error message need not be there as the
+            // ReadMsg captures the error when it returns false and
+            // one of the false return is not a real error
+            // CRIT("%p Error or Timeout while reading socket.", thrdid);
             break;
         } else if (type != eMhMsg) {
             CRIT("%p Unsupported message type. Discarding.", thrdid);
