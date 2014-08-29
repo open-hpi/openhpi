@@ -4,9 +4,9 @@ hpiwdt -  This sample openhpi application reads and enables the watchdog timer.
 
 =head1 SYNOPSIS 
 
- hpiwdt [-D nn] [-N host[:port]] [-C <cfgfile>] [-der -t sec] [-X] [-h]
+ hpiwdt [-D nn] [-N host[:port]] [-C <cfgfile>] [-t sec] [-X] [-h]
  hpiwdt [--domain=nn] [--host=host[:port]] [--cfgfile=file]
-        [--disable][--enable][--reset][--timout n] [--debug] [--help]
+        [--disable][--enable][--reset][--timeout n] [--debug] [--help]
 
 =head1 DESCRIPTION
 
@@ -65,7 +65,7 @@ For example: I<"[::1]"> or I<"[::1]:4743">.
 =item B<-C> I<"file">, B<--cfgfile>=I<"file">
 
 Use passed file as client configuration file.
-This option overrides the OPENHPICLIENT_CONf environment variable.
+This option overrides the OPENHPICLIENT_CONF environment variable.
 
 =back
 

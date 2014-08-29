@@ -150,7 +150,7 @@ main(int argc, char **argv)
       printf("                                   This option overrides the OPENHPI_DAEMON_HOST and  \n");
       printf("                                   OPENHPI_DAEMON_PORT environment variables.  \n");
       printf("      -C, --cfgfile=\"file\"         Use passed file as client configuration file  \n");
-      printf("                                   This option overrides the OPENHPICLIENT_CONf  \n");
+      printf("                                   This option overrides the OPENHPICLIENT_CONF  \n");
       printf("                                   environment variable.  \n\n");
       return 1;
    }

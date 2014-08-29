@@ -38,37 +38,59 @@ The client and daemon currently cannot resolve differences between 32-bit and
 
 =over 4
 
-=item B<-f> I<pidfile>
+=item B<-c>, B<--cfg>=I<conf_file>
 
-This overrides the default location of the pidfile.
+Sets path/name of the configuration file.
+This option is required unless the environment 
+variable OPENHPI_CONF has been set to a valid configuration file.
 
-=item B<-n>
+=item B<-v>, B<--verbose>
 
-This forces the daemon to run in the foreground.
+This option causes the daemon to display verbose
+messages. This option is optional.
 
-=item B<-p> I<port>
+=item B<-b>, B<--bind>=I<bind_address>
 
-This is used to override the port to listen on by the daemon.
+Bind address for the daemon socket.
+Also bind address can be specified with
+OPENHPI_DAEMON_BIND_ADDRESS environment variable.
+No bind address is used by default.
 
-=item B<-s> I<seconds>
+=item B<-p>, B<--port>=I<port>
 
-Read timeout used by the daemon sockets. Default is unlimited.
+Overrides the default listening port (4743) of the daemon.
+The option is optional.
 
-=item B<-t> I<threads>
+=item B<-f>, B<--pidfile>=I<pidfile>
 
-Sets the maximum number of connection threads. Default is unlimited.
+Overrides the default path/name for the daemon pid file.
+The option is optional.
 
-=item B<-v>
+=item B<-s>, B<--timeout>=I<seconds>
 
-Display verbose messages
+Overrides the default socket read timeout of 30 minutes.
+The option is optional.
 
-=item B<-4>
+=item B<-t>, B<--threads>=I<threads>
 
-The daemon will try to bind IPv4 socket.
+Sets the maximum number of connection threads.
+The default is umlimited.
+The option is optional.
 
-=item B<-6>
+=item B<-n>, B<--nondaemon>
+
+Forces the code to run as a foreground process and NOT as a daemon.
+The default is to run as a daemon.
+The option is optional.
+
+=item B<-6>, B<--ipv6>
 
 The daemon will try to bind IPv6 socket.
+
+=item B<-4>, B<--ipv4>
+
+The daemon will try to bind IPv4 socket (default).
+IPv6 option takes precedence over IPv4 option.
 
 =item B<-4 -6>
 

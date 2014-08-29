@@ -67,7 +67,7 @@ static GOptionEntry host_option[] =
 static GOptionEntry clientconf_option[] =
 {
   { "cfgfile",      'C', 0, G_OPTION_ARG_FILENAME, &optcfgfile, "Use passed file as client configuration file\n"
-"                               This option overrides the OPENHPICLIENT_CONf\n"
+"                               This option overrides the OPENHPICLIENT_CONF\n"
 "                               environment variable.",                                      "\"file\"" },
   { NULL }
 };

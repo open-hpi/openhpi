@@ -7,13 +7,13 @@ ohhandler - An openhpi sample application that uses the openhpi additional inter
  ohhandler [-D nn] [-N host[:port]] [-C <cfgfile>] [-X] command <specific arguments>
  ohhandler [--domain nn] [--host=host[:port]] [--cfgfile=file] [--debug] command <specific arguments>
 
- ohhandler [-D nn] [-x] list
- ohhandler [-D nn] [-x] info    <handler-id>
- ohhandler [-D nn] [-x] destroy <handler-id>
- ohhandler [-D nn] [-x] getnext <handler-id>
- ohhandler [-D nn] [-x] find    <resource-id>
- ohhandler [-D nn] [-x] retry   <handler-id>
- ohhandler [-D nn] [-x] create  plugin <plugin-name> <configuration-parameters>
+ ohhandler [-D nn] [-X] list
+ ohhandler [-D nn] [-X] info    <handler-id>
+ ohhandler [-D nn] [-X] destroy <handler-id>
+ ohhandler [-D nn] [-X] getnext <handler-id>
+ ohhandler [-D nn] [-X] find    <resource-id>
+ ohhandler [-D nn] [-X] retry   <handler-id>
+ ohhandler [-D nn] [-X] create  plugin <plugin-name> <configuration-parameters>
 
 =head1 DESCRIPTION
 
@@ -72,7 +72,7 @@ For example: I<"[::1]"> or I<"[::1]:4743">.
 =item B<-C> I<"file">, B<--cfgfile>=I<"file">
 
 Use passed file as client configuration file.
-This option overrides the OPENHPICLIENT_CONf environment variable.
+This option overrides the OPENHPICLIENT_CONF environment variable.
 
 =back
 

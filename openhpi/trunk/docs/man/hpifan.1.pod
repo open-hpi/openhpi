@@ -53,7 +53,7 @@ For example: I<"[::1]"> or I<"[::1]:4743">.
 =item B<-C> I<"file">, B<--cfgfile>=I<"file">
 
 Use passed file as client configuration file.
-This option overrides the OPENHPICLIENT_CONf environment variable.
+This option overrides the OPENHPICLIENT_CONF environment variable.
 
 =back
 
