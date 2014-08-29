@@ -95,7 +95,7 @@ static GOptionEntry daemon_options[] =
 #endif
   { "ipv6",      '6', 0, G_OPTION_ARG_NONE,   &enableIPv6,      "The daemon will try to bind IPv6 socket.",          NULL },
   { "ipv4",      '4', 0, G_OPTION_ARG_NONE,   &enableIPv4,      "The daemon will try to bind IPv4 socket (default).\n"
-                                    "                            IPv6 option takes precedence over IPv6 option.",    NULL },
+                                    "                            IPv6 option takes precedence over IPv4 option.",    NULL },
 
   { NULL }
 };
@@ -145,7 +145,7 @@ void display_help(void)
 #endif
     printf("  -6, --ipv6                The daemon will try to bind IPv6 socket.\n");
     printf("  -4, --ipv4                The daemon will try to bind IPv4 socket (default).\n");
-    printf("                            IPv6 option takes precedence over IPv6 option.\n\n");
+    printf("                            IPv6 option takes precedence over IPv4 option.\n\n");
 }
 
 /*--------------------------------------------------------------------*/

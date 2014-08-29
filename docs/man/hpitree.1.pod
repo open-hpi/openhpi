@@ -5,7 +5,7 @@ and resources' manamegement instruments (rdr's) data structures of the managed o
 
 =head1 SYNOPSIS 
 
- hpitree [-D nn] [-N host[:port]] [-C <cfgfile>] [-acdiorsw ] [-n nn] [-x] [-h]
+ hpitree [-D nn] [-N host[:port]] [-C <cfgfile>] [-acdiorsw ] [-n nn] [-X] [-h]
  hpitree [--domain=nn] [--host=host[:port]] [--cfgfile=file] [--all] [--controls] [--rdrs] [--inventories] [--rpts]
          [--sensors] [--watchdogs] [--overview] [--resource=nn] [--debug] [--help]
 
@@ -87,7 +87,7 @@ For example: I<"[::1]"> or I<"[::1]:4743">.
 =item B<-C> I<"file">, B<--cfgfile>=I<"file">
 
 Use passed file as client configuration file.
-This option overrides the OPENHPICLIENT_CONf environment variable.
+This option overrides the OPENHPICLIENT_CONF environment variable.
 
 =back
 

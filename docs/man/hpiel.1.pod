@@ -4,9 +4,9 @@ hpiel - An openhpi sample application that displays HPI event log entries.
 
 =head1 SYNOPSIS 
 
- hpiel [-D nn] [-N host[:port]] [-C <cfgfile>] [-d] [-e entitypath] [-c -p -r -X -h ]
- hpiel [--Domain=nn]  [--host=host[:port]] [--cfgfile=file] 
-       [--del] [--entitypath="entitypath"] [--clear --resource --rdr --xml --debug --help]
+ hpiel [-D nn] [-N host[:port]] [-C <cfgfile>] [-d] [-E entity-path] [-c -p -r -X -h ]
+ hpiel [--domain=nn]  [--host=host[:port]] [--cfgfile=file] 
+       [--del] [--entity-path="entitypath"] [--clear --resource --rdr --debug --help]
 
 =head1 DESCRIPTION
 
@@ -68,7 +68,7 @@ For example: I<"[::1]"> or I<"[::1]:4743">.
 =item B<-C> I<"file">, B<--cfgfile>=I<"file">
 
 Use passed file as client configuration file.
-This option overrides the OPENHPICLIENT_CONf environment variable.
+This option overrides the OPENHPICLIENT_CONF environment variable.
 
 =back
 
