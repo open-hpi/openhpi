@@ -2161,6 +2161,101 @@ SaErrorT oa_soap_proc_sen_evt(struct oh_handler_state *oh_handler,
 }
  
 /**
+ * oa_soap_proc_mem_evt
+ *      @oh_handler: Pointer to openhpi handler
+ *      @resource_id: Resource Id
+ *      @sensor_num: Sensor number
+ *      @trigger_reading: mainMemoryErros sensor reading
+ *      @severity: Event severity 
+ *
+ * Purpose:
+ *	Processes and raises the memory event
+ *
+ * Detailed Description:
+ *	- Raises the memory event when there is/are DIMM failure/s
+ *
+ * Return values:
+ *      SA_OK  - on success.
+ *      SA_ERR_HPI_INVALID_PARAMS - on wrong parameters
+ *      SA_ERR_HPI_INTERNAL_ERROR - oa_soap plugin has encountered an internal
+ *                                  error.
+ **/
+SaErrorT oa_soap_proc_mem_evt(struct oh_handler_state *oh_handler,
+			      SaHpiResourceIdT resource_id,
+			      SaHpiSensorNumT sensor_num,
+			      char *trigger_reading,
+			      SaHpiSeverityT severity)
+{
+        SaHpiRptEntryT *rpt = NULL;
+        struct oh_event event;
+        int len = 0;
+
+        if (oh_handler == NULL) {
+                err("wrong parameters passed");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        /* Get the rpt entry of the resource */
+        rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+        if (rpt == NULL) {
+                err("resource RPT is NULL");
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+
+        /* Update the event structure */
+        memset(&event, 0, sizeof(struct oh_event));
+        event.event.EventType = SAHPI_ET_SENSOR;
+        memcpy(&(event.resource), rpt, sizeof(SaHpiRptEntryT));
+        event.event.Source = event.resource.ResourceId;
+        event.hid = oh_handler->hid;
+        event.event.EventDataUnion.SensorEvent.SensorNum =
+                                          OA_SOAP_SEN_MAIN_MEMORY_ERRORS;
+        event.event.EventDataUnion.SensorEvent.SensorType = SAHPI_MEMORY;
+        event.event.EventDataUnion.SensorEvent.EventCategory = 
+                                                      SAHPI_EC_PRED_FAIL;
+        event.event.EventDataUnion.SensorEvent.OptionalDataPresent = 
+                                               SAHPI_SOD_TRIGGER_READING;
+        event.event.EventDataUnion.SensorEvent.TriggerReading.Type =
+                                        SAHPI_SENSOR_READING_TYPE_BUFFER;
+        event.event.EventDataUnion.SensorEvent.TriggerReading.IsSupported = 
+                                                              SAHPI_TRUE;
+        oh_gettimeofday(&(event.event.Timestamp));
+      
+        switch (severity) {
+                case SAHPI_CRITICAL:
+                        event.event.EventDataUnion.SensorEvent.Assertion =
+                                                              SAHPI_TRUE;
+                        event.event.EventDataUnion.SensorEvent.EventState =
+                                            SAHPI_ES_PRED_FAILURE_ASSERT;
+                        event.event.Severity = SAHPI_CRITICAL;
+                        break;
+
+                case SAHPI_OK:
+                        event.event.EventDataUnion.SensorEvent.Assertion =
+                                                             SAHPI_FALSE;
+                        event.event.EventDataUnion.SensorEvent.EventState =
+                                          SAHPI_ES_PRED_FAILURE_DEASSERT;
+                        event.event.Severity = SAHPI_OK;
+                        break;
+
+                default:
+                        err("unknown severity");
+                        return SA_ERR_HPI_INTERNAL_ERROR; 
+        } 
+  
+        len = strlen(trigger_reading);
+        if (len >= SAHPI_SENSOR_BUFFER_LENGTH)
+                len = SAHPI_SENSOR_BUFFER_LENGTH - 1;
+        
+        strncpy((char *)&event.event.EventDataUnion.SensorEvent.TriggerReading.
+                             Value.SensorBuffer, trigger_reading, len);
+
+        oh_evt_queue_push(oh_handler->eventq, copy_oa_soap_event(&event));
+
+        return SA_OK;
+}
+
+/**
  * oa_soap_map_thresh_resp
  *      @rdr: Pointer to the sensor rdr
  *      @oa_soap_threshold_sensor: Structure containing the threshold reading

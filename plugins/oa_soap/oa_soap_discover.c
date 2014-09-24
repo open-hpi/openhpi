@@ -137,6 +137,8 @@
  */
 
 #include "oa_soap_discover.h"
+/* Global Variables */
+SaHpiInt32T memErrRecFlag[16] = {0};
 
 /* Forward declaration for static functions */
 static SaErrorT oa_soap_build_enc_info(struct oh_handler_state *oh_handler,
@@ -154,6 +156,8 @@ static SaErrorT oa_soap_build_lcd_rdr(struct oh_handler_state *oh_handler,
 				      SaHpiResourceIdT resource_id);
 static SaErrorT oa_soap_disc_lcd(struct oh_handler_state *oh_handler);
 static void oa_soap_push_disc_res(struct oh_handler_state *oh_handler);
+static SaErrorT oa_soap_server_mem_evt_discover(struct oh_handler_state 
+                                     *oh_handler, SaHpiRptEntryT  *rpt);
 
 /**
  * oa_soap_discover_resources
@@ -1739,7 +1743,7 @@ SaErrorT build_server_rdr(struct oh_handler_state *oh_handler,
 	status_request.bayNumber = bay_number;
 	rv = soap_getBladeStatus(con, &status_request, &status_response);
 	if (rv != SOAP_OK) {
-		err("Get thermalInfo failed for enclosure");
+		err("Get Blade status failed");
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 
@@ -4001,6 +4005,10 @@ static void oa_soap_push_disc_res(struct oh_handler_state *oh_handler)
 					       assert_sensor_list);
 			/* Initialize the assert sensor list to NULL */
 			assert_sensor_list = NULL;
+                        /* Server memory error processing. This workaround
+                           ignores the return value */
+                           oa_soap_server_mem_evt_discover(oh_handler, rpt);
+                        
 		}
 
 		/* Get the next resource */
@@ -4372,6 +4380,127 @@ SaErrorT oa_soap_modify_blade_thermal_rdr(struct oh_handler_state *oh_handler,
 				rdr->RecordId);
 	}
 	return SA_OK;
+}
+
+/**
+ * oa_soap_server_mem_evt_discover:
+ *      @oh_handler	: Pointer to openhpi handler
+ *	@rpt		: Pointer to rpt structure
+ *
+ * Purpose: Generate the memory event errors if they are present in 
+ *          extra_data of the blades.
+ *	
+ * Detailed Description: 
+ *	- This is an work around for not having DIMM memory sensor
+ *	- When the DIMM has an error, extra_data field of status responses
+ *        has a field to indicate which DIMM is at fault
+ *	- Single line may have many DIMM modules, seperate them
+ *	- Process an event for each DIMM
+ *
+ * Return values:
+ *      SA_OK                     - on success
+ *      SA_ERR_HPI_INTERNAL_ERROR - on failure
+ **/
+SaErrorT oa_soap_server_mem_evt_discover(struct oh_handler_state *oh_handler,
+                                           SaHpiRptEntryT  *rpt) 
+{
+        struct oa_soap_handler *oa_handler = NULL;
+	SaErrorT rv = SA_OK;
+        SaHpiInt32T i = 0, j = 0, len = 0;
+        struct getBladeStatus status_request;
+        struct bladeStatus status_response;
+        xmlNode *extra_data = NULL;
+        struct extraDataInfo extra_data_info;
+        char *mainMemoryError = NULL, *memoryError = NULL, *subStr = NULL;
+
+        if (oh_handler == NULL || rpt == NULL) {
+                  return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+
+        if (rpt->ResourceEntity.Entry[0].EntityType != SAHPI_ENT_SYSTEM_BLADE) {
+                return rv;
+        }
+
+        oa_handler = (struct oa_soap_handler *) oh_handler->data;
+        status_request.bayNumber = rpt->ResourceEntity.Entry[0].EntityLocation;
+        i = status_request.bayNumber;
+        rv = soap_getBladeStatus(oa_handler->active_con,
+                                 &status_request,
+                                 &status_response);
+        if (rv != SOAP_OK) {
+                err("Get Blade status failed");
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+
+        extra_data = status_response.extraData;
+        while (extra_data) {
+                soap_getExtraData(extra_data, &extra_data_info);
+                if (!(strcmp(extra_data_info.name, 
+                                         "mainMemoryErrors"))) {
+                    err("openhpid[%d]: Blade (id=%d) at %d has "
+                        "Memory Error: %s", getpid(),
+                         rpt->ResourceId, i, extra_data_info.value);
+                    memErrRecFlag[i] = 1;
+  
+                    /* This MEMORY event is created just to let the 
+                       user know which memory module is generating 
+                       an error */
+                    mainMemoryError = extra_data_info.value;
+
+                    for(j = 0; ; j++) {
+                            subStr = strstr(mainMemoryError, ";");
+                            if (subStr == NULL) {
+                                /* Raise the HPI sensor event */
+                                rv = oa_soap_proc_mem_evt(oh_handler,
+                                        rpt->ResourceId,
+                                        OA_SOAP_SEN_MAIN_MEMORY_ERRORS,
+                                        mainMemoryError,
+                                        SAHPI_CRITICAL);
+                                if (rv != SA_OK) {
+                                        err("processing the memory "
+                                            "event for sensor %x has "
+                                            "failed",
+                                       OA_SOAP_SEN_MAIN_MEMORY_ERRORS);
+                                        return rv;
+                                }
+                                break;
+                            }
+                            memoryError = (char  *)g_malloc0
+                                   (sizeof(char) * SAHPI_SENSOR_BUFFER_LENGTH);
+                            memset(memoryError, 0,
+                                           SAHPI_SENSOR_BUFFER_LENGTH);
+                            len = strlen(mainMemoryError) - 
+                                                        strlen(subStr);
+                            strncpy(memoryError, mainMemoryError, len);
+                            memoryError[len] = '\0';
+                             
+                            /* Raise the HPI sensor event */
+                            rv = oa_soap_proc_mem_evt(oh_handler,
+                                        rpt->ResourceId,
+                                        OA_SOAP_SEN_MAIN_MEMORY_ERRORS,
+                                        memoryError,
+                                        SAHPI_CRITICAL);
+                            if (rv != SA_OK) {
+                                    err("processing the memory "
+                                        "event for sensor %x has "
+                                        "failed",
+                                       OA_SOAP_SEN_MAIN_MEMORY_ERRORS);
+                                    g_free(memoryError);
+                                    return rv;
+                            }
+                            g_free(memoryError);
+                            strcpy(mainMemoryError, subStr + 2);
+                            if (j == 99) {
+                                     err("Too many memory errors, getting out");
+                                     return SA_ERR_HPI_INTERNAL_ERROR;
+                            }
+                    }
+                    break;
+                }
+                extra_data = soap_next_node(extra_data);
+        }
+        return rv;
+
 }
 
 void * oh_discover_resources (void *)

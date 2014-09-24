@@ -77,6 +77,8 @@ SaErrorT build_inserted_server_rpt(struct oh_handler_state *oh_handler,
                                    struct bladeInfo *response,
                                    SaHpiRptEntryT *rpt);
 
+SaHpiUint8T *oa_soap_parse_memory_sensor_reading(char *memoryErrors);
+
 void oa_soap_proc_server_status(struct oh_handler_state *oh_handler,
 				SOAP_CON *con,
 				struct bladeStatus *status);
