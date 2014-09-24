@@ -51,6 +51,9 @@
  *      build_inserted_server_rpt()       - Builds the rpt entry for inserted
  *                                          server
  *
+ *      oa_soap_parse_memory_sensor_reading() - Get the memory error from 
+ *                                          extra_data field
+ *
  *	oa_soap_proc_server_status() 	  - Processes the server status event
  *
  *	oa_soap_serv_post_comp ()	  - Processes the blade post complete 
@@ -63,6 +66,7 @@
 #include "oa_soap_server_event.h"
 #include "oa_soap_discover.h"           /* for build_server_rpt() prototype */
 extern time_t server_insert_timer[];
+extern SaHpiInt32T memErrRecFlag[];
 
 /**
  * process_server_power_off_event
@@ -839,6 +843,45 @@ SaErrorT build_inserted_server_rpt(struct oh_handler_state *oh_handler,
 }
 
 /**
+ * oa_soap_parse_memory_sensor_reading
+ *      @memoryErrors   : Pointer to mainMemoryErros sensor reading
+ *
+ * Purpose:
+ *      Parses main memory sensor reading
+ *
+ * Detailed Description: NA
+ *
+ * Return values:
+ *      Pointer       - on success.
+ *      NULL          - on error.
+ **/
+SaHpiUint8T *oa_soap_parse_memory_sensor_reading(char *memoryErrors)
+{
+        char *subStr = NULL, *sensor_reading = NULL;
+        int len = 0; 
+        if (memoryErrors == NULL) {
+                err("Invalid parameters");
+                return NULL;
+        }
+
+        sensor_reading = (char  *)g_malloc0
+                            (sizeof(char) * SAHPI_SENSOR_BUFFER_LENGTH);
+        memset(sensor_reading, 0, SAHPI_SENSOR_BUFFER_LENGTH);
+        subStr = strstr(memoryErrors, ";");
+        if (subStr) 
+                len = strlen(memoryErrors) - strlen(subStr);
+        else
+                len = strlen(memoryErrors);
+
+        if (len >= SAHPI_SENSOR_BUFFER_LENGTH) 
+                len = SAHPI_SENSOR_BUFFER_LENGTH - 1;
+        strncpy(sensor_reading, memoryErrors, len);
+        sensor_reading[len] = '\0';
+        
+        return (SaHpiUint8T *)sensor_reading;
+}
+
+/**
  * oa_soap_proc_server_status
  *      @oh_handler	: Pointer to openhpi handler structure
  *      @con		: Pointer to soap con
@@ -866,6 +909,9 @@ void oa_soap_proc_server_status(struct oh_handler_state *oh_handler,
 	struct bladeThermalInfoArrayResponse thermal_response;
 	xmlNode *extra_data = NULL;
 	struct extraDataInfo extra_data_info;
+        char *mainMemoryError = NULL;
+        SaHpiInt32T sensor_status, memErrFlag[16] = {0};
+        SaHpiInt32T sensor_class, sensor_value, sensor_num;
 
 	if (oh_handler == NULL || con == NULL || status == NULL) {
 		err("Invalid parameters");
@@ -895,8 +941,67 @@ void oa_soap_proc_server_status(struct oh_handler_state *oh_handler,
                 if (!(strcmp(extra_data_info.name, "mainMemoryErrors"))) {
                    err("openhpid[%d]: Blade (id=%d) at %d has Memory Error: %s",
                     getpid(), resource_id, bay, extra_data_info.value);
+                   memErrFlag[bay] = 1;
+                   memErrRecFlag[bay] = 1;
+                   break;
                 }
                 extra_data = soap_next_node(extra_data);
+        }
+
+        if(memErrRecFlag[bay]) {
+                /* This MEMORY event is created just to let the user
+                   know whether all memory modules are fine, if not,
+                   which memory module is generating an error */
+                if (memErrFlag[bay]) {
+                    mainMemoryError = (char *)
+                    oa_soap_parse_memory_sensor_reading(extra_data_info.value);
+                    rv = oa_soap_proc_mem_evt(oh_handler, resource_id,
+                                              OA_SOAP_SEN_MAIN_MEMORY_ERRORS,
+                                              mainMemoryError, SAHPI_CRITICAL);
+                    if (rv != SA_OK) {
+                            err("processing the memory event for sensor %x has"
+                                " failed", OA_SOAP_SEN_MAIN_MEMORY_ERRORS);
+                            g_free(mainMemoryError);
+                            return;
+                    }
+                    g_free(mainMemoryError);
+                    memErrFlag[bay] = 0;
+                } else {
+                    /* Get the sensor value */
+                    sensor_num = OA_SOAP_SEN_PRED_FAIL;
+                    sensor_class = oa_soap_sen_arr[sensor_num].sensor_class;
+                    sensor_value = status->operationalStatus;
+
+                    /* Check whether the sensor value is supported or not */
+                    if (oa_soap_sen_val_map_arr[sensor_class][sensor_value]
+                                                                       == -1) {
+                            err("Not supported sensor value %d detected.",
+                                                                sensor_value);
+                            return;
+                    }
+
+                    /* Get the assert state of the predictive failure sensor */
+                    sensor_status =
+                        oa_soap_sen_assert_map_arr[sensor_class][sensor_value];
+
+                    /* Check whether predictive failure gets de-asserted */
+                    if (sensor_status == OA_SOAP_SEN_ASSERT_FALSE) {
+                            /* Now predictive failure is de-asserted and
+                               there are no memory module errors, so send
+                               an event with "All Memory Modules are Ok" */
+                            mainMemoryError = "All Memory Modules are Ok";
+                            rv = oa_soap_proc_mem_evt(oh_handler, resource_id,
+                                              OA_SOAP_SEN_MAIN_MEMORY_ERRORS,
+                                              mainMemoryError, SAHPI_OK);
+                            if (rv != SA_OK) {
+                                    err("processing the memory event for "
+                                        "sensor %x has failed",
+                                         OA_SOAP_SEN_MAIN_MEMORY_ERRORS);
+                                    return;
+                            }
+                            memErrRecFlag[bay] = 0;
+                    }
+                }
         }
 
 	/* Process operational status sensor */

@@ -267,6 +267,8 @@
 #define OA_SOAP_SEN_BLADE_POWER_SUPPLY_ZONE7		(SaHpiSensorNumT) 0x068
 /* Server Blade Power Supply zone8 */
 #define OA_SOAP_SEN_BLADE_POWER_SUPPLY_ZONE8		(SaHpiSensorNumT) 0x069
+/* Main Memory Errors sensor */
+#define OA_SOAP_SEN_MAIN_MEMORY_ERRORS			(SaHpiSensorNumT) 0x06a
 
 /* Control numbers used in OA SOAP plugin 
  * On adding new control, control array in in plugin/oa_soap/oa_soap_resources.c

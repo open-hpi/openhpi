@@ -108,6 +108,7 @@
 	} \
 }
 
+
 /* Maximum number of enum values for healthStatus field in extraData structure
  */
 #define OA_SOAP_MAX_HEALTH_ENUM 8
@@ -359,6 +360,12 @@ SaErrorT oa_soap_proc_sen_evt(struct oh_handler_state *oh_handler,
 			      SaHpiInt32T sensor_value,
 			      SaHpiFloat64T trigger_reading,
 			      SaHpiFloat64T trigger_threshold);
+
+SaErrorT oa_soap_proc_mem_evt(struct oh_handler_state *oh_handler,
+			      SaHpiResourceIdT resource_id,
+			      SaHpiSensorNumT sen_num,
+			      char *trigger_reading,
+			      SaHpiSeverityT severity);
 
 SaErrorT oa_soap_map_thresh_resp(SaHpiRdrT *rdr,
 				 void *response,

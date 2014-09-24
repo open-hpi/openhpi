@@ -2478,7 +2478,7 @@ static SaErrorT oa_soap_re_disc_server_sen(struct oh_handler_state *oh_handler,
 	request.bayNumber = bay_number;
 	rv = soap_getBladeStatus(con, &request, &response);
 	if (rv != SOAP_OK) {
-		err("Get OA status SOAP call failed");
+		err("Get Blade status SOAP call failed");
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 
