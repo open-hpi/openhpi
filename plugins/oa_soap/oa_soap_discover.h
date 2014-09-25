@@ -183,34 +183,59 @@ SaErrorT build_oa_rdr(struct oh_handler_state *oh_handler,
 SaErrorT discover_oa(struct oh_handler_state *oh_handler);
 
 SaErrorT build_discovered_server_rpt(struct oh_handler_state *oh_handler,
-                                     SOAP_CON *con, struct bladeInfo *response,
-                                     SaHpiResourceIdT *resource_id);
+                                     struct bladeInfo *response,
+                                     SaHpiResourceIdT *resource_id,
+                                     struct bladeStatus *);
 
 SaErrorT build_server_rpt(struct oh_handler_state *oh_handler,
                           struct bladeInfo *response,
                           SaHpiRptEntryT *rpt);
 
-SaErrorT build_server_rdr(struct oh_handler_state *oh_handler,
+SaErrorT build_inserted_server_rdr(struct oh_handler_state *oh_handler,
                           SOAP_CON *con,
                           SaHpiInt32T bay_number,
                           SaHpiResourceIdT resource_id,
-			  char *name,
-			  int build_sensors);
+                          char *name,
+                          int build_sensors);
+
+SaErrorT build_discovered_server_rdr_arr(struct oh_handler_state *oh_handler,
+                          SOAP_CON *con,
+                          SaHpiInt32T bay_number,
+                          SaHpiResourceIdT resource_id,
+                          char *name,
+                          int build_sensors,
+                          struct bladeInfo *, struct bladeStatus *,
+                          struct bladePortMap *);
 
 SaErrorT discover_server(struct oh_handler_state *oh_handler);
 
-SaErrorT build_interconnect_rpt(struct oh_handler_state *oh_handler,
+SaErrorT build_inserted_intr_rpt(struct oh_handler_state *oh_handler,
                                 SOAP_CON *con,
                                 char *name,
                                 SaHpiInt32T bay_number,
                                 SaHpiResourceIdT *resource_id,
                                 int inserted);
 
-SaErrorT build_interconnect_rdr(struct oh_handler_state *oh_handler,
+SaErrorT build_discovered_intr_rpt(struct oh_handler_state *oh_handler,
+                                char *name,
+                                SaHpiInt32T bay_number,
+                                SaHpiResourceIdT *resource_id,
+                                struct interconnectTrayStatus *);
+
+SaErrorT build_inserted_interconnect_rdr(struct oh_handler_state *oh_handler,
                                 SOAP_CON *con,
                                 SaHpiInt32T bay_number,
                                 SaHpiResourceIdT resource_id,
                                 int build_sensors);
+
+SaErrorT build_discovered_intr_rdr_arr(struct oh_handler_state *oh_handler,
+                                SOAP_CON *con,
+                                SaHpiInt32T bay_number,
+                                SaHpiResourceIdT resource_id,
+                                int build_sensors,
+                                struct interconnectTrayInfo *,
+                                struct interconnectTrayStatus *,
+                                struct interconnectTrayPortMap *);
 
 SaErrorT discover_interconnect(struct oh_handler_state *oh_handler);
 
@@ -245,6 +270,11 @@ SaErrorT build_power_supply_rdr(struct oh_handler_state *oh_handler,
                                 struct powerSupplyInfo *response,
                                 SaHpiResourceIdT resource_id);
 
+SaErrorT build_discovered_ps_rdr_arr(struct oh_handler_state *oh_handler,
+                                struct powerSupplyInfo *response,
+                                SaHpiResourceIdT resource_id,
+                                struct powerSupplyStatus *status_response);
+
 SaErrorT discover_power_supply(struct oh_handler_state *oh_handler);
 
 void oa_soap_get_health_val(xmlNode *extra_data,
@@ -254,38 +284,93 @@ void oa_soap_parse_diag_ex(xmlNode *diag_ex,
 			   enum diagnosticStatus *diag_status_arr);
 
 SaErrorT oa_soap_build_rpt(struct oh_handler_state *oh_handler,
-			   SaHpiInt32T resourece_type,
-			   SaHpiInt32T location,
-			   SaHpiRptEntryT *rpt);
+                           SaHpiInt32T resourece_type,
+                           SaHpiInt32T location,
+                           SaHpiRptEntryT *rpt);
 
 SaErrorT oa_soap_get_fz_arr(struct oa_soap_handler *oa_handler,
-			    SaHpiInt32T max_fz,
-			    struct getFanZoneArrayResponse *response);
+                             SaHpiInt32T max_fz,
+                             struct getFanZoneArrayResponse *response);
 
 SaErrorT oa_soap_build_fan_rpt(struct oh_handler_state *oh_handler,
-			       SaHpiInt32T bay_number,
-			       SaHpiResourceIdT *resource_id);
+                                SaHpiInt32T bay_number,
+                                SaHpiResourceIdT *resource_id);
 
 SaErrorT oa_soap_build_fan_rdr(struct oh_handler_state *oh_handler,
-			       SOAP_CON *con,
-			       struct fanInfo *response,
-			       SaHpiResourceIdT resource_id);
+                                SOAP_CON *con,
+                                struct fanInfo *response,
+                                SaHpiResourceIdT resource_id);
 
 SaErrorT oa_soap_populate_event(struct oh_handler_state *oh_handler,
-				SaHpiResourceIdT resource_id,
-				struct oh_event *event,
-				GSList **assert_sensors);
+                                SaHpiResourceIdT resource_id,
+                                struct oh_event *event,
+                                GSList **assert_sensors);
 
 SaErrorT oa_soap_build_blade_thermal_rdr(
-			struct oh_handler_state *oh_handler,
-			struct bladeThermalInfoArrayResponse thermal_response,
-			SaHpiRptEntryT *rpt,
-			char *name);
+                          struct oh_handler_state *oh_handler,
+                          struct bladeThermalInfoArrayResponse thermal_response,
+                          SaHpiRptEntryT *rpt,
+                          char *name);
 
 SaErrorT oa_soap_modify_blade_thermal_rdr(
                         struct oh_handler_state *oh_handler,
                         struct bladeThermalInfoArrayResponse thermal_response,
                         SaHpiRptEntryT *rpt);
+
+SaErrorT oa_soap_get_ps_info_arr(struct oa_soap_handler *oa_handler,
+                            SaHpiInt32T max_bays,
+                            struct getPowerSupplyInfoArrayResponse *response,
+                            xmlDocPtr);
+
+SaErrorT oa_soap_get_ps_sts_arr(struct oa_soap_handler *oa_handler,
+                            SaHpiInt32T max_bays,
+                            struct getPowerSupplyStsArrayResponse *response,
+                            xmlDocPtr);
+
+SaErrorT oa_soap_get_fan_info_arr(struct oa_soap_handler *oa_handler,
+                            SaHpiInt32T max_bays,
+                            struct getFanInfoArrayResponse *response,
+                            xmlDocPtr);
+
+SaErrorT oa_soap_get_bladeinfo_arr(struct oa_soap_handler *oa_handler,
+                            SaHpiInt32T max_bays,
+                            struct getBladeInfoArrayResponse *response,
+                            xmlDocPtr);
+
+SaErrorT oa_soap_get_interconct_trayinfo_arr(struct oa_soap_handler *oa_handler,
+                            SaHpiInt32T max_bays,
+                            struct interconnectTrayInfoArrayResponse *response,
+                            xmlDocPtr);
+
+SaErrorT oa_soap_get_interconct_traysts_arr(struct oa_soap_handler *oa_handler,
+                            SaHpiInt32T max_bays,
+                            struct interconnectTrayStsArrayResponse *response,
+                            xmlDocPtr);
+
+SaErrorT oa_soap_get_interconct_traypm_arr(struct oa_soap_handler *oa_handler,
+                            SaHpiInt32T max_bays,
+                            struct interconnectTrayPmArrayResponse *response,
+                            xmlDocPtr);
+
+SaErrorT oa_soap_get_oa_info_arr(SOAP_CON *con,
+                            SaHpiInt32T max_bays,
+                            struct getOaInfoArrayResponse *response,
+                            xmlDocPtr);
+
+SaErrorT oa_soap_get_oa_sts_arr(SOAP_CON *con,
+                            SaHpiInt32T max_bays,
+                            struct getOaStatusArrayResponse *response,
+                            xmlDocPtr);
+
+SaErrorT oa_soap_get_bladests_arr(struct oa_soap_handler *oa_handler,
+                            SaHpiInt32T max_bays,
+                            struct getBladeStsArrayResponse *response,
+                            xmlDocPtr);
+
+SaErrorT oa_soap_get_portmap_arr(struct oa_soap_handler *oa_handler,
+                            SaHpiInt32T max_bays,
+                            struct getBladePortMapArrayResponse *response,
+                            xmlDocPtr);
 
 
 #endif

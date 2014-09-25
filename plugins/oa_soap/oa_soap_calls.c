@@ -65,6 +65,13 @@
                 return -1; \
         }
 
+#define SOAP_ARRAY_REQ \
+        byte    *p = NULL; \
+        for (p = request->bayArray.array; \
+             p - request->bayArray.array < request->bayArray.size; \
+             p++) { \
+                snprintf(bay_array + strlen(bay_array), sizeof(BAY), BAY, *p); \
+        } 
 
 /* Helper functions used by the main OA SOAP calls for code reuse.  They are
  * not intended to be called by users.
@@ -116,7 +123,7 @@ static void     parse_eventPid(xmlNode *node, struct eventPid *response)
 }
 
 /* parse_bladeInfo - Parses a bladeInfo response structure */
-static void     parse_bladeInfo(xmlNode *node, struct bladeInfo *response)
+void     parse_bladeInfo(xmlNode *node, struct bladeInfo *response)
 {
         response->bayNumber = atoi(soap_tree_value(node, "bayNumber"));
         response->presence =
@@ -149,7 +156,7 @@ static void     parse_bladeInfo(xmlNode *node, struct bladeInfo *response)
 }
 
 /* parse_bladePortMap- Parses a bladePortMap response structure */
-static void     parse_bladePortMap(xmlNode *node, struct bladePortMap *response)
+void     parse_bladePortMap(xmlNode *node, struct bladePortMap *response)
 {
         response->bladeBayNumber = soap_tree_value(node, "bladeBayNumber");
         response->status =
@@ -397,7 +404,7 @@ static void parse_powerCapConfig(xmlNode *node, struct powerCapConfig *response)
 }
 
 /* parse_oaStatus - Parses an oaStatus response structure */
-static void     parse_oaStatus(xmlNode *node, struct oaStatus *response)
+void     parse_oaStatus(xmlNode *node, struct oaStatus *response)
 {
         response->bayNumber = atoi(soap_tree_value(node, "bayNumber"));
         response->oaName = soap_tree_value(node, "oaName");
@@ -416,7 +423,7 @@ static void     parse_oaStatus(xmlNode *node, struct oaStatus *response)
 }
 
 /* parse_oaInfo - Parses an oaInfo response structure */
-static void     parse_oaInfo(xmlNode *node, struct oaInfo *response)
+void     parse_oaInfo(xmlNode *node, struct oaInfo *response)
 {
         response->bayNumber = atoi(soap_tree_value(node, "bayNumber"));
         response->youAreHere =
@@ -443,7 +450,7 @@ static void     parse_oaId(xmlNode *node, struct OaId *response)
 }
 
 /* parse_bladeStatus - Parses a bladeStatus response structure */
-static void     parse_bladeStatus(xmlNode *node, struct bladeStatus *response)
+void     parse_bladeStatus(xmlNode *node, struct bladeStatus *response)
 {
         response->bayNumber = atoi(soap_tree_value(node, "bayNumber"));
         response->presence =
@@ -470,7 +477,7 @@ static void     parse_bladeStatus(xmlNode *node, struct bladeStatus *response)
 /* parse_interconnectTrayStatus - Parses an interconnectTrayStatus
  * response structure
  */
-static void     parse_interconnectTrayStatus(xmlNode *node,
+void     parse_interconnectTrayStatus(xmlNode *node,
                                 struct interconnectTrayStatus *response)
 {
         response->bayNumber = atoi(soap_tree_value(node, "bayNumber"));
@@ -498,7 +505,7 @@ static void     parse_interconnectTrayStatus(xmlNode *node,
 /* parse_interconnectTrayInfo - Parses an interconnectTrayInfo
  * response structure
  */
-static void     parse_interconnectTrayInfo(xmlNode *node,
+void     parse_interconnectTrayInfo(xmlNode *node,
                                 struct interconnectTrayInfo *response)
 {
         response->bayNumber = atoi(soap_tree_value(node, "bayNumber"));
@@ -532,7 +539,7 @@ static void     parse_interconnectTrayInfo(xmlNode *node,
 /* parse_interconnectTrayPortMap- parses an interconnectTrayPortMap response 
  * struture.
  */
-static void    parse_interconnectTrayPortMap(xmlNode *portmap,
+void    parse_interconnectTrayPortMap(xmlNode *portmap,
 					struct interconnectTrayPortMap *result)
 {
 	result->interconnectTrayBayNumber =
@@ -551,7 +558,7 @@ static void    parse_interconnectTrayPortMap(xmlNode *portmap,
 }
 
 /* parse_powerSupplyInfo - Parses a powerSupplyInfo response structure */
-static void     parse_powerSupplyInfo(xmlNode *node,
+void     parse_powerSupplyInfo(xmlNode *node,
                                       struct powerSupplyInfo *response)
 {
 	char *temp_val=NULL;
@@ -599,7 +606,7 @@ or too long");
 }
 
 /* parse_powerSupplyStatus - Parses a powerSupplyStatus response structure */
-static void     parse_powerSupplyStatus(xmlNode *node,
+void     parse_powerSupplyStatus(xmlNode *node,
                                         struct powerSupplyStatus *response)
 {
         response->bayNumber = atoi(soap_tree_value(node, "bayNumber"));
@@ -2233,3 +2240,333 @@ int soap_getBladeThermalInfoArray(SOAP_CON *con,
 	}
 	return(ret);
 }
+
+int soap_getPowerSupplyInfoArray(SOAP_CON *con,
+                         const struct getPowerSupplyInfoArray *request,
+                         struct getPowerSupplyInfoArrayResponse *response,
+                         xmlDocPtr ps_info_doc)
+{
+        SOAP_PARM_CHECK
+        char    bay_array[(sizeof(BAY) + 1) * request->bayArray.size];
+        xmlNode *tmp = NULL;
+
+        /* Generate the PS info array necessary for this request */
+        bay_array[0] = 0;
+        SOAP_ARRAY_REQ
+
+        if (!(ret = soap_request(con, GET_POWER_SUPPLY_INFO_ARRAY, bay_array))){
+                if( ps_info_doc != NULL)  { 
+                    dbg("ps_info_doc is NOT NULL, Please check");
+                    xmlFreeDoc( ps_info_doc);
+                }
+                ps_info_doc = xmlCopyDoc (con->doc,1); 
+                if( ps_info_doc == NULL)
+                    return(-1);
+                tmp = soap_walk_doc(ps_info_doc,
+                                    "Body:""getPowerSupplyInfoArrayResponse:");
+                response->powerSupplyInfoArray = soap_walk_tree(tmp,
+                                        "powerSupplyInfoArray:powerSupplyInfo");
+        }
+        return(ret);
+}
+
+int soap_getPowerSupplyStatusArray(SOAP_CON *con,
+                         const struct getPowerSupplyStsArray *request,
+                         struct getPowerSupplyStsArrayResponse *response,
+                         xmlDocPtr ps_sts_doc)
+{
+        SOAP_PARM_CHECK
+        char    bay_array[(sizeof(BAY) + 1) * request->bayArray.size];
+        xmlNode *tmp = NULL;
+
+        /* Generate the PS status array necessary for this request */
+        bay_array[0] = 0;
+        SOAP_ARRAY_REQ
+
+        if (!(ret = soap_request(con, GET_POWER_SUPPLY_STATUS_ARRAY, bay_array))){
+                if( ps_sts_doc != NULL) {
+                    dbg("ps_sts_doc is NOT NULL, Please check");
+                    xmlFreeDoc(ps_sts_doc);
+                }
+                ps_sts_doc = xmlCopyDoc (con->doc,1);
+                if( ps_sts_doc == NULL)
+                    return(-1);
+                tmp = soap_walk_doc(ps_sts_doc,
+                                    "Body:""getPowerSupplyStatusArrayResponse:");
+                response->powerSupplyStsArray = soap_walk_tree(tmp,
+                                        "powerSupplyStatusArray:powerSupplyStatus");
+        }
+        return(ret);
+}
+
+int soap_getFanInfoArray(SOAP_CON *con,
+                         const struct getFanInfoArray *request,
+                         struct getFanInfoArrayResponse *response,
+                         xmlDocPtr fan_info_doc)
+{
+        SOAP_PARM_CHECK
+        char    bay_array[(sizeof(BAY) + 1) * request->bayArray.size];
+        xmlNode *tmp = NULL;
+
+        /* Generate the fan info array necessary for this request */
+        bay_array[0] = 0;
+        SOAP_ARRAY_REQ
+
+        if (! (ret = soap_request(con, GET_FAN_INFO_ARRAY, bay_array))) {
+                if( fan_info_doc != NULL) {
+                    dbg("fan_info_doc is NOT NULL, Please check");
+                    xmlFreeDoc(fan_info_doc);
+                }
+                fan_info_doc = xmlCopyDoc (con->doc,1);
+                if( fan_info_doc == NULL)
+                    return(-1);
+                tmp = soap_walk_doc(fan_info_doc,
+                                    "Body:""getFanInfoArrayResponse");
+                response->fanInfoArray = soap_walk_tree(tmp,
+                                          "fanInfoArray:fanInfo");
+        }
+        return(ret);
+}
+
+int soap_getBladeInfoArray(SOAP_CON *con,
+                         const struct getBladeInfoArray *request,
+                         struct getBladeInfoArrayResponse *response,
+                         xmlDocPtr bl_info_doc)
+{
+        SOAP_PARM_CHECK
+        char    bay_array[(sizeof(BAY) + 1) * request->bayArray.size];
+        xmlNode *tmp = NULL;
+
+        /* Generate the blade info array necessary for this request */
+        bay_array[0] = 0;
+        SOAP_ARRAY_REQ
+
+        if (! (ret = soap_request(con, GET_BLADE_INFO_ARRAY, bay_array))) {
+                if( bl_info_doc != NULL) {
+                    dbg("bl_info_doc is NOT NULL, Please check");
+                    xmlFreeDoc(bl_info_doc);
+                }
+                bl_info_doc = xmlCopyDoc (con->doc,1);
+                if( bl_info_doc == NULL)
+                    return(-1);
+                tmp = soap_walk_doc(bl_info_doc,
+                                    "Body:""getBladeInfoArrayResponse");
+                response->bladeInfoArray = soap_walk_tree(tmp,
+                                          "bladeInfoArray:bladeInfo");
+        }
+        return(ret);
+}
+
+int soap_getBladeStatusArray(SOAP_CON *con,
+                         const struct getBladeStsArray *request,
+                         struct getBladeStsArrayResponse *response,
+                         xmlDocPtr bl_sts_doc)
+{
+        SOAP_PARM_CHECK
+        char    bay_array[(sizeof(BAY) + 1) * request->bayArray.size];
+        xmlNode *tmp = NULL;
+
+        /* Generate the blade status array necessary for this request */
+        bay_array[0] = 0;
+        SOAP_ARRAY_REQ
+
+        if (! (ret = soap_request(con, GET_BLADE_STATUS_ARRAY, bay_array))) {
+                if( bl_sts_doc != NULL) {
+                    dbg("bl_sts_doc is NOT NULL, Please check");
+                    xmlFreeDoc(bl_sts_doc);
+                }
+                bl_sts_doc = xmlCopyDoc(con->doc,1);
+                if( bl_sts_doc == NULL)
+                    return (-1);
+                tmp = soap_walk_doc(bl_sts_doc,
+                                    "Body:""getBladeStatusArrayResponse");
+
+                response->bladeStsArray = soap_walk_tree(tmp,
+                                                     "bladeStatusArray:bladeStatus");
+        }
+        return(ret);
+}
+
+int soap_getBladePortMapArray(SOAP_CON *con,
+                         const struct getBladePortMapArray *request,
+                         struct getBladePortMapArrayResponse *response,
+                         xmlDocPtr bl_pm_doc)
+{
+        SOAP_PARM_CHECK
+        char    bay_array[(sizeof(BAY) + 1) * request->bayArray.size];
+        xmlNode *tmp = NULL;
+
+        /* Generate the blade portmap array necessary for this request */
+        bay_array[0] = 0;
+        SOAP_ARRAY_REQ
+
+        if (! (ret = soap_request(con, GET_BLADE_PORTMAP_ARRAY, bay_array))) {
+                if( bl_pm_doc != NULL) {
+                    dbg("bl_pm_doc is NOT NULL, Please check");
+                    xmlFreeDoc(bl_pm_doc);
+                }
+                bl_pm_doc = xmlCopyDoc(con->doc,1);
+                if( bl_pm_doc == NULL)
+                    return (-1);
+                tmp = soap_walk_doc(bl_pm_doc,
+                                    "Body:""getBladePortMapArrayResponse");
+
+                response->portMapArray = soap_walk_tree(tmp,
+                                                     "bladePortMapArray:bladePortMap");
+        }
+        return(ret);
+}
+int soap_getInterconnectTrayInfoArray(SOAP_CON *con,
+                            const struct getInterconnectTrayInfoArray *request,
+                            struct interconnectTrayInfoArrayResponse *response,
+                            xmlDocPtr intr_info_doc)
+{
+        SOAP_PARM_CHECK
+        char    bay_array[(sizeof(BAY) + 1) * request->bayArray.size];
+        xmlNode *tmp = NULL;
+
+        /* Generate the interconnect tray info array necessary for this request */
+        bay_array[0] = 0;
+        SOAP_ARRAY_REQ
+
+        if (! (ret = soap_request(con, GET_INTERCONNECT_TRAY_INFO_ARRAY,
+                                    bay_array))) {
+                if( intr_info_doc != NULL) {
+                    dbg("intr_info_doc is NOT NULL, Please check");
+                    xmlFreeDoc(intr_info_doc);
+                }
+                intr_info_doc = xmlCopyDoc( con->doc,1);
+                if( intr_info_doc ==NULL)
+                    return(-1);
+                tmp = soap_walk_doc(intr_info_doc,
+                                    "Body:"
+                                    "getInterconnectTrayInfoArrayResponse");
+                response->interconnectTrayInfoArray = 
+                              soap_walk_tree(tmp,
+                              "interconnectTrayInfoArray:interconnectTrayInfo");
+        }
+        return(ret);
+}
+
+int soap_getInterconnectTrayStatusArray(SOAP_CON *con,
+                            const struct interconnectTrayStsArray *request,
+                            struct interconnectTrayStsArrayResponse *response,
+                            xmlDocPtr intr_sts_doc)
+{
+        SOAP_PARM_CHECK
+        char    bay_array[(sizeof(BAY) + 1) * request->bayArray.size];
+        xmlNode *tmp = NULL;
+
+        /* Generate the interconnect tray status array necessary for this request */
+        bay_array[0] = 0;
+        SOAP_ARRAY_REQ
+
+        if (! (ret = soap_request(con,GET_INTERCONNECT_TRAY_STATUS_ARRAY, 
+                                    bay_array))) {
+                if( intr_sts_doc != NULL) {
+                    dbg("intr_sts_doc is NOT NULL, Please check");
+                    xmlFreeDoc(intr_sts_doc);
+                }
+                intr_sts_doc = xmlCopyDoc(con->doc,1);
+                if( intr_sts_doc == NULL)
+                    return( -1);
+                tmp = soap_walk_doc( intr_sts_doc,
+                                     "Body:"
+                                     "getInterconnectTrayStatusArrayResponse");
+                response->interconnectTrayStsArray = soap_walk_tree(tmp, 
+                         "interconnectTrayStatusArray:interconnectTrayStatus");
+        }
+        return(ret);
+}
+              
+int soap_getInterconnectTrayPortMapArray(SOAP_CON *con,
+                            const struct interconnectTrayPmArray *request,
+                            struct interconnectTrayPmArrayResponse *response,
+                            xmlDocPtr intr_pm_doc)
+{
+        SOAP_PARM_CHECK
+        char    bay_array[(sizeof(BAY) + 1) * request->bayArray.size];
+        xmlNode *tmp = NULL;
+
+        /* Generate the interconnect tray portmap array necessary for this request */
+        bay_array[0] = 0;
+        SOAP_ARRAY_REQ
+
+        if (! (ret = soap_request(con,GET_INTERCONNECT_TRAY_PORTMAP_ARRAY,
+                                    bay_array))) {
+                if( intr_pm_doc != NULL) {
+                    dbg("intr_pm_doc is NOT NULL, Please check");
+                    xmlFreeDoc(intr_pm_doc);
+                }
+                intr_pm_doc = xmlCopyDoc(con->doc,1);
+                if( intr_pm_doc == NULL)
+                    return( -1);
+                tmp = soap_walk_doc( intr_pm_doc,
+                                     "Body:"
+                                     "getInterconnectTrayPortMapArrayResponse");
+                response->interconnectTrayPmArray = soap_walk_tree(tmp,
+                         "interconnectTrayPortMapArray:interconnectTrayPortMap");
+        }
+        return(ret);
+}
+
+int soap_getOaInfoArray(SOAP_CON *con,
+                        const struct getOaInfoArray *request,
+                        struct getOaInfoArrayResponse *response,
+                        xmlDocPtr oa_info_doc)
+{
+        SOAP_PARM_CHECK
+        char    bay_array[(sizeof(BAY) + 1) * request->bayArray.size];
+        xmlNode *tmp = NULL;
+
+        /* Generate the OA info array necessary for this request */
+        bay_array[0] = 0;
+        SOAP_ARRAY_REQ
+
+        if (! (ret = soap_request(con, GET_OA_INFO_ARRAY, bay_array))) {
+                if( oa_info_doc != NULL) {
+                    dbg("oa_info_doc is NOT NULL, Please check");
+                    xmlFreeDoc(oa_info_doc);
+                }
+                oa_info_doc = xmlCopyDoc(con->doc,1);
+                if( oa_info_doc == NULL)
+                    return (-1);
+                tmp = soap_walk_doc(oa_info_doc,
+                                    "Body:""getOaInfoArrayResponse");
+                response->oaInfoArray = soap_walk_tree(tmp,
+                                                       "oaInfoArray:oaInfo");
+        }
+        return(ret);
+}
+
+int soap_getOaStatusArray(SOAP_CON *con,
+                         const struct getOaStatusArray *request,
+                         struct getOaStatusArrayResponse *response,
+                         xmlDocPtr oa_sts_doc)
+{
+        SOAP_PARM_CHECK
+        char    bay_array[(sizeof(BAY) + 1) * request->bayArray.size];
+        xmlNode *tmp = NULL;
+
+        /* Generate the OA status array necessary for this request */
+        bay_array[0] = 0;
+        SOAP_ARRAY_REQ
+
+        if (! (ret = soap_request(con, GET_OA_STATUS_ARRAY, bay_array))) {
+                if( oa_sts_doc != NULL) {
+                    dbg("oa_sts_doc is NOT NULL, Please check");
+                    xmlFreeDoc(oa_sts_doc);
+                }
+                oa_sts_doc = xmlCopyDoc(con->doc,1);
+                if( oa_sts_doc == NULL)
+                    return (-1);
+                tmp = soap_walk_doc(oa_sts_doc,
+                                    "Body:""getOaStatusArrayResponse");
+
+                response->oaStatusArray = soap_walk_tree(tmp,
+                                                     "oaStatusArray:oaStatus");
+        }
+        return(ret);
+}
+
+
