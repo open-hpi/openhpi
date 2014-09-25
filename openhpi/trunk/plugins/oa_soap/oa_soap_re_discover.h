@@ -70,7 +70,9 @@ SaErrorT remove_server_blade(struct oh_handler_state *oh_handler,
 
 SaErrorT add_server_blade(struct oh_handler_state *oh_handler,
                           SOAP_CON *con,
-                          struct bladeInfo *info);
+                          struct bladeInfo *info,
+                          struct bladeStatus *,
+                          struct bladePortMap *);
 
 SaErrorT re_discover_interconnect(struct oh_handler_state *oh_handler,
                                   SOAP_CON *con);
@@ -84,7 +86,10 @@ SaErrorT remove_interconnect(struct oh_handler_state *oh_handler,
 
 SaErrorT add_interconnect(struct oh_handler_state *oh_handler,
                           SOAP_CON *con,
-                          SaHpiInt32T bay_number);
+                          SaHpiInt32T bay_number,
+                          struct interconnectTrayInfo *,
+                          struct interconnectTrayStatus *,
+                          struct interconnectTrayPortMap *);
 
 SaErrorT re_discover_fan(struct oh_handler_state *oh_handler,
                          SOAP_CON *con);
@@ -105,5 +110,11 @@ SaErrorT remove_ps_unit(struct oh_handler_state *oh_handler,
 SaErrorT add_ps_unit(struct oh_handler_state *oh_handler,
                      SOAP_CON *con,
                      struct powerSupplyInfo *info);
+
+SaErrorT add_ps_unit_arr(struct oh_handler_state *oh_handler,
+                     SOAP_CON *con,
+                     struct powerSupplyInfo *info,
+                     struct powerSupplyStatus *status);
+
 
 #endif

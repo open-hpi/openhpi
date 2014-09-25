@@ -397,7 +397,7 @@ SaErrorT process_interconnect_insertion_event(struct oh_handler_state
         }
 
         /* Build the inserted interconnect RPT entry */
-        rv = build_interconnect_rpt(oh_handler, con, response.name,
+        rv = build_inserted_intr_rpt(oh_handler, con, response.name,
                                     bay_number, &resource_id, TRUE);
         if (rv != SA_OK) {
                 err("Failed to build the interconnect RPT");
@@ -412,7 +412,7 @@ SaErrorT process_interconnect_insertion_event(struct oh_handler_state
                  response.serialNumber, resource_id, RES_PRESENT);
 
         /* Build the inserted interconnect RDRs */
-        rv = build_interconnect_rdr(oh_handler, con,
+        rv = build_inserted_interconnect_rdr(oh_handler, con,
                                     bay_number, resource_id, TRUE);
         if (rv != SA_OK) {
                 err("Failed to build the interconnect RDR");
@@ -543,7 +543,7 @@ SaErrorT process_interconnect_info_event(struct oh_handler_state
          resource_id = oa_handler->
                 oa_soap_resources.interconnect.resource_id[bay_number - 1];
         /* Build the inserted interconnect RPT entry */
-        rv = build_interconnect_rpt(oh_handler, con, name,
+        rv = build_inserted_intr_rpt(oh_handler, con, name,
                                     bay_number, &resource_id, TRUE);
         if (rv != SA_OK) {
                 err("Failed to build the interconnect RPT");
@@ -562,7 +562,7 @@ SaErrorT process_interconnect_info_event(struct oh_handler_state
          * So just go ahead and correct it. When building the RDR the code does
          * take care of already existing RDR. 
          */
-        rv = build_interconnect_rdr(oh_handler, con,
+        rv = build_inserted_interconnect_rdr(oh_handler, con,
                                     bay_number, resource_id, FALSE);
 	
         g_free(serial_number);

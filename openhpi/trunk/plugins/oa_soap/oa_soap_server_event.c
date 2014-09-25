@@ -529,7 +529,7 @@ SaErrorT process_server_insert_completed(struct oh_handler_state
                       response.serialNumber, rpt.ResourceId, RES_PRESENT);
 
         /* Build the server RDR */
-        rv = build_server_rdr(oh_handler, con, bay_number, rpt.ResourceId,
+        rv = build_inserted_server_rdr(oh_handler, con, bay_number, rpt.ResourceId,
 			      blade_name, TRUE);
         if (rv != SA_OK) {
                 err("build inserted server RDR failed");
@@ -687,7 +687,7 @@ SaErrorT process_server_info_event(struct oh_handler_state
          * So just go ahead and correct it. When building the RDR the code does
          * take care of already existing RDR.
          */
-        rv = build_server_rdr(oh_handler, con,
+        rv = build_inserted_server_rdr(oh_handler, con,
                                bay_number, resource_id, blade_name, FALSE);
         if (rv != SA_OK) {
         	err("Failed to add Server rdr");

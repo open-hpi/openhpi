@@ -47,17 +47,43 @@
  *      re_discover_server()            - Re-discovers the ProLiant server
  *                                        blades
  *
+ *      re_discover_power_supply()      - Re-discovers the power supply units
+ *
+ *      re_discover_oa()                - Re-discovers the oa's
+ *
+ *      remove_oa()                     - Remove oa from RPT.
+ *
+ *      add_oa()                        - Add newly re-discovered oa
+ *
+ *      remove_server_blade()           - Remove server blade from RPT
+ *
+ *      add_server_blade()              - Add new server blade to RPT
+ *
+ *      re_discover_blade()             - Re-discover server blades
+ *
+ *      update_server_hotswap_state()   - update server hotswap state in RPT
+ *
  *      re_discover_interconnect()      - Re-discovers the interconnect blades
+ *
+ *      update_interconnect_hotswap_state() - update hotswap state in the RPT
+ *
+ *      remove_interconnect()           - Removes the interconnect
+ *
+ *      add_interconnect()              - Adds the interconnect.
  *
  *      re_discover_fan()               - Re-discovers the fan
  *
- *      re_discover_power_supply()      - Re-discovers the power supply units
+ *      remove_fan()                    - Remove the fan from RPT
  *
- *      re_discover_oa()                - Re-discovers the onboard administrator
+ *      add_fan()                       - Add fan to the RPT
+ *
+ *      re_discover_ps_unit()           - Re-discover the PSU
+ *
+ *      remove_ps_unit()                - Removes the PSU from RPT
+ *
+ *      add_ps_unit()                   - Add the PSU to RPT
  *
  *	oa_soap_re_disc_oa_sen()	- Re-discovers the OA sensor states
- *
- * 	oa_soap_re_disc_server_sen()	- Re-discovers the server sensor states
  *
  *	oa_soap_re_disc_interconct_sen()- Re-discovers the interconnect sensor
  *					  states
@@ -81,21 +107,20 @@
  */
 
 #include "oa_soap_re_discover.h"
+#include "oa_soap_calls.h"
 
 /* Forward declarations for static functions */
 static SaErrorT oa_soap_re_disc_oa_sen(struct oh_handler_state *oh_handler,
 				       SOAP_CON *con,
 				       SaHpiInt32T bay_number);
-static SaErrorT oa_soap_re_disc_server_sen(struct oh_handler_state *oh_handler,
-					   SOAP_CON *con,
-					   SaHpiInt32T bay_number);
 static SaErrorT oa_soap_re_disc_interconct_sen(struct oh_handler_state
 							*oh_handler,
 					      SOAP_CON *con,
 					      SaHpiInt32T bay_number);
 static SaErrorT oa_soap_re_disc_ps_sen(struct oh_handler_state *oh_handler,
 				       SOAP_CON *con,
-				       SaHpiInt32T bay_number);
+				       SaHpiInt32T bay_number,
+                                       struct powerSupplyStatus *response);
 static SaErrorT oa_soap_re_disc_enc_sen(struct oh_handler_state *oh_handler,
 					SOAP_CON *con);
 static SaErrorT oa_soap_re_disc_ps_subsys_sen(struct oh_handler_state
@@ -270,13 +295,15 @@ SaErrorT re_discover_oa(struct oh_handler_state *oh_handler,
 {
         SaErrorT rv = SA_OK;
         struct oa_soap_handler *oa_handler;
-        struct getOaStatus request;
-        struct oaStatus response;
-        struct getOaInfo info_request;
-        struct oaInfo info_response;
-        SaHpiInt32T i;
+        struct oaStatus status_result;
+        struct oaInfo info_result;
+        SaHpiInt32T i = 0, max_bays = 0;
         enum resource_presence_status state = RES_ABSENT;
         SaHpiBoolT replace_resource = SAHPI_FALSE;
+        struct getOaInfoArrayResponse info_response;
+        struct getOaStatusArrayResponse status_response;
+        xmlDocPtr oa_info_doc = NULL;
+        xmlDocPtr oa_sts_doc = NULL;
 
         if (oh_handler == NULL || con == NULL) {
                 err("Invalid parameter");
@@ -284,15 +311,29 @@ SaErrorT re_discover_oa(struct oh_handler_state *oh_handler,
         }
 
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
+        max_bays = oa_handler->oa_soap_resources.oa.max_bays;
+        
+        rv = oa_soap_get_oa_sts_arr(oa_handler->active_con ,max_bays ,
+                                    &status_response,oa_sts_doc);
+        if (rv != SA_OK) {
+            err("Failed to get OA status array");
+            xmlFreeDoc( oa_sts_doc);
+            return rv;
+        }
+        rv = oa_soap_get_oa_info_arr(oa_handler->active_con ,max_bays ,
+                                     &info_response,oa_info_doc);
+        if (rv != SA_OK) {
+            err("Failed to get OA info array");
+            xmlFreeDoc( oa_info_doc);
+            xmlFreeDoc( oa_sts_doc);
+            return rv;
+        }
 
-        for (i = 1; i <= oa_handler->oa_soap_resources.oa.max_bays; i++) {
-                request.bayNumber = i;
-                rv = soap_getOaStatus(con, &request, &response);
-                if (rv != SOAP_OK) {
-                        err("get OA status failed");
-                        return SA_ERR_HPI_INTERNAL_ERROR;
-                }
-
+        while( status_response.oaStatusArray){
+                parse_oaStatus(status_response.oaStatusArray ,&status_result);
+                parse_oaInfo(info_response.oaInfoArray ,&info_result);
+                i = status_result.bayNumber;
+ 
                 /* Sometimes, if the OA is absent, then OA status is shown as
                  * STANDBY in getOaStatus response.  As workaround, if OA
                  * status is STANDBY and oaRedudancy state is set to false,
@@ -305,16 +346,20 @@ SaErrorT re_discover_oa(struct oh_handler_state *oh_handler,
                  * TODO: Remove this workaround once the fix is available in
                  * OA firmware
                  */
-                if ((response.oaRole == OA_ABSENT) ||
-                    (response.oaRole == STANDBY &&
-                     response.oaRedundancy == HPOA_FALSE)) {
+                if ((status_result.oaRole == OA_ABSENT) ||
+                    (status_result.oaRole == STANDBY &&
+                     status_result.oaRedundancy == HPOA_FALSE)) {
                         /* The OA is absent, check OA is absent in presence
                          * matrix
                          */
                         if (oa_handler->oa_soap_resources.oa.presence[i - 1] ==
-                            RES_ABSENT)
+                            RES_ABSENT){
+                                status_response.oaStatusArray = soap_next_node(
+                                                  status_response.oaStatusArray);
+                                info_response.oaInfoArray = soap_next_node(
+                                                    info_response.oaInfoArray);
                                 continue;
-                        else
+                        }else
                                 state = RES_ABSENT;
                 } else {
                         /* The OA is present, check OA is present in presence
@@ -323,19 +368,12 @@ SaErrorT re_discover_oa(struct oh_handler_state *oh_handler,
                         if (oa_handler->oa_soap_resources.oa.presence[i - 1] ==
                             RES_PRESENT) {
                                 /* Check whether OA has been replaced */
-                                info_request.bayNumber = i;
-                                rv = soap_getOaInfo(con, &info_request,
-                                                    &info_response);
-                                if (rv != SOAP_OK) {
-                                        err("get OA status failed");
-                                        return SA_ERR_HPI_INTERNAL_ERROR;
-                                }
                                 /* If serail number is different
                                  * remove and add OA
                                  */
                                 if (strcmp(oa_handler->oa_soap_resources.oa.
                                            serial_number[i - 1],
-                                           info_response.serialNumber) != 0) {
+                                           info_result.serialNumber) != 0) {
                                         replace_resource = SAHPI_TRUE;
                                 } else {
 					/* Check the OA sensors state */
@@ -344,8 +382,16 @@ SaErrorT re_discover_oa(struct oh_handler_state *oh_handler,
 					if (rv != SA_OK) {
 						err("Re-discover OA sensors "
 						    " failed");
+                                                xmlFreeDoc( oa_sts_doc);
+                                                xmlFreeDoc( oa_info_doc);
 						return rv;
 					}
+                                        status_response.oaStatusArray = 
+                                                            soap_next_node(
+                                               status_response.oaStatusArray);
+                                        info_response.oaInfoArray = 
+                                                            soap_next_node(
+                                                     info_response.oaInfoArray);
                                         continue;
 				}
                        } else
@@ -359,6 +405,8 @@ SaErrorT re_discover_oa(struct oh_handler_state *oh_handler,
                         rv = remove_oa(oh_handler, i);
                         if (rv != SA_OK) {
                                 err("OA %d removal failed", i);
+                                xmlFreeDoc( oa_sts_doc);
+                                xmlFreeDoc( oa_info_doc);
                                 return rv;
                         } else
                                 err("OA in slot %d is removed", i);
@@ -371,13 +419,21 @@ SaErrorT re_discover_oa(struct oh_handler_state *oh_handler,
                         rv = add_oa(oh_handler, con, i);
                         if (rv != SA_OK) {
                                 err("OA %d add failed", i);
+                                xmlFreeDoc( oa_sts_doc);
+                                xmlFreeDoc( oa_info_doc);
                                 return rv;
                         } else
                                 err("OA in slot %d is added", i);
 
                         replace_resource = SAHPI_FALSE;
                 }
-        } /* End of for loop */
+            status_response.oaStatusArray = soap_next_node(
+                                                status_response.oaStatusArray);
+            info_response.oaInfoArray = soap_next_node(
+                                                info_response.oaInfoArray);
+        } /* End of while loop */
+        xmlFreeDoc(oa_sts_doc);
+        xmlFreeDoc(oa_info_doc);
         return SA_OK;
 }
 
@@ -681,11 +737,18 @@ SaErrorT re_discover_blade(struct oh_handler_state *oh_handler,
 {
         SaErrorT rv = SA_OK;
         struct oa_soap_handler *oa_handler;
-        struct getBladeInfo request;
-        struct bladeInfo response;
-        SaHpiInt32T i;
+        struct bladeInfo result;
+        struct bladeStatus sts_result;
+        struct bladePortMap pm_result;
+        SaHpiInt32T i = 0,max_bays = 0;
         enum resource_presence_status state = RES_ABSENT;
         SaHpiBoolT replace_resource = SAHPI_FALSE;
+        struct getBladeInfoArrayResponse info_response;
+        struct getBladeStsArrayResponse sts_response;
+        struct getBladePortMapArrayResponse pm_response;
+        xmlDocPtr bl_info_doc = NULL;
+        xmlDocPtr bl_sts_doc = NULL;
+        xmlDocPtr bl_pm_doc = NULL;
 
         if (oh_handler == NULL || con == NULL) {
                 err("Invalid parameter");
@@ -693,25 +756,55 @@ SaErrorT re_discover_blade(struct oh_handler_state *oh_handler,
         }
 
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
-
-        for (i = 1; i <= oa_handler->oa_soap_resources.server.max_bays; i++) {
-                request.bayNumber = i;
+        max_bays = oa_handler->oa_soap_resources.server.max_bays;
+        /* Get blade info array information*/
+        rv = oa_soap_get_bladeinfo_arr( oa_handler ,max_bays ,&info_response,
+                                          bl_info_doc);
+        if (rv != SA_OK) {
+            err("Failed to get blade info array");
+            xmlFreeDoc( bl_info_doc);
+            return rv;
+        }
+        rv = oa_soap_get_bladests_arr( oa_handler ,max_bays ,&sts_response,
+                                        bl_sts_doc);
+        if (rv != SA_OK) {
+            err("Failed to get blade status array");
+            xmlFreeDoc(bl_sts_doc);
+            xmlFreeDoc(bl_info_doc);
+            return rv;
+        }
+        rv = oa_soap_get_portmap_arr( oa_handler ,max_bays ,&pm_response,
+                                        bl_pm_doc);
+        if (rv != SA_OK) {
+            err("Failed to get blade portmap array");
+            xmlFreeDoc(bl_pm_doc);
+            xmlFreeDoc(bl_sts_doc);
+            xmlFreeDoc(bl_info_doc);
+            return rv;
+        }
+        while ( info_response.bladeInfoArray && sts_response.bladeStsArray 
+                     && pm_response.portMapArray ) {
+                parse_bladeInfo(info_response.bladeInfoArray, &result);
+                parse_bladeStatus(sts_response.bladeStsArray,&sts_result);
+                parse_bladePortMap(pm_response.portMapArray,&pm_result);
+                i = result.bayNumber;
                 state = RES_ABSENT;
                 replace_resource = SAHPI_FALSE;
-                rv = soap_getBladeInfo(con, &request, &response);
-                if (rv != SOAP_OK) {
-                        err("Get blade info failed");
-                        return SA_ERR_HPI_INTERNAL_ERROR;
-                }
 
-                if (response.presence != PRESENT ) {
+                if (result.presence != PRESENT ) {
                         /* The blade is absent.  Is the blade absent in
                          * the presence matrix?
                          */
                         if (oa_handler->oa_soap_resources.server.presence[i - 1]
-                            == RES_ABSENT)
+                            == RES_ABSENT){
+                            info_response.bladeInfoArray = 
+                                      soap_next_node( info_response.bladeInfoArray);
+                            sts_response.bladeStsArray =
+                                    soap_next_node( sts_response.bladeStsArray);
+                            pm_response.portMapArray =
+                                   soap_next_node( pm_response.portMapArray);
                                 continue;
-                        else
+                        } else
                                 state = RES_ABSENT;
                 }
                 /* The server blade is present.  Is the server present in
@@ -720,35 +813,39 @@ SaErrorT re_discover_blade(struct oh_handler_state *oh_handler,
                 else if (oa_handler->oa_soap_resources.server.presence[i - 1]
                            == RES_PRESENT) {
 			/* NULL pointer Check for the serial Number to avoid the segfault*/
-			if (response.serialNumber != 0){
+			if (result.serialNumber != 0){
                         /* If Serial number is different, remove and
                          * add the blade
                          */
                         if (strcmp(oa_handler->oa_soap_resources.server.
                                    serial_number[i - 1],
-                                   response.serialNumber) != 0) {
+                                   result.serialNumber) != 0) {
                                 replace_resource = SAHPI_TRUE;
                         } else {
                                 /* Check and update the hotswap state
                                  * of the server blade
                                  */
-                                if(response.bladeType == BLADE_TYPE_SERVER) {
+                                if(result.bladeType == BLADE_TYPE_SERVER) {
                                     rv = update_server_hotswap_state(
                                              oh_handler, con, i);
                                     if (rv != SA_OK) {
                                         err("Update server hot swap"
                                             " state failed");
+                                        xmlFreeDoc( bl_info_doc);
+                                        xmlFreeDoc(bl_pm_doc);
+                                        xmlFreeDoc(bl_sts_doc);
                                         return rv;
                                     }
                                 }
 				/* Check the server sensors state */
-				rv = oa_soap_re_disc_server_sen(oh_handler, con,
-								i);
-				if (rv != SA_OK) {
-					err("Re-discover server sensors "
-					    "failed");
-					return rv;
-				}
+                                oa_soap_proc_server_status(oh_handler, con,
+                                                           &sts_result);
+                                info_response.bladeInfoArray = 
+                                       soap_next_node(info_response.bladeInfoArray);
+                                sts_response.bladeStsArray =
+                                    soap_next_node( sts_response.bladeStsArray);
+                                pm_response.portMapArray =
+                                   soap_next_node( pm_response.portMapArray);
                                 continue;
                         }
 			} else
@@ -764,6 +861,9 @@ SaErrorT re_discover_blade(struct oh_handler_state *oh_handler,
                         rv = remove_server_blade(oh_handler, i);
                         if (rv != SA_OK) {
                                 err("Server blade %d removal failed", i);
+                                xmlFreeDoc( bl_info_doc);
+                                xmlFreeDoc( bl_sts_doc);
+                                xmlFreeDoc( bl_pm_doc);
                                 return rv;
                         } else
                                 err("Server in slot %d is removed", i);
@@ -774,15 +874,29 @@ SaErrorT re_discover_blade(struct oh_handler_state *oh_handler,
                          * matrix, but server is present.  Add the server
                          * resource to RPTable.
                          */
-                        rv = add_server_blade(oh_handler, con, &response);
+                        rv = add_server_blade(oh_handler, con, &result,
+                                              &sts_result, &pm_result);
                         if (rv != SA_OK) {
                                 err("Server blade %d add failed", i);
+                                xmlFreeDoc( bl_info_doc);
+                                xmlFreeDoc( bl_sts_doc);
+                                xmlFreeDoc( bl_pm_doc);
                                 return rv;
                         } else
                                 err("Server in slot %d is added", i);
 
                 }
-        } /* End of for loop */
+            info_response.bladeInfoArray = 
+                                      soap_next_node( info_response.bladeInfoArray);
+            sts_response.bladeStsArray =
+                                    soap_next_node( sts_response.bladeStsArray);
+            pm_response.portMapArray =
+                                   soap_next_node( pm_response.portMapArray);
+
+        } /* End of while loop */
+        xmlFreeDoc(bl_info_doc);
+        xmlFreeDoc(bl_sts_doc);
+        xmlFreeDoc(bl_pm_doc);
         return SA_OK;
 }
 
@@ -1043,7 +1157,7 @@ SaErrorT remove_server_blade(struct oh_handler_state *oh_handler,
  *      @info:       Pointer to the get blade info response structure
  *
  * Purpose:
- *      Remove the Server Blade from the RPTable
+ *      Add newly discovered server blade to the RPTable
  *
  * Detailed Description: NA
  *
@@ -1054,14 +1168,13 @@ SaErrorT remove_server_blade(struct oh_handler_state *oh_handler,
  **/
 SaErrorT add_server_blade(struct oh_handler_state *oh_handler,
                           SOAP_CON *con,
-                          struct bladeInfo *info)
+                          struct bladeInfo *info, struct bladeStatus *sts,
+                          struct bladePortMap *pm_res) 
 {
         SaErrorT rv = SA_OK;
         struct oh_event event;
         SaHpiPowerStateT state;
         SaHpiInt32T bay_number;
-        struct getBladeInfo request;
-        struct bladeInfo response;
         struct oa_soap_handler *oa_handler;
         SaHpiResourceIdT resource_id;
         SaHpiRptEntryT *rpt;
@@ -1077,21 +1190,14 @@ SaErrorT add_server_blade(struct oh_handler_state *oh_handler,
         update_hotswap_event(oh_handler, &event);
         bay_number = info->bayNumber;
 
-        /* Get blade info to obtain serial_number */
-        request.bayNumber = bay_number;
-        rv = soap_getBladeInfo(con, &request, &response);
-        if (rv != SOAP_OK) {
-                err("Get blade info failed");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
 
 	/* Copy the blade name from response for future processing */
-	convert_lower_to_upper(response.name, strlen(response.name),
+	convert_lower_to_upper(info->name, strlen(info->name),
 			       blade_name, MAX_NAME_LEN);
 
         /* Build the server RPT entry */
-        rv = build_discovered_server_rpt(oh_handler, con, &response,
-                                         &resource_id);
+        rv = build_discovered_server_rpt(oh_handler, info,
+                                         &resource_id, sts);
         if (rv != SA_OK) {
                 err("build added server rpt failed for slot %d",bay_number);
                 return rv;
@@ -1102,11 +1208,11 @@ SaErrorT add_server_blade(struct oh_handler_state *oh_handler,
          */
         oa_soap_update_resource_status(
                       &oa_handler->oa_soap_resources.server, bay_number,
-                      response.serialNumber, resource_id, RES_PRESENT);
+                      info->serialNumber, resource_id, RES_PRESENT);
 
         /* Build the server RDR */
-        rv = build_server_rdr(oh_handler, con, bay_number, resource_id, 
-			      blade_name, TRUE);
+        rv = build_discovered_server_rdr_arr(oh_handler, con, bay_number, resource_id, 
+			      blade_name, TRUE, info, sts, pm_res);
         if (rv != SA_OK) {
                 err("build inserted server RDR failed");
                 /* Free the inventory info from inventory RDR */
@@ -1182,12 +1288,21 @@ SaErrorT add_server_blade(struct oh_handler_state *oh_handler,
                 SAHPI_HS_CAUSE_AUTO_POLICY;
         oh_evt_queue_push(oh_handler->eventq, copy_oa_soap_event(&event));
 
-        rv = get_server_power_state(con, bay_number, &state);
-        if (rv != SA_OK) {
-                err("Unable to get power status");
-                return SA_ERR_HPI_INTERNAL_ERROR;
+        switch (sts->powered) {
+                case (POWER_ON):
+                        state = SAHPI_POWER_ON;
+                        break;
+                case (POWER_OFF):
+                        state = SAHPI_POWER_OFF;
+                        break;
+                case (POWER_REBOOT):
+                        err("Wrong Power State (REBOOT) detected");
+                        return SA_ERR_HPI_INTERNAL_ERROR;
+                        break;
+                default:
+                        err("Unknown Power State detected");
+                        return SA_ERR_HPI_INTERNAL_ERROR;
         }
-
         /* Check the power state of the server.  If the power state is off,
          * may be server got powered off after inserting.  Inserting the
          * server makes to power on automatically.  Hence raise the hotswap
@@ -1260,13 +1375,18 @@ SaErrorT re_discover_interconnect(struct oh_handler_state *oh_handler,
 {
         SaErrorT rv = SA_OK;
         struct oa_soap_handler *oa_handler;
-        struct getInterconnectTrayStatus request;
-        struct interconnectTrayStatus response;
-        struct getInterconnectTrayInfo info_request;
-        struct interconnectTrayInfo info_response;
-        SaHpiInt32T i;
+        struct interconnectTrayStatus status_result;
+        struct interconnectTrayInfo info_result;
+        struct interconnectTrayPortMap portmap;
+        SaHpiInt32T i = 0, max_bays = 0;
         enum resource_presence_status state = RES_ABSENT;
         SaHpiBoolT replace_resource = SAHPI_FALSE;
+        struct interconnectTrayInfoArrayResponse info_res;
+        struct interconnectTrayStsArrayResponse sts_res;
+        struct interconnectTrayPmArrayResponse pm_res;
+        xmlDocPtr intr_info_doc = NULL;
+        xmlDocPtr intr_sts_doc = NULL;
+        xmlDocPtr intr_pm_doc = NULL;
 
         if (oh_handler == NULL || con == NULL) {
                 err("Invalid parameter");
@@ -1274,28 +1394,65 @@ SaErrorT re_discover_interconnect(struct oh_handler_state *oh_handler,
         }
 
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
+        max_bays = oa_handler->oa_soap_resources.interconnect.max_bays;
 
-        for (i = 1;
-             i <= oa_handler->oa_soap_resources.interconnect.max_bays;
-             i++) {
-                request.bayNumber = i;
-                state = RES_ABSENT;
-                replace_resource = SAHPI_FALSE;
-                rv = soap_getInterconnectTrayStatus(con, &request, &response);
-                if (rv != SOAP_OK) {
-                        err("Get interconnect tray status failed");
-                        return SA_ERR_HPI_INTERNAL_ERROR;
-                }
+        rv = oa_soap_get_interconct_traysts_arr(oa_handler, max_bays,
+                                                &sts_res, intr_sts_doc);
+        if (rv != SA_OK) {
+            err("Failed to get interconnect tray status array");
+            xmlFreeDoc( intr_sts_doc);
+            return rv;
+        }
+        rv = oa_soap_get_interconct_trayinfo_arr(oa_handler ,max_bays ,
+                                                 &info_res,intr_info_doc);
+        if (rv != SA_OK) {
+            err("Failed to get interconnect tray info array");
+            xmlFreeDoc( intr_info_doc);
+            xmlFreeDoc( intr_sts_doc);
+            return rv;
+        }
+        rv = oa_soap_get_interconct_traypm_arr(oa_handler ,max_bays,
+                                               &pm_res, intr_pm_doc);
+        if (rv != SA_OK) {
+            err("Failed to get interconnect tray portmap array");
+            xmlFreeDoc( intr_pm_doc);
+            xmlFreeDoc( intr_info_doc);
+            xmlFreeDoc( intr_sts_doc);
+            return rv;
+        }
 
-                if (response.presence != PRESENT) {
+
+        while(sts_res.interconnectTrayStsArray){
+              parse_interconnectTrayStatus(
+                            sts_res.interconnectTrayStsArray,&status_result);
+              parse_interconnectTrayInfo(
+                           info_res.interconnectTrayInfoArray,&info_result);
+              parse_interconnectTrayPortMap(
+                           pm_res.interconnectTrayPmArray,&portmap);
+
+
+              state = RES_ABSENT;
+              replace_resource = SAHPI_FALSE;
+              i = status_result.bayNumber;
+
+              if (status_result.presence != PRESENT) {
                         /* The interconnect is absent.  Is the interconnect
                          * absent in the presence matrix?
                          */
                         if (oa_handler->
                             oa_soap_resources.interconnect.presence[i - 1] ==
-                            RES_ABSENT)
+                            RES_ABSENT){
+                                sts_res.interconnectTrayStsArray =
+                                  soap_next_node(
+                                           sts_res.interconnectTrayStsArray);
+                                info_res.interconnectTrayInfoArray =
+                                  soap_next_node(
+                                          info_res.interconnectTrayInfoArray);
+                                pm_res.interconnectTrayPmArray =
+                                  soap_next_node(
+                                          pm_res.interconnectTrayPmArray);
                                 continue;
-                        else
+                        }else
                                 state = RES_ABSENT;
 
                 }
@@ -1305,19 +1462,12 @@ SaErrorT re_discover_interconnect(struct oh_handler_state *oh_handler,
                 else if (oa_handler->
                            oa_soap_resources.interconnect.presence[i - 1] ==
                            RES_PRESENT) {
-                        info_request.bayNumber = i;
-                        rv = soap_getInterconnectTrayInfo(con, &info_request,
-                                                          &info_response);
-                        if (rv != SOAP_OK) {
-                                err("Get interconnect tray status failed");
-                                return SA_ERR_HPI_INTERNAL_ERROR;
-                        }
                         /* If serial number is different, remove and add the
                          * interconnect
                          */
                         if (strcmp(oa_handler->oa_soap_resources.interconnect.
                                    serial_number[i - 1],
-                                   info_response.serialNumber) != 0) {
+                                   info_result.serialNumber) != 0) {
                                 replace_resource = SAHPI_TRUE;
                         } else {
                                 /* Check and update the hotswap state of the
@@ -1328,6 +1478,9 @@ SaErrorT re_discover_interconnect(struct oh_handler_state *oh_handler,
                                 if (rv != SA_OK) {
                                         err("update interconnect hot swap"
                                             " state failed");
+                                        xmlFreeDoc( intr_pm_doc);
+                                        xmlFreeDoc( intr_info_doc);
+                                        xmlFreeDoc( intr_sts_doc);
                                         return rv;
                                 }
 				/* Check the interconnect sensors state */
@@ -1336,8 +1489,21 @@ SaErrorT re_discover_interconnect(struct oh_handler_state *oh_handler,
 				if (rv != SA_OK) {
 					err("Re-discover interconnect sensors "
 					    "failed");
+                                        xmlFreeDoc( intr_pm_doc);
+                                        xmlFreeDoc( intr_info_doc);
+                                        xmlFreeDoc( intr_sts_doc);
 					return rv;
 				}
+                                sts_res.interconnectTrayStsArray =
+                                  soap_next_node(
+                                           sts_res.interconnectTrayStsArray);
+                                info_res.interconnectTrayInfoArray =
+                                  soap_next_node(
+                                          info_res.interconnectTrayInfoArray);
+                                pm_res.interconnectTrayPmArray =
+                                  soap_next_node(
+                                          pm_res.interconnectTrayPmArray);
+
                                 continue;
                         }
                 } else
@@ -1352,6 +1518,9 @@ SaErrorT re_discover_interconnect(struct oh_handler_state *oh_handler,
                         if (rv != SA_OK) {
                                 err("Interconnect blade %d removal failed",
                                     i);
+                                xmlFreeDoc( intr_pm_doc);
+                                xmlFreeDoc( intr_info_doc);
+                                xmlFreeDoc( intr_sts_doc);
                                 return rv;
                         } else
                                 err("Interconnect blade %d removed", i);
@@ -1362,14 +1531,24 @@ SaErrorT re_discover_interconnect(struct oh_handler_state *oh_handler,
                          * matrix, but interconnect is added.  Add the
                          * interconnect resource to RPTable.
                          */
-                        rv = add_interconnect(oh_handler, con, i);
+                        rv = add_interconnect(oh_handler, con, i, &info_result,
+                                              &status_result, &portmap);
                         if (rv != SA_OK) {
                                 err("Interconnect blade %d add failed", i);
                                 return rv;
                         } else
                                 err("Interconnect blade %d added", i);
                 }
+            sts_res.interconnectTrayStsArray = soap_next_node(
+                                           sts_res.interconnectTrayStsArray);
+            info_res.interconnectTrayInfoArray = soap_next_node(
+                                          info_res.interconnectTrayInfoArray);
+            pm_res.interconnectTrayPmArray =soap_next_node(
+                                          pm_res.interconnectTrayPmArray);
         }
+        xmlFreeDoc( intr_info_doc);
+        xmlFreeDoc( intr_sts_doc);
+        xmlFreeDoc( intr_pm_doc);
         return SA_OK;
 }
 
@@ -1614,6 +1793,7 @@ SaErrorT remove_interconnect(struct oh_handler_state *oh_handler,
 }
 
 /**
+ * w
  * add_interconnect
  *      @oh_handler: Pointer to openhpi handler
  *      @con:        Pointer to the SOAP_CON structure
@@ -1631,12 +1811,13 @@ SaErrorT remove_interconnect(struct oh_handler_state *oh_handler,
  **/
 SaErrorT add_interconnect(struct oh_handler_state *oh_handler,
                           SOAP_CON *con,
-                          SaHpiInt32T bay_number)
+                          SaHpiInt32T bay_number,
+                          struct interconnectTrayInfo *response,
+                          struct interconnectTrayStatus *sts_res,
+                          struct interconnectTrayPortMap *portmap)
 {
         SaErrorT rv = SA_OK;
         struct oa_soap_handler *oa_handler;
-        struct getInterconnectTrayInfo info;
-        struct interconnectTrayInfo response;
         struct oh_event event;
         SaHpiPowerStateT state;
         SaHpiResourceIdT resource_id;
@@ -1650,17 +1831,9 @@ SaErrorT add_interconnect(struct oh_handler_state *oh_handler,
 
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
 
-        info.bayNumber = bay_number;
-        rv = soap_getInterconnectTrayInfo(con, &info, &response);
-        if (rv != SOAP_OK) {
-                err("Get Interconnect tray info failed");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
-
         /* Build the rpt entry */
-        rv = build_interconnect_rpt(oh_handler, con,
-                                    response.name,
-                                    bay_number, &resource_id, FALSE);
+        rv = build_discovered_intr_rpt(oh_handler, response->name,
+                                    bay_number, &resource_id, sts_res);
         if (rv != SA_OK) {
                 err("Failed to get interconnect inventory RPT");
                 return rv;
@@ -1671,11 +1844,12 @@ SaErrorT add_interconnect(struct oh_handler_state *oh_handler,
          */
         oa_soap_update_resource_status(
                       &oa_handler->oa_soap_resources.interconnect, bay_number,
-                      response.serialNumber, resource_id, RES_PRESENT);
+                      response->serialNumber, resource_id, RES_PRESENT);
 
         /* Build the RDRs */
-        rv = build_interconnect_rdr(oh_handler, con,
-                                    bay_number, resource_id, TRUE);
+        rv = build_discovered_intr_rdr_arr(oh_handler, con,
+                                    bay_number, resource_id, TRUE,
+                                    response, sts_res, portmap);
         if (rv != SA_OK) {
                 err("Failed to get interconnect inventory RDR");
                 /* Free the inventory info from inventory RDR */
@@ -1730,10 +1904,23 @@ SaErrorT add_interconnect(struct oh_handler_state *oh_handler,
          * Inserting the interconnect makes to power on automatically.
          * Hence raise the hotswap events for power off.
          */
-        rv = get_interconnect_power_state(con, bay_number, &state);
-        if (rv != SA_OK) {
-                err("Unable to get power status");
-                return SA_ERR_HPI_INTERNAL_ERROR;
+        switch (sts_res->powered) {
+                case (POWER_ON):
+                        state = SAHPI_POWER_ON;
+                        break;
+                case (POWER_OFF):
+                        state = SAHPI_POWER_OFF;
+                        break;
+                case (POWER_REBOOT):
+                        err("Wrong (REBOOT) Power State detected");
+                        return SA_ERR_HPI_INTERNAL_ERROR;
+                        break;
+                case (POWER_UNKNOWN):
+                        state = SAHPI_POWER_OFF;
+                        break;
+                default:
+                        err("Unknown Power State detected");
+                        return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
         switch (state) {
@@ -1804,10 +1991,11 @@ SaErrorT re_discover_fan(struct oh_handler_state *oh_handler,
 {
         SaErrorT rv = SA_OK;
         struct oa_soap_handler *oa_handler;
-        struct getFanInfo request;
-        struct fanInfo response;
-        SaHpiInt32T i;
+        struct fanInfo result;
+        SaHpiInt32T i =0,max_bays = 0;
         enum resource_presence_status state = RES_ABSENT;
+        struct getFanInfoArrayResponse response;
+        xmlDocPtr fan_info_doc = NULL;
 
         if (oh_handler == NULL || con == NULL) {
                 err("Invalid parameter");
@@ -1815,23 +2003,27 @@ SaErrorT re_discover_fan(struct oh_handler_state *oh_handler,
         }
 
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
+        max_bays = oa_handler->oa_soap_resources.fan.max_bays;
+        rv = oa_soap_get_fan_info_arr ( oa_handler ,max_bays ,&response,fan_info_doc);
+        if (rv != SA_OK) {
+            err("Failed to get blade info array");
+            xmlFreeDoc( fan_info_doc);
+            return rv;
+        }
 
-        for (i = 1; i <= oa_handler->oa_soap_resources.fan.max_bays; i++) {
-                request.bayNumber = i;
-                rv = soap_getFanInfo(con, &request, &response);
-                if (rv != SOAP_OK) {
-                        err("Get fan info failed");
-                        return SA_ERR_HPI_INTERNAL_ERROR;
-                }
-
-                if (response.presence != PRESENT) {
+        while( response.fanInfoArray){
+               soap_fanInfo( response.fanInfoArray,&result);
+               i = result.bayNumber;
+               if (result.presence != PRESENT) {
                         /* The Fan is absent, check Fan is absent in presence
                          * matrix
                          */
                         if (oa_handler->oa_soap_resources.fan.presence[i - 1] ==
-                            RES_ABSENT)
+                            RES_ABSENT){
+                                response.fanInfoArray = 
+                                         soap_next_node(response.fanInfoArray);
                                 continue;
-                        else
+                        } else
                                 state = RES_ABSENT;
                 } else {
                         /* The Fan is present, check Fan is present in presence
@@ -1840,7 +2032,9 @@ SaErrorT re_discover_fan(struct oh_handler_state *oh_handler,
                         if (oa_handler->oa_soap_resources.fan.presence[i - 1] ==
                             RES_PRESENT) {
 				/* Check the fan sensors state */
-				oa_soap_proc_fan_status(oh_handler, &response);
+				oa_soap_proc_fan_status(oh_handler, &result);
+                                response.fanInfoArray = 
+                                         soap_next_node(response.fanInfoArray);
                                 continue;
                         } else
                                 state = RES_PRESENT;
@@ -1854,6 +2048,7 @@ SaErrorT re_discover_fan(struct oh_handler_state *oh_handler,
                         rv = remove_fan(oh_handler, i);
                         if (rv != SA_OK) {
                                 err("Fan %d removal failed", i);
+                                xmlFreeDoc( fan_info_doc);
                                 return rv;
                         } else
                                 err("Fan %d removed", i);
@@ -1862,14 +2057,16 @@ SaErrorT re_discover_fan(struct oh_handler_state *oh_handler,
                          * but Fan is present.  Add the Fan resource from
                          * RPTable.
                          */
-                        rv = add_fan(oh_handler, con, &response);
+                        rv = add_fan(oh_handler, con, &result);
                         if (rv != SA_OK) {
                                 err("Fan %d add failed", i);
+                                xmlFreeDoc( fan_info_doc);
                                 return rv;
                         } else
                                 err("Fan %d added", i);
                 }
         }
+        xmlFreeDoc(fan_info_doc);
         return SA_OK;
 }
 
@@ -2063,11 +2260,15 @@ SaErrorT re_discover_ps_unit(struct oh_handler_state *oh_handler,
 {
         SaErrorT rv = SA_OK;
         struct oa_soap_handler *oa_handler;
-        struct getPowerSupplyInfo request;
-        struct powerSupplyInfo *response = NULL;
-        SaHpiInt32T i;
+        struct powerSupplyInfo *info_result = NULL;
+        struct powerSupplyStatus sts_result;
+        SaHpiInt32T i = 0,max_bays = 0;
         enum resource_presence_status state = RES_ABSENT;
         SaHpiBoolT replace_resource = SAHPI_FALSE;
+        struct getPowerSupplyInfoArrayResponse info_response;
+        struct getPowerSupplyStsArrayResponse sts_res;
+        xmlDocPtr ps_info_doc = NULL;
+        xmlDocPtr ps_sts_doc = NULL;
 
         if (oh_handler == NULL || con == NULL) {
                 err("Invalid parameter");
@@ -2076,46 +2277,71 @@ SaErrorT re_discover_ps_unit(struct oh_handler_state *oh_handler,
 
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
 
-        response = (struct powerSupplyInfo *)g_malloc0(sizeof(struct
+        info_result = (struct powerSupplyInfo *)g_malloc0(sizeof(struct
                    powerSupplyInfo));
-        if ( response == NULL )
+        if ( info_result == NULL )
                 return SA_ERR_HPI_OUT_OF_MEMORY;
 
-        for (i = 1; i <= oa_handler->oa_soap_resources.ps_unit.max_bays; i++) {
-                request.bayNumber = i;
-                response->presence = PRESENCE_NO_OP;
-                response->modelNumber[0] = '\0';
-                response->sparePartNumber[0] = '\0';
-                response->serialNumber[0] = '\0';
-                response->productName[0] = '\0';
+        max_bays = oa_handler->oa_soap_resources.ps_unit.max_bays;
+        rv = oa_soap_get_ps_info_arr( oa_handler ,max_bays ,&info_response,
+                                        ps_info_doc);
+        if (rv != SA_OK) {
+            err("Failed to get power supply info array");
+            xmlFreeDoc( ps_info_doc);
+            g_free( info_result);
+            return rv;
+        }
+        rv = oa_soap_get_ps_sts_arr( oa_handler ,max_bays ,&sts_res,
+                                        ps_sts_doc);
+        if (rv != SA_OK) {
+            err("Failed to get power supply status array");
+            xmlFreeDoc( ps_info_doc);
+            xmlFreeDoc( ps_sts_doc);
+            g_free( info_result);
+            return rv;
+        }
 
-                rv = soap_getPowerSupplyInfo(con, &request, response);
-                if (rv != SOAP_OK) {
-                        err("Get power supply info failed");
-                        g_free(response);
-                        response = NULL;
-                        return SA_ERR_HPI_INTERNAL_ERROR;
-                }
+
+        while(info_response.powerSupplyInfoArray && 
+                        sts_res.powerSupplyStsArray) {
+                info_result->presence = PRESENCE_NO_OP;
+                info_result->modelNumber[0] = '\0';
+                info_result->sparePartNumber[0] = '\0';
+                info_result->serialNumber[0] = '\0';
+                info_result->productName[0] = '\0';
+
+                parse_powerSupplyInfo( info_response.powerSupplyInfoArray,
+                                       info_result );
+                parse_powerSupplyStatus( sts_res.powerSupplyStsArray,
+                                       &sts_result );
 
                 /* If the power supply unit does not have the power cord
                  * plugged in, then power supply unit will be in faulty
                  * condition. If the power supply reports itself as PRESENT
                  * then add it to the RPT
                  */
-                if (response->presence != PRESENT ) {
+                i = info_result->bayNumber;
+                if (info_result->presence != PRESENT ) {
                         /* The power supply unit is absent.  Is the power
                          * supply unit absent in the presence matrix?
                          */
                         if (oa_handler->
                                 oa_soap_resources.ps_unit.presence[i - 1] ==
-                            RES_ABSENT)
+                            RES_ABSENT){
+                                info_response.powerSupplyInfoArray =
+                                 soap_next_node(
+                                       info_response.powerSupplyInfoArray);
+                                sts_res.powerSupplyStsArray =
+                                  soap_next_node(sts_res.powerSupplyStsArray);
+
                                 continue;
-                        else
+                        }else
                                 state = RES_ABSENT;
                 } else {
-                        if ((response->serialNumber == NULL || response->serialNumber[0] == '\0')) {
-                               strcpy(response->serialNumber,"Not_Reported");
-                               err("PSU in slot %d has some problem, please check",i);
+                        if ((info_result->serialNumber == NULL || 
+                                   info_result->serialNumber[0] == '\0')) {
+                               strcpy(info_result->serialNumber,"No_Report");
+                               err("PSU in slot %d has problem, pls check",i);
                         }
                         /* The power supply unit is present.  Is the power
                          * supply unit present in the presence matrix?
@@ -2129,21 +2355,31 @@ SaErrorT re_discover_ps_unit(struct oh_handler_state *oh_handler,
                                  */
                                 if (strcmp(oa_handler->oa_soap_resources.
                                            ps_unit.serial_number[i - 1],
-                                           response->serialNumber) != 0) {
+                                           info_result->serialNumber) != 0) {
                                         replace_resource = SAHPI_TRUE;
                                  } else {
 					/* Check the power supply sensors
 					 * state
 					 */
 				       rv = oa_soap_re_disc_ps_sen(
-							oh_handler, con, i);
+							oh_handler, con, i,
+                                                        &sts_result);
 					if (rv != SA_OK) {
 						err("Re-discover power supply "
 						    "sensors failed");
-                                                g_free(response);
-                                                response = NULL;
+                                                g_free(info_result);
+                                                info_result = NULL;
+                                                xmlFreeDoc( ps_info_doc);
+                                                xmlFreeDoc( ps_sts_doc);
 						return rv;
 					}
+                                        info_response.powerSupplyInfoArray =
+                                            soap_next_node(
+                                            info_response.powerSupplyInfoArray);
+                                        sts_res.powerSupplyStsArray =
+                                                 soap_next_node(
+                                                 sts_res.powerSupplyStsArray);
+
                                         continue;
 				}
                         } else
@@ -2159,8 +2395,10 @@ SaErrorT re_discover_ps_unit(struct oh_handler_state *oh_handler,
                         rv = remove_ps_unit(oh_handler, i);
                         if (rv != SA_OK) {
                                 err("Power Supply Unit %d removal failed", i);
-                                g_free(response);
-                                response = NULL;
+                                g_free(info_result);
+                                info_result = NULL;
+                                xmlFreeDoc( ps_info_doc);
+                                xmlFreeDoc( ps_sts_doc);
                                 return rv;
                         } else
                                 err("Power Supply Unit %d removed", i);
@@ -2172,22 +2410,33 @@ SaErrorT re_discover_ps_unit(struct oh_handler_state *oh_handler,
                          * added.  Add the power supply unit resource from
                          * RPTable.
                          */
-                        rv = add_ps_unit(oh_handler, con, response);
+                        rv = add_ps_unit_arr(oh_handler, con, info_result,
+                                               &sts_result);
                         if (rv != SA_OK) {
                                 err("Power Supply Unit %d add failed", i);
-                                g_free(response);
-                                response = NULL;
+                                g_free(info_result);
+                                info_result = NULL;
+                                xmlFreeDoc( ps_info_doc);
+                                xmlFreeDoc( ps_sts_doc);
                                 return rv;
                         } else
                                 err("Power Supply Unit %d added", i);
 
                         replace_resource = SAHPI_FALSE;
                 }
-        } /* End of for loop */
+            info_response.powerSupplyInfoArray =
+                soap_next_node(info_response.powerSupplyInfoArray);
+            sts_res.powerSupplyStsArray =
+                soap_next_node(sts_res.powerSupplyStsArray);
+
+        } /* End of while loop */
         
-        g_free(response);
+        g_free(info_result);
+        xmlFreeDoc(ps_info_doc);
+        xmlFreeDoc( ps_sts_doc);
         return SA_OK;
 }
+
 
 /**
  * remove_ps_unit
@@ -2393,6 +2642,107 @@ SaErrorT add_ps_unit(struct oh_handler_state *oh_handler,
 }
 
 /**
+ * add_ps_unit_arr
+ *      @oh_handler: Pointer to openhpi handler
+ *      @con:        Pointer SOAP_CON structure
+ *      @info:       Pointer to the get power supply info response structure
+ *      @sts_res:    Pointer to get power supply info status structure
+ * Purpose:
+ *      Add the Power Supply Unit information to RPTable.
+ *
+ * Detailed Description: NA
+ *
+ * Return values:
+ *      SA_OK                     - on success.
+ *      SA_ERR_HPI_INVALID_PARAMS - on wrong parameters
+ *      SA_ERR_HPI_INTERNAL_ERROR - on failure.
+ **/
+
+
+SaErrorT add_ps_unit_arr(struct oh_handler_state *oh_handler,
+                     SOAP_CON *con,
+                     struct powerSupplyInfo *info,
+                     struct powerSupplyStatus *sts_res)
+{
+        SaErrorT rv = SA_OK;
+        struct oa_soap_handler *oa_handler = NULL;
+        char power_supply_disp[] = POWER_SUPPLY_NAME;
+        struct oh_event event;
+        SaHpiResourceIdT resource_id;
+        GSList *asserted_sensors = NULL;
+        SaHpiRptEntryT *rpt;
+
+        if (oh_handler == NULL || con == NULL || info == NULL) {
+                err("Invalid parameters");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        oa_handler = (struct oa_soap_handler *) oh_handler->data;
+        update_hotswap_event(oh_handler, &event);
+
+
+        /* Build the rpt entry */
+        rv = build_power_supply_rpt(oh_handler, power_supply_disp,
+                                    info->bayNumber, &resource_id);
+        if (rv != SA_OK) {
+                err("build power supply rpt failed");
+                return rv;
+        }
+
+        /* Update resource_status structure with resource_id, serial_number,
+         * and presence status
+         */
+        oa_soap_update_resource_status(
+                      &oa_handler->oa_soap_resources.ps_unit, info->bayNumber,
+                      info->serialNumber, resource_id, RES_PRESENT);
+
+        /* Build the RDRs */
+        rv = build_discovered_ps_rdr_arr(oh_handler, info, resource_id, sts_res);
+        if (rv != SA_OK) {
+                err("build power supply RDR failed");
+                /* Free the inventory info from inventory RDR */
+                rv = free_inventory_info(oh_handler, resource_id);
+                if (rv != SA_OK) {
+                        err("Inventory cleanup failed for resource id %d",
+                             resource_id);
+                }
+                oh_remove_resource(oh_handler->rptcache, resource_id);
+                /* reset resource_status structure to default values */
+                oa_soap_update_resource_status(
+                              &oa_handler->oa_soap_resources.ps_unit,
+                              info->bayNumber,
+                              "", SAHPI_UNSPECIFIED_RESOURCE_ID, RES_ABSENT);
+
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+
+        rv = oa_soap_populate_event(oh_handler, resource_id, &event,
+                                    &asserted_sensors);
+        if (rv != SA_OK) {
+                err("Populating event struct failed");
+                return rv;
+        }
+
+        event.event.EventType = SAHPI_ET_HOTSWAP;
+        event.event.EventDataUnion.HotSwapEvent.PreviousHotSwapState =
+                SAHPI_HS_STATE_NOT_PRESENT;
+        event.event.EventDataUnion.HotSwapEvent.HotSwapState =
+                SAHPI_HS_STATE_ACTIVE;
+        /* NOT_PRESENT to ACTIVE state change happened due to operator action */
+        event.event.EventDataUnion.HotSwapEvent.CauseOfStateChange =
+                SAHPI_HS_CAUSE_OPERATOR_INIT;
+        /* Push the hotswap event to add the resource to OpenHPI RPTable */
+        oh_evt_queue_push(oh_handler->eventq, copy_oa_soap_event(&event));
+
+        /* Raise the assert sensor events */
+        if (asserted_sensors) {
+                rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+                oa_soap_assert_sen_evt(oh_handler, rpt, asserted_sensors);
+        }
+        return SA_OK;
+}
+
+/**
  * oa_soap_re_disc_oa_sen
  *      @oh_handler	: Pointer to openhpi handler
  *      @con		: Pointer SOAP_CON structure
@@ -2442,48 +2792,6 @@ static SaErrorT oa_soap_re_disc_oa_sen(struct oh_handler_state *oh_handler,
 
 	/* Check the OA link status state */
 	oa_soap_proc_oa_network_info(oh_handler, &nw_info_response);
-
-	return SA_OK;
-}
-
-/**
- * oa_soap_re_disc_server_sen
- *      @oh_handler	: Pointer to openhpi handler
- *      @con		: Pointer SOAP_CON structure
- *      @bay_number	: Server bay nubmer
- *
- * Purpose:
- *	Re-discovers the server sensor states
- *
- * Detailed Description: NA
- *
- * Return values:
- *      SA_OK                     - on success.
- *      SA_ERR_HPI_INVALID_PARAMS - on wrong parameters
- *      SA_ERR_HPI_INTERNAL_ERROR - on failure.
- **/
-static SaErrorT oa_soap_re_disc_server_sen(struct oh_handler_state *oh_handler,
-					   SOAP_CON *con,
-					   SaHpiInt32T bay_number)
-{
-	SaErrorT rv = SA_OK;
-	struct getBladeStatus request;
-	struct bladeStatus response;
-
-	if (oh_handler == NULL || con == NULL) {
-		err("Invalid parameters");
-		return SA_ERR_HPI_INVALID_PARAMS;
-	}
-
-	request.bayNumber = bay_number;
-	rv = soap_getBladeStatus(con, &request, &response);
-	if (rv != SOAP_OK) {
-		err("Get Blade status SOAP call failed");
-		return SA_ERR_HPI_INTERNAL_ERROR;
-	}
-
-	/* Check the server sensor states */
-	oa_soap_proc_server_status(oh_handler, con, &response);
 
 	return SA_OK;
 }
@@ -2552,26 +2860,16 @@ static SaErrorT oa_soap_re_disc_interconct_sen(struct oh_handler_state
  **/
 static SaErrorT oa_soap_re_disc_ps_sen(struct oh_handler_state *oh_handler,
 				       SOAP_CON *con,
-				       SaHpiInt32T bay_number)
+				       SaHpiInt32T bay_number,
+                                       struct powerSupplyStatus *response)
 {
-	SaErrorT rv = SA_OK;
-	struct getPowerSupplyStatus request;
-	struct powerSupplyStatus response;
-
 	if (oh_handler == NULL || con == NULL) {
 		err("Invalid parameters");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
-	request.bayNumber = bay_number;
-	rv = soap_getPowerSupplyStatus(con, &request, &response);
-	if (rv != SOAP_OK) {
-		err("Get OA status SOAP call failed");
-		return SA_ERR_HPI_INTERNAL_ERROR;
-	}
-
 	/* Check the power supply sensor states */
-	oa_soap_proc_ps_status(oh_handler, &response);
+	oa_soap_proc_ps_status(oh_handler,response);
 
 	return SA_OK;
 }

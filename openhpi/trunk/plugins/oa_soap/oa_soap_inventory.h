@@ -209,6 +209,14 @@ SaErrorT build_server_inv_rdr(struct oh_handler_state *oh_handler,
                               SaHpiRdrT *rdr,
                               struct oa_soap_inventory **pinv);
 
+SaErrorT build_server_inv_rdr_arr(struct oh_handler_state *oh_handler,
+                                  SOAP_CON *con,
+                                  SaHpiInt32T bay_number,
+                                  SaHpiRdrT *rdr,
+                                  struct oa_soap_inventory **pinv,
+                                  struct bladeInfo *,
+                                  struct bladePortMap *);
+
 SaErrorT add_mezz_slot_idr_fields(xmlNode *mezzSlots,
                                   struct oa_soap_inventory *local_inventory);
 
@@ -230,6 +238,14 @@ SaErrorT build_interconnect_inv_rdr(struct oh_handler_state *oh_handler,
                                     SaHpiInt32T bay_number,
                                     SaHpiRdrT *rdr,
                                     struct oa_soap_inventory **pinv);
+
+SaErrorT build_interconnect_inv_rdr_arr(struct oh_handler_state *oh_handler,
+                                    SaHpiInt32T bay_number,
+                                    SaHpiRdrT *rdr,
+                                    struct oa_soap_inventory **pinv,
+                                    struct interconnectTrayInfo *,
+                                    struct interconnectTrayPortMap *);
+
 
 SaErrorT build_fan_inv_rdr(struct oh_handler_state *oh_handler,
                            struct fanInfo *response,

@@ -295,6 +295,63 @@ typedef unsigned char byte;
 			"<hpoa:buttonLock>%d</hpoa:buttonLock>" \
 			"</hpoa:setLcdButtonLock>\n"
 
+#define GET_BLADE_INFO_ARRAY \
+                        "<hpoa:getBladeInfoArray>" \
+                        "<hpoa:bayArray>%s</hpoa:bayArray>" \
+                        "</hpoa:getBladeInfoArray>\n"
+
+#define GET_INTERCONNECT_TRAY_INFO_ARRAY \
+                        "<hpoa:getInterconnectTrayInfoArray>" \
+                        "<hpoa:bayArray>%s</hpoa:bayArray>" \
+                        "</hpoa:getInterconnectTrayInfoArray>\n"
+
+#define GET_INTERCONNECT_TRAY_STATUS_ARRAY \
+                        "<hpoa:getInterconnectTrayStatusArray>" \
+                        "<hpoa:bayArray>%s</hpoa:bayArray>" \
+                        "</hpoa:getInterconnectTrayStatusArray>\n"
+						
+#define GET_INTERCONNECT_TRAY_PORTMAP_ARRAY \
+                        "<hpoa:getInterconnectTrayPortMapArray>" \
+                        "<hpoa:bayArray>%s</hpoa:bayArray>" \
+                        "</hpoa:getInterconnectTrayPortMapArray>\n"
+
+#define GET_POWER_SUPPLY_INFO_ARRAY \
+                        "<hpoa:getPowerSupplyInfoArray>" \
+                        "<hpoa:bayArray>%s</hpoa:bayArray>" \
+                        "</hpoa:getPowerSupplyInfoArray>\n"
+						
+#define GET_POWER_SUPPLY_STATUS_ARRAY \
+                        "<hpoa:getPowerSupplyStatusArray>" \
+                        "<hpoa:bayArray>%s</hpoa:bayArray>" \
+                        "</hpoa:getPowerSupplyStatusArray>\n"
+
+#define GET_FAN_INFO_ARRAY \
+                        "<hpoa:getFanInfoArray>" \
+                        "<hpoa:bayArray>%s</hpoa:bayArray>" \
+                        "</hpoa:getFanInfoArray>\n"
+						
+#define GET_OA_INFO_ARRAY \
+                        "<hpoa:getOaInfoArray>" \
+                        "<hpoa:bayArray>%s</hpoa:bayArray>" \
+                        "</hpoa:getOaInfoArray>\n"
+
+#define GET_OA_STATUS_ARRAY \
+                        "<hpoa:getOaStatusArray>" \
+                        "<hpoa:bayArray>%s</hpoa:bayArray>" \
+                        "</hpoa:getOaStatusArray>\n"
+
+#define GET_BLADE_STATUS_ARRAY \
+                        "<hpoa:getBladeStatusArray>" \
+                        "<hpoa:bayArray>%s</hpoa:bayArray>" \
+                        "</hpoa:getBladeStatusArray>\n"
+
+#define GET_BLADE_PORTMAP_ARRAY \
+                        "<hpoa:getBladePortMapArray>" \
+                        "<hpoa:bayArray>%s</hpoa:bayArray>" \
+                        "</hpoa:getBladePortMapArray>\n"
+
+
+              
 /* Enumerated types used for specific SOAP commands */
 #define HPOA_BOOLEAN_LENGTH    11      /* Max length of these enums + 1 */
 OA_SOAP_ENUM(hpoa_boolean,
@@ -1937,6 +1994,58 @@ struct getFanZoneArrayResponse
         xmlNode *fanZoneArray;          /* Items are struct fanZone */
 };
 
+struct getBladeInfoArrayResponse
+{
+        xmlNode *bladeInfoArray;       /* Items are struct bladeInfo */
+};
+struct interconnectTrayInfoArrayResponse
+{
+        xmlNode *interconnectTrayInfoArray;
+};
+struct interconnectTrayStsArrayResponse
+{
+        xmlNode *interconnectTrayStsArray;
+};
+struct interconnectTrayPmArrayResponse
+{
+        xmlNode *interconnectTrayPmArray;
+};
+
+struct getPowerSupplyInfoArrayResponse
+{
+        xmlNode *powerSupplyInfoArray;
+};
+
+struct getPowerSupplyStsArrayResponse
+{
+        xmlNode *powerSupplyStsArray;
+};
+
+struct getFanInfoArrayResponse
+{
+        xmlNode *fanInfoArray;
+};
+
+struct getOaInfoArrayResponse
+{
+        xmlNode *oaInfoArray;
+};
+
+struct getOaStatusArrayResponse
+{
+        xmlNode *oaStatusArray;
+};
+
+struct getBladePortMapArrayResponse
+{
+        xmlNode *portMapArray;
+};
+
+struct getBladeStsArrayResponse
+{
+        xmlNode *bladeStsArray;
+};
+
 struct bayArray
 {
         int     size;                   /* Size of array */
@@ -1944,6 +2053,55 @@ struct bayArray
 };
 
 struct getFanZoneArray
+{
+        struct bayArray bayArray;
+};
+
+struct getBladeInfoArray
+{
+        struct bayArray bayArray;
+};
+
+struct getInterconnectTrayInfoArray
+{
+        struct bayArray bayArray;
+};
+struct interconnectTrayStsArray
+{
+        struct bayArray bayArray;
+};
+struct interconnectTrayPmArray
+{
+        struct bayArray bayArray;
+};
+
+struct getPowerSupplyInfoArray
+{
+        struct bayArray bayArray;
+};
+
+struct getPowerSupplyStsArray
+{
+        struct bayArray bayArray;
+};
+
+struct getFanInfoArray
+{
+        struct bayArray bayArray;
+};
+struct getOaInfoArray
+{
+        struct bayArray bayArray;
+};
+struct getOaStatusArray
+{
+        struct bayArray bayArray;
+};
+struct getBladePortMapArray
+{
+        struct bayArray bayArray;
+};
+struct getBladeStsArray
 {
         struct bayArray bayArray;
 };
@@ -2253,6 +2411,60 @@ int soap_getInterconnectTrayPortMap(SOAP_CON *con,
                                  const struct getInterconnectTrayInfo *request,
                                  struct interconnectTrayPortMap *response);
 
+int soap_getPowerSupplyInfoArray(SOAP_CON *con,
+                         const struct getPowerSupplyInfoArray *request,
+                         struct getPowerSupplyInfoArrayResponse *response,
+                         xmlDocPtr ps_info_doc);
+
+int soap_getPowerSupplyStatusArray(SOAP_CON *con,
+                         const struct getPowerSupplyStsArray *request,
+                         struct getPowerSupplyStsArrayResponse *response,
+                         xmlDocPtr ps_sts_doc);
+
+int soap_getFanInfoArray(SOAP_CON *con,
+                         const struct getFanInfoArray *request,
+                         struct getFanInfoArrayResponse *response,
+                         xmlDocPtr fan_info_doc);
+
+int soap_getBladeInfoArray(SOAP_CON *con,
+                         const struct getBladeInfoArray *request,
+                         struct getBladeInfoArrayResponse *response,
+                         xmlDocPtr bl_info_doc);
+
+int soap_getBladeStatusArray(SOAP_CON *con,
+                         const struct getBladeStsArray *request,
+                         struct getBladeStsArrayResponse *response,
+                         xmlDocPtr bl_sts_doc);
+
+int soap_getBladePortMapArray(SOAP_CON *con,
+                         const struct getBladePortMapArray *request,
+                         struct getBladePortMapArrayResponse *response,
+                         xmlDocPtr bl_pm_doc);
+
+int soap_getInterconnectTrayInfoArray(SOAP_CON *con,
+                            const struct getInterconnectTrayInfoArray *request,
+                            struct interconnectTrayInfoArrayResponse *response,
+                            xmlDocPtr intr_info_doc);
+
+int soap_getInterconnectTrayStatusArray(SOAP_CON *con,
+                            const struct interconnectTrayStsArray *request,
+                            struct interconnectTrayStsArrayResponse *response,
+                            xmlDocPtr intr_sts_doc);
+
+int soap_getInterconnectTrayPortMapArray(SOAP_CON *con,
+                            const struct interconnectTrayPmArray *request,
+                            struct interconnectTrayPmArrayResponse *response,
+                            xmlDocPtr intr_pm_doc);
+
+int soap_getOaInfoArray(SOAP_CON *con,
+                         const struct getOaInfoArray *request,
+                         struct getOaInfoArrayResponse *response,
+                         xmlDocPtr oa_info_doc);
+
+int soap_getOaStatusArray(SOAP_CON *con,
+                         const struct getOaStatusArray *request,
+                         struct getOaStatusArrayResponse *response,
+                         xmlDocPtr oa_sts_doc);
 
 /* Function prototypes for OA SOAP helper functions */
 void    soap_getExtraData(xmlNode *extraData, struct extraDataInfo *result);
@@ -2286,4 +2498,17 @@ void    soap_fanInfo(xmlNode *fanZone, struct fanInfo *result);
 void    soap_deviceBayArray(xmlNode *node, byte *bay);
 void	soap_bladeThermalInfo(xmlNode *node, struct bladeThermalInfo *result);
 
+void    parse_powerSupplyInfo(xmlNode *node,struct powerSupplyInfo *response);
+void    parse_powerSupplyStatus(xmlNode *node,
+                                struct powerSupplyStatus *response);
+void    parse_bladeInfo(xmlNode *node, struct bladeInfo *response);
+void    parse_interconnectTrayInfo(xmlNode *node,struct interconnectTrayInfo *);
+void    parse_interconnectTrayStatus(xmlNode *node,
+                                     struct interconnectTrayStatus *);
+void    parse_oaInfo(xmlNode *node, struct oaInfo *response);
+void    parse_oaStatus(xmlNode *node, struct oaStatus *response);
+void    parse_bladeStatus(xmlNode *node, struct bladeStatus *response);
+void    parse_bladePortMap(xmlNode *node, struct bladePortMap *response);
+void    parse_interconnectTrayPortMap(xmlNode *portmap,
+					struct interconnectTrayPortMap *result);
 #endif  /* _INC_OASOAP_CALLS_H_ */
