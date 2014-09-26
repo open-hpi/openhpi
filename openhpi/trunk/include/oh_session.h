@@ -36,7 +36,11 @@ extern "C" {
 struct oh_session_table {
         GHashTable *table;
         GSList *list;
+#if GLIB_CHECK_VERSION (2, 32, 0)
+        GRecMutex lock;
+#else
         GStaticRecMutex lock;
+#endif
 };
 
 extern struct oh_session_table oh_sessions;

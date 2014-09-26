@@ -39,6 +39,7 @@
 #include "init.h"
 #include "lock.h"
 #include "threaded.h"
+#include "sahpi_wrappers.h"
 
 /**
  * oh_init
@@ -53,7 +54,7 @@ int oh_init(void)
         SaErrorT rval;
 
         if (g_thread_supported() == FALSE) {
-            g_thread_init(0);
+            wrap_g_thread_init(0);
         }
 
         data_access_lock();

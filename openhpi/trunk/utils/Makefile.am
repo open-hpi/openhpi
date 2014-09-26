@@ -88,6 +88,8 @@ libopenhpiutils_la_SOURCES = \
     sahpi_time_utils.h \
     sahpi_gcrypt_utils.c \
     sahpi_gcrypt_utils.h \
+    sahpi_wrappers.c \
+    sahpi_wrappers.h \
     uid_utils.c \
     uid_utils.h
 

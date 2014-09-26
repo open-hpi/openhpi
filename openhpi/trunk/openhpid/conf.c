@@ -39,6 +39,7 @@
 
 #include "conf.h"
 #include "lock.h"
+#include "sahpi_wrappers.h"
 
 /*
  * Global Parameters
@@ -178,7 +179,7 @@ static GScannerConfig oh_scanner_config =
 
 static void process_global_param(const char *name, char *value)
 {
-        g_static_rec_mutex_lock(&global_params.lock);
+        wrap_g_static_rec_mutex_lock((void *)&global_params.lock);
 
         if (!strcmp("OPENHPI_LOG_ON_SEV", name)) {
                 SaHpiTextBufferT buffer;
@@ -240,7 +241,7 @@ static void process_global_param(const char *name, char *value)
                 CRIT("Invalid global parameter %s in config file.", name);
         }
 
-        g_static_rec_mutex_unlock(&global_params.lock);
+        wrap_g_static_rec_mutex_unlock(&global_params.lock);
 }
 
 static void read_globals_from_env(int force)
@@ -250,7 +251,7 @@ static void read_globals_from_env(int force)
 
         if (!force && global_params.read_env) return;
 
-        g_static_rec_mutex_lock(&global_params.lock);
+        wrap_g_static_rec_mutex_lock(&global_params.lock);
 
         for (i = 0; known_globals[i]; i++) {
                 if ((tmp_env_str = getenv(known_globals[i])) != NULL) {
@@ -260,7 +261,7 @@ static void read_globals_from_env(int force)
         }
 
         global_params.read_env = 1;
-        g_static_rec_mutex_unlock(&global_params.lock);
+        wrap_g_static_rec_mutex_unlock(&global_params.lock);
 }
 
 /**
@@ -755,7 +756,7 @@ int oh_get_global_param(struct oh_global_param *param)
 
         read_globals_from_env(0);
 
-        g_static_rec_mutex_lock(&global_params.lock);
+        wrap_g_static_rec_mutex_lock(&global_params.lock);
         switch (param->type) {
                 case OPENHPI_LOG_ON_SEV:
                         param->u.log_on_sev = global_params.log_on_sev;
@@ -803,11 +804,11 @@ int oh_get_global_param(struct oh_global_param *param)
                         param->u.ai_timeout_readonly = global_params.ai_timeout_readonly;
                         break;
                 default:
-                        g_static_rec_mutex_unlock(&global_params.lock);
+                        wrap_g_static_rec_mutex_unlock(&global_params.lock);
                         CRIT("Invalid global parameter %d!", param->type);
                         return -2;
         }
-        g_static_rec_mutex_unlock(&global_params.lock);
+        wrap_g_static_rec_mutex_unlock(&global_params.lock);
 
         return 0;
 }
@@ -845,7 +846,7 @@ int oh_set_global_param(const struct oh_global_param *param)
 
         read_globals_from_env(0);
 
-        g_static_rec_mutex_lock(&global_params.lock);
+        wrap_g_static_rec_mutex_lock(&global_params.lock);
         switch (param->type) {
                 case OPENHPI_LOG_ON_SEV:
                         global_params.log_on_sev = param->u.log_on_sev;
@@ -896,11 +897,11 @@ int oh_set_global_param(const struct oh_global_param *param)
                         global_params.ai_timeout_readonly = param->u.ai_timeout_readonly;
                         break;
                 default:
-                        g_static_rec_mutex_unlock(&global_params.lock);
+                        wrap_g_static_rec_mutex_unlock(&global_params.lock);
                         CRIT("Invalid global parameter %d!", param->type);
                         return -2;
         }
-        g_static_rec_mutex_unlock(&global_params.lock);
+        wrap_g_static_rec_mutex_unlock(&global_params.lock);
 
         return 0;
 }

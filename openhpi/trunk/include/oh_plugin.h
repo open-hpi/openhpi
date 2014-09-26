@@ -31,7 +31,11 @@ extern "C" {
  */
 struct oh_plugins {
         GSList *list;
+#if GLIB_CHECK_VERSION (2, 32, 0)
+        GRecMutex lock;
+#else
         GStaticRecMutex lock;
+#endif
 };
 struct oh_plugin {
         char *name; /* Name of plugin preceded by 'lib' (e.g. "libdummy"). */
@@ -41,12 +45,20 @@ struct oh_plugin {
         int handler_count; /* How many handlers use this plugin */
 
         /* Synchronization - used internally by plugin interfaces below. */
+#if GLIB_CHECK_VERSION (2, 32, 0)
+        GRecMutex lock; /* Exclusive lock for working with plugin */
+        /* These are used to keep the plugin from being unloaded while it
+         * is being referenced.
+         */
+        GRecMutex refcount_lock;
+#else
         GStaticRecMutex lock; /* Exclusive lock for working with plugin */
         /* These are used to keep the plugin from being unloaded while it
          * is being referenced.
          */
-        int refcount;
         GStaticRecMutex refcount_lock;
+#endif
+        int refcount;
 };
 extern struct oh_plugins oh_plugins;
 
@@ -56,7 +68,11 @@ extern struct oh_plugins oh_plugins;
 struct oh_handlers {
         GHashTable *table;
         GSList *list;
+#if GLIB_CHECK_VERSION (2, 32, 0)
+        GRecMutex lock;
+#else
         GStaticRecMutex lock;
+#endif
 };
 struct oh_handler {
         unsigned int id; /* id of handler */
@@ -70,12 +86,20 @@ struct oh_handler {
         void *hnd;
 
         /* Synchronization - used internally by handler interfaces below. */
+#if GLIB_CHECK_VERSION (2, 32, 0)
+        GRecMutex lock; /* Exclusive lock for working with handler */
+        /* These are used to keep the handler from being destroyed while it
+         * is being referenced.
+         */
+        GRecMutex refcount_lock;
+#else
         GStaticRecMutex lock; /* Exclusive lock for working with handler */
         /* These are used to keep the handler from being destroyed while it
          * is being referenced.
          */
-        int refcount;
         GStaticRecMutex refcount_lock;
+#endif
+        int refcount;
 };
 extern struct oh_handlers oh_handlers;
 

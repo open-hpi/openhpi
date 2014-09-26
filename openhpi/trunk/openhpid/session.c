@@ -26,10 +26,13 @@
 #include "conf.h"
 #include "event.h"
 #include "lock.h"
+#include <sahpi_wrappers.h>
 
 struct oh_session_table oh_sessions = {
         .table = NULL,
+#if !GLIB_CHECK_VERSION (2, 32, 0)
         .lock = G_STATIC_REC_MUTEX_INIT
+#endif
 };
 
 
@@ -64,11 +67,11 @@ SaHpiSessionIdT oh_create_session(SaHpiDomainIdT did)
                 g_free(session);
                 return 0;
         }
-        g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
+        wrap_g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
         session->id = id++;
         g_hash_table_insert(oh_sessions.table, &(session->id), session);
         oh_sessions.list = g_slist_append(oh_sessions.list, session);
-        g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */
+        wrap_g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */
         oh_release_domain(domain);
 
         return session->id;
@@ -90,15 +93,15 @@ SaHpiDomainIdT oh_get_session_domain(SaHpiSessionIdT sid)
         if (sid < 1)
                 return SAHPI_UNSPECIFIED_DOMAIN_ID;
 
-        g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
+        wrap_g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
         session = g_hash_table_lookup(oh_sessions.table, &sid);
         if (!session) {
-                g_static_rec_mutex_unlock(&oh_sessions.lock);
+                wrap_g_static_rec_mutex_unlock(&oh_sessions.lock);
                 return SAHPI_UNSPECIFIED_DOMAIN_ID;
         }
 
         did = session->did;
-        g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */
+        wrap_g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */
 
 
         return did;
@@ -128,13 +131,13 @@ GArray *oh_list_sessions(SaHpiDomainIdT did)
 
         session_ids = g_array_new(FALSE, TRUE, sizeof(SaHpiSessionIdT));
 
-        g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
+        wrap_g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
         for (node = oh_sessions.list; node; node = node->next) {
                 struct oh_session *s = node->data;
                 if (s->did != did) continue;
                 g_array_append_val(session_ids, s->id);
         }
-        g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */
+        wrap_g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */
         oh_release_domain(domain);
 
         return session_ids;
@@ -163,14 +166,14 @@ SaErrorT oh_get_session_subscription(SaHpiSessionIdT sid,
         if (oh_sessions.table == NULL)
         	return SA_ERR_HPI_INTERNAL_ERROR;
 
-        g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
+        wrap_g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
         session = g_hash_table_lookup(oh_sessions.table, &sid);
         if (!session) {
-                g_static_rec_mutex_unlock(&oh_sessions.lock);
+                wrap_g_static_rec_mutex_unlock(&oh_sessions.lock);
                 return SA_ERR_HPI_INVALID_SESSION;
         }
         *state = session->subscribed;
-        g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */
+        wrap_g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */
 
         return SA_OK;
 }
@@ -192,15 +195,15 @@ SaErrorT oh_set_session_subscription(SaHpiSessionIdT sid, SaHpiBoolT state)
         if (sid < 1)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
-        g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
+        wrap_g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
         session = g_hash_table_lookup(oh_sessions.table, &sid);
         if (!session) {
-                g_static_rec_mutex_unlock(&oh_sessions.lock);
+               wrap_g_static_rec_mutex_unlock(&oh_sessions.lock);
                 return SA_ERR_HPI_INVALID_SESSION;
         }
         session->subscribed = state;
 
-        g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */
+        wrap_g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */
         /* Flush session's event queue
          */
         if (state == SAHPI_FALSE) {
@@ -241,10 +244,10 @@ SaErrorT oh_queue_session_event(SaHpiSessionIdT sid,
                 nolimit = SAHPI_TRUE;
         }
 
-        g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
+        wrap_g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
         session = g_hash_table_lookup(oh_sessions.table, &sid);
         if (!session) {
-                g_static_rec_mutex_unlock(&oh_sessions.lock);
+                wrap_g_static_rec_mutex_unlock(&oh_sessions.lock);
                 oh_event_free(qevent, FALSE);
                 return SA_ERR_HPI_INVALID_SESSION;
         }
@@ -256,7 +259,7 @@ SaErrorT oh_queue_session_event(SaHpiSessionIdT sid,
                 if (qlength > 0 && qlength >= param.u.evt_queue_limit) {
                         /* Don't proceed with event push if queue is overflowed */
                         session->eventq_status = SAHPI_EVT_QUEUE_OVERFLOW;
-                        g_static_rec_mutex_unlock(&oh_sessions.lock);
+                        wrap_g_static_rec_mutex_unlock(&oh_sessions.lock);
                         oh_event_free(qevent, FALSE);
                         CRIT("Session %d's queue is out of space; "
                             "# of events is %d; Max is %d",
@@ -266,7 +269,7 @@ SaErrorT oh_queue_session_event(SaHpiSessionIdT sid,
         }
 
         g_async_queue_push(session->eventq, qevent);
-        g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */
+        wrap_g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */
 
         return SA_OK;
 }
@@ -295,10 +298,10 @@ SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
         if (sid < 1 || (event == NULL))
                 return SA_ERR_HPI_INVALID_PARAMS;
 
-        g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
+        wrap_g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
         session = g_hash_table_lookup(oh_sessions.table, &sid);
         if (!session) {
-                g_static_rec_mutex_unlock(&oh_sessions.lock);
+                wrap_g_static_rec_mutex_unlock(&oh_sessions.lock);
                 return SA_ERR_HPI_INVALID_SESSION;
         }
 
@@ -308,7 +311,7 @@ SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
         session->eventq_status = 0;
         eventq = session->eventq;
         g_async_queue_ref(eventq);
-        g_static_rec_mutex_unlock(&oh_sessions.lock);
+        wrap_g_static_rec_mutex_unlock(&oh_sessions.lock);
 
         if (timeout == SAHPI_TIMEOUT_IMMEDIATE) {
                 devent = g_async_queue_try_pop(eventq);
@@ -317,7 +320,7 @@ SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
                         g_get_current_time(&gfinaltime);
                         g_time_val_add(&gfinaltime, 5000000L);
                         devent =
-                            g_async_queue_timed_pop(eventq, &gfinaltime);
+                            wrap_g_async_queue_timed_pop(eventq, &gfinaltime);
                         /* compliance with spec page 63 */
                         invalid =
                             oh_get_session_subscription(sid, &subscribed);
@@ -332,7 +335,7 @@ SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
         } else {
                 g_get_current_time(&gfinaltime);
                 g_time_val_add(&gfinaltime, (glong) (timeout / 1000));
-                devent = g_async_queue_timed_pop(eventq, &gfinaltime);
+                devent = wrap_g_async_queue_timed_pop(eventq, &gfinaltime);
                 invalid = oh_get_session_subscription(sid, &subscribed);
                 if (invalid || !subscribed) {
                         g_async_queue_unref(eventq);
@@ -377,15 +380,15 @@ SaErrorT oh_destroy_session(SaHpiSessionIdT sid)
         if (sid < 1)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
-        g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
+        wrap_g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
         session = g_hash_table_lookup(oh_sessions.table, &sid);
         if (!session) {
-                g_static_rec_mutex_unlock(&oh_sessions.lock);
+                wrap_g_static_rec_mutex_unlock(&oh_sessions.lock);
                 return SA_ERR_HPI_INVALID_SESSION;
         }
         oh_sessions.list = g_slist_remove(oh_sessions.list, session);
         g_hash_table_remove(oh_sessions.table, &(session->id));
-        g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */
+        wrap_g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */
 
         /* Finalize session */
         len = g_async_queue_length(session->eventq);
