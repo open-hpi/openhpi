@@ -32,7 +32,11 @@ extern "C" {
 struct oh_domain_table {
         GHashTable *table;
         GList *list;
+#if GLIB_CHECK_VERSION (2, 32, 0)
+        GRecMutex lock;
+#else
         GStaticRecMutex lock;
+#endif
 };
 
 #define OH_DOMAIN_SINGLE (SaHpiUint8T)0x00
@@ -83,9 +87,14 @@ struct oh_domain {
         oh_el *del;
 
         /* Synchronization - used internally by domain interfaces */
+#if GLIB_CHECK_VERSION (2, 32, 0)
+        GRecMutex lock;
+        GRecMutex refcount_lock;
+#else
         GStaticRecMutex lock;
-        int refcount;
         GStaticRecMutex refcount_lock;
+#endif
+        int refcount;
 };
 
 SaErrorT oh_create_domain(SaHpiDomainIdT id,

@@ -26,6 +26,7 @@
 #include "conf.h"
 #include "init.h"
 #include "session.h"
+#include "sahpi_wrappers.h"
 
 
 SaErrorT ohc_init(void)
@@ -39,7 +40,7 @@ SaErrorT ohc_init(void)
 
     // Initialize GLIB thread engine
     if (g_thread_supported() == FALSE) {
-        g_thread_init(0);
+        wrap_g_thread_init(0);
     }
 
     ohc_conf_init();

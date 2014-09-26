@@ -32,6 +32,7 @@
 #include <oh_error.h>
 #include <oh_rpc_params.h>
 #include <strmsock.h>
+#include <sahpi_wrappers.h>
 
 
 /*--------------------------------------------------------------------*/
@@ -49,38 +50,40 @@ static SaErrorT process_msg(cHpiMarshal * hm,
 /*--------------------------------------------------------------------*/
 /* Local Definitions                                                  */
 /*--------------------------------------------------------------------*/
-
+#if GLIB_CHECK_VERSION (2, 32, 0)
+static GRecMutex lock;
+#else
 static GStaticRecMutex lock = G_STATIC_REC_MUTEX_INIT;
+#endif
 static volatile bool stop = false;
 
 static GList * sockets = 0; 
-
 
 /*--------------------------------------------------------------------*/
 /* Socket List                                                        */
 /*--------------------------------------------------------------------*/
 static void add_socket_to_list( cStreamSock * sock )
 {
-    g_static_rec_mutex_lock(&lock);
+    wrap_g_static_rec_mutex_lock(&lock);
     sockets = g_list_prepend( sockets, sock );
-    g_static_rec_mutex_unlock(&lock);
+    wrap_g_static_rec_mutex_unlock(&lock);
 }
 
 static void remove_socket_from_list( const cStreamSock * sock )
 {
-    g_static_rec_mutex_lock(&lock);
+    wrap_g_static_rec_mutex_lock(&lock);
     sockets = g_list_remove( sockets, sock );
-    g_static_rec_mutex_unlock(&lock);
+    wrap_g_static_rec_mutex_unlock(&lock);
 }
 
 static void close_sockets_in_list( void )
 {
-    g_static_rec_mutex_lock(&lock);
+    wrap_g_static_rec_mutex_lock(&lock);
     for ( GList * iter = sockets; iter != 0; iter = g_list_next( iter ) ) {
         cStreamSock * sock = reinterpret_cast<cStreamSock *>(iter->data);
         sock->Close();
     }
-    g_static_rec_mutex_unlock(&lock);
+    wrap_g_static_rec_mutex_unlock(&lock);
 }
 
 
@@ -361,6 +364,7 @@ static SaErrorT process_msg(cHpiMarshal * hm,
             RpcParams iparams(&did);
             DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
+            CRIT("\n\n\n\n OpenHPID calling the saHpiSessionOpen \n \n\n\n\n");
             rv = saHpiSessionOpen(OH_DEFAULT_DOMAIN_ID, &sid, security);
             if (rv == SA_OK) {
                 changed_sid = sid;

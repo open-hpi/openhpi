@@ -27,30 +27,33 @@
 #include "alarm.h"
 #include "conf.h"
 #include "event.h"
+#include "sahpi_wrappers.h"
 
-#define domains_lock() g_static_rec_mutex_lock(&oh_domains.lock)
-#define domains_unlock() g_static_rec_mutex_unlock(&oh_domains.lock)
+#define domains_lock() wrap_g_static_rec_mutex_lock(&oh_domains.lock)
+#define domains_unlock() wrap_g_static_rec_mutex_unlock(&oh_domains.lock)
 
 struct oh_domain_table oh_domains = {
         .table = NULL,
+#if !GLIB_CHECK_VERSION (2, 32, 0)
         .lock = G_STATIC_REC_MUTEX_INIT,
+#endif
 };
 
 
 static void __inc_domain_refcount(struct oh_domain *d)
 {
-        g_static_rec_mutex_lock(&d->refcount_lock);
+        wrap_g_static_rec_mutex_lock(&d->refcount_lock);
         d->refcount++;
-        g_static_rec_mutex_unlock(&d->refcount_lock);
+        wrap_g_static_rec_mutex_unlock(&d->refcount_lock);
 
         return;
 }
 
 static void __dec_domain_refcount(struct oh_domain *d)
 {
-        g_static_rec_mutex_lock(&d->refcount_lock);
+        wrap_g_static_rec_mutex_lock(&d->refcount_lock);
         d->refcount--;
-        g_static_rec_mutex_unlock(&d->refcount_lock);
+        wrap_g_static_rec_mutex_unlock(&d->refcount_lock);
 
         return;
 }
@@ -73,8 +76,8 @@ static void __delete_domain(struct oh_domain *d)
         oh_el_close(d->del);
         oh_close_alarmtable(d);
         __free_drt_list(d->drt.list);
-        g_static_rec_mutex_free(&d->lock);
-        g_static_rec_mutex_free(&d->refcount_lock);
+        wrap_g_static_rec_mutex_free_clear(&d->lock);
+        wrap_g_static_rec_mutex_free_clear(&d->refcount_lock);
         g_free(d);
 }
 #if 0
@@ -116,7 +119,7 @@ static GList *__get_domain(SaHpiDomainIdT did)
         /* Unlock domain table */
         domains_unlock();
         /* Wait to get domain lock */
-        g_static_rec_mutex_lock(&domain->lock);
+        wrap_g_static_rec_mutex_lock(&domain->lock);
 
         return node;
 }
@@ -396,8 +399,8 @@ SaErrorT oh_create_domain(SaHpiDomainIdT id,
                 return SA_ERR_HPI_ERROR;
         }
 
-        g_static_rec_mutex_init(&domain->lock);
-        g_static_rec_mutex_init(&domain->refcount_lock);
+        wrap_g_static_rec_mutex_init(&domain->lock);
+        wrap_g_static_rec_mutex_init(&domain->refcount_lock);
 
         /* Get option for saving domain event log or not */
         param.type = OPENHPI_DEL_SAVE;
@@ -593,7 +596,7 @@ SaErrorT oh_release_domain(struct oh_domain *domain)
         if (domain->refcount < 0)
                 __delete_domain(domain);
         else
-                g_static_rec_mutex_unlock(&domain->lock);
+                wrap_g_static_rec_mutex_unlock(&domain->lock);
 
         return SA_OK;
 }

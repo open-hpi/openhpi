@@ -26,6 +26,7 @@
 #include <oh_utils.h>
 
 #include "hpi_cmd.h"
+#include <sahpi_wrappers.h>
 
 static GThread *ge_thread;
 static GThread *prog_thread;
@@ -61,7 +62,7 @@ static void* progress_bar(void *unused)
 		fflush(stdout);
 		g_get_current_time(&time);
 		g_time_val_add(&time, G_USEC_PER_SEC / 10);
-		g_cond_timed_wait(thread_wait, thread_mutex, &time);
+		wrap_g_cond_timed_wait(thread_wait, thread_mutex, &time);
 		if (i < (PROGRESS_BUF_SIZE - mes_len - 1)) i++;
 		t++;
 	};
@@ -76,7 +77,7 @@ void do_progress(char *mes)
 {
 	progress_mes = mes;
 	in_progress = 1;
-	prog_thread = g_thread_create(progress_bar, 0, FALSE, 0);
+	prog_thread = wrap_g_thread_create_new("progress_bar",progress_bar, 0, FALSE, 0);
 }
 
 /* This function deletes thread for progress bar. */
@@ -266,10 +267,10 @@ int open_session(SaHpiDomainIdT domainId, int eflag)
 	Domain_t	*par_domain;
 
         if (!g_thread_supported()) {
-                g_thread_init(NULL);
+                wrap_g_thread_init(NULL);
 	};
-	thread_wait = g_cond_new();
-	thread_mutex = g_mutex_new();
+	thread_wait = wrap_g_cond_new_init();
+	thread_mutex = wrap_g_mutex_new_init();
 	par_domain = (Domain_t *)malloc(sizeof(Domain_t));
 	memset(par_domain, 0, sizeof(Domain_t));
 	par_domain->domainId = domainId;
@@ -280,7 +281,7 @@ int open_session(SaHpiDomainIdT domainId, int eflag)
 	if (eflag) {
 		show_event_short = 1;
 		prt_flag = 1;
-		ge_thread = g_thread_create(get_event, 0, FALSE, 0);
+		ge_thread = wrap_g_thread_create_new("get_event",get_event, 0, FALSE, 0);
 	};
 	// add main domain to the domain list
 	if (add_domain(par_domain) != SA_OK) return(-1);
@@ -289,7 +290,7 @@ int open_session(SaHpiDomainIdT domainId, int eflag)
 	printf("\tEnter a command or \"help\" for list of commands\n");
 
 	if (! eflag)
-		ge_thread = g_thread_create(get_event, 0, FALSE, 0);
+		ge_thread = wrap_g_thread_create_new("get_event",get_event, 0, FALSE, 0);
 	return 0;
 }
 

@@ -79,6 +79,7 @@
 #include <sys/types.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <sahpi_wrappers.h>
 
 /* Data types used by this module */
 struct CRYPTO_dynlock_value {
@@ -88,9 +89,12 @@ struct CRYPTO_dynlock_value {
 
 /* Global (static) data for this module */
 static int	oh_ssl_init_done = 0;	/* Will be set true when done */
-static GMutex **mutexes = NULL;		/* Holds array of SSL mutexes */
+static GMutex **mutexes = NULL;         /* Holds array of SSL mutexes */
+#if GLIB_CHECK_VERSION (2, 32, 0)
+static GMutex ssl_mutexes; /* Lock for above */
+#else
 static GStaticMutex ssl_mutexes = G_STATIC_MUTEX_INIT; /* Lock for above */
-
+#endif
 
 /* Local (static) functions, used by this module.  Note that these aren't
  * necessary if we aren't compiling as a threaded implementation, so we
@@ -135,27 +139,27 @@ static void lock_function(int mode, int type, const char * file, int line)
 	/* Do we have an array of mutex pointers yet? */
 	if (! mutexes) {
 		/* Messing with this requires the static lock */
-		g_static_mutex_lock(&ssl_mutexes);
+		wrap_g_static_mutex_lock(&ssl_mutexes);
 		if (! mutexes) {	/* Need to check again */
 			mutexes = (GMutex **)g_malloc0(CRYPTO_num_locks() *
 						       sizeof(GMutex *));
 			if (! mutexes) {
 				CRIT("out of memory");
-				g_static_mutex_unlock(&ssl_mutexes);
+				wrap_g_static_mutex_unlock(&ssl_mutexes);
 				return;
 			}
 		}
-		g_static_mutex_unlock(&ssl_mutexes);
+		wrap_g_static_mutex_unlock(&ssl_mutexes);
 	}
 
 	/* Have we initialized this particular mutex? */
 	if (! mutexes[type]) {
 		/* Same firedrill as above */
-		g_static_mutex_lock(&ssl_mutexes);
+		wrap_g_static_mutex_lock(&ssl_mutexes);
 		if (! mutexes[type]) {
-			mutexes[type] = g_mutex_new();
+			mutexes[type] = wrap_g_mutex_new_init();
 		}
-		g_static_mutex_unlock(&ssl_mutexes);
+		wrap_g_static_mutex_unlock(&ssl_mutexes);
 	}
 
 	/* Finally, go ahead and lock or unlock it */
@@ -184,7 +188,7 @@ static struct CRYPTO_dynlock_value *dyn_create_function(const char *file,
 
 	if ((value = (struct CRYPTO_dynlock_value *)
 			g_malloc(sizeof(struct CRYPTO_dynlock_value)))) {
-		value->mutex = g_mutex_new();
+		value->mutex = wrap_g_mutex_new_init();
 	}
 	else {
 		CRIT("out of memory");
@@ -231,7 +235,7 @@ static void dyn_lock_function(int mode, struct CRYPTO_dynlock_value *l,
 static void	dyn_destroy_function(struct CRYPTO_dynlock_value *l,
 				     const char *file, int line)
 {
-	g_mutex_free(l->mutex);
+	wrap_g_mutex_free_clear(l->mutex);
 	g_free(l);
 }
 
@@ -278,17 +282,17 @@ static int	thread_cleanup(void)
 	CRYPTO_set_dynlock_destroy_callback(NULL);
 
 	/* Clean up and destroy mutexes, if we have any */
-	g_static_mutex_lock(&ssl_mutexes);
+	wrap_g_static_mutex_lock(&ssl_mutexes);
 	if (mutexes) {
 		for (i = 0; i < CRYPTO_num_locks(); i++) {
 			if (mutexes[i]) {
-				g_mutex_free(mutexes[i]);
+				wrap_g_mutex_free_clear(mutexes[i]);
 			}
 		}
 		g_free(mutexes);
 		mutexes = NULL;
 	}
-	g_static_mutex_free(&ssl_mutexes);
+	wrap_g_static_mutex_free_clear(&ssl_mutexes);
 
 	return(0);			/* No errors */
 }

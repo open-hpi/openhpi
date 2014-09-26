@@ -35,22 +35,26 @@
 #include "conf.h"
 #include "event.h"
 #include "lock.h"
+#include "sahpi_wrappers.h"
 
 /*
  * Structure containing global list of plugins (oh_plugin).
  */
 struct oh_plugins oh_plugins = {
         .list = NULL,
-        .lock = G_STATIC_REC_MUTEX_INIT
+#if !GLIB_CHECK_VERSION (2, 32, 0)
+        .lock = G_STATIC_REC_MUTEX_INIT 
+#endif
 };
-
 /*
  * Structure containing global table of handlers (oh_handler).
  */
 struct oh_handlers oh_handlers = {
         .table = NULL,
         .list = NULL,
+#if !GLIB_CHECK_VERSION (2, 32, 0)
         .lock = G_STATIC_REC_MUTEX_INIT
+#endif
 };
 
 /**
@@ -68,9 +72,9 @@ void oh_close_handlers()
         struct oh_handler *h = NULL;
         GSList *node = NULL;
 
-        g_static_rec_mutex_lock(&oh_handlers.lock);
+        wrap_g_static_rec_mutex_lock(&oh_handlers.lock);
         if (oh_handlers.list == NULL) {
-                g_static_rec_mutex_unlock(&oh_handlers.lock);
+                wrap_g_static_rec_mutex_unlock(&oh_handlers.lock);
                 return;
         }
 
@@ -82,21 +86,21 @@ void oh_close_handlers()
                         }
                 }
         }
-        g_static_rec_mutex_unlock(&oh_handlers.lock);
+        wrap_g_static_rec_mutex_unlock(&oh_handlers.lock);
 }
 
 static void __inc_plugin_refcount(struct oh_plugin *p)
 {
-        g_static_rec_mutex_lock(&p->refcount_lock);
+        wrap_g_static_rec_mutex_lock(&p->refcount_lock);
         p->refcount++;
-        g_static_rec_mutex_unlock(&p->refcount_lock);
+        wrap_g_static_rec_mutex_unlock(&p->refcount_lock);
 }
 
 static void __dec_plugin_refcount(struct oh_plugin *p)
 {
-        g_static_rec_mutex_lock(&p->refcount_lock);
+        wrap_g_static_rec_mutex_lock(&p->refcount_lock);
         p->refcount--;
-        g_static_rec_mutex_unlock(&p->refcount_lock);
+        wrap_g_static_rec_mutex_unlock(&p->refcount_lock);
 }
 
 static void __delete_plugin(struct oh_plugin *p)
@@ -104,8 +108,8 @@ static void __delete_plugin(struct oh_plugin *p)
         if (!p) return;
 
         g_free(p->name);
-        g_static_rec_mutex_free(&p->lock);
-        g_static_rec_mutex_free(&p->refcount_lock);
+        wrap_g_static_rec_mutex_free_clear(&p->lock);
+        wrap_g_static_rec_mutex_free_clear(&p->refcount_lock);
         g_free(p->abi);
         if (p->dl_handle) {
                 g_module_close(p->dl_handle);
@@ -133,18 +137,18 @@ struct oh_plugin *oh_get_plugin(char *plugin_name)
                 return NULL;
         }
 
-        g_static_rec_mutex_lock(&oh_plugins.lock);
+        wrap_g_static_rec_mutex_lock(&oh_plugins.lock);
         for (node = oh_plugins.list; node; node = node->next) {
                 struct oh_plugin *p = (struct oh_plugin *)(node->data);
                 if (strcmp(p->name, plugin_name) == 0) {
                         __inc_plugin_refcount(p);
-                        g_static_rec_mutex_unlock(&oh_plugins.lock);
-                        g_static_rec_mutex_lock(&p->lock);
+                        wrap_g_static_rec_mutex_unlock(&oh_plugins.lock);
+                        wrap_g_static_rec_mutex_lock(&p->lock);
                         plugin = p;
                         return plugin;
                 }
         }
-        g_static_rec_mutex_unlock(&oh_plugins.lock);
+        wrap_g_static_rec_mutex_unlock(&oh_plugins.lock);
 
         return plugin;
 }
@@ -168,7 +172,7 @@ void oh_release_plugin(struct oh_plugin *plugin)
         if (plugin->refcount < 0)
                 __delete_plugin(plugin);
         else
-                g_static_rec_mutex_unlock(&plugin->lock);
+                wrap_g_static_rec_mutex_unlock(&plugin->lock);
 }
 
 /**
@@ -192,33 +196,33 @@ int oh_getnext_plugin_name(char *plugin_name,
         memset(next_plugin_name, '\0', size);
 
         if (!plugin_name) {
-                g_static_rec_mutex_lock(&oh_plugins.lock);
+                wrap_g_static_rec_mutex_lock(&oh_plugins.lock);
                 if (oh_plugins.list) {
                         struct oh_plugin *plugin = oh_plugins.list->data;
                         strncpy(next_plugin_name, plugin->name, size);
-                        g_static_rec_mutex_unlock(&oh_plugins.lock);
+                        wrap_g_static_rec_mutex_unlock(&oh_plugins.lock);
                         return 0;
                 } else {
-                        g_static_rec_mutex_unlock(&oh_plugins.lock);
+                        wrap_g_static_rec_mutex_unlock(&oh_plugins.lock);
                         DBG("No plugins have been loaded yet.");
                         return -1;
                 }
         } else {
-                g_static_rec_mutex_lock(&oh_plugins.lock);
+                wrap_g_static_rec_mutex_lock(&oh_plugins.lock);
                 for (node = oh_plugins.list; node; node = node->next) {
                         struct oh_plugin *p = node->data;
                         if (strcmp(p->name, plugin_name) == 0) {
                                 if (node->next) {
                                         p = node->next->data;
                                         strncpy(next_plugin_name, p->name, size);
-                                        g_static_rec_mutex_unlock(&oh_plugins.lock);
+                                        wrap_g_static_rec_mutex_unlock(&oh_plugins.lock);
                                         return 0;
                                 } else {
                                         break;
                                 }
                         }
                 }
-                g_static_rec_mutex_unlock(&oh_plugins.lock);
+                wrap_g_static_rec_mutex_unlock(&oh_plugins.lock);
         }
 
         return -1;
@@ -263,8 +267,8 @@ int oh_load_plugin(char *plugin_name)
         plugin->name = g_strdup(plugin_name);
         plugin->handler_count = 0;
         plugin->refcount = 0;
-        g_static_rec_mutex_init(&plugin->lock);
-        g_static_rec_mutex_init(&plugin->refcount_lock);
+        wrap_g_static_rec_mutex_init(&plugin->lock);
+        wrap_g_static_rec_mutex_init(&plugin->refcount_lock);
 
 #ifdef _WIN32
         plugin->dl_handle = g_module_open(plugin->name, G_MODULE_BIND_LOCAL);
@@ -299,9 +303,9 @@ int oh_load_plugin(char *plugin_name)
                 CRIT("Can not get ABI");
                 goto cleanup_and_quit;
         }
-        g_static_rec_mutex_lock(&oh_plugins.lock);
+        wrap_g_static_rec_mutex_lock(&oh_plugins.lock);
         oh_plugins.list = g_slist_append(oh_plugins.list, plugin);
-        g_static_rec_mutex_unlock(&oh_plugins.lock);
+        wrap_g_static_rec_mutex_unlock(&oh_plugins.lock);
 
         return 0;
 cleanup_and_quit:
@@ -336,9 +340,9 @@ int oh_unload_plugin(char *plugin_name)
                 return -3;
         }
 
-        g_static_rec_mutex_lock(&oh_plugins.lock);
+        wrap_g_static_rec_mutex_lock(&oh_plugins.lock);
         oh_plugins.list = g_slist_remove(oh_plugins.list, plugin);
-        g_static_rec_mutex_unlock(&oh_plugins.lock);
+        wrap_g_static_rec_mutex_unlock(&oh_plugins.lock);
 
         __dec_plugin_refcount(plugin);
         if (plugin->refcount < 1)
@@ -351,16 +355,16 @@ int oh_unload_plugin(char *plugin_name)
 
 static void __inc_handler_refcount(struct oh_handler *h)
 {
-        g_static_rec_mutex_lock(&h->refcount_lock);
+        wrap_g_static_rec_mutex_lock(&h->refcount_lock);
         h->refcount++;
-        g_static_rec_mutex_unlock(&h->refcount_lock);
+        wrap_g_static_rec_mutex_unlock(&h->refcount_lock);
 }
 
 static void __dec_handler_refcount(struct oh_handler *h)
 {
-        g_static_rec_mutex_lock(&h->refcount_lock);
+        wrap_g_static_rec_mutex_lock(&h->refcount_lock);
         h->refcount--;
-        g_static_rec_mutex_unlock(&h->refcount_lock);
+        wrap_g_static_rec_mutex_unlock(&h->refcount_lock);
 }
 
 static void __delete_handler(struct oh_handler *h)
@@ -381,8 +385,8 @@ static void __delete_handler(struct oh_handler *h)
         /* Free the oh_handler members first, then the handler. */
         g_hash_table_destroy(h->config);
 
-        g_static_rec_mutex_free(&h->lock);
-        g_static_rec_mutex_free(&h->refcount_lock);
+        wrap_g_static_rec_mutex_free_clear(&h->lock);
+        wrap_g_static_rec_mutex_free_clear(&h->refcount_lock);
         g_free(h);
 }
 
@@ -397,17 +401,17 @@ struct oh_handler *oh_get_handler(unsigned int hid)
         GSList *node = NULL;
         struct oh_handler *handler = NULL;
 
-        g_static_rec_mutex_lock(&oh_handlers.lock);
+        wrap_g_static_rec_mutex_lock(&oh_handlers.lock);
         node = g_hash_table_lookup(oh_handlers.table, &hid);
         handler = node ? node->data : NULL;
         if (!handler) {
-                g_static_rec_mutex_unlock(&oh_handlers.lock);
+                wrap_g_static_rec_mutex_unlock(&oh_handlers.lock);
                 CRIT("Error - Handler %d was not found", hid);
                 return NULL;
         }
         __inc_handler_refcount(handler);
-        g_static_rec_mutex_unlock(&oh_handlers.lock);
-        g_static_rec_mutex_lock(&handler->lock);
+        wrap_g_static_rec_mutex_unlock(&oh_handlers.lock);
+        wrap_g_static_rec_mutex_lock(&handler->lock);
 
         return handler;
 }
@@ -430,7 +434,7 @@ void oh_release_handler(struct oh_handler *handler)
         if (handler->refcount < 0)
                 __delete_handler(handler);
         else
-                g_static_rec_mutex_unlock(&handler->lock);
+                wrap_g_static_rec_mutex_unlock(&handler->lock);
 }
 
 /**
@@ -454,27 +458,27 @@ int oh_getnext_handler_id(unsigned int hid, unsigned int *next_hid)
         *next_hid = 0;
 
         if (!hid) { /* Return first handler id in the list */
-                g_static_rec_mutex_lock(&oh_handlers.lock);
+                wrap_g_static_rec_mutex_lock(&oh_handlers.lock);
                 if (oh_handlers.list) {
                         h = oh_handlers.list->data;
                         *next_hid = h->id;
-                        g_static_rec_mutex_unlock(&oh_handlers.lock);
+                        wrap_g_static_rec_mutex_unlock(&oh_handlers.lock);
                         return 0;
                 } else {
-                        g_static_rec_mutex_unlock(&oh_handlers.lock);
+                        wrap_g_static_rec_mutex_unlock(&oh_handlers.lock);
                         CRIT("Warning - no handlers");
                         return -1;
                 }
         } else { /* Return handler id coming after hid in the list */
-                g_static_rec_mutex_lock(&oh_handlers.lock);
+                wrap_g_static_rec_mutex_lock(&oh_handlers.lock);
                 node = g_hash_table_lookup(oh_handlers.table, &hid);
                 if (node && node->next && node->next->data) {
                         h = node->next->data;
                         *next_hid = h->id;
-                        g_static_rec_mutex_unlock(&oh_handlers.lock);
+                        wrap_g_static_rec_mutex_unlock(&oh_handlers.lock);
                         return 0;
                 }
-                g_static_rec_mutex_unlock(&oh_handlers.lock);
+                wrap_g_static_rec_mutex_unlock(&oh_handlers.lock);
         }
 
         return -1;
@@ -526,9 +530,9 @@ static struct oh_handler *new_handler(GHashTable *handler_config)
         handler->abi = plugin->abi;
         plugin->handler_count++; /* Increment # of handlers using the plugin */
         oh_release_plugin(plugin);
-        g_static_rec_mutex_lock(&oh_handlers.lock);
+        wrap_g_static_rec_mutex_lock(&oh_handlers.lock);
         handler->id = handler_id++;
-        g_static_rec_mutex_unlock(&oh_handlers.lock);
+        wrap_g_static_rec_mutex_unlock(&oh_handlers.lock);
         handler->plugin_name = g_strdup(g_hash_table_lookup(handler_config, "plugin"));
         //copy config in a new hash table
         newconfig = g_hash_table_new_full (
@@ -536,8 +540,8 @@ static struct oh_handler *new_handler(GHashTable *handler_config)
         g_hash_table_foreach(handler_config,copy_hashed_new_config,newconfig);
         handler->config = newconfig;
         handler->refcount = 0;
-        g_static_rec_mutex_init(&handler->lock);
-        g_static_rec_mutex_init(&handler->refcount_lock);
+        wrap_g_static_rec_mutex_init(&handler->lock);
+        wrap_g_static_rec_mutex_init(&handler->refcount_lock);
 
         return handler;
 cleanexit:
@@ -570,7 +574,7 @@ SaErrorT oh_create_handler (GHashTable *handler_config, unsigned int *hid)
         if (!handler) return SA_ERR_HPI_ERROR;
 
         *hid = handler->id;
-        g_static_rec_mutex_lock(&oh_handlers.lock);
+        wrap_g_static_rec_mutex_lock(&oh_handlers.lock);
         oh_handlers.list = g_slist_append(oh_handlers.list, handler);
         g_hash_table_insert(oh_handlers.table,
                             &(handler->id),
@@ -582,7 +586,7 @@ SaErrorT oh_create_handler (GHashTable *handler_config, unsigned int *hid)
         if (!handler->hnd) {
                 CRIT("A handler #%d on the %s plugin could not be opened.",
                     handler->id, handler->plugin_name);
-		g_static_rec_mutex_unlock(&oh_handlers.lock);
+		wrap_g_static_rec_mutex_unlock(&oh_handlers.lock);
 		return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
@@ -604,7 +608,7 @@ SaErrorT oh_create_handler (GHashTable *handler_config, unsigned int *hid)
                  }
         }
 
-        g_static_rec_mutex_unlock(&oh_handlers.lock);
+        wrap_g_static_rec_mutex_unlock(&oh_handlers.lock);
 
         return SA_OK;
 }
@@ -636,10 +640,10 @@ int oh_destroy_handler(unsigned int hid)
                 }
         }
 
-        g_static_rec_mutex_lock(&oh_handlers.lock);
+        wrap_g_static_rec_mutex_lock(&oh_handlers.lock);
         g_hash_table_remove(oh_handlers.table, &handler->id);
         oh_handlers.list = g_slist_remove(oh_handlers.list, &(handler->id));
-        g_static_rec_mutex_unlock(&oh_handlers.lock);
+        wrap_g_static_rec_mutex_unlock(&oh_handlers.lock);
 
         __dec_handler_refcount(handler);
         if (handler->refcount < 1)
@@ -671,11 +675,11 @@ SaErrorT oh_get_handler_info(unsigned int hid, oHpiHandlerInfoT *info, GHashTabl
                return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        g_static_rec_mutex_lock(&oh_handlers.lock);
+        wrap_g_static_rec_mutex_lock(&oh_handlers.lock);
         node = g_hash_table_lookup(oh_handlers.table, &hid);
         h = node ? (struct oh_handler *)(node->data) : NULL;
         if (!h) {
-                g_static_rec_mutex_unlock(&oh_handlers.lock);
+               wrap_g_static_rec_mutex_unlock(&oh_handlers.lock);
                 return SA_ERR_HPI_NOT_PRESENT;
         }
 
@@ -698,7 +702,7 @@ SaErrorT oh_get_handler_info(unsigned int hid, oHpiHandlerInfoT *info, GHashTabl
                                 g_strdup("password"),
                                 g_strdup("********"));
 
-        g_static_rec_mutex_unlock(&oh_handlers.lock);
+        wrap_g_static_rec_mutex_unlock(&oh_handlers.lock);
 
         return SA_OK;
 }
