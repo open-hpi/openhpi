@@ -58,6 +58,7 @@
  **/
 
 #include "oa_soap_discover.h"
+#include "sahpi_wrappers.h"
 #include "oa_soap.h"
 #include "oa_soap_utils.h"
 
@@ -120,7 +121,7 @@ SaErrorT build_oa_soap_custom_handler(struct oh_handler_state *oh_handler)
                 }
                 oa_handler->status = PRE_DISCOVERY;
                 oa_handler->active_con = NULL;
-                oa_handler->mutex = g_mutex_new();
+                oa_handler->mutex = wrap_g_mutex_new_init();
                 oa_handler->oa_1 = NULL;
                 oa_handler->oa_2 = NULL;
                 oa_handler->oa_switching=SAHPI_FALSE;
@@ -150,7 +151,7 @@ SaErrorT build_oa_soap_custom_handler(struct oh_handler_state *oh_handler)
                 oa_handler->oa_1->event_con = NULL;
                 oa_handler->oa_1->event_con2 = NULL;
                 oa_handler->oa_1->thread_handler = NULL;
-                oa_handler->oa_1->mutex = g_mutex_new();
+                oa_handler->oa_1->mutex = wrap_g_mutex_new_init();
                 memset(oa_handler->oa_1->server, 0, MAX_URL_LEN);
 		oa_handler->oa_1->oh_handler = oh_handler;
 
@@ -160,7 +161,7 @@ SaErrorT build_oa_soap_custom_handler(struct oh_handler_state *oh_handler)
                 oa_handler->oa_2->event_con = NULL;
                 oa_handler->oa_2->event_con2 = NULL;
                 oa_handler->oa_2->thread_handler = NULL;
-                oa_handler->oa_2->mutex = g_mutex_new();
+                oa_handler->oa_2->mutex = wrap_g_mutex_new_init();
                 memset(oa_handler->oa_1->server, 0, MAX_URL_LEN);
 		oa_handler->oa_2->oh_handler = oh_handler;
 
@@ -346,35 +347,35 @@ void oa_soap_close(void *oh_handler)
 	 * crash
          */
 	if (oa_handler->mutex != NULL) {
-		if (g_mutex_trylock(oa_handler->mutex) == FALSE) {
+		if (wrap_g_mutex_trylock(oa_handler->mutex) == FALSE) {
 			err("Mutex in OA handler is not unlocked by the event"
 			    " thread");
 			err("Mutex in OA handler is not released");
 		} else {
-			g_mutex_unlock(oa_handler->mutex);
-			g_mutex_free(oa_handler->mutex);
+			wrap_g_mutex_unlock(oa_handler->mutex);
+			wrap_g_mutex_free_clear(oa_handler->mutex);
 		}
 	}
 
 	if (oa_handler->oa_1->mutex != NULL) {
-		if (g_mutex_trylock(oa_handler->oa_1->mutex) == FALSE) {
+		if (wrap_g_mutex_trylock(oa_handler->oa_1->mutex) == FALSE) {
 			err("Mutex in oa_1 is not unlocked by the event"
 			    " thread");
 			err("Mutex in oa_1 is not released");
 		} else {
-			g_mutex_unlock(oa_handler->oa_1->mutex);
-			g_mutex_free(oa_handler->oa_1->mutex);
+			wrap_g_mutex_unlock(oa_handler->oa_1->mutex);
+			wrap_g_mutex_free_clear(oa_handler->oa_1->mutex);
 		}
 	}
 
 	if (oa_handler->oa_2->mutex != NULL) {
-		if (g_mutex_trylock(oa_handler->oa_2->mutex) == FALSE) {
+		if (wrap_g_mutex_trylock(oa_handler->oa_2->mutex) == FALSE) {
 			err("Mutex in oa_2 is not unlocked by the event"
 			    " thread");
 			err("Mutex in oa_2 is not released");
 		} else {
-			g_mutex_unlock(oa_handler->oa_2->mutex);
-			g_mutex_free(oa_handler->oa_2->mutex);
+			wrap_g_mutex_unlock(oa_handler->oa_2->mutex);
+			wrap_g_mutex_free_clear(oa_handler->oa_2->mutex);
 		}
 	}
         dbg("Released the OA SOAP handler mutexes");

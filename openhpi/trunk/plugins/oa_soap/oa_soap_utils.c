@@ -108,6 +108,7 @@
  **/
 
 #include "oa_soap_utils.h"
+#include "sahpi_wrappers.h"
 
 /**
  * get_oa_soap_info
@@ -693,11 +694,11 @@ SaErrorT check_oa_status(struct oa_soap_handler *oa_handler,
         else
                 status.bayNumber = 2;
 
-        g_mutex_lock(oa->mutex);
+        wrap_g_mutex_lock(oa->mutex);
         rv = soap_getOaStatus(con, &status, &status_response);
         if (rv != SOAP_OK) {
                 err("Get OA status call failed");
-                g_mutex_unlock(oa->mutex);
+                wrap_g_mutex_unlock(oa->mutex);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
@@ -712,7 +713,7 @@ SaErrorT check_oa_status(struct oa_soap_handler *oa_handler,
                 rv = soap_getOaStatus(con, &status, &status_response);
                 if (rv != SOAP_OK) {
                         err("Get OA status call failed");
-                        g_mutex_unlock(oa->mutex);
+                        wrap_g_mutex_unlock(oa->mutex);
                         return SA_ERR_HPI_INTERNAL_ERROR;
                 }
                 /* Check OA is still in TRANSITION state
@@ -721,7 +722,7 @@ SaErrorT check_oa_status(struct oa_soap_handler *oa_handler,
                 if (status_response.oaRole == TRANSITION) {
                         err("OA is in TRANSITION for a long time");
                         err("Please correct the OA");
-                        g_mutex_unlock(oa->mutex);
+                        wrap_g_mutex_unlock(oa->mutex);
                         return SA_ERR_HPI_INTERNAL_ERROR;
                  }
         }
@@ -733,21 +734,21 @@ SaErrorT check_oa_status(struct oa_soap_handler *oa_handler,
         }
 
         if (oa->oa_status == ACTIVE) {
-                g_mutex_unlock(oa->mutex);
+                wrap_g_mutex_unlock(oa->mutex);
                 /* Always lock the oa_handler mutex and then oa_info mutex
                  * This is to avoid the deadlock
                  */
-                g_mutex_lock(oa_handler->mutex);
-                g_mutex_lock(oa->mutex);
+                wrap_g_mutex_lock(oa_handler->mutex);
+                wrap_g_mutex_lock(oa->mutex);
                 /* Point the active_con to Active OA's hpi_con */
                 if (oa_handler->active_con != oa->hpi_con) {
                         oa_handler->active_con = oa->hpi_con;
                         err("OA %s has become Active", oa->server);
                 }
-                g_mutex_unlock(oa->mutex);
-                g_mutex_unlock(oa_handler->mutex);
+                wrap_g_mutex_unlock(oa->mutex);
+                wrap_g_mutex_unlock(oa_handler->mutex);
         } else
-                g_mutex_unlock(oa->mutex);
+                wrap_g_mutex_unlock(oa->mutex);
 
         return SA_OK;
 }
@@ -955,7 +956,7 @@ SaErrorT lock_oa_soap_handler(struct oa_soap_handler *oa_handler)
         }
 
         /* Try to lock the oa_handler mutex */
-        lock_state = g_mutex_trylock(oa_handler->mutex);
+        lock_state = wrap_g_mutex_trylock(oa_handler->mutex);
         if (lock_state == FALSE) {
                 err("OA SOAP Handler is locked.");
                 err("No operation is allowed in this state");
@@ -964,7 +965,7 @@ SaErrorT lock_oa_soap_handler(struct oa_soap_handler *oa_handler)
         }
 
         /* Unlock the oa_handler mutex */
-        g_mutex_unlock(oa_handler->mutex);
+        wrap_g_mutex_unlock(oa_handler->mutex);
         return SA_OK;
 }
 
@@ -1049,15 +1050,15 @@ SaErrorT create_event_session(struct oa_info *oa)
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        g_mutex_lock(oa->mutex);
+        wrap_g_mutex_lock(oa->mutex);
         if (oa->event_con == NULL) {
                 dbg("OA may not be accessible");
-                g_mutex_unlock(oa->mutex);
+                wrap_g_mutex_unlock(oa->mutex);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
         rv = soap_subscribeForEvents(oa->event_con, &pid);
-        g_mutex_unlock(oa->mutex);
+        wrap_g_mutex_unlock(oa->mutex);
         if (rv != SOAP_OK) {
                 err("Subscribe for events failed");
                 return SA_ERR_HPI_INTERNAL_ERROR;
@@ -1106,12 +1107,12 @@ void create_oa_connection(struct oa_soap_handler *oa_handler,
                  is_oa_present = SAHPI_FALSE;
                  while (is_oa_present == SAHPI_FALSE) {
                 	OA_SOAP_CHEK_SHUTDOWN_REQ(oa_handler, NULL, NULL, NULL);
-                        g_mutex_lock(oa->mutex);
+                        wrap_g_mutex_lock(oa->mutex);
                         if (oa->oa_status != OA_ABSENT) {
-                                g_mutex_unlock(oa->mutex);
+                                wrap_g_mutex_unlock(oa->mutex);
                                 is_oa_present = SAHPI_TRUE;
                         } else {
-                                g_mutex_unlock(oa->mutex);
+                                wrap_g_mutex_unlock(oa->mutex);
                                 /* OA is not present,
                                  * wait for 30 seconds and check again
                                  */
@@ -1119,7 +1120,7 @@ void create_oa_connection(struct oa_soap_handler *oa_handler,
                         }
                 }
 
-                g_mutex_lock(oa->mutex);
+                wrap_g_mutex_lock(oa->mutex);
                 /* Close the soap_con strctures */
                 if (oa->hpi_con != NULL) {
                         soap_close(oa->hpi_con);
@@ -1129,7 +1130,7 @@ void create_oa_connection(struct oa_soap_handler *oa_handler,
                         soap_close(oa->event_con);
                         oa->event_con = NULL;
                 }
-                g_mutex_unlock(oa->mutex);
+                wrap_g_mutex_unlock(oa->mutex);
 
                 rv = initialize_oa_con(oa, user_name, password);
                 if ((rv != SA_OK) && (oa->oa_status != OA_ABSENT)) {
@@ -1181,13 +1182,13 @@ SaErrorT initialize_oa_con(struct oa_info *oa,
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        g_mutex_lock(oa->mutex);
+        wrap_g_mutex_lock(oa->mutex);
         rv = asprintf(&url, "%s" PORT, oa->server);			
         if(rv == -1){
                 free(url);
                 err("Failed to allocate memory for buffer to        \
                                              hold OA credentials");
-                g_mutex_unlock(oa->mutex);
+                wrap_g_mutex_unlock(oa->mutex);
                 return SA_ERR_HPI_OUT_OF_MEMORY;
         }
 
@@ -1197,7 +1198,7 @@ SaErrorT initialize_oa_con(struct oa_info *oa,
         if (oa->hpi_con == NULL) {
                 free(url);
                 /* OA may not be reachable */
-                g_mutex_unlock(oa->mutex);
+                wrap_g_mutex_unlock(oa->mutex);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
@@ -1209,12 +1210,12 @@ SaErrorT initialize_oa_con(struct oa_info *oa,
         if (oa->event_con == NULL) {
                 free(url);
                 /* OA may not be reachable */
-                g_mutex_unlock(oa->mutex);
+                wrap_g_mutex_unlock(oa->mutex);
                 soap_close(oa->hpi_con);
                 oa->hpi_con = NULL;
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
-        g_mutex_unlock(oa->mutex);
+        wrap_g_mutex_unlock(oa->mutex);
 	free(url);
         return SA_OK;
 
@@ -1732,7 +1733,7 @@ SaErrorT oa_soap_get_oa_ip(char *server,
         struct extraDataInfo extra_data_info;
         xmlNode *extra_data = NULL;
 
-        if (&network_info_response == NULL || server == NULL) {
+        if (server == NULL) {
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
