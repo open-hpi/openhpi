@@ -57,6 +57,7 @@
  */
 
 #include "oa_soap_oa_event.h"
+#include "sahpi_wrappers.h"
 
 /**
  * process_oa_extraction_event
@@ -191,26 +192,26 @@ SaErrorT process_oa_failover_event(struct oh_handler_state *oh_handler,
         /* Always lock the oa_handler mutex and then oa_info mutex
          * This is to avoid the deadlock
          */
-        g_mutex_lock(oa_handler->mutex);
-        g_mutex_lock(oa->mutex);
+        wrap_g_mutex_lock(oa_handler->mutex);
+        wrap_g_mutex_lock(oa->mutex);
 
         /* Point the active_con to the current active OA's hpi_con */
         oa_handler->active_con = oa->hpi_con;
         /* This OA has become ACTIVE from STANDBY */
         oa->oa_status = ACTIVE;
-        g_mutex_unlock(oa->mutex);
+        wrap_g_mutex_unlock(oa->mutex);
 
         /* Set the other OA status as STANDBY. If the other OA is extracted,
          * then the other OA status will be set to ABSENT during re-discovery.
          */
         if (oa_handler->oa_1 == oa) {
-                g_mutex_lock(oa_handler->oa_2->mutex);
+                wrap_g_mutex_lock(oa_handler->oa_2->mutex);
                 oa_handler->oa_2->oa_status = STANDBY;
-                g_mutex_unlock(oa_handler->oa_2->mutex);
+                wrap_g_mutex_unlock(oa_handler->oa_2->mutex);
         } else {
-                g_mutex_lock(oa_handler->oa_1->mutex);
+                wrap_g_mutex_lock(oa_handler->oa_1->mutex);
                 oa_handler->oa_1->oa_status = STANDBY;
-                g_mutex_unlock(oa_handler->oa_1->mutex);
+                wrap_g_mutex_unlock(oa_handler->oa_1->mutex);
         }
 
         request.pid = oa->event_pid;
@@ -230,14 +231,14 @@ SaErrorT process_oa_failover_event(struct oh_handler_state *oh_handler,
 
 		OA_SOAP_CHEK_SHUTDOWN_REQ(oa_handler, oa_handler->mutex, NULL,
 					  timer);
-                g_mutex_lock(oa->mutex);
+                wrap_g_mutex_lock(oa->mutex);
                 rv = soap_getAllEventsEx(oa->event_con, &request, &response);
-                g_mutex_unlock(oa->mutex);
+                wrap_g_mutex_unlock(oa->mutex);
                 if (rv != SOAP_OK) {
                         err("Get all events failed during OA switchover"
                              "processing for OA %s", oa->server);
                         /* Unlock the oa_handler mutex*/
-                        g_mutex_unlock(oa_handler->mutex);
+                        wrap_g_mutex_unlock(oa_handler->mutex);
                         /* Cleanup the timer */
                         g_timer_destroy(timer);
 
@@ -279,7 +280,7 @@ SaErrorT process_oa_failover_event(struct oh_handler_state *oh_handler,
         }
 
         /* Unlock the oa_handler mutex */
-        g_mutex_unlock(oa_handler->mutex);
+        wrap_g_mutex_unlock(oa_handler->mutex);
 
         /* Get the time (in seconds) since the timer has been started */
         time_elapsed = g_timer_elapsed(timer, &micro_seconds);
@@ -309,17 +310,17 @@ SaErrorT process_oa_failover_event(struct oh_handler_state *oh_handler,
          * happened while waiting for OA stabilization)
          * Return without doing re-discovery
          */
-        g_mutex_lock(oa->mutex);
+        wrap_g_mutex_lock(oa->mutex);
         if (oa->oa_status != ACTIVE) {
-                g_mutex_unlock(oa->mutex);
+                wrap_g_mutex_unlock(oa->mutex);
                 oa_handler->oa_switching=SAHPI_FALSE;
                 err("OA status already changed. OA switching completed");
                 return SA_OK;
         }
-        g_mutex_unlock(oa->mutex);
+        wrap_g_mutex_unlock(oa->mutex);
 
-        g_mutex_lock(oa_handler->mutex);
-        g_mutex_lock(oa->mutex);
+        wrap_g_mutex_lock(oa_handler->mutex);
+        wrap_g_mutex_lock(oa->mutex);
         /* Call getAllEvents to flush the OA event queue
          * Any resource state change will be handled as part of the re-discovery
          */
@@ -331,8 +332,8 @@ SaErrorT process_oa_failover_event(struct oh_handler_state *oh_handler,
 	OA_SOAP_CHEK_SHUTDOWN_REQ(oa_handler, oa_handler->mutex, oa->mutex,
 				  NULL);
         rv = oa_soap_re_discover_resources(oh_handler, oa, is_switchover);
-        g_mutex_unlock(oa->mutex);
-        g_mutex_unlock(oa_handler->mutex);
+        wrap_g_mutex_unlock(oa->mutex);
+        wrap_g_mutex_unlock(oa_handler->mutex);
 
         /* At this point assume that switchover is complete */
         oa_handler->oa_switching=SAHPI_FALSE;

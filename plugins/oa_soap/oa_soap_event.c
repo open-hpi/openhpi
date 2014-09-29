@@ -54,6 +54,7 @@
  **/
 
 #include "oa_soap_event.h"
+#include "sahpi_wrappers.h"
 #include <sys/time.h>
 /* Global Variables */
 time_t server_insert_timer[16] = {0};
@@ -144,13 +145,13 @@ gpointer oa_soap_event_thread(gpointer oa_pointer)
          */
         while (is_plugin_initialized == SAHPI_FALSE) {
         	OA_SOAP_CHEK_SHUTDOWN_REQ(oa_handler, NULL, NULL, NULL);
-                g_mutex_lock(oa_handler->mutex);
+                wrap_g_mutex_lock(oa_handler->mutex);
                 if (oa_handler->status == PRE_DISCOVERY ||
                     oa_handler->status == DISCOVERY_COMPLETED) {
-                        g_mutex_unlock(oa_handler->mutex);
+                        wrap_g_mutex_unlock(oa_handler->mutex);
                         is_plugin_initialized = SAHPI_TRUE;
                 } else {
-                        g_mutex_unlock(oa_handler->mutex);
+                        wrap_g_mutex_unlock(oa_handler->mutex);
                         dbg("Waiting for the plugin initialization "
                             "to complete.");
                         sleep(2);
@@ -162,12 +163,12 @@ gpointer oa_soap_event_thread(gpointer oa_pointer)
          */
         while (is_discovery_completed == SAHPI_FALSE) {
         	OA_SOAP_CHEK_SHUTDOWN_REQ(oa_handler, NULL, NULL, NULL);
-                g_mutex_lock(oa_handler->mutex);
+                wrap_g_mutex_lock(oa_handler->mutex);
                 if (oa_handler->status == DISCOVERY_COMPLETED) {
-                        g_mutex_unlock(oa_handler->mutex);
+                        wrap_g_mutex_unlock(oa_handler->mutex);
                         is_discovery_completed = SAHPI_TRUE;
                 } else {
-                        g_mutex_unlock(oa_handler->mutex);
+                        wrap_g_mutex_unlock(oa_handler->mutex);
                         dbg("Waiting for the discovery to complete.");
                         sleep(2);
                 }
@@ -190,11 +191,11 @@ gpointer oa_soap_event_thread(gpointer oa_pointer)
         /* Check whether OA Status is ABSENT
          * If yes, wait till the OA status becomes ACTIVE or STANDBY
          */
-        g_mutex_lock(oa->mutex);
+        wrap_g_mutex_lock(oa->mutex);
         if (oa->oa_status != OA_ABSENT) {
-                g_mutex_unlock(oa->mutex);
+                wrap_g_mutex_unlock(oa->mutex);
         } else {
-                g_mutex_unlock(oa->mutex);
+                wrap_g_mutex_unlock(oa->mutex);
                 process_oa_out_of_access(handler, oa);
         }
 
@@ -392,9 +393,9 @@ void oa_soap_error_handling(struct oh_handler_state *oh_handler,
                 return;
 
         /* Check whether OA was present. If not, event_con will be NULL */
-        g_mutex_lock(oa->mutex);
+        wrap_g_mutex_lock(oa->mutex);
         if (oa->event_con == NULL) {
-                g_mutex_unlock(oa->mutex);
+                wrap_g_mutex_unlock(oa->mutex);
                 /* Get the user_name and password from config file */
                 user_name = (char *) g_hash_table_lookup(oh_handler->config,
                                                          "OA_User_Name");
@@ -408,7 +409,7 @@ void oa_soap_error_handling(struct oh_handler_state *oh_handler,
                 error_code = SOAP_OK;
         } else {
                 error_code = soap_error_number(oa->event_con);
-                g_mutex_unlock(oa->mutex);
+                wrap_g_mutex_unlock(oa->mutex);
         }
 
         /* This loop ends when the OA is accessible */
@@ -446,8 +447,8 @@ void oa_soap_error_handling(struct oh_handler_state *oh_handler,
                        /* Always lock the oa_handler mutex and then oa_info
                         * mutex.  This is to avoid the deadlock.
                         */
-                        g_mutex_lock(oa_handler->mutex);
-                        g_mutex_lock(oa->mutex);
+                        wrap_g_mutex_lock(oa_handler->mutex);
+                        wrap_g_mutex_lock(oa->mutex);
                         /* Re-discover the resources as there is a high chances
                          * that we might have missed some events
                          */
@@ -455,8 +456,8 @@ void oa_soap_error_handling(struct oh_handler_state *oh_handler,
 						  oa->mutex, NULL);
                         rv = oa_soap_re_discover_resources(oh_handler, oa,
                                                            is_switchover);
-                        g_mutex_unlock(oa->mutex);
-                        g_mutex_unlock(oa_handler->mutex);
+                        wrap_g_mutex_unlock(oa->mutex);
+                        wrap_g_mutex_unlock(oa_handler->mutex);
                         if (rv != SA_OK) {
                                 is_oa_accessible = SAHPI_FALSE;
                                 err("Re-discovery failed for OA %s",
@@ -555,13 +556,13 @@ void process_oa_out_of_access(struct oh_handler_state *oh_handler,
                 while (is_oa_present == SAHPI_FALSE) {
                 	OA_SOAP_CHEK_SHUTDOWN_REQ(oa_handler, NULL, NULL,
 						  timer);
-                        g_mutex_lock(oa->mutex);
+                        wrap_g_mutex_lock(oa->mutex);
                         if (oa->oa_status != OA_ABSENT) {
-                                g_mutex_unlock(oa->mutex);
+                                wrap_g_mutex_unlock(oa->mutex);
                                 is_oa_present = SAHPI_TRUE;
                                 time_elapsed = 0.0;
                         } else {
-                                g_mutex_unlock(oa->mutex);
+                                wrap_g_mutex_unlock(oa->mutex);
                                 time_elapsed = g_timer_elapsed(timer,
                                                                &micro_seconds);
                                 /* Break the loop on reaching timeout value */

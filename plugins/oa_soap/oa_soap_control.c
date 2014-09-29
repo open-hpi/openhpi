@@ -90,6 +90,7 @@
  */
 
 #include <stdio.h>
+#include "sahpi_wrappers.h"
 #include "oa_soap_control.h"
 
 /* Forward declaraction for static functions */
@@ -1168,11 +1169,11 @@ static SaErrorT oa_soap_get_dynamic_pwr_cntrl(
         power_config_info = &(oa_handler->power_config_info);
 	
         /* Make a soap call to get the enclosure power config info */
-        g_mutex_lock(oa_handler->mutex);
+        wrap_g_mutex_lock(oa_handler->mutex);
         rv = soap_getPowerConfigInfo(oa_handler->active_con,
                                      power_config_info,
                                      &(oa_handler->desired_static_pwr_limit));
-        g_mutex_unlock(oa_handler->mutex);
+        wrap_g_mutex_unlock(oa_handler->mutex);
         if (rv != SOAP_OK) {
                 err("Get enclosure power config info failed");
                 return SA_ERR_HPI_INTERNAL_ERROR;
@@ -1287,11 +1288,11 @@ static SaErrorT oa_soap_get_pwr_mode_cntrl(
         power_config_info = &(oa_handler->power_config_info);
 	
         /* Make a soap call to get the enclosure power config info */
-        g_mutex_lock(oa_handler->mutex);
+        wrap_g_mutex_lock(oa_handler->mutex);
         rv = soap_getPowerConfigInfo(oa_handler->active_con,
                                      power_config_info,
                                      &(oa_handler->desired_static_pwr_limit));
-        g_mutex_unlock(oa_handler->mutex);
+        wrap_g_mutex_unlock(oa_handler->mutex);
         if (rv != SOAP_OK) {
                 err("Get enclosure power config info failed");
                 return SA_ERR_HPI_INTERNAL_ERROR;
@@ -1403,11 +1404,11 @@ static SaErrorT oa_soap_get_pwr_limit_mode_cntrl(
         power_cap_config = &(oa_handler->power_cap_config);
 	
         /* Make a soap call to get the enclosure power config info */
-        g_mutex_lock(oa_handler->mutex);
+        wrap_g_mutex_lock(oa_handler->mutex);
         rv = soap_getPowerConfigInfo(oa_handler->active_con,
                                      power_config_info,
                                      &(oa_handler->desired_static_pwr_limit));
-        g_mutex_unlock(oa_handler->mutex);
+        wrap_g_mutex_unlock(oa_handler->mutex);
         if (rv != SOAP_OK) {
                 err("Get enclosure power config info failed");
                 return SA_ERR_HPI_INTERNAL_ERROR;
@@ -1415,13 +1416,13 @@ static SaErrorT oa_soap_get_pwr_limit_mode_cntrl(
 
         /* Make a soap call to get the enclosure power dynamic power */
         /* cap config                                                */
-        g_mutex_lock(oa_handler->mutex);
+        wrap_g_mutex_lock(oa_handler->mutex);
         rv = soap_getPowerCapConfig(oa_handler->active_con,
                                     power_cap_config,
                                     &(oa_handler->desired_dynamic_pwr_cap),
                                     &(oa_handler->desired_derated_circuit_cap),
                                     &(oa_handler->desired_rated_circuit_cap));
-        g_mutex_unlock(oa_handler->mutex);
+        wrap_g_mutex_unlock(oa_handler->mutex);
         if (rv != SOAP_OK) {
                 err("Get enclosure dynamic power cap config failed");
                 return SA_ERR_HPI_INTERNAL_ERROR;
@@ -1628,11 +1629,11 @@ static SaErrorT oa_soap_get_static_pwr_limit_cntrl(
         power_config_info = &(oa_handler->power_config_info);
 	
         /* Make a soap call to get the enclosure power config info */
-        g_mutex_lock(oa_handler->mutex);
+        wrap_g_mutex_lock(oa_handler->mutex);
         rv = soap_getPowerConfigInfo(oa_handler->active_con,
                                      power_config_info,
                                      &(oa_handler->desired_static_pwr_limit));
-        g_mutex_unlock(oa_handler->mutex);
+        wrap_g_mutex_unlock(oa_handler->mutex);
         if (rv != SOAP_OK) {
                 err("Get enclosure power config info failed");
                 return SA_ERR_HPI_INTERNAL_ERROR;
@@ -1735,13 +1736,13 @@ static SaErrorT oa_soap_get_dynamic_pwr_cap_cntrl(
         power_cap_config = &(oa_handler->power_cap_config);
 	
         /* Make a soap call to get the enclosure power cap config */
-        g_mutex_lock(oa_handler->mutex);
+        wrap_g_mutex_lock(oa_handler->mutex);
         rv = soap_getPowerCapConfig(oa_handler->active_con,
                                     power_cap_config,
                                     &(oa_handler->desired_dynamic_pwr_cap),
                                     &(oa_handler->desired_derated_circuit_cap),
                                     &(oa_handler->desired_rated_circuit_cap));
-        g_mutex_unlock(oa_handler->mutex);
+        wrap_g_mutex_unlock(oa_handler->mutex);
         if (rv != SOAP_OK) {
                 err("Get enclosure power cap config failed");
                 return SA_ERR_HPI_INTERNAL_ERROR;
@@ -1844,13 +1845,13 @@ static SaErrorT oa_soap_get_derated_circuit_cap_cntrl(
         power_cap_config = &(oa_handler->power_cap_config);
 	
         /* Make a soap call to get the enclosure power cap config */
-        g_mutex_lock(oa_handler->mutex);
+        wrap_g_mutex_lock(oa_handler->mutex);
         rv = soap_getPowerCapConfig(oa_handler->active_con,
                                     power_cap_config,
                                     &(oa_handler->desired_dynamic_pwr_cap),
                                     &(oa_handler->desired_derated_circuit_cap),
                                     &(oa_handler->desired_rated_circuit_cap));
-        g_mutex_unlock(oa_handler->mutex);
+        wrap_g_mutex_unlock(oa_handler->mutex);
         if (rv != SOAP_OK) {
                 err("Get enclosure derated circuit cap config failed");
                 return SA_ERR_HPI_INTERNAL_ERROR;
@@ -1954,13 +1955,13 @@ static SaErrorT oa_soap_get_rated_circuit_cap_cntrl(
         power_cap_config = &(oa_handler->power_cap_config);
 	
         /* Make a soap call to get the enclosure power cap config */
-        g_mutex_lock(oa_handler->mutex);
+        wrap_g_mutex_lock(oa_handler->mutex);
         rv = soap_getPowerCapConfig(oa_handler->active_con,
                                     power_cap_config,
                                     &(oa_handler->desired_dynamic_pwr_cap),
                                     &(oa_handler->desired_derated_circuit_cap),
                                     &(oa_handler->desired_rated_circuit_cap));
-        g_mutex_unlock(oa_handler->mutex);
+        wrap_g_mutex_unlock(oa_handler->mutex);
         if (rv != SOAP_OK) {
                 err("Get enclosure rated circuit cap config failed");
                 return SA_ERR_HPI_INTERNAL_ERROR;

@@ -182,6 +182,8 @@
 
 #include "oa_soap_discover.h"
 #include "oa_soap_calls.h"
+#include "sahpi_wrappers.h"
+
 /* Global Variables */
 SaHpiInt32T memErrRecFlag[16] = {0};
 
@@ -258,11 +260,11 @@ SaErrorT oa_soap_discover_resources(void *oh_handler)
         }
 
         /* Check the status of the plugin */
-        g_mutex_lock(oa_handler->mutex);
+        wrap_g_mutex_lock(oa_handler->mutex);
         switch (oa_handler->status) {
                 case PRE_DISCOVERY:
                         /* This is the first call for discovery */
-                        g_mutex_unlock(oa_handler->mutex);
+                        wrap_g_mutex_unlock(oa_handler->mutex);
                         dbg("First discovery");
                         break;
 
@@ -271,7 +273,7 @@ SaErrorT oa_soap_discover_resources(void *oh_handler)
                          * initializing, the configured OA may not be reachable.
                          * Try to initialize the plugin again.
                          */
-                        g_mutex_unlock(oa_handler->mutex);
+                        wrap_g_mutex_unlock(oa_handler->mutex);
                         rv = build_oa_soap_custom_handler(handler);
                         if (rv != SA_OK) {
                                 err("Plugin initialization failed");
@@ -285,12 +287,12 @@ SaErrorT oa_soap_discover_resources(void *oh_handler)
                          * due to OA switchover during discovery.
                          * Try to recover from the problem
                          */
-                        g_mutex_unlock(oa_handler->mutex);
+                        wrap_g_mutex_unlock(oa_handler->mutex);
                         rv = check_discovery_failure(oh_handler);
                         if (rv != SA_OK) {
-                                g_mutex_lock(oa_handler->mutex);
+                                wrap_g_mutex_lock(oa_handler->mutex);
                                 oa_handler->status = DISCOVERY_FAIL;
-                                g_mutex_unlock(oa_handler->mutex);
+                                wrap_g_mutex_unlock(oa_handler->mutex);
                                 err("Discovery failed for OA %s",
                                     oa_handler->active_con->server);
                                 return SA_ERR_HPI_INTERNAL_ERROR;
@@ -304,14 +306,14 @@ SaErrorT oa_soap_discover_resources(void *oh_handler)
                          * is not required. If the discovery is already
                          * done once, ignore and return success
                          */
-                        g_mutex_unlock(oa_handler->mutex);
+                        wrap_g_mutex_unlock(oa_handler->mutex);
                         dbg("Discovery already done");
                         return SA_OK;
                         break;
 
                 default:
                         /* This code should never get executed */
-                        g_mutex_unlock(oa_handler->mutex);
+                        wrap_g_mutex_unlock(oa_handler->mutex);
                         err("Wrong oa_soap handler state detected");
                         return SA_ERR_HPI_INTERNAL_ERROR;
         }
@@ -320,15 +322,16 @@ SaErrorT oa_soap_discover_resources(void *oh_handler)
          * If the thread_handler is not NULL, then the event threads are
          * already created and skip the event thread creation
          */
-        g_mutex_lock(oa_handler->mutex);
+        wrap_g_mutex_lock(oa_handler->mutex);
         if (oa_handler->oa_1->thread_handler == NULL) {
                 oa_handler->oa_1->thread_handler =
-                        g_thread_create(oa_soap_event_thread,
+                        wrap_g_thread_create_new("oa_soap_event_thread_1",
+                                        oa_soap_event_thread,
                                         oa_handler->oa_1,
                                         TRUE, error);
                 if (oa_handler->oa_1->thread_handler == NULL) {
-                        g_mutex_unlock(oa_handler->mutex);
-                        err("g_thread_create failed");
+                        wrap_g_mutex_unlock(oa_handler->mutex);
+                        err("wrap_g_thread_create_new failed");
                         return SA_ERR_HPI_INTERNAL_ERROR;
                }
         } else
@@ -338,12 +341,13 @@ SaErrorT oa_soap_discover_resources(void *oh_handler)
         /* Create the event thread for OA in slot 2 */
         if (oa_handler->oa_2->thread_handler == NULL) {
                 oa_handler->oa_2->thread_handler =
-                        g_thread_create(oa_soap_event_thread,
+                        wrap_g_thread_create_new("oa_soap_event_thread_2",
+                                        oa_soap_event_thread,
                                         oa_handler->oa_2,
                                         TRUE, error);
                 if (oa_handler->oa_2->thread_handler == NULL) {
-                        g_mutex_unlock(oa_handler->mutex);
-                        err("g_thread_create failed");
+                        wrap_g_mutex_unlock(oa_handler->mutex);
+                        err("wrap_g_thread_create_new failed");
                         return SA_ERR_HPI_INTERNAL_ERROR;
                }
         } else
@@ -356,7 +360,7 @@ SaErrorT oa_soap_discover_resources(void *oh_handler)
         rv = discover_oa_soap_system(handler);
         if (rv != SA_OK) {
                 oa_handler->status = DISCOVERY_FAIL;
-                g_mutex_unlock(oa_handler->mutex);
+                wrap_g_mutex_unlock(oa_handler->mutex);
                 err("Discovery failed for active OA %s",
                     oa_handler->active_con->server);
 
@@ -368,7 +372,7 @@ SaErrorT oa_soap_discover_resources(void *oh_handler)
         }
 
         oa_handler->status = DISCOVERY_COMPLETED;
-        g_mutex_unlock(oa_handler->mutex);
+        wrap_g_mutex_unlock(oa_handler->mutex);
 
         dbg("Discovery completed for active OA %s",
             oa_handler->active_con->server);

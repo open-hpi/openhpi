@@ -108,6 +108,7 @@
 
 #include "oa_soap_re_discover.h"
 #include "oa_soap_calls.h"
+#include "sahpi_wrappers.h"
 
 /* Forward declarations for static functions */
 static SaErrorT oa_soap_re_disc_oa_sen(struct oh_handler_state *oh_handler,
@@ -472,14 +473,14 @@ SaErrorT remove_oa(struct oh_handler_state *oh_handler,
         /* Update the OA status to absent */
         switch (bay_number) {
                 case 1:
-                        g_mutex_lock(oa_handler->oa_1->mutex);
+                        wrap_g_mutex_lock(oa_handler->oa_1->mutex);
                         oa_handler->oa_1->oa_status = OA_ABSENT;
-                        g_mutex_unlock(oa_handler->oa_1->mutex);
+                        wrap_g_mutex_unlock(oa_handler->oa_1->mutex);
                         break;
                 case 2:
-                        g_mutex_lock(oa_handler->oa_2->mutex);
+                        wrap_g_mutex_lock(oa_handler->oa_2->mutex);
                         oa_handler->oa_2->oa_status = OA_ABSENT;
-                        g_mutex_unlock(oa_handler->oa_2->mutex);
+                        wrap_g_mutex_unlock(oa_handler->oa_2->mutex);
                         break;
                 default:
                         err("Wrong OA bay number %d passed", bay_number);
@@ -600,9 +601,9 @@ SaErrorT add_oa(struct oh_handler_state *oh_handler,
                 }
 
                 /* Update the OA status of the inserted OA */
-                g_mutex_lock(temp->mutex);
+                wrap_g_mutex_lock(temp->mutex);
                 temp->oa_status = status_response.oaRole;
-                g_mutex_unlock(temp->mutex);
+                wrap_g_mutex_unlock(temp->mutex);
 
                 /* Get the IP address of the newly inserted OA */
                 network_info.bayNumber = bay_number;
@@ -620,11 +621,11 @@ SaErrorT add_oa(struct oh_handler_state *oh_handler,
                 }
 
                 /* Copy the server IP address to oa_info structure*/
-                g_mutex_lock(temp->mutex);
+                wrap_g_mutex_lock(temp->mutex);
                 memset(temp->server, 0, MAX_URL_LEN);
                 strncpy(temp->server, network_info_response.ipAddress,
                         strlen(network_info_response.ipAddress));
-                g_mutex_unlock(temp->mutex);
+                wrap_g_mutex_unlock(temp->mutex);
         }
 
         request.bayNumber = bay_number;
