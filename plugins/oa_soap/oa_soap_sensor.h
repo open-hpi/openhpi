@@ -195,7 +195,7 @@ enum oa_soap_diag_ex {
 /* Maximum number of possible sensor strings provided 
  * by getBladeThermalInfoArray soap call 
  */
-#define OA_SOAP_MAX_THRM_SEN	12
+#define OA_SOAP_MAX_THRM_SEN	13
 
 /* Enum values for the sensor description strings provide by 
  * getBladeThermalInfoArray soap call
@@ -212,13 +212,14 @@ enum oa_soap_thermal_sen {
 	AMBIENT_ZONE,
 	STORAGE_ZONE,
 	IO_BOARD_ZONE,
-	POWER_SUPPLY_ZONE
+	POWER_SUPPLY_ZONE,
+	CHASSIS_ZONE
 };
 
 /* Define the sensor number range for blade extra thermal sensors */
 
 #define OA_SOAP_BLD_THRM_SEN_START	0x02e
-#define OA_SOAP_BLD_THRM_SEN_END	0x069
+#define OA_SOAP_BLD_THRM_SEN_END	0x06b
 
 /* Structure required for building thermal sensor when server blade is off */
 struct oa_soap_static_thermal_sensor_info {
