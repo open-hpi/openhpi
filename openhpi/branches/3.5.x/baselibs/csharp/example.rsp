@@ -1,0 +1,5 @@
+/target:exe
+/out:example.exe
+/reference:openhpi_baselib.dll
+example.cs
+

@@ -1,0 +1,422 @@
+iLO2 RIBCL Plug-in
+
+The iLO2 RIBCL Plug-in is an interface to Hewlett Packard ProLiant rack-mount
+servers which uses Remote Insight Board Command Language (RIBCL) to communicate
+with the on-board Integrated Lights-Out 2 (iLO2) management processor.
+Technical information about about iLO2, including the HP Integrated
+Lights-Out 2 User Guide mentioned below, can be found at
+www.hp.com/servers/lights-out.
+
+This plug-in is called ilo2_ribcl in the OpenHPI tree, and is referenced by the
+name libilo2_ribcl in all OpenHPI configuration files.
+
+Testing has been performed on HP ProLiant DL360, DL365, DL380, and DL385
+systems. The DL580 and DL585 systems are currently not supported.
+
+Prerequisites
+
+The ilo2_ribcl plug-in is built by default in the OpenHPI build process. To
+disable the building of this plug-in, add the configure flag
+--disable-ilo2_ribcl during the configure process.
+
+This plug-in requires the openssl-devel and libxml2-devel packages installed
+in order to successfully build. Most testing has been performed with 
+openssl-devel version >= 0.9.8a and libxml2-devel version >= 2.6.23. The
+latest version available for your distribution is recommended.
+
+This plug-in also requires the iLO2 firmware version to be >= 1.10 on all target
+systems to be managed. See the HP Integrated Lights-Out 2 User Guide for
+detailed instructions on performing the firmware upgrade. 
+
+Configuration
+
+You must set up a user account on the iLO2 management processor for each
+ProLiant server that you wish to manage. iLO2 is configured at the factory
+with a default user name and password, which can be found on the iLO2 Network
+Settings tag attached to the server. HP recommends changing this default
+username and password after logging in to iLO2 for the first time.
+
+iLO2 supports several interfaces for configuration. To setup or change the
+login and/or password, refer to the HP Integrated Lights-Out 2 User Guide,
+chapters "iLO2 setup" and "Configuring iLO2".
+
+This user account must have the "Virtual Power and Reset" privilege
+in order to support any HPI API that involves power control or reset.
+
+Below is an example configuration stanza for the ilo2_ribcl plug-in:
+
+	handler libilo2_ribcl {
+		entity_root = "{RACK_MOUNTED_SERVER,8}"
+		ilo2_ribcl_hostname = "x.x.x.x"  # iLO2 IP address
+		ilo2_ribcl_portstr = "443" # iLO2 RIBCL SSL server port number
+		ilo2_ribcl_username = "username" # iLO2 username
+		ilo2_ribcl_password = "password" # iLO2 password
+	}
+
+You will need to update the entries for your particular configuration.
+The login and password in the configuration file must correspond to an
+iLO2 local user name and password. 
+
+The value of ilo2_ribcl_hostname should be set to the TCP/IP address of
+the iLO2 on the system you wish to manage.
+
+The value of ilo2_ribcl_portstr specifies the Web Server SSL Port used
+by iLO2. The default configuration value is 443. Only change this value
+if you have changed the Web Server SSL Port configuration in iLO2.
+
+Supported APIs
+
+The current implementation of the plug-in supports the following SAF APIs in
+addition to the ones that are supported by the OpenHPI infrastructure by
+default:
+
+	saHpiControlGet
+	saHpiControlSet
+	saHpiDiscover
+	saHpiEventGet
+	saHpiResourceDiscover
+	saHpiResourceResetStateGet
+	saHpiResourceResetStateSet
+	saHpiResourcePowerStateGet
+	saHpiResourcePowerStateSet
+	saHpiResourceSeveritySet
+	saHpiResourceTagSet
+	saHpiSensorReadingGet
+	saHpiSensorEnableGet
+	saHpiSensorEnableSet
+	saHpiSensorEventEnableGet
+	saHpiSensorEventEnableSet
+	saHpiSensorEventMasksGet
+	saHpiSensorEventMasksSet
+	saHpiIdrInfoGet
+	saHpiIdrAreaHeaderGet
+	saHpiIdrFieldGet
+
+There are no hot swappable components in Hewlett Packard ProLiant rack-mount
+servers. As a result the iLO2 RIBCL plug-in implements the Simple Hot Swap (Not
+Present or Active) Model as defined in the SAF-HPI Specification for Field
+Replaceable Units (FRUs) such as CPUs, Memory Modules, Fans, and Power Supplies.
+These FRUs can only be replaced when the system is powered down. 
+
+The current Event Log functionality in RIBCL doesn't have support for new event
+notification and the ability to read incremental logs. As a result the iLO2
+RIBCL Plug-in does not implement the Event Log Management API to retrieve
+Hardware Management Logs.
+
+Controls:
+The following outlines the controls available and supported by the iLO2 RIBCL
+Plug-in.
+
+Unit Identification Light (UID) Control: Unit Identification Light status can
+be queried using the saHpiControlGet API and the light can be turned on or off
+using the saHpiControlSet API. Valid values for the Unit Identification Light
+(UID) Control are as follows: 
+	On(1)
+	Off(0) 
+
+Power Saver Control: The iLO2 Power Regulator Feature on HP ProLiant Rack Mount
+Servers allows the system to be run in various power modes. The current Power
+Regulator value can be queried on all supported HP ProLiant Rack Mount Servers
+(DL360,DL365, DL380,and DL385). Changing the Power Regulator value is fully
+supported on DL360 and DL380. DL365 doesn't support Power Saver Set feature.
+DL385 supports just the HP Static Low Power Mode. Valid modes for Power
+Regulator Setting (Power Saver) Control are as follows:
+	OS Control Mode or Disabled Mode for iLO(1)
+	HP Static Low Power Mode(2)
+	HP Dynamic Power Savings Mode(3)
+	HP Static High Performance Mode(4)
+
+Auto Power Control: The iLO2 Automatic Power On and Automatic Power On with
+Delay features allows users change the values to suit their needs. Valid values
+for the Automatic Power On are as follows:
+	Enabled with a minimum delay(1)
+	Disabled(2)
+	Enabled with random delay up to 60 seconds(3)
+	Enabled with 15 seconds delay(15)
+	Enabled with 30 seconds delay(30)
+	Enabled with 45 seconds delay(45)
+	Enabled with 60 seconds delay(60)
+
+Sensors:
+Sensor readings are only updated during a discovery operation, due to the
+iLo2 RIBCL communication latency overhead. Sensor readings are also updated
+with the periodic resource discovery performed by the openhpid daemon's
+oh_discovery_thread_loop which occurs approximately every three minutes. The
+sensor reading returned from saHpiSensorReadingGet() is the cached value
+obtained during the most recent discovery operation.
+
+There are three severity type sensors located on the System Chassis resource.
+These sensors correspond to the system's general health, and display
+information given in the HEALTH_AT_AT_GLANCE stanza returned by the
+GET_EMBEDDED_HEALTH RIBCL command. All of these sensors have the EventCtrl
+element of their RDR set to SAHPI_SEC_PER_EVENT, so the sensor enable, sensor
+event enable, and assert/deassert masks can all be changed via the OpenHPI
+APIs. In addition, the System Chassis resource does not have the
+SAHPI_CAPABILITY_EVT_DEASSERTS capability set, so the assert masks and deassert
+masks can be asymmetrical.
+
+	Sensor 1: System Fan Health
+	This sensor is of type SAHPI_FAN.
+	This sensor is of class SAHPI_EC_SEVERITY, and supports the severity
+	states SAHPI_ES_OK, SAHPI_ES_MAJOR_FROM_LESS,
+	SAHPI_ES_MAJOR_FROM_CRITICAL, and SAHPI_ES_CRITICAL.
+	Its reading values (int64) are:
+		0  SAHPI_ES_OK			- RIBCL reports "Ok"
+		1  SAHPI_ES_MAJOR_FROM_LESS,	- RIBCL reports "Degraded"
+		   SAHPI_ES_MAJOR_FROM_CRITICAL
+		2  SAHPI_ES_CRITICAL	        - RIBCL reports "Failed"
+
+	Sensor 2: System Temperature Health.
+	This sensor is of type SAHPI_TEMPERATURE.
+	This sensor is of class SAHPI_EC_SEVERITY, and supports the severity
+	states SAHPI_ES_OK, and  SAHPI_ES_CRITICAL.
+	Its reading values (int64) are:
+		0  SAHPI_ES_OK		- RIBCL reports "Ok"
+		2  SAHPI_ES_CRITICAL	- RIBCL reports "Failed"
+
+	Sensor 3: System Power Supply Health
+	This sensor is of type SAHPI_POWER_SUPPLY.
+	This sensor is of class SAHPI_EC_SEVERITY, and supports the severity
+	states SAHPI_ES_OK, SAHPI_ES_MAJOR_FROM_LESS,
+	SAHPI_ES_MAJOR_FROM_CRITICAL, and SAHPI_ES_CRITICAL.
+	Its reading values (int64) are:
+		0  SAHPI_ES_OK			- RIBCL reports "Ok"
+		1  SAHPI_ES_MAJOR_FROM_LESS,	- RIBCL reports "Degraded"
+		   SAHPI_ES_MAJOR_FROM_CRITICAL
+		2  SAHPI_ES_CRITICAL	        - RIBCL reports "Failed"
+
+Inventory Data Repositories:
+All IDRs, IDR Areas, and IDR Fields are read-only in this plug-in. Currently,
+the only resources that have IDRs are the System Chassis, Processors, and
+Memory Devices.
+
+The System Chassis IDR has one area of type SAHPI_IDR_AREATYPE_CHASSIS_INFO,
+containing the following four fields:
+	Field 1: SAHPI_IDR_FIELDTYPE_PRODUCT_NAME "<system product name>"
+	Field 2: SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER "<system serial numner>"
+	Field 3: SAHPI_IDR_FIELDTYPE_MANUFACTURER "Hewlett Packard"
+	Field 4: SAHPI_IDR_FIELDTYPE_CUSTOM "iLo2_Firmware: <firmware version>"
+
+Here is a sample output of the hpiinv utility for the System Chassis:
+
+	Resource[0] Tag: ProLiant DL385 G2 SN:2UX72901KM ( 4) has inventory
+	capability
+	{RACK_MOUNTED_SERVER:4} {ROOT:0}
+	RDR[30000]: Inventory, IdrId=0 ProLiant DL385 G2 SN:2UX72901KM ( 4)
+	Inventory
+	AreaId[1] Chassis Area
+	    FieldId[1] Product Name  : ProLiant DL385 G2
+	    FieldId[2] Serial Number : 2UX72901KM
+	    FieldId[3] Manufacturer  : Hewlett Packard
+	    FieldId[4] Custom Field  : iLo2_Firmware: 1.30
+
+A Processor IDR has one area of type SAHPI_IDR_AREATYPE_BOARD_INFO, containing
+the following field:
+	Field 1: SAHPI_IDR_FIELDTYPE_CUSTOM "Speed: <cpu speed>"
+
+Here is a sample output of the hpiinv utility for a Processor resource:
+
+	Resource[26] Tag: Proc 1        has inventory capability
+	{PROCESSOR:1} {RACK_MOUNTED_SERVER:4} {ROOT:0} 
+	RDR[30000]: Inventory, IdrId=0 Proc 1 Inventory
+	AreaId[1] Board Area
+	    FieldId[1] Custom Field  : Speed: 2200 MHz
+                
+A Memory IDR has one area of type SAHPI_IDR_AREATYPE_BOARD_INFO, containing
+the following two fields:
+	Field 1: SAHPI_IDR_FIELDTYPE_CUSTOM "Size: <memory size>"
+	Field 2: SAHPI_IDR_FIELDTYPE_CUSTOM "Speed: <memory speed>" 
+
+Here is a sample output of the hpiinv utility for a Processor resource:
+
+	Resource[28] Tag: DIMM 1A       has inventory capability
+	{MEMORY_DEVICE:1} {RACK_MOUNTED_SERVER:4} {ROOT:0} 
+	RDR[30000]: Inventory, IdrId=0 DIMM 1A Inventory
+	AreaId[1] Board Area
+	    FieldId[1] Custom Field  : Size: 1024 MB
+	    FieldId[2] Custom Field  : Speed: 667 MHz
+
+The following is a sample hpitop output for each of the supported ProLiant Rack
+Mount Servers:
+
+DL360 G5
+
+{RACK_MOUNTED_SERVER,5}
+    |
+    +--- {RACK_MOUNTED_SERVER,5}
+    |    |__ Control Num: 1, Type: DIGITAL, Output Type: LED, Tag: Unit Identification Light (UID) Values: On(1)/Off(0)
+    |    |__ Control Num: 2, Type: DISCRETE, Output Type: GENERIC, Tag: Power Regulator Control Power Modes: Disabled(1)/Low(2)/DynamicSavings(3)/High(4)
+    |    |__ Control Num: 3, Type: DISCRETE, Output Type: GENERIC, Tag: Auto Power Control Delay:Min.(1)/Disabled(2)/random (3)/15 sec (15)/30 sec (30)/45 sec(45)/60 sec(60)
+    |    |__ Sensor Num: 1, Type: FAN, Category: SEVERITY, Tag: System fans health indicator: Ok(0)/Degraded(1)/Failed(2)
+    |    |__ Sensor Num: 2, Type: TEMPERATURE, Category: SEVERITY, Tag: System temperature health indicator: Ok(0)/Failed(2)
+    |    |__ Sensor Num: 3, Type: POWER_SUPPLY, Category: SEVERITY, Tag: System power supply health indicator: Ok(0)/Degraded(1)/Failed(2)
+    |    |__ Inventory Idr Num: 0, Num Areas: 1, Tag: ProLiant DL360 G5 SN:MXQ73703A6       ( 5) Inventory
+    |
+    +--- {RACK_MOUNTED_SERVER,5}{PROCESSOR,1}
+    |    |__ Inventory Idr Num: 0, Num Areas: 1, Tag: Proc 1 Inventory
+    |
+    +--- {RACK_MOUNTED_SERVER,5}{PROCESSOR,2}
+    |    |__ Inventory Idr Num: 0, Num Areas: 1, Tag: Proc 2 Inventory
+    |
+    +--- {RACK_MOUNTED_SERVER,5}{MEMORY_DEVICE,1}
+    |    |__ Inventory Idr Num: 0, Num Areas: 1, Tag: DIMM 1A Inventory
+    |
+    +--- {RACK_MOUNTED_SERVER,5}{MEMORY_DEVICE,3}
+    |    |__ Inventory Idr Num: 0, Num Areas: 1, Tag: DIMM 3A Inventory
+    |
+    +--- {RACK_MOUNTED_SERVER,5}{POWER_SUPPLY,1}
+    |
+    +--- {RACK_MOUNTED_SERVER,5}{POWER_SUPPLY,2}
+    |
+    +--- {RACK_MOUNTED_SERVER,5}{POWER_MODULE,1}
+    |
+    +--- {RACK_MOUNTED_SERVER,5}{POWER_MODULE,2}
+    |
+    +--- {RACK_MOUNTED_SERVER,5}{COOLING_DEVICE,1}
+    |
+    +--- {RACK_MOUNTED_SERVER,5}{COOLING_DEVICE,2}
+    |
+    +--- {RACK_MOUNTED_SERVER,5}{COOLING_DEVICE,3}
+    |
+End of {RACK_MOUNTED_SERVER,5}
+
+
+DL365 G1
+
+{RACK_MOUNTED_SERVER,1}
+    |
+    +--- {RACK_MOUNTED_SERVER,1}
+    |    |__ Control Num: 1, Type: DIGITAL, Output Type: LED, Tag: Unit Identification Light (UID) Values: On(1)/Off(0)
+    |    |__ Control Num: 2, Type: DISCRETE, Output Type: GENERIC, Tag: Power Regulator Control Power Modes: Disabled(1)/Low(2)/DynamicSavings(3)/High(4)
+    |    |__ Control Num: 3, Type: DISCRETE, Output Type: GENERIC, Tag: Auto Power Control Delay:Min.(1)/Disabled(2)/random (3)/15 sec (15)/30 sec (30)/45 sec(45)/60 sec(60)
+    |    |__ Sensor Num: 1, Type: FAN, Category: SEVERITY, Tag: System fans health indicator: Ok(0)/Degraded(1)/Failed(2)
+    |    |__ Sensor Num: 2, Type: TEMPERATURE, Category: SEVERITY, Tag: System temperature health indicator: Ok(0)/Failed(2)
+    |    |__ Sensor Num: 3, Type: POWER_SUPPLY, Category: SEVERITY, Tag: System power supply health indicator: Ok(0)/Degraded(1)/Failed(2)
+    |    |__ Inventory Idr Num: 0, Num Areas: 1, Tag: ProLiant DL365 G1 SN:MXQ73604LV       ( 1) Inventory
+    |
+    +--- {RACK_MOUNTED_SERVER,1}{PROCESSOR,1}
+    |    |__ Inventory Idr Num: 0, Num Areas: 1, Tag: Proc 1 Inventory
+    |
+    +--- {RACK_MOUNTED_SERVER,1}{PROCESSOR,2}
+    |    |__ Inventory Idr Num: 0, Num Areas: 1, Tag: Proc 2 Inventory
+    |
+    +--- {RACK_MOUNTED_SERVER,1}{MEMORY_DEVICE,1}
+    |    |__ Inventory Idr Num: 0, Num Areas: 1, Tag: DIMM 1A Inventory
+    |
+    +--- {RACK_MOUNTED_SERVER,1}{MEMORY_DEVICE,2}
+    |    |__ Inventory Idr Num: 0, Num Areas: 1, Tag: DIMM 2A Inventory
+    |
+    +--- {RACK_MOUNTED_SERVER,1}{POWER_SUPPLY,1}
+    |
+    +--- {RACK_MOUNTED_SERVER,1}{POWER_SUPPLY,2}
+    |
+    +--- {RACK_MOUNTED_SERVER,1}{POWER_MODULE,1}
+    |
+    +--- {RACK_MOUNTED_SERVER,1}{POWER_MODULE,2}
+    |
+    +--- {RACK_MOUNTED_SERVER,1}{COOLING_DEVICE,1}
+    |
+    +--- {RACK_MOUNTED_SERVER,1}{COOLING_DEVICE,2}
+    |
+    +--- {RACK_MOUNTED_SERVER,1}{COOLING_DEVICE,3}
+    |
+End of {RACK_MOUNTED_SERVER,1}
+
+
+DL380 G5
+
+{RACK_MOUNTED_SERVER,7}
+    |
+    +--- {RACK_MOUNTED_SERVER,7}
+    |    |__ Control Num: 1, Type: DIGITAL, Output Type: LED, Tag: Unit Identification Light (UID) Values: On(1)/Off(0)
+    |    |__ Control Num: 2, Type: DISCRETE, Output Type: GENERIC, Tag: Power Regulator Control Power Modes: Disabled(1)/Low(2)/DynamicSavings(3)/High(4)
+    |    |__ Control Num: 3, Type: DISCRETE, Output Type: GENERIC, Tag: Auto Power Control Delay:Min.(1)/Disabled(2)/random (3)/15 sec (15)/30 sec (30)/45 sec(45)/60 sec(60)
+    |    |__ Sensor Num: 1, Type: FAN, Category: SEVERITY, Tag: System fans health indicator: Ok(0)/Degraded(1)/Failed(2)
+    |    |__ Sensor Num: 2, Type: TEMPERATURE, Category: SEVERITY, Tag: System temperature health indicator: Ok(0)/Failed(2)
+    |    |__ Sensor Num: 3, Type: POWER_SUPPLY, Category: SEVERITY, Tag: System power supply health indicator: Ok(0)/Degraded(1)/Failed(2)
+    |    |__ Inventory Idr Num: 0, Num Areas: 1, Tag: ProLiant DL380 G5 SN:2UX72503WK       ( 7) Inventory
+    |
+    +--- {RACK_MOUNTED_SERVER,7}{PROCESSOR,1}
+    |    |__ Inventory Idr Num: 0, Num Areas: 1, Tag: Proc 1 Inventory
+    |
+    +--- {RACK_MOUNTED_SERVER,7}{PROCESSOR,2}
+    |    |__ Inventory Idr Num: 0, Num Areas: 1, Tag: Proc 2 Inventory
+    |
+    +--- {RACK_MOUNTED_SERVER,7}{MEMORY_DEVICE,1}
+    |    |__ Inventory Idr Num: 0, Num Areas: 1, Tag: DIMM 1A Inventory
+    |
+    +--- {RACK_MOUNTED_SERVER,7}{MEMORY_DEVICE,3}
+    |    |__ Inventory Idr Num: 0, Num Areas: 1, Tag: DIMM 3A Inventory
+    |
+    +--- {RACK_MOUNTED_SERVER,7}{MEMORY_DEVICE,5}
+    |    |__ Inventory Idr Num: 0, Num Areas: 1, Tag: DIMM 5B Inventory
+    |
+    +--- {RACK_MOUNTED_SERVER,7}{MEMORY_DEVICE,7}
+    |    |__ Inventory Idr Num: 0, Num Areas: 1, Tag: DIMM 7B Inventory
+    |
+    +--- {RACK_MOUNTED_SERVER,7}{POWER_SUPPLY,1}
+    |
+    +--- {RACK_MOUNTED_SERVER,7}{POWER_SUPPLY,2}
+    |
+    +--- {RACK_MOUNTED_SERVER,7}{POWER_MODULE,1}
+    |
+    +--- {RACK_MOUNTED_SERVER,7}{POWER_MODULE,2}
+    |
+    +--- {RACK_MOUNTED_SERVER,7}{COOLING_DEVICE,1}
+    |
+    +--- {RACK_MOUNTED_SERVER,7}{COOLING_DEVICE,2}
+    |
+    +--- {RACK_MOUNTED_SERVER,7}{COOLING_DEVICE,3}
+    |
+    +--- {RACK_MOUNTED_SERVER,7}{COOLING_DEVICE,4}
+    |
+    +--- {RACK_MOUNTED_SERVER,7}{COOLING_DEVICE,5}
+    |
+    +--- {RACK_MOUNTED_SERVER,7}{COOLING_DEVICE,6}
+    |
+End of {RACK_MOUNTED_SERVER,7}
+
+
+DL385 G2
+
+{RACK_MOUNTED_SERVER,4}
+    |
+    +--- {RACK_MOUNTED_SERVER,4}
+    |    |__ Control Num: 1, Type: DIGITAL, Output Type: LED, Tag: Unit Identification Light (UID) Values: On(1)/Off(0)
+    |    |__ Control Num: 2, Type: DISCRETE, Output Type: GENERIC, Tag: Power Regulator Control Power Modes: Disabled(1)/Low(2)/DynamicSavings(3)/High(4)
+    |    |__ Control Num: 3, Type: DISCRETE, Output Type: GENERIC, Tag: Auto Power Control Delay:Min.(1)/Disabled(2)/random (3)/15 sec (15)/30 sec (30)/45 sec(45)/60 sec(60)
+    |    |__ Sensor Num: 1, Type: FAN, Category: SEVERITY, Tag: System fans health indicator: Ok(0)/Degraded(1)/Failed(2)
+    |    |__ Sensor Num: 2, Type: TEMPERATURE, Category: SEVERITY, Tag: System temperature health indicator: Ok(0)/Failed(2)
+    |    |__ Sensor Num: 3, Type: POWER_SUPPLY, Category: SEVERITY, Tag: System power supply health indicator: Ok(0)/Degraded(1)/Failed(2)
+    |    |__ Inventory Idr Num: 0, Num Areas: 1, Tag: ProLiant DL385 G2 SN:2UX72901KM       ( 4) Inventory
+    |
+    +--- {RACK_MOUNTED_SERVER,4}{PROCESSOR,1}
+    |    |__ Inventory Idr Num: 0, Num Areas: 1, Tag: Proc 1 Inventory
+    |
+    +--- {RACK_MOUNTED_SERVER,4}{PROCESSOR,2}
+    |    |__ Inventory Idr Num: 0, Num Areas: 1, Tag: Proc 2 Inventory
+    |
+    +--- {RACK_MOUNTED_SERVER,4}{MEMORY_DEVICE,1}
+    |    |__ Inventory Idr Num: 0, Num Areas: 1, Tag: DIMM 1A Inventory
+    |
+    +--- {RACK_MOUNTED_SERVER,4}{MEMORY_DEVICE,2}
+    |    |__ Inventory Idr Num: 0, Num Areas: 1, Tag: DIMM 2A Inventory
+    |
+    +--- {RACK_MOUNTED_SERVER,4}{POWER_SUPPLY,1}
+    |
+    +--- {RACK_MOUNTED_SERVER,4}{POWER_MODULE,1}
+    |
+    +--- {RACK_MOUNTED_SERVER,4}{COOLING_DEVICE,1}
+    |
+    +--- {RACK_MOUNTED_SERVER,4}{COOLING_DEVICE,2}
+    |
+    +--- {RACK_MOUNTED_SERVER,4}{COOLING_DEVICE,3}
+    |
+    +--- {RACK_MOUNTED_SERVER,4}{COOLING_DEVICE,4}
+    |
+    +--- {RACK_MOUNTED_SERVER,4}{COOLING_DEVICE,5}
+    |
+    +--- {RACK_MOUNTED_SERVER,4}{COOLING_DEVICE,6}
+    |
+End of {RACK_MOUNTED_SERVER,4}
+

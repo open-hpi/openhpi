@@ -1,0 +1,79 @@
+=head1 NAME
+
+hpisettime - This sample openhpi application excercises Event Log clock APIs. 
+
+=head1 SYNOPSIS 
+
+ hpisettime [-D nn] [-N host[:port]] [-C <cfgfile>] -d mm/dd/yyyy -t HH:MM:SS [-X] [-h]
+ hpisettime [--domain=nn] [--host=host[:port]] [--cfgfile=file] --date=mm/dd/yyyy --time=HH:MM:SS [--debug] [--help]
+
+=head1 DESCRIPTION
+
+hpisettime sets new date and time for the Event Log clock.
+
+If no domain is selected, hpisettime uses a session with the default domain. The selected domain id must be configured via the openhpidclient.conf file specified in the environment.
+
+=head1 OPTIONS
+
+=head2 Help Options:
+
+=over 2
+
+=item B<-h>, B<--help>
+
+Show help options
+
+=back
+
+=head2 Application Options:
+
+=over 2
+
+=item B<-d> I<mm/dd/yyyy>, B<--date>=I<mm/dd/yyyy>
+
+New date
+
+=item B<-t> I<24:12:60>, B<--time>=I<24:12:60>
+
+New time of day in 24-hr format
+
+=item B<-D> I<nn>, B<--domain>=I<nn>
+
+Select domain id I<nn>
+
+=item B<-X>, B<--debug>
+
+Display debug messages
+
+=item B<-N> I<"host[:port]">, B<--host>=I<"host[:port]">
+
+Open session to the domain served by the daemon at the specified URL (host:port).
+This option overrides the OPENHPI_DAEMON_HOST and OPENHPI_DAEMON_PORT environment variables.
+If host contains ':' (for example IPv6 address) then enclose it in square brackets.
+For example: I<"[::1]"> or I<"[::1]:4743">.
+
+=item B<-C> I<"file">, B<--cfgfile>=I<"file">
+
+Use passed file as client configuration file.
+This option overrides the OPENHPICLIENT_CONF environment variable.
+
+=back
+
+=head1 SEE ALSO
+
+         hpi_shell
+         hpialarms      hpifan         hpipower       hpitop
+         hpidomain      hpigensimdata  hpireset       hpitree
+         hpiel          hpiiinv        hpisensor      hpiwdt
+         hpievents      hpionIBMblade  hpithres       hpixml
+         ohdomainlist   ohhandler      ohparam
+
+
+=head1 AUTHORS
+
+Authors of this man page:
+
+ Peter D Phan (pdphan@users.sourceforge.net)
+ Ulrich Kleber (ulikleber@users.sourceforge.net)
+ Anton Pak (avpak@users.sourceforge.net)
+
