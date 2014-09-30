@@ -14,5 +14,5 @@
 #      Anton Pak <anton.pak@pigeonpoint.com>
 #
 
-__version_info__ = ( 3, 5, 0 )
+__version_info__ = ( 3, 6, 0 )
 
