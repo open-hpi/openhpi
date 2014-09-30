@@ -24,6 +24,6 @@ using System.Reflection;
 [assembly: AssemblyTitle( "OpenHPI Base Library For .NET" )]
 [assembly: AssemblyDescription( "OpenHPI Base Library For .NET" )]
 [assembly: AssemblyProduct( "OpenHPI" )]
-[assembly: AssemblyVersion( "3.5.0.0" )]
+[assembly: AssemblyVersion( "3.5.1.0" )]
 [assembly: AssemblyCulture( "" )]
 
