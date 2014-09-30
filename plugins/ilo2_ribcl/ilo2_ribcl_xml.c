@@ -80,7 +80,9 @@ static xmlChar *ir_xml_smb_get_value( char *, xmlNodePtr);
 static int ir_xml_insert_logininfo( char *, int, char *, char *, char *);
 static int ir_xml_extract_index( char *, char *, int);
 static int ir_xml_replacestr( char **, char *);
-
+static int ir_xml_iml_write( struct oh_handler_state*,xmlNodePtr);
+static SaErrorT ilo2_ribcl_dimm_event( struct oh_handler_state*,
+                SaHpiEntityPathT *,char *, char *, SaHpiTimeT);
 /* Error return values for ir_xml_extract_index */
 #define IR_NO_PREFIX	-1
 #define IR_NO_INDEX	-2
@@ -110,7 +112,8 @@ char *ir_xml_cmd_templates[] = {
 	[IR_CMD_SERVER_AUTO_PWR_60]	ILO2_RIBCL_SERVER_AUTO_PWR_60,
 	[IR_CMD_SERVER_AUTO_PWR_RANDOM]	ILO2_RIBCL_SERVER_AUTO_PWR_RANDOM,
 	[IR_CMD_SERVER_AUTO_PWR_RESTORE]	ILO2_RIBCL_SERVER_AUTO_PWR_RESTORE,
-	[IR_CMD_SERVER_AUTO_PWR_OFF]	ILO2_RIBCL_SERVER_AUTO_PWR_OFF
+	[IR_CMD_SERVER_AUTO_PWR_OFF]	ILO2_RIBCL_SERVER_AUTO_PWR_OFF,
+	[IR_CMD_GET_EVENT_LOG]    ILO2_RIBCL_GET_EVENT_LOG
 		};
 /**
  * ir_xml_parse_status
@@ -3122,6 +3125,260 @@ char* ir_xml_decode_chunked(char *d_response)
 	new_buffer[++j] = '\0';
 	return new_buffer;
 } /* end ir_xml_decode_chunked() */
+
+/**
+ * ir_xml_parse_iml
+ * @oh_handler: Ptr to this instance's custom handler.
+ * @ribcl_outbuf: Ptr to the raw RIBCL output from the GET_EVENT_LOG cmd
+ *
+ * Parses the output of the RIBCL GET_EVENT_LOG command. 
+ * Gets the pointer of the node "EVENT_LOG" in response data.
+ *
+ * Return value: RIBCL_SUCCESS on success, -1 if error.
+ **/
+int ir_xml_parse_iml( struct oh_handler_state *oh_handler, char *ribcl_outbuf)
+{
+        xmlDocPtr doc = NULL;
+        xmlNodePtr iml_data_node = NULL;
+        ilo2_ribcl_handler_t *ir_handler = NULL;
+
+        ir_handler = (ilo2_ribcl_handler_t *) oh_handler->data;
+
+
+	/* Convert the RIBCL command output into a single XML document,
+	 * and the use the libxml2 parser to create an XML doc tree. */
+
+	doc = ir_xml_doparse( ribcl_outbuf);
+	if( doc == NULL){
+                err("ir_xml_parse_iml(): Null doc returned.");
+		return( -1);
+	}
+
+	/* Check all RESULTS sections in the output for a status value
+	 * of zero, which indicates success. */
+
+        if( ir_xml_checkresults_doc( doc, ir_handler->ilo2_hostport)
+            != RIBCL_SUCCESS){
+            err("ir_xml_parse_iml(): Unsuccessful RIBCL status.");
+            xmlFreeDoc( doc);
+            return( -1);
+	}
+
+	/* Locate the EVENT_LOG subtree. It will contain
+	 * the useful results of the command. */
+
+	iml_data_node = ir_xml_find_node( xmlDocGetRootElement(doc),
+					    "EVENT_LOG");
+
+	if( iml_data_node == NULL){
+		err("ir_xml_parse_iml(): EVENT_LOG element not found."); 
+		xmlFreeDoc( doc);
+		return( -1);
+	}
+
+	if( ir_xml_iml_write( oh_handler, iml_data_node) != RIBCL_SUCCESS){
+		xmlFreeDoc( doc);
+		return( -1);
+	}
+	xmlFreeDoc( doc);
+	return( RIBCL_SUCCESS);
+}
+
+/**
+*ir_xml_iml_write
+*@oh_handler: Ptr to this instance's custom handler
+*@iml_data_node: Points to EVENT_LOG subtree in the output xml
+*
+*Examines all the EVENT sub tree and writes the severity,class,
+*last_update,initial_update,count,description of the event in
+*the IML.Any new entry related to DIMM error is added to the list.
+*Return value: RIBCL_SUCCESS if success, -1 if failure.
+**/
+static int ir_xml_iml_write( struct oh_handler_state *oh_handler,
+                               xmlNodePtr iml_data_node)
+{
+    xmlNodePtr evt_node = NULL;
+    xmlNodePtr n = NULL;
+    xmlChar *severity = NULL;
+    xmlChar *class = NULL;
+    xmlChar *last_update = NULL;
+    xmlChar *initial_update = NULL;
+    xmlChar *count = NULL;
+    xmlChar *description = NULL;
+    char *desc = NULL;
+    char descrtpt[255] = {0};
+    int len = 0;
+    SaErrorT  ret = SA_OK;
+    SaHpiEntityPathT ep_root;
+    ilo2_ribcl_handler_t *ir_handler = NULL;
+    struct tm time = {0,0,0,0,0,0,0,0,-1};
+    SaHpiTimeT seconds = 0;
+    static SaHpiTimeT start_time; 
+    SaHpiBoolT new_evt = SAHPI_FALSE;
+
+    if( !start_time)
+        oh_gettimeofday( &start_time);
+
+    ir_handler = (ilo2_ribcl_handler_t *) oh_handler->data;
+    memset( &ep_root, 0, sizeof(SaHpiEntityPathT)); 	
+    ret = oh_encode_entitypath(ir_handler->entity_root, &ep_root);
+    if( ret != SA_OK){
+        err("ir_xml_iml_write(): Cannot convert entity path %s.", \
+                ir_handler->entity_root);
+        return(SA_ERR_HPI_INTERNAL_ERROR);
+    }
+
+    evt_node = ir_xml_find_node( iml_data_node, "EVENT");
+    if( evt_node == NULL)
+        return ( -1);
+
+    while( evt_node != NULL){
+        if((!xmlStrcmp( evt_node->name, (const xmlChar *)"EVENT"))){
+            n =  ir_xml_find_node(evt_node, "EVENT");
+            if( n != NULL){
+                severity = xmlGetProp( n, (const xmlChar *)"SEVERITY");
+                class = xmlGetProp( n, (const xmlChar *)"CLASS");
+                last_update = 
+                        xmlGetProp( n, (const xmlChar *)"LAST_UPDATE");
+                initial_update = 
+                        xmlGetProp( n, (const xmlChar *)"INITIAL_UPDATE");
+                count = xmlGetProp( n, (const xmlChar *)"COUNT");
+                description = 
+                        xmlGetProp( n, (const xmlChar *)"DESCRIPTION");
+                time = (struct tm){0,0,0,0,0,0,0,0,-1};
+                strptime((const char*) last_update,"%m/%d/%Y %H:%M", &time);
+                seconds = mktime( &time) * 1000000000;
+                if( seconds > start_time){
+                    if( !xmlStrcmp( class, (const xmlChar *)"Main Memory")&&
+                        (!xmlStrcmp( severity, (const xmlChar *)"Caution")||
+                        !xmlStrcmp( severity,(const xmlChar *)"Critical"))){
+                            memset( descrtpt, 0, 255);
+                            strncpy(descrtpt,(const char *)description,
+                                       strlen( (const char *)description));
+                            desc = 
+                                strstr((const char *)description,"Processor");
+                            if( desc != NULL){
+                                len = strlen( desc);
+                                desc[len - 2] = 0;
+                                    new_evt = SAHPI_TRUE;
+                            }
+                                    err("DIMM error in %s",
+                                                    ir_handler->ilo2_hostport);
+                                    err("Severity:%s,Class:%s",severity,class);
+                                    err("LastUpdt:%s,IntialUpdt:%s,Count:%s",
+                                             last_update,initial_update,count);
+                                    err("Description:\"%s\"",descrtpt);
+                                    ret = ilo2_ribcl_dimm_event( oh_handler,
+                                                        &ep_root,
+                                                        (char *)severity,
+                                                        (char *)desc, seconds);
+                                    if( ret != SA_OK){
+                                        err("ilo2_ribcl_dimm_event():failed");
+                                        return ( -1); 
+                                    }
+                    } 
+                }
+            }
+
+            if( severity){
+                xmlFree(severity);
+            } 
+            if( class){
+                xmlFree(class);
+            }
+            if( last_update){
+                xmlFree(last_update);
+            }
+            if( initial_update){
+                xmlFree( initial_update);
+            }
+            if( count){
+                xmlFree( count);
+            } 
+            if( description){
+                xmlFree( description);
+            }
+        } /* end if name == "EVENT" */
+
+	evt_node = evt_node->next;
+        if( evt_node == NULL && new_evt == SAHPI_TRUE)
+            start_time = seconds;
+
+    } /* end while evt_node != NULL */
+
+    return( RIBCL_SUCCESS);
+
+} /** end of ir_xml_iml_write()**/
+
+/**
+ *ilo2_ribcl_dimm_event 
+ *@oh_handler:  Handler data pointer.
+ *@resource_ep: pointer to the entity path for this resource.
+ * 
+ *Detailed description:
+ *	- Look up the existing rpt entry from the resource_ep entity
+ *	  path parameter.
+ *	- Call oh_evt_queue_push() to push DIMM error details to event queue.
+ *
+ *Return values:
+ *	SA_OK if success
+ *	SA_ERR_HPI_OUT_OF_MEMORY if allocation fails.
+ *	SA_ERR_HPI_NOT_PRESENT if the rpt entry for resource_ep is not found.
+ **/
+static SaErrorT ilo2_ribcl_dimm_event( struct oh_handler_state *oh_handler,
+                                       SaHpiEntityPathT *resource_ep, 
+                                       char *sev, char *desc, SaHpiTimeT sec)
+{
+	struct oh_event *ev = NULL;
+	SaHpiRptEntryT *rpt = NULL;
+	SaHpiSensorReadingT current_reading = {0};
+	int len = 0;
+
+	rpt = oh_get_resource_by_ep( oh_handler->rptcache,
+		resource_ep);
+	if( rpt == NULL){
+		/* This should never happen */
+            err("ilo2_ribcl_dimm_event(): Null rpt entry for failed resource");
+            return( SA_ERR_HPI_NOT_PRESENT);
+	}
+
+
+	ev = oh_new_event();
+	if( ev == NULL){
+		err("ilo2_ribcl_dimm_event(): event allocation failed.");
+		return( SA_ERR_HPI_OUT_OF_MEMORY);
+	}
+
+        ev->resource = *rpt;
+        ev->hid = oh_handler->hid;
+        ev->event.Source = ev->resource.ResourceId;
+        ev->event.EventType = SAHPI_ET_SENSOR;
+        if( strcmp( sev,"Critical") == 0)
+                ev->event.Severity = SAHPI_CRITICAL;
+        else if( strcmp( sev,"Caution") == 0)
+                ev->event.Severity = SAHPI_MAJOR; 
+        
+        if( sec < 0)
+            ev->event.Timestamp = SAHPI_TIME_UNSPECIFIED;
+        else
+            ev->event.Timestamp = sec;	
+        ev->event.EventDataUnion.SensorEvent.OptionalDataPresent =
+                        SAHPI_SOD_TRIGGER_READING;
+        ev->event.EventDataUnion.SensorEvent.SensorType = 
+                        SAHPI_MEMORY;
+        current_reading.IsSupported = SAHPI_TRUE;
+        current_reading.Type = 
+                            SAHPI_SENSOR_READING_TYPE_BUFFER;
+        len = strlen(desc) + 1;
+        strncpy((char *) current_reading.Value.SensorBuffer, desc, len);
+        ev->event.EventDataUnion.SensorEvent.TriggerReading =
+                                                            current_reading;
+        oh_evt_queue_push(oh_handler->eventq, ev);
+
+        return( SA_OK);
+
+} /* end ilo2_ribcl_dimm_event() */
+
 
 /**
  * hextodec

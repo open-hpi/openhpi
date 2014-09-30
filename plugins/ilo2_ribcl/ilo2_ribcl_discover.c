@@ -81,6 +81,8 @@ static void ilo2_ribcl_discover_chassis_sensors( struct oh_handler_state *,
 	struct oh_event *);
 void ilo2_ribcl_add_resource_capability( struct oh_handler_state *, 
 	struct oh_event *, SaHpiCapabilitiesT);
+static SaErrorT ilo2_ribcl_get_iml( struct oh_handler_state *,
+        SaHpiEntityPathT *);
 
 #ifdef ILO2_RIBCL_SIMULATE_iLO2_RESPONSE
 static int ilo2_ribcl_getfile( char *, char *, int);
@@ -222,6 +224,11 @@ SaErrorT ilo2_ribcl_discover_resources(void *handler)
 	 * the openhpid should be regularly calling us.
 	 */
 	ilo2_ribcl_process_sensors( oh_handler);
+	ret = ilo2_ribcl_get_iml( oh_handler, &ep_root);
+	if( ret != SA_OK){
+		err("ilo2_ribcl_get_iml():failed");
+		return( ret);
+	}
 
 	return(SA_OK);
 }
@@ -2514,6 +2521,99 @@ void ilo2_ribcl_add_resource_capability( struct oh_handler_state *oh_handler,
 } /* end ilo2_ribcl_add_resource_capability() */
 
 
+
+/**
+ * ilo2_ribcl_get_iml
+ * @oh_handler: The private handler for this plugin instance.
+ *
+ *	This routine sends the ILO2_RIBCL_GET_EVENT_LOG xml commands 
+ *	to an iLO2 via a SSL connection, receive the resulting output
+ *	from iLO2, parses that output, and writes the IML into log file.
+ *
+ *
+ * Return values:
+ *	SA_OK for success.
+ *	SA_ERR_HPI_OUT_OF_MEMORY if allocation fails
+ *	SA_ERR_HPI_INTERNAL_ERROR if our customized command is null or
+ *		if response parsing fails.
+ *
+ **/
+static SaErrorT ilo2_ribcl_get_iml( struct oh_handler_state *oh_handler,
+                SaHpiEntityPathT *ep_root)
+{
+	ilo2_ribcl_handler_t *ir_handler = NULL;
+	char *discover_cmd = NULL;
+	char *d_response = NULL;	/* command response buffer */
+	int ret = 0;
+	char *new_buffer = NULL;
+	ir_handler = (ilo2_ribcl_handler_t *) oh_handler->data;
+
+	/* Allocate a temporary response buffer. Since the discover
+	 * command should be infrequently run, we dynamically allocate
+	 * instead of keeping a buffer around all the time.
+	 */
+
+	d_response = malloc(ILO2_RIBCL_DISCOVER_RESP_MAX);
+	if( d_response == NULL){
+		err("ilo2_ribcl_get_iml(): failed to allocate resp buffer.");
+		return( SA_ERR_HPI_OUT_OF_MEMORY);
+	}
+
+	/* Retrieve our customized command buffer */
+	discover_cmd = ir_handler->ribcl_xml_cmd[IR_CMD_GET_EVENT_LOG];
+	if( discover_cmd == NULL){
+		err("ilo2_ribcl_get_iml(): null customized command.");
+		free( d_response);
+		return( SA_ERR_HPI_INTERNAL_ERROR);
+	}
+
+
+        /* Send the command to iLO2 and get the response. */
+        ret = ilo2_ribcl_ssl_send_command( ir_handler, discover_cmd,
+				d_response, ILO2_RIBCL_DISCOVER_RESP_MAX);
+        if( ret !=0 ){
+            err("ilo2_ribcl_get_iml(): command send failed.");
+            free( d_response);
+            return( SA_ERR_HPI_INTERNAL_ERROR);
+        }
+
+	/* Now, parse the response. The information related to DIMM error will 
+	 * be extracted.*/
+	/*switch based on ilo*/
+	switch(ir_handler->ilo_type){
+
+		case ILO:
+		case ILO2:
+			ret = ir_xml_parse_iml( oh_handler, 
+							d_response);
+			break;
+		case ILO3:
+		case ILO4:
+			new_buffer = ir_xml_decode_chunked(d_response);
+			ret = ir_xml_parse_iml( oh_handler, 
+							new_buffer);
+			break;
+		default:
+			err("ilo2_ribcl_get_iml():"
+				"failed to detect ilo type.");
+	}
+	if( ret != RIBCL_SUCCESS){
+		err("ilo2_ribcl_get_iml(): response parse failed in \
+                        ir_xml_parse_iml().");
+		free( d_response);
+		free( new_buffer);
+		return( SA_ERR_HPI_INTERNAL_ERROR);
+	}
+	/* We're finished. Free up the temporary response buffer */
+	free( d_response);
+	/*
+	 * new_buffer will be NULL for ILO2
+	 * it is absolutely fine to free NULL
+	 */
+	free( new_buffer);
+	return( SA_OK);
+	
+}
 
 
 #ifdef ILO2_RIBCL_SIMULATE_iLO2_RESPONSE
