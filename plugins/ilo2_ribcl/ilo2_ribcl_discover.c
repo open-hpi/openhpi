@@ -305,6 +305,7 @@ static SaErrorT ilo2_ribcl_do_discovery( ilo2_ribcl_handler_t *ir_handler)
 			if( ret <0){
 				err("ilo2_ribcl_do_discovery():"
 					"could not detect iLO type.");
+				free( d_response);
 				return( SA_ERR_HPI_INTERNAL_ERROR);
 			}
 			/*
@@ -333,6 +334,7 @@ static SaErrorT ilo2_ribcl_do_discovery( ilo2_ribcl_handler_t *ir_handler)
 		if( ret <0){
 			err("ilo2_ribcl_do_discovery():"
 				"could not detect iLO type.");
+			free( d_response);
 			return( SA_ERR_HPI_INTERNAL_ERROR);
 		}
 		/*
@@ -643,6 +645,7 @@ static SaErrorT ilo2_ribcl_discover_chassis(
 		default:
 			err("ilo2_ribcl_discover_chassis():"
 					"failed to detect ilo type.");
+			free( tmptag);
 			return SA_OK;
 	}
 
