@@ -61,7 +61,7 @@ TE: chunked\r\nConnection: Close\r\nContent-length: %s\r\n\r\n"
  * ilo2_ribcl_xml.c.
  */
 
-#define IR_NUM_COMMANDS	24
+#define IR_NUM_COMMANDS	25
 
 /*
  * GET_SERVER_DATA command.
@@ -177,5 +177,9 @@ TE: chunked\r\nConnection: Close\r\nContent-length: %s\r\n\r\n"
 /*  Always Remain Off automatic power on. */
 #define IR_CMD_SERVER_AUTO_PWR_OFF 23
 #define ILO2_RIBCL_SERVER_AUTO_PWR_OFF		"<LOCFG version=\"2.21\"/> <RIBCL VERSION=\"2.0\"> <LOGIN USER_LOGIN=\"%s\" PASSWORD=\"%s\"> <SERVER_INFO MODE=\"write\"> <SERVER_AUTO_PWR VALUE=\"Off\"/> </SERVER_INFO> </LOGIN> </RIBCL>\r\n"
+
+/* GET_EVENT_LOG command for IML. */
+#define IR_CMD_GET_EVENT_LOG 24
+#define ILO2_RIBCL_GET_EVENT_LOG	"<LOCFG version=\"2.21\"/> <RIBCL VERSION=\"2.0\"> <LOGIN USER_LOGIN=\"%s\" PASSWORD=\"%s\"> <SERVER_INFO MODE=\"read\"> <GET_EVENT_LOG/> </SERVER_INFO> </LOGIN> </RIBCL>\r\n"
 
 #endif /*_INC_ILO2_RIBCL_CMNDS_H_*/

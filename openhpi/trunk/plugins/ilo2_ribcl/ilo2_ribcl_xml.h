@@ -55,4 +55,5 @@ extern int ir_xml_insert_headerinfo( char *, int, char *, char *, char *);
 extern int ir_xml_build_cmdbufs( ilo2_ribcl_handler_t *);
 extern char* ir_xml_decode_chunked( char *);
 extern long hextodec(char *); 
+extern int ir_xml_parse_iml( struct oh_handler_state *,char *);
 #endif /* _INC_ILO2_RIBCL_XML_H_ */
