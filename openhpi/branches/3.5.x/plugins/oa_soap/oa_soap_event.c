@@ -372,7 +372,6 @@ void oa_soap_error_handling(struct oh_handler_state *oh_handler,
                             struct oa_info *oa)
 {
         SaErrorT rv = SA_OK;
-        int is_switchover = SAHPI_FALSE;
         SaHpiBoolT is_oa_accessible = SAHPI_FALSE;
         struct oa_soap_handler *oa_handler = NULL;
         SaHpiInt32T error_code;
@@ -454,8 +453,7 @@ void oa_soap_error_handling(struct oh_handler_state *oh_handler,
                          */
                 	OA_SOAP_CHEK_SHUTDOWN_REQ(oa_handler, oa_handler->mutex,
 						  oa->mutex, NULL);
-                        rv = oa_soap_re_discover_resources(oh_handler, oa,
-                                                           is_switchover);
+                        rv = oa_soap_re_discover_resources(oh_handler, oa);
                         wrap_g_mutex_unlock(oa->mutex);
                         wrap_g_mutex_unlock(oa_handler->mutex);
                         if (rv != SA_OK) {
