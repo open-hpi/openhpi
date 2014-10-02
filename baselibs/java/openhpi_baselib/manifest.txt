@@ -3,5 +3,5 @@ Name: org.openhpi
 Implementation-Title: OpenHPI Base Library For Java
 Implementation-Vendor: openhpi.org
 Implementation-URL: http://openhpi.org
-Implementation-Version: 3.5.1
+Implementation-Version: 3.5.0
 
