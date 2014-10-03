@@ -386,6 +386,7 @@ void oa_soap_error_handling(struct oh_handler_state *oh_handler,
         }
 
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
+        rv = check_oa_status(oa_handler, oa, oa->event_con);
 
         /* If the OA is not PRESENT, then do not even try. Just get out */
         if ( oa->oa_status == OA_ABSENT ) 
