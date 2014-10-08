@@ -1,0 +1,33 @@
+include ../Makefile.mingw32.def
+
+TARGET := libopenhpimarshal.dll
+
+SRC := marshal.c \
+       marshal_hpi.c \
+       marshal_hpi_types.c \
+       version.rc
+
+OBJ := $(patsubst %.rc, %.o, $(patsubst %.c, %.o, ${SRC}))
+
+DEFS := -DG_LOG_DOMAIN=\"marshal\"
+
+INCLUDES := ${GLIB_INCLUDES} -I ../mingw32 -I ../include -I ../utils
+
+LIBS := ${GLIB_LIBS}
+
+CPPFLAGS += ${DEFS} ${INCLUDES}
+
+.PHONY: all clean
+.SUFFIXES: .rc
+
+all : ${TARGET}
+
+${TARGET} : ${OBJ}
+	${CC} -shared -o $@ $^ ${LIBS}
+
+.rc.o:
+	${RC} ${RCFLAGS} $< $@
+
+clean:
+	rm -f ${OBJ} ${TARGET}
+

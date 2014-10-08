@@ -1,0 +1,46 @@
+include ../Makefile.mingw32.def
+
+TARGET := libopenhpiutils.dll
+
+SRC := announcement_utils.c \
+       el_utils.c \
+       epath_utils.c \
+       event_utils.c \
+       rpt_utils.c \
+       sahpi_enum_utils.c \
+       sahpi_event_encode.c \
+       sahpi_event_utils.c \
+       sahpi_struct_utils.c \
+       sahpi_time_utils.c \
+       sahpiatca_enum_utils.c \
+       sahpixtca_enum_utils.c \
+       sahpi_wrappers.c \
+       uid_utils.c \
+       version.rc
+
+OBJ := $(patsubst %.rc, %.o, $(patsubst %.c, %.o, ${SRC}))
+
+DEFS := -DG_LOG_DOMAIN=\"utils\"
+
+INCLUDES := ${GLIB_INCLUDES} -I ../mingw32 -I ../include -I .
+
+LIBS := ${GLIB_LIBS} ${GTHREAD_LIBS}
+
+CPPFLAGS += ${DEFS} ${INCLUDES}
+
+.PHONY: all clean
+.SUFFIXES: .rc
+
+all : ${TARGET}
+
+${TARGET} : ${OBJ}
+	${CC} -shared -o $@ $^ ${LIBS} \
+    -Wl,--out-implib,${@:.dll=.a} \
+    -Wl,--output-def,${@:.dll=.def}
+
+.rc.o:
+	${RC} ${RCFLAGS} $< $@
+
+clean:
+	rm -f ${OBJ} ${TARGET} ${TARGET:.dll=.a} ${TARGET:.dll=.def}
+
