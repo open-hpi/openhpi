@@ -1,0 +1,287 @@
+
+# create resource with empty caps
+new {SYSTEM_BLADE,1}
+cd {SYSTEM_BLADE,1}
+set RptEntry.ResourceCapabilities = RESOURCE
+set Visible = TRUE
+cd /
+
+# create resource with FRU caps
+new {SYSTEM_BLADE,2}
+cd {SYSTEM_BLADE,2}
+set RptEntry.ResourceCapabilities = RESOURCE | FRU
+set Visible = TRUE
+cd /
+
+# create resource with HS caps
+new {SYSTEM_BLADE,3}
+cd {SYSTEM_BLADE,3}
+set RptEntry.ResourceCapabilities = RESOURCE | FRU | MANAGED_HOTSWAP
+set Visible = TRUE
+cd /
+
+## create failed resource
+#new {SYSTEM_BLADE,4}
+#cd {SYSTEM_BLADE,4}
+#set ResourceFailed = TRUE
+#set Visible = TRUE
+#cd /
+
+# create resource with HS caps but without HS indicator
+new {SYSTEM_BLADE,5}
+cd {SYSTEM_BLADE,5}
+set RptEntry.ResourceCapabilities = RESOURCE | FRU | MANAGED_HOTSWAP
+set RptEntry.HotSwapCapabilities = 0
+set Visible = TRUE
+cd /
+
+# create resource with HS caps and with read-only AI timeout
+new {SYSTEM_BLADE,6}
+cd {SYSTEM_BLADE,6}
+set RptEntry.ResourceCapabilities = RESOURCE | FRU | MANAGED_HOTSWAP
+set RptEntry.HotSwapCapabilities = AUTOEXTRACT_READ_ONLY
+set Visible = TRUE
+cd /
+
+# create just resource
+new {SYSTEM_BLADE,7}
+cd {SYSTEM_BLADE,7}
+set Visible = TRUE
+
+# create log
+new log
+
+# create controls
+new ctrl-1
+cd ctrl-1
+set Rdr.CtrlRec.Type = DIGITAL
+set Rdr.CtrlRec.Digital.Default = ON
+set State.Digital = ON
+set Visible = TRUE
+cd ..
+
+new ctrl-2
+cd ctrl-2
+set Rdr.CtrlRec.Type = DISCRETE
+set Visible = TRUE
+cd ..
+
+new ctrl-3
+cd ctrl-3
+set Rdr.CtrlRec.Type = ANALOG
+set Rdr.CtrlRec.Analog.Min = 0
+set Rdr.CtrlRec.Analog.Max = 100
+set Rdr.CtrlRec.Analog.Default = 50
+set State.Analog = 60
+set Visible = TRUE
+cd ..
+
+new ctrl-4
+cd ctrl-4
+set Rdr.CtrlRec.Type = STREAM
+set Rdr.CtrlRec.Stream.Default.Stream = BINARY:123456
+set State.Stream.Stream = BINARY:654321
+set Visible = TRUE
+cd ..
+
+new ctrl-5
+cd ctrl-5
+set Rdr.CtrlRec.Type = TEXT
+set Visible = TRUE
+cd ..
+
+new ctrl-6
+cd ctrl-6
+set Rdr.CtrlRec.Type = OEM
+set Visible = TRUE
+cd ..
+
+# write-only control
+new ctrl-7
+cd ctrl-7
+set Rdr.CtrlRec.WriteOnly = TRUE
+set Visible = TRUE
+cd ..
+
+# control with read-only mode
+new ctrl-8
+cd ctrl-8
+set Rdr.CtrlRec.DefaultMode.ReadOnly = TRUE
+set Visible = TRUE
+cd ..
+
+# create sensors
+new sen-1
+cd sen-1
+set Rdr.SensorRec.Category = THRESHOLD
+set Visible = TRUE
+cd ..
+
+new sen-2
+cd sen-2
+set Rdr.SensorRec.Category = GENERIC
+set Visible = TRUE
+cd ..
+
+# sensor without enable control
+new sen-3
+cd sen-3
+set Rdr.SensorRec.EnableCtrl = FALSE
+set Visible = TRUE
+cd ..
+
+# sensor with READ_ONLY event control
+new sen-4
+cd sen-4
+set Rdr.SensorRec.Category = GENERIC
+set Rdr.SensorRec.EventCtrl = READ_ONLY
+set Visible = TRUE
+cd ..
+
+# sensor with READ_ONLY_MASKS event control
+new sen-5
+cd sen-5
+set Rdr.SensorRec.Category = GENERIC
+set Rdr.SensorRec.EventCtrl = READ_ONLY_MASKS
+set Visible = TRUE
+cd ..
+
+# sensor with asserted state
+new sen-6
+cd sen-6
+set Rdr.SensorRec.Category = GENERIC
+set EventState = STATE_05
+set Visible = TRUE
+cd ..
+
+# sensor with no readable thresholds
+new sen-7
+cd sen-7
+set Rdr.SensorRec.Category = THRESHOLD
+set Rdr.SensorRec.ThresholdDefn.ReadThold = 0
+set Visible = TRUE
+cd ..
+
+# sensor with no writable thresholds
+new sen-8
+cd sen-8
+set Rdr.SensorRec.Category = THRESHOLD
+set Rdr.SensorRec.ThresholdDefn.WriteThold = 0
+set Visible = TRUE
+cd ..
+
+# create RO inventory
+new inv-1
+cd inv-1
+set ReadOnly = TRUE
+set Visible = TRUE
+#    RO Area
+new area-1
+cd area-1
+set ReadOnly = TRUE
+#        RO Field
+new field-1
+cd field-1
+set ReadOnly = TRUE
+cd ..
+#        RW Field
+new field-2
+cd field-2
+set ReadOnly = FALSE
+cd ../../
+#    RW Area
+new area-2
+cd area-2
+set ReadOnly = FALSE
+#        RO Field
+new field-1
+cd field-1
+set ReadOnly = TRUE
+cd ..
+#        RW Field
+new field-2
+cd field-2
+set ReadOnly = FALSE
+cd ../../../
+
+# create RW inventory
+new inv-2
+cd inv-2
+set ReadOnly = FALSE
+set Visible = TRUE
+#    RO Area
+new area-1
+cd area-1
+set ReadOnly = TRUE
+#        RO Field
+new field-1
+cd field-1
+set ReadOnly = TRUE
+cd ..
+#        RW Field
+new field-2
+cd field-2
+set ReadOnly = FALSE
+cd ../../
+#    RW Area
+new area-2
+cd area-2
+set ReadOnly = FALSE
+#        RO Field
+new field-1
+cd field-1
+set ReadOnly = TRUE
+cd ..
+#        RW Field
+new field-2
+cd field-2
+set ReadOnly = FALSE
+cd ../../../
+
+# create watchdog
+new wdt-0  
+cd wdt-0
+set Visible = TRUE
+cd ..
+
+# create annunciator
+new ann-1
+cd ann-1
+set Visible = TRUE
+cd ..
+
+# create annunciator with AUTO ReadOnly Mode
+new ann-2
+cd ann-2
+set Rdr.AnnunciatorRec.ModeReadOnly = TRUE
+set Mode = AUTO
+set Visible = TRUE
+cd ..
+
+# create dimi with single test
+new dimi-1
+cd dimi-1
+set Visible = TRUE
+new test-0
+cd ..
+
+# create fumi with logical bank
+new fumi-1
+cd fumi-1
+set Visible = TRUE
+cd ..
+
+# create fumi with explicit banks
+new fumi-2
+cd fumi-2
+set Rdr.FumiRec.Capability = BANKCOPY | TARGET_VERIFY | COMPONENTS | BANKREORDER
+new bank-1
+new bank-2
+new bank-3
+new bank-4
+new bank-5
+set Visible = TRUE
+cd ..
+
+cd /
+

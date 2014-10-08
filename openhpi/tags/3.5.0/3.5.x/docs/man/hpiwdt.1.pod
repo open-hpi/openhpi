@@ -1,0 +1,90 @@
+=head1 NAME
+
+hpiwdt -  This sample openhpi application reads and enables the watchdog timer. 
+
+=head1 SYNOPSIS 
+
+ hpiwdt [-D nn] [-N host[:port]] [-C <cfgfile>] [-t sec] [-X] [-h]
+ hpiwdt [--domain=nn] [--host=host[:port]] [--cfgfile=file]
+        [--disable][--enable][--reset][--timeout n] [--debug] [--help]
+
+=head1 DESCRIPTION
+
+hpiwdt reads and enables the watchdog timer. 
+
+If no domain or host is selected, hpiwdt uses the default domain as specified in the openhpiclient.conf file.
+
+
+=head1 OPTIONS
+
+=head2 Help Options:
+
+=over 2
+
+=item B<-h>, B<--help>
+
+Show help options
+
+=back
+
+=head2 Application Options:
+
+=over 2
+
+=item B<-e>, B<--enable>
+
+Enables the watchdog timer
+
+=item B<-d>, B<--disable>
+
+Disables the watchdog timer
+
+=item B<-r>, B<--reset>
+
+Resets the watchdog timer
+
+=item B<-t> I<sec>, B<--timeout>=I<sec>
+
+Sets timeout to I<sec> seconds
+
+=item B<-D> I<nn>, B<--domain>=I<nn>
+
+Select domain id I<nn>
+
+=item B<-X>, B<--debug>
+
+Display debug messages
+
+=item B<-N> I<"host[:port]">, B<--host>=I<"host[:port]">
+
+Open session to the domain served by the daemon at the specified URL (host:port).
+This option overrides the OPENHPI_DAEMON_HOST and OPENHPI_DAEMON_PORT environment variables.
+If host contains ':' (for example IPv6 address) then enclose it in square brackets.
+For example: I<"[::1]"> or I<"[::1]:4743">.
+
+=item B<-C> I<"file">, B<--cfgfile>=I<"file">
+
+Use passed file as client configuration file.
+This option overrides the OPENHPICLIENT_CONF environment variable.
+
+=back
+
+
+=head1 SEE ALSO
+
+         hpi_shell
+         hpialarms      hpifan         hpipower       hpithres
+         hpidomain      hpigensimdata  hpireset       hpitop
+         hpiel          hpiiinv        hpisensor      hpitree
+         hpievents      hpionIBMblade  hpisettime     hpixml
+         ohdomainlist   ohhandler      ohparam
+
+
+=head1 AUTHORS
+
+Authors of this man page:
+
+ Peter D Phan (pdphan@users.sourceforge.net)
+ Ulrich Kleber (ulikleber@users.sourceforge.net)
+ Anton Pak (avpak@users.sourceforge.net)
+

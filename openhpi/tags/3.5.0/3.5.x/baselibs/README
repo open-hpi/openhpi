@@ -1,0 +1,21 @@
+================================================================================
+This directory contains baselib implementations for different programming
+languages.
+Current language set is:
+- C#
+- Java
+- Python
+
+================================================================================
+NB: Those are baselib implementations.
+    Those are not wrappers for libopenhpi.so/libopenhpi.dll.
+    So you don't have to install OpenHPI C libraries and Glib to get them
+    working.
+
+================================================================================
+Datatypes and API Representation:
+
+SAF HPI is C based API so it has to be represented somehow to fit in another
+programming language model. The main idea is to keep as much resemblance to
+original SAF API as possible.
+
