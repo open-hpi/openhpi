@@ -14,6 +14,7 @@ SRC := announcement_utils.c \
        sahpi_time_utils.c \
        sahpiatca_enum_utils.c \
        sahpixtca_enum_utils.c \
+       sahpi_wrappers.c \
        uid_utils.c \
        version.rc
 
@@ -23,7 +24,7 @@ DEFS := -DG_LOG_DOMAIN=\"utils\"
 
 INCLUDES := ${GLIB_INCLUDES} -I ../mingw32 -I ../include -I .
 
-LIBS := ${GLIB_LIBS}
+LIBS := ${GLIB_LIBS} ${GTHREAD_LIBS}
 
 CPPFLAGS += ${DEFS} ${INCLUDES}
 

@@ -46,7 +46,7 @@
 #include "oa_soap_lcd_event.h"
 
 SaErrorT oa_soap_re_discover_resources(struct oh_handler_state *oh_handler,
-                                       struct oa_info *oa, int oa_switched);
+                                       struct oa_info *oa);
 
 SaErrorT re_discover_oa(struct oh_handler_state *oh_handler,
                         SOAP_CON *con);
