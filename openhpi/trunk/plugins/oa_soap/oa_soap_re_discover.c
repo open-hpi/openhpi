@@ -151,7 +151,7 @@ static SaErrorT oa_soap_re_disc_therm_subsys_sen(struct oh_handler_state
  *      SA_ERR_HPI_INTERNAL_ERROR - on failure.
  **/
 SaErrorT oa_soap_re_discover_resources(struct oh_handler_state *oh_handler,
-                                       struct oa_info *oa, int oa_switched)
+                                       struct oa_info *oa)
 {
         SaErrorT rv = SA_OK;
         struct oa_soap_handler *oa_handler = NULL;
@@ -164,28 +164,6 @@ SaErrorT oa_soap_re_discover_resources(struct oh_handler_state *oh_handler,
         err("Re-discovery started");
 
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
-
-	/* The following is applicable only to OA Switchover cases
-	Just rediscover oa and end the whole thing. If some other hardware
-	is removed at the same time, then it is a separate case that needs to
-	be handled separately */
-
-        if ( oa_switched == SAHPI_TRUE ) {
-                OA_SOAP_CHEK_SHUTDOWN_REQ(oa_handler, oa_handler->mutex, oa->mutex,
-				  NULL);
-                rv = re_discover_oa(oh_handler, oa->event_con);
-                if (rv != SA_OK) {
-                        err("Re-discovery of OA failed");
-                }
-	        OA_SOAP_CHEK_SHUTDOWN_REQ(oa_handler, oa_handler->mutex, oa->mutex,
-        	                          NULL);
-	        rv = re_discover_interconnect(oh_handler, oa->event_con);
-        	if (rv != SA_OK) {
-                	err("Re-discovery of interconnect failed");
-        	}
-
-                return rv;
-        }
 
 	/* Re-discovery is called by locking the OA handler mutex and oa_info
 	 * mutex. Hence on getting request to shutdown, pass the locked mutexes

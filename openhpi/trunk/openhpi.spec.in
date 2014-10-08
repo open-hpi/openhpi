@@ -285,7 +285,7 @@ OpenHPI plugin that reports fakes hardware and allows runtime configuration chan
 %build
 ###################################################
 %configure @ac_configure_args@ --prefix=/usr --with-varpath=/var/lib/%{name}
-find . -type f -name "Makefile" | xargs -n1 sed -i -e 's/-D_FORTIFY_SOURCE=2//g;'
+find . -type f -name "Makefile" | xargs -n1 sed -i -e 's/ -Wp,-D_FORTIFY_SOURCE=2//g;'
 %{__make}
 
 ###################################################

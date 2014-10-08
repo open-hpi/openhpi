@@ -166,7 +166,6 @@ SaErrorT process_oa_failover_event(struct oh_handler_state *oh_handler,
         GTimer *timer = NULL;
         gulong micro_seconds;
         gdouble time_elapsed = 0;
-        int is_switchover = SAHPI_TRUE;
 	 char oa_fw_buf[SAHPI_MAX_TEXT_BUFFER_LENGTH];
 
         if (oh_handler == NULL || oa == NULL) {
@@ -331,7 +330,7 @@ SaErrorT process_oa_failover_event(struct oh_handler_state *oh_handler,
          */
 	OA_SOAP_CHEK_SHUTDOWN_REQ(oa_handler, oa_handler->mutex, oa->mutex,
 				  NULL);
-        rv = oa_soap_re_discover_resources(oh_handler, oa, is_switchover);
+        rv = oa_soap_re_discover_resources(oh_handler, oa);
         wrap_g_mutex_unlock(oa->mutex);
         wrap_g_mutex_unlock(oa_handler->mutex);
 
