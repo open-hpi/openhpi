@@ -1,0 +1,83 @@
+=head1 NAME
+
+
+hpi_shell - An openhpi sample application that allows a user to interactively perform a number of HPI operations.
+
+=head1 SYNOPSIS 
+
+ hpi_shell [-D nn] [-N host[:port]] [-C <cfgfile>] [-e] [-f <file>] [-X] [-h]
+ hpi_shell [--domain=nn] [--host=host[:port]] [--cfgfile=file] [--events] [--cmdfile=filename] [--debug] [--help]
+
+=head1 DESCRIPTION
+
+hpi_shell reads commands and performs HPI operations based on those
+commands.  This allows it to exercise HPI-managed hardware and do manual
+operations on that hardware.
+
+Once in hpi_shell, use the "help" command for a list of commands, or
+"help command" for details on a particular command.
+
+If no domain or host is selected, ohparam uses the default domain as specified in the openhpiclient.conf file.
+
+=head1 OPTIONS
+
+=head2 Help Options:
+
+=over 2
+
+  -h, --help                   Show help options
+
+=back
+
+=head2 Application Options:
+
+=over 2
+
+=item B<-f> I<filename>, B<--cmdfile>=I<filename>
+
+Execute command file
+
+=item B<-e>, B<--events>
+
+Show short events, discover after subscribe
+
+=item B<-D> I<nn>, B<--domain>=I<nn>
+
+Select domain id I<nn>
+
+=item B<-X>, B<--debug>
+
+Display debug messages
+
+=item B<-N> I<"host[:port]">, B<--host>=I<"host[:port]">
+
+Open session to the domain served by the daemon at the specified URL (host:port).
+This option overrides the OPENHPI_DAEMON_HOST and OPENHPI_DAEMON_PORT environment variables.
+If host contains ':' (for example IPv6 address) then enclose it in square brackets.
+For example: I<"[::1]"> or I<"[::1]:4743">.
+
+=item B<-C> I<"file">, B<--cfgfile>=I<"file">
+
+Use passed file as client configuration file.
+This option overrides the OPENHPICLIENT_CONF environment variable.
+
+=back
+
+=head1 SEE ALSO
+
+  hpialarms      hpifan         hpipower       hpithres       
+  hpidomain      hpigensimdata  hpireset       hpitop         
+  hpiel          hpiinv         hpisensor      hpitree        
+  hpievents      hpionIBMblade  hpisettime     hpiwdt
+  hpixml
+  ohdomainlist   ohhandler      ohparam
+
+
+=head1 AUTHORS
+
+Author(s) of this man page:
+
+  Bryan Sutula (sutula@users.sourceforge.net)
+  Ulrich Kleber (ulikleber@users.sourceforge.net)
+  Anton Pak (avpak@users.sourceforge.net)
+
