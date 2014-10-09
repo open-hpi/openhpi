@@ -1,5 +1,0 @@
-/target:exe
-/out:example_iterators.exe
-/reference:openhpi_baselib.dll
-example_iterators.cs
-
