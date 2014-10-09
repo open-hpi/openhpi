@@ -1,4 +1,99 @@
+Changelog for 3.5.0 (10/09/2014)
+
+  New Features
+
+   HP c-Class Plugin
+
+       702 Checkin 7595 - Support for BL460c Gen9 server
+
+       653 Checkin 7591 - Supporting Array SOAP calls 
+
+  Fixed Bugs
+
+   Blade Center Plugin
+
+       1845 Checkin 7584 - undefined behavior in snmp_bc_utils.c 
+
+   Build System
+
+       1860 Checkin 7603 - Make fails on cross-compiler
+
+       1857 Checkin 7604 - RPM build error with GCC 4.7.2 
+
+   Documentation
+
+       1850 Checkin 7589 - man page fixes
+
+       1838 Checkin 7583 - Add ChangeLog to openhpi
+
+       1797 Checkin 7586 - Bug number mapping file 
+
+   HP ProLiant plugin
+
+       1854 Checkin 7594 - increased memory consumption during failures
+
+       1843 Checkin 7596 - Create an event for IML log memory error
+
+       1816 Checkin 7576 - saHpiSensorThresholdsGet returns with INTERNAL error with ilo2_ribcl plugin 
+
+   HP c-Class Plugin
+
+       1856 Checkin 7602 - OA status is not updated in the plugin
+
+       1855 Checkin 7601 - Blades addition/removal during switchover not reflected in RPT
+
+       1842 Checkin 7590 - Create an event for memory errors
+
+       1837 Checkin 7582 - Sometimes blade sensors do not reflect the correct state
+
+       1835 Checkin 7581 - openhpid in a loop with OA 4.21 during re-discovery
+
+       1831 Checkin 7579 - New events added in OA FW 4.20 not represented in openhpi
+
+       1827 Checkin 7578 - Resource RPT is NULL error is observed in interconnect blade removal and Re-discovery is getting failed
+
+       1826 Checkin 7577 - Need error messages for DIMM failures in /var/log message
+
+       1824 Checkin 7572 - debug folder test programs are not getting compiled in RHEL 7.0
+
+       1821 Checkin 7575 - Sometimes, oa_soap plugin tries to connect to 0.0.0.0
+
+       1820 Checkin 7569 - The trailing \n needs to be removed from CRITICAL message
+
+       1819 Checkin 7570 - Sensor CRIT information could be WARN/INFO or CRIT
+
+       1818 Checkin 7593 - gcc 4.7 compiler warning in soap plugin
+
+       1817 Checkin 7573 - Adjust the spaces in inventory fields strings for CPU and FAN 
+
+   HPI Clients
+
+       1802 Checkin 7574 - Firmware minor revision filed is missing from hpitree -a output 
+
+   HPI Utils
+
+       1833 Checkin 7580 - oh_utils.h missing one of its dependant header files 
+
+   OpenHPI Daemon
+
+       1834 Checkin 7588 - accept() failed in openhpi daemon 
+
+   OpenHPI Daemon Client
+
+       1822 Checkin 7571 - hpisettime needs to give usage message 
+
+   OpenHPI base library
+
+       1853 Checkin 7592 - gcc 4.7 compiler warning in infrastructure code 
+
+   Web Site
+
+       1847 Checkin 7587 - Release scripts directory www cleanup
+
+       1846 Checkin 7585 - Release scripts in www do not work 
+
 Changelog for 3.4.0 (11/14/2013)
+
   New Features
    
    OpenHPI Daemon
