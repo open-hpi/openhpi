@@ -291,5 +291,12 @@ void wrap_g_static_mutex_lock(void *mutex)
                g_static_mutex_lock((GStaticMutex*)mutex);
         #endif
 }
-
+void wrap_g_free(void *ptr)
+{
+        if(ptr)
+        {
+                g_free(ptr);
+                ptr = NULL;
+        }
+}
 

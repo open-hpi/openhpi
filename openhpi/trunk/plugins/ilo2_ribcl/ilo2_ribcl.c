@@ -201,7 +201,7 @@ void *ilo2_ribcl_open(GHashTable *handler_config,
 	/* build complete hostname with port string appended */
 	/* add one extra byte to account for : in the middle of hostname:port
 	   string example: 10.100.1.1:443 */
-	ilo2_ribcl_handler->ilo2_hostport = g_malloc(host_len+port_len+2);
+	ilo2_ribcl_handler->ilo2_hostport = g_malloc0(host_len+port_len+2);
 	if(ilo2_ribcl_handler->ilo2_hostport == NULL) {
 		err("ilo2 ribcl Open:unable to allocate memory");
 		free(ilo2_ribcl_handler);
