@@ -43,6 +43,7 @@
 #include <sys/stat.h>   /* For test routine ilo2_ribcl_getfile() */
 #include <fcntl.h>      /* For test routine ilo2_ribcl_getfile() */
 #endif /* ILO2_RIBCL_SIMULATE_iLO2_RESPONSE */
+#include "sahpi_wrappers.h"
 
 /* Foreward decls: */
 
@@ -2070,7 +2071,7 @@ static SaErrorT ilo2_ribcl_controls(struct oh_handler_state *oh_handler,
 		default:
 		{
 			err("ilo2_ribcl_controls(): Invalid iLO2 RIBCL control type");
-			g_free(rdrptr);
+			wrap_g_free(rdrptr);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
 	}
@@ -2085,7 +2086,7 @@ static SaErrorT ilo2_ribcl_controls(struct oh_handler_state *oh_handler,
 	cinfo_ptr = g_memdup(&cinfo, sizeof(cinfo));
 	if(cinfo_ptr == NULL) {
 		err("ilo2_ribcl_controls(): Out of memory.");
-		g_free(rdrptr);
+		wrap_g_free(rdrptr);
 		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 	
@@ -2093,8 +2094,8 @@ static SaErrorT ilo2_ribcl_controls(struct oh_handler_state *oh_handler,
 		rdrptr, cinfo_ptr, 0);
 	if (err) {
 		err("Could not add RDR. Error=%s.", oh_lookup_error(err));
-		g_free(rdrptr);
-		g_free(cinfo_ptr);
+		wrap_g_free(rdrptr);
+		wrap_g_free(cinfo_ptr);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	} else {
 		event->rdrs = g_slist_append(event->rdrs, rdrptr);
@@ -2186,7 +2187,7 @@ static SaErrorT ilo2_ribcl_add_severity_sensor(
  	 * to be associated with this RDR. */
 	si = g_memdup(sens_info, sizeof(struct ilo2_ribcl_sensinfo));
 	if( si == NULL){
-		g_free( rdr);
+		wrap_g_free( rdr);
 		err("ilo2_ribcl_add_severity_sensor: Memory allocation failed.");
 		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
@@ -2196,8 +2197,8 @@ static SaErrorT ilo2_ribcl_add_severity_sensor(
 	if( ret != SA_OK){
 		err("ilo2_ribcl_add_severity_sensor: could not add RDR. Error = %s.",
 			oh_lookup_error(ret));
-		g_free( si);
-		g_free( rdr);
+		wrap_g_free( si);
+		wrap_g_free( rdr);
 		return( SA_ERR_HPI_INTERNAL_ERROR);
 	} else {
 		event->rdrs = g_slist_append(event->rdrs, rdr);
@@ -2308,7 +2309,7 @@ static SaErrorT ilo2_ribcl_add_threshold_sensor(
 	 * to be associated with this RDR. */
 	si = g_memdup(sens_info, sizeof(struct ilo2_ribcl_sensinfo));
 	if( si == NULL){
-		g_free( rdr);
+		wrap_g_free( rdr);
 		err("ilo2_ribcl_add_threshold_sensor: Memory allocation "
 				"failed.");
 		return(SA_ERR_HPI_OUT_OF_MEMORY);
@@ -2320,8 +2321,8 @@ static SaErrorT ilo2_ribcl_add_threshold_sensor(
 	if( ret != SA_OK){
 		err("ilo2_ribcl_add_threshold_sensor: could not add RDR. "
 				"Error = %s.", oh_lookup_error(ret));
-		g_free( si);
-		g_free( rdr);
+		wrap_g_free( si);
+		wrap_g_free( rdr);
 		return( SA_ERR_HPI_INTERNAL_ERROR);
 	} else {
 		event->rdrs = g_slist_append(event->rdrs, rdr);

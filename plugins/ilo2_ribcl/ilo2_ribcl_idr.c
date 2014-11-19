@@ -41,6 +41,7 @@
 #include <ilo2_ribcl.h>
 #include <ilo2_ribcl_idr.h>
 #include <ilo2_ribcl_discover.h>
+#include "sahpi_wrappers.h"
 
 /************************************
 	Forward declarations for static functions in this file
@@ -559,7 +560,7 @@ SaErrorT ilo2_ribcl_add_idr( struct oh_handler_state *oh_handler,
 
 	idr = g_memdup(new_idr, sizeof(struct ilo2_ribcl_idr_info));
 	if( idr == NULL){
-		g_free( rdr);
+		wrap_g_free( rdr);
 		err("ilo2_ribcl_add_idr: Memory allocation failed.");
 		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
@@ -569,8 +570,8 @@ SaErrorT ilo2_ribcl_add_idr( struct oh_handler_state *oh_handler,
 	if( ret != SA_OK){
 		err("ilo2_ribcl_add_idr: could not add RDR. Error = %s.",
 			oh_lookup_error(ret));
-		g_free( idr);
-		g_free( rdr);
+		wrap_g_free( idr);
+		wrap_g_free( rdr);
 		return( SA_ERR_HPI_INTERNAL_ERROR);
 	} else {
 		event->rdrs = g_slist_append(event->rdrs, rdr);
