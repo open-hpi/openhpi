@@ -2267,7 +2267,7 @@ SaErrorT re_discover_ps_unit(struct oh_handler_state *oh_handler,
         if (rv != SA_OK) {
             err("Failed to get power supply info array");
             xmlFreeDoc( ps_info_doc);
-            g_free( info_result);
+            wrap_g_free( info_result);
             return rv;
         }
         rv = oa_soap_get_ps_sts_arr( oa_handler ,max_bays ,&sts_res,
@@ -2276,7 +2276,7 @@ SaErrorT re_discover_ps_unit(struct oh_handler_state *oh_handler,
             err("Failed to get power supply status array");
             xmlFreeDoc( ps_info_doc);
             xmlFreeDoc( ps_sts_doc);
-            g_free( info_result);
+            wrap_g_free( info_result);
             return rv;
         }
 
@@ -2346,8 +2346,7 @@ SaErrorT re_discover_ps_unit(struct oh_handler_state *oh_handler,
 					if (rv != SA_OK) {
 						err("Re-discover power supply "
 						    "sensors failed");
-                                                g_free(info_result);
-                                                info_result = NULL;
+                                                wrap_g_free(info_result);
                                                 xmlFreeDoc( ps_info_doc);
                                                 xmlFreeDoc( ps_sts_doc);
 						return rv;
@@ -2374,8 +2373,7 @@ SaErrorT re_discover_ps_unit(struct oh_handler_state *oh_handler,
                         rv = remove_ps_unit(oh_handler, i);
                         if (rv != SA_OK) {
                                 err("Power Supply Unit %d removal failed", i);
-                                g_free(info_result);
-                                info_result = NULL;
+                                wrap_g_free(info_result);
                                 xmlFreeDoc( ps_info_doc);
                                 xmlFreeDoc( ps_sts_doc);
                                 return rv;
@@ -2393,8 +2391,7 @@ SaErrorT re_discover_ps_unit(struct oh_handler_state *oh_handler,
                                                &sts_result);
                         if (rv != SA_OK) {
                                 err("Power Supply Unit %d add failed", i);
-                                g_free(info_result);
-                                info_result = NULL;
+                                wrap_g_free(info_result);
                                 xmlFreeDoc( ps_info_doc);
                                 xmlFreeDoc( ps_sts_doc);
                                 return rv;
@@ -2410,7 +2407,7 @@ SaErrorT re_discover_ps_unit(struct oh_handler_state *oh_handler,
 
         } /* End of while loop */
         
-        g_free(info_result);
+        wrap_g_free(info_result);
         xmlFreeDoc(ps_info_doc);
         xmlFreeDoc( ps_sts_doc);
         return SA_OK;
@@ -2545,8 +2542,7 @@ SaErrorT add_ps_unit(struct oh_handler_state *oh_handler,
         rv = soap_getPowerSupplyInfo(con, &request, response);
         if (rv != SOAP_OK) {
                 err("Get power supply info failed");
-                g_free(response);
-                response = NULL;
+                wrap_g_free(response);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
@@ -2555,8 +2551,7 @@ SaErrorT add_ps_unit(struct oh_handler_state *oh_handler,
                                     info->bayNumber, &resource_id);
         if (rv != SA_OK) {
                 err("build power supply rpt failed");
-                g_free(response);
-                response = NULL;
+                wrap_g_free(response);
                 return rv;
         }
 
@@ -2584,8 +2579,7 @@ SaErrorT add_ps_unit(struct oh_handler_state *oh_handler,
                               info->bayNumber,
                               "", SAHPI_UNSPECIFIED_RESOURCE_ID, RES_ABSENT);
 
-                g_free(response);
-                response = NULL;
+                wrap_g_free(response);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
@@ -2593,8 +2587,7 @@ SaErrorT add_ps_unit(struct oh_handler_state *oh_handler,
 				    &asserted_sensors);
         if (rv != SA_OK) {
                 err("Populating event struct failed");
-                g_free(response);
-                response = NULL;
+                wrap_g_free(response);
                 return rv;
         }
 
@@ -2615,8 +2608,7 @@ SaErrorT add_ps_unit(struct oh_handler_state *oh_handler,
 		oa_soap_assert_sen_evt(oh_handler, rpt, asserted_sensors);
 	}
 
-        g_free(response);
-        response = NULL;
+        wrap_g_free(response);
         return SA_OK;
 }
 

@@ -68,7 +68,7 @@
 				(SaHpiInt32T) sensor_value, &sensor_status); \
         if (rv != SA_OK) { \
                 err("Setting sensor state failed"); \
-                g_free(sensor_info); \
+                wrap_g_free(sensor_info); \
                 return rv; \
         } \
  \
@@ -100,7 +100,7 @@
 	                             event_support, sensor_info);  \
         if (rv != SA_OK) { \
                 err("Updating rdr with threshold failed"); \
-                g_free(sensor_info); \
+                wrap_g_free(sensor_info); \
                 return rv; \
         } \
  \

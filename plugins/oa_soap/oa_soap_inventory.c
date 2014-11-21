@@ -155,6 +155,7 @@
 
 #include "oa_soap_inventory.h"
 #include "oa_soap_utils.h"
+#include "sahpi_wrappers.h"
 
 /* Array defined in oa_soap_resources.c */
 extern const struct oa_soap_inv_rdr oa_soap_inv_arr[];
@@ -5332,7 +5333,7 @@ SaErrorT idr_area_delete(struct oa_soap_area **head_area,
                         tmp_area = local_area;
                         local_area = local_area->next_area;
                         *head_area = local_area;
-                        g_free(tmp_area);
+                        wrap_g_free(tmp_area);
                         return SA_OK;
                 }
                 /* Traverse the area list to find the specified IDR area */
@@ -5359,7 +5360,7 @@ SaErrorT idr_area_delete(struct oa_soap_area **head_area,
                                         }
                                 }
                                 local_area->next_area = next_area->next_area;
-                                g_free(next_area);
+                                wrap_g_free(next_area);
                                 return SA_OK;
                        } else {
                                local_area = local_area->next_area;
@@ -5719,7 +5720,7 @@ SaErrorT idr_field_delete(struct oa_soap_field **oa_field,
                         }
                         field = field->next_field;
                         *oa_field = field;
-                        g_free(tmp_field);
+                        wrap_g_free(tmp_field);
                         return SA_OK;
                 }
 
@@ -5731,7 +5732,7 @@ SaErrorT idr_field_delete(struct oa_soap_field **oa_field,
                                         return SA_ERR_HPI_READ_ONLY;
                                 }
                                 field->next_field = tmp_field->next_field;
-                                g_free(tmp_field);
+                                wrap_g_free(tmp_field);
                                 return SA_OK;
                         } else {
                                 field = field->next_field;
@@ -6003,7 +6004,7 @@ SaErrorT free_inventory_info(struct oh_handler_state *handler,
                 }
         }
 
-        g_free(inventory->comment);
+        wrap_g_free(inventory->comment);
         return SA_OK;
 }
 

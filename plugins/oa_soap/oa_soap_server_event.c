@@ -65,6 +65,7 @@
 
 #include "oa_soap_server_event.h"
 #include "oa_soap_discover.h"           /* for build_server_rpt() prototype */
+#include "sahpi_wrappers.h"
 extern time_t server_insert_timer[];
 extern SaHpiInt32T memErrRecFlag[];
 
@@ -672,11 +673,11 @@ SaErrorT process_server_info_event(struct oh_handler_state
         rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
         if (rpt == NULL) {
 		if (server_insert_timer[bay_number-1]){
-                        g_free(serial_number);
+                        wrap_g_free(serial_number);
                         return SA_OK;
 		}
 		err("server RPT NULL at bay %d",bay_number);
-                g_free(serial_number);
+                wrap_g_free(serial_number);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
@@ -691,7 +692,7 @@ SaErrorT process_server_info_event(struct oh_handler_state
                                bay_number, resource_id, blade_name, FALSE);
         if (rv != SA_OK) {
         	err("Failed to add Server rdr");
-                g_free(serial_number);
+                wrap_g_free(serial_number);
         	return rv;
         }	
 
@@ -706,7 +707,7 @@ SaErrorT process_server_info_event(struct oh_handler_state
         	rv = oh_add_resource(oh_handler->rptcache, rpt, NULL, 0);
         	if (rv != SA_OK) {
                 	err("Failed to add Server rpt");
-                        g_free(serial_number);
+                        wrap_g_free(serial_number);
                 	return rv;
         	}
 
@@ -716,7 +717,7 @@ SaErrorT process_server_info_event(struct oh_handler_state
 					SAHPI_DEFAULT_INVENTORY_ID);
 		if (rdr == NULL) {
 			err("Inventory RDR is not found");
-                        g_free(serial_number);
+                        wrap_g_free(serial_number);
 			return SA_ERR_HPI_NOT_PRESENT;
 		}
 		
@@ -739,7 +740,7 @@ SaErrorT process_server_info_event(struct oh_handler_state
                         copy_oa_soap_event(&event));
         }
 
-        g_free(serial_number);
+        wrap_g_free(serial_number);
         return SA_OK;
 }
 
@@ -834,8 +835,7 @@ SaErrorT build_inserted_server_rpt(struct oh_handler_state *oh_handler,
         rv = oh_add_resource(oh_handler->rptcache, rpt, hotswap_state, 0);
         if (rv != SA_OK) {
                 err("Failed to add Server rpt");
-                if (hotswap_state != NULL)
-                        g_free(hotswap_state);
+                wrap_g_free(hotswap_state);
                 return rv;
         }
 
@@ -961,10 +961,10 @@ void oa_soap_proc_server_status(struct oh_handler_state *oh_handler,
                     if (rv != SA_OK) {
                             err("processing the memory event for sensor %x has"
                                 " failed", OA_SOAP_SEN_MAIN_MEMORY_ERRORS);
-                            g_free(mainMemoryError);
+                            wrap_g_free(mainMemoryError);
                             return;
                     }
-                    g_free(mainMemoryError);
+                    wrap_g_free(mainMemoryError);
                     memErrFlag[bay] = 0;
                 } else {
                     /* Get the sensor value */
