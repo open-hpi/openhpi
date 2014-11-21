@@ -60,6 +60,7 @@
  */
 
 #include "oa_soap_interconnect_event.h"
+#include "sahpi_wrappers.h"
 
 /**
  * process_interconnect_reset_event
@@ -535,7 +536,7 @@ SaErrorT process_interconnect_info_event(struct oh_handler_state
         strcpy(serial_number, oa_event->eventData.interconnectTrayInfo.serialNumber);
         serial_number[len]='\0';
         if (strcmp(serial_number,"[Unknown]") == 0 )  {
-                g_free(serial_number);
+                wrap_g_free(serial_number);
                 return SA_ERR_HPI_OUT_OF_MEMORY;
         }
         name = oa_event->eventData.interconnectTrayInfo.name;
@@ -547,7 +548,7 @@ SaErrorT process_interconnect_info_event(struct oh_handler_state
                                     bay_number, &resource_id, TRUE);
         if (rv != SA_OK) {
                 err("Failed to build the interconnect RPT");
-                g_free(serial_number);
+                wrap_g_free(serial_number);
                 return rv;
         }
 
@@ -565,7 +566,7 @@ SaErrorT process_interconnect_info_event(struct oh_handler_state
         rv = build_inserted_interconnect_rdr(oh_handler, con,
                                     bay_number, resource_id, FALSE);
 	
-        g_free(serial_number);
+        wrap_g_free(serial_number);
         return SA_OK;
 
 

@@ -187,7 +187,7 @@ static struct CRYPTO_dynlock_value *dyn_create_function(const char *file,
 	struct CRYPTO_dynlock_value *value;
 
 	if ((value = (struct CRYPTO_dynlock_value *)
-			g_malloc(sizeof(struct CRYPTO_dynlock_value)))) {
+			g_malloc0(sizeof(struct CRYPTO_dynlock_value)))) {
 		value->mutex = wrap_g_mutex_new_init();
 	}
 	else {

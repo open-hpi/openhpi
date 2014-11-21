@@ -132,7 +132,7 @@ SaErrorT build_oa_soap_custom_handler(struct oh_handler_state *oh_handler)
                         g_malloc0(sizeof(struct oa_info));
                 if (oa_handler->oa_1 == NULL) {
                         err("Out of memory");
-                        g_free(oa_handler);
+                        wrap_g_free(oa_handler);
                         return SA_ERR_HPI_OUT_OF_MEMORY;
                 }
 
@@ -140,8 +140,8 @@ SaErrorT build_oa_soap_custom_handler(struct oh_handler_state *oh_handler)
                         g_malloc0(sizeof(struct oa_info));
                 if (oa_handler->oa_2 == NULL) {
                         err("Out of memory");
-                        g_free(oa_handler->oa_1);
-                        g_free(oa_handler);
+                        wrap_g_free(oa_handler->oa_1);
+                        wrap_g_free(oa_handler);
                         return SA_ERR_HPI_OUT_OF_MEMORY;
                 }
 
@@ -254,7 +254,7 @@ void *oa_soap_open(GHashTable *handler_config,
         handler->eventq = eventq;
         handler->rptcache = (RPTable *) g_malloc0(sizeof(RPTable));
         if (handler->rptcache == NULL) {
-                g_free(handler);
+                wrap_g_free(handler);
                 err("Out of memory");
                 return NULL;
         }
@@ -262,8 +262,8 @@ void *oa_soap_open(GHashTable *handler_config,
         rv = oh_init_rpt(handler->rptcache);
         if (rv != SA_OK) {
                 err("Initializing rptcache failed");
-                g_free(handler->rptcache);
-                g_free(handler);
+                wrap_g_free(handler->rptcache);
+                wrap_g_free(handler);
                 return NULL;
         }
 
@@ -277,8 +277,8 @@ void *oa_soap_open(GHashTable *handler_config,
                  * Else, try to build the oa_soap_handler during discovery call
                  */
                 if (rv == SA_ERR_HPI_OUT_OF_MEMORY) {
-                        g_free(handler->rptcache);
-                        g_free(handler);
+                        wrap_g_free(handler->rptcache);
+                        wrap_g_free(handler);
                         return NULL;
                 }
         }
@@ -339,7 +339,7 @@ void oa_soap_close(void *oh_handler)
 
         /* Cleanup the RPTable */
         cleanup_plugin_rptable(handler);
-	g_free(handler->rptcache);
+	wrap_g_free(handler->rptcache);
         dbg("Cleaned the OA SOAP RPTable");
 
         /* Release the mutexes. Check whether the mutex is unlocked or not. If
@@ -396,13 +396,13 @@ void oa_soap_close(void *oh_handler)
         dbg("Released the SOAP CON structures from handler");
 
         /* Release the oa info structure */
-        g_free(oa_handler->oa_1);
-        g_free(oa_handler->oa_2);
+        wrap_g_free(oa_handler->oa_1);
+        wrap_g_free(oa_handler->oa_2);
         dbg("Released the oa_info structures from handler");
 
         /* Release the oa handler structure */
-        g_free(oa_handler);
-        g_free(handler);
+        wrap_g_free(oa_handler);
+        wrap_g_free(handler);
         dbg("Released the OA SOAP handler");
 
         return;

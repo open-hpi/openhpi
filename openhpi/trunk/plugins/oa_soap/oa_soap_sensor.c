@@ -99,6 +99,7 @@
 
 #include "oa_soap_sensor.h"
 #include "oa_soap_resources.h"
+#include "sahpi_wrappers.h"
 
 /* Forward declarations of static functions */
 static SaErrorT oa_soap_gen_sen_evt(struct oh_handler_state *oh_handler,
@@ -1232,7 +1233,7 @@ SaErrorT update_sensor_rdr(struct oh_handler_state *oh_handler,
                                                      &power_supply_request,
                                                      power_supply_response);
                         if (rv != SOAP_OK) { 
-                                g_free(power_supply_response);
+                                wrap_g_free(power_supply_response);
                                 return SA_ERR_HPI_INTERNAL_ERROR;
                         }
                         sensor_data->data.IsSupported = SAHPI_TRUE;
@@ -1240,8 +1241,7 @@ SaErrorT update_sensor_rdr(struct oh_handler_state *oh_handler,
                                 SAHPI_SENSOR_READING_TYPE_FLOAT64;
                         sensor_data->data.Value.SensorFloat64 =
                                 power_supply_response->actualOutput;
-                        g_free(power_supply_response);
-                        power_supply_response = NULL;
+                        wrap_g_free(power_supply_response);
                         break;
                 default:
                         err("Wrong resource type");
@@ -2556,7 +2556,7 @@ SaErrorT oa_soap_assert_sen_evt(struct oh_handler_state *oh_handler,
 				err("Unrecognized sensor class %d "
 				    "is detected", sensor_class);
 				/* Release the node->data */
-				g_free(node->data);
+				wrap_g_free(node->data);
 				continue;
 		 }
 
@@ -2571,7 +2571,7 @@ SaErrorT oa_soap_assert_sen_evt(struct oh_handler_state *oh_handler,
 			oa_soap_gen_res_evt(oh_handler, rpt,
 					    OA_SOAP_SEN_ASSERT_TRUE);
 		/* Release the node->data */
-		g_free(node->data);
+		wrap_g_free(node->data);
 	} /* End of while loop */
 
 	/* Release the assert_sensor_list */

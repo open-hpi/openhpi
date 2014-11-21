@@ -91,6 +91,7 @@
 #include <glib.h>
 #include <oh_error.h>
 #include "oa_soap_callsupport.h"
+#include "sahpi_wrappers.h"
 
 /* Include file check */
 #ifndef LIBXML_PUSH_ENABLED
@@ -508,7 +509,7 @@ SOAP_CON        *soap_open(char *server,
 
 
         /* Get a new OA SOAP connection structure and initialize it */
-        connection = g_malloc(sizeof(SOAP_CON)); /* New connection */
+        connection = g_malloc0(sizeof(SOAP_CON)); /* New connection */
         if (! connection) {
                 err("out of memory");
                 return(NULL);
@@ -596,7 +597,7 @@ void            soap_close(SOAP_CON *connection)
             connection->req_high_water,
             OA_SOAP_REQ_BUFFER_SIZE);
 
-        g_free(connection);
+        wrap_g_free(connection);
 
         /* Note that soap_open() initialized the SSL library, but
          * soap_close() does nothing to clean up and free SSL objects.

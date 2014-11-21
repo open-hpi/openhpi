@@ -1581,8 +1581,7 @@ SaErrorT build_discovered_server_rpt(struct oh_handler_state *oh_handler,
 
                         default:
                                 err("unknown power status");
-                                if (hotswap_state != NULL)
-                                        g_free(hotswap_state);
+                                wrap_g_free(hotswap_state);
                                 return SA_ERR_HPI_INTERNAL_ERROR;
                 }
 
@@ -1592,8 +1591,7 @@ SaErrorT build_discovered_server_rpt(struct oh_handler_state *oh_handler,
         rv = oh_add_resource(oh_handler->rptcache, &rpt, hotswap_state, 0);
         if (rv != SA_OK) {
                 err("Failed to add Server rpt");
-                if (hotswap_state != NULL)
-                        g_free(hotswap_state);
+                wrap_g_free(hotswap_state);
                 return rv;
         }
 
@@ -2454,8 +2452,7 @@ SaErrorT build_inserted_intr_rpt(struct oh_handler_state *oh_handler,
                         case SAHPI_POWER_CYCLE:
                         default:
                                 err("Wrong power state detected");
-                                if (hotswap_state != NULL)
-                                        g_free(hotswap_state);
+                                wrap_g_free(hotswap_state);
                                 return SA_ERR_HPI_INTERNAL_ERROR;
                 }
         }
@@ -2464,8 +2461,7 @@ SaErrorT build_inserted_intr_rpt(struct oh_handler_state *oh_handler,
         rv = oh_add_resource(oh_handler->rptcache, &rpt, hotswap_state, 0);
         if (rv != SA_OK) {
                 err("Failed to add Interconnect RPT");
-                if (hotswap_state != NULL)
-                        g_free(hotswap_state);
+                wrap_g_free(hotswap_state);
                 return rv;
         }
 
@@ -2598,12 +2594,12 @@ SaErrorT build_discovered_intr_rpt(struct oh_handler_state *oh_handler,
                         break;
                 case (POWER_REBOOT):
                         err("Wrong (REBOOT) Power State detected");
-                        g_free(hotswap_state);
+                        wrap_g_free(hotswap_state);
                         return SA_ERR_HPI_INTERNAL_ERROR;
                         break;
                 default:
                         err("Unknown Power State detected");
-                        g_free(hotswap_state);
+                        wrap_g_free(hotswap_state);
                         return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
@@ -2611,8 +2607,7 @@ SaErrorT build_discovered_intr_rpt(struct oh_handler_state *oh_handler,
         rv = oh_add_resource(oh_handler->rptcache, &rpt, hotswap_state, 0);
         if (rv != SA_OK) {
                 err("Failed to add Interconnect RPT");
-                if (hotswap_state != NULL)
-                        g_free(hotswap_state);
+                wrap_g_free(hotswap_state);
                 return rv;
         }
 
@@ -3773,7 +3768,7 @@ SaErrorT discover_power_supply(struct oh_handler_state *oh_handler)
                                           ps_info_doc);
         if( rv != SA_OK) {
             err("Failed to get power supply info array");
-            g_free(result);
+            wrap_g_free(result);
             xmlFreeDoc( ps_info_doc);
             return rv;
         }
@@ -3781,7 +3776,7 @@ SaErrorT discover_power_supply(struct oh_handler_state *oh_handler)
                                       ps_sts_doc);
         if( rv != SA_OK) {
             err("Failed to get power supply status array");
-            g_free(result);
+            wrap_g_free(result);
             xmlFreeDoc( ps_info_doc);
             xmlFreeDoc( ps_sts_doc);
             return rv;
@@ -3826,8 +3821,7 @@ SaErrorT discover_power_supply(struct oh_handler_state *oh_handler)
                                             i, &resource_id);
                 if (rv != SA_OK) {
                         err("build power supply unit rpt failed");
-                        g_free(result);
-                        result = NULL;
+                        wrap_g_free(result);
                         xmlFreeDoc( ps_info_doc);
                         xmlFreeDoc( ps_sts_doc);
                         return rv;
@@ -3849,8 +3843,7 @@ SaErrorT discover_power_supply(struct oh_handler_state *oh_handler)
                         oa_soap_update_resource_status(
                               &oa_handler->oa_soap_resources.ps_unit, i,
                               "", SAHPI_UNSPECIFIED_RESOURCE_ID, RES_ABSENT);
-                        g_free(result);
-                        result = NULL;
+                        wrap_g_free(result);
                         xmlFreeDoc( ps_info_doc);
                         xmlFreeDoc( ps_sts_doc);
                         return rv;
@@ -3861,8 +3854,7 @@ SaErrorT discover_power_supply(struct oh_handler_state *oh_handler)
         sts_response.powerSupplyStsArray =
                 soap_next_node(sts_response.powerSupplyStsArray);
         }
-        g_free(result);
-        result = NULL;
+        wrap_g_free(result);
         xmlFreeDoc(ps_info_doc);
         xmlFreeDoc(ps_sts_doc);
         return SA_OK;
@@ -5964,10 +5956,10 @@ SaErrorT oa_soap_server_mem_evt_discover(struct oh_handler_state *oh_handler,
                                         "event for sensor %x has "
                                         "failed",
                                        OA_SOAP_SEN_MAIN_MEMORY_ERRORS);
-                                    g_free(memoryError);
+                                    wrap_g_free(memoryError);
                                     return rv;
                             }
-                            g_free(memoryError);
+                            wrap_g_free(memoryError);
                             strcpy(mainMemoryError, subStr + 2);
                             if (j == 99) {
                                      err("Too many memory errors, getting out");

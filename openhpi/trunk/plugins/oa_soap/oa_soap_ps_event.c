@@ -47,6 +47,7 @@
  */
 
 #include "oa_soap_ps_event.h"
+#include "sahpi_wrappers.h"
 
 /**
  * process_ps_insertion_event
@@ -94,8 +95,7 @@ SaErrorT process_ps_insertion_event(struct oh_handler_state *oh_handler,
         rv = soap_getPowerSupplyInfo(con, &info, response);
         if (rv != SOAP_OK) {
                 err("Get power supply info failed");
-                g_free(response);
-                response = NULL;
+                wrap_g_free(response);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
@@ -114,13 +114,11 @@ SaErrorT process_ps_insertion_event(struct oh_handler_state *oh_handler,
         rv = add_ps_unit(oh_handler, con, response);
         if (rv != SA_OK) {
                 err("Add power supply unit failed");
-                g_free(response);
-                response = NULL;
+                wrap_g_free(response);
                 return rv;
         }
 
-        g_free(response);
-        response = NULL;
+        wrap_g_free(response);
         return SA_OK;
 }
 
@@ -668,7 +666,7 @@ SaErrorT oa_soap_proc_ps_info(struct oh_handler_state *oh_handler,
         serial_number[len]='\0';
         if (strcmp(serial_number,"[Unknown]") == 0 )  {
                 err("Serial # of PSU at %d is [Unknown]", bay_number);
-                g_free(serial_number);
+                wrap_g_free(serial_number);
                 return SA_ERR_HPI_OUT_OF_MEMORY;
         }
 
@@ -690,7 +688,7 @@ SaErrorT oa_soap_proc_ps_info(struct oh_handler_state *oh_handler,
                                     bay_number, &resource_id);
         if (rv != SA_OK) {
                 err("Failed to build the ps_unit RPT for PSU at %d", bay_number);
-                g_free(serial_number);
+                wrap_g_free(serial_number);
                 return rv;
         }
 
@@ -708,7 +706,7 @@ SaErrorT oa_soap_proc_ps_info(struct oh_handler_state *oh_handler,
         rv = build_power_supply_rdr(oh_handler, con,
                                     &(oa_event->eventData.powerSupplyInfo), resource_id);
 
-        g_free(serial_number);
+        wrap_g_free(serial_number);
         return SA_OK;
 
 }
