@@ -6,7 +6,7 @@
 %define _sourcedir %{_topdir}
 %define _specdir %{_topdir}
 %define _srcrpmdir %{_rpmtopdir}/SRPMS
-%define _docdir %{_datadir}/doc/%{name}-%{version}
+%define _docdir %{_datadir}/doc/%{name}
 
 # For systems where libuuid is provided in e2fsprogs rpm 
 %define uuid_provider e2fsprogs
