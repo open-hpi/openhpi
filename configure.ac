@@ -209,6 +209,12 @@ AC_ARG_ENABLE([cpp_wrappers],
 
 AC_SUBST(ENABLED_DIRS)
 
+dnl Old autotools do not define docdir
+AC_SUBST([docdir])
+if test x$docdir = x; then
+    AC_SUBST([docdir], ${datadir}/doc/${PACKAGE_NAME})
+fi
+
 dnl Checks for header files.
 AC_HEADER_STDC
 AC_CHECK_HEADERS([fcntl.h stdlib.h string.h sys/time.h unistd.h stdarg.h netinet/in.h])
