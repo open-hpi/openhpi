@@ -767,9 +767,9 @@ SaErrorT re_discover_blade(struct oh_handler_state *oh_handler,
                 parse_bladeStatus(sts_response.bladeStsArray,&sts_result);
                 parse_bladePortMap(pm_response.portMapArray,&pm_result);
                 i = result.bayNumber;
-                state = RES_ABSENT;
-                replace_resource = SAHPI_FALSE;
-
+                state = RES_ABSENT; // Assume blade not present in enclosure
+                replace_resource = SAHPI_FALSE; // Assume don't replace in RPT
+                
                 if (result.presence != PRESENT ) {
                         /* The blade is absent.  Is the blade absent in
                          * the presence matrix?
@@ -777,62 +777,70 @@ SaErrorT re_discover_blade(struct oh_handler_state *oh_handler,
                         if (oa_handler->oa_soap_resources.server.presence[i - 1]
                             == RES_ABSENT){
                             info_response.bladeInfoArray = 
-                                      soap_next_node( info_response.bladeInfoArray);
+                                soap_next_node( info_response.bladeInfoArray);
                             sts_response.bladeStsArray =
-                                    soap_next_node( sts_response.bladeStsArray);
+                                soap_next_node( sts_response.bladeStsArray);
                             pm_response.portMapArray =
-                                   soap_next_node( pm_response.portMapArray);
+                                soap_next_node( pm_response.portMapArray);
                                 continue;
                         } else
                                 state = RES_ABSENT;
                 }
                 /* The server blade is present.  Is the server present in
-                 * the presence matrix?
+                 * the presence matrix? 
                  */
                 else if (oa_handler->oa_soap_resources.server.presence[i - 1]
                            == RES_PRESENT) {
-			/* NULL pointer Check for the serial Number to avoid the segfault*/
-			if (result.serialNumber != 0){
-                        /* If Serial number is different, remove and
-                         * add the blade
-                         */
-                        if (strcmp(oa_handler->oa_soap_resources.server.
+                        /* Perform an error check on Serial Number */
+                        oa_soap_check_serial_number(i, result.serialNumber);
+
+			/* NULL pointer Check to avoid the segfault*/
+			if (result.serialNumber != 0) {  
+                                /* If Serial number is different, remove and
+                                 * add the blade
+                                 */
+                               if (strcmp(oa_handler->oa_soap_resources.server.
                                    serial_number[i - 1],
                                    result.serialNumber) != 0) {
-                                replace_resource = SAHPI_TRUE;
-                        } else {
-                                /* Check and update the hotswap state
-                                 * of the server blade
-                                 */
-                                if(result.bladeType == BLADE_TYPE_SERVER) {
-                                    rv = update_server_hotswap_state(
-                                             oh_handler, con, i);
-                                    if (rv != SA_OK) {
-                                        err("Update server hot swap"
-                                            " state failed");
-                                        xmlFreeDoc( bl_info_doc);
-                                        xmlFreeDoc(bl_pm_doc);
-                                        xmlFreeDoc(bl_sts_doc);
-                                        return rv;
-                                    }
-                                }
-				/* Check the server sensors state */
-                                oa_soap_proc_server_status(oh_handler, con,
-                                                           &sts_result);
-                                info_response.bladeInfoArray = 
+                                        replace_resource = SAHPI_TRUE;
+                               } else {
+                                       /* Check and update the hotswap state
+                                        * of the server blade
+                                        */
+                                      if(result.bladeType == BLADE_TYPE_SERVER){
+                                              rv = update_server_hotswap_state(
+                                                   oh_handler, con, i);
+                                              if (rv != SA_OK) {
+                                                   err("Update server hot swap"
+                                                       " state failed");
+                                                   xmlFreeDoc( bl_info_doc);
+                                                   xmlFreeDoc(bl_pm_doc);
+                                                   xmlFreeDoc(bl_sts_doc);
+                                                   return rv;
+                                              }
+                                      }
+				      /* Check the server sensors state */
+                                      oa_soap_proc_server_status(oh_handler, 
+                                                       con, &sts_result);
+                                      info_response.bladeInfoArray = 
                                        soap_next_node(info_response.bladeInfoArray);
-                                sts_response.bladeStsArray =
-                                    soap_next_node( sts_response.bladeStsArray);
-                                pm_response.portMapArray =
-                                   soap_next_node( pm_response.portMapArray);
-                                continue;
-                        }
-			} else
-                                replace_resource = SAHPI_TRUE;
-                } else
+                                      sts_response.bladeStsArray =
+                                       soap_next_node( sts_response.bladeStsArray);
+                                      pm_response.portMapArray =
+                                       soap_next_node( pm_response.portMapArray);
+                                       continue;
+                              }
+			} else { 
+                               replace_resource = SAHPI_TRUE;
+                        }                 
+                } else {
+                        oa_soap_check_serial_number(i, result.serialNumber);
                         state = RES_PRESENT;
+                }
 
-                if (state == RES_ABSENT || replace_resource == SAHPI_TRUE) {
+                if ((state == RES_ABSENT || replace_resource == SAHPI_TRUE) &&
+                    (oa_handler->oa_soap_resources.server.presence[i - 1]
+                           == RES_PRESENT)) {
                         /* The server blade is present according OA presence
                          * matrix, but server is removed.  Remove the server
                          * resource from RPTable.

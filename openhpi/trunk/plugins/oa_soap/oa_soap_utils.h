@@ -122,4 +122,8 @@ SaErrorT update_oa_fw_version(struct oh_handler_state *oh_handler,
 SaErrorT oa_soap_get_oa_ip(char *server,
                       struct oaNetworkInfo network_info_response,
                       char *oa_ip);
+
+void oa_soap_check_serial_number(int slot, 
+                                 char *serial_number);
+
 #endif
