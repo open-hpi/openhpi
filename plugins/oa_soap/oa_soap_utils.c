@@ -105,6 +105,9 @@
  *      update_oa_fw_version()          - Updates the RPT entry and IDR entry
  *                                        with OA firmware version
  *
+ *      oa_soap_check_serial_number()   - Check the serial_number and
+ *                                        give a proper message
+ *
  **/
 
 #include "oa_soap_utils.h"
@@ -1809,4 +1812,47 @@ SaErrorT oa_soap_get_oa_ip(char *server,
                 strcat(oa_ip, interface_name);
         }
         return SA_OK;
+}
+
+/**
+ * oa_soap_check_serial_number()
+ *      @slot:              slot number of the blade
+ *      @serial_number:     Pointer to serial_number string
+ *
+ * Purpose:
+ *      Just prints out a message. OA sends out information from iLO as it
+ *      becomes available. So empty, "[Unknown]" serial numbers are common
+ *      During a re-discovery after a switchover a blade with a good serial
+ *      number could be replaced with a blade with a bad serial number. So 
+ *      only thing we could do is give a warning message. Nothing more. It 
+ *      is users responsility to correct it using RBSU/boot utility
+ *
+ * Detailed Description: NA
+ *
+ * Return values:
+ *                Void
+ **/
+void oa_soap_check_serial_number(int slot, char *serial_number)
+{
+        int j=0, len=0;
+
+        if (serial_number == 0 ) { 
+               WARN("Blade(%d) serialNumber is NULL",slot);
+        } else if ((len = strlen(serial_number)) == 0) { 
+               WARN("Blade(%d) serialNumber is empty",slot);
+        } else if (strcmp(serial_number,"[Unknown]")) {
+               if (len >= 9) 
+                    len = 9;
+               for (j =0; j < len; j++){
+                     if (isalnum(serial_number[j]))
+                         continue;
+                     else {
+                         CRIT("Blade(%d) serialNumber %s is "
+                              "invalid",slot,serial_number);
+                         break;
+                     }
+               }
+        } else {
+               dbg("Blade(%d) serialNumber is [Unknown]",slot);
+        }
 }
