@@ -203,14 +203,14 @@ while ( <FILE_MAP> ) {
 ################################################
 if ($xml) {
     if (&print_xml_file_header) { $err = 0; goto CLEANUP; }
-    foreach my $event_message (keys %eventmap) {
+    foreach my $event_message (sort keys %eventmap) {
 	if (&print_xml_file_hash_member($event_message)) { $err = 0; goto CLEANUP; }
     }
     if (&print_xml_file_ending) { $err = 0; goto CLEANUP; }
 }
 else {
     if (&print_c_file_header) { $err = 0; goto CLEANUP; }
-    foreach my $event_message (keys %eventmap) {
+    foreach my $event_message (sort keys %eventmap) {
 	if (&print_c_file_hash_member($event_message)) { $err = 0; goto CLEANUP; }
     }
     if (&print_c_file_ending) { $err = 0; goto CLEANUP; }
