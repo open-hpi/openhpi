@@ -292,6 +292,7 @@ static int	thread_cleanup(void)
 		g_free(mutexes);
 		mutexes = NULL;
 	}
+        wrap_g_static_mutex_unlock(&ssl_mutexes);
 	wrap_g_static_mutex_free_clear(&ssl_mutexes);
 
 	return(0);			/* No errors */
