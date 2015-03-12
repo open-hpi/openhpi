@@ -242,9 +242,9 @@ struct oa_soap_hotswap_state {
 		if (oa_handler->shutdown_event_thread == SAHPI_TRUE) { \
 			dbg("Shutting down the OA SOAP event thread"); \
 			if (oa_mutex != NULL) \
-				g_mutex_unlock(oa_mutex); \
+				wrap_g_mutex_unlock(oa_mutex); \
 			if (hnd_mutex != NULL) \
-				g_mutex_unlock(hnd_mutex); \
+				wrap_g_mutex_unlock(hnd_mutex); \
 			if (timer != NULL) \
 				g_timer_destroy(timer); \
 			g_thread_exit(NULL); \

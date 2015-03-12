@@ -229,7 +229,8 @@ static SaErrorT oa_soap_server_mem_evt_discover(struct oh_handler_state
  *        initialazation), then, starts the discovery
  *
  * Return values:
- *      SA_OK                     - on success.
+ *      SA_OK                     - on success or on shutdown_event_thread
+ *      			    set to TRUE or discovery already completed 
  *      SA_ERR_HPI_INVALID_PARAMS - on wrong parameters
  *      SA_ERR_HPI_INTERNAL_ERROR - on failure.
  **/
@@ -258,6 +259,15 @@ SaErrorT oa_soap_discover_resources(void *oh_handler)
                         return SA_ERR_HPI_INTERNAL_ERROR;
                 }
         }
+
+	/* Check the event thread shutdown status 
+	 * If TRUE, return SA_OK
+	 */
+	if (oa_handler->shutdown_event_thread == SAHPI_TRUE) {
+		dbg("shutdown_event_thread set. Returning in thread %p",
+                     g_thread_self());
+		return SA_OK;
+	}
 
         /* Check the status of the plugin */
         wrap_g_mutex_lock(oa_handler->mutex);
@@ -314,7 +324,8 @@ SaErrorT oa_soap_discover_resources(void *oh_handler)
                 default:
                         /* This code should never get executed */
                         wrap_g_mutex_unlock(oa_handler->mutex);
-                        err("Wrong oa_soap handler state detected");
+                        err("Wrong oa_soap handler state %d detected",
+                              oa_handler->status);
                         return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
