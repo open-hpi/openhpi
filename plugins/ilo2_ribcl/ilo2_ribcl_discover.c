@@ -89,6 +89,7 @@ static SaErrorT ilo2_ribcl_get_iml( struct oh_handler_state *,
 static int ilo2_ribcl_getfile( char *, char *, int);
 #endif /* ILO2_RIBCL_SIMULATE_iLO2_RESPONSE */
 
+extern SaHpiBoolT close_handler;
 
 
 /**
@@ -127,7 +128,13 @@ SaErrorT ilo2_ribcl_discover_resources(void *handler)
         ilo2_ribcl_handler_t *ilo2_ribcl_handler;
 	SaErrorT  ret;
 	SaHpiEntityPathT ep_root;
-	
+        
+        if( close_handler == SAHPI_TRUE ) {
+            INFO("ilo2_ribcl_handler is closed. Thread %p returning",
+                     g_thread_self());
+            return(SA_OK);
+        }
+
 	if (!handler) {
 		err("ilo2_ribcl_discover_resources(): Invalid handler parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);

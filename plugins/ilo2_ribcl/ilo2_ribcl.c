@@ -46,6 +46,7 @@
 #include <ilo2_ribcl_discover.h>
 #include <ilo2_ribcl_sensor.h>
 static SaHpiEntityPathT g_epbase; /* root entity path (from config) */
+SaHpiBoolT close_handler = SAHPI_FALSE;
 
 /*****************************
 	iLO2 RIBCL plug-in ABI Interface functions
@@ -284,6 +285,7 @@ void *ilo2_ribcl_open(GHashTable *handler_config,
 	}
 	/* Initialize sensor data */
 	ilo2_ribcl_init_sensor_data( ilo2_ribcl_handler);
+        close_handler = SAHPI_FALSE;
 
 	return((void *)oh_handler);
 }
@@ -311,6 +313,11 @@ void ilo2_ribcl_close(void *handler)
         if(oh_handler == NULL) {
                 return;
         }
+
+        close_handler = SAHPI_TRUE;
+
+        /* Sleep so that discovery thread get this variable */
+        sleep(1);
 
         ilo2_ribcl_handler = (ilo2_ribcl_handler_t *) oh_handler->data;
 	if(ilo2_ribcl_handler == NULL) {
@@ -366,6 +373,12 @@ SaErrorT ilo2_ribcl_get_event(void *handler)
 		(struct oh_handler_state *) handler;
         ilo2_ribcl_handler_t *ilo2_ribcl_handler;
 	
+        if( close_handler == SAHPI_TRUE ) {
+             INFO("ilo2_ribcl_handler is closed. Thread %p returning.",
+                     g_thread_self());
+             return(SA_OK);
+        }
+
         if (!handler) {
                 err("ilo2 ribcl get event: Invalid parameter");
                 return(SA_ERR_HPI_INVALID_PARAMS);
