@@ -162,7 +162,7 @@ SaErrorT build_oa_soap_custom_handler(struct oh_handler_state *oh_handler)
                 oa_handler->oa_2->event_con2 = NULL;
                 oa_handler->oa_2->thread_handler = NULL;
                 oa_handler->oa_2->mutex = wrap_g_mutex_new_init();
-                memset(oa_handler->oa_1->server, 0, MAX_URL_LEN);
+                memset(oa_handler->oa_2->server, 0, MAX_URL_LEN);
 		oa_handler->oa_2->oh_handler = oh_handler;
 
                 /* Put the oa_handler in oh_handler */
