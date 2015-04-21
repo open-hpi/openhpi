@@ -1920,10 +1920,15 @@ static int ir_xml_record_vrmdata( ilo2_ribcl_handler_t *ir_handler,
 
 	ret = sscanf( (char *)vrmlabel, "VRM %d", &vrmindex);
 	if( ret != 1){
-		/* We didn't parse the VRM label correctly */
-		err("ir_xml_record_vrmdata: incorrect VRM label string: %s",
-			vrmlabel);
-		return( -1);
+               /* Some times the format of the VRM label is 'VRM (CPUn)'
+                * where is n is an integer value begining with 1. */
+               ret = sscanf( (char *)vrmlabel, "VRM (CPU%d)", &vrmindex);
+               if( ret != 1){
+                      /* We didn't parse the VRM label correctly */
+		      err("ir_xml_record_vrmdata: incorrect VRM label "
+                          "string: %s", vrmlabel);
+		      return( -1);
+               }
 	}
 
 	/* The index for this VRM should be between 1 and
