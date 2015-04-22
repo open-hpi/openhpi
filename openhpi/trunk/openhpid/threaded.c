@@ -26,7 +26,7 @@ static const glong OH_DISCOVERY_THREAD_SLEEP_TIME = 180 * G_USEC_PER_SEC;
 static const glong OH_EVTGET_THREAD_SLEEP_TIME    = 3 * G_USEC_PER_SEC;
 
 static volatile int started = FALSE;
-static volatile int stop    = FALSE;
+volatile int signal_stop    = FALSE;
 
 GThread *discovery_thread = 0;
 GMutex *discovery_lock    = 0;
@@ -44,7 +44,7 @@ static gpointer discovery_func(gpointer data)
         DBG("Begin discovery.");
 
         g_mutex_lock(discovery_lock);
-        while (stop == FALSE) {
+        while (signal_stop == FALSE) {
                 DBG("Discovery: Iteration.");
                 SaErrorT error = oh_discovery();
                 if (error != SA_OK) {
@@ -53,6 +53,9 @@ static gpointer discovery_func(gpointer data)
 
                 /* Let oh_wake_discovery_thread know this thread is done */
                 g_cond_broadcast(discovery_cond);
+
+		if(signal_stop == TRUE)
+			break;
 
                 DBG("Discovery: Going to sleep.");
                 GTimeVal time;
@@ -77,12 +80,15 @@ static gpointer evtget_func(gpointer data)
         DBG("Begin event harvesting.");
 
         g_mutex_lock(evtget_lock);
-        while (stop == FALSE) {
+        while (signal_stop == FALSE) {
                 DBG("Event harvesting: Iteration.");
                 SaErrorT error = oh_harvest_events();
                 if (error != SA_OK) {
                         CRIT("Error on harvest of events.");
                 }
+
+		if(signal_stop == TRUE)
+			break;
 
                 DBG("Event harvesting: Going to sleep.");
                 GTimeVal time;
@@ -127,7 +133,7 @@ int oh_threaded_start()
                 wrap_g_thread_init(0);
         }
 
-        stop = FALSE;
+        signal_stop = FALSE;
 
         DBG("Starting discovery thread.");
         discovery_cond = wrap_g_cond_new_init();
@@ -152,7 +158,7 @@ int oh_threaded_stop(void)
                 return 0;
         }
 
-        stop = TRUE;
+        signal_stop = TRUE;
 
         g_thread_join(evtpop_thread);
         evtpop_thread = 0;
