@@ -660,6 +660,7 @@ int             oh_ssl_read(BIO *bio, char *buf, int size, long timeout)
         int             done;
         int             err;
         int             fd;
+        int             e = 0;
 
         if (bio == NULL) {
                 CRIT("NULL bio in oh_ssl_read()");
@@ -737,6 +738,7 @@ int             oh_ssl_read(BIO *bio, char *buf, int size, long timeout)
                 /* The socket has something.  Ready to try (or re-try)
                  * the read call.
                  */
+                ERR_clear_error();
                 bytes = SSL_read(ssl, buf, size);
                 switch (SSL_get_error(ssl, bytes)) {
                         case SSL_ERROR_NONE:
@@ -758,10 +760,30 @@ int             oh_ssl_read(BIO *bio, char *buf, int size, long timeout)
                         case SSL_ERROR_WANT_WRITE:
                                 read_wait = 0;
                                 break;
+                        case SSL_ERROR_SSL:
+                                e = ERR_get_error();
+                                CRIT("SSL_read reported error %s",
+                                           ERR_error_string(e, NULL));
+                                return(-1);
+                        case SSL_ERROR_SYSCALL:
+                                e = ERR_get_error();
+                                if (bytes == 0 ) {
+                                      CRIT("No bytes read");
+                                } else if ( bytes == -1 ) {
+                                      CRIT("Reading data error %s",
+                                            strerror(errno));
+                                } else {
+                                      CRIT("SSL_read error %s",
+                                                ERR_error_string(e, NULL));
+                                } 
+                                return(-1);
                         default:
                                 /* Some other sort of error */
-                                CRIT("SSL_read reported error%d",SSL_get_error(ssl, bytes));
+                                e = ERR_get_error();
+                                CRIT("SSL_read reported error %s",
+                                           ERR_error_string(e, NULL));
                                 return(-1);
+
                 }
         }
 
@@ -801,6 +823,7 @@ int             oh_ssl_write(BIO *bio, char *buf, int size, long timeout)
         int             err;
         int             fd;
         int             sent;
+        int             e = 0;
 
         if (bio == NULL) {
                 CRIT("NULL bio in oh_ssl_write()");
@@ -877,6 +900,7 @@ int             oh_ssl_write(BIO *bio, char *buf, int size, long timeout)
                 /* The socket is ready.  Ready to try (or re-try) the write
                  * call.
                  */
+                ERR_clear_error();
                 bytes = SSL_write(ssl, buf + sent, size - sent);
                 switch (SSL_get_error(ssl, bytes)) {
                         case SSL_ERROR_NONE:
@@ -899,9 +923,28 @@ int             oh_ssl_write(BIO *bio, char *buf, int size, long timeout)
                         case SSL_ERROR_WANT_WRITE:
                                 write_wait = 1;
                                 break;
+                        case SSL_ERROR_SSL:
+                                e = ERR_get_error();
+                                CRIT("SSL_write reported error %s",
+                                           ERR_error_string(e, NULL));
+                                return(-1);
+                        case SSL_ERROR_SYSCALL:
+                                e = ERR_get_error();
+                                if (bytes == 0 ) {
+                                      CRIT("No bytes written");
+                                } else if ( bytes == -1 ) {
+                                      CRIT("Writing data error %s",
+                                            strerror(errno));
+                                } else {
+                                      CRIT("SSL_write error %s",
+                                                ERR_error_string(e, NULL));
+                                } 
+                                return(-1);
                         default:
                                 /* Some other sort of error */
-                                CRIT("error %d from SSL_write", bytes);
+                                e = ERR_get_error();
+                                CRIT("SSL_write reported error %s",
+                                              ERR_error_string(e, NULL));
                                 return(-1);
                 }
         }
