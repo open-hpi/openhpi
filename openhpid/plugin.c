@@ -37,6 +37,7 @@
 #include "lock.h"
 #include "sahpi_wrappers.h"
 
+extern volatile int signal_stop;
 /*
  * Structure containing global list of plugins (oh_plugin).
  */
@@ -721,6 +722,9 @@ SaErrorT oh_discovery(void)
         oh_getnext_handler_id(hid, &next_hid);
         while (next_hid) {
                 hid = next_hid;
+
+		if(signal_stop == TRUE)
+			break;
 
                 SaErrorT cur_error;
 

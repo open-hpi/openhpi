@@ -37,6 +37,7 @@
 #include "event.h"
 
 
+extern volatile int signal_stop;
 oh_evt_queue * oh_process_q = 0;
 
 /*
@@ -194,6 +195,9 @@ SaErrorT oh_harvest_events()
         while (next_hid) {
                 DBG("harvesting for %d", next_hid);
                 hid = next_hid;
+
+		if(signal_stop == TRUE)
+			break;
 
                 h = oh_get_handler(hid);
                 if (!h) {
