@@ -212,6 +212,8 @@ SaErrorT ilo2_ribcl_set_power_state(void *hnd,
 	char *new_response = NULL;
 	int ret;
 	ilo2_ribcl_resource_info_t *res_info = NULL;
+        SaHpiPowerStateT temp_state;
+        int polls = 0;
 
 	if (!hnd || NULL == oh_lookup_powerstate(state)){
 		err("ilo2_ribcl_set_power_state(): Invalid parameter.");
@@ -311,8 +313,6 @@ SaErrorT ilo2_ribcl_set_power_state(void *hnd,
 
 	/* If the requested state is SAHPI_POWER_CYCLE, turn the power on */
 	if(state == SAHPI_POWER_CYCLE) {
-		SaHpiPowerStateT temp_state;
-		int polls;
 
 		/* First, wait for the power to go off. An orderly shutdown
 		 * is being performed, so we might have to wait for
@@ -395,7 +395,22 @@ SaErrorT ilo2_ribcl_set_power_state(void *hnd,
 		res_info->power_cur_state = SAHPI_POWER_ON;
 	} else {
 		/* Save current value in res_info */
-		res_info->power_cur_state = state;
+                for( polls=0; polls < ILO2_MAX_POWER_POLLS; polls++){
+                     ilo2_ribcl_get_power_state(hnd, rid, &temp_state);
+                     if(temp_state == state){
+                        res_info->power_cur_state = state;
+                        return(SA_OK);
+                     }
+                     sleep( ILO2_POWER_POLL_SLEEP_SECONDS);
+                }
+                if( polls == ILO2_MAX_POWER_POLLS){
+                    err(" %s Failed to get to the requested %s state even after "
+                          "%d seconds", ilo2_ribcl_handler->ir_hostname,
+                          state?"Power ON":"Power OFF", 
+                          ILO2_MAX_POWER_POLLS*ILO2_POWER_POLL_SLEEP_SECONDS);
+	
+                    return( SA_ERR_HPI_INVALID_STATE);
+                }
 	}
         return(SA_OK);
 }
