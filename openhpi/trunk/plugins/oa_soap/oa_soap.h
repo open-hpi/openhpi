@@ -215,6 +215,8 @@ struct oa_soap_handler
         uint desired_dynamic_pwr_cap;
         uint desired_derated_circuit_cap;
         uint desired_rated_circuit_cap;
+        SaHpiInt32T memErrRecFlag[16];
+        time_t server_insert_timer[16];
 };
 
 /* Structure for storing the current hotswap state of the resource */

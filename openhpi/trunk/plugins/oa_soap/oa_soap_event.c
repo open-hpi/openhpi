@@ -56,8 +56,6 @@
 #include "oa_soap_event.h"
 #include "sahpi_wrappers.h"
 #include <sys/time.h>
-/* Global Variables */
-time_t server_insert_timer[16] = {0};
 
 /**
  * oa_soap_get_event
