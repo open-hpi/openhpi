@@ -184,8 +184,6 @@
 #include "oa_soap_calls.h"
 #include "sahpi_wrappers.h"
 
-/* Global Variables */
-SaHpiInt32T memErrRecFlag[16] = {0};
 
 /* Forward declaration for static functions */
 static SaErrorT oa_soap_build_enc_info(struct oh_handler_state *oh_handler,
@@ -5922,7 +5920,7 @@ SaErrorT oa_soap_server_mem_evt_discover(struct oh_handler_state *oh_handler,
                     err("openhpid[%d]: Blade (id=%d) at %d has "
                         "Memory Error: %s", getpid(),
                          rpt->ResourceId, i, extra_data_info.value);
-                    memErrRecFlag[i] = 1;
+                    oa_handler->memErrRecFlag[i] = 1;
   
                     /* This MEMORY event is created just to let the 
                        user know which memory module is generating 

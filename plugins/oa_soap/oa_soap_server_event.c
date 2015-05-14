@@ -66,8 +66,6 @@
 #include "oa_soap_server_event.h"
 #include "oa_soap_discover.h"           /* for build_server_rpt() prototype */
 #include "sahpi_wrappers.h"
-extern time_t server_insert_timer[];
-extern SaHpiInt32T memErrRecFlag[];
 
 /**
  * process_server_power_off_event
@@ -425,16 +423,18 @@ SaErrorT oa_soap_proc_server_inserted_event(struct oh_handler_state *oh_handler,
                                         struct eventInfo *oa_event)
 {
         SaHpiInt32T bay_number = 0;
+        struct oa_soap_handler *oa_handler = NULL;
         time_t now = 0;
 
         if (oh_handler == NULL || con == NULL || oa_event == NULL) {
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
+        oa_handler = (struct oa_soap_handler *) oh_handler->data;
         time(&now);
         bay_number =
                 oa_event->eventData.bladeStatus.bayNumber;
-        server_insert_timer[bay_number - 1] = now;
+        oa_handler->server_insert_timer[bay_number - 1] = now;
         return SA_OK;
 }
 
@@ -517,10 +517,10 @@ SaErrorT process_server_insert_completed(struct oh_handler_state
 
         time_t now = 0;
         time(&now);
-        int delay = now - server_insert_timer[bay_number - 1];
+        int delay = now - oa_handler->server_insert_timer[bay_number - 1];
         if (delay)
                dbg("Took %d secs to add blade at bay %d\n",delay, bay_number);
-        server_insert_timer[bay_number - 1] = 0;
+        oa_handler->server_insert_timer[bay_number - 1] = 0;
 
         /* Update resource_status structure with resource_id, serial_number,
          * and presence status
@@ -672,7 +672,7 @@ SaErrorT process_server_info_event(struct oh_handler_state
         /* Get the rpt entry of the resource */
         rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
         if (rpt == NULL) {
-		if (server_insert_timer[bay_number-1]){
+		if (oa_handler->server_insert_timer[bay_number-1]){
                         wrap_g_free(serial_number);
                         return SA_OK;
 		}
@@ -927,7 +927,7 @@ void oa_soap_proc_server_status(struct oh_handler_state *oh_handler,
 	if (rpt == NULL) {
                 /* RPT is null. It may yet to be added. If the timer is
                    on event comes early.  Just return */
-                if ((server_insert_timer[bay - 1]) || 
+                if ((oa_handler->server_insert_timer[bay - 1]) || 
                     (status->powered == POWER_UNKNOWN)) {
                         return;
                 } 
@@ -942,13 +942,13 @@ void oa_soap_proc_server_status(struct oh_handler_state *oh_handler,
                    err("openhpid[%d]: Blade (id=%d) at %d has Memory Error: %s",
                     getpid(), resource_id, bay, extra_data_info.value);
                    memErrFlag[bay] = 1;
-                   memErrRecFlag[bay] = 1;
+                   oa_handler->memErrRecFlag[bay] = 1;
                    break;
                 }
                 extra_data = soap_next_node(extra_data);
         }
 
-        if(memErrRecFlag[bay]) {
+        if(oa_handler->memErrRecFlag[bay]) {
                 /* This MEMORY event is created just to let the user
                    know whether all memory modules are fine, if not,
                    which memory module is generating an error */
@@ -999,7 +999,7 @@ void oa_soap_proc_server_status(struct oh_handler_state *oh_handler,
                                          OA_SOAP_SEN_MAIN_MEMORY_ERRORS);
                                     return;
                             }
-                            memErrRecFlag[bay] = 0;
+                            oa_handler->memErrRecFlag[bay] = 0;
                     }
                 }
         }
@@ -1551,7 +1551,7 @@ SaErrorT process_server_mp_info_event(struct oh_handler_state
 
         rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
         if (rpt == NULL) {
-                if (server_insert_timer[bay_number - 1]) {
+                if (oa_handler->server_insert_timer[bay_number - 1]) {
                         return SA_OK;
                 }
                 err("Server RPT at bay %d is NULL",bay_number);
