@@ -723,8 +723,10 @@ SaErrorT oh_discovery(void)
         while (next_hid) {
                 hid = next_hid;
 
-		if(signal_stop == TRUE)
-			break;
+                if(signal_stop == TRUE){
+                   error = SA_OK;
+                   break;
+                }
 
                 SaErrorT cur_error;
 
