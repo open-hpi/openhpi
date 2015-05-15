@@ -196,8 +196,10 @@ SaErrorT oh_harvest_events()
                 DBG("harvesting for %d", next_hid);
                 hid = next_hid;
 
-		if(signal_stop == TRUE)
-			break;
+                if(signal_stop == TRUE){
+                   error = SA_OK;
+                   break;
+                }
 
                 h = oh_get_handler(hid);
                 if (!h) {
