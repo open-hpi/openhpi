@@ -77,9 +77,9 @@ ALLSOURCES = \
         $(shell find $(top_srcdir)/utils -name .svn -o -name CVS -prune -o \
         -name '*.[chS]' -print | grep -v '/t/') \
         $(shell find $(top_srcdir)/openhpid -name .svn -o -name CVS -prune -o \
-        -name '*.[chS]' -print -o '*.cpp' -print | grep -v '/t/') \
+        -name '*.[chS]' -print -o -name '*.cpp' -print | grep -v '/t/') \
         $(shell find $(top_srcdir)/plugins -name .svn -o -name CVS -prune -o \
-        -name '*.[chS]' -print -o '*.cpp' -print | grep -v '/t/') \
+        -name '*.[chS]' -print -o -name '*.cpp' -print | grep -v '/t/') \
         $(shell find $(top_srcdir)/snmp -name .svn -o -name CVS -prune -o \
         -name '*.[chS]' -print | grep -v '/t/') \
         $(shell find $(top_srcdir)/ssl -name .svn -o -name CVS -prune -o \
