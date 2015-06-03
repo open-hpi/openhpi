@@ -266,6 +266,7 @@ SaErrorT oa_soap_discover_resources(void *oh_handler)
                      g_thread_self());
 		return SA_OK;
 	}
+        oa_handler->in_discovery_thread = HPOA_TRUE;
 
         /* Check the status of the plugin */
         wrap_g_mutex_lock(oa_handler->mutex);
@@ -285,6 +286,7 @@ SaErrorT oa_soap_discover_resources(void *oh_handler)
                         rv = build_oa_soap_custom_handler(handler);
                         if (rv != SA_OK) {
                                 err("Plugin initialization failed");
+                                oa_handler->in_discovery_thread = HPOA_FALSE;
                                 return rv;
                         }
                         break;
@@ -303,6 +305,7 @@ SaErrorT oa_soap_discover_resources(void *oh_handler)
                                 wrap_g_mutex_unlock(oa_handler->mutex);
                                 err("Discovery failed for OA %s",
                                     oa_handler->active_con->server);
+                                oa_handler->in_discovery_thread = HPOA_FALSE;
                                 return SA_ERR_HPI_INTERNAL_ERROR;
                         }
                         break;
@@ -316,6 +319,7 @@ SaErrorT oa_soap_discover_resources(void *oh_handler)
                          */
                         wrap_g_mutex_unlock(oa_handler->mutex);
                         dbg("Discovery already done");
+                        oa_handler->in_discovery_thread = HPOA_FALSE;
                         return SA_OK;
                         break;
 
@@ -324,6 +328,7 @@ SaErrorT oa_soap_discover_resources(void *oh_handler)
                         wrap_g_mutex_unlock(oa_handler->mutex);
                         err("Wrong oa_soap handler state %d detected",
                               oa_handler->status);
+                        oa_handler->in_discovery_thread = HPOA_FALSE;
                         return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
@@ -341,6 +346,7 @@ SaErrorT oa_soap_discover_resources(void *oh_handler)
                 if (oa_handler->oa_1->thread_handler == NULL) {
                         wrap_g_mutex_unlock(oa_handler->mutex);
                         err("wrap_g_thread_create_new failed");
+                        oa_handler->in_discovery_thread = HPOA_FALSE;
                         return SA_ERR_HPI_INTERNAL_ERROR;
                }
         } else
@@ -357,6 +363,7 @@ SaErrorT oa_soap_discover_resources(void *oh_handler)
                 if (oa_handler->oa_2->thread_handler == NULL) {
                         wrap_g_mutex_unlock(oa_handler->mutex);
                         err("wrap_g_thread_create_new failed");
+                        oa_handler->in_discovery_thread = HPOA_FALSE;
                         return SA_ERR_HPI_INTERNAL_ERROR;
                }
         } else
@@ -377,6 +384,7 @@ SaErrorT oa_soap_discover_resources(void *oh_handler)
                  * resource information.
                  */
                 cleanup_plugin_rptable(handler);
+                oa_handler->in_discovery_thread = HPOA_FALSE;
                 return rv;
         }
 
@@ -385,6 +393,7 @@ SaErrorT oa_soap_discover_resources(void *oh_handler)
 
         dbg("Discovery completed for active OA %s",
             oa_handler->active_con->server);
+        oa_handler->in_discovery_thread = HPOA_FALSE;
         return SA_OK;
 }
 
@@ -417,6 +426,14 @@ SaErrorT discover_oa_soap_system(struct oh_handler_state *oh_handler)
         handler = (struct oh_handler_state *) oh_handler;
         oa_handler = (struct oa_soap_handler *) handler->data;
 
+	/* Check the event thread shutdown status 
+	 * If TRUE, return SA_OK
+	 */
+	if (oa_handler->shutdown_event_thread == SAHPI_TRUE) {
+		dbg("shutdown_event_thread set. Returning in thread %p",
+                     g_thread_self());
+		return SA_OK;
+	}
         dbg("Discovering HP BladeSystem c-Class");
         dbg(" Discovering Enclosure ......................");
         rv = discover_enclosure(oh_handler);
@@ -425,6 +442,11 @@ SaErrorT discover_oa_soap_system(struct oh_handler_state *oh_handler)
                 return rv;
         }
 
+	if (oa_handler->shutdown_event_thread == SAHPI_TRUE) {
+		dbg("shutdown_event_thread set. Returning in thread %p",
+                     g_thread_self());
+		return SA_OK;
+	}
         dbg(" Discovering Blades ...................");
         rv = discover_server(oh_handler);
         if (rv != SA_OK) {
@@ -432,6 +454,11 @@ SaErrorT discover_oa_soap_system(struct oh_handler_state *oh_handler)
                 return rv;
         }
 
+	if (oa_handler->shutdown_event_thread == SAHPI_TRUE) {
+		dbg("shutdown_event_thread set. Returning in thread %p",
+                     g_thread_self());
+		return SA_OK;
+	}
         dbg(" Discovering InterConnect ...................");
         rv = discover_interconnect(oh_handler);
         if (rv != SA_OK) {
@@ -439,6 +466,11 @@ SaErrorT discover_oa_soap_system(struct oh_handler_state *oh_handler)
                 return rv;
         }
 
+	if (oa_handler->shutdown_event_thread == SAHPI_TRUE) {
+		dbg("shutdown_event_thread set. Returning in thread %p",
+                     g_thread_self());
+		return SA_OK;
+	}
 	dbg(" Discovering Thermal Subsystem ..............");
 	rv = oa_soap_disc_therm_subsys(oh_handler);
 	if (rv != SA_OK) {
@@ -455,6 +487,11 @@ SaErrorT discover_oa_soap_system(struct oh_handler_state *oh_handler)
 		}
 	}
 
+	if (oa_handler->shutdown_event_thread == SAHPI_TRUE) {
+		dbg("shutdown_event_thread set. Returning in thread %p",
+                     g_thread_self());
+		return SA_OK;
+	}
         dbg(" Discovering Fan ............................");
         rv = oa_soap_disc_fan(oh_handler);
         if (rv != SA_OK) {
@@ -462,6 +499,11 @@ SaErrorT discover_oa_soap_system(struct oh_handler_state *oh_handler)
                 return rv;
         }
 
+	if (oa_handler->shutdown_event_thread == SAHPI_TRUE) {
+		dbg("shutdown_event_thread set. Returning in thread %p",
+                     g_thread_self());
+		return SA_OK;
+	}
         dbg(" Discovering Power Subsystem ................");
         rv = discover_power_subsystem(oh_handler);
         if (rv != SA_OK) {
@@ -469,6 +511,11 @@ SaErrorT discover_oa_soap_system(struct oh_handler_state *oh_handler)
                 return rv;
         }
 
+	if (oa_handler->shutdown_event_thread == SAHPI_TRUE) {
+		dbg("shutdown_event_thread set. Returning in thread %p",
+                     g_thread_self());
+		return SA_OK;
+	}
         dbg(" Discovering Power Supply Unit ..............");
         rv = discover_power_supply(oh_handler);
         if (rv != SA_OK) {
@@ -476,6 +523,11 @@ SaErrorT discover_oa_soap_system(struct oh_handler_state *oh_handler)
                 return rv;
         }
 
+	if (oa_handler->shutdown_event_thread == SAHPI_TRUE) {
+		dbg("shutdown_event_thread set. Returning in thread %p",
+                     g_thread_self());
+		return SA_OK;
+	}
         dbg(" Discovering OA .............................");
         rv = discover_oa(oh_handler);
         if (rv != SA_OK) {

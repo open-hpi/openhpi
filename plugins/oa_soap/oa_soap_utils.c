@@ -108,6 +108,9 @@
  *      oa_soap_check_serial_number()   - Check the serial_number and
  *                                        give a proper message
  *
+ *      oa_soap_sleep_in_loop()   	- Sleep in 3 second intervals so that
+ *                                        thread could catch the signal and exit
+ *
  **/
 
 #include "oa_soap_utils.h"
@@ -712,7 +715,7 @@ SaErrorT check_oa_status(struct oa_soap_handler *oa_handler,
                  * Wait till it it becomes Active
                  */
                 err("OA is in transition state");
-                sleep(OA_STABILIZE_MAX_TIME);
+                oa_soap_sleep_in_loop(oa_handler, OA_STABILIZE_MAX_TIME);
                 rv = soap_getOaStatus(con, &status, &status_response);
                 if (rv != SOAP_OK) {
                         err("Get OA status call failed");
@@ -730,7 +733,8 @@ SaErrorT check_oa_status(struct oa_soap_handler *oa_handler,
                  }
         }
 
-       /* If Enclosure IP mode is enabled then ipswap becomes true, then Active OA IP is always same. So do not change the Role */
+       /* If Enclosure IP mode is enabled then ipswap becomes true, 
+          then Active OA IP is always same. So do not change the Role */
 
         if(!oa_handler->ipswap) {
                 oa->oa_status = status_response.oaRole;
@@ -1119,7 +1123,7 @@ void create_oa_connection(struct oa_soap_handler *oa_handler,
                                 /* OA is not present,
                                  * wait for 30 seconds and check again
                                  */
-                                sleep(30);
+                                oa_soap_sleep_in_loop(oa_handler, 30);
                         }
                 }
 
@@ -1855,4 +1859,56 @@ void oa_soap_check_serial_number(int slot, char *serial_number)
         } else {
                dbg("Blade(%d) serialNumber is [Unknown]",slot);
         }
+}
+
+/**
+ * oa_soap_sleep_in_loop()
+ *      @oa_handler: 	Pointer to OA SOAP handler structure
+ *      @secs:		Total time to sleep in seconds
+ * 
+ * Purpose:
+ *	OA takes a long time to switchover and there are many situations
+ *	where we need to wait for more than 3 seconds. In all thse situations
+ * 	if a signal arrives, it is better to get out asap. So we check for the
+ *	shutdown_event_thread after every 3 seconds and get out if it is true
+ *	This will enable full, proper shutdown of the plugin in case of kill
+ *
+ * Detailed Description: NA
+ *
+ * Return values:
+ *                Exit or OK
+ **/
+SaErrorT oa_soap_sleep_in_loop(struct oa_soap_handler *oa_handler, int secs)
+{
+        int i=3, j=0; 
+        GThread *my_id;
+        if (oa_handler == NULL || oa_handler->oa_1 == NULL || 
+                 oa_handler->oa_2 == NULL || secs <= 0 ) {
+                err("Wrong parameters\n");
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+        if (secs < 4) {
+                sleep(secs);
+                return SA_OK;
+        } 
+        my_id = g_thread_self();
+        while (j < secs) {
+
+               /* Exit only from event threads, owned by plugin */
+               if (my_id == oa_handler->oa_1->thread_handler ||
+                   my_id == oa_handler->oa_2->thread_handler ) {
+                        OA_SOAP_CHEK_SHUTDOWN_REQ(oa_handler, NULL, NULL, NULL);
+               } else {
+                        /* In case of infrastructure threads just return */
+                        if( oa_handler->shutdown_event_thread )
+                                return SA_OK;
+               } 
+               if (j+i > secs)
+                       i=secs-j;         
+               if ( i > 0 )
+                       sleep(i);
+               j = j+i;
+                
+        }
+        return SA_OK;
 }

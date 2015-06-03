@@ -289,7 +289,7 @@ SaErrorT process_oa_failover_event(struct oh_handler_state *oh_handler,
         sleep_time = OA_STABILIZE_MAX_TIME - time_elapsed;
         dbg("Sleeping for %d seconds", sleep_time);
         if (sleep_time > 0) {
-               sleep(sleep_time);
+               oa_soap_sleep_in_loop(oa_handler, sleep_time);
         }
 	OA_SOAP_CHEK_SHUTDOWN_REQ(oa_handler, NULL, NULL, NULL);
 
@@ -380,7 +380,7 @@ SaErrorT process_oa_reboot_event(struct oh_handler_state *oh_handler,
 	sleep_time = OA_STABILIZE_MAX_TIME;
 	dbg("Sleeping for %d seconds", sleep_time);
 	if (sleep_time > 0) {
-		sleep(sleep_time);
+               oa_soap_sleep_in_loop(oh_handler->data, sleep_time);
 	}
     /* Call the oa_soap error handling function to re establish the connection
      * with OA and rediscover all the resources
