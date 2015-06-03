@@ -1244,7 +1244,7 @@ void oa_soap_serv_post_comp(struct oh_handler_state
 	 * be available so that we do not miss any
 	 * temperatuer sensor.
 	 */
-	sleep(20);
+        oa_soap_sleep_in_loop(oa_handler, 20);
 
 	rv = soap_getBladeThermalInfoArray(con, &thermal_request,
 					   &thermal_response);

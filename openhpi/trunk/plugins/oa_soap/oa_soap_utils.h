@@ -126,4 +126,6 @@ SaErrorT oa_soap_get_oa_ip(char *server,
 void oa_soap_check_serial_number(int slot, 
                                  char *serial_number);
 
+SaErrorT oa_soap_sleep_in_loop(struct oa_soap_handler *oa_handler, int secs);
+
 #endif

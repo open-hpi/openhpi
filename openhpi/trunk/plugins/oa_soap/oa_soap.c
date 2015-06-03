@@ -119,6 +119,7 @@ SaErrorT build_oa_soap_custom_handler(struct oh_handler_state *oh_handler)
                         err("out of memory");
                         return SA_ERR_HPI_OUT_OF_MEMORY;
                 }
+                oa_handler->in_discovery_thread = HPOA_FALSE;
                 oa_handler->status = PRE_DISCOVERY;
                 oa_handler->active_con = NULL;
                 oa_handler->mutex = wrap_g_mutex_new_init();
@@ -309,6 +310,7 @@ void oa_soap_close(void *oh_handler)
 {
         struct oh_handler_state *handler = NULL;
         struct oa_soap_handler *oa_handler = NULL;
+        int i=0;
 
         if (oh_handler == NULL) {
                 err("Invalid parameter");
@@ -339,6 +341,19 @@ void oa_soap_close(void *oh_handler)
 		g_thread_join(oa_handler->oa_2->thread_handler);
 	dbg("Stopped the OA SOAP event threads");
 
+        /* Now we have to make sure that discovery thread is not in oa_soap */
+        /* TODO: remove the hard coded values in this */
+        for ( i=0; i < 10; i++ ) {
+                if (oa_handler->in_discovery_thread == HPOA_FALSE) {
+                         break;
+                }
+                sleep(3);
+        }
+        if (oa_handler->in_discovery_thread == HPOA_TRUE) {
+                err("oa_soap_discovery is continuing even after 30 seconds");
+                err("Shutting down the plugin though");
+        }
+        
         /* Cleanup the RPTable */
         cleanup_plugin_rptable(handler);
 	wrap_g_free(handler->rptcache);

@@ -288,12 +288,12 @@ gpointer oa_soap_event_thread(gpointer oa_pointer)
         			OA_SOAP_CHEK_SHUTDOWN_REQ(oa_handler, NULL, NULL, NULL);
                                  dbg("Stand By Thread is going to Sleep for"
                                      "20 secs as Enclosure IP Mode Is enabled");
-                                 sleep(20);
+                                 oa_soap_sleep_in_loop(oa_handler, 20);
                          }
                         if (oa->oa_status == STANDBY &&
                             get_oa_fw_version(handler) >= OA_2_21 &&
                             retry_on_switchover < MAX_RETRY_ON_SWITCHOVER) {
-                                sleep(WAIT_ON_SWITCHOVER);
+                                oa_soap_sleep_in_loop(oa_handler, WAIT_ON_SWITCHOVER);
                                 dbg("getAllEventsEx call failed, may be due to "
                                     "OA switchover");
                                 dbg("Re-try the getAllEventsEx SOAP call");
@@ -333,9 +333,11 @@ gpointer oa_soap_event_thread(gpointer oa_pointer)
 							  HPI_CALL_TIMEOUT);
                                         if (oa->event_con2 == NULL) {
                                                 if (oa->oa_status == OA_ABSENT)
-                                                          sleep(60);
+                                                          oa_soap_sleep_in_loop(
+                                                                 oa_handler,60);
                                                 else
-                                                          sleep(5);
+                                                          oa_soap_sleep_in_loop(
+                                                                 oa_handler,5);
                                                 err("soap_open for \
                                                         oa->event_con2 failed");
                                         }
@@ -570,7 +572,7 @@ void process_oa_out_of_access(struct oh_handler_state *oh_handler,
                                 /* OA is not present,
                                  * wait for 30 seconds and check again
                                  */
-                                sleep(30);
+                                oa_soap_sleep_in_loop(oa_handler, 30);
                         }
                 }
 
@@ -640,7 +642,7 @@ void process_oa_out_of_access(struct oh_handler_state *oh_handler,
                                 /* longer                                    */
                                 if ((oa_handler->oa_switching == SAHPI_TRUE) ||
                                     (oa->oa_status == OA_ABSENT)) 
-                                        sleep(30);
+                                        oa_soap_sleep_in_loop(oa_handler, 30);
                                 else
                                         sleep(2);
                                 dbg("check_oa_status failed, oa_status is %d\n",
