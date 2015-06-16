@@ -364,7 +364,7 @@ static SaErrorT process_msg(cHpiMarshal * hm,
             RpcParams iparams(&did);
             DEMARSHAL_RQ(rq_byte_order, hm, data, iparams);
 
-            CRIT("\n\n\n\n OpenHPID calling the saHpiSessionOpen \n \n\n\n\n");
+            DBG("OpenHPID calling the saHpiSessionOpen");
             rv = saHpiSessionOpen(OH_DEFAULT_DOMAIN_ID, &sid, security);
             if (rv == SA_OK) {
                 changed_sid = sid;
