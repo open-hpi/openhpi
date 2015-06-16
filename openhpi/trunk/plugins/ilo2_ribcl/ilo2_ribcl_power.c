@@ -42,9 +42,9 @@
 #include <ilo2_ribcl.h>
 #include <ilo2_ribcl_ssl.h>
 #include <ilo2_ribcl_xml.h>
-
-/*****************************
-	iLO2 RIBCL plug-in Power ABI Interface functions
+extern int signal_service_thread;
+/***************************n
+iLO2 RIBCL plug-in Power ABI Interface functions
 *****************************/
 
 /**
@@ -147,6 +147,7 @@ SaErrorT ilo2_ribcl_get_power_state(void *hnd,
 			ret = ir_xml_parse_host_power_status(new_response, 
 					&power_status,
 					ilo2_ribcl_handler->ilo2_hostport);
+			free( new_response);
 			break;
 		default:
 			err("ilo2_ribcl_do_discovery():"
@@ -156,13 +157,11 @@ SaErrorT ilo2_ribcl_get_power_state(void *hnd,
 	if( ret != RIBCL_SUCCESS){
 		err("ilo2_ribcl_get_power_state: response parse failed.");
 		free( response); 
-		free( new_response);
 		return( SA_ERR_HPI_INTERNAL_ERROR);
 	}
 
 	/* We're finished. Free up the temporary response buffer */
 	free( response);
-	free( new_response);
 
 	if(power_status == ILO2_RIBCL_POWER_ON) {
 		*state = SAHPI_POWER_ON;
@@ -268,6 +267,7 @@ SaErrorT ilo2_ribcl_set_power_state(void *hnd,
 		/* we should never get here as oh_lookup_powerstate() should
 		   have returned a null string back. */
 		err("ilo2_ribcl_set_power_state(): Invalid parameter.");
+		free( response);
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
@@ -299,6 +299,7 @@ SaErrorT ilo2_ribcl_set_power_state(void *hnd,
 			/* Now, parse the response. */
 			ret = ir_xml_parse_set_host_power(new_response,
 					ilo2_ribcl_handler->ilo2_hostport);
+			free( new_response);
 			break;
 		default:
 			err("ilo2_ribcl_do_discovery():"
@@ -307,7 +308,6 @@ SaErrorT ilo2_ribcl_set_power_state(void *hnd,
 	if(ret == -1) {
 		err("ilo2_ribcl_set_power_state: iLO2 returned error.");
 		free( response);
-		free( new_response);
 		return( SA_ERR_HPI_INTERNAL_ERROR);
 	}
 
@@ -324,14 +324,16 @@ SaErrorT ilo2_ribcl_set_power_state(void *hnd,
 	
 		temp_state = SAHPI_POWER_ON;
 		for( polls=0; polls < ILO2_MAX_POWER_POLLS; polls++){
+			if( signal_service_thread == TRUE ) {
+				dbg("ilo2_ribcl_handler is closed");
+		        	free( response);
+				return(SA_OK);
+			}
 
-			dbg("Obtaining current power state from iLo2 at %s, try %d",
-				ilo2_ribcl_handler->ilo2_hostport, polls);
 			ilo2_ribcl_get_power_state(hnd, rid, &temp_state);
 			if(temp_state == SAHPI_POWER_OFF){
 				break;
 			}
-
 			/* iLo2 commands take around 10 seconds round trip,
 			 * so sleep for a while before retrying. */
 			sleep( ILO2_POWER_POLL_SLEEP_SECONDS);
@@ -339,9 +341,11 @@ SaErrorT ilo2_ribcl_set_power_state(void *hnd,
 		} /* end for polls */
 
 		if( polls == ILO2_MAX_POWER_POLLS){
-			err("Maximum tries exceeded ( %d) checking power off for system at address %s",
-		 ILO2_MAX_POWER_POLLS, ilo2_ribcl_handler->ilo2_hostport);
-			return( SA_ERR_HPI_INTERNAL_ERROR);
+                        err(" %s Failed to get to the power off state even "
+                          "after %d seconds", ilo2_ribcl_handler->ir_hostname,
+                          ILO2_MAX_POWER_POLLS*ILO2_POWER_POLL_SLEEP_SECONDS);
+			free( response);
+                        return( SA_ERR_HPI_INVALID_STATE);
 		}
 	
 		/* Power is off now. update res_info power status */
@@ -378,6 +382,7 @@ SaErrorT ilo2_ribcl_set_power_state(void *hnd,
 				/* Now, parse the response. */
 				ret = ir_xml_parse_set_host_power(new_response,
 					ilo2_ribcl_handler->ilo2_hostport);
+				free( new_response);
 				break;
 			default:
 				err("ilo2_ribcl_do_discovery():"
@@ -385,7 +390,6 @@ SaErrorT ilo2_ribcl_set_power_state(void *hnd,
 		}
 
 		free( response);
-		free( new_response);
 
 		if(ret == -1) {
 			err("ilo2_ribcl_set_power_state: iLO2 returned error.");
@@ -395,21 +399,28 @@ SaErrorT ilo2_ribcl_set_power_state(void *hnd,
 		res_info->power_cur_state = SAHPI_POWER_ON;
 	} else {
 		/* Save current value in res_info */
-                for( polls=0; polls < ILO2_MAX_POWER_POLLS; polls++){
-                     ilo2_ribcl_get_power_state(hnd, rid, &temp_state);
-                     if(temp_state == state){
-                        res_info->power_cur_state = state;
-                        return(SA_OK);
-                     }
-                     sleep( ILO2_POWER_POLL_SLEEP_SECONDS);
+                for( polls=0; polls < ILO2_MAX_POWER_POLLS; polls++) {
+			if( signal_service_thread == TRUE ) {
+				dbg("ilo2_ribcl_handler is closed");
+				free( response);
+				return(SA_OK);
+			}
+			
+                        ilo2_ribcl_get_power_state(hnd, rid, &temp_state);
+                        if(temp_state == state) {
+                                res_info->power_cur_state = state;
+                                return(SA_OK);
+                        }
+                        sleep( ILO2_POWER_POLL_SLEEP_SECONDS);
                 }
                 if( polls == ILO2_MAX_POWER_POLLS){
-                    err(" %s Failed to get to the requested %s state even after "
-                          "%d seconds", ilo2_ribcl_handler->ir_hostname,
-                          state?"Power ON":"Power OFF", 
-                          ILO2_MAX_POWER_POLLS*ILO2_POWER_POLL_SLEEP_SECONDS);
+                        err(" %s Failed to get to the requested %s state even "
+                          "after %d seconds", ilo2_ribcl_handler->ir_hostname,
+                           state?"Power ON":"Power OFF", 
+                        ILO2_MAX_POWER_POLLS*ILO2_POWER_POLL_SLEEP_SECONDS);
 	
-                    return( SA_ERR_HPI_INVALID_STATE);
+			free( response);
+                        return( SA_ERR_HPI_INVALID_STATE);
                 }
 	}
         return(SA_OK);

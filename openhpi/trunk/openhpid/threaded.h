@@ -22,6 +22,7 @@ extern "C" {
 #endif
 
 int oh_threaded_start(void);
+void oh_signal_service(void);
 int oh_threaded_stop(void);
 
 void oh_wake_discovery_thread(void);

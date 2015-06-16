@@ -315,6 +315,7 @@ void ilo2_ribcl_close(void *handler)
         }
 
         close_handler = SAHPI_TRUE;
+        dbg("ilo2 ribcl close_handler is set");
 
         /* Sleep so that discovery thread get this variable */
         sleep(1);
