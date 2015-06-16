@@ -42,6 +42,7 @@
 #include "event.h"
 #include "init.h"
 #include "server.h"
+#include "threaded.h"
 
 
 /*--------------------------------------------------------------------*/
@@ -314,6 +315,7 @@ static void sig_handler( int signum )
     // Handles SIGTERM and SIGINT
     oh_post_quit_event();
     oh_server_request_stop();
+    oh_signal_service();
 }
 
 

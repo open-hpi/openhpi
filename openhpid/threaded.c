@@ -27,6 +27,7 @@ static const glong OH_EVTGET_THREAD_SLEEP_TIME    = 3 * G_USEC_PER_SEC;
 
 static volatile int started = FALSE;
 volatile int signal_stop    = FALSE;
+int signal_service_thread    = FALSE; /* Used by the plugins */
 
 GThread *discovery_thread = 0;
 GMutex *discovery_lock    = 0;
@@ -138,18 +139,30 @@ int oh_threaded_start()
         DBG("Starting discovery thread.");
         discovery_cond = wrap_g_cond_new_init();
         discovery_lock = wrap_g_mutex_new_init();
-        discovery_thread = wrap_g_thread_create_new("DiscoveryThread",discovery_func, 0, TRUE, 0);
+        discovery_thread = wrap_g_thread_create_new("DiscoveryThread",
+                                            discovery_func, 0, TRUE, 0);
 
         DBG("Starting event threads.");
         evtget_cond = wrap_g_cond_new_init();
         evtget_lock = wrap_g_mutex_new_init();
-        evtget_thread = wrap_g_thread_create_new("EventGet",evtget_func, 0, TRUE, 0);
+        evtget_thread = wrap_g_thread_create_new("EventGet",evtget_func, 
+                                                             0, TRUE, 0);
 
-        evtpop_thread = wrap_g_thread_create_new("EventPop",evtpop_func, 0, TRUE, 0);
+        evtpop_thread = wrap_g_thread_create_new("EventPop",evtpop_func, 
+                                                             0, TRUE, 0);
 
         started = TRUE;
 
         return 0;
+}
+
+void oh_signal_service(void)
+{
+        /* Plugin may need to wait for a long time (ex: power cycle). This 
+           variable could be used by service threads executing in the plugin 
+           code to exit. Discovery, main and other plugin specific threads 
+           need to use some other variable set by the close function */
+        signal_service_thread = TRUE;
 }
 
 int oh_threaded_stop(void)
