@@ -225,7 +225,7 @@ SaErrorT process_interconnect_power_event(struct oh_handler_state *oh_handler,
                 oh_get_resource_data(oh_handler->rptcache,
                                      event.resource.ResourceId);
         if (hotswap_state == NULL) {
-                err("blade private info is NULL");
+                err("interconnect private info is NULL");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
@@ -649,7 +649,7 @@ void oa_soap_proc_interconnect_status(struct oh_handler_state *oh_handler,
 
         resource_id = oa_handler->oa_soap_resources.interconnect.
 			resource_id[status->bayNumber - 1];
-        /* Get the rpt entry of the server */
+        /* Get the rpt entry of the interconnect */
         rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
         if (rpt == NULL) {
                 err("resource RPT is NULL");
@@ -659,7 +659,7 @@ void oa_soap_proc_interconnect_status(struct oh_handler_state *oh_handler,
         hotswap_state = (struct oa_soap_hotswap_state *)
                 oh_get_resource_data(oh_handler->rptcache, resource_id);
         if (hotswap_state == NULL) {
-                err("Failed to get hotswap state of server blade");
+                err("Failed to get hotswap state of interconnect");
                 return;
         }
 

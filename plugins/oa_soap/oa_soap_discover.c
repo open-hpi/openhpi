@@ -1310,7 +1310,7 @@ SaErrorT build_oa_rdr(struct oh_handler_state *oh_handler,
 
         rv = soap_getThermalInfo(con, &thermal_request, &thermal_response);
         if (rv != SOAP_OK) {
-                err("Get thermalInfo failed for enclosure");
+                err("Get thermalInfo failed for OA");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
@@ -1857,7 +1857,7 @@ SaErrorT build_inserted_server_rdr(struct oh_handler_state *oh_handler,
         rv = soap_getBladeThermalInfoArray(con, &thermal_request,
                                            &thermal_response);
         if (rv != SOAP_OK) {
-                err("getBladeThermalInfo failed for blade");
+                err("getBladeThermalInfoArray  failed for blade");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
@@ -2090,7 +2090,7 @@ SaErrorT build_discovered_server_rdr_arr(struct oh_handler_state *oh_handler,
                rv = soap_getBladeThermalInfoArray(con, &thermal_request,
                                            &thermal_response);
                if (rv != SOAP_OK) {
-                       err("getBladeThermalInfo failed for blade");
+                       err("getBladeThermalInfoArray failed for blade");
                        return SA_ERR_HPI_INTERNAL_ERROR;
                }
 
@@ -2482,7 +2482,8 @@ SaErrorT build_inserted_intr_rpt(struct oh_handler_state *oh_handler,
          */
         rv = get_interconnect_power_state(con, bay_number, &state);
         if (rv != SA_OK) {
-                err("Unable to get power status");
+                err("Unable to get power status for interconnect Bay %d",
+						bay_number);
                 return rv;
         }
 
@@ -2755,7 +2756,7 @@ SaErrorT build_inserted_interconnect_rdr(struct oh_handler_state *oh_handler,
 
         rv = soap_getThermalInfo(con, &thermal_request, &thermal_response);
         if (rv != SOAP_OK) {
-                err("Get thermalInfo failed for enclosure");
+                err("Get thermalInfo failed for interconnect");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
@@ -2942,7 +2943,7 @@ SaErrorT build_discovered_intr_rdr_arr(struct oh_handler_state *oh_handler,
                                         &rdr, &inventory,info_response,
                                         pm_response);
         if (rv != SA_OK) {
-                err("Failed to get interconnect inventory RDR");
+                err("Failed to build interconnect inventory RDR");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
         rv = oh_add_rdr(oh_handler->rptcache, resource_id, &rdr, inventory, 0);
@@ -2959,7 +2960,7 @@ SaErrorT build_discovered_intr_rdr_arr(struct oh_handler_state *oh_handler,
 
         rv = soap_getThermalInfo(con, &thermal_request, &thermal_response);
         if (rv != SOAP_OK) {
-                err("Get thermalInfo failed for enclosure");
+                err("Get thermalInfo failed for interconnect");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 

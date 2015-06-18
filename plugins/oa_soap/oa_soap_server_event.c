@@ -1256,7 +1256,7 @@ void oa_soap_serv_post_comp(struct oh_handler_state
 	 * a NULL response
 	 */
 	if ((rv != SA_OK) || (thermal_response.bladeThermalInfoArray == NULL)) {
-		err("getBladeThermalInfo failed for blade or"
+		err("getBladeThermalInfo array failed for blade or"
 		    "the blade is not in stable state");
 		return;
 	}
@@ -1468,7 +1468,7 @@ void oa_soap_proc_server_thermal(struct oh_handler_state *oh_handler,
          * a NULL response
          */
         if ((rv != SA_OK) || (thermal_response.bladeThermalInfoArray == NULL)) {
-                err("getBladeThermalInfo failed for blade or"
+                err("getBladeThermalInfo array failed for blade or"
                     "the blade is not in stable state");
                 return;
         }
