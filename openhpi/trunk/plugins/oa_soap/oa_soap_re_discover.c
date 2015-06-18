@@ -1591,7 +1591,7 @@ SaErrorT update_interconnect_hotswap_state(struct oh_handler_state *oh_handler,
 
         rv = get_interconnect_power_state(con, bay_number, &state);
         if (rv != SA_OK) {
-                err("Unable to get power status");
+                err("Unable to get interconnect power status");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
@@ -1822,7 +1822,7 @@ SaErrorT add_interconnect(struct oh_handler_state *oh_handler,
         rv = build_discovered_intr_rpt(oh_handler, response->name,
                                     bay_number, &resource_id, sts_res);
         if (rv != SA_OK) {
-                err("Failed to get interconnect inventory RPT");
+                err("Failed to build interconnect inventory RPT");
                 return rv;
         }
 
@@ -1838,7 +1838,7 @@ SaErrorT add_interconnect(struct oh_handler_state *oh_handler,
                                     bay_number, resource_id, TRUE,
                                     response, sts_res, portmap);
         if (rv != SA_OK) {
-                err("Failed to get interconnect inventory RDR");
+                err("Failed to build interconnect inventory RDR");
                 /* Free the inventory info from inventory RDR */
                 rv = free_inventory_info(oh_handler, resource_id);
                 if (rv != SA_OK) {
@@ -1993,7 +1993,7 @@ SaErrorT re_discover_fan(struct oh_handler_state *oh_handler,
         max_bays = oa_handler->oa_soap_resources.fan.max_bays;
         rv = oa_soap_get_fan_info_arr ( oa_handler ,max_bays ,&response,fan_info_doc);
         if (rv != SA_OK) {
-            err("Failed to get blade info array");
+            err("Failed to get fan info array");
             xmlFreeDoc( fan_info_doc);
             return rv;
         }
@@ -2808,7 +2808,7 @@ static SaErrorT oa_soap_re_disc_interconct_sen(struct oh_handler_state
 	request.bayNumber = bay_number;
 	rv = soap_getInterconnectTrayStatus(con, &request, &response);
 	if (rv != SOAP_OK) {
-		err("Get OA status SOAP call failed");
+		err("Get interconnect tray status SOAP call failed");
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 
@@ -2920,7 +2920,7 @@ static SaErrorT oa_soap_re_disc_ps_subsys_sen(struct oh_handler_state
 
 	rv = soap_getPowerSubsystemInfo(con, &response);
 	if (rv != SOAP_OK) {
-		err("Get enclosure status SOAP call failed");
+		err("Get power subsystem info SOAP call failed");
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 
