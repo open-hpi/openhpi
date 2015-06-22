@@ -168,7 +168,7 @@ int main(int argc, char **argv)
            DBG("New date and time in SaHpiTimeT %" PRId64 "\n", (int64_t)newtime);
 
         rv = ohc_session_open_by_option ( &copt, &sessionid);
-	if (rv != SA_OK) EXIT1;
+	if (rv != SA_OK) { EXIT1; }
 
 	if (copt.debug) DBG("saHpiDiscover");
 	rv = saHpiDiscover(sessionid);
