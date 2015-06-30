@@ -925,7 +925,8 @@ static SaErrorT oa_soap_get_pwr_cntrl(struct oh_handler_state *oh_handler,
 			*control_state = SAHPI_CTRL_STATE_OFF;
 			break;
 		default:
-			err("Invalid power state");
+			err("Invalid power state %d detected for "
+				"Resource ID %d", power_state,resource_id);
 			return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 

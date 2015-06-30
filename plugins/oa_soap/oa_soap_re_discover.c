@@ -1029,7 +1029,8 @@ SaErrorT update_server_hotswap_state(struct oh_handler_state *oh_handler,
                         break;
 
                 default:
-                        err("unknown power status");
+                        err("unknown power state %d detected for "
+					"Blade in slot %d", state, bay_number);
                         return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
@@ -1287,7 +1288,8 @@ SaErrorT add_server_blade(struct oh_handler_state *oh_handler,
                         return SA_ERR_HPI_INTERNAL_ERROR;
                         break;
                 default:
-                        err("Unknown Power State detected");
+                        err("Unknown Power State %d detected for Blade"
+				" in slot %d", sts->powered, sts->bayNumber);
                         return SA_ERR_HPI_INTERNAL_ERROR;
         }
         /* Check the power state of the server.  If the power state is off,
@@ -1331,7 +1333,8 @@ SaErrorT add_server_blade(struct oh_handler_state *oh_handler,
                         break;
 
                 default:
-                        err("unknown power status");
+			 err("unknown Blade power state %d detected "
+					"in slot %d", state, info->bayNumber);
                         return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
@@ -1678,7 +1681,8 @@ SaErrorT update_interconnect_hotswap_state(struct oh_handler_state *oh_handler,
                         break;
 
                 default:
-                        err("unknown power status");
+                        err("unknown interconnect power state %d "
+					"in bay %d ",state,bay_number);
                         return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
@@ -1906,7 +1910,9 @@ SaErrorT add_interconnect(struct oh_handler_state *oh_handler,
                         state = SAHPI_POWER_OFF;
                         break;
                 default:
-                        err("Unknown Power State detected");
+                        err("unexpected power state %d detected for "
+					"interconnect in bay %d",
+					sts_res->powered, sts_res->bayNumber);
                         return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
@@ -1945,7 +1951,9 @@ SaErrorT add_interconnect(struct oh_handler_state *oh_handler,
                         break;
 
                 default:
-                        err("unknown power status");
+                        err("unexpected power state %d detected for "
+				"interconnect in bay %d", 
+					state, sts_res->bayNumber);
                         return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
@@ -2549,7 +2557,7 @@ SaErrorT add_ps_unit(struct oh_handler_state *oh_handler,
 
         rv = soap_getPowerSupplyInfo(con, &request, response);
         if (rv != SOAP_OK) {
-                err("Get power supply info failed");
+                err("Get power supply info for PS %d failed", info->bayNumber);
                 wrap_g_free(response);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
