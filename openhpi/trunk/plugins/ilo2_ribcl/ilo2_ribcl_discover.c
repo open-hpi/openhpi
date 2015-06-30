@@ -402,7 +402,8 @@ static SaErrorT ilo2_ribcl_do_discovery( ilo2_ribcl_handler_t *ir_handler)
 			break;
 		default:
 			err("ilo2_ribcl_do_discovery():"
-				"failed to detect ilo type.");
+				"failed to detect ilo type %d.",
+						ir_handler->ilo_type);
 	}
 	if( ret != RIBCL_SUCCESS){
 		err("ilo2_ribcl_do_discovery(): response parse failed.");

@@ -113,7 +113,7 @@ SaErrorT process_ps_insertion_event(struct oh_handler_state *oh_handler,
 
         rv = add_ps_unit(oh_handler, con, response);
         if (rv != SA_OK) {
-                err("Add power supply unit failed");
+                err("Add power supply %d failed", response->bayNumber);
                 wrap_g_free(response);
                 return rv;
         }

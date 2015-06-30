@@ -223,8 +223,8 @@ SaErrorT oa_soap_set_reset_state(void *oh_handler,
                                                 oa_handler->active_con,
                                                 &server_request);
                                         if (rv != SOAP_OK) {
-                                                err("Set blade power to power "
-                                                    "reset failed");
+                                                err("Set power reset of blade"
+						    " %d failed", bay_number);
                                                 return SA_ERR_HPI_INTERNAL_ERROR;
                                         }
                                         return SA_OK;

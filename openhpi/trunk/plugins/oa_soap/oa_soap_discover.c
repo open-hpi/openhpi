@@ -1611,7 +1611,9 @@ SaErrorT build_discovered_server_rpt(struct oh_handler_state *oh_handler,
                                 return SA_ERR_HPI_INTERNAL_ERROR;
                                 break;
                         default:
-                                err("Unknown Power State detected");
+                                err("Unknown Power State %d detected for "
+					"Blade at bay %d", sts_result->powered,
+					sts_result->bayNumber);
                                 return SA_ERR_HPI_INTERNAL_ERROR;
                 }
 
@@ -1641,7 +1643,9 @@ SaErrorT build_discovered_server_rpt(struct oh_handler_state *oh_handler,
                                 break;
 
                         default:
-                                err("unknown power status");
+                                err("Unknown power state %d detected for Blade"
+					" at bay %d", state, 
+					response->bayNumber);
                                 wrap_g_free(hotswap_state);
                                 return SA_ERR_HPI_INTERNAL_ERROR;
                 }
@@ -1842,7 +1846,8 @@ SaErrorT build_inserted_server_rdr(struct oh_handler_state *oh_handler,
         rv = build_server_inv_rdr(oh_handler, con, bay_number,
                                   &rdr, &inventory);
         if (rv != SA_OK) {
-                err("Failed to get server inventory RDR");
+                err("Failed to get server inventory RDR "
+					"in slot %d", bay_number);
                 return rv;
         }
         rv = oh_add_rdr(oh_handler->rptcache, resource_id, &rdr, inventory, 0);
@@ -1888,7 +1893,7 @@ SaErrorT build_inserted_server_rdr(struct oh_handler_state *oh_handler,
         status_request.bayNumber = bay_number;
         rv = soap_getBladeStatus(con, &status_request, &status_response);
         if (rv != SOAP_OK) {
-                err("Get Blade status failed");
+		err("Get Blade %d status failed", status_request.bayNumber);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
@@ -2075,7 +2080,7 @@ SaErrorT build_discovered_server_rdr_arr(struct oh_handler_state *oh_handler,
                                   &rdr, &inventory,result,
                                   pm_response);
         if (rv != SA_OK) {
-                err("Failed to get server inventory RDR");
+                err("Failed to get server inventory RDR in slot %d", bay_number);
                 return rv;
         }
         rv = oh_add_rdr(oh_handler->rptcache, resource_id, &rdr, inventory, 0);
@@ -2513,7 +2518,9 @@ SaErrorT build_inserted_intr_rpt(struct oh_handler_state *oh_handler,
 
                         case SAHPI_POWER_CYCLE:
                         default:
-                                err("Wrong power state detected");
+                                err("Wrong power state %d detected for "
+					"interconnect bay %d", state, 
+                                         bay_number);
                                 wrap_g_free(hotswap_state);
                                 return SA_ERR_HPI_INTERNAL_ERROR;
                 }
@@ -2660,7 +2667,8 @@ SaErrorT build_discovered_intr_rpt(struct oh_handler_state *oh_handler,
                         return SA_ERR_HPI_INTERNAL_ERROR;
                         break;
                 default:
-                        err("Unknown Power State detected");
+                        err("Unknown Power State %d detected for interconnect "
+				"in bay %d", response->powered, bay_number);
                         wrap_g_free(hotswap_state);
                         return SA_ERR_HPI_INTERNAL_ERROR;
         }

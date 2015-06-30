@@ -78,7 +78,8 @@ SaErrorT process_fan_insertion_event(struct oh_handler_state *oh_handler,
 
         rv = add_fan(oh_handler, con, &(oa_event->eventData.fanInfo));
         if (rv != SA_OK) {
-                err("Add fan failed");
+		 err("Adding fan %d failed",
+			oa_event->eventData.fanInfo.bayNumber);
                 return rv;
         }
 
@@ -113,7 +114,8 @@ SaErrorT process_fan_extraction_event(struct oh_handler_state *oh_handler,
 
         rv = remove_fan(oh_handler, oa_event->eventData.fanInfo.bayNumber);
         if (rv != SA_OK) {
-                err("Remove fan failed");
+		 err("Removing fan %d failed",
+			oa_event->eventData.fanInfo.bayNumber);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 

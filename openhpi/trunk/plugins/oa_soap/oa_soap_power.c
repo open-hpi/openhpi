@@ -257,7 +257,8 @@ SaErrorT get_server_power_state(SOAP_CON *con,
                         return SA_ERR_HPI_INTERNAL_ERROR;
                         break;
                 default:
-                        err("Unknown Power State detected");
+                        err("Unknown Power State %d detected for Blade in "
+				" bay %d", response.powered, bay_number);
                         return SA_ERR_HPI_INTERNAL_ERROR;
         }
         return SA_OK;
@@ -314,7 +315,8 @@ SaErrorT get_interconnect_power_state(SOAP_CON *con,
                         *state = SAHPI_POWER_OFF;
                         break;
                 default:
-                        err("Unknown Power State detected");
+                        err("Unknown Power State %d detected for interconnect"
+				" at bay %d", response.powered, bay_number);
                         return SA_ERR_HPI_INTERNAL_ERROR;
         }
         return SA_OK;
@@ -373,7 +375,8 @@ SaErrorT set_server_power_state(SOAP_CON *con,
                         blade_power.power = MOMENTARY_PRESS;
                         rv = soap_setBladePower(con, &blade_power);
                         if (rv != SOAP_OK) {
-                                err("Set blade power to power on failed");
+                                err("Set blade at %d to power on failed",
+							bay_number);
                                 return SA_ERR_HPI_INTERNAL_ERROR;
                         }
                         break;
@@ -382,7 +385,8 @@ SaErrorT set_server_power_state(SOAP_CON *con,
                         blade_power.power = PRESS_AND_HOLD;
                         rv = soap_setBladePower(con, &blade_power);
                         if (rv != SOAP_OK) {
-                                err("Set blade power to power off failed");
+                                err("Set blade at %d to power off failed",
+							bay_number);
                                 return SA_ERR_HPI_INTERNAL_ERROR;
                         }
                         break;
@@ -449,13 +453,15 @@ SaErrorT set_server_power_state(SOAP_CON *con,
                         blade_power.power = MOMENTARY_PRESS;
                         rv = soap_setBladePower(con, &blade_power);
                         if (rv != SOAP_OK) {
-                                err("Set blade power to power on failed");
+                                err("Set blade at %d to power on failed",
+							bay_number);
                                 return SA_ERR_HPI_INTERNAL_ERROR;
                         }
                         break;
 
                 default:
-                        err("Invalid power state");
+                        err("Invalid power state %d detected in bay %d", 
+							state, bay_number);
                         return SA_ERR_HPI_INVALID_PARAMS;
         }
         return SA_OK;
@@ -497,8 +503,8 @@ SaErrorT set_interconnect_power_state(SOAP_CON *con,
                         rv = soap_setInterconnectTrayPower(con,
                                                            &interconnect_power);
                         if (rv != SOAP_OK) {
-                                err("Set interconnect power to power on "
-                                    "failed");
+                                err("Set interconnect at bay %d to  "
+                                    "power on failed", bay_number);
                                 return SA_ERR_HPI_INTERNAL_ERROR;
                         }
                         break;
@@ -508,8 +514,8 @@ SaErrorT set_interconnect_power_state(SOAP_CON *con,
                         rv = soap_setInterconnectTrayPower(con,
                                                            &interconnect_power);
                         if (rv != SOAP_OK) {
-                                err("Set interconnect power to power off "
-                                    "failed");
+                                err("Set interconnect at bay %d to "
+                                    "power off failed", bay_number);
                                 return SA_ERR_HPI_INTERNAL_ERROR;
                         }
                         break;
@@ -534,8 +540,8 @@ SaErrorT set_interconnect_power_state(SOAP_CON *con,
                                 rv = soap_setInterconnectTrayPower(
                                         con, &interconnect_power);
                                 if (rv != SOAP_OK) {
-                                        err("Set interconnect power to "
-                                            "power on failed");
+                                        err("Set interconnect at bay %d to "
+					    "power on failed", bay_number);
                                         return SA_ERR_HPI_INTERNAL_ERROR;
                                 }
                         }
@@ -544,13 +550,14 @@ SaErrorT set_interconnect_power_state(SOAP_CON *con,
                         rv = soap_setInterconnectTrayPower(con,
                                                            &interconnect_power);
                         if (rv != SOAP_OK) {
-                                err("Set interconnect power to power on "
-                                    "failed");
+                                err("Set interconnect at %d to power on "
+                                    "failed", bay_number);
                                 return SA_ERR_HPI_INTERNAL_ERROR;
                         }
                         break;
                 default:
-                        err("Invalid power state");
+                        err("Invalid power state %d detected for interconnect "
+					"at bay %d", state, bay_number);
                         return SA_ERR_HPI_INVALID_PARAMS;
         }
         return SA_OK;
