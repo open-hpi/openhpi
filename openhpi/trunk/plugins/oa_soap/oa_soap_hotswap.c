@@ -96,6 +96,7 @@ SaErrorT oa_soap_get_hotswap_state(void *oh_handler,
                 return(SA_ERR_HPI_INVALID_PARAMS);
         }
 
+ 
         handler = (struct oh_handler_state *) oh_handler;
         rpt = oh_get_resource_by_id(handler->rptcache, resource_id);
         if (rpt == NULL) {
@@ -103,28 +104,38 @@ SaErrorT oa_soap_get_hotswap_state(void *oh_handler,
                 return SA_ERR_HPI_INVALID_RESOURCE;
         }
 
-        if (! (rpt->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
-                err("Resource does not have MANAGED_HOTSWAP capability");
+        if (! (rpt->ResourceCapabilities & SAHPI_CAPABILITY_FRU)) {
+                err("Resource does not have FRU capability");
                 return SA_ERR_HPI_CAPABILITY;
         }
 
-        /* Get the hotswap structure from rpt */
-        hotswap_state = (struct oa_soap_hotswap_state *)
-                oh_get_resource_data(handler->rptcache, resource_id);
-        if (hotswap_state == NULL) {
-                err("Unable to get the resource private data");
-                return SA_ERR_HPI_INVALID_RESOURCE;
+        /* For FAN, PS, OA etc give the state based on ResouceFailed 
+           The standards changed to include all FRUs */
+        if (! (rpt->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
+                if(!(rpt->ResourceFailed)) {
+                          *state = SAHPI_HS_STATE_ACTIVE;
+                } else {
+                          *state = SAHPI_HS_STATE_INACTIVE;
+                } 
+         } else {
+
+                /* Get the hotswap structure of MANAGED_HOTSWAP */
+                hotswap_state = (struct oa_soap_hotswap_state *)
+                         oh_get_resource_data(handler->rptcache, resource_id);
+                if (hotswap_state == NULL) {
+                         err("Unable to get the resource private data");
+                         return SA_ERR_HPI_INVALID_RESOURCE;
+                }
+
+                *state  = hotswap_state->currentHsState;
+        }
+        if ( *state == SAHPI_HS_STATE_NOT_PRESENT) {
+                /* We can never have any resouce information in RPT 
+                    with * NOT_PRESENT hotswap state Ideally, this 
+                    code should never gets executed */
+                 return  SA_ERR_HPI_INVALID_RESOURCE;
         }
 
-        if (hotswap_state->currentHsState == SAHPI_HS_STATE_NOT_PRESENT) {
-                /* We can never have any resouce information in RPT with
-                 * NOT_PRESENT hotswap state
-                 * Ideally, this code should never gets executed
-                 */
-                return  SA_ERR_HPI_INVALID_RESOURCE;
-        }
-
-        *state  = hotswap_state->currentHsState;
         return SA_OK;
 }
 
