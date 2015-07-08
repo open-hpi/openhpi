@@ -104,10 +104,7 @@ private:
     SaHpiSessionIdT m_sid;
     SaHpiSessionIdT m_remote_sid;
 #if GLIB_CHECK_VERSION (2, 32, 0)
-    /* TODO Below variable type needs to be changed with 
-     * GPrivate from glib version > 2.31.0.  
-     */ 
-    GStaticPrivate  m_sockets;
+    GPrivate        m_sockets;
 #else
     GStaticPrivate  m_sockets;
 #endif
@@ -120,7 +117,11 @@ cSession::cSession()
       m_sid( 0 ),
       m_remote_sid( 0 )
 {
+    #if GLIB_CHECK_VERSION (2, 32, 0)
+    m_sockets = G_PRIVATE_INIT (g_free);
+    #else
     wrap_g_static_private_init( &m_sockets );
+    #endif
 }
 
 cSession::~cSession()
@@ -212,7 +213,11 @@ SaErrorT cSession::DoRpc( uint32_t id,
             }
         }
 
+        #if GLIB_CHECK_VERSION (2, 32, 0)
+        wrap_g_static_private_set( &m_sockets, 0);// close socket
+        #else
         wrap_g_static_private_set( &m_sockets, 0, 0 ); // close socket
+        #endif
         g_usleep( NEXT_RPC_ATTEMPT_TIMEOUT );
     }
     if ( !rc ) {
@@ -261,7 +266,11 @@ SaErrorT cSession::GetSock( cClientStreamSock * & sock )
                                      /* keepalive_intvl */  1,
                                      /* keepalive_probes */ 3 );
 
+        #if GLIB_CHECK_VERSION (2, 32, 0)
+        wrap_g_static_private_set( &m_sockets, sock );
+        #else
         wrap_g_static_private_set( &m_sockets, sock, DeleteSock );
+        #endif
     }
 
     return SA_OK;
