@@ -333,7 +333,7 @@ static SaErrorT ilo2_ribcl_do_discovery( ilo2_ribcl_handler_t *ir_handler)
 		ret = ilo2_ribcl_ssl_send_command( ir_handler, discover_cmd,
 				d_response, ILO2_RIBCL_DISCOVER_RESP_MAX);
 		if(ir_handler->ilo_type == ILO3) {
-			if(strstr(d_response,"Gen8")) {
+			if(strstr(d_response,"Gen8") || strstr(d_response,"Gen9")) {
 				dbg("Found iLO4 MP");
 				ir_handler->ilo_type = ILO4;
 			} else
@@ -363,7 +363,7 @@ static SaErrorT ilo2_ribcl_do_discovery( ilo2_ribcl_handler_t *ir_handler)
 	ret = ilo2_ribcl_ssl_send_command( ir_handler, discover_cmd,
 				d_response, ILO2_RIBCL_DISCOVER_RESP_MAX);
 	if(ir_handler->ilo_type == ILO3) {
-		if(strstr(d_response,"Gen8")) {
+		if(strstr(d_response,"Gen8") || strstr(d_response,"Gen9")) {
 			dbg("Found iLO4 MP");
 			ir_handler->ilo_type = ILO4;
 		}else
