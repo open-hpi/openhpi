@@ -132,7 +132,7 @@ install-data-local: openhpi.pc openhpi.conf.example simulation.data.example open
 	$(mkinstalldirs) $(DESTDIR)$(libdir)/pkgconfig
 	$(INSTALL_DATA) openhpi.pc $(DESTDIR)$(libdir)/pkgconfig
 	$(mkinstalldirs) $(DESTDIR)$(VARPATH)
-	chmod 777 $(DESTDIR)$(VARPATH)
+	chmod 755 $(DESTDIR)$(VARPATH)
 	$(mkinstalldirs) $(DESTDIR)$(sysconfdir)/openhpi
 	if test ! -e  $(DESTDIR)$(sysconfdir)/openhpi/openhpi.conf; then \
 		$(INSTALL) -m 600 $(top_srcdir)/openhpi.conf.example $(DESTDIR)$(sysconfdir)/openhpi/openhpi.conf; \
