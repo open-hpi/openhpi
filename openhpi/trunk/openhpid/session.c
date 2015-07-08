@@ -290,7 +290,6 @@ SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
 {
         struct oh_session *session = NULL;
         struct oh_event *devent = NULL;
-        GTimeVal gfinaltime;
         GAsyncQueue *eventq = NULL;
         SaHpiBoolT subscribed;
         SaErrorT invalid;
@@ -317,10 +316,19 @@ SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
                 devent = g_async_queue_try_pop(eventq);
         } else if (timeout == SAHPI_TIMEOUT_BLOCK) {
                 while (devent == NULL) {
+                        #if GLIB_CHECK_VERSION (2, 32, 0)
+                        guint64 gfinaltime;
+                        gfinaltime = g_get_monotonic_time();
+                        gfinaltime = gfinaltime + 5000000L;
+                        devent =
+                            wrap_g_async_queue_timed_pop(eventq, gfinaltime);
+                        #else
+                        GTimeVal gfinaltime;
                         g_get_current_time(&gfinaltime);
                         g_time_val_add(&gfinaltime, 5000000L);
                         devent =
                             wrap_g_async_queue_timed_pop(eventq, &gfinaltime);
+                        #endif
                         /* compliance with spec page 63 */
                         invalid =
                             oh_get_session_subscription(sid, &subscribed);
@@ -333,9 +341,17 @@ SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
                         }
                 }
         } else {
+                #if GLIB_CHECK_VERSION (2, 32, 0)
+                guint64 gfinaltime;
+                gfinaltime = g_get_monotonic_time();
+                gfinaltime = gfinaltime + (glong) (timeout / 1000);
+                devent = wrap_g_async_queue_timed_pop(eventq, gfinaltime);
+                #else
+                GTimeVal gfinaltime;
                 g_get_current_time(&gfinaltime);
                 g_time_val_add(&gfinaltime, (glong) (timeout / 1000));
                 devent = wrap_g_async_queue_timed_pop(eventq, &gfinaltime);
+                #endif
                 invalid = oh_get_session_subscription(sid, &subscribed);
                 if (invalid || !subscribed) {
                         g_async_queue_unref(eventq);

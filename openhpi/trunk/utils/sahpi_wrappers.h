@@ -54,12 +54,24 @@ gboolean wrap_g_static_rec_mutex_trylock (void  *mutex);
 void wrap_g_static_rec_mutex_unlock( void  *mutex);
 void wrap_g_static_private_init(void *key);
 void wrap_g_static_private_free(void * key);
+#if GLIB_CHECK_VERSION (2, 32, 0)
+void wrap_g_static_private_set(void* key, gpointer value);
+#else
 void wrap_g_static_private_set(void* key, gpointer value, GDestroyNotify notify);
+#endif
 gpointer wrap_g_static_private_get(void *key);
 void wrap_g_static_rec_mutex_init(void  *mutex);
 void wrap_g_static_rec_mutex_free_clear(void *mutex);
+#if GLIB_CHECK_VERSION (2, 32, 0)
+gpointer wrap_g_async_queue_timed_pop(GAsyncQueue *queue, guint64 end_time);
+#else
 gpointer wrap_g_async_queue_timed_pop(GAsyncQueue *queue, GTimeVal *end_time);
+#endif
+#if GLIB_CHECK_VERSION (2, 32, 0)
+gboolean wrap_g_cond_timed_wait (GCond *cond, GMutex *mutex, gint64 abs_time);
+#else
 gboolean wrap_g_cond_timed_wait (GCond *cond, GMutex *mutex, GTimeVal *abs_time);
+#endif
 GCond* wrap_g_cond_new_init(void);
 void wrap_g_cond_free (GCond *cond);
 void wrap_g_static_mutex_init (void *mutex);

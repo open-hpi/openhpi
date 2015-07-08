@@ -149,7 +149,7 @@ void wrap_g_static_rec_mutex_unlock ( void  *mutex)
 void wrap_g_static_private_init(void *key)
 {
         #if GLIB_CHECK_VERSION (2, 32, 0)
-               ;
+               err("Not expected to be here");
         #else
                g_static_private_init((GStaticPrivate *)key);
         #endif
@@ -164,25 +164,22 @@ void wrap_g_static_private_free(void * key)
         #endif
 }
 
+#if GLIB_CHECK_VERSION (2, 32, 0)
+void wrap_g_static_private_set(void * key, gpointer value)
+{
+        g_private_set((GPrivate*) key, value);
+}
+#else
 void wrap_g_static_private_set(void * key, gpointer value, GDestroyNotify notify)
 {
-        #if GLIB_CHECK_VERSION (2, 32, 0)
-               /* TODO Below call needs to be replaced with 
-                * g_private_set() call for glib version > 2.31.0.
-                * */
-               g_static_private_set((GStaticPrivate*) key, value, notify);
-        #else
-               g_static_private_set((GStaticPrivate*) key, value, notify);
-        #endif
+        g_static_private_set((GStaticPrivate*) key, value, notify);
 }
+#endif
 
 gpointer wrap_g_static_private_get(void *key)
 {
         #if GLIB_CHECK_VERSION (2, 32, 0)
-               /* TODO Below call needs to be replaced with 
-                * g_private_get() call for glib version > 2.31.0.
-                * */
-              return g_static_private_get((GStaticPrivate *)key);
+              return g_private_get((GPrivate*) key);
         #else
               return g_static_private_get((GStaticPrivate *)key);
         #endif
@@ -206,34 +203,29 @@ void wrap_g_static_rec_mutex_free_clear(void *mutex)
         #endif
 }
 
+#if GLIB_CHECK_VERSION (2, 32, 0)
+gpointer wrap_g_async_queue_timed_pop(GAsyncQueue *queue, guint64 end_time)
+{
+        return(g_async_queue_timeout_pop(queue, end_time));
+}
+#else
 gpointer wrap_g_async_queue_timed_pop(GAsyncQueue *queue, GTimeVal *end_time)
 {
-        #if GLIB_CHECK_VERSION (2, 32, 0)
-              /* The actual function for this is the following. But
-                 the argument has to be different. Use it when the source
-                 is modified 
-               g_async_queue_timeout_pop (*queue, (guint64) *end_time); 
-              */
-               return(g_async_queue_timeout_pop(queue,  (guint64)end_time->tv_usec));
-        #else
-               return(g_async_queue_timed_pop(queue, end_time));
-        #endif
+        return(g_async_queue_timed_pop(queue, end_time));
 }
+#endif
 
+#if GLIB_CHECK_VERSION (2, 32, 0)
+gboolean wrap_g_cond_timed_wait (GCond *cond, GMutex *mutex, gint64 abs_time)
+{
+        return(g_cond_wait_until (cond, mutex, abs_time));
+}
+#else
 gboolean wrap_g_cond_timed_wait (GCond *cond, GMutex *mutex, GTimeVal *abs_time)
 {
-        #if GLIB_CHECK_VERSION (2, 32, 0)
-              /* The actual function for this is the following. But
-                 the argument has to be different. Use it when the source
-                 is modified 
-               g_cond_wait_until (cond, mutex, (gint64) *abs_time);
-              */
-               //return(g_cond_wait_until (cond, mutex, (gint64)abs_time->tv_usec));
-               return(g_cond_timed_wait (cond, mutex, abs_time));
-        #else
-               return(g_cond_timed_wait (cond, mutex, abs_time));
-        #endif
+        return(g_cond_timed_wait (cond, mutex, abs_time));
 }
+#endif
 
 GCond* wrap_g_cond_new_init()
 {

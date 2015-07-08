@@ -45,7 +45,6 @@ GSList			*domainlist;	// domain list
 /* Progress bar implementation */
 static void* progress_bar(void *unused)
 {
-	GTimeVal	time;
 	char		buf[PROGRESS_BUF_SIZE], A[20];
 	int		i = 0, t = 0, len, mes_len;
 
@@ -60,9 +59,17 @@ static void* progress_bar(void *unused)
 			strncpy(buf + mes_len + (i - len) / 2, A, len);
 		printf("%s\r", buf);
 		fflush(stdout);
+		#if GLIB_CHECK_VERSION (2, 32, 0)
+		gint64 time;
+		time = g_get_monotonic_time();
+		time = time + G_USEC_PER_SEC / 10;
+		wrap_g_cond_timed_wait(thread_wait, thread_mutex, time);
+		#else
+		GTimeVal time;
 		g_get_current_time(&time);
 		g_time_val_add(&time, G_USEC_PER_SEC / 10);
 		wrap_g_cond_timed_wait(thread_wait, thread_mutex, &time);
+		#endif
 		if (i < (PROGRESS_BUF_SIZE - mes_len - 1)) i++;
 		t++;
 	};

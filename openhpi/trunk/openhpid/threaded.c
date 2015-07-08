@@ -59,10 +59,17 @@ static gpointer discovery_func(gpointer data)
 			break;
 
                 DBG("Discovery: Going to sleep.");
+                #if GLIB_CHECK_VERSION (2, 32, 0)
+                gint64 time;
+                time = g_get_monotonic_time();
+                time = time + OH_DISCOVERY_THREAD_SLEEP_TIME;
+                wrap_g_cond_timed_wait(discovery_cond, discovery_lock, time);
+                #else
                 GTimeVal time;
                 g_get_current_time(&time);
                 g_time_val_add(&time, OH_DISCOVERY_THREAD_SLEEP_TIME);
                 wrap_g_cond_timed_wait(discovery_cond, discovery_lock, &time);
+                #endif
         }
         /* Let oh_wake_discovery_thread know this thread is done */
         g_cond_broadcast(discovery_cond);
@@ -92,10 +99,17 @@ static gpointer evtget_func(gpointer data)
 			break;
 
                 DBG("Event harvesting: Going to sleep.");
+                #if GLIB_CHECK_VERSION (2, 32, 0)
+                gint64 time;
+                time = g_get_monotonic_time();
+                time = time + OH_EVTGET_THREAD_SLEEP_TIME;
+                wrap_g_cond_timed_wait(evtget_cond, evtget_lock, time);
+                #else
                 GTimeVal time;
                 g_get_current_time(&time);
                 g_time_val_add(&time, OH_EVTGET_THREAD_SLEEP_TIME);
                 wrap_g_cond_timed_wait(evtget_cond, evtget_lock, &time);
+                #endif
         }
         g_mutex_unlock(evtget_lock);
 
