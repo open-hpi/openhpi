@@ -1419,7 +1419,9 @@ static int ir_xml_record_fandata( ilo2_ribcl_handler_t *ir_handler,
          * DiscoveryData, update DiscoveryData with the latest info */
 
 	fandat = &(ir_handler->DiscoveryData.fandata[fanindex]);
-	fandat->fanflags |= IR_DISCOVERED;
+	if(strcmp(fanstat, "Not Installed") && strcmp(fanstat, "Unknown")){
+		fandat->fanflags |= IR_DISCOVERED;
+	}
 
 	speedval = atoi(fanspeed);
 	if( fandat->speed != speedval){

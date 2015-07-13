@@ -964,6 +964,20 @@ static SaErrorT ilo2_ribcl_discover_fans( struct oh_handler_state *oh_handler,
 		if( (fanstatus != NULL) && !strcmp( fanstatus, "Failed")){
 			failed = SAHPI_TRUE;
 		}
+		
+		/**	If the FAN is not installed then FAN Status comes as
+		 *	"Not installed" or "Unknown", so do not discover this
+		 *	resource and skip to next FAN resource.
+		 * 	<FAN>
+		 *		<ZONE VALUE = "System"/>
+		 *  		<LABEL VALUE = "Fan 1"/>
+		 *		<STATUS VALUE = "Not Installed"/>
+		 *		<SPEED VALUE = "0" UNIT="Percentage"/>
+		 *        </FAN>	
+ 		 **/
+		if(!strcmp(fanstatus, "Not Installed")|| !strcmp(fanstatus, "Unknown")){
+			fandata->fanflags = ~IR_DISCOVERED;
+		}
 
 		/* include the fan location in the text tag */
 		tagsize =  strlen( fandata->label) +
