@@ -602,10 +602,8 @@ void ilo2_ribcl_discover_chassis_idr( struct oh_handler_state *oh_handler,
 			char *description)
 {
 	ilo2_ribcl_handler_t *ir_handler = NULL;
-	ilo2_ribcl_DiscoveryData_t *ddata;
 
 	ir_handler = (ilo2_ribcl_handler_t *) oh_handler->data;
-	ddata = &(ir_handler->DiscoveryData);
 
 	/* Use the temporary ilo2_ribcl_idr_info structure in our
 	 * private handler to collect the IDR information. We use
