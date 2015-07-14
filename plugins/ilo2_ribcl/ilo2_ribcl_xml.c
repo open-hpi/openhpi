@@ -2368,7 +2368,7 @@ static int ir_xml_scan_smbios_4( ilo2_ribcl_handler_t *ir_handler,
 {
 
 	xmlChar *cpu = NULL;
-	xmlChar *cpu_speed = NULL;
+	char *cpu_speed = NULL;
 	int ret;
 	int procnum = 0;
 
@@ -2382,7 +2382,7 @@ static int ir_xml_scan_smbios_4( ilo2_ribcl_handler_t *ir_handler,
 	 * technology for the CPU. However, this data is only provided
 	 * for processor 1. */
 
-	cpu_speed = ir_xml_smb_get_value( "Speed", b_node);
+	cpu_speed = (char *) ir_xml_smb_get_value( "Speed", b_node);
 
 	/* Find the index of this processor. The label returned in string
 	 * 'cpu' above should be of the form 'Proc N'.
@@ -2405,7 +2405,15 @@ static int ir_xml_scan_smbios_4( ilo2_ribcl_handler_t *ir_handler,
 		return( -1);
 	}
 
-	ir_handler->DiscoveryData.cpudata[ procnum].cpuflags |= IR_DISCOVERED;
+	/* When the processor is not there, speed is shown as "0 MHz" */
+	if(cpu_speed != NULL ){
+       		if(strcmp(cpu_speed, "0 MHz")){
+                	ir_handler->DiscoveryData.cpudata[procnum].cpuflags |=
+                        	IR_DISCOVERED;
+        	}
+	} else {
+		dbg("CPU %d not getting added as speed is 0",procnum);
+	}
 
 	/* Now, if this information is different than what's already in
 	 * DiscoveryData, update DiscoveryData with the latest info */
