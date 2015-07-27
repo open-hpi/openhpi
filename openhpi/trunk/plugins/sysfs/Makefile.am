@@ -33,7 +33,7 @@ MAINTAINERCLEANFILES 	= Makefile.in
 
 AM_CPPFLAGS = -DG_LOG_DOMAIN=\"sysfs\"
 
-INCLUDES		= @OPENHPI_INCLUDES@  -I/usr/include/sysfs
+AM_CPPFLAGS		+= @OPENHPI_INCLUDES@  -I/usr/include/sysfs
 
 pkglib_LTLIBRARIES		= libsysfs2hpi.la
 

@@ -23,7 +23,7 @@ MAINTAINERCLEANFILES 	= Makefile.in *~
 
 AM_CPPFLAGS = -DG_LOG_DOMAIN=\"t\"
 
-INCLUDES		= -I $(MARSHAL_SRCDIR) @OPENHPI_INCLUDES@
+AM_CPPFLAGS		+= -I $(MARSHAL_SRCDIR) @OPENHPI_INCLUDES@
 
 noinst_PROGRAMS = float_format
 float_format_SOURCES = float_format.c

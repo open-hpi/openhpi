@@ -8,9 +8,9 @@ EXTRA_DIST		= hpi_ui.h Makefile.mingw32 version.rc
 
 AM_CPPFLAGS = -DG_LOG_DOMAIN=\"hpi_shell\"
 
-INCLUDES		= -I$(top_srcdir)/include -I$(top_srcdir)/utils
+AM_CPPFLAGS		+= -I$(top_srcdir)/include -I$(top_srcdir)/utils
 
-INCLUDES 		+= -I$(top_srcdir)/openhpid \
+AM_CPPFLAGS 		+= -I$(top_srcdir)/openhpid \
 			   -I$(top_srcdir)/marshal \
 			   -I$(top_srcdir)/clients \
 			   -DCLIENT

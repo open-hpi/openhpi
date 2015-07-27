@@ -25,7 +25,7 @@ SNMPUTILBDIR = $(top_builddir)/$(SNMPDIR)
 
 SUBDIRS	= t
 
-INCLUDES = @OPENHPI_INCLUDES@ -I$(top_srcdir)/snmp -I$(SNMPUTILSDIR)
+AM_CPPFLAGS += @OPENHPI_INCLUDES@ -I$(top_srcdir)/snmp -I$(SNMPUTILSDIR)
 
 AM_CFLAGS = @SNMPFLAGS@
 

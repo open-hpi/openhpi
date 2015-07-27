@@ -20,7 +20,7 @@ MAINTAINERCLEANFILES 	= Makefile.in
 
 AM_CPPFLAGS = -DG_LOG_DOMAIN=\"cpp\"
 
-INCLUDES		= @OPENHPI_INCLUDES@
+AM_CPPFLAGS		+= @OPENHPI_INCLUDES@
 
 includedir=$(base_includedir)/openhpi
 include_HEADERS		= oSaHpiAlarm.hpp \
