@@ -34,7 +34,7 @@ MAINTAINERCLEANFILES 	= Makefile.in
 AM_CPPFLAGS = -DG_LOG_DOMAIN=\"t\"
 
 noinst_PROGRAMS         = ipmi_thres_test
-INCLUDES                = @OPENHPI_INCLUDES@
+AM_CPPFLAGS                += @OPENHPI_INCLUDES@
 
 #noinst_PROGRAMS         = set_thres
 

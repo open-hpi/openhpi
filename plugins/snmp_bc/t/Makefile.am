@@ -44,7 +44,7 @@ AM_CPPFLAGS = -DG_LOG_DOMAIN=\"t\"
 
 SNMPUTILSDIR = $(top_srcdir)/$(SNMPDIR)
 
-INCLUDES = \
+AM_CPPFLAGS += \
 		@OPENHPI_INCLUDES@ \
 		-I$(top_srcdir)/snmp \
 		-I$(top_srcdir)/include \

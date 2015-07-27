@@ -33,7 +33,7 @@ MAINTAINERCLEANFILES    = Makefile.in *~ core core.*
 
 AM_CPPFLAGS = -DG_LOG_DOMAIN=\"ipmidirect\"
 
-INCLUDES                = @OPENHPI_INCLUDES@ 
+AM_CPPFLAGS                += @OPENHPI_INCLUDES@ 
 
 SUBDIRS                 = t
 DIST_SUBDIRS            = t

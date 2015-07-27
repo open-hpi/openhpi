@@ -4,7 +4,7 @@ MOSTLYCLEANFILES     = @TEST_CLEAN@
 AM_CPPFLAGS = -DG_LOG_DOMAIN=\"hpixml\"
 AM_CCASFLAGS = -DSCHEMA=\"$(srcdir)/schema.xsd\"
 
-INCLUDES       = @OPENHPI_INCLUDES@
+AM_CPPFLAGS       += @OPENHPI_INCLUDES@
 
 EXTRA_DIST     = Makefile.mingw32 schema.xsd version.rc
 
