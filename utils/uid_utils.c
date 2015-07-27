@@ -26,6 +26,7 @@
 #include <config.h>
 #include <oh_utils.h>
 #include <oh_error.h>
+#include <sahpi_wrappers.h>
 
 #ifdef OH_DBG_MSGS
 #define dbg_uid_lock(format, ...) \
@@ -42,14 +43,14 @@
 #define uid_lock(uidmutex) \
         do { \
                 dbg_uid_lock("Locking UID mutex..."); \
-                g_static_mutex_lock(uidmutex); \
+                wrap_g_static_mutex_lock(uidmutex); \
                 dbg_uid_lock("OK. UID mutex locked."); \
         } while (0)
 
 #define uid_unlock(uidmutex) \
         do { \
                 dbg_uid_lock("Unlocking UID mutex..."); \
-                g_static_mutex_unlock(uidmutex); \
+                wrap_g_static_mutex_unlock(uidmutex); \
                 dbg_uid_lock("OK. UID mutex unlocked."); \
         } while (0)
 
@@ -60,7 +61,12 @@ typedef struct {
         SaHpiEntityPathT entity_path;
 } EP_XREF;
 
-static GStaticMutex oh_uid_lock = G_STATIC_MUTEX_INIT;
+#if GLIB_CHECK_VERSION (2, 32, 0)
+	static GMutex oh_uid_lock;
+#else
+	static GStaticMutex oh_uid_lock = G_STATIC_MUTEX_INIT;
+#endif
+
 static GHashTable *oh_ep_table;
 static GHashTable *oh_resource_id_table;
 static guint       resource_id;
