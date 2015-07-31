@@ -52,6 +52,7 @@
 #include <oh_ssl.h>
 
 #include "ilo2_ribcl_cmnds.h"
+#include "sahpi_wrappers.h"
 
 /* The macro ILO2_RIBCL_SIMULATE_iLO2_RESPONSE is used to conditionally
  * compile code which reads a simulated iLO2 response from a local
@@ -374,6 +375,13 @@ typedef struct ir_fwdata{
 #define ILO2_RIBCL_DISCOVER_TS_MAX  120
 
 #define ILO2_RIBCL_CHASSIS_INDEX    -1;	/* Index is not aplicable to chassis */
+
+typedef struct iLO_thread_info {
+        GThread *hthread;
+        GCond   *iLO_cond;
+        GMutex  *iLO_mutex;
+        struct oh_handler_state *oh_handler;
+} iLO_info_t;
  
 typedef struct ilo2_ribcl_DiscoveryData {
 	char *product_name;
@@ -397,6 +405,11 @@ typedef struct ilo2_ribcl_handler {
 	char ir_hostname[ILO2_HOST_NAME_MAX_LEN];
 	/* Storehouse for data obtained during discovery */
 	ilo2_ribcl_DiscoveryData_t DiscoveryData;
+
+	iLO_info_t *ilo_thread_data;
+	SaHpiBoolT need_rediscovery;
+	SaHpiBoolT discovery_complete;
+	SaHpiTimeT iml_log_time;
 
 	/* RIBCL data */
 	char *user_name;
