@@ -194,6 +194,18 @@ void *ilo2_ribcl_open(GHashTable *handler_config,
 		return(NULL);
 	}
 	memset(ilo2_ribcl_handler, '\0', sizeof(*ilo2_ribcl_handler));
+
+	ilo2_ribcl_handler->ilo_thread_data =
+				g_malloc0(sizeof(iLO_info_t));
+	ilo2_ribcl_handler->ilo_thread_data->iLO_cond =
+				wrap_g_cond_new_init();
+	ilo2_ribcl_handler->ilo_thread_data->iLO_mutex =
+				wrap_g_mutex_new_init();
+
+	ilo2_ribcl_handler->ilo_thread_data->oh_handler = oh_handler;
+	ilo2_ribcl_handler->need_rediscovery = FALSE;
+	ilo2_ribcl_handler->discovery_complete = FALSE;
+
 	oh_handler->data = ilo2_ribcl_handler;
 
 	/* Save configuration in the handler */
@@ -219,6 +231,7 @@ void *ilo2_ribcl_open(GHashTable *handler_config,
 
 	/*initialize the ilo_type to NO_ILO*/
 	ilo2_ribcl_handler->ilo_type = NO_ILO;
+	ilo2_ribcl_handler->iml_log_time = 0;
 
 	/*hostname is needed for the HTTP 1.1 header
 	 *that will be sent to iLO3 prior to RIBCL command
@@ -325,6 +338,17 @@ void ilo2_ribcl_close(void *handler)
         	free(oh_handler);
                 return;
 	}
+
+	g_mutex_lock(ilo2_ribcl_handler->ilo_thread_data->iLO_mutex);
+	g_cond_broadcast(ilo2_ribcl_handler->ilo_thread_data->iLO_cond);
+	g_mutex_unlock(ilo2_ribcl_handler->ilo_thread_data->iLO_mutex);
+
+	if (ilo2_ribcl_handler->ilo_thread_data->hthread)
+		g_thread_join(ilo2_ribcl_handler->ilo_thread_data->hthread);
+
+	wrap_g_cond_free(ilo2_ribcl_handler->ilo_thread_data->iLO_cond);
+	wrap_g_mutex_free_clear(ilo2_ribcl_handler->ilo_thread_data->iLO_mutex);
+	g_free(ilo2_ribcl_handler->ilo_thread_data);
 
 	/* Free SSL infrastructure */
 	oh_ssl_ctx_free(ilo2_ribcl_handler->ssl_ctx);
