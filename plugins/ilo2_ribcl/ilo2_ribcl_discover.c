@@ -679,7 +679,7 @@ static SaErrorT ilo2_ribcl_discover_chassis(
 		(SAHPI_CAPABILITY_RESOURCE | SAHPI_CAPABILITY_RESET 
 			| SAHPI_CAPABILITY_POWER | SAHPI_CAPABILITY_RDR); 
 	ev->resource.HotSwapCapabilities = ILO2_RIBCL_MANAGED_HOTSWAP_CAP_FALSE;
-	ev->resource.ResourceSeverity = SAHPI_CRITICAL;
+	ev->resource.ResourceSeverity = SAHPI_OK;
 	ev->resource.ResourceFailed = SAHPI_FALSE;
 
 	oh_init_textbuffer(&(ev->resource.ResourceTag));
@@ -1388,6 +1388,8 @@ static SaErrorT ilo2_ribcl_discovered_fru( struct oh_handler_state *oh_handler,
 	SaErrorT ret;
 	SaHpiBoolT resource_wasfailed;
 	ilo2_ribcl_resource_info_t *res_info = NULL;
+	ilo2_ribcl_handler_t *ilo2_ribcl_handler = 
+		(ilo2_ribcl_handler_t *) oh_handler->data;
 
 	switch( *d_state){
 
@@ -1412,7 +1414,12 @@ static SaErrorT ilo2_ribcl_discovered_fru( struct oh_handler_state *oh_handler,
 			(SAHPI_CAPABILITY_RESOURCE | SAHPI_CAPABILITY_FRU); 
 
 		ev->resource.HotSwapCapabilities = 0;
-		ev->resource.ResourceSeverity = SAHPI_CRITICAL;
+		if(ilo2_ribcl_handler->discovery_complete == SAHPI_FALSE){
+			ev->resource.ResourceSeverity = SAHPI_OK;
+		}else {
+			ev->resource.ResourceSeverity = SAHPI_CRITICAL;
+		}
+
 		ev->resource.ResourceFailed = isfailed;
 		oh_init_textbuffer(&(ev->resource.ResourceTag));
 		oh_append_textbuffer( &(ev->resource.ResourceTag), tag);
@@ -1808,7 +1815,6 @@ static SaErrorT ilo2_ribcl_resource_set_failstatus(
 		return( SA_ERR_HPI_NOT_PRESENT);
 	}
 
-	rpt->ResourceFailed = resource_failed;
 
 	/* Generate a RESOURCE_FAILURE event */
 
@@ -1821,19 +1827,26 @@ static SaErrorT ilo2_ribcl_resource_set_failstatus(
 	ev->resource = *rpt;
 	ev->hid = oh_handler->hid;
 	ev->event.EventType = SAHPI_ET_RESOURCE;
-	ev->event.Severity = ev->resource.ResourceSeverity;
+	ev->event.Severity = SAHPI_CRITICAL;
 	ev->event.Source = ev->resource.ResourceId;
 	if ( oh_gettimeofday(&(ev->event.Timestamp)) != SA_OK){
 		ev->event.Timestamp = SAHPI_TIME_UNSPECIFIED;
 	}
-	if( resource_failed == SAHPI_FALSE){
+	if(( resource_failed == SAHPI_FALSE) && 
+                                  (rpt->ResourceFailed == SAHPI_TRUE)) {
 		ev->event.EventDataUnion.ResourceEvent.ResourceEventType
 					= SAHPI_RESE_RESOURCE_RESTORED;
-	} else {
+	} else if((resource_failed == SAHPI_TRUE) && 
+                                  (rpt->ResourceFailed != SAHPI_TRUE)) {
 		ev->event.EventDataUnion.ResourceEvent.ResourceEventType
 					= SAHPI_RESE_RESOURCE_FAILURE;
+	} else {
+		/* Return as the state has not changed */
+		oh_event_free(ev, 0);
+		return;
 	}
 				
+	rpt->ResourceFailed = resource_failed;
 	oh_evt_queue_push(oh_handler->eventq, ev);
 
 	return( SA_OK);
