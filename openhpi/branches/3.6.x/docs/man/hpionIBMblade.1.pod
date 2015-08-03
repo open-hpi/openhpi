@@ -1,0 +1,101 @@
+=head1 NAME
+
+hpionIBMblade - An openhpi sample application that shows how two (2) openhpi plugins can be used to display and manage resources of an IBM Blade with Basedboard Management Controller (BMC).
+
+=head1 SYNOPSIS 
+
+ hpionIBMblade [-D nn] [-N host[:port]] [-C <cfgfile>] [ -X ] [ -h ]
+ hpionIBMblade [--domain nn] [--host=host[:port]] [--cfgfile=file] [--debug] [--help]
+
+
+=head1 DESCRIPTION
+
+ hpionIBMblade shows how two (2) openhpi plugins can be used to display  
+and manage resources of an IBM Blade with Basedboard Management Controller (BMC).
+ 
+ Both the ipmi and snmp_bc plugin have the same IBM Blade target.  Resources from
+both plugins are combined to show a complete view of the IBM Blade.  
+   
+ @@ WARNING @@ RESTRICTIONS @@ WARNING @@ RESTRICTIONS @@ WARNING @@ RESTRICTIONS @@
+ 
+ This client application is designed to run **only** inband on an IBM Blade with Basedboard
+Management Controller (BMC) 
+
+If no domain or host is selected, hpionIBMblade uses the default domain as specified in the openhpiclient.conf file.
+
+=head1 OPTIONS
+
+=head2 Help Options:
+
+=over 2
+
+=item B<-h>, B<--help>
+
+Show help options
+
+=back
+
+=head2 Application Options:
+
+=over 2
+
+=item B<-D> I<nn>, B<--domain>=I<nn>
+
+Select domain id I<nn>
+
+=item B<-X>, B<--debug>
+
+Display debug messages
+
+=item B<-N> I<"host[:port]">, B<--host>=I<"host[:port]">
+
+Open session to the domain served by the daemon at the specified URL (host:port).
+This option overrides the OPENHPI_DAEMON_HOST and OPENHPI_DAEMON_PORT environment variables.
+If host contains ':' (for example IPv6 address) then enclose it in square brackets.
+For example: I<"[::1]"> or I<"[::1]:4743">.
+
+=item B<-C> I<"file">, B<--cfgfile>=I<"file">
+
+Use passed file as client configuration file.
+This option overrides the OPENHPICLIENT_CONF environment variable.
+
+=back
+
+=head1 SAMPLE CONFIGURATION FILE
+
+    handler libipmi        {
+        entity_root = "{SYSTEM_CHASSIS,2}"
+        name = "smi"
+        addr = 0
+    }
+
+    handler libsnmp_bc {
+        host = "bc.mm.ip.address"
+        version = "3"
+        community = "bc_community"
+        entity_root = "{SYSTEM_CHASSIS,1}"
+        security_name = "myid"
+        passphrase = "mypassword"
+        security_level = "authNoPriv"
+        auth_type = "MD5" 
+    }
+
+
+=head1 SEE ALSO
+
+         hpi_shell
+         hpialarms      hpifan         hpireset       hpitop
+         hpidomain      hpigensimdata  hpisensor      hpitree
+         hpiel          hpiiinv        hpisettime     hpiwdt
+         hpievents      hpipower       hpithres       hpixml
+         ohdomainlist   ohhandler      ohparam
+
+
+=head1 AUTHORS
+
+Authors of this man page:
+
+ Peter D Phan (pdphan@users.sourceforge.net)
+ Ulrich Kleber (ulikleber@users.sourceforge.net)
+ Anton Pak (avpak@users.sourceforge.net)
+

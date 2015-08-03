@@ -1,0 +1,262 @@
+OA SOAP Plug-in
+
+The OA SOAP Plug-in is an interface to Hewlett Packard BladeSystem
+c-Class Onboard Administrator system management module that resides
+within the c-Class enclosure. This plug-in communicates with the Onboard
+Administrator using a SOAP/XML interface. Technical information about
+the Onboard Administrator and HP BladeSystem c-Class, including the HP
+BladeSystem Onboard Administrator User Guide mentioned below, can be
+found at:
+
+    http://www.hp.com/servers/blades
+
+This plug-in is called oa_soap in the OpenHPI tree, and is referenced
+by the name liboa_soap in all OpenHPI configuration files.
+
+
+Prerequisites
+
+The oa_soap plug-in is built by default in the OpenHPI build process. To
+disable the building of this plug-in, add the configure flag:
+
+    --disable-oa_soap
+
+during the configure process.
+
+This plug-in requires the openssl-devel and libxml2-devel packages
+installed in order to successfully build. Most testing has been performed
+with openssl-devel version >= 0.9.8a and libxml2-devel version >=
+2.6.23. The latest version available for your distribution is recommended.
+
+
+Installing the Plug-in as a Patch on OpenHPI 2.10.2
+
+The oa_soap plug-in is included in OpenHPI releases 2.11.x and later. For
+release 2.10.2, this plug-in must be installed and then built as a
+patch on top of the OpenHPI 2.10.2 source and the ilo2_ribcl plug-in
+source. Since the patches for the oa_soap and ilo2_ribcl plug-ins modify
+several common files, there is an order dependency as to which should
+be installed first. Always install the ilo2_ribcl plug-in patch before
+installing the oa_soap plug-in patch. The sequence of operations to obtain
+a complete source tree for building OpenHPI with these two plug-ins is:
+
+    1) Obtain the OpenHPI 2.10.2 source and unpack it using the command
+       tar -zxvf openhpi-2.10.2.tar.gz
+    2) Apply the ilo2_ribcl plug-in patch using the instructions below
+    3) Apply the oa_soap plug-in patch using the instructions below.
+    4) Configure the plug-ins.
+    5) Build and install the OpenHPI binaries and libraries.
+
+The OpenHPI source can be obtained from:
+
+    http://www.openhpi.org/Downloads
+
+For detailed instructions on installing and building OpenHPI 2.10.2,
+see section 2 of the OpenHPI Manual at:
+
+    http://www.openhpi.org/Documentation.
+
+You can obtain the ilo2_ribcl plug-in patch from this link:
+
+    http://sourceforge.net/tracker/index.php?func=detail&aid=1841151&group_id=71730&atid=532254
+
+Even though the patch is labeled as 2.10.1, it is also supported on 2.10.2
+
+To apply the ilo2_ribcl patch, go to the openhpi-2.10.2 directory,
+and execute:
+
+    patch -p1 -i ilo2_ribcl_filename
+
+where ilo2_ribcl_patch_filename is the name of the ilo2_ribcl patch file.
+
+To apply the oa_soap patch, go to the openhpi-2.10.2 directory, and
+execute the command:
+
+    patch -p1 -i oa_soap_patch_filename
+
+where oa_soap_patch_filename is the name of the oa_soap patch file.
+
+To configure the plug-in source, and build the plug-in, execute the
+following commands:
+
+    libtoolize --copy --force --automake
+    aclocal
+    autoheader
+    automake --add-missing --copy --foreign
+    autoconf
+    ./configure
+    make
+
+To install the updated OpenHPI daemon and libraries, execute the following
+command with root privileges:
+
+    make install
+
+
+Plug-in Configuration
+
+You must set up a user account on the Onboard Administrator for each
+BladeSystem c-Class enclosure that you wish to manage. The Onboard
+Administrator is configured at the factory with a initial user name and
+password, which can be found on the attached tag. To setup or change the
+login and/or password, refer to the HP BladeSystem Onboard Administrator
+User Guide.
+
+The user account on the OA must have ADMINISTRATOR Privilege Level.
+
+Below is an example configuration stanza for the oa_soap plug-in in the
+openhpi.conf configuration file:
+
+    handler liboa_soap {
+        entity_root = "{SYSTEM_CHASSIS,8}"
+        OA_User_Name = "user"   # OA user name with admin privileges (required)
+        OA_Password = "passwd"  # OA password for above user (required)
+        ACTIVE_OA = "hostname"  # Active OA hostname or IP address (required)
+        STANDBY_OA = "hostname" # Standby OA hostname or IP address (optional)
+    }
+
+You will need to update the entries for your particular configuration. The
+OA_User_Name and OA_Password in the configuration file must correspond
+to an Onboard Administrator local user name and password.
+
+The BladeSystem enclosure can have two Onboard Administrators installed
+in redundant mode. In this configuration, ACTIVE_OA gives the name
+(or TCP/IP address) of the OA that will be used for system management,
+and STANDBY_OA gives the name (or TCP/IP address) of the standby OA. If
+the system has only one Onboard Administrator, then ACTIVE_OA should be
+specified and the STANDBY_OA line should be commented out or deleted.
+
+
+Sample Output
+
+To verify that the plug-in and target system are correctly configured,
+examine the output of the hpitop command. It should show all discovered
+resources in the enclosure. An example output for an enclosure containing
+5 blades and 2 Onboard Administrators is:
+
+hpitop ver 0.2 HPI-B
+Hpi Version 131585 Implemented.
+
+
+{SYSTEM_CHASSIS,8}
+    |
+    +--- {SYSTEM_CHASSIS,8}
+    |    |__ Inventory Idr Num: 0, Num Areas: 3, Tag: BladeSystem c7000 Enclosure
+    |    |__ Sensor Num: 2, Type: TEMPERATURE, Category: THRESHOLD, Tag: Enclosure Temperature
+    |
+    +--- {SYSTEM_CHASSIS,8}{SYSTEM_BLADE,1}
+    |    |__ Inventory Idr Num: 0, Num Areas: 2, Tag: server BL860c
+    |    |__ Sensor Num: 2, Type: TEMPERATURE, Category: THRESHOLD, Tag: Server Board Temperature
+    |    |__ Sensor Num: 5, Type: POWER_SUPPLY, Category: UNSPECIFIED, Tag: Server Board Power Consumed
+    |    |__ Control Num: 1, Type: DIGITAL, Output Type: POWER_STATE, Tag: Server Power Control
+    |
+    +--- {SYSTEM_CHASSIS,8}{SYSTEM_BLADE,7}
+    |    |__ Inventory Idr Num: 0, Num Areas: 2, Tag: ProLiant BL465c G1
+    |    |__ Sensor Num: 2, Type: TEMPERATURE, Category: THRESHOLD, Tag: Server Board Temperature
+    |    |__ Sensor Num: 5, Type: POWER_SUPPLY, Category: UNSPECIFIED, Tag: Server Board Power Consumed
+    |    |__ Control Num: 1, Type: DIGITAL, Output Type: POWER_STATE, Tag: Server Power Control
+    |
+    +--- {SYSTEM_CHASSIS,8}{SYSTEM_BLADE,8}
+    |    |__ Inventory Idr Num: 0, Num Areas: 2, Tag: ProLiant BL465c G1
+    |    |__ Sensor Num: 2, Type: TEMPERATURE, Category: THRESHOLD, Tag: Server Board Temperature
+    |    |__ Sensor Num: 5, Type: POWER_SUPPLY, Category: UNSPECIFIED, Tag: Server Board Power Consumed
+    |    |__ Control Num: 1, Type: DIGITAL, Output Type: POWER_STATE, Tag: Server Power Control
+    |
+    +--- {SYSTEM_CHASSIS,8}{SYSTEM_BLADE,11}
+    |    |__ Inventory Idr Num: 0, Num Areas: 2, Tag: ProLiant BL460c G1
+    |    |__ Sensor Num: 2, Type: TEMPERATURE, Category: THRESHOLD, Tag: Server Board Temperature
+    |    |__ Sensor Num: 5, Type: POWER_SUPPLY, Category: UNSPECIFIED, Tag: Server Board Power Consumed
+    |    |__ Control Num: 1, Type: DIGITAL, Output Type: POWER_STATE, Tag: Server Power Control
+    |
+    +--- {SYSTEM_CHASSIS,8}{SYSTEM_BLADE,13}
+    |    |__ Inventory Idr Num: 0, Num Areas: 2, Tag: ProLiant BL465c G1
+    |    |__ Sensor Num: 2, Type: TEMPERATURE, Category: THRESHOLD, Tag: Server Board Temperature
+    |    |__ Sensor Num: 5, Type: POWER_SUPPLY, Category: UNSPECIFIED, Tag: Server Board Power Consumed
+    |    |__ Control Num: 1, Type: DIGITAL, Output Type: POWER_STATE, Tag: Server Power Control
+    |
+    +--- {SYSTEM_CHASSIS,8}{SWITCH_BLADE,1}
+    |    |__ Inventory Idr Num: 0, Num Areas: 2, Tag: GbE2c Ethernet Blade Switch
+    |    |__ Sensor Num: 2, Type: TEMPERATURE, Category: THRESHOLD, Tag: InterConnect Temperature
+    |    |__ Control Num: 1, Type: DIGITAL, Output Type: POWER_STATE, Tag: Interconnect Power Control
+    |
+    +--- {SYSTEM_CHASSIS,8}{COOLING_DEVICE,1}
+    |    |__ Inventory Idr Num: 0, Num Areas: 2, Tag: BladeSystem c-Class fan
+    |    |__ Sensor Num: 4, Type: COOLING_DEVICE, Category: THRESHOLD, Tag: Fan Speed
+    |    |__ Sensor Num: 5, Type: POWER_SUPPLY, Category: UNSPECIFIED, Tag: Fan Power Consumed
+    |
+    +--- {SYSTEM_CHASSIS,8}{COOLING_DEVICE,2}
+    |    |__ Inventory Idr Num: 0, Num Areas: 2, Tag: BladeSystem c-Class fan
+    |    |__ Sensor Num: 4, Type: COOLING_DEVICE, Category: THRESHOLD, Tag: Fan Speed
+    |    |__ Sensor Num: 5, Type: POWER_SUPPLY, Category: UNSPECIFIED, Tag: Fan Power Consumed
+    |
+    +--- {SYSTEM_CHASSIS,8}{COOLING_DEVICE,3}
+    |    |__ Inventory Idr Num: 0, Num Areas: 2, Tag: BladeSystem c-Class fan
+    |    |__ Sensor Num: 4, Type: COOLING_DEVICE, Category: THRESHOLD, Tag: Fan Speed
+    |    |__ Sensor Num: 5, Type: POWER_SUPPLY, Category: UNSPECIFIED, Tag: Fan Power Consumed
+    |
+    +--- {SYSTEM_CHASSIS,8}{COOLING_DEVICE,4}
+    |    |__ Inventory Idr Num: 0, Num Areas: 2, Tag: BladeSystem c-Class fan
+    |    |__ Sensor Num: 4, Type: COOLING_DEVICE, Category: THRESHOLD, Tag: Fan Speed
+    |    |__ Sensor Num: 5, Type: POWER_SUPPLY, Category: UNSPECIFIED, Tag: Fan Power Consumed
+    |
+    +--- {SYSTEM_CHASSIS,8}{COOLING_DEVICE,5}
+    |    |__ Inventory Idr Num: 0, Num Areas: 2, Tag: BladeSystem c-Class fan
+    |    |__ Sensor Num: 4, Type: COOLING_DEVICE, Category: THRESHOLD, Tag: Fan Speed
+    |    |__ Sensor Num: 5, Type: POWER_SUPPLY, Category: UNSPECIFIED, Tag: Fan Power Consumed
+    |
+    +--- {SYSTEM_CHASSIS,8}{COOLING_DEVICE,6}
+    |    |__ Inventory Idr Num: 0, Num Areas: 2, Tag: BladeSystem c-Class fan
+    |    |__ Sensor Num: 4, Type: COOLING_DEVICE, Category: THRESHOLD, Tag: Fan Speed
+    |    |__ Sensor Num: 5, Type: POWER_SUPPLY, Category: UNSPECIFIED, Tag: Fan Power Consumed
+    |
+    +--- {SYSTEM_CHASSIS,8}{COOLING_DEVICE,7}
+    |    |__ Inventory Idr Num: 0, Num Areas: 2, Tag: BladeSystem c-Class fan
+    |    |__ Sensor Num: 4, Type: COOLING_DEVICE, Category: THRESHOLD, Tag: Fan Speed
+    |    |__ Sensor Num: 5, Type: POWER_SUPPLY, Category: UNSPECIFIED, Tag: Fan Power Consumed
+    |
+    +--- {SYSTEM_CHASSIS,8}{COOLING_DEVICE,8}
+    |    |__ Inventory Idr Num: 0, Num Areas: 2, Tag: BladeSystem c-Class fan
+    |    |__ Sensor Num: 4, Type: COOLING_DEVICE, Category: THRESHOLD, Tag: Fan Speed
+    |    |__ Sensor Num: 5, Type: POWER_SUPPLY, Category: UNSPECIFIED, Tag: Fan Power Consumed
+    |
+    +--- {SYSTEM_CHASSIS,8}{COOLING_DEVICE,9}
+    |    |__ Inventory Idr Num: 0, Num Areas: 2, Tag: BladeSystem c-Class fan
+    |    |__ Sensor Num: 4, Type: COOLING_DEVICE, Category: THRESHOLD, Tag: Fan Speed
+    |    |__ Sensor Num: 5, Type: POWER_SUPPLY, Category: UNSPECIFIED, Tag: Fan Power Consumed
+    |
+    +--- {SYSTEM_CHASSIS,8}{COOLING_DEVICE,10}
+    |    |__ Inventory Idr Num: 0, Num Areas: 2, Tag: BladeSystem c-Class fan
+    |    |__ Sensor Num: 4, Type: COOLING_DEVICE, Category: THRESHOLD, Tag: Fan Speed
+    |    |__ Sensor Num: 5, Type: POWER_SUPPLY, Category: UNSPECIFIED, Tag: Fan Power Consumed
+    |
+    +--- {SYSTEM_CHASSIS,8}{POWER_MGMNT,1}
+    |    |__ Sensor Num: 8, Type: POWER_SUPPLY, Category: UNSPECIFIED, Tag: Power Subsystem Input Power
+    |    |__ Sensor Num: 9, Type: POWER_SUPPLY, Category: UNSPECIFIED, Tag: Power Subsystem Output Power
+    |    |__ Sensor Num: 5, Type: POWER_SUPPLY, Category: UNSPECIFIED, Tag: Power Subsystem Power Consumed
+    |    |__ Sensor Num: 10, Type: POWER_SUPPLY, Category: UNSPECIFIED, Tag: Power Subsystem Power Capacity
+    |
+    +--- {SYSTEM_CHASSIS,8}{POWER_MGMNT,1}{POWER_SUPPLY,1}
+    |    |__ Inventory Idr Num: 0, Num Areas: 1, Tag: Power Supply
+    |    |__ Sensor Num: 5, Type: POWER_SUPPLY, Category: THRESHOLD, Tag: Power Output
+    |
+    +--- {SYSTEM_CHASSIS,8}{POWER_MGMNT,1}{POWER_SUPPLY,2}
+    |    |__ Inventory Idr Num: 0, Num Areas: 1, Tag: Power Supply
+    |    |__ Sensor Num: 5, Type: POWER_SUPPLY, Category: THRESHOLD, Tag: Power Output
+    |
+    +--- {SYSTEM_CHASSIS,8}{POWER_MGMNT,1}{POWER_SUPPLY,4}
+    |    |__ Inventory Idr Num: 0, Num Areas: 1, Tag: Power Supply
+    |    |__ Sensor Num: 5, Type: POWER_SUPPLY, Category: THRESHOLD, Tag: Power Output
+    |
+    +--- {SYSTEM_CHASSIS,8}{POWER_MGMNT,1}{POWER_SUPPLY,5}
+    |    |__ Inventory Idr Num: 0, Num Areas: 1, Tag: Power Supply
+    |    |__ Sensor Num: 5, Type: POWER_SUPPLY, Category: THRESHOLD, Tag: Power Output
+    |
+    +--- {SYSTEM_CHASSIS,8}{SYS_MGMNT_MODULE,1}
+    |    |__ Inventory Idr Num: 0, Num Areas: 2, Tag: BladeSystem c7000 Onboard Administrator
+    |    |__ Sensor Num: 2, Type: TEMPERATURE, Category: THRESHOLD, Tag: OA Temperature
+    |
+    +--- {SYSTEM_CHASSIS,8}{SYS_MGMNT_MODULE,2}
+    |    |__ Inventory Idr Num: 0, Num Areas: 2, Tag: BladeSystem c7000 Onboard Administrator
+    |    |__ Sensor Num: 2, Type: TEMPERATURE, Category: THRESHOLD, Tag: OA Temperature
+    |
+End of {SYSTEM_CHASSIS,8}

@@ -1,0 +1,102 @@
+=head1 NAME
+
+hpievents - An openhpi sample application that polls for events. 
+
+=head1 SYNOPSIS 
+
+ hpievents [ -D <value> ] [-N host[:port]] [-C <cfgfile>] [ -t BLOCK|SAHPI_TIMEOUT_BLOCK|n ] [ -d -X -h ]
+ hpievents [--domain=nn] [--host=host[:port]] [--cfgfile=file]
+           [--timeout=BLOCK|SAHPI_TIMEOUT_BLOCK|n ] [--discover] [--debug] [--help]
+
+=head1 DESCRIPTION
+
+hpievents polls for events in an opened HPI session.  User can specify wait time for the event. User can also select the order between hpi resource (resource event) discovery and hpi event subscription.
+
+If no domain or host is selected, hpievents polls for events in the default domain as specified in the openhpiclient.conf file.
+
+=head1 OPTIONS
+
+=head2 Help Options:
+
+=over 2
+
+=item B<-h>, B<--help>
+
+Show help options
+
+=back
+
+=head2 Application Options:
+
+=over 2
+
+=item B<-t> I<n|BLOCK>, B<--timeout>=I<n|BLOCK>
+
+Wait I<n> seconds for event or infinite wait (I<BLOCK>)
+
+=item B<-d>, B<--discover>
+
+Call saHpiDiscover() after saHpiSubscribe()
+
+=item B<-D> I<nn>, B<--domain>=I<nn>
+
+Select domain id I<nn>
+
+=item B<-X>, B<--debug>
+
+Display debug messages
+
+=item B<-N> I<"host[:port]">, B<--host>=I<"host[:port]">
+
+Open session to the domain served by the daemon at the specified URL (host:port).
+This option overrides the OPENHPI_DAEMON_HOST and OPENHPI_DAEMON_PORT environment variables.
+If host contains ':' (for example IPv6 address) then enclose it in square brackets.
+For example: I<"[::1]"> or I<"[::1]:4743">.
+
+=item B<-C> I<"file">, B<--cfgfile>=I<"file">
+
+Use passed file as client configuration file.
+This option overrides the OPENHPICLIENT_CONF environment variable.
+
+=back
+
+=head1 HPI APIs uniquely used in this application 
+
+=over 2
+
+SaErrorT SAHPI_API saHpiSubscribe (
+    SAHPI_IN SaHpiSessionIdT      SessionId
+);
+
+SaErrorT SAHPI_API saHpiUnsubscribe (
+    SAHPI_IN SaHpiSessionIdT  SessionId
+);
+
+SaErrorT SAHPI_API saHpiEventGet (
+    SAHPI_IN SaHpiSessionIdT            SessionId,
+    SAHPI_IN SaHpiTimeoutT              Timeout,
+    SAHPI_OUT SaHpiEventT               *Event,
+    SAHPI_INOUT SaHpiRdrT               *Rdr,
+    SAHPI_INOUT SaHpiRptEntryT          *RptEntry,
+    SAHPI_INOUT SaHpiEvtQueueStatusT    *EventQueueStatus
+);
+
+=back
+
+=head1 SEE ALSO
+
+         hpi_shell
+         hpialarms      hpigensimdata  hpireset       hpitop
+         hpidomain      hpiinv         hpisensor      hpitree
+         hpiel          hpionIBMblade  hpisettime     hpiwdt
+         hpifan         hpipower       hpithres       hpixml
+         ohdomainlist   ohhandler      ohparam
+
+ 
+=head1 AUTHORS
+
+Authors of this man page:
+
+ Peter D Phan (pdphan@users.sourceforge.net)
+ Ulrich Kleber (ulikleber@users.sourceforge.net)
+ Anton Pak (avpak@users.sourceforge.net)
