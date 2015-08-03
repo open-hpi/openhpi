@@ -18,6 +18,7 @@ REMOTE_SOURCES =  epath_utils.c \
 		  sahpi_event_utils.c \
 	          sahpi_struct_utils.c \
 	          sahpi_time_utils.c \
+	          sahpi_wrappers.c \
 		  uid_utils.c
 
 MOSTLYCLEANFILES = $(REMOTE_SOURCES) @TEST_CLEAN@

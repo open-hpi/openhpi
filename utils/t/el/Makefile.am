@@ -21,6 +21,7 @@ REMOTE_SOURCES       = announcement_utils.c \
                        sahpi_time_utils.c \
                        sahpiatca_enum_utils.c \
                        sahpixtca_enum_utils.c \
+                       sahpi_wrappers.c \
                        uid_utils.c
 
 

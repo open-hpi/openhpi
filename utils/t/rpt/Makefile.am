@@ -19,6 +19,7 @@ REMOTE_SOURCES		= rpt_utils.c \
 			  sahpi_event_encode.c \
 			  sahpi_event_utils.c \
 			  sahpi_struct_utils.c \
+			  sahpi_wrappers.c \
 			  sahpi_time_utils.c
 
 MOSTLYCLEANFILES 	= $(REMOTE_SOURCES) @TEST_CLEAN@
