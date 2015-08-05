@@ -1843,7 +1843,7 @@ static SaErrorT ilo2_ribcl_resource_set_failstatus(
 	} else {
 		/* Return as the state has not changed */
 		oh_event_free(ev, 0);
-		return;
+		return( SA_OK);
 	}
 				
 	rpt->ResourceFailed = resource_failed;
