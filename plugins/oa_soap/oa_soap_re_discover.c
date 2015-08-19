@@ -592,12 +592,6 @@ SaErrorT add_oa(struct oh_handler_state *oh_handler,
                         return SA_ERR_HPI_INTERNAL_ERROR;
                 }
 
-		if (!strcmp(network_info_response.ipAddress,"0.0.0.0")){
-                        err("Get OA network info at bay %d says 0.0.0.0",
-				bay_number);
-                        return SA_ERR_HPI_INVALID_DATA;
-                }
-
                 /* Copy the server IP address to oa_info structure*/
                 wrap_g_mutex_lock(temp->mutex);
                 memset(temp->server, 0, MAX_URL_LEN);
@@ -2752,6 +2746,8 @@ static SaErrorT oa_soap_re_disc_oa_sen(struct oh_handler_state *oh_handler,
 	SaErrorT rv = SA_OK;
 	struct getOaStatus request;
 	struct oaStatus response;
+	struct oa_soap_handler *oa_handler = NULL;
+	SaHpiResourceIdT resource_id;
 	struct getOaNetworkInfo nw_info_request;
 	struct oaNetworkInfo nw_info_response;
 
@@ -2760,6 +2756,9 @@ static SaErrorT oa_soap_re_disc_oa_sen(struct oh_handler_state *oh_handler,
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
+	oa_handler = (struct oa_soap_handler *) oh_handler->data;
+        resource_id =
+                oa_handler->oa_soap_resources.oa.resource_id[bay_number - 1];
 	request.bayNumber = bay_number;
 	rv = soap_getOaStatus(con, &request, &response);
 	if (rv != SOAP_OK) {
@@ -2777,8 +2776,15 @@ static SaErrorT oa_soap_re_disc_oa_sen(struct oh_handler_state *oh_handler,
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 
-	/* Check the OA link status state */
-	oa_soap_proc_oa_network_info(oh_handler, &nw_info_response);
+        /* Process the OA link status sensor */
+	rv = oa_soap_proc_sen_evt(oh_handler, resource_id,
+				OA_SOAP_SEN_OA_LINK_STATUS,
+				(SaHpiInt32T) nw_info_response.linkActive,
+				0, 0 );
+        if (rv != SA_OK) { 
+                err("processing the sensor event for sensor %x has failed", 
+                     OA_SOAP_SEN_OA_LINK_STATUS); 
+        } 
 
 	return SA_OK;
 }
