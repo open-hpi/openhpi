@@ -35,17 +35,16 @@
 #      Bhaskara Bhatt <bhaskara.hg@hp.com>
 
 CC=gcc
-LIBS	= -lopenhpi -lopenhpiutils
+LIBS	= -lopenhpi -lopenhpiutils -lgcov
 GLIB_INCLUDE = -I/usr/include/glib-2.0
-GLIB_CONF_INCLUDE = -I/usr/lib64/glib-2.0/include
-GLIB_CONF_INCLUDE32 = -I/usr/lib/glib-2.0/include
+GLIB_CONF_INCLUDE = $(shell pkg-config --cflags glib-2.0)
 OPENHPI_INCLUDE = -I../../../include -I../../../utils \
 		  -I/usr/local/include -I../../../
 OPENHPI_LIBS = -L ../../../openhpid/.libs
 
 #CFLAGS	= $(OPENHPI_LIBS) -I. $(GLIB_INCLUDE) $(GLIB_CONF_INCLUDE) \
 #	  $(GLIB_CONF_INCLUDE32) $(OPENHPI_INCLUDE) -g  
-CFLAGS	= -I. $(GLIB_INCLUDE) $(GLIB_CONF_INCLUDE) $(GLIB_CONF_INCLUDE32) \
+CFLAGS	= -I. $(GLIB_INCLUDE) $(GLIB_CONF_INCLUDE) \
 	  $(OPENHPI_INCLUDE) -g  
 
 PROGS	= hpi_power_status_get \
@@ -231,12 +230,13 @@ hpi_set_tag:	hpi_set_tag.c
 	$(CC) $(CFLAGS) -o $@ hpi_set_tag.c hpi_common.c $(LIBS)
 
 soaptest:	soaptest.c ../oa_soap_callsupport.h ../oa_soap_calls.h \
-		../../../ssl/oh_ssl.h
+		../../../ssl/oh_ssl.h ../../../utils/sahpi_wrappers.h
 	$(CC) -Wall -g -O -I.. $(OPENHPI_INCLUDE) -I/usr/include/libxml2 \
 	-I../../../ssl `pkg-config --cflags glib-2.0` -DHAVE_OPENSSL \
 	-o $@ soaptest.c \
 	../../../ssl/oh_ssl.o ../oa_soap_calls.o ../oa_soap_callsupport.o \
-	-lglib-2.0 -lxml2 -lssl -lcrypto
+        ../../../utils/sahpi_wrappers.o \
+	-lgthread-2.0 -lglib-2.0 -lxml2 -lssl -lcrypto -lgcov
 
 clean: 
 	-rm -rf *.core $(PROGS) $(EXTRAS)
