@@ -318,8 +318,7 @@ SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
                 while (devent == NULL) {
                         #if GLIB_CHECK_VERSION (2, 32, 0)
                         guint64 gfinaltime;
-                        gfinaltime = g_get_monotonic_time();
-                        gfinaltime = gfinaltime + 5000000L;
+                        gfinaltime = (guint64) 5000000L;
                         devent =
                             wrap_g_async_queue_timed_pop(eventq, gfinaltime);
                         #else
@@ -343,8 +342,7 @@ SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
         } else {
                 #if GLIB_CHECK_VERSION (2, 32, 0)
                 guint64 gfinaltime;
-                gfinaltime = g_get_monotonic_time();
-                gfinaltime = gfinaltime + (glong) (timeout / 1000);
+                gfinaltime = (guint64) (timeout / 1000);
                 devent = wrap_g_async_queue_timed_pop(eventq, gfinaltime);
                 #else
                 GTimeVal gfinaltime;
