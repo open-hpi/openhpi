@@ -8,10 +8,15 @@
 %define _srcrpmdir %{_rpmtopdir}/SRPMS
 %define _docdir %{_datadir}/doc/%{name}
 
-# For systems where libuuid is provided in e2fsprogs rpm 
+%if %{undefined suse_version}
+# For systems where libuuid is provided in e2fsprogs rpm
 %define uuid_provider e2fsprogs
-# For systems where libuuid is provided in libuuid rpm 
-#%define uuid_provider libuuid
+%define uuid libuuid
+%endif
+%if %{defined suse_version}
+# For systems where libuuid is provided in libuuid rpm
+%define uuid_provider libuuid
+%endif
 
 %define with_openssl @WITH_OPENSSL@
 
@@ -76,12 +81,27 @@ BuildRequires: openssl-devel
 %if 0%{?with_gcrypt}
 BuildRequires: libgcrypt-devel
 %endif
-Requires: glib2 libstdc++
+#Requires: glib2 libstdc++
 %if 0%{?with_openssl}
 Requires: openssl
 %endif
 %if 0%{?with_gcrypt}
 Requires: libgcrypt
+%endif
+%if %{undefined suse_version}
+Requires: glib2 libstdc++
+%endif
+%if 0%{?suse_version} <= 1100
+Requires:  glib2 libstdc++
+%define uuid libuuid
+%endif
+%if 0%{?suse_version} >= 1100 && 0%{?suse_version} <= 1140
+Requires:  glib2 libstdc++43
+%define uuid libuuid1
+%endif
+%if 0%{?suse_version} >= 1200
+Requires:  glib2 libstdc++6
+%define uuid libuuid1
 %endif
 
 %package devel
@@ -139,7 +159,7 @@ Requires: openhpi = %{version}
 Summary: OpenHPI plugin for the IBM Blade Center
 Group: System/Monitoring
 BuildRequires: net-snmp-devel %{uuid_provider}-devel
-Requires: openhpi = %{version} net-snmp > 5.0 %{uuid_provider}
+Requires: openhpi = %{version} net-snmp > 5.0 %{uuid}
 %endif
 
 %if 0%{?with_sysfs}
