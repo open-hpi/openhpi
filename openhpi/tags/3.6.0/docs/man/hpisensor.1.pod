@@ -1,0 +1,89 @@
+=head1 NAME
+
+ hpisensor -  This sample openhpi application displays sensor info for all resources with Sensor Capability
+
+=head1 SYNOPSIS 
+
+ hpisensor [-D nn] [-N host[:port]] [-C <cfgfile>] [-t -r -s -X -h] [-E epath]
+ hpisensor [--domain=nn] [--host=host[:port]] [--cfgfile=file]
+           [--threshold --range --eventstate --debug --help] [--entity-path="epath"]
+
+=head1 DESCRIPTION
+
+hpisensor displays sensor info for all resources with Sensor Capability.
+Option -E (entity-path) restricts the output on the specified entity-path.
+
+If no domain or host is selected, hpisensor uses the default domain as specified in the openhpiclient.conf file.
+
+=head1 OPTIONS
+
+=head2 Help Options:
+
+=over 2
+
+=item B<-h>, B<--help>
+
+Show help options
+
+=back
+
+=head2 Application Options:
+
+=over 2
+
+=item B<-t>, B<--threshold>
+
+Show Thresholds also
+
+=item B<-r>, B<--range>
+
+Show Range values also
+
+=item B<-s>, B<--eventstate>
+
+Show EventState also
+
+=item B<-E> I<"epath">, B<--entity-path>=I<"epath">
+
+Use entity path I<epath>
+
+=item B<-D> I<nn>, B<--domain>=I<nn>
+
+Select domain id I<nn>
+
+=item B<-X>, B<--debug>
+
+Display debug messages
+
+=item B<-N> I<"host[:port]">, B<--host>=I<"host[:port]">
+
+Open session to the domain served by the daemon at the specified URL (host:port).
+This option overrides the OPENHPI_DAEMON_HOST and OPENHPI_DAEMON_PORT environment variables.
+If host contains ':' (for example IPv6 address) then enclose it in square brackets.
+For example: I<"[::1]"> or I<"[::1]:4743">.
+
+=item B<-C> I<"file">, B<--cfgfile>=I<"file">
+
+Use passed file as client configuration file.
+This option overrides the OPENHPICLIENT_CONF environment variable.
+
+=back
+
+=head1 SEE ALSO
+
+         hpi_shell
+         hpialarms      hpifan         hpipower       hpitop
+         hpidomain      hpigensimdata  hpireset       hpitree
+         hpiel          hpiiinv        hpisettime     hpiwdt
+         hpievents      hpionIBMblade  hpithres       hpixml
+         ohdomainlist   ohhandler      ohparam
+ 
+
+=head1 AUTHORS
+
+Authors of this man page:
+
+ Peter D Phan (pdphan@users.sourceforge.net)
+ Ulrich Kleber (ulikleber@users.sourceforge.net)
+ Anton Pak (avpak@users.sourceforge.net)
+
