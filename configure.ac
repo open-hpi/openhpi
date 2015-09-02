@@ -433,7 +433,6 @@ AC_ARG_ENABLE([encryption],
         if test "x$have_gcrypt" = "xyes"; then
             if test "x$have_gcrypt_lib" = "xyes"; then 
                 AC_SUBST(HPICRYPT,hpicrypt)
-                AC_SUBST(HPICRYPT_POD,hpicrypt.1.pod)
                 AC_SUBST(HPICRYPT_MAN,hpicrypt.1)
                 CRYPT_FLAG="-DHAVE_ENCRYPT" 
                 AC_SUBST(CRYPT_FLAG)
@@ -451,7 +450,6 @@ AC_ARG_ENABLE([encryption],
     [if test "x$have_gcrypt" = "xyes"; then
         if test "x$have_gcrypt_lib" = "xyes"; then 
               AC_SUBST(HPICRYPT,hpicrypt)
-              AC_SUBST(HPICRYPT_POD,hpicrypt.1.pod)
               AC_SUBST(HPICRYPT_MAN,hpicrypt.1)
               CRYPT_FLAG="-DHAVE_ENCRYPT" 
               AC_SUBST(CRYPT_FLAG)
