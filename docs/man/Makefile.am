@@ -38,7 +38,7 @@ EXTRA_DIST		= openhpi.7.pod   openhpid.8.pod      \
                           hpievents.1.pod hpionIBMblade.1.pod \
                           hpisensor.1.pod hpitop.1.pod \
 			  hpidomain.1.pod hpigensimdata.1.pod \
-			  hpixml.1.pod $(HPICRYPT_POD) \
+			  hpixml.1.pod hpicrypt.1.pod \
 			  ohhandler.1.pod ohparam.1.pod \
                           ohdomainlist.1.pod \
 			  hpi_shell.1.pod

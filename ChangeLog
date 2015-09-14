@@ -1,3 +1,21 @@
+Changelog for 3.6.1 (09/14/2015)
+
+  New Features
+
+  Fixed Bugs
+
+   Build System
+
+       1898 Checkin 7658 - make fails in libgcrypt-devel systems
+
+   Documentation
+
+       1901 Checkin 7661 - bootstrap information could be added to README
+
+   HPI Clients
+
+       1899 Checkin 7659 - hpithres segfaults on EOF
+
 Changelog for 3.6.0 (08/26/2015)
 
   New Features
