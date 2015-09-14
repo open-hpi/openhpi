@@ -603,6 +603,9 @@ static int parse_command(char *Str)
 	char		*S, *S1;
 	Com_enum_t	com;
 
+	// EOF
+	if (!Str) return(-1);
+
 	S = Str;
 	while (*S != 0) {
 		if ((*S == '\t') || (*S == '\n')) *S = ' ';
