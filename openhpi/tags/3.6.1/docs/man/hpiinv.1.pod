@@ -1,0 +1,84 @@
+=head1 NAME
+
+hpiinv - An openhpi sample application that shows resources' inventory records. 
+
+=head1 SYNOPSIS 
+
+ hpiinv [-D nn] [-N host[:port]] [-C <cfgfile>] [-V] [ -X] [-a tag] [-h]
+ hpiinv [--domain=nn] [--host=host[:port]] [--cfgfile=file] [--verbose] [--debug] [--asset-tag=tag] [--help]
+
+=head1 DESCRIPTION
+
+hpiinv walks the RPT (Resource Present Table) looking for resources that have Inventory Capability.  It displays all inventory records found.  
+
+If no domain is selected, hpiinv uses a session with the default domain. The selected domain id must be configured via the openhpidclient.conf file specified in the environment.
+
+=head1 OPTIONS
+
+=head2 Help Options:
+
+=over 2
+
+=item B<-h>, B<--help>
+
+Show help options
+
+=back
+
+=head2 Application Options:
+
+=over 2
+
+=item B<-a> I<tag>, B<--asset-tag>=I<tag>
+
+Set the asset tag to the specified string
+
+=item B<-D> I<nn>, B<--domain>=I<nn>
+
+Select domain id I<nn>
+
+=item B<-X>, B<--debug>
+
+Display debug messages
+
+=item B<-V>, B<--verbose>
+
+Verbose mode
+
+=item B<-N> I<"host[:port]">, B<--host>=I<"host[:port]">
+
+Open session to the domain served by the daemon at the specified URL (host:port).
+This option overrides the OPENHPI_DAEMON_HOST and OPENHPI_DAEMON_PORT environment variables.
+If host contains ':' (for example IPv6 address) then enclose it in square brackets.
+For example: I<"[::1]"> or I<"[::1]:4743">.
+
+=item B<-C> I<"file">, B<--cfgfile>=I<"file">
+
+Use passed file as client configuration file.
+This option overrides the OPENHPICLIENT_CONF environment variable.
+
+=back
+
+=head1 ENVIRONMENT VARIABLES
+
+For generic OpenHPI, there is *no* additional environment variable required.
+For some devices; sahalee, mBMC; BMCONLY flag needs to be set for additional device characterization based on rdr.IdString.Data.
+
+=head1 SEE ALSO
+
+         hpi_shell
+         hpialarms      hpifan         hpireset       hpitop
+         hpidomain      hpigensimdata  hpisensor      hpitree
+         hpiel          hpionIBMblade  hpisettime     hpiwdt
+         hpievents      hpipower       hpithres       hpixml
+         ohdomainlist   ohhandler      ohparam
+
+
+=head1 AUTHORS
+
+Authors of this man page:
+
+ Peter D Phan (pdphan@users.sourceforge.net)
+ Ulrich Kleber (ulikleber@users.sourceforge.net)
+ Anton Pak (avpak@users.sourceforge.net)
+

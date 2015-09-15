@@ -1,0 +1,125 @@
+=head1 NAME
+
+hpialarms - A openhpi sample application that shows "Alarm Control" management instruments
+
+=head1 SYNOPSIS 
+
+ hpialarms [-D id] [-N host[:port]] [-C <cfgfile>]
+           [-a 1|0][-b 1|0][-c 1|0][-m 1|0][-n 1|0][-p 1|0][-i n][-o][-X][-h]
+ hpialarms [--domain=id] [--host=host[:port]] [--cfgfile=file] 
+           [--diska=1|0] [--diskb=1|0] [--critical=1|0] [--major=1|0]
+           [--minor=1|0] [--power=1|0] [--chassisid=n] [--all] [--debug] [--help]
+
+=head1 DESCRIPTION
+
+hpialarms walks the RPT (Resource Presence Table) for resources that have 
+"Alarm Control" management instruments (SAHPI_CTRL_LED).
+
+If no domain or host is selected, hpialarms uses the default domain as specified in the openhpiclient.conf file.
+
+=head1 OPTIONS
+
+(No Option) Display alarm states
+
+=head2 Help Options:
+
+=over 2
+
+=item B<-h>, B<--help>
+
+Show help options
+
+=back
+
+=head2 Application Options:
+
+=over 2
+
+=item B<-c> I<1|0>, -B<-critical>=I<1|0>
+
+Set critical alarm on|off
+
+=item B<-m> I<1|0>, -B<-major>=I<1|0>
+
+Set major alarm on|off
+
+=item B<-n> I<1|0>, -B<-minor>=I<1|0>
+
+Set minor alarm on|off
+
+=item B<-a> I<1|0>, -B<-diska>=I<1|0>
+
+Set diska alarm on|off
+
+=item B<-b> I<1|0>, -B<-diskb>=I<1|0>
+
+Set diskb alarm on|off
+
+=item B<-p> I<1|0>, -B<-power>=I<1|0>
+
+Set power alarm on|off
+
+=item B<-i> I<n>, -B<-chassisid>=I<n>
+
+Set chassis id on for I<n> seconds
+
+=item B<-o>, -B<-all>
+
+Set all alarms off
+
+=item B<-D> I<nn>, B<--domain>=I<nn>
+
+Select domain id I<nn>
+
+=item B<-X>, B<--debug>
+
+Display debug messages
+
+=item B<-N> I<"host[:port]">, B<--host>=I<"host[:port]">
+
+Open session to the domain served by the daemon at the specified URL (host:port).
+This option overrides the OPENHPI_DAEMON_HOST and OPENHPI_DAEMON_PORT environment variables.
+If host contains ':' (for example IPv6 address) then enclose it in square brackets.
+For example: I<"[::1]"> or I<"[::1]:4743">.
+
+=item B<-C> I<"file">, B<--cfgfile>=I<"file">
+
+Use passed file as client configuration file.
+This option overrides the OPENHPICLIENT_CONF environment variable.
+
+=back
+
+=head1 SAMPLE OUTPUT 
+
+=over 2
+
+ hpialarmpanel ver 0.6
+ RptInfo: UpdateCount = 5, UpdateTime = 8a2dc6c0
+ rptentry[0] resourceid=1 tag: Mullins
+ RDR[45]: ctltype=2:1 oem=0  Chassis Identify Control
+ RDR[48]: ctltype=0:1 oem=10 Front Panel Power Alarm LED         state = off
+ RDR[51]: ctltype=0:1 oem=13 Front Panel Minor Alarm LED         state = ON
+ RDR[46]: ctltype=0:0 oem=0  Cold Reset Control
+ RDR[49]: ctltype=0:1 oem=11 Front Panel Critical Alarm LED      state = off
+ RDR[50]: ctltype=0:1 oem=12 Front Panel Major Alarm LED         state = off
+
+=back
+
+=head1 SEE ALSO
+
+         hpi_shell
+         hpidomain      hpigensimdata  hpireset       hpitop
+         hpiel          hpiinv         hpisensor      hpitree
+         hpievents      hpionIBMblade  hpisettime     hpiwdt
+         hpifan         hpipower       hpithres       hpixml
+         ohdomainlist   ohhandler      ohparam
+
+
+=head1 AUTHORS
+
+Authors of this man page:
+
+ Peter D Phan (pdphan@users.sourceforge.net)
+ Ulrich Kleber (ulikleber@users.sourceforge.net)
+ Anton Pak (avpak@users.sourceforge.net)
+

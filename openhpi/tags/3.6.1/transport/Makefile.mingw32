@@ -1,0 +1,30 @@
+include ../Makefile.mingw32.def
+
+TARGET := libopenhpitransport.dll
+
+SRC := strmsock.cpp version.rc
+
+OBJ := $(patsubst %.rc, %.o, $(patsubst %.cpp, %.o, ${SRC}))
+
+DEFS :=  -DG_LOG_DOMAIN=\"transport\"
+
+INCLUDES := ${GLIB_INCLUDES} -I ../mingw32 -I ../include
+
+LIBS := ${GLIB_LIBS} -lws2_32
+
+CPPFLAGS += ${DEFS} ${INCLUDES}
+
+.PHONY: all clean
+.SUFFIXES: .rc
+
+all : ${TARGET}
+
+${TARGET} : ${OBJ}
+	${CXX} -shared -o $@ $^ ${LIBS}
+
+.rc.o:
+	${RC} ${RCFLAGS} $< $@
+
+clean:
+	rm -f ${OBJ} ${TARGET}
+

@@ -1,0 +1,123 @@
+=head1 NAME
+
+hpiel - An openhpi sample application that displays HPI event log entries. 
+
+=head1 SYNOPSIS 
+
+ hpiel [-D nn] [-N host[:port]] [-C <cfgfile>] [-d] [-E entity-path] [-c -p -r -X -h ]
+ hpiel [--domain=nn]  [--host=host[:port]] [--cfgfile=file] 
+       [--del] [--entity-path="entitypath"] [--clear --resource --rdr --debug --help]
+
+=head1 DESCRIPTION
+
+hpiel searches the RPT (Resource Present Table) for resources with SAHPI_CAPABILITY_EVENT_LOG and displays event log entries for resources found.
+
+If no domain is selected, hpiel uses a session with the default domain. The selected domain id must be configured via the openhpidclient.conf file specified in the environment.
+
+=head1 OPTIONS
+
+=head2 Help Options:
+
+=over 2
+
+=item B<-h>, B<--help>
+
+Show help options
+
+=back
+
+=head2 Application Options:
+
+=over 2
+
+=item B<-d>, B<--del>
+
+Display domain event log entries
+
+=item B<-c>, B<--clear>
+
+Clear log before reading event log entries
+
+=item B<-p>, B<--resource>
+
+Pull resource info along with log entry
+
+=item B<-r>, B<--rdr>
+
+Pull RDR info along with log entry
+
+=item B<-E> I<"epath">, B<--entity-path>=I<"epath">
+
+Use entity path epath and display resource
+
+=item B<-D> I<nn>, B<--domain>=I<nn>
+
+Select domain id I<nn>
+
+=item B<-X>, B<--debug>
+
+Display debug messages
+
+=item B<-N> I<"host[:port]">, B<--host>=I<"host[:port]">
+
+Open session to the domain served by the daemon at the specified URL (host:port).
+This option overrides the OPENHPI_DAEMON_HOST and OPENHPI_DAEMON_PORT environment variables.
+If host contains ':' (for example IPv6 address) then enclose it in square brackets.
+For example: I<"[::1]"> or I<"[::1]:4743">.
+
+=item B<-C> I<"file">, B<--cfgfile>=I<"file">
+
+Use passed file as client configuration file.
+This option overrides the OPENHPICLIENT_CONF environment variable.
+
+=back
+
+If neither B<-d> or B<-E> I<"epath"> are specified, event log entries will be shown
+for all supporting resources by default.
+
+=head1 HPI APIs uniquely used in this application 
+
+=over 2
+
+SaErrorT SAHPI_API saHpiEventLogInfoGet (
+    SAHPI_IN  SaHpiSessionIdT     SessionId,
+    SAHPI_IN  SaHpiResourceIdT    ResourceId,
+    SAHPI_OUT SaHpiEventLogInfoT  *Info
+);
+
+SaErrorT SAHPI_API saHpiEventLogEntryGet (
+    SAHPI_IN    SaHpiSessionIdT          SessionId,
+    SAHPI_IN    SaHpiResourceIdT         ResourceId,
+    SAHPI_IN    SaHpiEventLogEntryIdT    EntryId,
+    SAHPI_OUT   SaHpiEventLogEntryIdT    *PrevEntryId,
+    SAHPI_OUT   SaHpiEventLogEntryIdT    *NextEntryId,
+    SAHPI_OUT   SaHpiEventLogEntryT      *EventLogEntry,
+    SAHPI_INOUT SaHpiRdrT                *Rdr,
+    SAHPI_INOUT SaHpiRptEntryT           *RptEntry
+);
+
+SaErrorT SAHPI_API saHpiEventLogClear (
+    SAHPI_IN  SaHpiSessionIdT     SessionId,
+    SAHPI_IN  SaHpiResourceIdT    ResourceId
+);
+
+=back
+
+=head1 SEE ALSO
+
+         hpi_shell
+         hpialarms      hpigensimdata  hpireset       hpitop
+         hpidomain      hpiinv         hpisensor      hpitree
+         hpievents      hpionIBMblade  hpisettime     hpiwdt
+         hpifan         hpipower       hpithres       hpixml
+         ohdomainlist   ohhandler      ohparam
+
+
+=head1 AUTHORS
+
+Authors of this man page:
+
+ Peter D Phan (pdphan@users.sourceforge.net)
+ Ulrich Kleber (ulikleber@users.sourceforge.net)
+ Anton Pak (avpak@users.sourceforge.net)
+
