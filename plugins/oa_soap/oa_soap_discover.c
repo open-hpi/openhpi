@@ -5947,7 +5947,7 @@ SaErrorT oa_soap_server_mem_evt_discover(struct oh_handler_state *oh_handler,
 {
         struct oa_soap_handler *oa_handler = NULL;
 	SaErrorT rv = SA_OK;
-        SaHpiInt32T i = 0, j = 0, len = 0;
+        SaHpiInt32T bay = 0, j = 0, len = 0;
         struct getBladeStatus status_request;
         struct bladeStatus status_response;
         xmlNode *extra_data = NULL;
@@ -5964,7 +5964,7 @@ SaErrorT oa_soap_server_mem_evt_discover(struct oh_handler_state *oh_handler,
 
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
         status_request.bayNumber = rpt->ResourceEntity.Entry[0].EntityLocation;
-        i = status_request.bayNumber;
+        bay = status_request.bayNumber;
         rv = soap_getBladeStatus(oa_handler->active_con,
                                  &status_request,
                                  &status_response);
@@ -5980,8 +5980,8 @@ SaErrorT oa_soap_server_mem_evt_discover(struct oh_handler_state *oh_handler,
                                          "mainMemoryErrors"))) {
                     err("openhpid[%d]: Blade (id=%d) at %d has "
                         "Memory Error: %s", getpid(),
-                         rpt->ResourceId, i, extra_data_info.value);
-                    oa_handler->memErrRecFlag[i] = 1;
+                         rpt->ResourceId, bay, extra_data_info.value);
+                    oa_handler->memErrRecFlag[bay - 1] = 1;
   
                     /* This MEMORY event is created just to let the 
                        user know which memory module is generating 

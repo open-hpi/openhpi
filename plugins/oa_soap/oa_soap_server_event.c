@@ -941,18 +941,18 @@ void oa_soap_proc_server_status(struct oh_handler_state *oh_handler,
                 if (!(strcmp(extra_data_info.name, "mainMemoryErrors"))) {
                    err("openhpid[%d]: Blade (id=%d) at %d has Memory Error: %s",
                     getpid(), resource_id, bay, extra_data_info.value);
-                   memErrFlag[bay] = 1;
-                   oa_handler->memErrRecFlag[bay] = 1;
+                   memErrFlag[bay - 1] = 1;
+                   oa_handler->memErrRecFlag[bay - 1] = 1;
                    break;
                 }
                 extra_data = soap_next_node(extra_data);
         }
 
-        if(oa_handler->memErrRecFlag[bay]) {
+        if(oa_handler->memErrRecFlag[bay - 1]) {
                 /* This MEMORY event is created just to let the user
                    know whether all memory modules are fine, if not,
                    which memory module is generating an error */
-                if (memErrFlag[bay]) {
+                if (memErrFlag[bay - 1]) {
                     mainMemoryError = (char *)
                     oa_soap_parse_memory_sensor_reading(extra_data_info.value);
                     rv = oa_soap_proc_mem_evt(oh_handler, resource_id,
@@ -965,7 +965,7 @@ void oa_soap_proc_server_status(struct oh_handler_state *oh_handler,
                             return;
                     }
                     wrap_g_free(mainMemoryError);
-                    memErrFlag[bay] = 0;
+                    memErrFlag[bay - 1] = 0;
                 } else {
                     /* Get the sensor value */
                     sensor_num = OA_SOAP_SEN_PRED_FAIL;
@@ -999,7 +999,7 @@ void oa_soap_proc_server_status(struct oh_handler_state *oh_handler,
                                          OA_SOAP_SEN_MAIN_MEMORY_ERRORS);
                                     return;
                             }
-                            oa_handler->memErrRecFlag[bay] = 0;
+                            oa_handler->memErrRecFlag[bay - 1] = 0;
                     }
                 }
         }
