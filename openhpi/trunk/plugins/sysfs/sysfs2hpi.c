@@ -147,6 +147,7 @@ static void sysfs2hpi_close(void *hnd)
 
 	sys = inst->data;
 	sysfs_close_bus(sys->bus);
+	sys->bus = NULL;
 
 	/* Free resources and their sensors */
 	if (g_slist_length(sys->resources) != 0) {
@@ -571,6 +572,7 @@ static int sysfs2hpi_discover_resources(void *hnd)
 	if (!(sys->bus->devices)) {
 		err("no i2c devices found");
 		sysfs_close_bus(sys->bus);
+		sys->bus = NULL;
 		sys->initialized++;
 		return 0;
 	}
