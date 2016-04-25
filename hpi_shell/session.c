@@ -50,6 +50,7 @@ static void* progress_bar(void *unused)
 
 	memset(buf, 0, PROGRESS_BUF_SIZE);
 	mes_len = strlen(progress_mes);
+	wrap_g_mutex_lock(thread_mutex);
 	while (in_progress) {
 		snprintf(A, 10, " %d.%d s ", t / 10, t % 10);
 		len = strlen(A);
@@ -73,6 +74,7 @@ static void* progress_bar(void *unused)
 		if (i < (PROGRESS_BUF_SIZE - mes_len - 1)) i++;
 		t++;
 	};
+	wrap_g_mutex_unlock(thread_mutex);
         g_thread_exit(0);
 	return (void *)1;
 }
