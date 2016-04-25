@@ -214,7 +214,7 @@ cIpmiResource::Destroy()
       if ( rptentry->ResourceCapabilities & SAHPI_CAPABILITY_FRU )
       {
            e->event.EventType = SAHPI_ET_HOTSWAP;
-           if (e->resource.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)
+           if (rptentry->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)
            {
                e->event.EventDataUnion.HotSwapEvent.HotSwapState = SAHPI_HS_STATE_NOT_PRESENT;
                e->event.EventDataUnion.HotSwapEvent.PreviousHotSwapState = SAHPI_HS_STATE_NOT_PRESENT;
