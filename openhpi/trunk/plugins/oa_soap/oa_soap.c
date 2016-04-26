@@ -298,9 +298,6 @@ void *oa_soap_open(GHashTable *handler_config,
  *
  * Detailed Description:
  *      - Releases all the memory allocated by OA SOAP plugin handler
- *      - As per current framework implementation, this api won't be called
- *        during process shutdown as there is no graceful shutdown implemented
- *        as part of the openhpi framework.
  *
  * Return values:
  *      NONE
