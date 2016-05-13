@@ -201,14 +201,22 @@ void *snmp_bc_open(GHashTable *handler_config,
 				}
 				
 				custom_handle->session.securityLevel = SNMP_SEC_LEVEL_AUTHNOPRIV;
+				#ifndef NETSNMP_DISABLE_MD5
 				if (!authtype || !g_ascii_strncasecmp(authtype, "MD5", sizeof("MD5"))) {
 					custom_handle->session.securityAuthProto = usmHMACMD5AuthProtocol;
 					custom_handle->session.securityAuthProtoLen = USM_AUTH_PROTO_MD5_LEN;
-				} else if (!g_ascii_strncasecmp(authtype, "SHA", sizeof("SHA"))) {
+				} else 
+				#endif
+				if (!authtype || !g_ascii_strncasecmp(authtype, "SHA", sizeof("SHA"))) {
 					custom_handle->session.securityAuthProto = usmHMACSHA1AuthProtocol;
 					custom_handle->session.securityAuthProtoLen = USM_AUTH_PROTO_SHA_LEN;
 				} else {
-					err("Unrecognized authenication type=%s.", authtype); 
+					if (authtype && !g_ascii_strncasecmp(authtype, "MD5", sizeof("MD5"))) {
+						err("MD5 disabled. NETSNMP_DISABLE_MD5 defined in net-snmp"); 
+						err("But config file has authtype=%s",authtype);
+						err("Enable MD5 or change authtype to SHA");
+					} else 
+						err("Unrecognized authenication type=%s.", authtype); 
 					return NULL;
 				}
 				
