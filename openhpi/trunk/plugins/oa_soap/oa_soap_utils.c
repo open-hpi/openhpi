@@ -1601,7 +1601,7 @@ SaErrorT update_oa_fw_version(struct oh_handler_state *oh_handler,
         SaHpiInt32T minor;
 
         if (oh_handler == NULL || response == NULL) {
-                printf("Invalid parameter");
+                err("Invalid parameter");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
