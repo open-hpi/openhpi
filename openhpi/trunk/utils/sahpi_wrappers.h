@@ -78,7 +78,8 @@ void wrap_g_static_mutex_init (void *mutex);
 void wrap_g_static_mutex_free_clear(void *mutex);
 void wrap_g_static_mutex_unlock(void *mutex);
 void wrap_g_static_mutex_lock(void *mutex);
-void wrap_g_free(void *ptr);
+#define wrap_g_free(ptr) g_free(ptr); ptr=NULL
+#define wrap_free(ptr) free(ptr); ptr=NULL
 
 #ifdef __cplusplus
 } /* extern "C" */
