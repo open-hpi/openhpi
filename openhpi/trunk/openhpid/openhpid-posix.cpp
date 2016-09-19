@@ -295,7 +295,14 @@ static bool daemonize(const char *pidfile)
     update_pidfile(pidfile);
 
     //chdir("/");
-    umask(0); // Reset default file permissions
+
+#ifndef _WIN32
+    mode_t prev_umask = umask(022); // Reset default file permissions
+    if ( prev_umask != 022 ) {
+        WARN("Using umask 0%o instead of 022(default)",prev_umask);
+        umask(prev_umask);
+    }
+#endif
 
     // Close unneeded inherited file descriptors
     // Keep stdout and stderr open if they already are.
