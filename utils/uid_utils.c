@@ -480,7 +480,7 @@ static gint uid_map_from_file()
 		 if(stat(VARPATH, &buf) < 0) {
 	  	 	CRIT("uid map file directory '%s' does not exist. Either "
 				"re-install the package or create the directory "
-				"maunally.", VARPATH, VARPATH);
+				"maunally.", VARPATH);
 			return -2;
 		 }
 
