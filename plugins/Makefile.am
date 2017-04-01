@@ -32,7 +32,7 @@
 MAINTAINERCLEANFILES 	= Makefile.in
 
 SUBDIRS = @IPMI@ @WATCHDOG@ @SYSFS@ @SNMP_BC@ @IPMIDIRECT@ @DYNAMIC_SIMULATOR@ @SIMULATOR@ \
-	  @RTAS@ @ILO2_RIBCL@ @OA_SOAP@ @SLAVE@ @TEST_AGENT@
+	  @RTAS@ @ILO2_RIBCL@ @OA_SOAP@ @OV_REST@ @SLAVE@ @TEST_AGENT@
 DIST_SUBDIRS =	ipmi \
 		watchdog \
 		sysfs \
@@ -43,6 +43,7 @@ DIST_SUBDIRS =	ipmi \
 		rtas \
 		ilo2_ribcl \
 		oa_soap \
+		ov_rest \
 		slave \
 		test_agent
 

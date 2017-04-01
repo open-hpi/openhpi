@@ -193,6 +193,15 @@ handler libsimulator {
 #        STANDBY_OA = "hostname" # Standby OA hostname or IP address (optional)
 #}
 
+## Section for ov_rest plugin for HPE Synergy 
+## using CURL JSON-C over https RESTfull interfaces. 
+#handler libov_rest {
+#        entity_root = "{RACK,8}"
+#        OV_User_Name = "user"   # OV/Composer user name with admin privileges (required)
+#        OV_Password = "passwd"  # OV/Composer password for above user (required)
+#        ACTIVE_OV = "hostname"  # Active OV hostname or IP address (required)
+#}
+
 ## Section for sysfs plugin
 #handler libsysfs2hpi {
 #        # Mandatory.
