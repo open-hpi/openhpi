@@ -1,0 +1,44 @@
+<project name="OpenHPI" default="all">
+    <target name="all" depends="example:compile,example_handlers:compile,example_collections:compile"/>
+
+    <target name="example:compile" depends="openhpi_baselib:jar">
+        <javac destdir="build">
+            <src path="example"/>
+        </javac>
+    </target>
+
+    <target name="example_handlers:compile" depends="openhpi_baselib:jar">
+        <javac destdir="build">
+            <src path="example_handlers"/>
+        </javac>
+    </target>
+
+    <target name="example_collections:compile" depends="openhpi_baselib:jar">
+        <javac destdir="build">
+            <src path="example_collections"/>
+        </javac>
+    </target>
+
+    <target name="openhpi_baselib:jar" depends="openhpi_baselib:compile">
+        <jar destfile="build/openhpi_baselib.jar" manifest="openhpi_baselib/manifest.txt" >
+            <fileset dir="build">
+                <include name="org/openhpi/*.class"/>
+            </fileset>
+        </jar>
+    </target>
+
+    <target name="openhpi_baselib:compile" depends="prepare">
+        <javac destdir="build">
+            <src path="openhpi_baselib"/>
+        </javac>
+    </target>
+
+    <target name="prepare">
+        <mkdir dir="build"/>
+    </target>
+
+    <target name="clean">
+        <delete dir="build"/>
+    </target>
+</project>
+
