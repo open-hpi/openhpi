@@ -15,10 +15,12 @@ The following components are supported:
 * SNMP BladeCenter/RSA Plugin
 * iLO2 RIBCL Plugin
 * SOAP/XML BladeSystem c-Class Plugin
-* Oneview/REST Synergy Plugin
 * rtas Plugin
 * sysfs Plugin
 * watchdog Plugin
+
+NOTE: The ipmi plugin is still provided with this release, but 
+will not be maintained any longer. Please use ipmidirect instead.
 
 Feedback, as always, is welcome and encouraged:
 openhpi-devel@lists.sourceforge.net
@@ -47,11 +49,6 @@ snmp_bc plugin
 oa_soap plugin
   libssl >= 0.9.7
   libxml2
-
-ov_rest plugin
-  librabbitmq >= 0.8.0
-  json-c-devel
-  libcurl-devel
 
 ipmi plugin
   OpenIPMI >= 1.4.20 (http://openipmi.sf.net)
@@ -151,7 +148,6 @@ ipmidirect -        IPMI plugin that directly uses ipmi protocol to ipmi
 snmp_bc -           IBM BladeCenter/RSA plugin (uses snmp)
 ilo2_ribcl -        HP ProLiant Rack Mount Server plug-in
 oa_soap -           HP BladeSystem c-Class plugin
-ov_rest -           HPE Synergy plugin
 rtas -              Run-Time Abstraction Services (RTAS) plug-in
 sysfs -             Linux sysfs plugin (LM sensors and I2C devices exported in 
                     sysfs requires kernel 2.6 or >= 2.5.72)
