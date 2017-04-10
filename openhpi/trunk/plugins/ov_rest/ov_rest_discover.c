@@ -4789,6 +4789,11 @@ SaErrorT ov_rest_build_server_thermal_rdr(struct oh_handler_state *oh_handler,
 	for(i = 0; i < arraylen; i++){
 		jvalue = json_object_array_get_idx(
 				response->serverhardwareThermal_array, i);
+		if(!jvalue){
+			CRIT("Invalid serverhardwareThermal Response "
+						"for the bay %d", i+1);
+			continue;
+		}
 		ov_rest_json_parse_server_thermal_sensors(jvalue, 
 							&server_therm_info);
                 rv = ov_rest_build_temperature_sensor_rdr(oh_handler,
@@ -4805,6 +4810,11 @@ SaErrorT ov_rest_build_server_thermal_rdr(struct oh_handler_state *oh_handler,
         for(i=0; i<arraylen; i++){
                 jval = json_object_array_get_idx(
                                 response->serverhardwareFans_array, i);
+		if(!jval){
+			CRIT("Invalid ServerhardwareFans response "
+						"for the bay %d", i+1);
+			continue;
+		}
                 ov_rest_json_parse_server_fan_sensors(jval,
                                                         &server_fan_info);
                 rv = ov_rest_build_fan_sensor_rdr_info(oh_handler, 
