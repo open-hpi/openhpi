@@ -652,6 +652,7 @@ SaErrorT build_interconnect_inv_rdr(struct oh_handler_state *oh_handler,
         SaHpiInt32T product_area_success_flag = 0;
         SaHpiInt32T area_count = 0;
         SaHpiRptEntryT *rpt = NULL;
+        char temp[256];
 
         if (oh_handler == NULL || rdr == NULL || response == NULL ||
             inventory == NULL) {
@@ -699,10 +700,19 @@ SaErrorT build_interconnect_inv_rdr(struct oh_handler_state *oh_handler,
         /* Create and add product area if resource name and/or manufacturer
          * information exist
          */
-        rv = ov_rest_add_product_area(&local_inventory->info.area_list,
+        ov_rest_lower_to_upper(response->model, strlen(response->model),temp,
+                                                                        256);
+        if (strstr(temp, "CISCO") != NULL)
+                rv = ov_rest_add_product_area(&local_inventory->info.area_list,
                               response->model,
-                              response->manufacturer,
+                              "CISCO",
                               &add_success_flag);
+        else
+                rv = ov_rest_add_product_area(&local_inventory->info.area_list,
+                              response->model,
+                              "HPE",
+                              &add_success_flag);
+		
         if (rv != SA_OK) {
                 err("Add product area failed");
                 return rv;
