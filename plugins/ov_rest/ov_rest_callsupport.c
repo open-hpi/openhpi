@@ -249,7 +249,7 @@ SaErrorT ov_rest_login(REST_CON *connection, char* postfields)
 		wrap_free(s.ptr);
 		curl_easy_cleanup(curlHandle);
 		curl_global_cleanup();
-		return rv;
+		return SA_ERR_HPI_INVALID_SESSION;
 	}
         wrap_free(s.ptr);
         /* Clean-up libcurl */
