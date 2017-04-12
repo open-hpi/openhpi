@@ -39,7 +39,7 @@
 #ifndef _PARSER_CALLS_H
 #define _PARSER_CALLS_H
 
-#include<json/json.h>
+#include<json.h>
 #include "ov_rest_callsupport.h"
 
 /* Moved these #defines from ov_rest.h - which includes this header file. */
