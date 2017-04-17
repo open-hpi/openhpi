@@ -2142,7 +2142,7 @@ void ov_rest_process_alerts(struct oh_handler_state *oh_handler,
 		case TooManySessions:
 		case UpdateInterrupted:
 		case UpdateSuccessful:
-
+		case InterconnectManagerICMReadyFaultCleared:
 			dbg("%s -- Not processed", event->alert_name);
 			break;
 		case OEM_EVENT:
@@ -2202,6 +2202,18 @@ void ov_rest_process_tasks(struct oh_handler_state *oh_handler,
 		case TASK_CLEAR_ALERTS:
 		case TASK_UPDATE:
 		case TASK_CONFIGURE_BOOT_ORDER_SETTINGS_FOR_SERVER:
+		case TASK_ASSIGN_PROFILE:
+		case TASK_BACKGROUNDREPOREFRESHTASK:
+		case TASK_CLEAR_PROFILE:
+		case TASK_CONFIGURE:
+		case TASK_CREATE:
+		case TASK_DELETE:
+		case TASK_LOGICAL_ENCLOSURE_FIRMWARE_UPDATE:
+		case TASK_REAPPLY_CONFIGURATION:
+		case TASK_RELEASE:
+		case TASK_REMOVE_PROFILE:
+		case TASK_UPDATE_ENCLOSURE_FIRMWARE:
+		case TASK_VALIDATE:
 			dbg("%s -- Not processed", event->task_name);
 			break;
 		default:
