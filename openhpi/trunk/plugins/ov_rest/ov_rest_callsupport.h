@@ -39,7 +39,7 @@
 #define _OV_REST_CALLSUPPORT_H_
 #include "ov_rest.h"
 #include <curl/curl.h>
-#include <json.h>
+#include <json-c/json.h>
 
 #ifdef OV_REST_CALLS_FILE
 #define OV_REST_ENUM_STRING(name, ...) \
