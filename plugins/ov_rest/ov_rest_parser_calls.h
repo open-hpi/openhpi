@@ -508,6 +508,7 @@ OV_REST_ENUM( sensorStatus,
 
 struct certificateResponse
 {
+	json_object *root_jobj;
 	json_object *certificate;
 };
 struct certificates
@@ -518,6 +519,7 @@ struct certificates
 };
 struct applianceNodeInfoResponse
 {
+	json_object *root_jobj;
         json_object *applianceVersion;
         json_object *applianceStatus;
 };
@@ -569,6 +571,7 @@ struct applianceInfo
 
 struct datacenterInfoArrayResponse
 {
+	json_object *root_jobj;
         json_object *datacenter_array;
 };
 struct datacenterInfo
@@ -588,12 +591,14 @@ struct datacenterInfo
 
 struct enclosureStatusResponse
 {
+	json_object *root_jobj;
 	json_object *enclosure;
 	json_object *devicebay_array;
 	json_object *interconnectbay_array;
 };
 struct enclosureInfoArrayResponse
 {
+	json_object *root_jobj;
 	json_object *enclosure_array;
 };
 struct enclosureDeviceBays
@@ -627,7 +632,8 @@ struct enclosureInfo
 	char uidState[MAX_256_CHARS];
 };
 struct serverhardwareInfoArrayResponse
-{
+{	
+	json_object *root_jobj;
 	json_object *server_array;
 };
 
@@ -636,7 +642,8 @@ struct getserverhardwareThermalInfo
         int bayNumber;
 };
 struct serverhardwareThermalInfoResponse
-{
+{	
+	json_object *root_jobj;
         json_object *serverhardwareThermal_array; 
         json_object *serverhardwareFans_array;
 };
@@ -721,6 +728,7 @@ struct serverhardwareInfo
 
 struct driveEnclosureInfoArrayResponse
 {
+	json_object *root_jobj;
         json_object *drive_enc_array;
 };
 
@@ -746,6 +754,7 @@ struct driveEnclosureInfo
 
 struct interconnectInfoArrayResponse
 {
+	json_object *root_jobj;
 	json_object *interconnect_array;
 };
 
@@ -789,8 +798,9 @@ struct interconnectInfo
 
 struct powersupplyArrayResponse
 {
-       json_object *powersupplay_array;
-       int powersupply_count;
+	json_object *root_jobj;
+	json_object *powersupplay_array;
+	int powersupply_count;
 };
 
 struct powersupplyInfo
@@ -805,7 +815,8 @@ struct powersupplyInfo
 };
 struct fanArrayResponse
 {
-       json_object *fan_array;
+	json_object *root_jobj;
+	json_object *fan_array;
 };
 
 struct fanInfo
@@ -826,6 +837,7 @@ struct fanInfo
 
 struct eventArrayResponse
 {
+	json_object *root_jobj;
 	json_object *event_array;
 	char created[MAX_URI_LENGTH];
 	const char *total;

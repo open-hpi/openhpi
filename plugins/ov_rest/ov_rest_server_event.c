@@ -110,6 +110,7 @@ SaErrorT process_server_power_on_event(struct oh_handler_state *oh_handler,
 			ov_handler->connection, server_doc);
 	/* Parse the Server json response*/
 	ov_rest_json_parse_server (response.server_array, &info_result);
+	ov_rest_wrap_json_object_put(response.root_jobj);
 	/* Now we have to get the enclosure serial number*/
 	asprintf (&ov_handler->connection->url, "https://%s%s", 
 			ov_handler->connection->hostname,
@@ -118,6 +119,7 @@ SaErrorT process_server_power_on_event(struct oh_handler_state *oh_handler,
 			ov_handler->connection, enclosure_doc);
 	ov_rest_json_parse_enclosure(enclosure_response.enclosure_array,
 			&enclosure_result);
+	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
 	/* Find the server Resourceid by looking at the enclosure linked list*/
 	/* FIXME : We could make below code as a funtion to get the resource id
 	 * by using enclosure serial number */
@@ -278,6 +280,7 @@ SaErrorT process_server_power_off_event(struct oh_handler_state *oh_handler,
 			ov_handler->connection, server_doc);
 	/* Parse the Server json response*/
 	ov_rest_json_parse_server (response.server_array, &info_result);
+	ov_rest_wrap_json_object_put(response.root_jobj);
 	/* Now we have to get the enclosure serial number*/
 	asprintf (&ov_handler->connection->url, "https://%s%s", 
 			ov_handler->connection->hostname,
@@ -286,6 +289,7 @@ SaErrorT process_server_power_off_event(struct oh_handler_state *oh_handler,
 			ov_handler->connection, enclosure_doc);
 	ov_rest_json_parse_enclosure(enclosure_response.enclosure_array,
 			&enclosure_result);
+	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
 	/* Find the server Resourceid by looking at the enclosure linked list*/
 	/* FIXME : We could make below code as a funtion to get the resource id
 	 * by using enclosure serial number */
@@ -425,6 +429,7 @@ SaErrorT process_server_reset_event(struct oh_handler_state *oh_handler,
 			ov_handler->connection, enclosure_doc);
 	ov_rest_json_parse_enclosure(enclosure_response.enclosure_array,
 			&enclosure_result);
+	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
 	/* Find the server Resourceid by looking at the enclosure linked list*/
 	/* FIXME : We could make below code as a funtion to get the resource id
 	 * by using enclosure serial number */
@@ -690,6 +695,7 @@ SaErrorT ov_rest_proc_blade_inserted( struct oh_handler_state *oh_handler,
 	 * to call again with server uri
 	 */
 	ov_rest_json_parse_server (jvalue, &info_result);
+	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
 	if(info_result.uri == NULL){
 		err("Inserted Blade Resource URI is NULL");
 		return SA_ERR_HPI_INVALID_RESOURCE;
@@ -700,6 +706,7 @@ SaErrorT ov_rest_proc_blade_inserted( struct oh_handler_state *oh_handler,
 	ov_rest_getserverInfoArray(oh_handler, &response,
 			ov_handler->connection, server_doc);
 	ov_rest_json_parse_server(response.server_array, &info_result);
+	ov_rest_wrap_json_object_put(response.root_jobj);
 
 	/* Add the server Blade in to the RPT */
 	ov_rest_lower_to_upper (info_result.model,
@@ -843,6 +850,7 @@ SaErrorT ov_rest_proc_blade_add_complete( struct oh_handler_state *oh_handler,
         ov_rest_getserverInfoArray(oh_handler, &response,
                         ov_handler->connection, server_doc);
         ov_rest_json_parse_server(response.server_array, &info_result);
+	ov_rest_wrap_json_object_put(response.root_jobj);
 
         /* Build the server RPT entry */
         rv = build_inserted_server_rpt(oh_handler, &info_result, &rpt);
@@ -1051,6 +1059,7 @@ SaErrorT ov_rest_proc_blade_removed( struct oh_handler_state *handler,
 	jvalue = json_object_array_get_idx(enclosure_response.devicebay_array, 
 				bayNumber-1);
 	ov_rest_json_parse_enc_device_bays (jvalue, &result);
+	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
 	enclosure = ov_handler->ov_rest_resources.enclosure;
 	while(enclosure != NULL){
 		if(strstr(enclosure->serial_number,enc_info.serialNumber)){
@@ -1128,6 +1137,7 @@ SaErrorT ov_rest_proc_server_status(struct oh_handler_state *oh_handler,
                         ov_handler->connection, server_doc);
         /* Parse the Server json response*/
         ov_rest_json_parse_server (response.server_array, &info_result);
+	ov_rest_wrap_json_object_put(response.root_jobj);
         /* Now we have to get the enclosure serial number*/
         asprintf (&ov_handler->connection->url, "https://%s%s",
                         ov_handler->connection->hostname,
@@ -1136,6 +1146,7 @@ SaErrorT ov_rest_proc_server_status(struct oh_handler_state *oh_handler,
                         ov_handler->connection, enclosure_doc);
         ov_rest_json_parse_enclosure(enclosure_response.enclosure_array,
                         &enclosure_result);
+	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
         /* Find the server Resourceid by looking at the enclosure linked list*/
         /* FIXME : We could make below code as a funtion to get the resource id
          * by using enclosure serial number */
@@ -1229,6 +1240,7 @@ SaErrorT process_drive_enclosure_power_on_event(
 	/* Parse the drive enclosure json response*/
 	ov_rest_json_parse_drive_enclosure(response.drive_enc_array, 
 			&info_result);
+	ov_rest_wrap_json_object_put(response.root_jobj);
 	/* Now we have to get the enclosure serial number*/
 	asprintf (&ov_handler->connection->url, "https://%s%s", 
 			ov_handler->connection->hostname,
@@ -1237,6 +1249,7 @@ SaErrorT process_drive_enclosure_power_on_event(
 			ov_handler->connection, enclosure_doc);
 	ov_rest_json_parse_enclosure(enclosure_response.enclosure_array,
 			&enclosure_result);
+	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
 	/* Find the Drive Enclosure Resourceid by looking at the enclosure 
 	 * linked list*/
 	/* FIXME : We could make below code as a funtion to get the resource id
@@ -1400,6 +1413,7 @@ SaErrorT process_drive_enclosure_power_off_event(
 	/* Parse the drive enclosure json response*/
 	ov_rest_json_parse_drive_enclosure(response.drive_enc_array, 
 			&info_result);
+	ov_rest_wrap_json_object_put(response.root_jobj);
 	/* Now we have to get the enclosure serial number*/
 	asprintf (&ov_handler->connection->url, "https://%s%s", 
 			ov_handler->connection->hostname,
@@ -1408,6 +1422,7 @@ SaErrorT process_drive_enclosure_power_off_event(
 			ov_handler->connection, enclosure_doc);
 	ov_rest_json_parse_enclosure(enclosure_response.enclosure_array,
 			&enclosure_result);
+	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
 	/* Find the drive enclosure Resourceid by looking at the enclosure 
  	 * linked list*/
 	/* FIXME : We could make below code as a funtion to get the resource id
@@ -1608,6 +1623,7 @@ SaErrorT ov_rest_proc_drive_enclosure_add_complete(
 			ov_handler->connection, drive_enc_doc);
 	ov_rest_json_parse_drive_enclosure(response.drive_enc_array, 
 			&info_result);
+	ov_rest_wrap_json_object_put(response.root_jobj);
 
 	/* Build the drive enclosure RPT entry */
 	rv = build_inserted_drive_enclosure_rpt(oh_handler, &info_result, &rpt);

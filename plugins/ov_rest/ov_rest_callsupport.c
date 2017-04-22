@@ -133,7 +133,7 @@ SaErrorT ov_rest_curl_get_request(REST_CON *connection,
                 return SA_ERR_HPI_INVALID_SESSION;
         }
         wrap_free(X_Auth_Token);
-        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 3L);
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 60L);
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
         curl_easy_setopt(curl, CURLOPT_URL, connection->url);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, 
@@ -202,8 +202,10 @@ SaErrorT ov_rest_curl_put_request(REST_CON *connection,
 	if(curlErr) {
 		err("\nError %s\n", curl_easy_strerror(curlErr));
 //		update_connection(connection);
+		wrap_free(s->ptr);
 		return curlerr_to_ov_rest_err(curlErr);
 	}
+	wrap_free(s->ptr);
 	return SA_OK;
 }
 
@@ -225,37 +227,44 @@ SaErrorT ov_rest_curl_put_request(REST_CON *connection,
  **/
 SaErrorT ov_rest_login(REST_CON *connection, char* postfields)
 {
-        OV_STRING s = {0};
+	OV_STRING s = {0};
+	const char *temp = NULL;
 	SaErrorT rv = SA_OK;
-        ov_rest_init_string(&s);
-        struct curl_slist *chunk = NULL;
-        /* Base URL for the service */
-        curl_global_init(CURL_GLOBAL_ALL);
-        /* Get a curl handle */
-        CURL* curlHandle = curl_easy_init();
+	struct curl_slist *chunk = NULL;
+	/* Base URL for the service */
+	curl_global_init(CURL_GLOBAL_ALL);
+	/* Get a curl handle */
+	CURL* curlHandle = curl_easy_init();
+	json_object *jobj = NULL;
 
-        rv = ov_rest_curl_put_request(connection, chunk, curlHandle, 
-					postfields, &s);
+	rv = ov_rest_curl_put_request(connection, chunk, curlHandle, 
+			postfields, &s);
 	if(rv != SA_OK){
 		CRIT("ov_rest_login failed");
 		return rv;
 	}
-        json_object * jobj = json_tokener_parse(s.ptr);
-        jobj = ov_rest_wrap_json_object_object_get(jobj, "sessionID");
-        connection->auth = json_object_get_string(jobj);
+	jobj = ov_rest_wrap_json_object_object_get(s.jobj, "sessionID");
+	temp = json_object_get_string(jobj);
+	if(temp){
+		memcpy(connection->auth,temp, strlen(temp)+1);
+	}else{
+		ov_rest_wrap_json_object_put(s.jobj);
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
 	if(connection->auth == NULL){
 		err("Reply from %s contains no session ID, please check the"
-		"configuration file", connection->hostname);
-		wrap_free(s.ptr);
+				"configuration file", connection->hostname);
+		ov_rest_wrap_json_object_put(s.jobj);
 		curl_easy_cleanup(curlHandle);
 		curl_global_cleanup();
 		return SA_ERR_HPI_INVALID_SESSION;
 	}
-        wrap_free(s.ptr);
-        /* Clean-up libcurl */
-        curl_easy_cleanup(curlHandle);
-        curl_global_cleanup();
-        return SA_OK;
+	ov_rest_wrap_json_object_put(s.jobj);
+	/* Clean-up libcurl */
+	wrap_free(s.ptr);
+	curl_easy_cleanup(curlHandle);
+	curl_global_cleanup();
+	return SA_OK;
 }
 
 /**
@@ -305,24 +314,6 @@ SaErrorT ov_rest_connection_init(struct oh_handler_state *handler)
         return rv;
 }
 
-/**
- * ov_rest_init_string:
- *      @s: Pointer to string structure.
- *
- * Purpose:
- *      Initializing string.
- *
- * Detailed Description:
- *      - NA
- *
- * Return values:
- *      None.
- **/
-void ov_rest_init_string(OV_STRING *s)
-{
-        s->len = 0;
-        s->ptr = NULL;
-}
  /**
  * ov_rest_copy_response_buff:
  *      @ptr: Void pointer.
@@ -342,16 +333,16 @@ void ov_rest_init_string(OV_STRING *s)
 size_t ov_rest_copy_response_buff(void *ptr, size_t size, size_t nmemb, 
 		OV_STRING *s)
 {
-        size_t new_len = s->len + size*nmemb;
-        s->ptr = realloc(s->ptr, new_len+1);
-        if (s->ptr == NULL) {
-                err("realloc() failed\n");
-                exit(EXIT_FAILURE);
-        }
-        memcpy(s->ptr+s->len, ptr, size*nmemb);
-        s->ptr[new_len] = '\0';
-        s->len = new_len;
-
+	size_t new_len = s->len + size * nmemb;
+	s->ptr = realloc(s->ptr, new_len+1);
+	if(s->ptr == NULL){
+		CRIT("Out of Memory");
+		return 0;
+	}
+	memcpy(s->ptr+s->len, ptr, size*nmemb);
+	s->ptr[new_len] = '\0';
+	s->len = new_len;
+	s->jobj = json_tokener_parse(s->ptr);
         return size*nmemb;
 }
 
@@ -426,8 +417,36 @@ void ov_rest_prn_json_obj(char *key, struct json_object *val)
 json_object *ov_rest_wrap_json_object_object_get(json_object * obj, 
 		const char * key)
 {
-        json_object * jobj_ret = NULL;
-        return json_object_object_get_ex(obj,key, &jobj_ret) ? jobj_ret : NULL;
+	json_object * jobj_ret = NULL;
+	return json_object_object_get_ex(obj,key, &jobj_ret) ? jobj_ret : NULL;
+}
+
+/**
+ * ov_rest_wrap_json_object_put:
+ *      @obj: Pointer to json_object.
+ *
+ * Purpose:
+ *      decrement the reference count by one and when the reference count
+ *      reaches 0 the json_object_put free the memory associated with 
+ *      json_object (jobj) and ov_rest_wrap_json_object_put returns SA_OK when
+ *      reference count reaches 0 and the memory is freed,if the reference 
+ *      count is not 0 then return SA_ERR_HPI_ERROR.
+ *
+ * Detailed Description:
+ *      - NA
+ *
+ * Return values:
+ *      SA_OK    	   - On refrence count is zero.
+ *      SA_ERR_HPI_ERROR   - On refrence count is not zero.
+ **/
+SaErrorT ov_rest_wrap_json_object_put(json_object* jobj)
+{	int rv = 0;
+	rv = json_object_put(jobj);
+	if(rv != 1){
+		CRIT("Reference count not reached down to zero");
+		return SA_ERR_HPI_ERROR;
+	}
+	return SA_OK;
 }
 
 /**
@@ -522,7 +541,6 @@ int  rest_get_request(REST_CON *conn, OV_STRING *response)
 {
 	char *auth = NULL;
         char curlErrStr[CURL_ERROR_SIZE+1];
-	ov_rest_init_string(response);
 	struct curl_slist *chunk = NULL;
 	curl_global_init(CURL_GLOBAL_ALL);
 	CURL* curl = curl_easy_init();
@@ -551,7 +569,7 @@ int  rest_get_request(REST_CON *conn, OV_STRING *response)
                 err("\nCURLcode : %s\n", curl_easy_strerror(curlErr));
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
-
+	wrap_free(response->ptr);
 	curl_easy_cleanup(curl);
         return SA_OK;
 }
@@ -576,7 +594,6 @@ int  rest_put_request(REST_CON *conn, OV_STRING *response, char *postFields)
 {
         char *auth = NULL;
         char curlErrStr[CURL_ERROR_SIZE+1];
-        ov_rest_init_string(response);
         struct curl_slist *chunk = NULL;
         curl_global_init(CURL_GLOBAL_ALL);
         CURL* curl = curl_easy_init();
@@ -609,6 +626,7 @@ int  rest_put_request(REST_CON *conn, OV_STRING *response, char *postFields)
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
+	wrap_free(response->ptr);
 	curl_easy_cleanup(curl);
         return SA_OK;
 }
@@ -633,7 +651,6 @@ int  rest_patch_request(REST_CON *conn, OV_STRING *response, char *postFields)
 {
         char *auth = NULL;
         char curlErrStr[CURL_ERROR_SIZE+1];
-        ov_rest_init_string(response);
         struct curl_slist *chunk = NULL;
         curl_global_init(CURL_GLOBAL_ALL);
         CURL* curl = curl_easy_init();
@@ -666,6 +683,7 @@ int  rest_patch_request(REST_CON *conn, OV_STRING *response, char *postFields)
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
+	wrap_free(response->ptr);
 	curl_easy_cleanup(curl);
         return SA_OK;
 }

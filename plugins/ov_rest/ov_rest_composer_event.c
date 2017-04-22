@@ -89,14 +89,17 @@ SaErrorT ov_rest_proc_composer_status(struct oh_handler_state *oh_handler,
 					"applianceBays");
 	if(!appliance_array){
 		err("Invalid Response");
+		ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
 		return SA_ERR_HPI_INVALID_DATA;
 	}
 	jvalue = json_object_array_get_idx(appliance_array, bayNumber-1);
 	if(!jvalue){
 		err("Invalid Response");
+		ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
 		return SA_ERR_HPI_INVALID_DATA;
 	}
 	ov_rest_json_parse_applianceInfo(jvalue, &appliance);
+	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
 	if(!appliance.serialNumber){
 		err("Invalid Response");
 		return SA_ERR_HPI_INVALID_DATA;

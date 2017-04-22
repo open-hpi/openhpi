@@ -223,6 +223,7 @@ SaErrorT ov_rest_proc_interconnect_inserted( struct oh_handler_state *handler,
 	 * particular slot 
 	 */
 	ov_rest_json_parse_interconnect (jvalue, &info_result);
+	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
 	/* Take the interconnect URI and issue the GET call on it to get full
 	 * details of the interconnect this time
 	 */
@@ -233,6 +234,7 @@ SaErrorT ov_rest_proc_interconnect_inserted( struct oh_handler_state *handler,
 			ov_handler->connection, interconnect_doc);
 	ov_rest_json_parse_interconnect(response.interconnect_array,
 			&info_result);
+	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
 
 	ov_rest_lower_to_upper (info_result.model,
 			strlen (info_result.model), blade_name,
@@ -393,6 +395,7 @@ SaErrorT ov_rest_proc_interconnect_add_complete(
 			ov_handler->connection, interconnect_doc);
 	ov_rest_json_parse_interconnect(response.interconnect_array,
 			&info_result);
+	ov_rest_wrap_json_object_put(response.root_jobj);
 
 	/* Add the Interconnect into the RPT */
 	rv = ov_rest_build_interconnect_rpt (handler,
@@ -513,6 +516,7 @@ SaErrorT ov_rest_proc_interconnect_removed( struct oh_handler_state *handler,
 	ov_rest_getenclosureStatus(handler, &response,
 			ov_handler->connection, enclosure_doc);
 	ov_rest_json_parse_enclosure(response.enclosure, &enc_info);
+	ov_rest_wrap_json_object_put(response.root_jobj);
 	enclosure = ov_handler->ov_rest_resources.enclosure;
 	while(enclosure != NULL){
 		if(strstr(enclosure->serial_number,enc_info.serialNumber)){
@@ -606,6 +610,7 @@ SaErrorT process_interconnect_power_off_task(
 			ov_handler->connection, interconnect_doc);
 		ov_rest_json_parse_interconnect(response.interconnect_array,
 								&info_result);
+		ov_rest_wrap_json_object_put(response.root_jobj);
 		if (info_result.powerState == Off)
 			break;
 
@@ -631,6 +636,7 @@ SaErrorT process_interconnect_power_off_task(
 			ov_handler->connection, enclosure_doc);
 	ov_rest_json_parse_enclosure(enclosure_response.enclosure_array,
 			&enclosure_result);
+	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
 	/* Find the interconnect Resourceid by looking at the enclosure
 	 * linked list */
 	enclosure = (struct enclosure_status *)
@@ -774,6 +780,7 @@ SaErrorT process_interconnect_power_on_task(
 			ov_handler->connection, interconnect_doc);
 		ov_rest_json_parse_interconnect(response.interconnect_array,
 								&info_result);
+		ov_rest_wrap_json_object_put(response.root_jobj);
 		if (info_result.powerState == On)
 			break;
 
@@ -799,6 +806,7 @@ SaErrorT process_interconnect_power_on_task(
 			ov_handler->connection, enclosure_doc);
 	ov_rest_json_parse_enclosure(enclosure_response.enclosure_array,
 			&enclosure_result);
+	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
 	/* Find the interconnect Resourceid by looking at the enclosure
 	 * linked list.
 	 */
@@ -927,6 +935,7 @@ SaErrorT ov_rest_proc_switch_status_change( struct oh_handler_state
 			ov_handler->connection, interconnect_doc);
 	ov_rest_json_parse_interconnect(response.interconnect_array, 
 			&info_result);
+	ov_rest_wrap_json_object_put(response.root_jobj);
 	asprintf (&ov_handler->connection->url, "https://%s%s",
 			ov_handler->connection->hostname,
 			info_result.locationUri);
@@ -934,6 +943,7 @@ SaErrorT ov_rest_proc_switch_status_change( struct oh_handler_state
 			ov_handler->connection, enclosure_doc);
 	ov_rest_json_parse_enclosure(enclosure_response.enclosure_array,
 			&enclosure_result);
+	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
 	/* Find the interconnect Resourceid by using the enclosure linked list*/
 	enclosure = (struct enclosure_status *)
 			ov_handler->ov_rest_resources.enclosure;
@@ -1114,6 +1124,7 @@ SaErrorT ov_rest_proc_interconnect_fault(struct oh_handler_state *oh_handler,
 			ov_handler->connection, interconnect_doc);
 	ov_rest_json_parse_interconnect(
 			int_response.interconnect_array, &int_info_result);
+	ov_rest_wrap_json_object_put(int_response.root_jobj);
 	asprintf (&ov_handler->connection->url, "https://%s%s",
 			ov_handler->connection->hostname,
 			int_info_result.locationUri);
@@ -1123,6 +1134,7 @@ SaErrorT ov_rest_proc_interconnect_fault(struct oh_handler_state *oh_handler,
 	ov_rest_json_parse_enclosure(
 			enc_response.enclosure_array,
 			&enc_result);
+	ov_rest_wrap_json_object_put(enc_response.root_jobj);
 
 	enclosure = (struct enclosure_status *)ov_handler->
 		ov_rest_resources.enclosure;
@@ -1264,6 +1276,7 @@ SaErrorT ov_rest_proc_int_status(struct oh_handler_state *oh_handler,
 	        /* Parse the Interconnect json response*/
         ov_rest_json_parse_interconnect(response.interconnect_array,
                                                         &info_result);
+	ov_rest_wrap_json_object_put(response.root_jobj);
         /* Now we have to get the enclosure serial number*/
         asprintf (&ov_handler->connection->url, "https://%s%s",
                         ov_handler->connection->hostname,
@@ -1272,6 +1285,7 @@ SaErrorT ov_rest_proc_int_status(struct oh_handler_state *oh_handler,
                         ov_handler->connection, enclosure_doc);
         ov_rest_json_parse_enclosure(enclosure_response.enclosure_array,
                         &enclosure_result);
+	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
         /* Find the interconnect Resourceid by looking at the enclosure
          * linked list*/
         /* FIXME : We could make below code as a funtion to get the resource id

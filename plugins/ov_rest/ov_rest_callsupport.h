@@ -54,7 +54,8 @@
 
 struct ov_string {
   char *ptr;
-  size_t len;
+  int len;
+  json_object* jobj;
 };
 typedef struct ov_string OV_STRING;
 
@@ -62,7 +63,7 @@ struct ov_connection {
         char* hostname;
         char* username;
         char* password;
-        const char* auth;
+        char auth[255];
 	char server_ilo[16];
 	char x_auth_token[255]; /* SessionKey for Server-Hardware iLO */
         char* url;
@@ -92,6 +93,7 @@ void ov_rest_print_json_value(json_object *jobj);
 void ov_rest_prn_json_obj(char *key, struct json_object *val);
 json_object *ov_rest_wrap_json_object_object_get(json_object *obj, 
 		const char *key);
+SaErrorT ov_rest_wrap_json_object_put(json_object *jobj);
 int  rest_enum(const char *enums, const char *value);
 
 #endif

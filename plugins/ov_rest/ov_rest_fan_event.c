@@ -195,6 +195,7 @@ SaErrorT process_fan_inserted_event( struct oh_handler_state *handler,
 				enclosure_response.enclosure_array, "fanBays");
         jvalue_fan = json_object_array_get_idx(jvalue_fan_array, bayNumber-1);
         ov_rest_json_parse_fan(jvalue_fan, &response);
+	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
         enclosure = (struct enclosure_status *)ov_handler->
 						ov_rest_resources.enclosure;
         while(enclosure != NULL){
@@ -333,6 +334,7 @@ SaErrorT process_fan_removed_event( struct oh_handler_state *handler,
                         ov_handler->connection, enclosure_doc);
         ov_rest_json_parse_enclosure(enclosure_response.enclosure_array,
 					 &enclosure_result);
+	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
 
         enclosure = (struct enclosure_status *)ov_handler->
 						ov_rest_resources.enclosure;
