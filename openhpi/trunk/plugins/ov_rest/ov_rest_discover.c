@@ -74,19 +74,17 @@ SaErrorT ov_rest_getapplianceNodeInfo(struct oh_handler_state *oh_handler,
 {
 	SaErrorT rv = SA_OK;
 	OV_STRING s = {0};
-	ov_rest_init_string(&s);
 	struct curl_slist *chunk = NULL;
 	curl_global_init(CURL_GLOBAL_ALL);
 	/* Get a curl handle */
 	CURL* curl = curl_easy_init();
 	rv = ov_rest_curl_get_request(connection, chunk, curl, &s);
-	appliance_doc = s.ptr;
-	if(appliance_doc == NULL){
+	if(s.jobj == NULL || s.len == 0){
 		return rv;
 	}else
 	{
-		json_object * jobj = json_tokener_parse(s.ptr);
-		response->applianceVersion = jobj;
+		response->root_jobj = s.jobj;
+		response->applianceVersion = s.jobj;
 	}
 
         wrap_g_free(connection->url);
@@ -119,25 +117,23 @@ SaErrorT ov_rest_getdatacenterInfo(struct oh_handler_state *oh_handler,
 {
 	SaErrorT rv = SA_OK;
         OV_STRING s = {0};
-        ov_rest_init_string(&s);
         enum json_type type;
         struct curl_slist *chunk = NULL;
         curl_global_init(CURL_GLOBAL_ALL);
         /* Get a curl handle */
         CURL* curl = curl_easy_init();
         rv = ov_rest_curl_get_request(connection, chunk, curl, &s);
-        datacenter_doc = s.ptr;
-        if(datacenter_doc == NULL){
+        if(s.jobj == NULL || s.len == 0){
 		return rv;
         }else
         {
-                json_object * jobj = json_tokener_parse(s.ptr);
-                type = json_object_get_type(jobj);
+		response->root_jobj = s.jobj;
+                type = json_object_get_type(s.jobj);
                 if (type == json_type_array) {
-                        response->datacenter_array = jobj;
+                        response->datacenter_array = s.jobj;
                 }else {
                         response->datacenter_array = 
-				ov_rest_wrap_json_object_object_get(jobj, 
+				ov_rest_wrap_json_object_object_get(s.jobj, 
 				"members"); 
                 }
         }
@@ -171,27 +167,25 @@ SaErrorT ov_rest_getenclosureStatus(struct oh_handler_state *oh_handler,
 {
 	SaErrorT rv = SA_OK;
 	OV_STRING s = {0};
-	ov_rest_init_string (&s);
 	struct curl_slist *chunk = NULL;
 	curl_global_init (CURL_GLOBAL_ALL);
 	/* Get a curl handle */
 	CURL *curl = curl_easy_init ();
 	rv = ov_rest_curl_get_request (connection, chunk, curl, &s);
-	enclosure_doc = s.ptr;
-	if (enclosure_doc == NULL)
+	if (s.jobj== NULL)
 	{
 		return rv;
 	}
 	else
 	{
-		json_object *jobj = json_tokener_parse (s.ptr);
+		response->root_jobj = s.jobj;
 		response->devicebay_array = 
-			ov_rest_wrap_json_object_object_get (jobj, 
+			ov_rest_wrap_json_object_object_get (s.jobj, 
 				"deviceBays");	
 		response->interconnectbay_array = 
-			ov_rest_wrap_json_object_object_get (jobj, 
+			ov_rest_wrap_json_object_object_get (s.jobj, 
 				"interconnectBays");
-		response->enclosure = jobj;
+		response->enclosure = s.jobj;
 	}
 	wrap_g_free(connection->url);
 	curl_easy_cleanup(curl);
@@ -223,23 +217,21 @@ SaErrorT ov_rest_getenclosureInfoArray(struct oh_handler_state *oh_handler,
 {
 	SaErrorT rv = SA_OK;
 	OV_STRING s = {0};
-	ov_rest_init_string(&s);
 	struct curl_slist *chunk = NULL;
 	curl_global_init(CURL_GLOBAL_ALL);
 	/* Get a curl handle */
 	CURL* curl = curl_easy_init();
 	rv = ov_rest_curl_get_request(connection, chunk, curl, &s);
-	enclosure_doc = s.ptr;
-	if(enclosure_doc == NULL){
+	if(s.jobj == NULL || s.len == 0){
 		return rv;
 	}else
 	{
-		json_object * jobj = json_tokener_parse(s.ptr);
+		response->root_jobj = s.jobj;
 		/*Getting the array if it is a key value pair*/
 		response->enclosure_array = 
-			ov_rest_wrap_json_object_object_get(jobj, "members");
+			ov_rest_wrap_json_object_object_get(s.jobj, "members");
 		if (!response->enclosure_array) {
-			response->enclosure_array = jobj;
+			response->enclosure_array = s.jobj;
 		}
 	}
 	wrap_g_free(connection->url);
@@ -273,23 +265,21 @@ SaErrorT ov_rest_getserverInfoArray(struct oh_handler_state *oh_handler,
 {
 	SaErrorT rv = SA_OK;
 	OV_STRING s = {0};
-	ov_rest_init_string(&s);
 	struct curl_slist *chunk = NULL;
 	curl_global_init(CURL_GLOBAL_ALL);
 	/* Get a curl handle */
 	CURL* curl = curl_easy_init();
 	rv = ov_rest_curl_get_request(connection, chunk, curl, &s);
-        server_doc = s.ptr;
-        if(server_doc == NULL){
+        if(s.jobj == NULL || s.len == 0){
                 return rv;
         }else
         {
-                json_object * jobj = json_tokener_parse(s.ptr);
+		response->root_jobj = s.jobj;
 		/*Getting the array if it is a key value pair*/
                 response->server_array = 
-			ov_rest_wrap_json_object_object_get(jobj, "members"); 
+			ov_rest_wrap_json_object_object_get(s.jobj, "members"); 
                 if (!response->server_array) {
-                        response->server_array = jobj;
+                        response->server_array = s.jobj;
                 }
         }
         wrap_g_free(connection->url);
@@ -316,31 +306,25 @@ SaErrorT ov_rest_getserverInfoArray(struct oh_handler_state *oh_handler,
 SaErrorT ov_rest_getserverConsoleUrl(struct oh_handler_state *oh_handler, 
 			REST_CON *connection)
 {
-	SaErrorT rv = SA_OK;
 	OV_STRING s = {0};
 	const char *console_url = NULL;
 	char sso_url[300];
 	int i = 0;
-	ov_rest_init_string(&s);
 	struct curl_slist *chunk = NULL;
 	curl_global_init(CURL_GLOBAL_ALL);
 	/* Get a curl handle */
 	CURL* curl = curl_easy_init();
-	rv = ov_rest_curl_get_request(connection, chunk, curl, &s);
-        console_url = s.ptr;
-        if(console_url == NULL || strlen(console_url) == 0){
-                return rv;
-        }else
+	ov_rest_curl_get_request(connection, chunk, curl, &s);
+	if(s.jobj == NULL || s.len == 0){
+		err("Invalid Response");
+		wrap_g_free(connection->url);
+		curl_easy_cleanup(curl);
+		curl_global_cleanup();
+		return SA_ERR_HPI_TIMEOUT;
+	}else
         {
-                json_object * jobj = json_tokener_parse(s.ptr);
-		if(!jobj){
-			err("Invalid Response");
-			wrap_g_free(connection->url);
-			curl_easy_cleanup(curl);
-			curl_global_cleanup();
-			wrap_g_free(s.ptr);
-			return SA_ERR_HPI_INTERNAL_ERROR;
-		}
+                json_object * jobj = s.jobj;
+		
 		/*Getting the array if it is a key value pair*/
 	        jobj = ov_rest_wrap_json_object_object_get(jobj, 
 						"remoteConsoleUrl");
@@ -349,7 +333,6 @@ SaErrorT ov_rest_getserverConsoleUrl(struct oh_handler_state *oh_handler,
 			wrap_g_free(connection->url);
 			curl_easy_cleanup(curl);
 			curl_global_cleanup();
-			wrap_g_free(s.ptr);
 			return SA_ERR_HPI_INTERNAL_ERROR;
 		}
 	        console_url = json_object_get_string(jobj);
@@ -357,7 +340,6 @@ SaErrorT ov_rest_getserverConsoleUrl(struct oh_handler_state *oh_handler,
 			wrap_g_free(connection->url);
 			curl_easy_cleanup(curl);
 			curl_global_cleanup();
-			wrap_g_free(s.ptr);
 			return SA_ERR_HPI_INVALID_SESSION;
 		}
 		strcpy(sso_url, console_url);
@@ -370,10 +352,10 @@ SaErrorT ov_rest_getserverConsoleUrl(struct oh_handler_state *oh_handler,
 						connection->server_ilo,
 						connection->x_auth_token);
         }
+	ov_rest_wrap_json_object_put(s.jobj);
         wrap_g_free(connection->url);
         curl_easy_cleanup(curl);
         curl_global_cleanup();
-	wrap_g_free(s.ptr);
         return SA_OK;
 }
 
@@ -399,36 +381,35 @@ SaErrorT ov_rest_getserverThermalInfo(struct oh_handler_state *oh_handler,
 			REST_CON *connection)
 {
 	OV_STRING s = {0};
-	ov_rest_init_string(&s);
 	struct curl_slist *chunk = NULL;
 	curl_global_init(CURL_GLOBAL_ALL);
 	/* Get a curl handle */
 	CURL* curl = curl_easy_init();
 	ov_rest_curl_get_request(connection, chunk, curl, &s);
-        if(s.ptr == NULL || strlen(s.ptr)==0){
+        if(s.jobj == NULL || s.len == 0){
                 wrap_g_free(connection->url);
                 curl_easy_cleanup(curl);
                 curl_global_cleanup();
-                return(SA_ERR_HPI_TIMEOUT);
+                return SA_ERR_HPI_TIMEOUT;
         }else
         {
-                json_object * jobj = json_tokener_parse(s.ptr);
+                response->root_jobj = s.jobj;
 		/*Getting the array if it is a key value pair*/
                 response->serverhardwareThermal_array = 
-			ov_rest_wrap_json_object_object_get(jobj, 
+			ov_rest_wrap_json_object_object_get(s.jobj, 
 							"Temperatures");
                 if (!response->serverhardwareThermal_array) {
-                        response->serverhardwareThermal_array = jobj;
+                        response->serverhardwareThermal_array = s.jobj;
                 }
 
                 response->serverhardwareFans_array =
-                        ov_rest_wrap_json_object_object_get(jobj,
+                        ov_rest_wrap_json_object_object_get(s.jobj,
                                                                 "Fans");
                 if (!response->serverhardwareFans_array) {
-                        response->serverhardwareFans_array = jobj;
+                        response->serverhardwareFans_array = s.jobj;
                 }
         }
-        wrap_free(s.ptr);
+	
         wrap_g_free(connection->url);
         curl_easy_cleanup(curl);
         curl_global_cleanup();
@@ -457,25 +438,23 @@ SaErrorT ov_rest_getserverPowerStatusInfo(struct oh_handler_state *oh_handler,
                         REST_CON *connection)
 {
         OV_STRING s = {0};
-        ov_rest_init_string(&s);
         struct curl_slist *chunk = NULL;
         curl_global_init(CURL_GLOBAL_ALL);
         /* Get a curl handle */
         CURL* curl = curl_easy_init();
         ov_rest_curl_get_request(connection, chunk, curl, &s);
-        if(s.ptr == NULL || strlen(s.ptr) == 0){
+        if(s.jobj == NULL || s.len == 0) {
                 wrap_g_free(connection->url);
                 curl_easy_cleanup(curl);
                 curl_global_cleanup();
-                return(SA_ERR_HPI_TIMEOUT);
+                return SA_ERR_HPI_TIMEOUT;
         }else
         {
-                json_object * jobj = json_tokener_parse(s.ptr);
-                jobj = ov_rest_wrap_json_object_object_get(jobj,
+                json_object *jobj = ov_rest_wrap_json_object_object_get(s.jobj,
                                                 "PowerConsumedWatts");
                 response->PowerConsumedWatts = json_object_get_int(jobj);
         }
-        wrap_free(s.ptr);
+        ov_rest_wrap_json_object_put(s.jobj);
         wrap_g_free(connection->url);
         curl_easy_cleanup(curl);
         curl_global_cleanup();
@@ -511,28 +490,26 @@ SaErrorT ov_rest_getserverSystemsInfo(struct oh_handler_state *oh_handler,
         json_object *oem = NULL, *hpe = NULL, *battery = NULL;
         json_object *battery_obj = NULL, *condition = NULL;
         int arraylen = 0, i;
-        ov_rest_init_string(&s);
         struct curl_slist *chunk = NULL;
         curl_global_init(CURL_GLOBAL_ALL);
         /* Get a curl handle */
         CURL* curl = curl_easy_init();
         ov_rest_curl_get_request(connection, chunk, curl, &s);
-        if(s.ptr == NULL || strlen(s.ptr) == 0){
+        if(s.jobj == NULL || s.len == 0){
                 wrap_g_free(connection->url);
                 curl_easy_cleanup(curl);
                 curl_global_cleanup();
-                return(SA_ERR_HPI_TIMEOUT);
+                return SA_ERR_HPI_TIMEOUT;
         }else
         {
-                json_object * jobj = json_tokener_parse(s.ptr);
-                memory = ov_rest_wrap_json_object_object_get(jobj, "Memory");
+                memory = ov_rest_wrap_json_object_object_get(s.jobj, "Memory");
                 mem_status = ov_rest_wrap_json_object_object_get(memory,
                                                                 "Status");
                 mem_health = ov_rest_wrap_json_object_object_get(mem_status,
                                                                "HealthRollUp");
                 response->Memory_Status = json_object_get_string(mem_health);
 
-                processor = ov_rest_wrap_json_object_object_get(jobj,
+                processor = ov_rest_wrap_json_object_object_get(s.jobj,
                                                                 "Processors");
                 proc_status = ov_rest_wrap_json_object_object_get(processor,
                                                                 "Status");
@@ -541,14 +518,14 @@ SaErrorT ov_rest_getserverSystemsInfo(struct oh_handler_state *oh_handler,
                 response->Processor_Status =
                                         json_object_get_string(proc_health);
 
-                system_status = ov_rest_wrap_json_object_object_get(jobj,
+                system_status = ov_rest_wrap_json_object_object_get(s.jobj,
                                                                 "Status");
                 system_health = ov_rest_wrap_json_object_object_get(
                                                 system_status, "Health");
                 response->System_Status =
                                         json_object_get_string(system_health);
 
-                oem = ov_rest_wrap_json_object_object_get(jobj, "Oem");
+                oem = ov_rest_wrap_json_object_object_get(s.jobj, "Oem");
                 hpe = ov_rest_wrap_json_object_object_get(oem, "Hp");
                 battery = ov_rest_wrap_json_object_object_get(hpe, "Battery");
                 if (battery != NULL) {
@@ -566,7 +543,7 @@ SaErrorT ov_rest_getserverSystemsInfo(struct oh_handler_state *oh_handler,
                         response->Battery_Status =
                                         json_object_get_string(condition);
         }
-        wrap_free(s.ptr);
+	ov_rest_wrap_json_object_put(s.jobj);
         wrap_g_free(connection->url);
         curl_easy_cleanup(curl);
         curl_global_cleanup();
@@ -596,28 +573,26 @@ SaErrorT ov_rest_getserverStorageInfo(struct oh_handler_state *oh_handler,
 {
         OV_STRING s = {0};
         json_object *name = NULL, *status = NULL, *health = NULL;
-        ov_rest_init_string(&s);
         struct curl_slist *chunk = NULL;
         curl_global_init(CURL_GLOBAL_ALL);
         /* Get a curl handle */
         CURL* curl = curl_easy_init();
         ov_rest_curl_get_request(connection, chunk, curl, &s);
-        if(s.ptr == NULL || strlen(s.ptr) == 0){
+        if(s.jobj == NULL || s.len == 0){
                 wrap_g_free(connection->url);
                 curl_easy_cleanup(curl);
                 curl_global_cleanup();
                 return(SA_ERR_HPI_TIMEOUT);
         }else
         {
-                json_object * jobj = json_tokener_parse(s.ptr);
-                name = ov_rest_wrap_json_object_object_get(jobj, "Name");
+                name = ov_rest_wrap_json_object_object_get(s.jobj, "Name");
                 response->Name = json_object_get_string(name);
 
-                status = ov_rest_wrap_json_object_object_get(jobj, "Status");
+                status = ov_rest_wrap_json_object_object_get(s.jobj, "Status");
                 health = ov_rest_wrap_json_object_object_get(status, "Health");
                 response->SmartStorage_Status = json_object_get_string(health);
         }
-        wrap_free(s.ptr);
+        ov_rest_wrap_json_object_put(s.jobj);
         wrap_g_free(connection->url);
         curl_easy_cleanup(curl);
         curl_global_cleanup();
@@ -648,26 +623,24 @@ SaErrorT ov_rest_getserverNetworkAdaptersInfo(
 {
         OV_STRING s = {0};
         json_object *status = NULL, *health = NULL;
-        ov_rest_init_string(&s);
         struct curl_slist *chunk = NULL;
         curl_global_init(CURL_GLOBAL_ALL);
         /* Get a curl handle */
         CURL* curl = curl_easy_init();
         ov_rest_curl_get_request(connection, chunk, curl, &s);
-        if(s.ptr == NULL || strlen(s.ptr) == 0){
+        if(s.jobj == NULL || s.len == 0){
                 wrap_g_free(connection->url);
                 curl_easy_cleanup(curl);
                 curl_global_cleanup();
-                return(SA_ERR_HPI_TIMEOUT);
+                return SA_ERR_HPI_TIMEOUT;
         }else
         {
-                json_object * jobj = json_tokener_parse(s.ptr);
-                status = ov_rest_wrap_json_object_object_get(jobj, "Status");
+                status = ov_rest_wrap_json_object_object_get(s.jobj, "Status");
                 health = ov_rest_wrap_json_object_object_get(status, "Health");
                 response->NetworkAdapters_Status =
                                         json_object_get_string(health);
         }
-        wrap_free(s.ptr);
+        ov_rest_wrap_json_object_put(s.jobj);
         wrap_g_free(connection->url);
         curl_easy_cleanup(curl);
         curl_global_cleanup();
@@ -698,26 +671,24 @@ SaErrorT ov_rest_getserverEthernetInterfacesInfo(
 {
         OV_STRING s = {0};
         json_object *status = NULL, *health = NULL;
-        ov_rest_init_string(&s);
         struct curl_slist *chunk = NULL;
         curl_global_init(CURL_GLOBAL_ALL);
         /* Get a curl handle */
         CURL* curl = curl_easy_init();
         ov_rest_curl_get_request(connection, chunk, curl, &s);
-        if(s.ptr == NULL || strlen(s.ptr) == 0){
+        if(s.jobj == NULL || s.len == 0){
                 wrap_g_free(connection->url);
                 curl_easy_cleanup(curl);
                 curl_global_cleanup();
                 return(SA_ERR_HPI_TIMEOUT);
         }else
         {
-                json_object * jobj = json_tokener_parse(s.ptr);
-                status = ov_rest_wrap_json_object_object_get(jobj, "Status");
+                status = ov_rest_wrap_json_object_object_get(s.jobj, "Status");
                 health = ov_rest_wrap_json_object_object_get(status, "Health");
                 response->EthernetInterfaces_Status =
                                         json_object_get_string(health);
         }
-        wrap_free(s.ptr);
+	ov_rest_wrap_json_object_put(s.jobj);
         wrap_g_free(connection->url);
         curl_easy_cleanup(curl);
         curl_global_cleanup();
@@ -747,23 +718,21 @@ SaErrorT ov_rest_getdriveEnclosureInfoArray(struct oh_handler_state
 {
 	SaErrorT rv = SA_OK;
         OV_STRING s = {0};
-        ov_rest_init_string(&s);
         struct curl_slist *chunk = NULL;
         curl_global_init(CURL_GLOBAL_ALL);
         /* Get a curl handle */
         CURL* curl = curl_easy_init();
         rv = ov_rest_curl_get_request(connection, chunk, curl, &s);
-        drive_enc_doc = s.ptr;
-        if(drive_enc_doc == NULL){
+        if(s.jobj == NULL || s.len == 0){
                 return rv;
         }else
         {
-                json_object * jobj = json_tokener_parse(s.ptr);
+		response->root_jobj = s.jobj;
                 /*Getting the array if it is a key value pair*/
                 response->drive_enc_array = 
-			ov_rest_wrap_json_object_object_get(jobj, "members");
+			ov_rest_wrap_json_object_object_get(s.jobj, "members");
                 if (!response->drive_enc_array) {
-                        response->drive_enc_array = jobj;
+                        response->drive_enc_array = s.jobj;
                 }
         }
         wrap_g_free(connection->url);
@@ -797,23 +766,21 @@ SaErrorT ov_rest_getinterconnectInfoArray(struct oh_handler_state *oh_handler,
 {
 	SaErrorT rv = SA_OK;
 	OV_STRING s = {0};
-	ov_rest_init_string(&s);
 	struct curl_slist *chunk = NULL;
 	curl_global_init(CURL_GLOBAL_ALL);
 	/* Get a curl handle */
 	CURL* curl = curl_easy_init();
 	rv = ov_rest_curl_get_request(connection, chunk, curl, &s);
-        interconnect_doc = s.ptr;
-        if(interconnect_doc == NULL){
+        if(s.jobj == NULL || s.len == 0){
                 return rv;
         }else
         {
-                json_object * jobj = json_tokener_parse(s.ptr);
+		response->root_jobj = s.jobj;
 		 /*Getting the array if it is a key value pair*/
                 response->interconnect_array = 
-			ov_rest_wrap_json_object_object_get(jobj, "members");
+			ov_rest_wrap_json_object_object_get(s.jobj, "members");
                 if (!response->interconnect_array) {
-                        response->interconnect_array = jobj;
+                        response->interconnect_array = s.jobj;
                 }
         }
         wrap_g_free(connection->url);
@@ -887,7 +854,7 @@ SaErrorT ov_rest_build_serverThermalRdr(struct oh_handler_state *oh_handler,
                 err("Server iLO IP in bay number %d is NULL or Invalid.",
                                                           response->bayNumber);
         }
-
+	ov_rest_wrap_json_object_put(thermal_response.root_jobj);
         return rv;
 }
 
@@ -1266,7 +1233,6 @@ SaErrorT ov_rest_getAllEvents(struct eventArrayResponse *response,
 {
 	SaErrorT rv = SA_OK;
         OV_STRING s = {0};
-        ov_rest_init_string(&s);
 	enum json_type type;
         struct curl_slist *chunk = NULL;
         curl_global_init(CURL_GLOBAL_ALL);
@@ -1274,12 +1240,12 @@ SaErrorT ov_rest_getAllEvents(struct eventArrayResponse *response,
         /* Get a curl handle */
         CURL* curl = curl_easy_init();
         rv = ov_rest_curl_get_request(connection, chunk, curl, &s);
-        getallevents_doc = s.ptr;
-        if(getallevents_doc == NULL){
+        if(s.jobj == NULL || s.len == 0){
                 return rv;
         }else
 	{
-		json_object * jobj = json_tokener_parse(s.ptr);
+		json_object * jobj = s.jobj;
+		response->root_jobj = jobj;
 		type = json_object_get_type(jobj);
 		if (type == json_type_array) {
 			response->event_array = jobj;
@@ -1322,7 +1288,6 @@ SaErrorT ov_rest_create_certificate(REST_CON *connection,
 {
         OV_STRING s = {0};
         SaErrorT rv = SA_OK;
-        ov_rest_init_string(&s);
         struct curl_slist *chunk = NULL;
         curl_global_init(CURL_GLOBAL_ALL);
         /* Get a curl handle */
@@ -1333,16 +1298,15 @@ SaErrorT ov_rest_create_certificate(REST_CON *connection,
 
         //FIXME : Could not check "Certification generation Failure" 
         //except "Conflict".
-        if(s.len){
-                json_object * jobj;
-                jobj = json_tokener_parse(s.ptr);
-                dbg("\nCertifcate:   %s\n",json_object_get_string(jobj));
+        if(s.jobj){
+                dbg("\nCertifcate:   %s\n",json_object_get_string(s.jobj));
         }
         else {
                 //FIXME
                 //Give time to generate cert.
                 sleep(GEN_CERT_WAIT_TIME);
         }
+	ov_rest_wrap_json_object_put(s.jobj);
         wrap_g_free(connection->url);
         curl_easy_cleanup(curlHandle);
         curl_global_cleanup();
@@ -1373,19 +1337,17 @@ SaErrorT ov_rest_getcertificates(struct oh_handler_state *oh_handler,
 {
 	SaErrorT rv = SA_OK;
 	OV_STRING s = {0};
-	ov_rest_init_string(&s);
 	struct curl_slist *chunk = NULL;
 	curl_global_init(CURL_GLOBAL_ALL);
 	/* Get a curl handle */
 	CURL* curl = curl_easy_init();
 	rv = ov_rest_curl_get_request(connection, chunk, curl, &s);
-	certificate_doc = s.ptr;
-	if(certificate_doc == NULL){
+	if(s.jobj == NULL || s.len == 0){
 		return rv;
 	}else
 	{
-		json_object * jobj = json_tokener_parse(s.ptr);
-		response->certificate = jobj;
+		response->root_jobj = s.jobj;
+		response->certificate = s.jobj;
 	}
 
         wrap_free(connection->url);
@@ -1418,19 +1380,17 @@ SaErrorT ov_rest_getca(struct oh_handler_state *oh_handler,
 {
 	SaErrorT rv = SA_OK;
 	OV_STRING s = {0};
-	ov_rest_init_string(&s);
 	struct curl_slist *chunk = NULL;
 	curl_global_init(CURL_GLOBAL_ALL);
 	/* Get a curl handle */
 	CURL* curl = curl_easy_init();
 	rv = ov_rest_curl_get_request(connection, chunk, curl, &s);
-	ca_doc = s.ptr;
-	if(ca_doc == NULL){
+	if(s.jobj == NULL || s.len == 0){
 		return rv;
 	}else
 	{
-		json_object * jobj = json_tokener_parse(s.ptr);
-		response->certificate = jobj;
+		response->root_jobj = s.jobj;
+		response->certificate = s.jobj;
 	}
 
         wrap_g_free(connection->url);
@@ -1689,6 +1649,7 @@ SaErrorT ov_rest_discover_appliance(struct oh_handler_state *handler)
 	}
 	ov_rest_json_parse_appliance_version(response.applianceVersion,
 						&result.version);
+	ov_rest_wrap_json_object_put(response.root_jobj);
 	rv = ov_rest_build_appliance_rpt(handler, result.version.name, 
 						&resource_id);
 	if (rv != SA_OK) {
@@ -2528,12 +2489,14 @@ SaErrorT ov_rest_discover_enclosure(struct oh_handler_state *handler)
 		rv = ov_rest_build_enc_info(handler, &result);
 		if (rv != SA_OK) {
 			err("build enclosure info failed");
+			ov_rest_wrap_json_object_put(response.root_jobj);
 			return rv;
 		}
 		rv = ov_rest_build_enclosure_rpt(handler, result.name, 
 			&resource_id);
 		if (rv != SA_OK) {
 			err("build enclosure rpt failed");
+			ov_rest_wrap_json_object_put(response.root_jobj);
 			return rv;
 		}
 		itostr(resource_id ,&s);
@@ -2547,6 +2510,7 @@ SaErrorT ov_rest_discover_enclosure(struct oh_handler_state *handler)
 			}
 		}else{
 			return SA_ERR_HPI_ERROR;
+			ov_rest_wrap_json_object_put(response.root_jobj);
 		}
 		/* Save enclosure resource id */
 		temp->enclosure_rid = resource_id;
@@ -2557,12 +2521,12 @@ SaErrorT ov_rest_discover_enclosure(struct oh_handler_state *handler)
 		if (rv != SA_OK) {
 			err("build enclosure rdr failed");
 			wrap_free(s);
+			ov_rest_wrap_json_object_put(response.root_jobj);
 			return rv;
 		}
 
 	}
-	wrap_free(s);
-	wrap_free(enclosure_doc);
+	ov_rest_wrap_json_object_put(response.root_jobj);
 	return SA_OK;
 }
 
@@ -2989,6 +2953,8 @@ SaErrorT ov_rest_discover_server(struct oh_handler_state *handler)
 			ov_rest_json_parse_enclosure(
 				enclosure_response.enclosure_array, 
 				&enclosure_info);
+			ov_rest_wrap_json_object_put(
+						enclosure_response.root_jobj);
                         enclosure = ov_handler->ov_rest_resources.enclosure;
                         while(enclosure != NULL){
                                 if(strstr(enclosure->serial_number,
@@ -3013,6 +2979,7 @@ SaErrorT ov_rest_discover_server(struct oh_handler_state *handler)
 				&info_result);	
 
 	}
+	ov_rest_wrap_json_object_put(response.root_jobj);
 	wrap_free(server_doc);
 	return SA_OK;	
 }
@@ -3371,7 +3338,7 @@ SaErrorT ov_rest_discover_drive_enclosure(struct oh_handler_state *handler)
                 ov_rest_build_drive_enclosure_rdr(handler, 
 						resource_id, &info_result);
         }
-        wrap_free(drive_enc_doc);
+	ov_rest_wrap_json_object_put(response.root_jobj);
         return SA_OK;
 }
 
@@ -3673,11 +3640,12 @@ SaErrorT ov_rest_discover_sas_interconnect(struct oh_handler_state *handler)
 		if(rv != SA_OK) {
 			CRIT("Faild to get the response from "
 					"ov_rest_getenclosureInfoArray\n");
-			return rv;
+			continue;
 		}
 		ov_rest_json_parse_enclosure(
 				enclosure_response.enclosure_array, 
 				&enclosure_info);
+		ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
 
 		enclosure = ov_handler->ov_rest_resources.enclosure;
 		while(enclosure != NULL){
@@ -3705,7 +3673,7 @@ SaErrorT ov_rest_discover_sas_interconnect(struct oh_handler_state *handler)
 		wrap_g_free(enclosure_doc);
 		wrap_g_free(s);
 	}
-	wrap_g_free(interconnect_doc);
+	ov_rest_wrap_json_object_put(response.root_jobj);
 	return rv;	
 }
 
@@ -3788,6 +3756,7 @@ SaErrorT ov_rest_discover_interconnect(struct oh_handler_state *handler)
 		} 
 		ov_rest_json_parse_enclosure(enclosure_response.enclosure_array,
 			 	&enclosure_info);
+		ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
 
                 enclosure = ov_handler->ov_rest_resources.enclosure;
                 while(enclosure != NULL){
@@ -3813,7 +3782,7 @@ SaErrorT ov_rest_discover_interconnect(struct oh_handler_state *handler)
         	wrap_g_free(enclosure_doc);
 		wrap_g_free(s);
         }
-       	wrap_g_free(interconnect_doc);
+	ov_rest_wrap_json_object_put(response.root_jobj);
         return rv;
 }
 
@@ -4187,12 +4156,13 @@ SaErrorT ov_rest_discover_powersupply(struct oh_handler_state *oh_handler)
 			if (rv != SA_OK) {
 				err("build PowerSupply rdr failed");
 				wrap_free(s);
+				ov_rest_wrap_json_object_put(
+						response.root_jobj);
 				return rv;
 			}
 		}
 	}
-	wrap_free(s);
-	wrap_free(enclosure_doc);
+	ov_rest_wrap_json_object_put(response.root_jobj);
 	return SA_OK;
 }
 
@@ -4534,6 +4504,8 @@ SaErrorT ov_rest_discover_fan(struct oh_handler_state *oh_handler)
 					&resource_id, i+1);
 			if (rv != SA_OK) {
 				err("build Fan rpt failed");
+				ov_rest_wrap_json_object_put(
+							response.root_jobj);
 				return rv;
 			}
 			enclosure = (struct enclosure_status *)
@@ -4561,12 +4533,13 @@ SaErrorT ov_rest_discover_fan(struct oh_handler_state *oh_handler)
 			if (rv != SA_OK) {
 				err("build Fan rdr failed");
 				wrap_free(s);
+				ov_rest_wrap_json_object_put(
+						response.root_jobj);
 				return rv;
 			}
 		}
 	}
-	wrap_free(s);
-	wrap_free(enclosure_doc);
+	ov_rest_wrap_json_object_put(response.root_jobj);
 	return SA_OK;
 }
 

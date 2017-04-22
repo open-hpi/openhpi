@@ -57,7 +57,7 @@ static SaErrorT do_server_op (REST_CON *conn,
 			      const char *state,
 			      const char *control)
 {
-	OV_STRING response;
+	OV_STRING response = {0};
 	SaErrorT rv = SA_OK;
 	char *uri = NULL, *postField=NULL;
 	char *prevUrl = NULL;
@@ -72,6 +72,7 @@ static SaErrorT do_server_op (REST_CON *conn,
 	rv = rest_put_request(conn, &response, postField);
 
 	conn->url = prevUrl;
+	ov_rest_wrap_json_object_put(response.jobj);
 	wrap_free(uri);
 	wrap_free(postField);
 	return rv;
@@ -94,7 +95,7 @@ static SaErrorT do_interconnect_op (REST_CON *conn,
 				    const char *state)
 {
 
-	OV_STRING response;
+	OV_STRING response = {0};
 	SaErrorT rv = SA_OK;
 	char *postField=NULL;
 
@@ -102,7 +103,7 @@ static SaErrorT do_interconnect_op (REST_CON *conn,
 			" \"path\": \"/powerState\","
 			" \"value\": \"%s\"}]", state);
 	rv = rest_patch_request(conn, &response, postField);
-
+	ov_rest_wrap_json_object_put(response.jobj);
 	wrap_free(postField);
 	return rv;
 }
@@ -303,14 +304,14 @@ SaErrorT get_server_power_state(REST_CON *conn,
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-	OV_STRING response;
+	OV_STRING response = {0};
 	rv = rest_get_request(conn, &response);
         if (rv != SA_OK) {
                 err("Get blade status failed");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-	json_object *jObj = json_tokener_parse(response.ptr);
+	json_object *jObj = response.jobj;
 	if(!jObj){
 		err("Invalid Response");
 		return SA_ERR_HPI_INTERNAL_ERROR;
@@ -318,11 +319,13 @@ SaErrorT get_server_power_state(REST_CON *conn,
 	jObj = ov_rest_wrap_json_object_object_get(jObj, "powerState");
 	if(!jObj){
 		err("Invalid Response");
+		ov_rest_wrap_json_object_put(response.jobj);
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 	powerState = json_object_get_string(jObj);
 	if(!powerState){
 		err("Invalid PowerState Null");
+		ov_rest_wrap_json_object_put(response.jobj);
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 	if (strcmp(powerState, "On") ==0)
@@ -331,10 +334,12 @@ SaErrorT get_server_power_state(REST_CON *conn,
 		*state = SAHPI_POWER_OFF;
 	else{
 		err("Wrong (REBOOT) or Unknown Power State detected");
+		ov_rest_wrap_json_object_put(response.jobj);
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 //FIXME:
 //	Do we need to handle "PoweringOn","PoweringOff", "Resetting" state?
+        ov_rest_wrap_json_object_put(response.jobj);
         return SA_OK;
 }
 
@@ -364,14 +369,14 @@ SaErrorT get_interconnect_power_state(REST_CON *conn,
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        OV_STRING response;
-        rest_get_request(conn, &response);
+        OV_STRING response = {0};
+        rv = rest_get_request(conn, &response);
         if (rv != SA_OK) {
                 err("Get interconnect tray status failed");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        json_object *jObj = json_tokener_parse(response.ptr);
+        json_object *jObj = response.jobj;
 	if(!jObj){
 		err("Invalid Response");
 		return SA_ERR_HPI_INTERNAL_ERROR;
@@ -379,11 +384,13 @@ SaErrorT get_interconnect_power_state(REST_CON *conn,
         jObj = ov_rest_wrap_json_object_object_get(jObj, "powerState");
 	if(!jObj){
 		err("Invalid Response");
+		ov_rest_wrap_json_object_put(response.jobj);
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 	powerState = json_object_get_string(jObj);
 	if(!powerState){
 		err("Invalid PowerState NULL");
+		ov_rest_wrap_json_object_put(response.jobj);
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
         if (strcmp(powerState, "On") ==0)
@@ -394,9 +401,10 @@ SaErrorT get_interconnect_power_state(REST_CON *conn,
                 *state = SAHPI_POWER_OFF;
         else{
                 err("Wrong (REBOOT) or Unknown Power State detected");
+		ov_rest_wrap_json_object_put(response.jobj);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
-
+        ov_rest_wrap_json_object_put(response.jobj);
         return SA_OK;
 }
 

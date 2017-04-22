@@ -281,7 +281,7 @@ SaErrorT ov_rest_set_reset_state(void *oh_handler,
                                                                         url);
                         wrap_free (url);
 
-                        OV_STRING response;
+                        OV_STRING response = {0};
                         char * postField=NULL;
 
                         /* Check the resource entity type */

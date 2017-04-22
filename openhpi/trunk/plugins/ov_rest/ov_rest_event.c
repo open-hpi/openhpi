@@ -250,7 +250,6 @@ SaErrorT ov_rest_getActiveLockedEventArray(REST_CON *connection,
                         struct eventArrayResponse *response)
 {
         OV_STRING s = {0};
-        char *getallevents_doc = NULL;
         struct curl_slist *chunk = NULL;
         curl_global_init(CURL_GLOBAL_ALL);
 
@@ -262,13 +261,13 @@ SaErrorT ov_rest_getActiveLockedEventArray(REST_CON *connection,
         CURL* curl = curl_easy_init();
 
         ov_rest_curl_get_request(connection, chunk, curl, &s);
-        getallevents_doc = s.ptr;
-        if(getallevents_doc == NULL){
+        if(s.jobj == NULL || s.len == 0){
                 err("Get Active or Locked Event Array Failed");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }else
         {
-                json_object * jobj = json_tokener_parse(s.ptr);
+                json_object * jobj = s.jobj;
+		response->root_jobj = jobj;
 		if(!jobj){
                 	err("Get Active or Locked Event Array Failed");
 			return SA_ERR_HPI_INVALID_DATA;
@@ -288,7 +287,6 @@ SaErrorT ov_rest_getActiveLockedEventArray(REST_CON *connection,
         }
         wrap_free(connection->url);
         curl_easy_cleanup(curl);
-	wrap_free(s.ptr);
         curl_global_cleanup();
         return SA_OK;
 }
@@ -350,6 +348,7 @@ SaErrorT process_active_and_locked_alerts(struct oh_handler_state *handler,
                         ov_rest_json_parse_enclosure(
                                            enc_response.enclosure_array,
                                            &enc_result);
+			ov_rest_wrap_json_object_put(enc_response.root_jobj);
                         enclosure = (struct enclosure_status *)ov_handler->
                                 ov_rest_resources.enclosure;
                         while(enclosure != NULL){
@@ -385,6 +384,7 @@ SaErrorT process_active_and_locked_alerts(struct oh_handler_state *handler,
                                       ov_handler->connection, server_doc);
                         ov_rest_json_parse_server (response.server_array,
                                                                 &info_result);
+			ov_rest_wrap_json_object_put(response.root_jobj);
                         /* Now we have to get the enclosure serial number*/
                         asprintf (&ov_handler->connection->url, "https://%s%s",
                                         ov_handler->connection->hostname,
@@ -394,6 +394,7 @@ SaErrorT process_active_and_locked_alerts(struct oh_handler_state *handler,
                         ov_rest_json_parse_enclosure(
                                            enc_response.enclosure_array,
                                            &enc_result);
+			ov_rest_wrap_json_object_put(enc_response.root_jobj);
                         /* Find the server Resourceid by looking at the
                          * enclosure linked list*/
                         /* FIXME : We could make below code as a funtion to get
@@ -442,6 +443,8 @@ SaErrorT process_active_and_locked_alerts(struct oh_handler_state *handler,
                         ov_rest_json_parse_drive_enclosure(
                                           drive_enc_response.drive_enc_array,
                                           &drive_enc_info_result);
+			ov_rest_wrap_json_object_put(
+						drive_enc_response.root_jobj);
                         /* Now we have to get the enclosure serial number*/
                         asprintf (&ov_handler->connection->url, "https://%s%s",
                                         ov_handler->connection->hostname,
@@ -451,6 +454,7 @@ SaErrorT process_active_and_locked_alerts(struct oh_handler_state *handler,
                         ov_rest_json_parse_enclosure(
                                            enc_response.enclosure_array,
                                            &enc_result);
+			ov_rest_wrap_json_object_put(enc_response.root_jobj);
                         /* Find the Drive Enclosure Resourceid by looking at
                          * the enclosure linked list*/
                         /* FIXME : We could make below code as a funtion to get
@@ -496,6 +500,7 @@ SaErrorT process_active_and_locked_alerts(struct oh_handler_state *handler,
                         ov_rest_json_parse_interconnect(
                                                int_response.interconnect_array,
                                                &int_info_result);
+			ov_rest_wrap_json_object_put(int_response.root_jobj);
                         /* Now we have to get the enclosure serial number*/
                         asprintf (&ov_handler->connection->url, "https://%s%s",
                                         ov_handler->connection->hostname,
@@ -505,6 +510,7 @@ SaErrorT process_active_and_locked_alerts(struct oh_handler_state *handler,
                         ov_rest_json_parse_enclosure(
                                                  enc_response.enclosure_array,
                                                  &enc_result);
+			ov_rest_wrap_json_object_put(enc_response.root_jobj);
                         /* Find the Interconnect Resourceid by looking at the
                          * enclosure linked list*/
                         /* FIXME : We could make below code as a funtion to get
@@ -633,6 +639,7 @@ SaErrorT oem_event_handler(struct oh_handler_state *handler,
                         ov_rest_json_parse_enclosure(
                                            enc_response.enclosure_array,
                                            &enc_result);
+			ov_rest_wrap_json_object_put(enc_response.root_jobj);
                         enclosure = (struct enclosure_status *)ov_handler->
                                 ov_rest_resources.enclosure;
                         while(enclosure != NULL){
@@ -668,6 +675,7 @@ SaErrorT oem_event_handler(struct oh_handler_state *handler,
                                       ov_handler->connection, server_doc);
                         ov_rest_json_parse_server (response.server_array,
                                                                 &info_result);
+			ov_rest_wrap_json_object_put(response.root_jobj);
                         /* Now we have to get the enclosure serial number*/
                         asprintf (&ov_handler->connection->url, "https://%s%s",
                                         ov_handler->connection->hostname,
@@ -677,6 +685,7 @@ SaErrorT oem_event_handler(struct oh_handler_state *handler,
                         ov_rest_json_parse_enclosure(
                                            enc_response.enclosure_array,
                                            &enc_result);
+			ov_rest_wrap_json_object_put(enc_response.root_jobj);
                         /* Find the server Resourceid by looking at the
                          * enclosure linked list*/
                         /* FIXME : We could make below code as a funtion to get
@@ -725,6 +734,7 @@ SaErrorT oem_event_handler(struct oh_handler_state *handler,
                         ov_rest_json_parse_drive_enclosure(
                                           drive_enc_response.drive_enc_array,
                                           &drive_enc_info_result);
+			ov_rest_wrap_json_object_put(drive_enc_response.root_jobj);
                         /* Now we have to get the enclosure serial number*/
                         asprintf (&ov_handler->connection->url, "https://%s%s",
                                         ov_handler->connection->hostname,
@@ -734,6 +744,7 @@ SaErrorT oem_event_handler(struct oh_handler_state *handler,
                         ov_rest_json_parse_enclosure(
                                            enc_response.enclosure_array,
                                            &enc_result);
+			ov_rest_wrap_json_object_put(enc_response.root_jobj);
                         /* Find the Drive Enclosure Resourceid by looking at
                          * the enclosure linked list*/
                         /* FIXME : We could make below code as a funtion to get
@@ -779,6 +790,7 @@ SaErrorT oem_event_handler(struct oh_handler_state *handler,
                         ov_rest_json_parse_interconnect(
                                                int_response.interconnect_array,
                                                &int_info_result);
+			ov_rest_wrap_json_object_put(int_response.root_jobj);
                         /* Now we have to get the enclosure serial number*/
                         asprintf (&ov_handler->connection->url, "https://%s%s",
                                         ov_handler->connection->hostname,
@@ -788,6 +800,7 @@ SaErrorT oem_event_handler(struct oh_handler_state *handler,
                         ov_rest_json_parse_enclosure(
                                                  enc_response.enclosure_array,
                                                  &enc_result);
+			ov_rest_wrap_json_object_put(enc_response.root_jobj);
                         /* Find the Interconnect Resourceid by looking at the
                          * enclosure linked list*/
                         /* FIXME : We could make below code as a funtion to get
@@ -1104,6 +1117,7 @@ SaErrorT ov_rest_setuplistner(struct oh_handler_state *handler)
 		return 1;
 	}
 	fclose(fp);
+	ov_rest_wrap_json_object_put(response.root_jobj);
 
 	asprintf(&ov_handler->connection->url, OV_GET_CA_URI,
                                        ov_handler->connection->hostname);
@@ -1128,6 +1142,7 @@ SaErrorT ov_rest_setuplistner(struct oh_handler_state *handler)
 		return 1;
 	}
 	fclose(fp);
+	ov_rest_wrap_json_object_put(response.root_jobj);
 	return SA_OK;
 }
 
@@ -1611,11 +1626,13 @@ gpointer ov_rest_event_thread(gpointer ov_pointer)
 		asprintf(&ov_handler->connection->url, OV_ACTIVE_ALERTS,
 				ov_handler->connection->hostname,
 				event_response.total);
+		ov_rest_wrap_json_object_put(event_response.root_jobj);
 	}
 	rv = ov_rest_getActiveLockedEventArray(ov_handler->connection,
 						&event_response);
 	if(rv == SA_OK){
 		process_active_and_locked_alerts(handler, &event_response);
+		ov_rest_wrap_json_object_put(event_response.root_jobj);
 	}
 	
 	/** Handling Locked alerts dring discovery **/
@@ -1638,6 +1655,7 @@ gpointer ov_rest_event_thread(gpointer ov_pointer)
 			ov_handler->connection->hostname);	
 	ov_rest_getAllEvents(&event_response, ov_handler->connection, 
 			getallevents_doc);
+	ov_rest_wrap_json_object_put(event_response.root_jobj);
 	wrap_free(ov_handler->connection->url);
 	/* Listen for the events from OneView Synergy SCMB messages */
 	while(1){
