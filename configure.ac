@@ -44,6 +44,8 @@ AC_PROG_CPP
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
+AC_PROG_AWK
+AC_PROG_GREP
 
 enabled_non32bit="no"
 AC_ARG_ENABLE([non32bit-int],
@@ -191,6 +193,8 @@ AC_SUBST(JSON_C_LIB)
 AC_SUBST(JSON_C_INCLUDE)
 AC_CHECK_LIB([rabbitmq],[amqp_new_connection],[RABBITMQ_LIB=-lrabbitmq],[RABBITMQ_LIB=])
 AC_SUBST(RABBITMQ_LIB)
+DISTRO=`grep "^ID=" /etc/os-release | awk -F"\"" '{ print $2 }'`
+
 AC_CHECK_HEADERS([amqp.h],[have_rabbitmq=yes],[have_rabbitmq=no])
 
 dnl Build daemon statically or dynamically.
@@ -443,25 +447,31 @@ AC_ARG_ENABLE([ov_rest],
     [  --enable-ov_rest        build ov_rest plugin [[default=no]]],
     [if test "x$enableval" = "xyes"; then
         if test "x$have_curl" = "xyes"; then
-	    if test "x$have_rabbitmq" = "xyes"; then
-	    if test -n "$JSON_C_INCLUDE"; then
-                AC_SUBST(OV_REST,ov_rest)
-                AC_SUBST(WITH_OV_REST,1)
+            if test "x$have_rabbitmq" = "xyes"; then
+                if test -n "$JSON_C_INCLUDE"; then
+                    AC_SUBST(OV_REST,ov_rest)
+                    AC_SUBST(WITH_OV_REST,1)
+                    if test "$DISTRO" = "sles"; then
+	    	        AC_SUBST(RABBITMQ_LIB,-lrabbitmq)
+                    fi
+	        else
+	    	    OH_CHECK_FAIL(json-c-devel,,,ov_rest needs json-c headers)
+	        fi
 	    else
-	    	OH_CHECK_FAIL(json-c-devel,,,Can not build ov_rest without json-c headers)
+	      OH_CHECK_FAIL(librabbitmq-devel,,,ov_rest needs rabbitmq headers)
 	    fi
-	else
-	  OH_CHECK_FAIL(librabbitmq-devel,,,Can not build ov_rest without rabbitmq headers)
-	fi
-   else
-    OH_CHECK_FAIL(libcurl-devel,,,Can not build ov_rest without curl headers)
-   fi
+       else
+         OH_CHECK_FAIL(libcurl-devel,,,ov_rest needs curl headers)
+       fi
 else
  AC_SUBST(WITH_OV_REST,0)
 fi],
     [if test "x$have_curl" = "xyes" && test "x$have_rabbitmq" && test -n "$JSON_C_INCLUDE"; then
         AC_SUBST(OV_REST,ov_rest)
         AC_SUBST(WITH_OV_REST,1)
+        if test "$DISTRO" = "sles"; then
+	   AC_SUBST(RABBITMQ_LIB,-lrabbitmq)
+        fi
      else
         AC_SUBST(WITH_OV_REST,0)
      fi
