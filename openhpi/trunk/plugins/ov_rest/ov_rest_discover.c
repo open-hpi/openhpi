@@ -1642,7 +1642,7 @@ SaErrorT ov_rest_discover_appliance(struct oh_handler_state *handler)
 		ov_handler->connection->hostname);
 	rv = ov_rest_getapplianceNodeInfo(handler, &response, 
 		ov_handler->connection, appliance_version_doc);
-	if(rv != SA_OK) {
+	if(rv != SA_OK || response.applianceVersion == NULL) {
 		CRIT("Failed to get the response from ov_rest_getappliance\n");
 		wrap_g_free(appliance_version_doc);
 		return rv;
@@ -2464,13 +2464,18 @@ SaErrorT ov_rest_discover_enclosure(struct oh_handler_state *handler)
 			ov_handler->connection->hostname);
 	rv = ov_rest_getenclosureInfoArray(handler, &response, 
 			ov_handler->connection, enclosure_doc);
-	if(rv != SA_OK) {
-		CRIT(" No response for ov_rest_getenclosureInfoArray");
+	if(rv != SA_OK || response.enclosure_array == NULL) {
+		CRIT("No response from ov_rest_getenclosureInfoArray");
 		return rv;
 	}
 	arraylen = json_object_array_length(response.enclosure_array);
 	for (i=0; i< arraylen; i++){
 		jvalue = json_object_array_get_idx(response.enclosure_array,i);
+		if (!jvalue){
+			CRIT("Invalid response for the enclosure in bay %d",
+				i + 1);
+			continue;
+		}
 		ov_rest_json_parse_enclosure(jvalue,&result);
 		enclosure = ov_handler->ov_rest_resources.enclosure;
 		temp = enclosure;
@@ -2911,8 +2916,8 @@ SaErrorT ov_rest_discover_server(struct oh_handler_state *handler)
 			ov_handler->connection->hostname);
 	rv = ov_rest_getserverInfoArray(handler, &response, 
 					ov_handler->connection,server_doc);
-	if(rv != SA_OK) {
-		CRIT("No response from Ov_rest_getsereverInfoArray call");
+	if(rv != SA_OK || response.server_array == NULL) {
+		CRIT("No response from ov_rest_getsereverInfoArray call");
 		return rv;
 	}
 
@@ -2920,6 +2925,11 @@ SaErrorT ov_rest_discover_server(struct oh_handler_state *handler)
 	arraylen = json_object_array_length(response.server_array);
 	for (i=0; i< arraylen; i++){
                 jvalue = json_object_array_get_idx(response.server_array, i);
+                if (!jvalue) {
+                        CRIT("Invalid response for the serevre hardware"
+                             " in bay %d", i + 1);
+                        continue;
+                }    
 		ov_rest_json_parse_server(jvalue,&info_result);
 		/* Copy the blade name from response for future processing */
 			ov_rest_lower_to_upper(info_result.model,
@@ -2946,9 +2956,10 @@ SaErrorT ov_rest_discover_server(struct oh_handler_state *handler)
 			rv = ov_rest_getenclosureInfoArray(handler, 
 				&enclosure_response, ov_handler->connection,
 				enclosure_doc);
-			if(rv != SA_OK) {
-
+			if(rv != SA_OK ||
+				enclosure_response.enclosure_array == NULL) {
 				CRIT("ov_rest_getenclosureInfoArray failed");
+				continue;
 			}
 			ov_rest_json_parse_enclosure(
 				enclosure_response.enclosure_array, 
@@ -3284,14 +3295,23 @@ SaErrorT ov_rest_discover_drive_enclosure(struct oh_handler_state *handler)
         ov_handler = (struct ov_rest_handler *) handler->data;
         asprintf(&ov_handler->connection->url, OV_DRIVE_ENCLOSURE_URI,
                         ov_handler->connection->hostname);
-        ov_rest_getdriveEnclosureInfoArray(handler, 
+        rv = ov_rest_getdriveEnclosureInfoArray(handler, 
 					&response, 
 					ov_handler->connection,
                                         drive_enc_doc);
+        if (rv != SA_OK || response.drive_enc_array == NULL) {
+                CRIT("No repsonse from ov_rest_getdriveEnclosureInfoArray");
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
         /*Getting the length of the array*/
         arraylen = json_object_array_length(response.drive_enc_array);
         for (i=0; i< arraylen; i++){
                 jvalue = json_object_array_get_idx(response.drive_enc_array,i);
+                if (!jvalue) {
+                        CRIT("Invalid response for the drive enclosure"
+                             " in bay %d", i + 1);
+                        continue;
+                }
                 ov_rest_json_parse_drive_enclosure(jvalue,&info_result);
                 /* Copy the blade name from response for future processing */
                 ov_rest_lower_to_upper(info_result.model,
@@ -3605,14 +3625,23 @@ SaErrorT ov_rest_discover_sas_interconnect(struct oh_handler_state *handler)
 	ov_handler = (struct ov_rest_handler *) handler->data;
 	asprintf(&ov_handler->connection->url, OV_SAS_INTERCONNECT_URI,
 			ov_handler->connection->hostname);
-	ov_rest_getinterconnectInfoArray(handler, &response,
+	rv = ov_rest_getinterconnectInfoArray(handler, &response,
 			ov_handler->connection,
 			interconnect_doc);
+	if (rv != SA_OK || response.interconnect_array == NULL) {
+		CRIT("No response from ov_rest_getinterconnectInfoArray");
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
 	arraylen = json_object_array_length(response.interconnect_array);
 	for (i=0; i< arraylen; i++){
 		memset(&result, 0, sizeof(struct interconnectInfo));
 		jvalue = json_object_array_get_idx (
 				response.interconnect_array, i);
+		if (!jvalue) {
+			CRIT("Invalid response for the sas-interconnect"
+				" in bay %d", i + 1);
+			continue;
+		}
 		ov_rest_json_parse_interconnect(jvalue,&result);
 		rv = ov_rest_build_interconnect_rpt(handler,
 				&result, &resource_id);
@@ -3637,7 +3666,7 @@ SaErrorT ov_rest_discover_sas_interconnect(struct oh_handler_state *handler)
 		rv = ov_rest_getenclosureInfoArray(handler, 
 				&enclosure_response, ov_handler->connection,
 				enclosure_doc);
-		if(rv != SA_OK) {
+		if(rv != SA_OK || enclosure_response.enclosure_array == NULL) {
 			CRIT("Faild to get the response from "
 					"ov_rest_getenclosureInfoArray\n");
 			continue;
@@ -3714,7 +3743,7 @@ SaErrorT ov_rest_discover_interconnect(struct oh_handler_state *handler)
 			ov_handler->connection->hostname);
         rv = ov_rest_getinterconnectInfoArray(handler, &response, 
 			ov_handler->connection, interconnect_doc);
-	if(rv != SA_OK ){
+	if(rv != SA_OK || response.interconnect_array == NULL){
 		CRIT("Failed to get the response from "
 				"ov_rest_getinterconnectInfoArray");
 		
@@ -3726,6 +3755,11 @@ SaErrorT ov_rest_discover_interconnect(struct oh_handler_state *handler)
                 memset(&result, 0, sizeof(struct interconnectInfo));
                 jvalue = json_object_array_get_idx(response.interconnect_array,
 			 i);
+                if (!jvalue) {
+                        CRIT("Invalid response for the interconnect"
+                             " in bay %d", i + 1);
+                        continue;
+                }
                 ov_rest_json_parse_interconnect(jvalue,&result);
                 rv = ov_rest_build_interconnect_rpt(handler,
                                 &result, &resource_id);
@@ -3749,7 +3783,7 @@ SaErrorT ov_rest_discover_interconnect(struct oh_handler_state *handler)
                 rv = ov_rest_getenclosureInfoArray(handler, 
 				&enclosure_response, ov_handler->connection,
 				enclosure_doc);
-                if(rv != SA_OK) {
+                if(rv != SA_OK || enclosure_response.enclosure_array == NULL) {
 			CRIT("Failed to get the response from "
 					"ov_rest_getenclosureInfoArray\n");
 			continue;
@@ -4108,7 +4142,7 @@ SaErrorT ov_rest_discover_powersupply(struct oh_handler_state *oh_handler)
 			ov_handler->connection->hostname);
 	rv = ov_rest_getenclosureInfoArray(oh_handler, &response,
 			ov_handler->connection, enclosure_doc);
-	if(rv != SA_OK) {
+	if(rv != SA_OK || response.enclosure_array == NULL) {
 		CRIT("Failed to get the response from "
 				"ov_rest_getenclosureInfoArray\n");
 		return rv;
@@ -4116,12 +4150,22 @@ SaErrorT ov_rest_discover_powersupply(struct oh_handler_state *oh_handler)
 	arraylen = json_object_array_length(response.enclosure_array);
 	for (i=0; i< arraylen; i++){
 		jvalue = json_object_array_get_idx(response.enclosure_array,i);
+		if (!jvalue) {
+			CRIT("Invalid response for the enclosure in bay %d",
+				i + 1);
+			continue;
+		}
 		ov_rest_json_parse_enclosure(jvalue, &enclosure_result);
 		jvalue_ps_array = ov_rest_wrap_json_object_object_get(jvalue,
 					"powerSupplyBays");
 		for(j = 0; j < enclosure_result.powerSupplyBayCount; j++){
 			jvalue_ps = json_object_array_get_idx(jvalue_ps_array, 
 					j);
+			if (!jvalue_ps) {
+				CRIT("Invalid response for the powersupply"
+					" in bay %d", i + 1);
+				continue;
+			}
 			ov_rest_json_parse_powersupply(jvalue_ps, &result);
 			if(result.presence == Absent)
 				continue;
@@ -4484,19 +4528,29 @@ SaErrorT ov_rest_discover_fan(struct oh_handler_state *oh_handler)
 			ov_handler->connection->hostname);
 	rv = ov_rest_getenclosureInfoArray(oh_handler, &response,
 			ov_handler->connection, enclosure_doc);
-	if(rv != SA_OK) {
+	if(rv != SA_OK || response.enclosure_array == NULL) {
 		CRIT(" No response from ov_rest_getenclosureInfoArray");
-		return rv;
+		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 	arraylen = json_object_array_length(response.enclosure_array);
 	for (i=0; i< arraylen; i++){
 		jvalue = json_object_array_get_idx(response.enclosure_array,i);
+		if (!jvalue) {
+			CRIT("Invalid response for the enclosure in bay %d",
+				i + 1);
+			continue;
+		}
 		ov_rest_json_parse_enclosure(jvalue, &enclosure_result);
 		jvalue_fan_array = ov_rest_wrap_json_object_object_get(jvalue,
 				"fanBays");
 		for(j = 0; j < enclosure_result.fanBayCount; j++){
 			jvalue_fan = json_object_array_get_idx(
 					jvalue_fan_array, j);
+			if (!jvalue_fan) {
+				CRIT("Invalid response for the fan in bay %d",
+					i + 1);
+				continue;
+			}	
 			ov_rest_json_parse_fan(jvalue_fan, &result);
 			if(result.presence == Absent)
 				continue;
@@ -4757,6 +4811,11 @@ SaErrorT ov_rest_build_server_thermal_rdr(struct oh_handler_state *oh_handler,
         struct serverhardwareThermalInfo server_therm_info = {0};
         struct serverhardwareFanInfo server_fan_info = {0};
 
+	if (oh_handler == NULL ||
+			response->serverhardwareThermal_array == NULL) {
+		CRIT("Invalid parameters");
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
 	arraylen = json_object_array_length(
 				response->serverhardwareThermal_array);
 	for(i = 0; i < arraylen; i++){

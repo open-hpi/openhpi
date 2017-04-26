@@ -86,6 +86,7 @@
 SaErrorT process_server_power_on_event(struct oh_handler_state *oh_handler,
                                        struct eventInfo *ov_event)
 {
+	SaErrorT rv = SA_OK;
 	struct oh_event event = {0};
 	struct ov_rest_hotswap_state *hotswap_state = NULL;
 	struct ov_rest_handler *ov_handler = NULL;
@@ -106,8 +107,12 @@ SaErrorT process_server_power_on_event(struct oh_handler_state *oh_handler,
 	asprintf (&ov_handler->connection->url, "https://%s%s", 
 			ov_handler->connection->hostname,
 			ov_event->resourceUri);
-	ov_rest_getserverInfoArray(oh_handler, &response,
+	rv = ov_rest_getserverInfoArray(oh_handler, &response,
 			ov_handler->connection, server_doc);
+	if (rv != SA_OK || response.server_array == NULL) {
+		CRIT("No response from ov_rest_getserverInfoArray");
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
 	/* Parse the Server json response*/
 	ov_rest_json_parse_server (response.server_array, &info_result);
 	ov_rest_wrap_json_object_put(response.root_jobj);
@@ -115,8 +120,12 @@ SaErrorT process_server_power_on_event(struct oh_handler_state *oh_handler,
 	asprintf (&ov_handler->connection->url, "https://%s%s", 
 			ov_handler->connection->hostname,
 			info_result.locationUri);
-	ov_rest_getenclosureInfoArray(oh_handler, &enclosure_response,
+	rv = ov_rest_getenclosureInfoArray(oh_handler, &enclosure_response,
 			ov_handler->connection, enclosure_doc);
+	if (rv != SA_OK || enclosure_response.enclosure_array == NULL) {
+		CRIT("No response from ov_rest_getenclosureInfoArray");
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
 	ov_rest_json_parse_enclosure(enclosure_response.enclosure_array,
 			&enclosure_result);
 	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
@@ -256,6 +265,7 @@ SaErrorT process_server_power_on_event(struct oh_handler_state *oh_handler,
 SaErrorT process_server_power_off_event(struct oh_handler_state *oh_handler,
                                        struct eventInfo *ov_event)
 {
+	SaErrorT rv = SA_OK;
 	struct oh_event event = {0};
 	struct ov_rest_hotswap_state *hotswap_state = NULL;
 	struct ov_rest_handler *ov_handler = NULL;
@@ -276,8 +286,12 @@ SaErrorT process_server_power_off_event(struct oh_handler_state *oh_handler,
 	asprintf (&ov_handler->connection->url, "https://%s%s", 
 			ov_handler->connection->hostname,
 			ov_event->resourceUri);
-	ov_rest_getserverInfoArray(oh_handler, &response,
+	rv = ov_rest_getserverInfoArray(oh_handler, &response,
 			ov_handler->connection, server_doc);
+	if (rv != SA_OK || response.server_array == NULL) {
+		CRIT("No response from ov_rest_getserverInfoArray");
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
 	/* Parse the Server json response*/
 	ov_rest_json_parse_server (response.server_array, &info_result);
 	ov_rest_wrap_json_object_put(response.root_jobj);
@@ -285,8 +299,12 @@ SaErrorT process_server_power_off_event(struct oh_handler_state *oh_handler,
 	asprintf (&ov_handler->connection->url, "https://%s%s", 
 			ov_handler->connection->hostname,
 			info_result.locationUri);
-	ov_rest_getenclosureInfoArray(oh_handler, &enclosure_response,
+	rv = ov_rest_getenclosureInfoArray(oh_handler, &enclosure_response,
 			ov_handler->connection, enclosure_doc);
+	if (rv != SA_OK || enclosure_response.enclosure_array == NULL) {
+		CRIT("No response from ov_rest_getenclosureInfoArray");
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
 	ov_rest_json_parse_enclosure(enclosure_response.enclosure_array,
 			&enclosure_result);
 	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
@@ -397,6 +415,7 @@ SaErrorT process_server_power_off_event(struct oh_handler_state *oh_handler,
 SaErrorT process_server_reset_event(struct oh_handler_state *oh_handler,
                                        struct eventInfo *ov_event)
 {
+	SaErrorT rv = SA_OK;
 	struct oh_event event = {0};
 	struct ov_rest_hotswap_state *hotswap_state = NULL;
 	struct ov_rest_handler *ov_handler = NULL;
@@ -417,16 +436,24 @@ SaErrorT process_server_reset_event(struct oh_handler_state *oh_handler,
 	asprintf (&ov_handler->connection->url, "https://%s%s", 
 			ov_handler->connection->hostname,
 			ov_event->resourceUri);
-	ov_rest_getserverInfoArray(oh_handler, &response,
+	rv = ov_rest_getserverInfoArray(oh_handler, &response,
 			ov_handler->connection, server_doc);
+	if (rv != SA_OK || response.server_array == NULL) {
+		CRIT("No response from ov_rest_getserverInfoArray");
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
 	/* Parse the Server json response*/
 	ov_rest_json_parse_server (response.server_array, &info_result);
 	/* Now we have to get the enclosure serial number*/
 	asprintf (&ov_handler->connection->url, "https://%s%s", 
 			ov_handler->connection->hostname,
 			info_result.locationUri);
-	ov_rest_getenclosureInfoArray(oh_handler, &enclosure_response,
+	rv = ov_rest_getenclosureInfoArray(oh_handler, &enclosure_response,
 			ov_handler->connection, enclosure_doc);
+	if (rv != SA_OK || enclosure_response.enclosure_array == NULL) {
+		CRIT("No response from ov_rest_getenclosureInfoArray");
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
 	ov_rest_json_parse_enclosure(enclosure_response.enclosure_array,
 			&enclosure_result);
 	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
@@ -682,14 +709,23 @@ SaErrorT ov_rest_proc_blade_inserted( struct oh_handler_state *oh_handler,
 	asprintf (&ov_handler->connection->url, "https://%s%s",
 			ov_handler->connection->hostname,
 			event->resourceUri);
-	ov_rest_getenclosureStatus(oh_handler, &enclosure_response,
+	rv = ov_rest_getenclosureStatus(oh_handler, &enclosure_response,
 			ov_handler->connection, enclosure_doc);
+	if (rv != SA_OK || enclosure_response.enclosure == NULL) {
+		CRIT("No response from ov_rest_getenclosureStatus");
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
 	/* Parse enclosure information to get enclosure serial number*/
 	ov_rest_json_parse_enclosure(enclosure_response.enclosure, 
 				&enclosure_result);
 
 	jvalue = json_object_array_get_idx (enclosure_response.devicebay_array,
 				 bayNumber-1);
+	if (!jvalue) {
+		CRIT("Invalid response for the enclosue devicebay %d",
+							bayNumber);
+		return SA_ERR_HPI_INVALID_DATA;
+	}
 	/* With Below Call we dont get much information as it is the object of
 	 * enclosure response that we are parsing in below funtion. So we have
 	 * to call again with server uri
@@ -703,8 +739,12 @@ SaErrorT ov_rest_proc_blade_inserted( struct oh_handler_state *oh_handler,
 	asprintf(&ov_handler->connection->url, "https://%s%s",
 			ov_handler->connection->hostname,
 			info_result.uri);
-	ov_rest_getserverInfoArray(oh_handler, &response,
+	rv = ov_rest_getserverInfoArray(oh_handler, &response,
 			ov_handler->connection, server_doc);
+	if (rv != SA_OK || response.server_array == NULL) {
+		CRIT("No response from ov_rest_getserverInfoArray");
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
 	ov_rest_json_parse_server(response.server_array, &info_result);
 	ov_rest_wrap_json_object_put(response.root_jobj);
 
@@ -847,8 +887,12 @@ SaErrorT ov_rest_proc_blade_add_complete( struct oh_handler_state *oh_handler,
         asprintf(&ov_handler->connection->url, "https://%s%s",
                         ov_handler->connection->hostname,
                         event->resourceUri);
-        ov_rest_getserverInfoArray(oh_handler, &response,
+        rv = ov_rest_getserverInfoArray(oh_handler, &response,
                         ov_handler->connection, server_doc);
+        if (rv != SA_OK || response.server_array == NULL) {
+                CRIT("No response from ov_rest_getserverInfoArray");
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
         ov_rest_json_parse_server(response.server_array, &info_result);
 	ov_rest_wrap_json_object_put(response.root_jobj);
 
@@ -1052,12 +1096,21 @@ SaErrorT ov_rest_proc_blade_removed( struct oh_handler_state *handler,
 
 	asprintf (&ov_handler->connection->url,"https://%s%s" ,
 			ov_handler->connection->hostname,event->resourceUri);
-	ov_rest_getenclosureStatus(handler, &enclosure_response,
+	rv = ov_rest_getenclosureStatus(handler, &enclosure_response,
 			ov_handler->connection, enclosure_doc);
+	if (rv != SA_OK || enclosure_response.enclosure == NULL) {
+		CRIT("No response from ov_rest_getenclosureStatus");
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
 	ov_rest_json_parse_enclosure(enclosure_response.enclosure,
 			&enc_info);
 	jvalue = json_object_array_get_idx(enclosure_response.devicebay_array, 
 				bayNumber-1);
+	if (!jvalue) {
+		CRIT("Invalid response for the enclosure devicebay %d",
+								bayNumber);
+		return SA_ERR_HPI_INVALID_DATA;
+	}
 	ov_rest_json_parse_enc_device_bays (jvalue, &result);
 	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
 	enclosure = ov_handler->ov_rest_resources.enclosure;
@@ -1133,8 +1186,12 @@ SaErrorT ov_rest_proc_server_status(struct oh_handler_state *oh_handler,
         asprintf (&ov_handler->connection->url, "https://%s%s",
                         ov_handler->connection->hostname,
                         ov_event->resourceUri);
-        ov_rest_getserverInfoArray(oh_handler, &response,
+        rv = ov_rest_getserverInfoArray(oh_handler, &response,
                         ov_handler->connection, server_doc);
+        if (rv != SA_OK || response.server_array == NULL) {
+                CRIT("No response from ov_rest_getserverInfoArray");
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
         /* Parse the Server json response*/
         ov_rest_json_parse_server (response.server_array, &info_result);
 	ov_rest_wrap_json_object_put(response.root_jobj);
@@ -1142,8 +1199,12 @@ SaErrorT ov_rest_proc_server_status(struct oh_handler_state *oh_handler,
         asprintf (&ov_handler->connection->url, "https://%s%s",
                         ov_handler->connection->hostname,
                         info_result.locationUri);
-        ov_rest_getenclosureInfoArray(oh_handler, &enclosure_response,
+        rv = ov_rest_getenclosureInfoArray(oh_handler, &enclosure_response,
                         ov_handler->connection, enclosure_doc);
+        if (rv != SA_OK || enclosure_response.enclosure_array == NULL) {
+                CRIT("No response from ov_rest_getenclosureInfoArray");
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
         ov_rest_json_parse_enclosure(enclosure_response.enclosure_array,
                         &enclosure_result);
 	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
@@ -1214,6 +1275,7 @@ SaErrorT process_drive_enclosure_power_on_event(
 					struct oh_handler_state *oh_handler,
 					struct eventInfo *ov_event)
 {
+	SaErrorT rv = SA_OK;
 	struct oh_event event = {0};
 	struct ov_rest_hotswap_state *hotswap_state = NULL;
 	struct ov_rest_handler *ov_handler = NULL;
@@ -1235,8 +1297,12 @@ SaErrorT process_drive_enclosure_power_on_event(
 	asprintf (&ov_handler->connection->url, "https://%s%s", 
 			ov_handler->connection->hostname,
 			ov_event->resourceUri);
-	ov_rest_getdriveEnclosureInfoArray(oh_handler, &response,
+	rv = ov_rest_getdriveEnclosureInfoArray(oh_handler, &response,
 			ov_handler->connection, drive_enc_doc);
+	if (rv != SA_OK || response.drive_enc_array == NULL) {
+		CRIT("No response from ov_rest_getdriveEnclosureInfoArray");
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}	
 	/* Parse the drive enclosure json response*/
 	ov_rest_json_parse_drive_enclosure(response.drive_enc_array, 
 			&info_result);
@@ -1245,8 +1311,12 @@ SaErrorT process_drive_enclosure_power_on_event(
 	asprintf (&ov_handler->connection->url, "https://%s%s", 
 			ov_handler->connection->hostname,
 			info_result.locationUri);
-	ov_rest_getenclosureInfoArray(oh_handler, &enclosure_response,
+	rv = ov_rest_getenclosureInfoArray(oh_handler, &enclosure_response,
 			ov_handler->connection, enclosure_doc);
+	if (rv != SA_OK || enclosure_response.enclosure_array == NULL) {
+		CRIT("No response from ov_rest_getenclosureInfoArray");
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
 	ov_rest_json_parse_enclosure(enclosure_response.enclosure_array,
 			&enclosure_result);
 	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
@@ -1387,6 +1457,7 @@ SaErrorT process_drive_enclosure_power_off_event(
 					struct oh_handler_state *oh_handler,
 					struct eventInfo *ov_event)
 {
+	SaErrorT rv = SA_OK;
 	struct oh_event event = {0};
 	struct ov_rest_hotswap_state *hotswap_state = NULL;
 	struct ov_rest_handler *ov_handler = NULL;
@@ -1408,8 +1479,12 @@ SaErrorT process_drive_enclosure_power_off_event(
 	asprintf (&ov_handler->connection->url, "https://%s%s", 
 			ov_handler->connection->hostname,
 			ov_event->resourceUri);
-	ov_rest_getdriveEnclosureInfoArray(oh_handler, &response,
+	rv = ov_rest_getdriveEnclosureInfoArray(oh_handler, &response,
 			ov_handler->connection, drive_enc_doc);
+	if (rv != SA_OK || response.drive_enc_array == NULL) {
+		CRIT("No response from ov_rest_getdriveEnclosureInfoArray");
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
 	/* Parse the drive enclosure json response*/
 	ov_rest_json_parse_drive_enclosure(response.drive_enc_array, 
 			&info_result);
@@ -1418,8 +1493,12 @@ SaErrorT process_drive_enclosure_power_off_event(
 	asprintf (&ov_handler->connection->url, "https://%s%s", 
 			ov_handler->connection->hostname,
 			info_result.locationUri);
-	ov_rest_getenclosureInfoArray(oh_handler, &enclosure_response,
+	rv = ov_rest_getenclosureInfoArray(oh_handler, &enclosure_response,
 			ov_handler->connection, enclosure_doc);
+	if (rv != SA_OK || enclosure_response.enclosure_array  == NULL) {
+		CRIT("No response from ov_rest_getenclosureInfoArrayy");
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
 	ov_rest_json_parse_enclosure(enclosure_response.enclosure_array,
 			&enclosure_result);
 	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
@@ -1619,8 +1698,12 @@ SaErrorT ov_rest_proc_drive_enclosure_add_complete(
 	asprintf(&ov_handler->connection->url, "https://%s%s",
 			ov_handler->connection->hostname,
 			event->resourceUri);
-	ov_rest_getdriveEnclosureInfoArray(oh_handler, &response,
+	rv = ov_rest_getdriveEnclosureInfoArray(oh_handler, &response,
 			ov_handler->connection, drive_enc_doc);
+	if (rv != SA_OK || response.drive_enc_array == NULL) {
+		CRIT("No response from ov_rest_getdriveEnclosureInfoArray");
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
 	ov_rest_json_parse_drive_enclosure(response.drive_enc_array, 
 			&info_result);
 	ov_rest_wrap_json_object_put(response.root_jobj);

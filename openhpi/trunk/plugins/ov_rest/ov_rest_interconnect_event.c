@@ -207,8 +207,12 @@ SaErrorT ov_rest_proc_interconnect_inserted( struct oh_handler_state *handler,
 	asprintf (&ov_handler->connection->url, "https://%s%s",
 			ov_handler->connection->hostname,
 			event->resourceUri);
-	ov_rest_getenclosureInfoArray(handler, &enclosure_response,
+	rv = ov_rest_getenclosureInfoArray(handler, &enclosure_response,
 			ov_handler->connection, enclosure_doc);
+	if (rv != SA_OK || enclosure_response.enclosure_array == NULL) {
+		CRIT("No response from ov_rest_getenclosureInfoArray");
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
 	/* Parse enclosure information to get enclosure serial number*/
 	ov_rest_json_parse_enclosure(enclosure_response.enclosure_array, 
 			&enclosure_result);
@@ -217,6 +221,11 @@ SaErrorT ov_rest_proc_interconnect_inserted( struct oh_handler_state *handler,
 			"interconnectBays");
 	jvalue = json_object_array_get_idx (jvalue_interconnect_array, 
 			bayNumber-1);
+	if (!jvalue) {
+		CRIT("Invalid response for the interconnect in bay %d",
+								bayNumber);
+		return SA_ERR_HPI_INVALID_DATA;
+	}
 	/* At this moment interconnect JSON object is collected from enclosure
 	 * response, So it contains very minimal and fortunatly we get the 
 	 * interconnect resource uri if the interconnect is present in that
@@ -230,8 +239,12 @@ SaErrorT ov_rest_proc_interconnect_inserted( struct oh_handler_state *handler,
 	asprintf (&ov_handler->connection->url, "https://%s%s",
 			ov_handler->connection->hostname,
 			info_result.uri);
-	ov_rest_getinterconnectInfoArray(handler, &response,
+	rv = ov_rest_getinterconnectInfoArray(handler, &response,
 			ov_handler->connection, interconnect_doc);
+	if (rv != SA_OK || response.interconnect_array == NULL) {
+		CRIT("No response from ov_rest_getinterconnectInfoArray");
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
 	ov_rest_json_parse_interconnect(response.interconnect_array,
 			&info_result);
 	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
@@ -391,8 +404,12 @@ SaErrorT ov_rest_proc_interconnect_add_complete(
 	asprintf (&ov_handler->connection->url, "https://%s%s",
 			ov_handler->connection->hostname,
 			event->resourceUri);
-	ov_rest_getinterconnectInfoArray(handler, &response,
+	rv = ov_rest_getinterconnectInfoArray(handler, &response,
 			ov_handler->connection, interconnect_doc);
+	if (rv != SA_OK || response.interconnect_array == NULL) {
+		CRIT("No response from ov_rest_getinterconnectInfoArray");
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
 	ov_rest_json_parse_interconnect(response.interconnect_array,
 			&info_result);
 	ov_rest_wrap_json_object_put(response.root_jobj);
@@ -513,8 +530,12 @@ SaErrorT ov_rest_proc_interconnect_removed( struct oh_handler_state *handler,
 
 	asprintf (&ov_handler->connection->url,"https://%s%s" ,
 			ov_handler->connection->hostname,event->resourceUri);
-	ov_rest_getenclosureStatus(handler, &response,
+	rv = ov_rest_getenclosureStatus(handler, &response,
 			ov_handler->connection, enclosure_doc);
+	if (rv != SA_OK || response.enclosure == NULL) {
+		CRIT("No response from ov_rest_getenclosureStatus");
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}	
 	ov_rest_json_parse_enclosure(response.enclosure, &enc_info);
 	ov_rest_wrap_json_object_put(response.root_jobj);
 	enclosure = ov_handler->ov_rest_resources.enclosure;
@@ -606,8 +627,12 @@ SaErrorT process_interconnect_power_off_task(
 				"interconnect resource URI");
 			return SA_ERR_HPI_OUT_OF_MEMORY;
 		}
-		ov_rest_getinterconnectInfoArray(oh_handler, &response,
+		rv = ov_rest_getinterconnectInfoArray(oh_handler, &response,
 			ov_handler->connection, interconnect_doc);
+		if (rv != SA_OK || response.interconnect_array == NULL) {
+			CRIT("Failed to get Interconnect Info Array");
+			continue;
+		}
 		ov_rest_json_parse_interconnect(response.interconnect_array,
 								&info_result);
 		ov_rest_wrap_json_object_put(response.root_jobj);
@@ -632,8 +657,12 @@ SaErrorT process_interconnect_power_off_task(
 			"interconnect location URI");
 		return SA_ERR_HPI_OUT_OF_MEMORY;
 	}
-	ov_rest_getenclosureInfoArray(oh_handler, &enclosure_response,
+	rv = ov_rest_getenclosureInfoArray(oh_handler, &enclosure_response,
 			ov_handler->connection, enclosure_doc);
+	if (rv != SA_OK || enclosure_response.enclosure_array == NULL) {
+		CRIT("Failed to get Enclosure Info Array");
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
 	ov_rest_json_parse_enclosure(enclosure_response.enclosure_array,
 			&enclosure_result);
 	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
@@ -776,8 +805,12 @@ SaErrorT process_interconnect_power_on_task(
 				"interconnect resource URI");
 			return SA_ERR_HPI_OUT_OF_MEMORY;
 		}
-		ov_rest_getinterconnectInfoArray(oh_handler, &response,
+		rv = ov_rest_getinterconnectInfoArray(oh_handler, &response,
 			ov_handler->connection, interconnect_doc);
+		if (rv != SA_OK || response.interconnect_array == NULL) {
+			CRIT("Failed to get Interconnect Info Array");
+			continue;
+		}
 		ov_rest_json_parse_interconnect(response.interconnect_array,
 								&info_result);
 		ov_rest_wrap_json_object_put(response.root_jobj);
@@ -802,8 +835,12 @@ SaErrorT process_interconnect_power_on_task(
 			"interconnect location URI");
 		return SA_ERR_HPI_OUT_OF_MEMORY;
 	}
-	ov_rest_getenclosureInfoArray(oh_handler, &enclosure_response,
+	rv = ov_rest_getenclosureInfoArray(oh_handler, &enclosure_response,
 			ov_handler->connection, enclosure_doc);
+	if (rv != SA_OK || enclosure_response.enclosure_array == NULL) {
+		CRIT("Failed to get Enclosure Info Array");
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
 	ov_rest_json_parse_enclosure(enclosure_response.enclosure_array,
 			&enclosure_result);
 	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
@@ -931,16 +968,24 @@ SaErrorT ov_rest_proc_switch_status_change( struct oh_handler_state
 	asprintf (&ov_handler->connection->url, "https://%s%s",
 			ov_handler->connection->hostname,
 			ov_event->resourceUri);
-	ov_rest_getinterconnectInfoArray(oh_handler, &response,
+	rv = ov_rest_getinterconnectInfoArray(oh_handler, &response,
 			ov_handler->connection, interconnect_doc);
+	if (rv != SA_OK || response.interconnect_array == NULL) {
+		CRIT("No response from ov_rest_getinterconnectInfoArray");
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
 	ov_rest_json_parse_interconnect(response.interconnect_array, 
 			&info_result);
 	ov_rest_wrap_json_object_put(response.root_jobj);
 	asprintf (&ov_handler->connection->url, "https://%s%s",
 			ov_handler->connection->hostname,
 			info_result.locationUri);
-	ov_rest_getenclosureInfoArray(oh_handler, &enclosure_response,
+	rv = ov_rest_getenclosureInfoArray(oh_handler, &enclosure_response,
 			ov_handler->connection, enclosure_doc);
+	if (rv != SA_OK || enclosure_response.enclosure_array == NULL) {
+		CRIT("No response from ov_rest_getenclosureInfoArray");
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
 	ov_rest_json_parse_enclosure(enclosure_response.enclosure_array,
 			&enclosure_result);
 	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
@@ -1120,17 +1165,25 @@ SaErrorT ov_rest_proc_interconnect_fault(struct oh_handler_state *oh_handler,
 	asprintf (&ov_handler->connection->url, "https://%s%s",
 			ov_handler->connection->hostname,
 			oh_event->resourceUri);
-	ov_rest_getinterconnectInfoArray(oh_handler, &int_response,
+	rv = ov_rest_getinterconnectInfoArray(oh_handler, &int_response,
 			ov_handler->connection, interconnect_doc);
+	if (rv != SA_OK || int_response.interconnect_array == NULL) {
+		CRIT("No response from ov_rest_getinterconnectInfoArray");
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
 	ov_rest_json_parse_interconnect(
 			int_response.interconnect_array, &int_info_result);
 	ov_rest_wrap_json_object_put(int_response.root_jobj);
 	asprintf (&ov_handler->connection->url, "https://%s%s",
 			ov_handler->connection->hostname,
 			int_info_result.locationUri);
-	ov_rest_getenclosureInfoArray(oh_handler, &enc_response,
+	rv = ov_rest_getenclosureInfoArray(oh_handler, &enc_response,
 			ov_handler->connection,
 			enc_doc);
+	if (rv != SA_OK || enc_response.enclosure_array== NULL) {
+		CRIT("No response from ov_rest_getenclosureInfoArray");
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
 	ov_rest_json_parse_enclosure(
 			enc_response.enclosure_array,
 			&enc_result);
@@ -1271,9 +1324,13 @@ SaErrorT ov_rest_proc_int_status(struct oh_handler_state *oh_handler,
         asprintf (&ov_handler->connection->url, "https://%s%s",
                         ov_handler->connection->hostname,
                         ov_event->resourceUri);
-        ov_rest_getinterconnectInfoArray(oh_handler, &response,
+        rv = ov_rest_getinterconnectInfoArray(oh_handler, &response,
                         ov_handler->connection, int_doc);
-	        /* Parse the Interconnect json response*/
+        if (rv != SA_OK || response.interconnect_array == NULL) {
+                CRIT("Failed to get Interconnect Info Array");
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+	/* Parse the Interconnect json response*/
         ov_rest_json_parse_interconnect(response.interconnect_array,
                                                         &info_result);
 	ov_rest_wrap_json_object_put(response.root_jobj);
@@ -1281,8 +1338,12 @@ SaErrorT ov_rest_proc_int_status(struct oh_handler_state *oh_handler,
         asprintf (&ov_handler->connection->url, "https://%s%s",
                         ov_handler->connection->hostname,
                         info_result.locationUri);
-        ov_rest_getenclosureInfoArray(oh_handler, &enclosure_response,
+        rv = ov_rest_getenclosureInfoArray(oh_handler, &enclosure_response,
                         ov_handler->connection, enclosure_doc);
+        if (rv != SA_OK || enclosure_response.enclosure_array == NULL) {
+                CRIT("Failed to get Enclosure Info Array");
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
         ov_rest_json_parse_enclosure(enclosure_response.enclosure_array,
                         &enclosure_result);
 	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);

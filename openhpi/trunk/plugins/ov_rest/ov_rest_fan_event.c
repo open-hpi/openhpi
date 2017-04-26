@@ -187,13 +187,21 @@ SaErrorT process_fan_inserted_event( struct oh_handler_state *handler,
         asprintf(&ov_handler->connection->url, "https://%s%s",
                         ov_handler->connection->hostname,
 			event->resourceUri);
-        ov_rest_getenclosureInfoArray(handler, &enclosure_response,
+        rv = ov_rest_getenclosureInfoArray(handler, &enclosure_response,
                         ov_handler->connection, enclosure_doc);
+        if (rv != SA_OK || enclosure_response.enclosure_array == NULL) {
+                CRIT("No response from ov_rest_getenclosureInfoArray");
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
         ov_rest_json_parse_enclosure(enclosure_response.enclosure_array, 
 					&enclosure_result);
         jvalue_fan_array = ov_rest_wrap_json_object_object_get(
 				enclosure_response.enclosure_array, "fanBays");
         jvalue_fan = json_object_array_get_idx(jvalue_fan_array, bayNumber-1);
+        if (!jvalue_fan) {
+                CRIT("Invalid response for the fan in bay %d", bayNumber);
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
         ov_rest_json_parse_fan(jvalue_fan, &response);
 	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
         enclosure = (struct enclosure_status *)ov_handler->
@@ -330,8 +338,12 @@ SaErrorT process_fan_removed_event( struct oh_handler_state *handler,
         asprintf(&ov_handler->connection->url, "https://%s%s",
                         ov_handler->connection->hostname,
 			event->resourceUri);
-        ov_rest_getenclosureInfoArray(handler, &enclosure_response,
+        rv = ov_rest_getenclosureInfoArray(handler, &enclosure_response,
                         ov_handler->connection, enclosure_doc);
+        if (rv != SA_OK || enclosure_response.enclosure_array == NULL) {
+                CRIT("No response from ov_rest_getenclosureInfoArray");
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
         ov_rest_json_parse_enclosure(enclosure_response.enclosure_array,
 					 &enclosure_result);
 	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
