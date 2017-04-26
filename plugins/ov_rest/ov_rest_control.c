@@ -486,10 +486,10 @@ static SaErrorT ov_rest_get_uid_cntrl(struct oh_handler_state *oh_handler,
         switch (rpt->ResourceEntity.Entry[0].EntityType) {
                 case (SAHPI_ENT_SYSTEM_CHASSIS):
 			rv = rest_get_request(conn, &response);
-                        if (rv != SA_OK) {
-                                err("Get enclosure status failed");
-                                return SA_ERR_HPI_INTERNAL_ERROR;
-                        }
+			if (rv != SA_OK || response.ptr == NULL) {
+				CRIT("Get enclosure status failed");
+				return SA_ERR_HPI_INTERNAL_ERROR;
+			}	
 			ov_rest_json_parse_enclosure(response.jobj, &encInfo);
   	                uid_status = valToIndex(uid_state, encInfo.uidState);
 			ov_rest_wrap_json_object_put(response.jobj);
@@ -498,10 +498,10 @@ static SaErrorT ov_rest_get_uid_cntrl(struct oh_handler_state *oh_handler,
                 case (SAHPI_ENT_IO_BLADE):
                 case (SAHPI_ENT_DISK_BLADE):
 			rv = rest_get_request(conn, &response);
-                        if (rv != SA_OK) {
-                                err("Get Blade status failed");
-                                return SA_ERR_HPI_INTERNAL_ERROR;
-                        }
+			if (rv != SA_OK || response.ptr == NULL) {
+				CRIT("Get Blade status failed");
+				return SA_ERR_HPI_INTERNAL_ERROR;
+			}
 			ov_rest_json_parse_server(response.jobj, &servInfo);
                         uid_status = valToIndex(uid_state, servInfo.uidState);
 			ov_rest_wrap_json_object_put(response.jobj);
@@ -509,10 +509,10 @@ static SaErrorT ov_rest_get_uid_cntrl(struct oh_handler_state *oh_handler,
 
                 case (SAHPI_ENT_SWITCH_BLADE):
 			rv = rest_get_request(conn, &response);
-                        if (rv != SA_OK) {
-                                err("Get Interconnect status failed");
-                                return SA_ERR_HPI_INTERNAL_ERROR;
-                        }
+			if (rv != SA_OK || response.ptr == NULL) {
+				CRIT("Get Interconnect status failed");
+				return SA_ERR_HPI_INTERNAL_ERROR;
+			}		
 			ov_rest_json_parse_interconnect(response.jobj, 
 							&intconInfo);
                         uid_status = valToIndex(uid_state,intconInfo.uidState);
@@ -520,7 +520,7 @@ static SaErrorT ov_rest_get_uid_cntrl(struct oh_handler_state *oh_handler,
                         break;
 
                 default:
-                        err("Invalid Resource Type");
+                        CRIT("Invalid Resource Type");
                         return (SA_ERR_HPI_INTERNAL_ERROR);
         }
 

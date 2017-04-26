@@ -105,14 +105,23 @@ SaErrorT process_powersupply_insertion_event( struct oh_handler_state *handler,
 	asprintf(&ov_handler->connection->url, "https://%s%s",
 			ov_handler->connection->hostname,
 			event->resourceUri);
-	ov_rest_getenclosureInfoArray(handler, &enclosure_response,
+	rv = ov_rest_getenclosureInfoArray(handler, &enclosure_response,
 			ov_handler->connection, enclosure_doc);
+	if (rv != SA_OK || enclosure_response.enclosure_array == NULL) {
+		CRIT("No response from ov_rest_getenclosureInfoArray");
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
 	ov_rest_json_parse_enclosure(enclosure_response.enclosure_array, 
 			&enclosure_result);
 	jvalue_ps_array = ov_rest_wrap_json_object_object_get(
 			enclosure_response.enclosure_array,
 			"powerSupplyBays");
 	jvalue_ps = json_object_array_get_idx(jvalue_ps_array, bayNumber-1);
+	if(!jvalue_ps){
+		CRIT("Invalid response for the powersupply in bay %d",
+								bayNumber);
+		return SA_ERR_HPI_INVALID_DATA;
+	}
 	ov_rest_json_parse_powersupply(jvalue_ps, &response);
 	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
 	enclosure = (struct enclosure_status *)ov_handler->
@@ -237,8 +246,12 @@ SaErrorT process_powersupply_removed_event( struct oh_handler_state *handler,
 	asprintf(&ov_handler->connection->url, "https://%s%s",
 			ov_handler->connection->hostname,
 			event->resourceUri);
-	ov_rest_getenclosureInfoArray(handler, &enclosure_response,
+	rv = ov_rest_getenclosureInfoArray(handler, &enclosure_response,
 			ov_handler->connection, enclosure_doc);
+	if (rv != SA_OK || enclosure_response.enclosure_array == NULL) {
+		CRIT("No response from ov_rest_getenclosureInfoArray");
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
 	/* we are making this call to get just enclosure serial number 
 	 * This is useful to find the enclosure related to this ps unit
 	 */
