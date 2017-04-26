@@ -197,7 +197,7 @@ SaErrorT ov_rest_curl_put_request(REST_CON *connection,
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postfields);
 	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curlErrStr);
-        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 3L);
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 60L);
 	CURLcode curlErr = curl_easy_perform(curl);
 	if(curlErr) {
 		err("\nError %s\n", curl_easy_strerror(curlErr));

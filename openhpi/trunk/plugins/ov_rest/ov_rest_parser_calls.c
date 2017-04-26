@@ -96,6 +96,7 @@ void ov_rest_json_parse_server(json_object *jvalue,
 			continue;
 		}
 		if(!strcmp(key,"model")){
+			dbg( " \n %s= %s\n", key, json_object_get_string(val));
 			temp = json_object_get_string(val);
 			if(temp)
 				memcpy(servInfo->model,temp,strlen(temp)+1);
