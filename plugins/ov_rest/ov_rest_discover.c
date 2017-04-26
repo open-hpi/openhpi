@@ -2784,7 +2784,6 @@ SaErrorT ov_rest_build_server_rdr(struct oh_handler_state *oh_handler,
         SaHpiRdrT rdr = {0};
         SaHpiRptEntryT *rpt = NULL;
         struct ov_rest_inventory *inventory = NULL;
-        struct ov_rest_handler *ov_handler = NULL;
         struct ov_rest_sensor_info *sensor_info = NULL;
         SaHpiInt32T sensor_status;
         SaHpiInt32T sensor_val;
@@ -2793,7 +2792,6 @@ SaErrorT ov_rest_build_server_rdr(struct oh_handler_state *oh_handler,
                 err("Invalid parameter");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
-        ov_handler = (struct ov_rest_handler *) oh_handler->data;
         rpt = oh_get_resource_by_id (oh_handler->rptcache, resource_id);
         if (rpt == NULL) {
                 err("INVALID RESOURCE");
@@ -2813,6 +2811,15 @@ SaErrorT ov_rest_build_server_rdr(struct oh_handler_state *oh_handler,
                 err("Failed to add rdr");
                 return rv;
         }
+
+	/* The following code goes out to iLO to get the details. Synergy
+	 * will not provide the details at the top level anytime soon. 
+	 * Synergy access to iLO is not that great as of now. So this code
+	 * is commented out for now 
+         */
+	/*
+        struct ov_rest_handler *ov_handler = NULL;
+        ov_handler = (struct ov_rest_handler *) oh_handler->data;
         rv = ov_rest_build_serverThermalRdr(oh_handler, ov_handler->connection,
                                                         response, rpt);
         if (rv != SA_OK) {
@@ -2859,6 +2866,8 @@ SaErrorT ov_rest_build_server_rdr(struct oh_handler_state *oh_handler,
         }
 
         ov_rest_Total_Temp_Sensors = 0;
+	*/
+
 
         /* Build power control rdr for server */
         OV_REST_BUILD_CONTROL_RDR(OV_REST_PWR_CNTRL, 0, 0);
