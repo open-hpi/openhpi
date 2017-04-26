@@ -1442,6 +1442,15 @@ SaErrorT ov_rest_discover_resources(void *oh_handler)
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
+	/* Check the event thread shutdown status
+         * If TRUE, return SA_OK
+         */
+        if (ov_handler->shutdown_event_thread == SAHPI_TRUE) {
+                dbg("shutdown_event_thread set. Returning in thread %p",
+                     g_thread_self());
+                return SA_OK;
+        }
+
 	/* Take the mutex here. Because discover thread and event thread 
  	 * may invoke this function */
 	wrap_g_mutex_lock(ov_handler->mutex);
@@ -1557,6 +1566,11 @@ SaErrorT discover_ov_rest_system(struct oh_handler_state *handler)
 	dbg("Discovering HPE Synergy Appliance");
 	ov_rest_discover_appliance(handler);	
 
+        if (ov_handler->shutdown_event_thread == SAHPI_TRUE) {
+                dbg("shutdown_event_thread set. Returning in thread %p",
+                     g_thread_self());
+                return SA_OK;
+        }
         dbg(" Discovering Enclosure ......................");
         rv = ov_rest_discover_enclosure(handler);
         if (rv != SA_OK) {
@@ -1564,6 +1578,11 @@ SaErrorT discover_ov_rest_system(struct oh_handler_state *handler)
                 return rv;
         }
 
+        if (ov_handler->shutdown_event_thread == SAHPI_TRUE) {
+                dbg("shutdown_event_thread set. Returning in thread %p",
+                     g_thread_self());
+                return SA_OK;
+        }
         dbg(" Discovering Blades ...................");
         rv = ov_rest_discover_server(handler);
         if (rv != SA_OK) {
@@ -1578,6 +1597,11 @@ SaErrorT discover_ov_rest_system(struct oh_handler_state *handler)
                 return rv;
         }
 
+        if (ov_handler->shutdown_event_thread == SAHPI_TRUE) {
+                dbg("shutdown_event_thread set. Returning in thread %p",
+                     g_thread_self());
+                return SA_OK;
+        }
         dbg(" Discovering InterConnect ...................");
         rv = ov_rest_discover_interconnect(handler);
         if (rv != SA_OK) {
@@ -1586,6 +1610,11 @@ SaErrorT discover_ov_rest_system(struct oh_handler_state *handler)
 	                return rv;
         }
 
+        if (ov_handler->shutdown_event_thread == SAHPI_TRUE) {
+                dbg("shutdown_event_thread set. Returning in thread %p",
+                     g_thread_self());
+                return SA_OK;
+        }
         dbg(" Discovering SAS InterConnect ...................");
         rv = ov_rest_discover_sas_interconnect(handler);
         if (rv != SA_OK) {
@@ -1607,6 +1636,11 @@ SaErrorT discover_ov_rest_system(struct oh_handler_state *handler)
                 return rv;
         }
 
+        if (ov_handler->shutdown_event_thread == SAHPI_TRUE) {
+                dbg("shutdown_event_thread set. Returning in thread %p",
+                     g_thread_self());
+                return SA_OK;
+        }
 	ov_rest_push_disc_res(handler);
 
         g_hash_table_foreach(ov_handler->uri_rid, func_t,NULL); 
@@ -2932,7 +2966,12 @@ SaErrorT ov_rest_discover_server(struct oh_handler_state *handler)
 
 	/*Getting the length of the array*/
 	arraylen = json_object_array_length(response.server_array);
-	for (i=0; i< arraylen; i++){
+        for (i=0; i< arraylen; i++){
+                if (ov_handler->shutdown_event_thread == SAHPI_TRUE) {
+                       dbg("shutdown_event_thread set. Returning in thread %p",
+                                g_thread_self());
+                       return SA_OK;
+                }
                 jvalue = json_object_array_get_idx(response.server_array, i);
                 if (!jvalue) {
                         CRIT("Invalid response for the serevre hardware"
@@ -3315,6 +3354,11 @@ SaErrorT ov_rest_discover_drive_enclosure(struct oh_handler_state *handler)
         /*Getting the length of the array*/
         arraylen = json_object_array_length(response.drive_enc_array);
         for (i=0; i< arraylen; i++){
+                if (ov_handler->shutdown_event_thread == SAHPI_TRUE) {
+                       dbg("shutdown_event_thread set. Returning in thread %p",
+                                g_thread_self());
+                       return SA_OK;
+                }
                 jvalue = json_object_array_get_idx(response.drive_enc_array,i);
                 if (!jvalue) {
                         CRIT("Invalid response for the drive enclosure"
@@ -3643,6 +3687,11 @@ SaErrorT ov_rest_discover_sas_interconnect(struct oh_handler_state *handler)
 	}
 	arraylen = json_object_array_length(response.interconnect_array);
 	for (i=0; i< arraylen; i++){
+                if (ov_handler->shutdown_event_thread == SAHPI_TRUE) {
+                       dbg("shutdown_event_thread set. Returning in thread %p",
+                                g_thread_self());
+                       return SA_OK;
+                }
 		memset(&result, 0, sizeof(struct interconnectInfo));
 		jvalue = json_object_array_get_idx (
 				response.interconnect_array, i);
@@ -3761,6 +3810,11 @@ SaErrorT ov_rest_discover_interconnect(struct oh_handler_state *handler)
 	/*Getting the length of the array*/
         arraylen = json_object_array_length(response.interconnect_array); 
         for (i=0; i< arraylen; i++){
+                if (ov_handler->shutdown_event_thread == SAHPI_TRUE) {
+                       dbg("shutdown_event_thread set. Returning in thread %p",
+                                g_thread_self());
+                       return SA_OK;
+                }
                 memset(&result, 0, sizeof(struct interconnectInfo));
                 jvalue = json_object_array_get_idx(response.interconnect_array,
 			 i);

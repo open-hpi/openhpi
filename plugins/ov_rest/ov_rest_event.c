@@ -1716,6 +1716,7 @@ gpointer ov_rest_event_thread(gpointer ov_pointer)
 		}
 	}
 
+	OV_REST_CHEK_SHUTDOWN_REQ(ov_handler, NULL, NULL, NULL);
 	ov_rest_setuplistner(handler);
 
 	/** Handling Active alerts dring discovery **/
@@ -1760,6 +1761,7 @@ gpointer ov_rest_event_thread(gpointer ov_pointer)
 	wrap_free(ov_handler->connection->url);
 	/* Listen for the events from OneView Synergy SCMB messages */
 	while(1){
+		OV_REST_CHEK_SHUTDOWN_REQ(ov_handler, NULL, NULL, NULL);
 		rv = ov_rest_scmb_listner(handler);
 		if(rv != SA_OK){
 			ov_rest_re_discover(handler);
