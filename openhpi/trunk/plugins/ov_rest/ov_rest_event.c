@@ -631,9 +631,10 @@ SaErrorT process_active_and_locked_alerts(struct oh_handler_state *handler,
                                                  "%s", event.description);
                 oh_evt_queue_push (handler->eventq,
                                copy_ov_rest_event(&oem_event));
-                err("Active/Locked alert found during discovery.");
-                err("Descripton: %s", event.description);
-                err("CorrectiveAction: %s", event.correctiveAction);
+                /* Fix for #1932 */
+                //err("Active/Locked alert found during discovery.");
+                //err("Descripton: %s", event.description);
+                //err("CorrectiveAction: %s", event.correctiveAction);
 		oem_event_to_file(handler, &event, &oem_event);	
         }
         return SA_OK;
@@ -967,9 +968,10 @@ SaErrorT oem_event_handler(struct oh_handler_state *handler,
                                                  "%s", event->description);
                 oh_evt_queue_push (handler->eventq,
                                copy_ov_rest_event(&oem_event));
-                err("Active/Locked alert found during discovery.");
-                err("Descripton: %s", event->description);
-                err("CorrectiveAction: %s", event->correctiveAction);
+                /* Fix for #1932 */
+                //err("Active/Locked alert found during discovery.");
+                //err("Descripton: %s", event->description);
+                //err("CorrectiveAction: %s", event->correctiveAction);
                 oem_event_to_file(handler, event, &oem_event);
         }
         return rv;
@@ -1734,6 +1736,9 @@ gpointer ov_rest_event_thread(gpointer ov_pointer)
 						&event_response);
 	if(rv == SA_OK){
 		process_active_and_locked_alerts(handler, &event_response);
+		err("Active alerts are found and events are added "
+						"to logs/oem event file.");
+		err("Please login to the composer to get complete details.");
 		ov_rest_wrap_json_object_put(event_response.root_jobj);
 	}
 	
@@ -1751,6 +1756,9 @@ gpointer ov_rest_event_thread(gpointer ov_pointer)
 							&event_response);
 	if(rv == SA_OK){
 		process_active_and_locked_alerts(handler, &event_response);
+		err("Locked alerts are found and events are added "
+						"to logs/oem event file.");
+		err("Please login to the composer to get complete details.");
 	}
 
 	asprintf(&ov_handler->connection->url, OV_ALERTS, 
