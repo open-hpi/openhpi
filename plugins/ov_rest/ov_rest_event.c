@@ -332,6 +332,13 @@ SaErrorT process_active_and_locked_alerts(struct oh_handler_state *handler,
         }
         ov_handler = handler->data;
 
+        /* Checking for json object type, if it is not array, return */
+        if (json_object_get_type(event_response->event_array) !=
+                                                       json_type_array) {
+                CRIT("No array for active/locked alerts.");
+                return SA_ERR_HPI_INVALID_DATA;
+        } 
+
         /*Getting the length of the array*/
         arraylen = json_object_array_length(event_response->event_array);
         for (i=0; i< arraylen; i++){
@@ -549,7 +556,8 @@ SaErrorT process_active_and_locked_alerts(struct oh_handler_state *handler,
                                         ov_handler->connection, enc_doc);
                         if (rv != SA_OK ||
                                        enc_response.enclosure_array == NULL) {
-                                CRIT("Failed to get Enclosure Info Array");
+                                CRIT("Failed to get Enclosure Info Array"
+					" from interconnect location");
                                 continue;
                         }
                         ov_rest_json_parse_enclosure(
@@ -1690,6 +1698,7 @@ gpointer ov_rest_event_thread(gpointer ov_pointer)
 	 * If not, wait till plugin gets initialized
 	 */
 	while (is_plugin_initialized == SAHPI_FALSE) {
+		OV_REST_CHEK_SHUTDOWN_REQ(ov_handler, NULL, NULL, NULL);
 		wrap_g_mutex_lock(ov_handler->ov_mutex);
 		if (ov_handler->status == PRE_DISCOVERY ||
 				ov_handler->status == DISCOVERY_COMPLETED) {
@@ -1707,6 +1716,7 @@ gpointer ov_rest_event_thread(gpointer ov_pointer)
 	 * If not, wait till discovery gets completed
 	 */
 	while (is_discovery_completed == SAHPI_FALSE) {
+		OV_REST_CHEK_SHUTDOWN_REQ(ov_handler, NULL, NULL, NULL);
 		wrap_g_mutex_lock(ov_handler->ov_mutex);
 		if (ov_handler->status == DISCOVERY_COMPLETED) {
 			wrap_g_mutex_unlock(ov_handler->ov_mutex);

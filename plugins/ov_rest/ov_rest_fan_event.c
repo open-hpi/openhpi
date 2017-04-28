@@ -197,6 +197,14 @@ SaErrorT process_fan_inserted_event( struct oh_handler_state *handler,
 					&enclosure_result);
         jvalue_fan_array = ov_rest_wrap_json_object_object_get(
 				enclosure_response.enclosure_array, "fanBays");
+        /* Checking for json object type, if it is not array, return */
+        if (jvalue_fan_array == NULL || (json_object_get_type(jvalue_fan_array)
+                                                         != json_type_array)) {
+                CRIT("No Fan array in enclosure bay %d. Not adding Fan", 
+                        bayNumber);
+                return SA_ERR_HPI_INVALID_DATA;
+        }
+
         jvalue_fan = json_object_array_get_idx(jvalue_fan_array, bayNumber-1);
         if (!jvalue_fan) {
                 CRIT("Invalid response for the fan in bay %d", bayNumber);

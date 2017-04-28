@@ -528,7 +528,8 @@ SaErrorT ov_rest_getserverSystemsInfo(struct oh_handler_state *oh_handler,
                 oem = ov_rest_wrap_json_object_object_get(s.jobj, "Oem");
                 hpe = ov_rest_wrap_json_object_object_get(oem, "Hp");
                 battery = ov_rest_wrap_json_object_object_get(hpe, "Battery");
-                if (battery != NULL) {
+                if (battery != NULL && 
+                         (json_object_get_type(battery) == json_type_array)) {
                         arraylen = json_object_array_length(battery);
                         for (i = 0; i < arraylen; i++) {
                                 battery_obj =
@@ -2502,6 +2503,13 @@ SaErrorT ov_rest_discover_enclosure(struct oh_handler_state *handler)
 		CRIT("No response from ov_rest_getenclosureInfoArray");
 		return rv;
 	}
+
+	/* Checking for json object type, if it is not array, return */
+	if (json_object_get_type(response.enclosure_array) != json_type_array){
+		CRIT("Enclosures may not be added as no array received");
+		return SA_OK; 
+	}
+
 	arraylen = json_object_array_length(response.enclosure_array);
 	for (i=0; i< arraylen; i++){
 		jvalue = json_object_array_get_idx(response.enclosure_array,i);
@@ -2960,10 +2968,16 @@ SaErrorT ov_rest_discover_server(struct oh_handler_state *handler)
 	rv = ov_rest_getserverInfoArray(handler, &response, 
 					ov_handler->connection,server_doc);
 	if(rv != SA_OK || response.server_array == NULL) {
-		CRIT("No response from ov_rest_getsereverInfoArray call");
-		return rv;
+		CRIT("Server array not received. No servers added");
+		return SA_OK;
 	}
 
+	/* Checking for json object type, if it is not array, return */
+	if (json_object_get_type(response.server_array) != json_type_array) {
+		CRIT("Server array not received. No servers added");
+		return SA_OK;
+	}
+	
 	/*Getting the length of the array*/
 	arraylen = json_object_array_length(response.server_array);
         for (i=0; i< arraylen; i++){
@@ -3349,8 +3363,15 @@ SaErrorT ov_rest_discover_drive_enclosure(struct oh_handler_state *handler)
                                         drive_enc_doc);
         if (rv != SA_OK || response.drive_enc_array == NULL) {
                 CRIT("No repsonse from ov_rest_getdriveEnclosureInfoArray");
-                return SA_ERR_HPI_INTERNAL_ERROR;
+                return SA_OK;
         }
+
+        /* Checking for json object type, if it is not array, return */
+        if (json_object_get_type(response.drive_enc_array) != json_type_array) {
+                CRIT("No drive enclosure arrays returned");
+                return SA_OK;
+        }
+
         /*Getting the length of the array*/
         arraylen = json_object_array_length(response.drive_enc_array);
         for (i=0; i< arraylen; i++){
@@ -3683,8 +3704,16 @@ SaErrorT ov_rest_discover_sas_interconnect(struct oh_handler_state *handler)
 			interconnect_doc);
 	if (rv != SA_OK || response.interconnect_array == NULL) {
 		CRIT("No response from ov_rest_getinterconnectInfoArray");
-		return SA_ERR_HPI_INTERNAL_ERROR;
+		return SA_OK;
 	}
+	
+	/* Checking for json object type, if it is not array, return */
+	if (json_object_get_type(response.interconnect_array) !=
+							json_type_array) {
+		CRIT("No sas-interconnects arrays returned");
+		return SA_OK;
+	}
+
 	arraylen = json_object_array_length(response.interconnect_array);
 	for (i=0; i< arraylen; i++){
                 if (ov_handler->shutdown_event_thread == SAHPI_TRUE) {
@@ -3805,8 +3834,16 @@ SaErrorT ov_rest_discover_interconnect(struct oh_handler_state *handler)
 		CRIT("Failed to get the response from "
 				"ov_rest_getinterconnectInfoArray");
 		
-		return rv;
+		return SA_OK;
 	}
+
+        /* Checking for json object type, if it is not array, return */
+        if (json_object_get_type(response.interconnect_array) !=
+                                                        json_type_array) {
+                CRIT("Not adding any interconnects as no array returned");
+                return SA_OK;
+        }
+
 	/*Getting the length of the array*/
         arraylen = json_object_array_length(response.interconnect_array); 
         for (i=0; i< arraylen; i++){
@@ -4210,6 +4247,13 @@ SaErrorT ov_rest_discover_powersupply(struct oh_handler_state *oh_handler)
 				"ov_rest_getenclosureInfoArray\n");
 		return rv;
 	}
+
+	/* Checking for json object type, if it is not array, return */
+	if (json_object_get_type(response.enclosure_array) != json_type_array) {
+		CRIT("Not adding power supplies, no enclosure array returned");
+		return SA_OK;
+	}
+
 	arraylen = json_object_array_length(response.enclosure_array);
 	for (i=0; i< arraylen; i++){
 		jvalue = json_object_array_get_idx(response.enclosure_array,i);
@@ -4221,6 +4265,13 @@ SaErrorT ov_rest_discover_powersupply(struct oh_handler_state *oh_handler)
 		ov_rest_json_parse_enclosure(jvalue, &enclosure_result);
 		jvalue_ps_array = ov_rest_wrap_json_object_object_get(jvalue,
 					"powerSupplyBays");
+		/* Checking for json object type, if it is not array, return */
+		if (json_object_get_type(jvalue_ps_array) != json_type_array) {
+			CRIT("Not adding power supplied to enclosure %d,"
+				" no array returned for that",i);
+			return SA_OK;
+		}		
+
 		for(j = 0; j < enclosure_result.powerSupplyBayCount; j++){
 			jvalue_ps = json_object_array_get_idx(jvalue_ps_array, 
 					j);
@@ -4584,7 +4635,8 @@ SaErrorT ov_rest_discover_fan(struct oh_handler_state *oh_handler)
 	int i = 0,j = 0,arraylen = 0;
 	struct enclosure_status *enclosure = NULL;
 	json_object *jvalue = NULL, *jvalue_fan = NULL, 
-		*jvalue_fan_array = NULL;
+	*jvalue_fan_array = NULL;
+
 	ov_handler = (struct ov_rest_handler *) oh_handler->data;
 
 	asprintf(&ov_handler->connection->url, OV_ENCLOSURE_URI,
@@ -4593,19 +4645,32 @@ SaErrorT ov_rest_discover_fan(struct oh_handler_state *oh_handler)
 			ov_handler->connection, enclosure_doc);
 	if(rv != SA_OK || response.enclosure_array == NULL) {
 		CRIT(" No response from ov_rest_getenclosureInfoArray");
-		return SA_ERR_HPI_INTERNAL_ERROR;
+		return SA_OK;
 	}
+
+	/* Checking for json object type, if it is not array, return */
+	if (json_object_get_type(response.enclosure_array) != json_type_array) {
+		CRIT("Not adding fans as no enclosure arrays returned");
+		return SA_ERR_HPI_INVALID_DATA;
+	}
+
 	arraylen = json_object_array_length(response.enclosure_array);
 	for (i=0; i< arraylen; i++){
 		jvalue = json_object_array_get_idx(response.enclosure_array,i);
 		if (!jvalue) {
-			CRIT("Invalid response for the enclosure in bay %d",
+			CRIT("Invalid response for the enclosure in list %d",
 				i + 1);
 			continue;
 		}
 		ov_rest_json_parse_enclosure(jvalue, &enclosure_result);
 		jvalue_fan_array = ov_rest_wrap_json_object_object_get(jvalue,
 				"fanBays");
+		/* Checking for json object type, if it is not array, return */
+		if (json_object_get_type(jvalue_fan_array) != json_type_array) {
+			CRIT("Fan array is not returned for enclosure %d",i+1); 
+			return SA_OK;
+		}
+
 		for(j = 0; j < enclosure_result.fanBayCount; j++){
 			jvalue_fan = json_object_array_get_idx(
 					jvalue_fan_array, j);
@@ -4879,6 +4944,15 @@ SaErrorT ov_rest_build_server_thermal_rdr(struct oh_handler_state *oh_handler,
 		CRIT("Invalid parameters");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
+
+	/* Checking for json object type, if it is not array, return */
+	if (json_object_get_type(response->serverhardwareThermal_array) !=
+							json_type_array) {
+		CRIT("Unable to obtain thermal sensors array"
+			"Can not build server thermal sensors");
+		return SA_ERR_HPI_INVALID_DATA;
+	}
+
 	arraylen = json_object_array_length(
 				response->serverhardwareThermal_array);
 	for(i = 0; i < arraylen; i++){
@@ -4899,6 +4973,16 @@ SaErrorT ov_rest_build_server_thermal_rdr(struct oh_handler_state *oh_handler,
                 }
         }
         ov_rest_Total_Temp_Sensors = arraylen;
+
+        /* Checking for json object type, if it is not array, return */
+        if (json_object_get_type(response->serverhardwareFans_array) !=
+                                                         json_type_array) {
+                /* Do not know if blades will have fan array so skip this
+			message for now
+                CRIT("Json object type is not of json_type_array for"
+                        " the server hardware Fan sensors"); */
+                return SA_ERR_HPI_INVALID_DATA;
+        }
 
         arraylen = json_object_array_length(
                                 response->serverhardwareFans_array);

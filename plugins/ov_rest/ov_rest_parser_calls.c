@@ -538,6 +538,13 @@ void ov_rest_json_parse_interconnect( json_object *jvalue,
 		if(!strcmp(key,"interconnectLocation")){
 			bayLocation = ov_rest_wrap_json_object_object_get(val,
 						"locationEntries");
+			/* Checking for json object type, if it is not array, return */
+			if (bayLocation == NULL || (json_object_get_type(bayLocation)
+					 != json_type_array)) {
+				CRIT("bayLocation is NULL OR no interconnect "
+					"location array.");
+				return;
+			}
 			arraylen = json_object_array_length(bayLocation);
 			for(j=0;j<arraylen;j++){
 				jobj =json_object_array_get_idx(bayLocation,j);
