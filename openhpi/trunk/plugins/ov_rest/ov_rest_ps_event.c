@@ -116,6 +116,13 @@ SaErrorT process_powersupply_insertion_event( struct oh_handler_state *handler,
 	jvalue_ps_array = ov_rest_wrap_json_object_object_get(
 			enclosure_response.enclosure_array,
 			"powerSupplyBays");
+	/* Checking for json object type, if it is not array, return */
+	if (jvalue_ps_array == NULL || (json_object_get_type(jvalue_ps_array)
+						!= json_type_array)) {
+		CRIT("No Powersupply array for bay %d, Dropping event",
+			bayNumber);
+		return SA_ERR_HPI_INVALID_DATA;
+	}
 	jvalue_ps = json_object_array_get_idx(jvalue_ps_array, bayNumber-1);
 	if(!jvalue_ps){
 		CRIT("Invalid response for the powersupply in bay %d",

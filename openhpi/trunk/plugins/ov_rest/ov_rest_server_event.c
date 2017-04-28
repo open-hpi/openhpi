@@ -719,6 +719,14 @@ SaErrorT ov_rest_proc_blade_inserted( struct oh_handler_state *oh_handler,
 	ov_rest_json_parse_enclosure(enclosure_response.enclosure, 
 				&enclosure_result);
 
+	/* Checking for json object type, if it is not array, return */
+	if (json_object_get_type(enclosure_response.devicebay_array) 
+						!= json_type_array) {
+		CRIT("No server array for bay %d. Dropping event."
+			" Server not added", bayNumber);
+		return SA_ERR_HPI_INVALID_DATA;
+	}
+
 	jvalue = json_object_array_get_idx (enclosure_response.devicebay_array,
 				 bayNumber-1);
 	if (!jvalue) {
@@ -1104,6 +1112,15 @@ SaErrorT ov_rest_proc_blade_removed( struct oh_handler_state *handler,
 	}
 	ov_rest_json_parse_enclosure(enclosure_response.enclosure,
 			&enc_info);
+
+	/* Checking for json object type, if it is not array, return */
+	if (json_object_get_type(enclosure_response.devicebay_array) !=
+					json_type_array) {
+		CRIT("No server array for bay %d, dropping event."
+			" Server not removed", bayNumber);
+		return SA_ERR_HPI_INVALID_DATA;
+	}
+
 	jvalue = json_object_array_get_idx(enclosure_response.devicebay_array, 
 				bayNumber-1);
 	if (!jvalue) {

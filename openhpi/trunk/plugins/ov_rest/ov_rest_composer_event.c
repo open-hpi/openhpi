@@ -81,31 +81,32 @@ SaErrorT ov_rest_proc_composer_status(struct oh_handler_state *oh_handler,
 		return rv;
 	}
 	if(!enclosure_response.enclosure){
-		err("Invalid Response");
+		err("No Response for enclosure status call");
 		return SA_ERR_HPI_INVALID_DATA;
 	}
 	appliance_array = ov_rest_wrap_json_object_object_get(
 					enclosure_response.enclosure,
 					"applianceBays");
-	if(!appliance_array){
-		err("Invalid Response");
+	if(!appliance_array ||
+		(json_object_get_type(appliance_array) != json_type_array)){
+		err("Invalid Response for appliance bay %d",bayNumber);
 		ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
 		return SA_ERR_HPI_INVALID_DATA;
 	}
 	jvalue = json_object_array_get_idx(appliance_array, bayNumber-1);
 	if(!jvalue){
-		err("Invalid Response");
+		err("Invalid Response for appliance bay %d",bayNumber);
 		ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
 		return SA_ERR_HPI_INVALID_DATA;
 	}
 	ov_rest_json_parse_applianceInfo(jvalue, &appliance);
 	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
 	if(!appliance.serialNumber){
-		err("Invalid Response");
+		err("No serial number at appliance bay %d",bayNumber);
 		return SA_ERR_HPI_INVALID_DATA;
 	}
 	if(strcmp(appliance.serialNumber, composer->serial_number)){
-		err("This alert is not from Active Appliance, ignore");
+		warn("This alert is not from Active Appliance, ignore");
 		wrap_g_free(enclosure_doc);
 		return SA_OK;	
 	}	
@@ -114,7 +115,8 @@ SaErrorT ov_rest_proc_composer_status(struct oh_handler_state *oh_handler,
 	rpt = oh_get_resource_by_id(oh_handler->rptcache,
 			composer->resource_id);
 	if (rpt == NULL) {
-		err("resource RPT is NULL");
+		err("resource RPT is NULL for composure rid %d",
+				composer->resource_id);
 		wrap_g_free(enclosure_doc);
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}

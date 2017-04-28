@@ -219,6 +219,15 @@ SaErrorT ov_rest_proc_interconnect_inserted( struct oh_handler_state *handler,
 	jvalue_interconnect_array = ov_rest_wrap_json_object_object_get(
 			enclosure_response.enclosure_array,
 			"interconnectBays");
+	/* Checking for json object type, if it is not array, return */
+	if (jvalue_interconnect_array == NULL ||
+		(json_object_get_type(jvalue_interconnect_array) !=
+						json_type_array)) {
+		CRIT("No Interconnect array for bay %d. Dropping Event",
+			bayNumber);
+		return SA_ERR_HPI_INVALID_DATA;
+	}
+
 	jvalue = json_object_array_get_idx (jvalue_interconnect_array, 
 			bayNumber-1);
 	if (!jvalue) {
