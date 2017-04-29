@@ -64,6 +64,21 @@ typedef unsigned int byte;
 #define MAX_UUID_LENGTH 37
 #define MAX_URI_LENGTH 128
 #define MAX_MANUFACTURER_LENGTH 5
+enum opStatus {
+        OP_STATUS_UNKNOWN,
+        OP_STATUS_OTHER,
+        OP_STATUS_OK,
+        OP_STATUS_CRITICAL,
+        OP_STATUS_WARNING,
+        OP_STATUS_DISABLED};
+OV_REST_ENUM_STRING(opStatus,
+        OP_STATUS_UNKNOWN,
+        OP_STATUS_OTHER,
+        OP_STATUS_OK,
+	OP_STATUS_CRITICAL,
+	OP_STATUS_WARNING,
+	OP_STATUS_DISABLED)
+
 
 OV_REST_ENUM(hpeov_boolean,
         HPEOV_FALSE,
@@ -83,6 +98,7 @@ OV_REST_ENUM(power,
         PS_AUTOMATIC,
         PS_MAXIMUM)
 OV_REST_ENUM(healthStatus,
+	Other,
 	OK,
 	Disabled,
 	Warning,
@@ -555,7 +571,21 @@ struct applianceNodeInfo
 	struct applianceVersion version;
 	struct applianceStatus status;
 };
-
+struct applianceHaNodeInfoResponse
+{
+	json_object *root_jobj;
+	json_object *haNode;
+};
+struct applianceHaNodeInfo
+{
+	char version[MAX_256_CHARS];
+	char name[MAX_256_CHARS];
+	char role[MAX_256_CHARS]; /* This can be changed to enum */
+	enum healthStatus applianceStatus;
+	char modelNumber[MAX_256_CHARS];
+	char applianceId[MAX_256_CHARS]; /* AKA uuid of the appliance*/
+	char uri[MAX_URI_LENGTH];
+};
 struct applianceInfo
 {
 	char partNumber[MAX_256_CHARS];
@@ -748,6 +778,7 @@ struct driveEnclosureInfo
 	char locationUri[MAX_URI_LENGTH];
         enum power powered;
         enum powerState powerState;
+	enum healthStatus drvEncStatus;
         char uidState[MAX_256_CHARS];         
 };
 
@@ -921,6 +952,8 @@ struct eventInfo
         "https://%s/rest/v1/Systems/1/NetworkAdapters/1"
 #define OV_SERVER_HARDWARE_ETHERNET_INTERFACES_URI \
         "https://%s/rest/v1/Managers/1/EthernetInterfaces/1"
+#define OV_APPLIANCE_HA_NODE_ID_URI \
+	"https://%s/rest/appliance/ha-nodes/%s"
 #define OV_DRIVE_ENCLOSURE_URI \
         "https://%s/rest/drive-enclosures"
 #define OV_INTERCONNECT_URI \
@@ -941,6 +974,8 @@ int ov_rest_trim_alert_string(const char* alert, struct eventInfo *response);
 void ov_rest_json_parse_certificate( json_object *jobj, 
 			struct certificates *response);
 void ov_rest_json_parse_ca( json_object *jobj, struct certificates *response);
+void ov_rest_json_parse_appliance_Ha_node( json_object *jobj,
+                                struct applianceHaNodeInfo *response);
 void ov_rest_json_parse_appliance_version( json_object *jarray, 
 			struct applianceVersion *response);
 void ov_rest_json_parse_appliance_status( json_object *jobj, 

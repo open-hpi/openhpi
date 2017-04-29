@@ -92,6 +92,45 @@ SaErrorT ov_rest_getapplianceNodeInfo(struct oh_handler_state *oh_handler,
         curl_global_cleanup();
         return SA_OK;
 }
+/**
+ * ov_rest_getapplianceHaNodeInfo:
+ *      @response:   Pointer to the  applianceHaNodeInfoResponse structure.
+ *      @connection: Pointer to connection structure.
+ *
+ * Purpose:
+ *      This routine makes the request call to retrive the appliance
+ *      information in json object.
+ *
+ * Detailed Description: NA
+ *
+ * Return values:
+ *      SA_OK                     - on success
+ *      -1                        - on failure
+ **/
+SaErrorT ov_rest_getapplianceHaNodeInfo(
+				struct applianceHaNodeInfoResponse *response,
+		                REST_CON *connection)
+{
+	SaErrorT rv = SA_OK;
+	OV_STRING s = {0};
+	struct curl_slist *chunk = NULL;
+	curl_global_init(CURL_GLOBAL_ALL);
+	/* Get a curl handle */
+	CURL* curl = curl_easy_init();
+	rv = ov_rest_curl_get_request(connection, chunk, curl, &s);
+	if(s.jobj == NULL || s.len == 0){
+		return rv;
+	}else
+	{
+		response->root_jobj = s.jobj;
+		response->haNode = s.jobj;
+	}
+
+        wrap_g_free(connection->url);
+        curl_easy_cleanup(curl);
+        curl_global_cleanup();
+        return SA_OK;
+}
 
 /**
  * ov_rest_getdatacenterInfo:
@@ -1667,7 +1706,9 @@ SaErrorT ov_rest_discover_appliance(struct oh_handler_state *handler)
 	SaErrorT rv = 0;
 	struct ov_rest_handler *ov_handler = NULL;
 	struct applianceNodeInfoResponse response = {0};
+	struct applianceHaNodeInfoResponse ha_response = {0};
 	struct applianceNodeInfo result = {{{0}}};
+	struct applianceHaNodeInfo ha_node_result = {{0}};
 	SaHpiResourceIdT resource_id;
 	char* appliance_version_doc = NULL, *s = NULL;
 	
@@ -1684,8 +1725,21 @@ SaErrorT ov_rest_discover_appliance(struct oh_handler_state *handler)
 	}
 	ov_rest_json_parse_appliance_version(response.applianceVersion,
 						&result.version);
+
+	asprintf(&ov_handler->connection->url, OV_APPLIANCE_HA_NODE_ID_URI, 
+		ov_handler->connection->hostname, result.version.serialNumber);
+	rv = ov_rest_getapplianceHaNodeInfo(&ha_response, 
+					ov_handler->connection);
+	if(rv != SA_OK) {
+		CRIT("Failed to get the response for Active HA Node \n");
+		return rv;
+	}
+	ov_rest_json_parse_appliance_Ha_node(ha_response.haNode,
+					&ha_node_result);
+		
 	ov_rest_wrap_json_object_put(response.root_jobj);
-	rv = ov_rest_build_appliance_rpt(handler, result.version.name, 
+	ov_rest_wrap_json_object_put(ha_response.root_jobj);
+	rv = ov_rest_build_appliance_rpt(handler, &ha_node_result, 
 						&resource_id);
 	if (rv != SA_OK) {
 		err("build appliance rpt failed");
@@ -1946,7 +2000,7 @@ SaErrorT ov_rest_build_appliance_rdr(struct oh_handler_state *oh_handler,
  *      SA_ERR_HPI_INTERNAL_ERROR - on failure.
  **/
 SaErrorT ov_rest_build_appliance_rpt(struct oh_handler_state *oh_handler,
-                             char *name,
+                             struct applianceHaNodeInfo *response,
                              SaHpiResourceIdT *resource_id)
 {
 	SaErrorT rv = SA_OK;
@@ -1955,7 +2009,7 @@ SaErrorT ov_rest_build_appliance_rpt(struct oh_handler_state *oh_handler,
 	char *entity_root = NULL;
 	SaHpiRptEntryT rpt = {0};
 
-	if (oh_handler == NULL || name == NULL || resource_id == NULL) {
+	if (oh_handler == NULL || response == NULL) {
 		err("Invalid parameters");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -1990,19 +2044,36 @@ SaErrorT ov_rest_build_appliance_rpt(struct oh_handler_state *oh_handler,
 		err("concat of entity path failed");
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
-
-	rpt.ResourceSeverity = SAHPI_OK;
+        switch(response->applianceStatus){
+                case OK:
+                        rpt.ResourceSeverity = SAHPI_OK;
+                        rpt.ResourceFailed = SAHPI_FALSE;
+                        break;
+                case Disabled:
+                        rpt.ResourceSeverity = SAHPI_CRITICAL;
+                        rpt.ResourceFailed = SAHPI_TRUE;
+                        break;
+                case Warning:
+                        rpt.ResourceSeverity = SAHPI_MINOR;
+                        rpt.ResourceFailed = SAHPI_FALSE;
+                        break;
+                case Critical:
+                        rpt.ResourceSeverity = SAHPI_CRITICAL;
+                        rpt.ResourceFailed = SAHPI_FALSE;
+                        break;
+                default:
+                        rpt.ResourceSeverity = SAHPI_MAJOR;
+                        rpt.ResourceFailed = SAHPI_TRUE;
+        }
 	rpt.ResourceInfo.ManufacturerId = HPE_MANUFACTURING_ID;
-	rpt.ResourceSeverity = SAHPI_OK;
-	rpt.ResourceFailed = SAHPI_FALSE;
 	rpt.HotSwapCapabilities = 0x0;
 	rpt.ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
 	rpt.ResourceTag.Language = SAHPI_LANG_ENGLISH;
-	ov_rest_trim_whitespace(name);
-	rpt.ResourceTag.DataLength = strlen(name);
+	ov_rest_trim_whitespace(response->name);
+	rpt.ResourceTag.DataLength = strlen(response->name);
 	memset(rpt.ResourceTag.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
 	snprintf((char *) (rpt.ResourceTag.Data),
-			strlen(name) + 1, "%s", name);
+			strlen(response->name) + 1, "%s", response->name);
 	rpt.ResourceId = oh_uid_from_entity_path(&(rpt.ResourceEntity));
 
 	/* Add the Appliance rpt to the plugin RPTable */
@@ -2325,7 +2396,7 @@ static SaErrorT ov_rest_build_enc_info(struct oh_handler_state *oh_handler,
  *      SA_ERR_HPI_INTERNAL_ERROR - on failure.
  **/
 SaErrorT ov_rest_build_enclosure_rpt(struct oh_handler_state *oh_handler,
-                             char *name,
+                             struct enclosureInfo *response,
                              SaHpiResourceIdT *resource_id)
 {
         SaErrorT rv = SA_OK;
@@ -2334,7 +2405,7 @@ SaErrorT ov_rest_build_enclosure_rpt(struct oh_handler_state *oh_handler,
         char *entity_root = NULL;
         SaHpiRptEntryT rpt = {0};
 
-        if (oh_handler == NULL || name == NULL || resource_id == NULL) {
+        if (oh_handler == NULL || response == NULL) {
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
@@ -2373,19 +2444,36 @@ SaErrorT ov_rest_build_enclosure_rpt(struct oh_handler_state *oh_handler,
                 err("concat of entity path failed");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
-
-        rpt.ResourceSeverity = SAHPI_OK;
+        switch(response->enclosureStatus){
+                case OK:
+                        rpt.ResourceSeverity = SAHPI_OK;
+                        rpt.ResourceFailed = SAHPI_FALSE;
+                        break;
+                case Disabled:
+                        rpt.ResourceSeverity = SAHPI_CRITICAL;
+                        rpt.ResourceFailed = SAHPI_TRUE;
+                        break;
+                case Warning:
+                        rpt.ResourceSeverity = SAHPI_MINOR;
+                        rpt.ResourceFailed = SAHPI_FALSE;
+                        break;
+                case Critical:
+                        rpt.ResourceSeverity = SAHPI_CRITICAL;
+                        rpt.ResourceFailed = SAHPI_FALSE;
+                        break;
+                default:
+                        rpt.ResourceSeverity = SAHPI_MAJOR;
+                        rpt.ResourceFailed = SAHPI_TRUE;
+        }
         rpt.ResourceInfo.ManufacturerId = HPE_MANUFACTURING_ID;
-        rpt.ResourceSeverity = SAHPI_OK;
-        rpt.ResourceFailed = SAHPI_FALSE;
         rpt.HotSwapCapabilities = 0x0;
         rpt.ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
         rpt.ResourceTag.Language = SAHPI_LANG_ENGLISH;
-        ov_rest_trim_whitespace(name);
-        rpt.ResourceTag.DataLength = strlen(name);
+        ov_rest_trim_whitespace(response->name);
+        rpt.ResourceTag.DataLength = strlen(response->name);
         memset(rpt.ResourceTag.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
         snprintf((char *) (rpt.ResourceTag.Data),
-                 strlen(name) + 1, "%s", name);
+                 strlen(response->name) + 1, "%s", response->name);
         rpt.ResourceId = oh_uid_from_entity_path(&(rpt.ResourceEntity));
 
         /* Add the enclosure rpt to the plugin RPTable */
@@ -2453,15 +2541,22 @@ SaErrorT ov_rest_build_enclosure_rdr(struct oh_handler_state *oh_handler,
         OV_REST_BUILD_CONTROL_RDR(OV_REST_UID_CNTRL, 0, 0);
 
         /* Build operational status sensor rdr */
-        switch (response->enclosureStatus ) {
-                case OK:
-                case Critical:
-                case Warning:  sensor_val = 2 ; //OP_STATUS_OK
-                                break;
-                case Disabled: sensor_val = 1 ; //OP_STATUS_OTHER
-                                break;
-                default : sensor_val = 0; //OP_STATUS_UNKNOWN
-        }
+	switch (response->enclosureStatus ) {
+		case OK:
+			sensor_val = OP_STATUS_OK;
+			break;
+		case Critical:
+			sensor_val = OP_STATUS_CRITICAL;
+			break;
+		case Warning:  
+			sensor_val = OP_STATUS_WARNING; 
+			break;
+		case Disabled: 
+			sensor_val = OP_STATUS_DISABLED; 
+			break;
+		default : 
+			sensor_val = OP_STATUS_UNKNOWN;
+	}
 
         OV_REST_BUILD_ENABLE_SENSOR_RDR(OV_REST_SEN_OPER_STATUS, sensor_val);
 
@@ -2539,7 +2634,7 @@ SaErrorT ov_rest_discover_enclosure(struct oh_handler_state *handler)
 			ov_rest_wrap_json_object_put(response.root_jobj);
 			return rv;
 		}
-		rv = ov_rest_build_enclosure_rpt(handler, result.name, 
+		rv = ov_rest_build_enclosure_rpt(handler, &result, 
 			&resource_id);
 		if (rv != SA_OK) {
 			err("build enclosure rpt failed");
@@ -2556,8 +2651,8 @@ SaErrorT ov_rest_discover_enclosure(struct oh_handler_state *handler)
 				temp = temp->next;
 			}
 		}else{
-			return SA_ERR_HPI_ERROR;
 			ov_rest_wrap_json_object_put(response.root_jobj);
+			return SA_ERR_HPI_ERROR;
 		}
 		/* Save enclosure resource id */
 		temp->enclosure_rid = resource_id;
@@ -2774,8 +2869,27 @@ SaErrorT ov_rest_build_server_rpt(struct oh_handler_state *oh_handler,
 
 	rpt->ResourceId = oh_uid_from_entity_path(&(rpt->ResourceEntity));
 	rpt->ResourceInfo.ManufacturerId = HPE_MANUFACTURING_ID;
-	rpt->ResourceSeverity = SAHPI_OK;
-	rpt->ResourceFailed = SAHPI_FALSE;
+        switch(response->serverStatus){
+                case OK:
+                        rpt->ResourceSeverity = SAHPI_OK;
+                        rpt->ResourceFailed = SAHPI_FALSE;
+                        break;
+                case Disabled:
+                        rpt->ResourceSeverity = SAHPI_CRITICAL;
+                        rpt->ResourceFailed = SAHPI_TRUE;
+                        break;
+                case Warning:
+                        rpt->ResourceSeverity = SAHPI_MINOR;
+                        rpt->ResourceFailed = SAHPI_FALSE;
+                        break;
+                case Critical:
+                        rpt->ResourceSeverity = SAHPI_CRITICAL;
+                        rpt->ResourceFailed = SAHPI_FALSE;
+                        break;
+                default:
+                        rpt->ResourceSeverity = SAHPI_MAJOR;
+                        rpt->ResourceFailed = SAHPI_TRUE;
+        }
 	rpt->ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
 	rpt->ResourceTag.Language = SAHPI_LANG_ENGLISH;
 	ov_rest_trim_whitespace(response->model);
@@ -2918,15 +3032,22 @@ SaErrorT ov_rest_build_server_rdr(struct oh_handler_state *oh_handler,
         OV_REST_BUILD_CONTROL_RDR(OV_REST_UID_CNTRL, 0, 0);
 
         /* Build operational status sensor rdr */
-        switch (response->serverStatus ) {
-                case OK:
-                case Critical:
-                case Warning:  sensor_val = 2 ; //OP_STATUS_OK
-                                break;
-                case Disabled: sensor_val = 1 ; //OP_STATUS_OTHER
-                                break;
-                default : sensor_val = 0; //OP_STATUS_UNKNOWN
-        }
+	switch (response->serverStatus ) {
+		case OK:
+			sensor_val = OP_STATUS_OK;
+			break;
+		case Critical:
+			sensor_val = OP_STATUS_CRITICAL;
+			break;
+		case Warning:
+			sensor_val = OP_STATUS_WARNING;
+			break;
+		case Disabled:
+			sensor_val = OP_STATUS_DISABLED;
+			break;
+		default :
+			sensor_val = OP_STATUS_UNKNOWN;
+	}
 
         OV_REST_BUILD_ENABLE_SENSOR_RDR(OV_REST_SEN_OPER_STATUS,sensor_val);
  
@@ -3151,8 +3272,27 @@ SaErrorT ov_rest_build_drive_enclosure_rpt(struct oh_handler_state *oh_handler,
 
         rpt->ResourceId = oh_uid_from_entity_path(&(rpt->ResourceEntity));
         rpt->ResourceInfo.ManufacturerId = HPE_MANUFACTURING_ID;
-        rpt->ResourceSeverity = SAHPI_OK; /* FIXME: Use actual status? */
-        rpt->ResourceFailed = SAHPI_FALSE;
+        switch(response->drvEncStatus){
+                case OK:
+                        rpt->ResourceSeverity = SAHPI_OK;
+                        rpt->ResourceFailed = SAHPI_FALSE;
+                        break;
+                case Disabled:
+                        rpt->ResourceSeverity = SAHPI_CRITICAL;
+                        rpt->ResourceFailed = SAHPI_TRUE;
+                        break;
+                case Warning:
+                        rpt->ResourceSeverity = SAHPI_MINOR;
+                        rpt->ResourceFailed = SAHPI_FALSE;
+                        break;
+                case Critical:
+                        rpt->ResourceSeverity = SAHPI_CRITICAL;
+                        rpt->ResourceFailed = SAHPI_FALSE;
+                        break;
+                default:
+                        rpt->ResourceSeverity = SAHPI_MAJOR;
+                        rpt->ResourceFailed = SAHPI_TRUE;
+        }
         rpt->ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
         rpt->ResourceTag.Language = SAHPI_LANG_ENGLISH;
         ov_rest_trim_whitespace(response->model);
@@ -3534,8 +3674,27 @@ SaErrorT ov_rest_build_interconnect_rpt(struct oh_handler_state *oh_handler,
 	else
 		rpt.ResourceInfo.ManufacturerId = HPE_MANUFACTURING_ID;
 
-	rpt.ResourceSeverity = SAHPI_OK;
-	rpt.ResourceFailed = SAHPI_FALSE;
+        switch(response->interconnectStatus){
+                case OK:
+                        rpt.ResourceSeverity = SAHPI_OK;
+                        rpt.ResourceFailed = SAHPI_FALSE;
+                        break;
+                case Disabled:
+                        rpt.ResourceSeverity = SAHPI_CRITICAL;
+                        rpt.ResourceFailed = SAHPI_TRUE;
+                        break;
+                case Warning:
+                        rpt.ResourceSeverity = SAHPI_MINOR;
+                        rpt.ResourceFailed = SAHPI_FALSE;
+                        break;
+                case Critical:
+                        rpt.ResourceSeverity = SAHPI_CRITICAL;
+                        rpt.ResourceFailed = SAHPI_FALSE;
+                        break;
+                default:
+                        rpt.ResourceSeverity = SAHPI_MAJOR;
+                        rpt.ResourceFailed = SAHPI_TRUE;
+        }
 	rpt.HotSwapCapabilities = SAHPI_HS_CAPABILITY_AUTOEXTRACT_READ_ONLY;
 	rpt.ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
 	rpt.ResourceTag.Language = SAHPI_LANG_ENGLISH;
@@ -3621,7 +3780,7 @@ SaErrorT ov_rest_build_interconnect_rdr(struct oh_handler_state *oh_handler,
         SaHpiRdrT rdr = {0};
 	struct ov_rest_sensor_info *sensor_info=NULL;
         SaHpiInt32T sensor_status;
-        SaHpiInt32T sensor_val;
+        SaHpiInt32T sensor_val = 0;
 
         if (oh_handler == NULL || response == NULL) {
                 err("Invalid parameters");
@@ -3651,12 +3810,19 @@ SaErrorT ov_rest_build_interconnect_rdr(struct oh_handler_state *oh_handler,
         /* Build operational status sensor rdr */
         switch (response->interconnectStatus ) {
                 case OK:
+                        sensor_val = OP_STATUS_OK;
+                        break;
                 case Critical:
-                case Warning:  sensor_val = 2 ; //OP_STATUS_OK
-                                break;
-                case Disabled: sensor_val = 1 ; //OP_STATUS_OTHER
-                                break;
-                default : sensor_val = 0; //OP_STATUS_UNKNOWN
+                        sensor_val = OP_STATUS_CRITICAL;
+                        break;
+                case Warning:
+                        sensor_val = OP_STATUS_WARNING;
+                        break;
+                case Disabled:
+                        sensor_val = OP_STATUS_DISABLED;
+                        break;
+                default :
+                        sensor_val = OP_STATUS_UNKNOWN;
         }
 
         OV_REST_BUILD_ENABLE_SENSOR_RDR(OV_REST_SEN_OPER_STATUS,sensor_val);
@@ -4098,17 +4264,22 @@ SaErrorT ov_rest_build_powersupply_rdr(struct oh_handler_state *oh_handler,
                 return rv;
         }
 
-        switch (response->status) {
-                case OK:
-                case Critical:
-                case Warning :  sensor_val = 2; //OP_STATUS_OK
-                                break;
- 
-                case Disabled: sensor_val = 1 ; //OP_STATUS_OTHER
-                                break;
- 
-                default : sensor_val = 0 ; //OP_STATUS_UNKNOWN
-        }
+	switch (response->status) {
+		case OK:
+			sensor_val = OP_STATUS_OK;
+			break;
+		case Critical:
+			sensor_val = OP_STATUS_CRITICAL;
+			break;
+		case Warning:
+			sensor_val = OP_STATUS_WARNING;
+			break;
+		case Disabled:
+			sensor_val = OP_STATUS_DISABLED;
+			break;
+		default :
+			sensor_val = OP_STATUS_UNKNOWN;
+	}
  
         /* Build operational status sensor rdr */
         OV_REST_BUILD_ENABLE_SENSOR_RDR(OV_REST_SEN_OPER_STATUS, sensor_val);
@@ -4187,8 +4358,27 @@ SaErrorT ov_rest_build_powersupply_rpt(struct oh_handler_state *oh_handler,
         }
 
         rpt.ResourceId = oh_uid_from_entity_path(&(rpt.ResourceEntity));
-        rpt.ResourceSeverity = SAHPI_OK;
-        rpt.ResourceFailed = SAHPI_FALSE;
+        switch(response->status){
+                case OK:
+                        rpt.ResourceSeverity = SAHPI_OK;
+                        rpt.ResourceFailed = SAHPI_FALSE;
+                        break;
+                case Disabled:
+                        rpt.ResourceSeverity = SAHPI_CRITICAL;
+                        rpt.ResourceFailed = SAHPI_TRUE;
+                        break;
+                case Warning:
+                        rpt.ResourceSeverity = SAHPI_MINOR;
+                        rpt.ResourceFailed = SAHPI_FALSE;
+                        break;
+                case Critical:
+                        rpt.ResourceSeverity = SAHPI_CRITICAL;
+                        rpt.ResourceFailed = SAHPI_FALSE;
+                        break;
+                default:
+                        rpt.ResourceSeverity = SAHPI_MAJOR;
+                        rpt.ResourceFailed = SAHPI_TRUE;
+        }
         rpt.HotSwapCapabilities = 0x0;
         rpt.ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
         rpt.ResourceTag.Language = SAHPI_LANG_ENGLISH;
@@ -4501,14 +4691,19 @@ SaErrorT ov_rest_build_fan_rdr(struct oh_handler_state *oh_handler,
 
         switch (response->status) {
                 case OK:
+                        sensor_val = OP_STATUS_OK;
+                        break;
                 case Critical:
-                case Warning :  sensor_val = 2; //OP_STATUS_OK
-                                break;
-
-                case Disabled: sensor_val = 1 ; //OP_STATUS_OTHER
-                                break;
-
-                default : sensor_val = 0 ; //OP_STATUS_UNKNOWN
+                        sensor_val = OP_STATUS_CRITICAL;
+                        break;
+                case Warning:
+                        sensor_val = OP_STATUS_WARNING;
+                        break;
+                case Disabled:
+                        sensor_val = OP_STATUS_DISABLED;
+                        break;
+                default :
+                        sensor_val = OP_STATUS_UNKNOWN;
         }
 
         /* Build operational status sensor rdr */
@@ -4586,10 +4781,28 @@ SaErrorT ov_rest_build_fan_rpt(struct oh_handler_state *oh_handler,
                 err("concat of entity path failed");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
-
+        switch(response->status){
+                case OK:
+                        rpt.ResourceSeverity = SAHPI_OK;
+                        rpt.ResourceFailed = SAHPI_FALSE;
+                        break;
+                case Disabled:
+                        rpt.ResourceSeverity = SAHPI_CRITICAL;
+                        rpt.ResourceFailed = SAHPI_TRUE;
+                        break;
+                case Warning:
+                        rpt.ResourceSeverity = SAHPI_MINOR;
+                        rpt.ResourceFailed = SAHPI_FALSE;
+                        break;
+                case Critical:
+                        rpt.ResourceSeverity = SAHPI_CRITICAL;
+                        rpt.ResourceFailed = SAHPI_FALSE;
+                        break;
+                default:
+                        rpt.ResourceSeverity = SAHPI_MAJOR;
+                        rpt.ResourceFailed = SAHPI_TRUE;
+        }
         rpt.ResourceId = oh_uid_from_entity_path(&(rpt.ResourceEntity));
-        rpt.ResourceSeverity = SAHPI_OK;
-        rpt.ResourceFailed = SAHPI_FALSE;
         rpt.HotSwapCapabilities = 0x0;
         rpt.ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
         rpt.ResourceTag.Language = SAHPI_LANG_ENGLISH;

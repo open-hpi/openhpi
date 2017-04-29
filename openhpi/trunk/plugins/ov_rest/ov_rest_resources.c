@@ -51,26 +51,9 @@ const SaHpiInt32T ov_rest_sen_val_map_arr[OV_REST_MAX_SEN_CLASS]
 		SAHPI_ES_DISABLED, /* OP_STATUS_UNKNOWN */
 		SAHPI_ES_DISABLED, /* OP_STATUS_OTHER */
 		SAHPI_ES_ENABLED, /* OP_STATUS_OK */
-		SAHPI_ES_ENABLED, /* OP_STATUS_DEGRADED */
-		-1, /* OP_STATUS_STRESSED - not supported by OV */
-		-1, /* OP_STATUS_PREDICTIVE_FAILURE - not supported by OV */
-		-1, /* OP_STATUS_ERROR - not supported by OV */
-		SAHPI_ES_DISABLED, /* OP_STATUS_NON_RECOVERABLE_ERROR */
-		-1, /* OP_STATUS_STARTING - not supported by OV */
-		-1, /* OP_STATUS_STOPPING - not supported by OV */
-		-1, /* OP_STATUS_STOPPED - not supported by OV */
-		-1, /* OP_STATUS_IN_SERVICE - not supported by OV */
-		-1, /* OP_STATUS_NO_CONTACT - not supported by OV */
-		-1, /* OP_STATUS_LOST_COMMUNICATION - not supported by OV */
-		-1, /* OP_STATUS_ABORTED - not supported by OV */
-		-1, /* OP_STATUS_DORMANT - not supported by OV */
-		-1, /* OP_STATUS_SUPPORTING_ENTITY_IN_ERROR - not supported
-		     * by OV
-		     */
-		-1, /* OP_STATUS_COMPLETED - not supported by OV */
-		-1, /* OP_STATUS_POWER_MODE - not supported by OV */
-		-1, /* OP_STATUS_DMTF_RESERVED - not supported by OV */
-		-1, /* OP_STATUS_VENDER_RESERVED - not supported by OV */
+		SAHPI_ES_ENABLED, /* OP_STATUS_CRITICAL */
+		SAHPI_ES_ENABLED, /* OP_STATUS_WARNING */
+		SAHPI_ES_DISABLED, /* OP_STATUS_DISABLED */
 	},
 };
 
@@ -90,26 +73,9 @@ const SaHpiInt32T ov_rest_sen_assert_map_arr[OV_REST_MAX_SEN_CLASS]
 		OV_REST_SEN_ASSERT_TRUE, /* OP_STATUS_UNKNOWN */
 		OV_REST_SEN_ASSERT_TRUE, /* OP_STATUS_OTHER */
 		OV_REST_SEN_ASSERT_FALSE, /* OP_STATUS_OK */
-		OV_REST_SEN_ASSERT_FALSE, /* OP_STATUS_DEGRADED */
-		-1, /* OP_STATUS_STRESSED - not supported by OV */
-		-1, /* OP_STATUS_PREDICTIVE_FAILURE - not supported by OV */
-		-1, /* OP_STATUS_ERROR - not supported by OV */
-		OV_REST_SEN_ASSERT_TRUE, /* OP_STATUS_NON_RECOVERABLE_ERROR */
-		-1, /* OP_STATUS_STARTING - not supported by OV */
-		-1, /* OP_STATUS_STOPPING - not supported by OV */
-		-1, /* OP_STATUS_STOPPED - not supported by OV */
-		-1, /* OP_STATUS_IN_SERVICE - not supported by OV */
-		-1, /* OP_STATUS_NO_CONTACT - not supported by OV */
-		-1, /* OP_STATUS_LOST_COMMUNICATION - not supported by OV */
-		-1, /* OP_STATUS_ABORTED - not supported by OV */
-		-1, /* OP_STATUS_DORMANT - not supported by OV */
-		-1, /* OP_STATUS_SUPPORTING_ENTITY_IN_ERROR - not supported
-		     * by OV
-		     */
-		-1, /* OP_STATUS_COMPLETED - not supported by OV */
-		-1, /* OP_STATUS_POWER_MODE - not supported by OV */
-		-1, /* OP_STATUS_DMTF_RESERVED - not supported by OV */
-		-1, /* OP_STATUS_VENDER_RESERVED - not supported by OV */
+		OV_REST_SEN_ASSERT_TRUE, /* OP_STATUS_CRITICAL */
+		OV_REST_SEN_ASSERT_FALSE, /* OP_STATUS_WARNING */
+		OV_REST_SEN_ASSERT_TRUE, /* OP_STATUS_DISABLED */
 	},
 };
 

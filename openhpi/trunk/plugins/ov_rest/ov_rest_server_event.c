@@ -650,15 +650,22 @@ SaErrorT build_inserted_server_rdr(struct oh_handler_state *oh_handler,
                 return SA_OK;
 
          /* Build operational status sensor rdr */
-        switch (response->serverStatus ) {
-                case OK:
-                case Critical:
-                case Warning:  sensor_val = 2 ; //OP_STATUS_OK
-                                break;
-                case Disabled: sensor_val = 1 ; //OP_STATUS_OTHER
-                                break;
-                default : sensor_val = 0; //OP_STATUS_UNKNOWN
-        }
+	switch (response->serverStatus ) {
+		case OK:
+			sensor_val = OP_STATUS_OK;
+			break;
+		case Critical:
+			sensor_val = OP_STATUS_CRITICAL;
+			break;
+		case Warning:
+			sensor_val = OP_STATUS_WARNING;
+			break;
+		case Disabled:
+			sensor_val = OP_STATUS_DISABLED;
+			break;
+		default :
+			sensor_val = OP_STATUS_UNKNOWN;
+	}
  
         OV_REST_BUILD_ENABLE_SENSOR_RDR(OV_REST_SEN_OPER_STATUS,sensor_val); 
 
