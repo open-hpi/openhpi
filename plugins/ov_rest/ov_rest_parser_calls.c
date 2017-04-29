@@ -228,7 +228,12 @@ void ov_rest_json_parse_drive_enclosure(json_object *jvalue,
 						json_object_get_string(val));
                         continue;
                 }
-
+                if(!strcmp(key,"status")){
+                        drvInfo->drvEncStatus = 
+                                        rest_enum(healthStatus_S, 
+                                        json_object_get_string(val));
+			continue;
+                }
                 if(!strcmp(key,"uri")){
                         temp = json_object_get_string(val);
                         if(temp)
@@ -609,7 +614,9 @@ void ov_rest_json_parse_interconnect( json_object *jvalue,
 			continue;
 		}
 		if(!strcmp(key,"status")){
-			intinfo->interconnectStatus =
+			temp = json_object_get_string(val);
+			if(temp)
+				intinfo->interconnectStatus =
 					rest_enum(healthStatus_S, 
 						json_object_get_string(val));
 			continue;
@@ -744,6 +751,73 @@ void ov_rest_json_parse_appliance_version( json_object *jobj,
 }
 
 /**
+ * ov_rest_json_parse_appliance_Ha_node:
+ *      @jobj    : Pointer to json_object.
+ *      @response: Pointer to applianceHaNodeInfo structure.
+ *
+ * Purpose:
+ *      Parses the json response for appliance HA Node Info
+ *      for Active appliance.
+ *
+ * Return:
+ *      None.
+ *
+ **/
+void ov_rest_json_parse_appliance_Ha_node( json_object *jobj, 
+				struct applianceHaNodeInfo *response)
+{
+	const char *temp = NULL;
+
+	json_object_object_foreach(jobj, key, val){
+		ov_rest_prn_json_obj(key, val);
+
+		if(!strcmp(key,"version")){
+			temp = json_object_get_string(val);
+			if(temp != NULL)
+				memcpy(response->version,temp,
+					strlen(temp)+1);
+			continue;
+		}
+		if(!strcmp(key,"role")){
+			temp = json_object_get_string(val);
+			if(temp != NULL)
+				memcpy(response->role,temp,
+					strlen(temp)+1);
+			continue;
+		}
+		if(!strcmp(key,"modelNumber")){
+			temp = json_object_get_string(val);
+			if(temp != NULL)
+				memcpy(response->modelNumber,temp,
+					strlen(temp)+1);
+			continue;
+		}
+		if(!strcmp(key,"status")){
+			temp = json_object_get_string(val);
+			if(temp)
+				response->applianceStatus =
+					rest_enum(healthStatus_S, 
+						json_object_get_string(val));
+			continue;
+		}
+		if(!strcmp(key,"name")){
+			temp = json_object_get_string(val);
+			if(temp != NULL)
+				memcpy(response->name,temp,
+					strlen(temp)+1);
+			continue;
+		}
+		if(!strcmp(key,"uri")){
+			temp = json_object_get_string(val);
+			if(temp != NULL)
+				memcpy(response->uri,temp,
+					strlen(temp)+1);
+			continue;
+		}
+	}
+
+}
+/**
  * ov_rest_json_parse_appliance_status:
  *      @jobj    : Pointer to json_object.
  *      @response: Pointer to applianceStatus structure.
@@ -874,8 +948,10 @@ void ov_rest_json_parse_applianceInfo(json_object *jobj,
 			continue;
 		}
 		if(!strcmp(key,"status")){
-			response->status = rest_enum(healthStatus_S,
-						json_object_get_string(val));
+			temp = json_object_get_string(val);
+			if(temp)
+				response->status = rest_enum(healthStatus_S,
+								temp);
 			continue;
 		}
 	}
@@ -926,8 +1002,10 @@ void ov_rest_json_parse_datacenter( json_object *jarray, int i,
 			continue;
 		}
 		if(!strcmp(key,"status")){
-			response->status = rest_enum(healthStatus_S,
-						json_object_get_string(val));
+			temp = json_object_get_string(val);
+			if(temp)
+				response->status = rest_enum(healthStatus_S,
+								temp);
 			continue;
 		}
 	}
@@ -1038,7 +1116,9 @@ void ov_rest_json_parse_enclosure( json_object *jvalue,
 			continue;
 		}
                 if(!strcmp(key,"status")){
-                        response->enclosureStatus =
+                        temp = json_object_get_string(val);
+                        if(temp)
+                                response->enclosureStatus =
                                        rest_enum(healthStatus_S, 
 						json_object_get_string(val));
                         continue;
@@ -1103,8 +1183,10 @@ void ov_rest_json_parse_powersupply( json_object *jvalue,
                         continue;
                 }
                 if(!strcmp(key,"status")){
-                        response->status = rest_enum(healthStatus_S,
-						json_object_get_string(val));
+                        temp = json_object_get_string(val);
+                        if(temp) 	
+                                response->status = rest_enum(healthStatus_S,
+                                                             temp);
                         continue;
                 }
                 if(!strcmp(key,"outputCapacityWatts")){
@@ -1175,8 +1257,10 @@ void ov_rest_json_parse_fan( json_object *jvalue, struct fanInfo* response)
                         continue;
                 }
                 if(!strcmp(key,"status")){
-                        response->status = rest_enum(healthStatus_S,
-						json_object_get_string(val));
+			temp = json_object_get_string(val);
+			if(temp)
+                                response->status = rest_enum(healthStatus_S,
+								temp);
                         continue;
                 }
 		temp = NULL;
@@ -1245,6 +1329,7 @@ void ov_rest_json_parse_server_thermal_sensors(json_object *jvalue,
 			if(status != NULL){
 			ov_rest_json_parse_server_thermal_sensors(status, 
 								response);
+			json_object_put(status);
 			}
 			continue;
 		}
@@ -1302,6 +1387,7 @@ void ov_rest_json_parse_server_fan_sensors(json_object *jvalue,
                         if(status != NULL){
                         ov_rest_json_parse_server_fan_sensors(status,
                                                                 response);
+			json_object_put(status);
                         }
                         continue;
                 }

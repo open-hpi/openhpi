@@ -117,6 +117,9 @@
         } \
 }
 
+SaErrorT ov_rest_getapplianceHaNodeInfo(
+                struct applianceHaNodeInfoResponse *response,
+                REST_CON *connection);
 SaErrorT ov_rest_getapplianceNodeInfo(struct oh_handler_state *oh_handler,
                 struct applianceNodeInfoResponse *response,
                 REST_CON *connection,
@@ -238,11 +241,11 @@ SaErrorT ov_rest_build_enclosure_rdr(struct oh_handler_state *oh_handler,
 		SaHpiResourceIdT resource_id);
 
 SaErrorT ov_rest_build_appliance_rpt(struct oh_handler_state *oh_handler,
-		char *name,
+		struct applianceHaNodeInfo *response,
 		SaHpiResourceIdT *resource_id);
 
 SaErrorT ov_rest_build_enclosure_rpt(struct oh_handler_state *oh_handler,
-		char *name,
+		struct enclosureInfo *response,
 		SaHpiResourceIdT *resource_id);
 
 SaErrorT build_discovered_server_rpt(struct oh_handler_state *oh_handler, 
