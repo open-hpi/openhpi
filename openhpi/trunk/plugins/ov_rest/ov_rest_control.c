@@ -486,7 +486,7 @@ static SaErrorT ov_rest_get_uid_cntrl(struct oh_handler_state *oh_handler,
         switch (rpt->ResourceEntity.Entry[0].EntityType) {
                 case (SAHPI_ENT_SYSTEM_CHASSIS):
 			rv = rest_get_request(conn, &response);
-			if (rv != SA_OK || response.ptr == NULL) {
+			if (rv != SA_OK || response.jobj == NULL) {
 				CRIT("Get enclosure status failed");
 				return SA_ERR_HPI_INTERNAL_ERROR;
 			}	
@@ -498,7 +498,7 @@ static SaErrorT ov_rest_get_uid_cntrl(struct oh_handler_state *oh_handler,
                 case (SAHPI_ENT_IO_BLADE):
                 case (SAHPI_ENT_DISK_BLADE):
 			rv = rest_get_request(conn, &response);
-			if (rv != SA_OK || response.ptr == NULL) {
+			if (rv != SA_OK || response.jobj == NULL) {
 				CRIT("Get Blade status failed");
 				return SA_ERR_HPI_INTERNAL_ERROR;
 			}
@@ -509,7 +509,7 @@ static SaErrorT ov_rest_get_uid_cntrl(struct oh_handler_state *oh_handler,
 
                 case (SAHPI_ENT_SWITCH_BLADE):
 			rv = rest_get_request(conn, &response);
-			if (rv != SA_OK || response.ptr == NULL) {
+			if (rv != SA_OK || response.jobj == NULL) {
 				CRIT("Get Interconnect status failed");
 				return SA_ERR_HPI_INTERNAL_ERROR;
 			}		
