@@ -234,6 +234,7 @@ SaErrorT ov_rest_getca(struct oh_handler_state *oh_handler,
 
 SaErrorT ov_rest_build_appliance_rdr(struct oh_handler_state *oh_handler,
                 struct applianceNodeInfo *response,
+                struct applianceHaNodeInfo *ha_response,
                 SaHpiResourceIdT resource_id);
 
 SaErrorT ov_rest_build_enclosure_rdr(struct oh_handler_state *oh_handler,
