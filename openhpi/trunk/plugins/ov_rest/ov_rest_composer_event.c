@@ -60,7 +60,11 @@ SaErrorT ov_rest_proc_composer_status(struct oh_handler_state *oh_handler,
 	char *enclosure_doc = NULL;
 	int bayNumber = 0;
 	json_object * jvalue = NULL, *appliance_array = NULL;
-	
+	struct ov_rest_sensor_info *sensor_info = NULL;
+	SaHpiInt32T sensor_status = 0;
+	SaHpiInt32T sensor_val = 0;
+	SaHpiRdrT rdr = {0};
+	SaHpiResourceIdT resource_id = 0;
 
 	if (oh_handler == NULL)
 	{
@@ -177,6 +181,27 @@ SaErrorT ov_rest_proc_composer_status(struct oh_handler_state *oh_handler,
 
 	/* Raise the HPI sensor event */
 	oh_evt_queue_push(oh_handler->eventq, copy_ov_rest_event(&event));
+
+	/* Build operational status sensor rdr */
+	switch (composer_health) {
+		case OK:
+			sensor_val = OP_STATUS_OK;
+			break;
+		case Critical:
+			sensor_val = OP_STATUS_CRITICAL;
+			break;
+		case Warning:
+			sensor_val = OP_STATUS_WARNING;
+			break;
+		case Disabled:
+			sensor_val = OP_STATUS_DISABLED;
+			break;
+		default :
+			sensor_val = OP_STATUS_UNKNOWN;
+	}
+
+	OV_REST_BUILD_ENABLE_SENSOR_RDR(OV_REST_SEN_OPER_STATUS, sensor_val);
+		
 	wrap_g_free(enclosure_doc);
 	return SA_OK;
 }

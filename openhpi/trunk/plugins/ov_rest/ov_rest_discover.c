@@ -1755,8 +1755,8 @@ SaErrorT ov_rest_discover_appliance(struct oh_handler_state *handler)
         g_hash_table_insert(ov_handler->uri_rid, g_strdup(result.version.uri), 
 				g_strdup(s));
 
-	rv = ov_rest_build_appliance_rdr(handler,
-			&result, resource_id);
+	rv = ov_rest_build_appliance_rdr(handler, &result,
+			&ha_node_result, resource_id);
 	if (rv != SA_OK) {
 		err("build appliance rdr failed");
 		wrap_free(s);
@@ -1937,6 +1937,7 @@ SaErrorT ov_rest_build_appliance_inv_rdr(struct oh_handler_state *oh_handler,
  * ov_rest_build_appliance_rdr:
  *      @oh_handler:  Pointer to openhpi handler.
  *      @response:    Pointer to appliance info response structure.
+ *      @ha_response: Pointer to appliance ha_node info response structure.
  *      @resource_id: Resource id
  *
  * Purpose:
@@ -1953,13 +1954,17 @@ SaErrorT ov_rest_build_appliance_inv_rdr(struct oh_handler_state *oh_handler,
  **/
 SaErrorT ov_rest_build_appliance_rdr(struct oh_handler_state *oh_handler,
                              struct applianceNodeInfo *response,
+                             struct applianceHaNodeInfo *ha_response,
                              SaHpiResourceIdT resource_id)
 {
         SaErrorT rv = SA_OK;
         SaHpiRdrT rdr = {0};
         struct ov_rest_inventory *inventory = NULL;
+        struct ov_rest_sensor_info *sensor_info = NULL;
+        SaHpiInt32T sensor_status = 0;
+        SaHpiInt32T sensor_val = 0;
 
-        if (oh_handler == NULL || response == NULL) {
+        if (oh_handler == NULL || response == NULL || ha_response == NULL) {
                 err("Invalid parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
@@ -1978,6 +1983,26 @@ SaErrorT ov_rest_build_appliance_rdr(struct oh_handler_state *oh_handler,
                 err("Failed to add rdr");
                 return rv;
         }
+
+        /* Build operational status sensor rdr */
+        switch (ha_response->applianceStatus ) {
+                case OK:
+                        sensor_val = OP_STATUS_OK;
+                        break;
+                case Critical:
+                        sensor_val = OP_STATUS_CRITICAL;
+                        break;
+                case Warning:
+                        sensor_val = OP_STATUS_WARNING;
+                        break;
+                case Disabled:
+                        sensor_val = OP_STATUS_DISABLED;
+                        break;
+                default :
+                        sensor_val = OP_STATUS_UNKNOWN;
+        }
+
+        OV_REST_BUILD_ENABLE_SENSOR_RDR(OV_REST_SEN_OPER_STATUS, sensor_val);
 
         return SA_OK;
 }
