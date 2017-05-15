@@ -1421,6 +1421,8 @@ SaErrorT ov_rest_scmb_listner(struct oh_handler_state *handler)
 				rv = ov_rest_amqp_err_handling(handler, 
 						res.library_error);
 				if(rv != SA_OK){
+					amqp_bytes_free(queuename);
+					amqp_destroy_connection(conn);
 					return rv;
 				}
 				continue;
@@ -1680,6 +1682,7 @@ gpointer ov_rest_event_thread(gpointer ov_pointer)
 	struct ov_rest_handler *ov_handler = NULL;
 	SaHpiBoolT is_plugin_initialized = SAHPI_FALSE;
 	SaHpiBoolT is_discovery_completed = SAHPI_FALSE;
+	struct applianceNodeInfoResponse response = {0};
 	SaErrorT rv = SA_OK;
 
 	struct eventArrayResponse event_response = {0};
@@ -1782,9 +1785,28 @@ gpointer ov_rest_event_thread(gpointer ov_pointer)
 		OV_REST_CHEK_SHUTDOWN_REQ(ov_handler, NULL, NULL, NULL);
 		rv = ov_rest_scmb_listner(handler);
 		if(rv != SA_OK){
-			ov_rest_re_discover(handler);
-		}
+			sleep(5);
+			/* Check if session id is valid. if session id valid, 
+			 * then go for next loop.
+			 * if sesion id is not valid then go for re-discovery.
+			 * */
+			asprintf(&ov_handler->connection->url,
+					OV_APPLIANCE_VERSION_URI,
+					ov_handler->connection->hostname);
+			rv = ov_rest_getapplianceNodeInfo(
+					handler, &response, 
+					ov_handler->connection, NULL);
+			ov_rest_wrap_json_object_put(response.root_jobj);
+			if(rv == SA_OK){
+				err("Composer is Accessible, "
+						"SCMB is not working");
+				continue;
+			} else {
 
+				ov_rest_re_discover(handler);
+			}
+
+		}
 	}
 	return (gpointer *) SA_OK;
 }
