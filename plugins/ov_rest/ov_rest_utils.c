@@ -289,44 +289,51 @@ SaErrorT ov_rest_delete_all_inv_info(struct oh_handler_state *oh_handler)
  **/
 void ov_rest_clean_rptable(struct oh_handler_state *oh_handler)
 {
-        SaErrorT rv = SA_OK;
-        struct ov_rest_handler *ov_handler = NULL;
+	SaErrorT rv = SA_OK;
+	struct ov_rest_handler *ov_handler = NULL;
 	struct enclosure_status *enclosure = NULL, *temp = NULL;
+	REST_CON *con = NULL;
 
-        if (oh_handler == NULL) {
-                err("Invalid parameter");
-                return;
-        }
+	if (oh_handler == NULL) {
+		err("Invalid parameter");
+		return;
+	}
 
-        ov_handler = (struct ov_rest_handler *) oh_handler->data;
-        if(ov_handler == NULL) {
-                err("Plugin handler not present");
-                return;
-        }
+	ov_handler = (struct ov_rest_handler *) oh_handler->data;
+	if(ov_handler == NULL) {
+		err("Plugin handler not present");
+		return;
+	}
+	con = (REST_CON *) ov_handler->connection;
+	if(con != NULL){
+		if(con->url){
+			wrap_free(con->url);
+		}
+	}
 
-        rv = ov_rest_delete_all_inv_info(oh_handler);
-        if (rv != SA_OK) {
-                err("Deleting all inventory information failed");
-        }
-	
+	rv = ov_rest_delete_all_inv_info(oh_handler);
+	if (rv != SA_OK) {
+		err("Deleting all inventory information failed");
+	}
+
 	enclosure = ov_handler->ov_rest_resources.enclosure;
 	while(enclosure != NULL){
 		temp = enclosure->next;
-        	release_ov_rest_resources(enclosure);
+		release_ov_rest_resources(enclosure);
 		enclosure = temp;
 	}
 
 	ov_handler->ov_rest_resources.enclosure = NULL;
-        rv = oh_flush_rpt(oh_handler->rptcache);
-        if (rv != SA_OK) {
-                err("Plugin RPTable flush failed");
-        }
+	rv = oh_flush_rpt(oh_handler->rptcache);
+	if (rv != SA_OK) {
+		err("Plugin RPTable flush failed");
+	}
 
-        remove(ov_handler->cert_t.fSslKey);
-        remove(ov_handler->cert_t.fSslCert);
-        remove(ov_handler->cert_t.fCaRoot);
+	remove(ov_handler->cert_t.fSslKey);
+	remove(ov_handler->cert_t.fSslCert);
+	remove(ov_handler->cert_t.fCaRoot);
 
-        return;
+	return;
 }
 
 /*
@@ -345,80 +352,87 @@ void ov_rest_clean_rptable(struct oh_handler_state *oh_handler)
  **/
 void release_ov_rest_resources(struct enclosure_status *enclosure)
 {
-        SaHpiInt32T i = 0;;
+	SaHpiInt32T i = 0;;
 
-        /* Release memory of blade presence, resource id and blade
-         * serial number arrays
-         */
+	/* Release memory of blade presence, resource id and blade
+	 * serial number arrays
+	 */
 	if(enclosure->serial_number != NULL){
 		wrap_g_free(enclosure->serial_number);
 	}
-        if (enclosure->server.presence != NULL) {
-                wrap_g_free(enclosure->server.presence);
-        }
-        if (enclosure->server.resource_id != NULL) {
-                wrap_g_free(enclosure->server.resource_id);
-        }
-        if(enclosure->server.serial_number != NULL) {
-            for (i = 0; i < enclosure->server.max_bays; i++)
-            {
-                if (enclosure->server.serial_number[i] !=
-                    NULL) {
-                        wrap_g_free(enclosure->server.
-                               serial_number[i]);
-                }
-            }
-            wrap_g_free(enclosure->server.serial_number);
-        }
+	if (enclosure->server.presence != NULL) {
+		wrap_g_free(enclosure->server.presence);
+	}
+	if (enclosure->server.resource_id != NULL) {
+		wrap_g_free(enclosure->server.resource_id);
+	}
+	if(enclosure->server.serial_number != NULL) {
+		for (i = 0; i < enclosure->server.max_bays; i++)
+		{
+			if (enclosure->server.serial_number[i] !=
+					NULL) {
+				wrap_g_free(enclosure->server.
+						serial_number[i]);
+			}
+		}
+		wrap_g_free(enclosure->server.serial_number);
+	}
 
-        /* Release memory of interconnect presence and serial number array */
-        if (enclosure->interconnect.presence != NULL) {
-                wrap_g_free(enclosure->interconnect.presence);
-        }
-        if (enclosure->interconnect.resource_id != NULL) {
-                wrap_g_free(enclosure->interconnect.resource_id);
-        }
-        if(enclosure->interconnect.serial_number != NULL) {
-            for (i = 0; i < enclosure->interconnect.max_bays;
-             i++) {
-                if (enclosure->interconnect.
-                    serial_number[i] != NULL) {
-                        wrap_g_free(enclosure->interconnect.
-                               serial_number[i]);
-                }
-            }
-            wrap_g_free(enclosure->interconnect.serial_number);
-        }
+	/* Release memory of interconnect presence and serial number array */
+	if (enclosure->interconnect.presence != NULL) {
+		wrap_g_free(enclosure->interconnect.presence);
+	}
+	if (enclosure->interconnect.resource_id != NULL) {
+		wrap_g_free(enclosure->interconnect.resource_id);
+	}
+	if(enclosure->interconnect.serial_number != NULL) {
+		for (i = 0; i < enclosure->interconnect.max_bays;
+				i++) {
+			if (enclosure->interconnect.
+					serial_number[i] != NULL) {
+				wrap_g_free(enclosure->interconnect.
+						serial_number[i]);
+			}
+		}
+		wrap_g_free(enclosure->interconnect.serial_number);
+	}
 
-        /* Release memory of fan presence.  Since fans do not have serial
- 	 * numbers, a serial numbers array does not need to be released.
-         */
-        if (enclosure->fan.presence != NULL) {
-                wrap_g_free(enclosure->fan.presence);
-        }
-        if (enclosure->fan.resource_id != NULL) {
-                wrap_g_free(enclosure->fan.resource_id);
-        }
+	/* Release memory of fan presence and serial number array */
+	if (enclosure->fan.presence != NULL) {
+		wrap_g_free(enclosure->fan.presence);
+	}
+	if (enclosure->fan.resource_id != NULL) {
+		wrap_g_free(enclosure->fan.resource_id);
+	}
+	if(enclosure->fan.serial_number != NULL){
+		for(i =0 ; i< enclosure->fan.max_bays; i++){
+			if (enclosure->fan.serial_number != NULL) {
+				wrap_g_free(enclosure->fan.serial_number[i]);
+			}
+		}
+		wrap_g_free(enclosure->fan.serial_number);
+	}
 
-        /* Release memory of power supply presence and serial number array */
-        if (enclosure->ps_unit.presence !=NULL) {
-                wrap_g_free(enclosure->ps_unit.presence);
-        }
-        if (enclosure->ps_unit.resource_id !=NULL) {
-                wrap_g_free(enclosure->ps_unit.resource_id);
-        }
-        if(enclosure->ps_unit.serial_number != NULL) {
-            for (i = 0; i < enclosure->ps_unit.max_bays; i++)
-            {
-                if (enclosure->ps_unit.serial_number[i]
-                    != NULL) {
-                        wrap_g_free(enclosure->
-                                ps_unit.serial_number[i]);
-                }
-            }
-            wrap_g_free(enclosure->ps_unit.serial_number);
-        }
-        wrap_g_free(enclosure);
+
+	/* Release memory of power supply presence and serial number array */
+	if (enclosure->ps_unit.presence !=NULL) {
+		wrap_g_free(enclosure->ps_unit.presence);
+	}
+	if (enclosure->ps_unit.resource_id !=NULL) {
+		wrap_g_free(enclosure->ps_unit.resource_id);
+	}
+	if(enclosure->ps_unit.serial_number != NULL) {
+		for (i = 0; i < enclosure->ps_unit.max_bays; i++)
+		{
+			if (enclosure->ps_unit.serial_number[i]
+					!= NULL) {
+				wrap_g_free(enclosure->
+						ps_unit.serial_number[i]);
+			}
+		}
+		wrap_g_free(enclosure->ps_unit.serial_number);
+	}
+	wrap_g_free(enclosure);
 }
 
 /* FIXME: Do we want to move this function to general utils? */

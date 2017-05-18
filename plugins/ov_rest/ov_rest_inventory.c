@@ -69,160 +69,161 @@ SaErrorT ov_rest_build_enclosure_inv_rdr(struct oh_handler_state *oh_handler,
                                  SaHpiRdrT *rdr,
                                  struct ov_rest_inventory **inventory)
 {
-        SaErrorT rv = SA_OK;
-        SaHpiIdrFieldT hpi_field = {0};
-        char enclosure_inv_str[] = ENCLOSURE_INVENTORY_STRING, *tmp = NULL;
-        struct ov_rest_inventory *local_inventory = NULL;
-        struct ov_rest_area *head_area = NULL;
-        SaHpiInt32T add_success_flag = 0;
-        SaHpiInt32T product_area_success_flag = 0;
-        SaHpiInt32T area_count = 0;
-        struct ov_rest_handler *ov_handler = NULL;
-        SaHpiResourceIdT resource_id;
-        SaHpiRptEntryT *rpt = NULL;
+	SaErrorT rv = SA_OK;
+	SaHpiIdrFieldT hpi_field = {0};
+	char enclosure_inv_str[] = ENCLOSURE_INVENTORY_STRING, *tmp = NULL;
+	struct ov_rest_inventory *local_inventory = NULL;
+	struct ov_rest_area *head_area = NULL;
+	SaHpiInt32T add_success_flag = 0;
+	SaHpiInt32T product_area_success_flag = 0;
+	SaHpiInt32T area_count = 0;
+	struct ov_rest_handler *ov_handler = NULL;
+	SaHpiResourceIdT resource_id;
+	SaHpiRptEntryT *rpt = NULL;
 
-        if (oh_handler == NULL || response == NULL || rdr == NULL ||
-            inventory == NULL) {
-                err("Invalid parameter.");
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
+	if (oh_handler == NULL || response == NULL || rdr == NULL ||
+			inventory == NULL) {
+		err("Invalid parameter.");
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
 
-        ov_handler = (struct ov_rest_handler *)oh_handler->data;
-        resource_id = ov_handler->ov_rest_resources.enclosure->enclosure_rid;
-        /* Get the rpt entry of the resource */
-        rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
-        if (rpt == NULL) {
-                err("resource RPT is NULL");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
+	ov_handler = (struct ov_rest_handler *)oh_handler->data;
+	resource_id = ov_handler->ov_rest_resources.enclosure->enclosure_rid;
+	/* Get the rpt entry of the resource */
+	rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+	if (rpt == NULL) {
+		err("resource RPT is NULL");
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
 
-        /* Populating inventory rdr with default values and resource name */
-        rdr->Entity = rpt->ResourceEntity;
-        rdr->RecordId = 0;
-        rdr->RdrType  = SAHPI_INVENTORY_RDR;
-        rdr->RdrTypeUnion.InventoryRec.IdrId = SAHPI_DEFAULT_INVENTORY_ID;
-        rdr->IdString.DataType = SAHPI_TL_TYPE_TEXT;
-        rdr->IdString.Language = SAHPI_LANG_ENGLISH;
-        ov_rest_trim_whitespace(response->name);
-        rdr->IdString.DataLength = strlen(response->name);
-        snprintf((char *)rdr->IdString.Data,
-                  strlen(response->name) + 1,
-                  "%s", response->name);
+	/* Populating inventory rdr with default values and resource name */
+	rdr->Entity = rpt->ResourceEntity;
+	rdr->RecordId = 0;
+	rdr->RdrType  = SAHPI_INVENTORY_RDR;
+	rdr->RdrTypeUnion.InventoryRec.IdrId = SAHPI_DEFAULT_INVENTORY_ID;
+	rdr->IdString.DataType = SAHPI_TL_TYPE_TEXT;
+	rdr->IdString.Language = SAHPI_LANG_ENGLISH;
+	ov_rest_trim_whitespace(response->name);
+	rdr->IdString.DataLength = strlen(response->name);
+	snprintf((char *)rdr->IdString.Data,
+			strlen(response->name) + 1,
+			"%s", response->name);
 
-        /* Create inventory IDR and populate the IDR header */
-        local_inventory = (struct ov_rest_inventory*)
-                g_malloc0(sizeof(struct ov_rest_inventory));
-        if (!local_inventory) {
-                err("OV REST out of memory");
-                return SA_ERR_HPI_OUT_OF_MEMORY;
-        }
-        local_inventory->inv_rec.IdrId = rdr->RdrTypeUnion.InventoryRec.IdrId;
-        local_inventory->info.idr_info.IdrId =
-                rdr->RdrTypeUnion.InventoryRec.IdrId;
-        local_inventory->info.idr_info.UpdateCount = 1;
-        local_inventory->info.idr_info.ReadOnly = SAHPI_FALSE;
-        local_inventory->info.idr_info.NumAreas = 0;
-        local_inventory->info.area_list = NULL;
-        local_inventory->comment =
-                (char *)g_malloc0(strlen(enclosure_inv_str) + 1);
-        strcpy(local_inventory->comment, enclosure_inv_str);
+	/* Create inventory IDR and populate the IDR header */
+	local_inventory = (struct ov_rest_inventory*)
+		g_malloc0(sizeof(struct ov_rest_inventory));
+	if (!local_inventory) {
+		err("OV REST out of memory");
+		return SA_ERR_HPI_OUT_OF_MEMORY;
+	}
+	local_inventory->inv_rec.IdrId = rdr->RdrTypeUnion.InventoryRec.IdrId;
+	local_inventory->info.idr_info.IdrId =
+		rdr->RdrTypeUnion.InventoryRec.IdrId;
+	local_inventory->info.idr_info.UpdateCount = 1;
+	local_inventory->info.idr_info.ReadOnly = SAHPI_FALSE;
+	local_inventory->info.idr_info.NumAreas = 0;
+	local_inventory->info.area_list = NULL;
+	local_inventory->comment =
+		(char *)g_malloc0(strlen(enclosure_inv_str) + 1);
+	strcpy(local_inventory->comment, enclosure_inv_str);
 
-        /* Create and add product area if resource name and/or manufacturer
-         * information exist
-         */
-        rv = ov_rest_add_product_area(&local_inventory->info.area_list,
-                              response->name,
-                              response->manufacturer,
-                              &add_success_flag);
-        if (rv != SA_OK) {
-                err("Add product area failed");
-                return rv;
-        }
+	/* Create and add product area if resource name and/or manufacturer
+	 * information exist
+	 */
+	rv = ov_rest_add_product_area(&local_inventory->info.area_list,
+			response->name,
+			response->manufacturer,
+			&add_success_flag);
+	if (rv != SA_OK) {
+		err("Add product area failed");
+		return rv;
+	}
 
-        /* add_success_flag will be true if product area is added,
-         * if this is the first successful creation of IDR area, then have
-         * area pointer stored as the head node for area list
-         */
-        if (add_success_flag != SAHPI_FALSE) {
-                product_area_success_flag = SAHPI_TRUE;
-                (local_inventory->info.idr_info.NumAreas)++;
-                if (area_count == 0) {
-                        head_area = local_inventory->info.area_list;
-                }
-                ++area_count;
-        }
+	/* add_success_flag will be true if product area is added,
+	 * if this is the first successful creation of IDR area, then have
+	 * area pointer stored as the head node for area list
+	 */
+	if (add_success_flag != SAHPI_FALSE) {
+		product_area_success_flag = SAHPI_TRUE;
+		(local_inventory->info.idr_info.NumAreas)++;
+		if (area_count == 0) {
+			head_area = local_inventory->info.area_list;
+		}
+		++area_count;
+	}
 
-        /* Create and add chassis area if resource part number and/or
-         * serial number exist
-         */
-        rv = ov_rest_add_chassis_area(&local_inventory->info.area_list,
-                              response->partNumber,
-                              response->serialNumber,
-                              &add_success_flag);
-        if (rv != SA_OK) {
-                err("Add chassis area failed");
-                return rv;
-        }
-        if (add_success_flag != SAHPI_FALSE) {
-                (local_inventory->info.idr_info.NumAreas)++;
-                if (area_count == 0) {
-                        head_area = local_inventory->info.area_list;
-                }
-                ++area_count;
-        }
+	/* Create and add chassis area if resource part number and/or
+	 * serial number exist
+	 */
+	rv = ov_rest_add_chassis_area(&local_inventory->info.area_list,
+			response->partNumber,
+			response->serialNumber,
+			&add_success_flag);
+	if (rv != SA_OK) {
+		err("Add chassis area failed");
+		return rv;
+	}
+	if (add_success_flag != SAHPI_FALSE) {
+		(local_inventory->info.idr_info.NumAreas)++;
+		if (area_count == 0) {
+			head_area = local_inventory->info.area_list;
+		}
+		++area_count;
+	}
 
-        local_inventory->info.area_list = head_area;
-        *inventory = local_inventory;
+	local_inventory->info.area_list = head_area;
+	*inventory = local_inventory;
 
-        /* Adding the product version in IDR product area.  It is added at
-         * the end of the field list.
-         */
-         if (product_area_success_flag == SAHPI_TRUE) {
-                /* Add the product version field if the enclosure hardware info
-                 * is available
-                 */
-                if (response->hwVersion != NULL) {
-                        hpi_field.AreaId = local_inventory->info.area_list->
-                                           idr_area_head.AreaId;
-                        hpi_field.Type = SAHPI_IDR_FIELDTYPE_PRODUCT_VERSION;
-                        strcpy ((char *)hpi_field.Field.Data,
-                                response->hwVersion);
+	/* Adding the product version in IDR product area.  It is added at
+	 * the end of the field list.
+	 */
+	if (product_area_success_flag == SAHPI_TRUE) {
+		/* Add the product version field if the enclosure hardware info
+		 * is available
+		 */
+		if (response->hwVersion != NULL) {
+			hpi_field.AreaId = local_inventory->info.area_list->
+				idr_area_head.AreaId;
+			hpi_field.Type = SAHPI_IDR_FIELDTYPE_PRODUCT_VERSION;
+			strcpy ((char *)hpi_field.Field.Data,
+					response->hwVersion);
 
-                        rv = ov_rest_idr_field_add(&(
-				local_inventory->info.area_list->field_list),
-				&hpi_field);
-                        if (rv != SA_OK) {
-                                err("Add idr field failed");
-                                return rv;
-                        }
+			rv = ov_rest_idr_field_add(&(
+						local_inventory->info.area_list->field_list),
+					&hpi_field);
+			if (rv != SA_OK) {
+				err("Add idr field failed");
+				return rv;
+			}
 
-                        /* Increment the field counter */
-                        local_inventory->info.area_list->idr_area_head.
-                        NumFields++;
-                }
-		
-                if (response->uri != NULL) {
-                        hpi_field.AreaId = local_inventory->info.area_list->
-                                           idr_area_head.AreaId;
-                        hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
+			/* Increment the field counter */
+			local_inventory->info.area_list->idr_area_head.
+				NumFields++;
+		}
+
+		if (response->uri != NULL) {
+			hpi_field.AreaId = local_inventory->info.area_list->
+				idr_area_head.AreaId;
+			hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
 			rv = asprintf(&tmp,"URI = %s",response->uri);
-                        strcpy ((char *)hpi_field.Field.Data, tmp);
+			strcpy ((char *)hpi_field.Field.Data, tmp);
+			wrap_free(tmp);
 
-                        rv = ov_rest_idr_field_add(&(
-				local_inventory->info.area_list->field_list),
-				&hpi_field);
-                        if (rv != SA_OK) {
-                                err("Add idr field failed");
-                                return rv;
-                        }
+			rv = ov_rest_idr_field_add(&(
+						local_inventory->info.area_list->field_list),
+					&hpi_field);
+			if (rv != SA_OK) {
+				err("Add idr field failed");
+				return rv;
+			}
 
-                        /* Increment the field counter */
-                        local_inventory->info.area_list->idr_area_head.
-                        NumFields++;
-                }
+			/* Increment the field counter */
+			local_inventory->info.area_list->idr_area_head.
+				NumFields++;
+		}
 
-        }
-        return SA_OK;
+	}
+	return SA_OK;
 }
 
 /**
@@ -357,8 +358,8 @@ SaErrorT ov_rest_build_server_inv_rdr(struct oh_handler_state *oh_handler,
 	*inventory = local_inventory;
 
 	/* Adding the product version in IDR product area.  It is added at
-         * the end of the field list.
-         */
+	 * the end of the field list.
+	 */
 	if (product_area_success_flag == SAHPI_TRUE) {
 
 		/* Add the product version field if the firmware info
@@ -372,8 +373,8 @@ SaErrorT ov_rest_build_server_inv_rdr(struct oh_handler_state *oh_handler,
 					response->fwVersion);
 
 			rv = ov_rest_idr_field_add(&(
-				local_inventory->info.area_list->field_list),
-				&hpi_field);
+						local_inventory->info.area_list->field_list),
+					&hpi_field);
 			if (rv != SA_OK) {
 				err("Add idr field failed");
 				return rv;
@@ -388,27 +389,28 @@ SaErrorT ov_rest_build_server_inv_rdr(struct oh_handler_state *oh_handler,
 			rpt->ResourceInfo.FirmwareMajorRev = major =
 				(SaHpiUint8T)floor(fm_version);
 			rpt->ResourceInfo.FirmwareMinorRev = rintf((
-				fm_version - major) * 100);
+						fm_version - major) * 100);
 		}
-                if (response->uri != NULL) {
-                        hpi_field.AreaId = local_inventory->info.area_list->
-                                           idr_area_head.AreaId;
-                        hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
+		if (response->uri != NULL) {
+			hpi_field.AreaId = local_inventory->info.area_list->
+				idr_area_head.AreaId;
+			hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
 			rv = asprintf(&tmp,"URI = %s",response->uri);
-                        strcpy ((char *)hpi_field.Field.Data, tmp);
+			strcpy ((char *)hpi_field.Field.Data, tmp);
+			wrap_free(tmp);
 
-                        rv = ov_rest_idr_field_add(&(
-				local_inventory->info.area_list->field_list),
-				&hpi_field);
-                        if (rv != SA_OK) {
-                                err("Add idr field failed");
-                                return rv;
-                        }
+			rv = ov_rest_idr_field_add(&(
+						local_inventory->info.area_list->field_list),
+					&hpi_field);
+			if (rv != SA_OK) {
+				err("Add idr field failed");
+				return rv;
+			}
 
-                        /* Increment the field counter */
-                        local_inventory->info.area_list->idr_area_head.
-                        NumFields++;
-                }
+			/* Increment the field counter */
+			local_inventory->info.area_list->idr_area_head.
+				NumFields++;
+		}
 	}
 	return SA_OK;
 }
@@ -443,175 +445,176 @@ SaErrorT ov_rest_build_drive_enclosure_inv_rdr(
                               struct ov_rest_inventory **inventory,
                               struct driveEnclosureInfo *response)
 {
-        SaErrorT rv = SA_OK;
-        SaHpiIdrFieldT hpi_field = {0};
-        char server_inv_str[] = SERVER_INVENTORY_STRING, *tmp = NULL;
-        struct ov_rest_inventory *local_inventory = NULL;
-        struct ov_rest_area *head_area = NULL;
-        SaHpiInt32T add_success_flag = 0;
-        SaHpiInt32T product_area_success_flag = 0;
-        SaHpiInt32T area_count = 0;
-        SaHpiRptEntryT *rpt = NULL;
-        SaHpiFloat64T fm_version;
-        SaHpiInt32T major;
+	SaErrorT rv = SA_OK;
+	SaHpiIdrFieldT hpi_field = {0};
+	char server_inv_str[] = SERVER_INVENTORY_STRING, *tmp = NULL;
+	struct ov_rest_inventory *local_inventory = NULL;
+	struct ov_rest_area *head_area = NULL;
+	SaHpiInt32T add_success_flag = 0;
+	SaHpiInt32T product_area_success_flag = 0;
+	SaHpiInt32T area_count = 0;
+	SaHpiRptEntryT *rpt = NULL;
+	SaHpiFloat64T fm_version;
+	SaHpiInt32T major;
 
-        if (oh_handler == NULL || rdr == NULL ||
-                        inventory == NULL) {
-                err("Invalid parameter.");
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
+	if (oh_handler == NULL || rdr == NULL ||
+			inventory == NULL) {
+		err("Invalid parameter.");
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
 
-        rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
-        if (!rpt) {
-                err("Could not find Drive Enclosure resource rpt");
-                return(SA_ERR_HPI_INTERNAL_ERROR);
-        }
-        rdr->Entity = rpt->ResourceEntity;
+	rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+	if (!rpt) {
+		err("Could not find Drive Enclosure resource rpt");
+		return(SA_ERR_HPI_INTERNAL_ERROR);
+	}
+	rdr->Entity = rpt->ResourceEntity;
 
-        /* Populating the inventory rdr with rpt values for the resource */
-        rdr->RecordId = 0;
-        rdr->RdrType  = SAHPI_INVENTORY_RDR;
-        rdr->RdrTypeUnion.InventoryRec.IdrId = SAHPI_DEFAULT_INVENTORY_ID;
-        rdr->IdString.DataType = SAHPI_TL_TYPE_TEXT;
-        rdr->IdString.Language = SAHPI_LANG_ENGLISH;
-        ov_rest_trim_whitespace(response->model);
-        rdr->IdString.DataLength = strlen(response->model);
-        snprintf((char *)rdr->IdString.Data,
-                        strlen(response->model) + 1,"%s",
-                        response->model );
+	/* Populating the inventory rdr with rpt values for the resource */
+	rdr->RecordId = 0;
+	rdr->RdrType  = SAHPI_INVENTORY_RDR;
+	rdr->RdrTypeUnion.InventoryRec.IdrId = SAHPI_DEFAULT_INVENTORY_ID;
+	rdr->IdString.DataType = SAHPI_TL_TYPE_TEXT;
+	rdr->IdString.Language = SAHPI_LANG_ENGLISH;
+	ov_rest_trim_whitespace(response->model);
+	rdr->IdString.DataLength = strlen(response->model);
+	snprintf((char *)rdr->IdString.Data,
+			strlen(response->model) + 1,"%s",
+			response->model );
 
-        /* Create inventory IDR and populate the IDR header */
-        local_inventory = (struct ov_rest_inventory*)
-                g_malloc0(sizeof(struct ov_rest_inventory));
-        if (!local_inventory) {
-                err("OV REST out of memory");
-                return SA_ERR_HPI_OUT_OF_MEMORY;
-        }
-        local_inventory->inv_rec.IdrId = rdr->RdrTypeUnion.InventoryRec.IdrId;
-        local_inventory->info.idr_info.IdrId =
-                rdr->RdrTypeUnion.InventoryRec.IdrId;
-        local_inventory->info.idr_info.UpdateCount = 1;
-        local_inventory->info.idr_info.ReadOnly = SAHPI_FALSE;
-        local_inventory->info.idr_info.NumAreas = 0;
-        local_inventory->info.area_list = NULL;
-        local_inventory->comment =
-                (char *)g_malloc0(strlen(server_inv_str) + 1);
-        if (!local_inventory->comment) {
-                err("OV REST out of memory");
-                wrap_g_free(local_inventory);
-                return SA_ERR_HPI_OUT_OF_MEMORY;
-        }
-        strcpy(local_inventory->comment, server_inv_str);
+	/* Create inventory IDR and populate the IDR header */
+	local_inventory = (struct ov_rest_inventory*)
+		g_malloc0(sizeof(struct ov_rest_inventory));
+	if (!local_inventory) {
+		err("OV REST out of memory");
+		return SA_ERR_HPI_OUT_OF_MEMORY;
+	}
+	local_inventory->inv_rec.IdrId = rdr->RdrTypeUnion.InventoryRec.IdrId;
+	local_inventory->info.idr_info.IdrId =
+		rdr->RdrTypeUnion.InventoryRec.IdrId;
+	local_inventory->info.idr_info.UpdateCount = 1;
+	local_inventory->info.idr_info.ReadOnly = SAHPI_FALSE;
+	local_inventory->info.idr_info.NumAreas = 0;
+	local_inventory->info.area_list = NULL;
+	local_inventory->comment =
+		(char *)g_malloc0(strlen(server_inv_str) + 1);
+	if (!local_inventory->comment) {
+		err("OV REST out of memory");
+		wrap_g_free(local_inventory);
+		return SA_ERR_HPI_OUT_OF_MEMORY;
+	}
+	strcpy(local_inventory->comment, server_inv_str);
 
-        /* Create and add product area if resource name and/or manufacturer
-         * information exist
-         */
-        rv = ov_rest_add_product_area(&local_inventory->info.area_list,
-                        response->model,
-                        response->manufacturer,
-                        &add_success_flag);
-        if (rv != SA_OK) {
-                err("Add product area failed");
-                wrap_g_free(local_inventory);
-                wrap_g_free(local_inventory->comment);
-                return rv;
-        }
+	/* Create and add product area if resource name and/or manufacturer
+	 * information exist
+	 */
+	rv = ov_rest_add_product_area(&local_inventory->info.area_list,
+			response->model,
+			response->manufacturer,
+			&add_success_flag);
+	if (rv != SA_OK) {
+		err("Add product area failed");
+		wrap_g_free(local_inventory);
+		wrap_g_free(local_inventory->comment);
+		return rv;
+	}
 
-        /* add_success_flag will be true if product area is added,
-         * if this is the first successful creation of IDR area, then have
-         * area pointer stored as the head node for area list
-         */
-        if (add_success_flag != SAHPI_FALSE) {
-                product_area_success_flag = SAHPI_TRUE;
-                (local_inventory->info.idr_info.NumAreas)++;
-                if (area_count == 0) {
-                        head_area = local_inventory->info.area_list;
-                }
-                ++area_count;
-        }
+	/* add_success_flag will be true if product area is added,
+	 * if this is the first successful creation of IDR area, then have
+	 * area pointer stored as the head node for area list
+	 */
+	if (add_success_flag != SAHPI_FALSE) {
+		product_area_success_flag = SAHPI_TRUE;
+		(local_inventory->info.idr_info.NumAreas)++;
+		if (area_count == 0) {
+			head_area = local_inventory->info.area_list;
+		}
+		++area_count;
+	}
 
-        /* Create and add board area if resource part number and/or
-         * serial number exist
-         */
-        rv = ov_rest_add_board_area(&local_inventory->info.area_list,
-                        response->partNumber,
-                        response->serialNumber,
-                        &add_success_flag);
-        if (rv != SA_OK) {
-                err("Add board area failed");
-                wrap_g_free(local_inventory);
-                wrap_g_free(local_inventory->comment);
-                return rv;
-        }
-        if (add_success_flag != SAHPI_FALSE) {
-                (local_inventory->info.idr_info.NumAreas)++;
-                if (area_count == 0) {
-                        head_area = local_inventory->info.area_list;
-                }
-                ++area_count;
-        }
-        local_inventory->info.area_list = head_area;
-        *inventory = local_inventory;
+	/* Create and add board area if resource part number and/or
+	 * serial number exist
+	 */
+	rv = ov_rest_add_board_area(&local_inventory->info.area_list,
+			response->partNumber,
+			response->serialNumber,
+			&add_success_flag);
+	if (rv != SA_OK) {
+		err("Add board area failed");
+		wrap_g_free(local_inventory);
+		wrap_g_free(local_inventory->comment);
+		return rv;
+	}
+	if (add_success_flag != SAHPI_FALSE) {
+		(local_inventory->info.idr_info.NumAreas)++;
+		if (area_count == 0) {
+			head_area = local_inventory->info.area_list;
+		}
+		++area_count;
+	}
+	local_inventory->info.area_list = head_area;
+	*inventory = local_inventory;
 
-        /* Adding the product version in IDR product area.  It is added at
-         * the end of the field list.
-         */
-        if (product_area_success_flag == SAHPI_TRUE) {
+	/* Adding the product version in IDR product area.  It is added at
+	 * the end of the field list.
+	 */
+	if (product_area_success_flag == SAHPI_TRUE) {
 
-                /* Add the product version field if the firmware info
-                 * is available
-                 */
-                if (response->fwVersion != NULL) {
-                        hpi_field.AreaId = local_inventory->info.area_list->
-                                idr_area_head.AreaId;
-                        hpi_field.Type = SAHPI_IDR_FIELDTYPE_PRODUCT_VERSION;
-                        strcpy ((char *)hpi_field.Field.Data,
-                                        response->fwVersion);
+		/* Add the product version field if the firmware info
+		 * is available
+		 */
+		if (response->fwVersion != NULL) {
+			hpi_field.AreaId = local_inventory->info.area_list->
+				idr_area_head.AreaId;
+			hpi_field.Type = SAHPI_IDR_FIELDTYPE_PRODUCT_VERSION;
+			strcpy ((char *)hpi_field.Field.Data,
+					response->fwVersion);
 
-                        rv = ov_rest_idr_field_add(&(local_inventory
+			rv = ov_rest_idr_field_add(&(local_inventory
 						->info.area_list
-                                                ->field_list),
-                                        &hpi_field);
-                        if (rv != SA_OK) {
-                                err("Add idr field failed");
-                                wrap_g_free(local_inventory);
-                                wrap_g_free(local_inventory->comment);
-                                return rv;
-                        }
+						->field_list),
+					&hpi_field);
+			if (rv != SA_OK) {
+				err("Add idr field failed");
+				wrap_g_free(local_inventory);
+				wrap_g_free(local_inventory->comment);
+				return rv;
+			}
 
-                        /* Increment the field counter */
-                        local_inventory->info.area_list->idr_area_head.
-                                NumFields++;
+			/* Increment the field counter */
+			local_inventory->info.area_list->idr_area_head.
+				NumFields++;
 
-                        /* Store Firmware MajorRev & MinorRev data in rpt */
-                        fm_version = atof(response->fwVersion);
-                        rpt->ResourceInfo.FirmwareMajorRev = major =
-                                (SaHpiUint8T)floor(fm_version);
-                        rpt->ResourceInfo.FirmwareMinorRev = 
-					rintf((fm_version - major) * 100);
-                }
-                if (response->uri != NULL) {
-                        hpi_field.AreaId = local_inventory->info.area_list->
-                                           idr_area_head.AreaId;
-                        hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
-                        rv = asprintf(&tmp,"URI = %s",response->uri);
-                        strcpy ((char *)hpi_field.Field.Data, tmp);
+			/* Store Firmware MajorRev & MinorRev data in rpt */
+			fm_version = atof(response->fwVersion);
+			rpt->ResourceInfo.FirmwareMajorRev = major =
+				(SaHpiUint8T)floor(fm_version);
+			rpt->ResourceInfo.FirmwareMinorRev = 
+				rintf((fm_version - major) * 100);
+		}
+		if (response->uri != NULL) {
+			hpi_field.AreaId = local_inventory->info.area_list->
+				idr_area_head.AreaId;
+			hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
+			rv = asprintf(&tmp,"URI = %s",response->uri);
+			strcpy ((char *)hpi_field.Field.Data, tmp);
+			wrap_free(tmp);
 
-                        rv = ov_rest_idr_field_add(&(local_inventory
+			rv = ov_rest_idr_field_add(&(local_inventory
 						->info.area_list
-                                           	->field_list),
-                                           	&hpi_field);
-                        if (rv != SA_OK) {
-                                err("Add idr field failed");
-                                return rv;
-                        }
+						->field_list),
+					&hpi_field);
+			if (rv != SA_OK) {
+				err("Add idr field failed");
+				return rv;
+			}
 
-                        /* Increment the field counter */
-                        local_inventory->info.area_list->idr_area_head.
-                        NumFields++;
-                }
-        }
-        return SA_OK;
+			/* Increment the field counter */
+			local_inventory->info.area_list->idr_area_head.
+				NumFields++;
+		}
+	}
+	return SA_OK;
 }
 
 /**
@@ -642,144 +645,144 @@ SaErrorT build_interconnect_inv_rdr(struct oh_handler_state *oh_handler,
                                 struct ov_rest_inventory **inventory,
 				struct interconnectInfo *response)
 {
-        SaErrorT rv = SA_OK;
-        SaHpiIdrFieldT hpi_field = {0};
-        char interconnect_inv_str[] = INTERCONNECT_INVENTORY_STRING, 
-			*tmp = NULL;
-        struct ov_rest_inventory *local_inventory = NULL;
-        struct ov_rest_area *head_area = NULL;
-        SaHpiInt32T add_success_flag = 0;
-        SaHpiInt32T product_area_success_flag = 0;
-        SaHpiInt32T area_count = 0;
-        SaHpiRptEntryT *rpt = NULL;
-        char temp[256];
+	SaErrorT rv = SA_OK;
+	SaHpiIdrFieldT hpi_field = {0};
+	char interconnect_inv_str[] = INTERCONNECT_INVENTORY_STRING, 
+	     *tmp = NULL;
+	struct ov_rest_inventory *local_inventory = NULL;
+	struct ov_rest_area *head_area = NULL;
+	SaHpiInt32T add_success_flag = 0;
+	SaHpiInt32T product_area_success_flag = 0;
+	SaHpiInt32T area_count = 0;
+	SaHpiRptEntryT *rpt = NULL;
+	char temp[256];
 
-        if (oh_handler == NULL || rdr == NULL || response == NULL ||
-            inventory == NULL) {
-                err("Invalid parameter.");
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
+	if (oh_handler == NULL || rdr == NULL || response == NULL ||
+			inventory == NULL) {
+		err("Invalid parameter.");
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
 
-        /* Get the rpt entry of the resource */
-        rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
-        if (rpt == NULL) {
-                err("resource RPT is NULL");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
+	/* Get the rpt entry of the resource */
+	rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+	if (rpt == NULL) {
+		err("resource RPT is NULL");
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
 
-        /* Populating the inventory rdr with rpt values for the resource */
-        rdr->Entity = rpt->ResourceEntity;
-        rdr->RecordId = 0;
-        rdr->RdrType  = SAHPI_INVENTORY_RDR;
-        rdr->RdrTypeUnion.InventoryRec.IdrId = SAHPI_DEFAULT_INVENTORY_ID;
-        rdr->IdString.DataType = SAHPI_TL_TYPE_TEXT;
-        rdr->IdString.Language = SAHPI_LANG_ENGLISH;
-        ov_rest_trim_whitespace(response->model);
-        rdr->IdString.DataLength = strlen(response->model);
-        snprintf((char *)rdr->IdString.Data,
-                strlen(response->model)+ 1,
-                "%s",response->model );
+	/* Populating the inventory rdr with rpt values for the resource */
+	rdr->Entity = rpt->ResourceEntity;
+	rdr->RecordId = 0;
+	rdr->RdrType  = SAHPI_INVENTORY_RDR;
+	rdr->RdrTypeUnion.InventoryRec.IdrId = SAHPI_DEFAULT_INVENTORY_ID;
+	rdr->IdString.DataType = SAHPI_TL_TYPE_TEXT;
+	rdr->IdString.Language = SAHPI_LANG_ENGLISH;
+	ov_rest_trim_whitespace(response->model);
+	rdr->IdString.DataLength = strlen(response->model);
+	snprintf((char *)rdr->IdString.Data,
+			strlen(response->model)+ 1,
+			"%s",response->model );
 
-        /* Create inventory IDR and populate the IDR header */
-        local_inventory = (struct ov_rest_inventory*)
-                g_malloc0(sizeof(struct ov_rest_inventory));
-        if (!local_inventory) {
-                err("OV REST out of memory");
-                return SA_ERR_HPI_OUT_OF_MEMORY;
-        }
-        local_inventory->inv_rec.IdrId = rdr->RdrTypeUnion.InventoryRec.IdrId;
-        local_inventory->info.idr_info.IdrId =
-                rdr->RdrTypeUnion.InventoryRec.IdrId;
-        local_inventory->info.idr_info.UpdateCount = 1;
-        local_inventory->info.idr_info.ReadOnly = SAHPI_FALSE;
-        local_inventory->info.idr_info.NumAreas = 0;
-        local_inventory->comment =
-                (char *)g_malloc0(strlen(interconnect_inv_str) + 1);
-        strcpy(local_inventory->comment, interconnect_inv_str);
+	/* Create inventory IDR and populate the IDR header */
+	local_inventory = (struct ov_rest_inventory*)
+		g_malloc0(sizeof(struct ov_rest_inventory));
+	if (!local_inventory) {
+		err("OV REST out of memory");
+		return SA_ERR_HPI_OUT_OF_MEMORY;
+	}
+	local_inventory->inv_rec.IdrId = rdr->RdrTypeUnion.InventoryRec.IdrId;
+	local_inventory->info.idr_info.IdrId =
+		rdr->RdrTypeUnion.InventoryRec.IdrId;
+	local_inventory->info.idr_info.UpdateCount = 1;
+	local_inventory->info.idr_info.ReadOnly = SAHPI_FALSE;
+	local_inventory->info.idr_info.NumAreas = 0;
+	local_inventory->comment =
+		(char *)g_malloc0(strlen(interconnect_inv_str) + 1);
+	strcpy(local_inventory->comment, interconnect_inv_str);
 
-        /* Create and add product area if resource name and/or manufacturer
-         * information exist
-         */
-        ov_rest_lower_to_upper(response->model, strlen(response->model),temp,
-                                                                        256);
-        if (strstr(temp, "CISCO") != NULL)
-                rv = ov_rest_add_product_area(&local_inventory->info.area_list,
-                              response->model,
-                              "CISCO",
-                              &add_success_flag);
-        else
-                rv = ov_rest_add_product_area(&local_inventory->info.area_list,
-                              response->model,
-                              "HPE",
-                              &add_success_flag);
-		
-        if (rv != SA_OK) {
-                err("Add product area failed");
-                return rv;
-        }
+	/* Create and add product area if resource name and/or manufacturer
+	 * information exist
+	 */
+	ov_rest_lower_to_upper(response->model, strlen(response->model),temp,
+			256);
+	if (strstr(temp, "CISCO") != NULL)
+		rv = ov_rest_add_product_area(&local_inventory->info.area_list,
+				response->model,
+				"CISCO",
+				&add_success_flag);
+	else
+		rv = ov_rest_add_product_area(&local_inventory->info.area_list,
+				response->model,
+				"HPE",
+				&add_success_flag);
 
-        /* add_success_flag will be true if product area is added,
-         * if this is the first successful creation of IDR area, then have
-         * area pointer stored as the head node for area list
-         */
-        if (add_success_flag != SAHPI_FALSE) {
-                product_area_success_flag = SAHPI_TRUE;
-                (local_inventory->info.idr_info.NumAreas)++;
-                if (area_count == 0) {
-                        head_area = local_inventory->info.area_list;
-                }
-                ++area_count;
-        }
+	if (rv != SA_OK) {
+		err("Add product area failed");
+		return rv;
+	}
 
-        /* Create and add board area if resource part number and/or
-         * serial number exist
-         */
-        rv = ov_rest_add_board_area(&local_inventory->info.area_list,
-                            response->partNumber,
-                            response->serialNumber,
-                            &add_success_flag);
-        if (rv != SA_OK) {
-                err("Add board area failed");
-                return rv;
-        }
-        if (add_success_flag != SAHPI_FALSE) {
-                (local_inventory->info.idr_info.NumAreas)++;
-                if (area_count == 0) {
-                        head_area = local_inventory->info.area_list;
-                }
-                ++area_count;
-        }
+	/* add_success_flag will be true if product area is added,
+	 * if this is the first successful creation of IDR area, then have
+	 * area pointer stored as the head node for area list
+	 */
+	if (add_success_flag != SAHPI_FALSE) {
+		product_area_success_flag = SAHPI_TRUE;
+		(local_inventory->info.idr_info.NumAreas)++;
+		if (area_count == 0) {
+			head_area = local_inventory->info.area_list;
+		}
+		++area_count;
+	}
 
-        local_inventory->info.area_list = head_area;
-        *inventory = local_inventory;
-        /* Adding the product version in IDR product area.  It is added at
-         * the end of the field list.
-         */
-        if (product_area_success_flag == SAHPI_TRUE) {
-                /* Add the product version field if the firmware info
-                 * is available
-                 */
-                if (response->uri != NULL) {
-                        hpi_field.AreaId = local_inventory->info.area_list->
-                                           idr_area_head.AreaId;
-                        hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
+	/* Create and add board area if resource part number and/or
+	 * serial number exist
+	 */
+	rv = ov_rest_add_board_area(&local_inventory->info.area_list,
+			response->partNumber,
+			response->serialNumber,
+			&add_success_flag);
+	if (rv != SA_OK) {
+		err("Add board area failed");
+		return rv;
+	}
+	if (add_success_flag != SAHPI_FALSE) {
+		(local_inventory->info.idr_info.NumAreas)++;
+		if (area_count == 0) {
+			head_area = local_inventory->info.area_list;
+		}
+		++area_count;
+	}
+
+	local_inventory->info.area_list = head_area;
+	*inventory = local_inventory;
+	/* Adding the product version in IDR product area.  It is added at
+	 * the end of the field list.
+	 */
+	if (product_area_success_flag == SAHPI_TRUE) {
+		/* Add the product version field if the firmware info
+		 * is available
+		 */
+		if (response->uri != NULL) {
+			hpi_field.AreaId = local_inventory->info.area_list->
+				idr_area_head.AreaId;
+			hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
 			rv = asprintf(&tmp,"URI = %s",response->uri);
-                        strcpy ((char *)hpi_field.Field.Data, tmp);
+			strcpy ((char *)hpi_field.Field.Data, tmp);
+			wrap_free(tmp);
+			rv = ov_rest_idr_field_add(&(
+						local_inventory->info.area_list->field_list),
+					&hpi_field);
+			if (rv != SA_OK) {
+				err("Add idr field failed");
+				return rv;
+			}
 
-                        rv = ov_rest_idr_field_add(&(
-				local_inventory->info.area_list->field_list),
-                                &hpi_field);
-                        if (rv != SA_OK) {
-                                err("Add idr field failed");
-                                return rv;
-                        }
-
-                        /* Increment the field counter */
-                        local_inventory->info.area_list->idr_area_head.
-                        NumFields++;
-                }
-        }
-        return SA_OK;
+			/* Increment the field counter */
+			local_inventory->info.area_list->idr_area_head.
+				NumFields++;
+		}
+	}
+	return SA_OK;
 }
 
 

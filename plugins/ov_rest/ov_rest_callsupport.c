@@ -115,43 +115,47 @@ SaErrorT curlerr_to_ov_rest_err(CURLcode curlErr)
 SaErrorT ov_rest_curl_get_request(REST_CON *connection, 
 	struct curl_slist *chunk, CURL* curl, OV_STRING *st)
 {
-        char *Auth=NULL, *X_Auth_Token = NULL;
-        char curlErrStr[CURL_ERROR_SIZE+1];
-        asprintf(&Auth,OV_REST_AUTH,connection->auth);
-        chunk = curl_slist_append(chunk, OV_REST_ACCEPT);
-        chunk = curl_slist_append(chunk, OV_REST_CHARSET);
-        chunk = curl_slist_append(chunk, OV_REST_CONTENT_TYPE);
-        chunk = curl_slist_append(chunk, OV_REST_X_API_VERSION);
-        chunk = curl_slist_append(chunk, Auth);
-        wrap_free(Auth);
+	char *Auth=NULL, *X_Auth_Token = NULL;
+	char curlErrStr[CURL_ERROR_SIZE+1];
+	asprintf(&Auth,OV_REST_AUTH,connection->auth);
+	chunk = curl_slist_append(chunk, OV_REST_ACCEPT);
+	chunk = curl_slist_append(chunk, OV_REST_CHARSET);
+	chunk = curl_slist_append(chunk, OV_REST_CONTENT_TYPE);
+	chunk = curl_slist_append(chunk, OV_REST_X_API_VERSION);
+	chunk = curl_slist_append(chunk, Auth);
+	wrap_free(Auth);
 	if(connection->x_auth_token != NULL){
 		asprintf(&X_Auth_Token,OV_REST_X_AUTH_TOKEN,
 				connection->x_auth_token);
 		chunk = curl_slist_append(chunk, X_Auth_Token);
 	}else {
 		err("Sessionkey for server single sign on is invalid/NULL");
-                return SA_ERR_HPI_INVALID_SESSION;
-        }
-        wrap_free(X_Auth_Token);
-        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 60L);
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
-        curl_easy_setopt(curl, CURLOPT_URL, connection->url);
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, 
-				ov_rest_copy_response_buff);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, st);
-        curl_easy_setopt(curl, CURLOPT_USERNAME, connection->username);
-        curl_easy_setopt(curl, CURLOPT_PASSWORD, connection->password);
-        curl_easy_setopt(curl, CURLOPT_VERBOSE, 0L);
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-        curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curlErrStr);
-        CURLcode curlErr = curl_easy_perform(curl);
-        if(curlErr) {
-                err("\nError %s\n", curl_easy_strerror(curlErr));
-                err("\nError %s\n",curlErrStr);
-                return curlerr_to_ov_rest_err(curlErr);
-        }
-        return SA_OK;
+		curl_slist_free_all(chunk);
+		return SA_ERR_HPI_INVALID_SESSION;
+	}
+	wrap_free(X_Auth_Token);
+	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 60L);
+	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
+	curl_easy_setopt(curl, CURLOPT_URL, connection->url);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, 
+			ov_rest_copy_response_buff);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, st);
+	curl_easy_setopt(curl, CURLOPT_USERNAME, connection->username);
+	curl_easy_setopt(curl, CURLOPT_PASSWORD, connection->password);
+	curl_easy_setopt(curl, CURLOPT_VERBOSE, 0L);
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curlErrStr);
+	CURLcode curlErr = curl_easy_perform(curl);
+	if(curlErr) {
+		err("\nError %s\n", curl_easy_strerror(curlErr));
+		err("\nError %s\n",curlErrStr);
+		curl_slist_free_all(chunk);
+		wrap_free(st->ptr);
+		return curlerr_to_ov_rest_err(curlErr);
+	} 
+	curl_slist_free_all(chunk);
+	return SA_OK;
 }
 
 /**
@@ -203,9 +207,10 @@ SaErrorT ov_rest_curl_put_request(REST_CON *connection,
 		err("\nError %s\n", curl_easy_strerror(curlErr));
 //		update_connection(connection);
 		wrap_free(s->ptr);
+		curl_slist_free_all(chunk);
 		return curlerr_to_ov_rest_err(curlErr);
 	}
-	wrap_free(s->ptr);
+	curl_slist_free_all(chunk);
 	return SA_OK;
 }
 
@@ -249,12 +254,14 @@ SaErrorT ov_rest_login(REST_CON *connection, char* postfields)
 		memcpy(connection->auth,temp, strlen(temp)+1);
 	}else{
 		ov_rest_wrap_json_object_put(s.jobj);
+		wrap_free(s.ptr);
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 	if(connection->auth == NULL){
 		err("Reply from %s contains no session ID, please check the"
 				"configuration file", connection->hostname);
 		ov_rest_wrap_json_object_put(s.jobj);
+		wrap_free(s.ptr);
 		curl_easy_cleanup(curlHandle);
 		curl_global_cleanup();
 		return SA_ERR_HPI_INVALID_SESSION;
@@ -283,35 +290,35 @@ SaErrorT ov_rest_login(REST_CON *connection, char* postfields)
  **/
 SaErrorT ov_rest_connection_init(struct oh_handler_state *handler)
 {
-        SaErrorT rv = SA_OK;
-        char * postfields = NULL;
-        REST_CON *con = NULL;
-        struct ov_rest_handler *ov_handler =
-                        (struct ov_rest_handler *) handler->data;
+	SaErrorT rv = SA_OK;
+	char * postfields = NULL;
+	REST_CON *con = NULL;
+	struct ov_rest_handler *ov_handler =
+		(struct ov_rest_handler *) handler->data;
 
-        ov_handler->status = PRE_DISCOVERY;
-        con = (REST_CON *) ov_handler->connection;
+	ov_handler->status = PRE_DISCOVERY;
+	con = (REST_CON *) ov_handler->connection;
 
-        /* Get the Active OV hostname/IP address and check whether it's NULL */
-        con->hostname = (char *) g_hash_table_lookup(handler->config,
-				"ACTIVE_OV");
+	/* Get the Active OV hostname/IP address and check whether it's NULL */
+	con->hostname = (char *) g_hash_table_lookup(handler->config,
+			"ACTIVE_OV");
 
-        /* Get the user_name and password from config file */
-        con->username = (char *) g_hash_table_lookup(handler->config,
-                        "OV_User_Name");
-        con->password = (char *) g_hash_table_lookup(handler->config,
-                        "OV_Password");
-        asprintf(&con->url, OV_REST_LOGIN_URI, con->hostname);
-        asprintf(&postfields, OV_REST_LOGIN_POST ,con->username,con->password, 
+	/* Get the user_name and password from config file */
+	con->username = (char *) g_hash_table_lookup(handler->config,
+			"OV_User_Name");
+	con->password = (char *) g_hash_table_lookup(handler->config,
+			"OV_Password");
+	asprintf(&con->url, OV_REST_LOGIN_URI, con->hostname);
+	asprintf(&postfields, OV_REST_LOGIN_POST ,con->username,con->password, 
 			"true");
 
-        rv =  ov_rest_login(con, postfields);
-        if(rv != SA_OK)
-                err("Login failed. Please check the Composer connection"
+	rv =  ov_rest_login(con, postfields);
+	if(rv != SA_OK)
+		err("Login failed. Please check the Composer connection"
 				" and openhpi.conf file parameters.");
-
-        wrap_free(postfields);
-        return rv;
+	wrap_free(con->url);
+	wrap_free(postfields);
+	return rv;
 }
 
  /**
@@ -540,38 +547,40 @@ int rest_enum(const char *enums, const char *value)
 int  rest_get_request(REST_CON *conn, OV_STRING *response)
 {
 	char *auth = NULL;
-        char curlErrStr[CURL_ERROR_SIZE+1];
+	char curlErrStr[CURL_ERROR_SIZE+1];
 	struct curl_slist *chunk = NULL;
 	curl_global_init(CURL_GLOBAL_ALL);
 	CURL* curl = curl_easy_init();
-	
-        chunk = curl_slist_append(chunk, OV_REST_ACCEPT);
-        chunk = curl_slist_append(chunk, OV_REST_CHARSET);
-        chunk = curl_slist_append(chunk, OV_REST_CONTENT_TYPE);
-        chunk = curl_slist_append(chunk, OV_REST_X_API_VERSION);
+
+	chunk = curl_slist_append(chunk, OV_REST_ACCEPT);
+	chunk = curl_slist_append(chunk, OV_REST_CHARSET);
+	chunk = curl_slist_append(chunk, OV_REST_CONTENT_TYPE);
+	chunk = curl_slist_append(chunk, OV_REST_X_API_VERSION);
 
 	asprintf(&auth,"Auth: %s",conn->auth);
-        chunk = curl_slist_append(chunk, auth);
-        wrap_free(auth);
+	chunk = curl_slist_append(chunk, auth);
+	wrap_free(auth);
 
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
-        curl_easy_setopt(curl, CURLOPT_URL, conn->url);
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, 
-				ov_rest_copy_response_buff);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, response);
-        curl_easy_setopt(curl, CURLOPT_VERBOSE, 0L);
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-        curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curlErrStr);
+	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
+	curl_easy_setopt(curl, CURLOPT_URL, conn->url);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, 
+			ov_rest_copy_response_buff);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, response);
+	curl_easy_setopt(curl, CURLOPT_VERBOSE, 0L);
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curlErrStr);
 
-        CURLcode curlErr = curl_easy_perform(curl);
-        if (curlErr) {
-                err("\nCURLcode : %s\n", curl_easy_strerror(curlErr));
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
+	CURLcode curlErr = curl_easy_perform(curl);
+	if (curlErr) {
+		err("\nCURLcode : %s\n", curl_easy_strerror(curlErr));
+		curl_slist_free_all(chunk);
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
 	wrap_free(response->ptr);
+	curl_slist_free_all(chunk);
 	curl_easy_cleanup(curl);
-        return SA_OK;
+	return SA_OK;
 }
 
 /**
@@ -623,10 +632,12 @@ int  rest_put_request(REST_CON *conn, OV_STRING *response, char *postFields)
         CURLcode curlErr = curl_easy_perform(curl);
         if (curlErr) {
                 err("\nCURLcode: %s\n", curl_easy_strerror(curlErr));
+		curl_slist_free_all(chunk);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
 	wrap_free(response->ptr);
+	curl_slist_free_all(chunk);
 	curl_easy_cleanup(curl);
         return SA_OK;
 }
@@ -649,41 +660,43 @@ int  rest_put_request(REST_CON *conn, OV_STRING *response, char *postFields)
  **/
 int  rest_patch_request(REST_CON *conn, OV_STRING *response, char *postFields)
 {
-        char *auth = NULL;
-        char curlErrStr[CURL_ERROR_SIZE+1];
-        struct curl_slist *chunk = NULL;
-        curl_global_init(CURL_GLOBAL_ALL);
-        CURL* curl = curl_easy_init();
+	char *auth = NULL;
+	char curlErrStr[CURL_ERROR_SIZE+1];
+	struct curl_slist *chunk = NULL;
+	curl_global_init(CURL_GLOBAL_ALL);
+	CURL* curl = curl_easy_init();
 
-        chunk = curl_slist_append(chunk, OV_REST_ACCEPT);
-        chunk = curl_slist_append(chunk, OV_REST_CHARSET);
-        chunk = curl_slist_append(chunk, OV_REST_CONTENT_TYPE);
-        chunk = curl_slist_append(chunk, OV_REST_X_API_VERSION);
+	chunk = curl_slist_append(chunk, OV_REST_ACCEPT);
+	chunk = curl_slist_append(chunk, OV_REST_CHARSET);
+	chunk = curl_slist_append(chunk, OV_REST_CONTENT_TYPE);
+	chunk = curl_slist_append(chunk, OV_REST_X_API_VERSION);
 
-        asprintf(&auth,"Auth: %s",conn->auth);
-        chunk = curl_slist_append(chunk, auth);
-        wrap_free(auth);
+	asprintf(&auth,"Auth: %s",conn->auth);
+	chunk = curl_slist_append(chunk, auth);
+	wrap_free(auth);
 
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
-        curl_easy_setopt(curl, CURLOPT_URL, conn->url);
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, 
-				ov_rest_copy_response_buff);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, response);
-        curl_easy_setopt(curl, CURLOPT_VERBOSE, 0L);
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
+	curl_easy_setopt(curl, CURLOPT_URL, conn->url);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, 
+			ov_rest_copy_response_buff);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, response);
+	curl_easy_setopt(curl, CURLOPT_VERBOSE, 0L);
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
 
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postFields);
-        curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curlErrStr);
+	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curlErrStr);
 	curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PATCH");
 
-        CURLcode curlErr = curl_easy_perform(curl);
-        if (curlErr) {
-                err("\nCURLcode: %s\n", curl_easy_strerror(curlErr));
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
+	CURLcode curlErr = curl_easy_perform(curl);
+	if (curlErr) {
+		err("\nCURLcode: %s\n", curl_easy_strerror(curlErr));
+		curl_slist_free_all(chunk);
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
 
 	wrap_free(response->ptr);
+	curl_slist_free_all(chunk);
 	curl_easy_cleanup(curl);
-        return SA_OK;
+	return SA_OK;
 }
