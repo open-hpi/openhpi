@@ -249,46 +249,47 @@ int ov_rest_get_baynumber(const char *resourceID)
 SaErrorT ov_rest_getActiveLockedEventArray(REST_CON *connection,
                         struct eventArrayResponse *response)
 {
-        OV_STRING s = {0};
-        struct curl_slist *chunk = NULL;
-        curl_global_init(CURL_GLOBAL_ALL);
+	OV_STRING s = {0};
+	struct curl_slist *chunk = NULL;
+	curl_global_init(CURL_GLOBAL_ALL);
 
-        if (connection == NULL || response == NULL) {
-                err("Invalid parameters");
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
-        /* Get a curl handle */
-        CURL* curl = curl_easy_init();
+	if (connection == NULL || response == NULL) {
+		err("Invalid parameters");
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
+	/* Get a curl handle */
+	CURL* curl = curl_easy_init();
 
-        ov_rest_curl_get_request(connection, chunk, curl, &s);
-        if(s.jobj == NULL || s.len == 0){
-                err("Get Active or Locked Event Array Failed");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }else
-        {
-                json_object * jobj = s.jobj;
+	ov_rest_curl_get_request(connection, chunk, curl, &s);
+	if(s.jobj == NULL || s.len == 0){
+		err("Get Active or Locked Event Array Failed");
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}else
+	{
+		json_object * jobj = s.jobj;
 		response->root_jobj = jobj;
 		if(!jobj){
-                	err("Get Active or Locked Event Array Failed");
+			err("Get Active or Locked Event Array Failed");
 			return SA_ERR_HPI_INVALID_DATA;
 		}
-                json_object_object_foreach(jobj, key,val){
-                        if(!strcmp(key,"total")){
-                                response->total = json_object_get_string(val);
-                                break;
-                        }
-                }
-                /*Getting the array if it is a key value pair*/
-                response->event_array =
-                         ov_rest_wrap_json_object_object_get(jobj, "members");
-                if (!response->event_array) {
-                        response->event_array = jobj;
+		json_object_object_foreach(jobj, key,val){
+			if(!strcmp(key,"total")){
+				response->total = json_object_get_string(val);
+				break;
+			}
 		}
-        }
-        wrap_free(connection->url);
-        curl_easy_cleanup(curl);
-        curl_global_cleanup();
-        return SA_OK;
+		/*Getting the array if it is a key value pair*/
+		response->event_array =
+			ov_rest_wrap_json_object_object_get(jobj, "members");
+		if (!response->event_array) {
+			response->event_array = jobj;
+		}
+	}
+	wrap_free(s.ptr);
+	wrap_free(connection->url);
+	curl_easy_cleanup(curl);
+	curl_global_cleanup();
+	return SA_OK;
 }
 
 /*
@@ -1346,19 +1347,22 @@ SaErrorT ov_rest_scmb_listner(struct oh_handler_state *handler)
 	socket = amqp_ssl_socket_new(conn);
 	if (!socket) {
 		err("Error in creating SSL/TLS socket");
+		amqp_destroy_connection(conn);
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 	chdir(CA_PATH); /* FIXME */
 	status = amqp_ssl_socket_set_cacert(socket,ov_handler->cert_t.fCaRoot);
 	if (status) {
 		err("Error in setting CA certificate");
+		amqp_destroy_connection(conn);
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 	/* Path to client.pem, key.pem */
 	status = amqp_ssl_socket_set_key(socket, ov_handler->cert_t.fSslCert,
-			 			 ov_handler->cert_t.fSslKey); 
+			ov_handler->cert_t.fSslKey); 
 	if (status) {
 		err("setting client cert");
+		amqp_destroy_connection(conn);
 		return SA_ERR_HPI_ERROR;
 	}
 	/* Set port to 5671 and hostname from handler */
@@ -1366,6 +1370,7 @@ SaErrorT ov_rest_scmb_listner(struct oh_handler_state *handler)
 			ov_handler->connection->hostname, AMQP_PORT); 
 	if (status) {
 		err("opening SSL/TLS connection");
+		amqp_destroy_connection(conn);
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 
@@ -1385,6 +1390,7 @@ SaErrorT ov_rest_scmb_listner(struct oh_handler_state *handler)
 		queuename = amqp_bytes_malloc_dup(r->queue);
 		if (queuename.bytes == NULL) {
 			err("Out of memory while copying queue name");
+			amqp_destroy_connection(conn);
 			return SA_ERR_HPI_OUT_OF_MEMORY;
 		}
 	}
@@ -1398,7 +1404,7 @@ SaErrorT ov_rest_scmb_listner(struct oh_handler_state *handler)
 			amqp_empty_table);
 	ov_die_on_amqp_error(amqp_get_rpc_reply(conn), "Binding queue");
 	amqp_basic_consume(conn, 1, queuename, amqp_empty_bytes, 0, 1, 0, 
-				amqp_empty_table);
+			amqp_empty_table);
 	amqp_get_rpc_reply(conn);
 	while (1) {
 		amqp_rpc_reply_t res = {0};
@@ -1406,7 +1412,7 @@ SaErrorT ov_rest_scmb_listner(struct oh_handler_state *handler)
 		amqp_maybe_release_buffers(conn);
 		OV_REST_CHEK_SHUTDOWN_REQ(ov_handler, NULL, NULL, NULL);
 
-		 /* FIXME: res */
+		/* FIXME: res */
 		timeout.tv_sec = AMQP_CONSUME_TIMEOUT_SEC;
 		timeout.tv_usec = AMQP_CONSUME_TIMEOUT_USEC;
 		res = amqp_consume_message(conn, &envelope, &timeout, 0);
@@ -1456,6 +1462,7 @@ SaErrorT ov_rest_scmb_listner(struct oh_handler_state *handler)
 		wrap_g_free(messages);
 		amqp_destroy_envelope(&envelope);
 	}
+	amqp_bytes_free(queuename);
 	amqp_channel_close(conn, 1, AMQP_REPLY_SUCCESS);
 	amqp_connection_close(conn, AMQP_REPLY_SUCCESS);
 	amqp_destroy_connection(conn);
@@ -1874,6 +1881,7 @@ void ov_rest_process_alerts(struct oh_handler_state *oh_handler,
 {
 
 	ov_rest_json_parse_alerts(scmb_resource, event);
+	dbg("%s alert received", event->alert_name);
 	switch (event->alertTypeId) {
 		case cpqRackServerBladeRemoved2:
 		case BladeRemoved:
@@ -2317,26 +2325,27 @@ void ov_rest_process_alerts(struct oh_handler_state *oh_handler,
 }
 
 /**
- * ov_rest_process_alerts
+ * ov_rest_process_tasks
  * 	@oh_handler: Pointer to the openhpi handler structure
  *      @scmb_resource:  json_object Pointer to "resource" object inside
  *	@event: Pointer to the event structure
  *
  * Purpose:
- *      Process the alerts by calling appropriate functions
+ *      Process the tasks by calling appropriate functions
  *
  * Detailed Description:
  *	This function is called by process_ov_events for processing
  *	alerts. 
  *
  * Return values:
- *      NONE - void return, as this function processes the alerts
+ *      NONE - void return, as this function processes the tasks
  **/
 void ov_rest_process_tasks(struct oh_handler_state *oh_handler,
 		json_object * scmb_resource, struct eventInfo* event)
 {
 
 	ov_rest_json_parse_tasks(scmb_resource, event);
+	dbg("%s task received", event->task_name);
 	switch (event->name) {
 		case TASK_ADD:
 			ov_rest_proc_add_task(oh_handler,event);
