@@ -84,7 +84,8 @@ void ov_rest_update_resource_status(resource_status_t *res_status,
                                     SaHpiInt32T index,
                                     char *serial_number,
                                     SaHpiResourceIdT resource_id,
-                                    resource_presence_status_t presence);
+                                    resource_presence_status_t presence,
+                                    resource_category_t type);
 
 char * ov_rest_trim_whitespace(char *s);
 void itostr(int x,char **s);

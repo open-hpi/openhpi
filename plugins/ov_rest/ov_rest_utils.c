@@ -363,6 +363,9 @@ void release_ov_rest_resources(struct enclosure_status *enclosure)
 	if (enclosure->server.presence != NULL) {
 		wrap_g_free(enclosure->server.presence);
 	}
+	if (enclosure->server.type != NULL) {
+		wrap_g_free(enclosure->server.type);
+	}
 	if (enclosure->server.resource_id != NULL) {
 		wrap_g_free(enclosure->server.resource_id);
 	}
@@ -381,6 +384,9 @@ void release_ov_rest_resources(struct enclosure_status *enclosure)
 	/* Release memory of interconnect presence and serial number array */
 	if (enclosure->interconnect.presence != NULL) {
 		wrap_g_free(enclosure->interconnect.presence);
+	}
+	if (enclosure->interconnect.type != NULL) {
+		wrap_g_free(enclosure->interconnect.type);
 	}
 	if (enclosure->interconnect.resource_id != NULL) {
 		wrap_g_free(enclosure->interconnect.resource_id);
@@ -401,6 +407,9 @@ void release_ov_rest_resources(struct enclosure_status *enclosure)
 	if (enclosure->fan.presence != NULL) {
 		wrap_g_free(enclosure->fan.presence);
 	}
+	if (enclosure->fan.type != NULL) {
+		wrap_g_free(enclosure->fan.type);
+	}
 	if (enclosure->fan.resource_id != NULL) {
 		wrap_g_free(enclosure->fan.resource_id);
 	}
@@ -417,6 +426,9 @@ void release_ov_rest_resources(struct enclosure_status *enclosure)
 	/* Release memory of power supply presence and serial number array */
 	if (enclosure->ps_unit.presence !=NULL) {
 		wrap_g_free(enclosure->ps_unit.presence);
+	}
+	if (enclosure->ps_unit.type !=NULL) {
+		wrap_g_free(enclosure->ps_unit.type);
 	}
 	if (enclosure->ps_unit.resource_id !=NULL) {
 		wrap_g_free(enclosure->ps_unit.resource_id);
@@ -498,7 +510,8 @@ void ov_rest_update_resource_status(resource_status_t *res_status,
                                     SaHpiInt32T index,
                                     char *serial_number,
                                     SaHpiResourceIdT resource_id,
-                                    resource_presence_status_t presence)
+                                    resource_presence_status_t presence,
+                                    resource_category_t type)
 {
         if (index <= 0) {
                 err("Invalid index value %d - returning without update\n",
@@ -513,6 +526,7 @@ void ov_rest_update_resource_status(resource_status_t *res_status,
         }
         res_status->resource_id[index-1] = resource_id;
         res_status->presence[index-1] = presence;
+	res_status->type[index-1] = type;
 
         return;
 }

@@ -101,7 +101,8 @@ SaErrorT ov_rest_add_fan(struct oh_handler_state *handler,
                                         response->bayNumber,
                                         response->serialNumber,
 					resource_id,
-                                        RES_PRESENT);
+                                        RES_PRESENT,
+					response->type);
         rv = ov_rest_build_fan_rdr(handler,
                                         resource_id, response);
         if (rv != SA_OK) {
@@ -119,7 +120,8 @@ SaErrorT ov_rest_add_fan(struct oh_handler_state *handler,
                 ov_rest_update_resource_status(
                               &enclosure->fan,
                               response->bayNumber,
-                              "", SAHPI_UNSPECIFIED_RESOURCE_ID, RES_ABSENT);
+                              "", SAHPI_UNSPECIFIED_RESOURCE_ID, 
+                              RES_ABSENT, UNSPECIFIED_RESOURCE);
 
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
@@ -300,7 +302,8 @@ SaErrorT ov_rest_remove_fan(struct oh_handler_state *handler,
         ov_rest_update_resource_status (&enclosure->fan,
                                         bayNumber,
                                         "", SAHPI_UNSPECIFIED_RESOURCE_ID,
-                                        RES_ABSENT);
+                                        RES_ABSENT,
+                                        UNSPECIFIED_RESOURCE);
         return SA_OK;
 }
 

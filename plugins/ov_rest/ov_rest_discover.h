@@ -352,6 +352,8 @@ SaErrorT ov_rest_build_fan_rpt(struct oh_handler_state *oh_handler,
                                 SaHpiResourceIdT *resource_id,
                                 int enclosure_location);
 
+SaErrorT ov_rest_build_enc_info(struct oh_handler_state *oh_handler,
+                                       struct enclosureInfo *info);
 SaErrorT ov_rest_discover_resources(void *oh_handler);
 
 void release_ov_rest_resources(struct enclosure_status *enclosure);

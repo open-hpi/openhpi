@@ -692,7 +692,8 @@ SaErrorT ov_rest_proc_blade_inserted( struct oh_handler_state *oh_handler,
 					struct eventInfo* event)
 {
 	SaErrorT rv = 0;
-	SaHpiRptEntryT rpt = {0};
+	SaHpiRptEntryT *rpt = NULL;
+	SaHpiResourceIdT resource_id = 0;
 	struct oh_event hs_event = {0};
 	struct ov_rest_handler *ov_handler = NULL;
 	struct serverhardwareInfoArrayResponse response = {0};
@@ -769,7 +770,8 @@ SaErrorT ov_rest_proc_blade_inserted( struct oh_handler_state *oh_handler,
 			MAX_256_CHARS);
 
 	/* Build the server RPT entry */
-	rv = build_inserted_server_rpt(oh_handler, &info_result, &rpt);
+	rv = build_discovered_server_rpt(oh_handler, &info_result, 
+					&resource_id);
 	if (rv != SA_OK) {
 		err("build inserted server rpt failed");
 		wrap_g_free(enclosure_doc);
@@ -786,7 +788,8 @@ SaErrorT ov_rest_proc_blade_inserted( struct oh_handler_state *oh_handler,
 			ov_rest_update_resource_status (&enclosure->server,
 					info_result.bayNumber,
 					info_result.serialNumber, 
-					rpt.ResourceId, RES_PRESENT);
+					resource_id, RES_PRESENT,
+					info_result.type);
 			break;
 		}
 		enclosure = enclosure->next;
@@ -801,26 +804,27 @@ SaErrorT ov_rest_proc_blade_inserted( struct oh_handler_state *oh_handler,
 	}
 
 	/* Build the server RDR */
-	rv = build_inserted_server_rdr(oh_handler,rpt.ResourceId,
+	rv = build_inserted_server_rdr(oh_handler, resource_id,
 			&info_result, TRUE);
 	if (rv != SA_OK) {
 		err("build inserted server RDR failed");
 		/* Free the inventory info from inventory RDR */
-		rv = ov_rest_free_inventory_info(oh_handler, rpt.ResourceId);
+		rv = ov_rest_free_inventory_info(oh_handler, resource_id);
 		if (rv != SA_OK) {
 			err("Inventory cleanup failed for resource id %d",
-					rpt.ResourceId);
+					resource_id);
 		}
-		oh_remove_resource(oh_handler->rptcache, rpt.ResourceId);
+		oh_remove_resource(oh_handler->rptcache, resource_id);
 		/* reset resource_status structure to default values */
 		ov_rest_update_resource_status(
 				&enclosure->server, bayNumber,
-				"", SAHPI_UNSPECIFIED_RESOURCE_ID, RES_ABSENT);
+				"", SAHPI_UNSPECIFIED_RESOURCE_ID, 
+				RES_ABSENT, UNSPECIFIED_RESOURCE);
 		wrap_g_free(enclosure_doc);
 		wrap_g_free(server_doc);
 		return rv;
 	}
-	rv = ov_rest_populate_event(oh_handler, rpt.ResourceId, &hs_event,
+	rv = ov_rest_populate_event(oh_handler, resource_id, &hs_event,
 			&asserted_sensors);
 	if (rv != SA_OK) {
 		err("Populating event struct failed");
@@ -828,14 +832,19 @@ SaErrorT ov_rest_proc_blade_inserted( struct oh_handler_state *oh_handler,
 		wrap_g_free(server_doc);
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
-
+	
+	rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+	if (rpt == NULL) {
+		err("resource RPT is NULL");
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
 	hs_event.event.EventType = SAHPI_ET_HOTSWAP;
 	hs_event.event.EventDataUnion.HotSwapEvent.PreviousHotSwapState =
 		SAHPI_HS_STATE_NOT_PRESENT;
 	/* For blades that do not support managed hotswap, current hotswap
 	 * state is ACTIVE
 	 */
-	if (!(rpt.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
+	if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
 		hs_event.event.EventDataUnion.HotSwapEvent.HotSwapState =
 			SAHPI_HS_STATE_ACTIVE;
 	} else {
@@ -880,12 +889,14 @@ SaErrorT ov_rest_proc_blade_add_complete( struct oh_handler_state *oh_handler,
                                           struct eventInfo* event)
 {
         SaErrorT rv = SA_OK;
-        SaHpiRptEntryT rpt = {0};
+	SaHpiRptEntryT *rpt = NULL;
+	SaHpiResourceIdT resource_id = 0;
         struct oh_event hs_event = {0};
         struct ov_rest_handler *ov_handler = NULL;
         struct serverhardwareInfoArrayResponse response = {0};
         struct serverhardwareInfo info_result = {0};
         char *server_doc = NULL;
+	struct enclosure_status *enclosure = NULL;
         GSList *asserted_sensors = NULL;
 
         if (oh_handler == NULL || event == NULL) {
@@ -899,6 +910,7 @@ SaErrorT ov_rest_proc_blade_add_complete( struct oh_handler_state *oh_handler,
         }
 
         ov_handler = (struct ov_rest_handler *)oh_handler->data;
+	enclosure = ov_handler->ov_rest_resources.enclosure;
         asprintf(&ov_handler->connection->url, "https://%s%s",
                         ov_handler->connection->hostname,
                         event->resourceUri);
@@ -912,7 +924,8 @@ SaErrorT ov_rest_proc_blade_add_complete( struct oh_handler_state *oh_handler,
 	ov_rest_wrap_json_object_put(response.root_jobj);
 
         /* Build the server RPT entry */
-        rv = build_inserted_server_rpt(oh_handler, &info_result, &rpt);
+	rv = build_discovered_server_rpt(oh_handler, &info_result, 
+					&resource_id);
         if (rv != SA_OK) {
                 err("build inserted server rpt failed");
                 wrap_g_free(server_doc);
@@ -920,27 +933,40 @@ SaErrorT ov_rest_proc_blade_add_complete( struct oh_handler_state *oh_handler,
         }
 
         /* Build the server RDR */
-        rv = build_inserted_server_rdr(oh_handler,rpt.ResourceId,
+        rv = build_inserted_server_rdr(oh_handler, resource_id,
                         &info_result, TRUE);
         if (rv != SA_OK) {
                 err("build inserted server RDR failed");
                 /* Free the inventory info from inventory RDR */
-                rv = ov_rest_free_inventory_info(oh_handler, rpt.ResourceId);
+                rv = ov_rest_free_inventory_info(oh_handler, resource_id);
                 if (rv != SA_OK) {
                         err("Inventory cleanup failed for resource id %d",
-                                        rpt.ResourceId);
+                                        resource_id);
                 }
-                oh_remove_resource(oh_handler->rptcache, rpt.ResourceId);
+                oh_remove_resource(oh_handler->rptcache, resource_id);
                 wrap_g_free(server_doc);
                 return rv;
         }
-        rv = ov_rest_populate_event(oh_handler, rpt.ResourceId, &hs_event,
+	while(enclosure != NULL){
+		if(strstr(info_result.locationUri,
+					enclosure->serial_number)){
+			ov_rest_update_resource_status(&enclosure->server,
+					info_result.bayNumber,
+					info_result.serialNumber,
+					resource_id, RES_PRESENT,
+					info_result.type);
+			break;
+		}
+		enclosure = enclosure->next;
+	}
+        rv = ov_rest_populate_event(oh_handler, resource_id, &hs_event,
                         &asserted_sensors);
         if (rv != SA_OK) {
                 err("Populating event struct failed");
                 wrap_g_free(server_doc);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
+	rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
 
         hs_event.event.EventType = SAHPI_ET_HOTSWAP;
         hs_event.event.EventDataUnion.HotSwapEvent.PreviousHotSwapState =
@@ -948,7 +974,7 @@ SaErrorT ov_rest_proc_blade_add_complete( struct oh_handler_state *oh_handler,
         /* For blades that do not support managed hotswap, current hotswap
          * state is ACTIVE
          */
-        if (!(rpt.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
+        if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
                 hs_event.event.EventDataUnion.HotSwapEvent.HotSwapState =
                         SAHPI_HS_STATE_ACTIVE;
         } else {
@@ -1065,12 +1091,13 @@ SaErrorT remove_server_blade(struct oh_handler_state *oh_handler,
 	}
 	/* Remove the resource from plugin RPTable */
 	rv = oh_remove_resource(oh_handler->rptcache,
-			event.resource.ResourceId);
+				rpt->ResourceId);
 
 	/* reset resource_status structure to default values */
 	ov_rest_update_resource_status(
 			&enclosure->server, bay_number,
-			"", SAHPI_UNSPECIFIED_RESOURCE_ID, RES_ABSENT);
+			"", SAHPI_UNSPECIFIED_RESOURCE_ID, 
+			RES_ABSENT, UNSPECIFIED_RESOURCE);
 
 	return SA_OK;
 }
@@ -1705,6 +1732,7 @@ SaErrorT ov_rest_proc_drive_enclosure_add_complete(
 	struct ov_rest_handler *ov_handler = NULL;
 	struct driveEnclosureInfoArrayResponse response = {0};
 	struct driveEnclosureInfo info_result = {0};
+	struct enclosure_status *enclosure = NULL;
 	char *drive_enc_doc = NULL;
 	GSList *asserted_sensors = NULL;
 
@@ -1719,6 +1747,7 @@ SaErrorT ov_rest_proc_drive_enclosure_add_complete(
 	}
 
 	ov_handler = (struct ov_rest_handler *)oh_handler->data;
+	enclosure = ov_handler->ov_rest_resources.enclosure;
 	asprintf(&ov_handler->connection->url, "https://%s%s",
 			ov_handler->connection->hostname,
 			event->resourceUri);
@@ -1755,6 +1784,19 @@ SaErrorT ov_rest_proc_drive_enclosure_add_complete(
 		wrap_g_free(drive_enc_doc);
 		return rv;
 	}
+	while(enclosure != NULL){
+		if(strstr(info_result.locationUri,
+					enclosure->serial_number)){
+			ov_rest_update_resource_status(&enclosure->server,
+					info_result.bayNumber,
+					info_result.serialNumber,
+					rpt.ResourceId, RES_PRESENT,
+					info_result.type);
+			break;
+		}
+		enclosure = enclosure->next;
+	}
+
 	rv = ov_rest_populate_event(oh_handler, rpt.ResourceId, &hs_event,
 			&asserted_sensors);
 	if (rv != SA_OK) {

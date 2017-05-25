@@ -161,7 +161,8 @@ SaErrorT process_powersupply_insertion_event( struct oh_handler_state *handler,
 			response.bayNumber,
 			response.serialNumber, 
 			resource_id,
-			RES_PRESENT);
+			RES_PRESENT,
+			response.type);
 	rv = ov_rest_build_powersupply_rdr(handler,
 			resource_id, &response);
 	if (rv != SA_OK) {
@@ -177,7 +178,8 @@ SaErrorT process_powersupply_insertion_event( struct oh_handler_state *handler,
 		ov_rest_update_resource_status(
 				&enclosure->ps_unit,
 				response.bayNumber,
-				"", SAHPI_UNSPECIFIED_RESOURCE_ID, RES_ABSENT);
+				"", SAHPI_UNSPECIFIED_RESOURCE_ID, 
+				RES_ABSENT, UNSPECIFIED_RESOURCE);
 
 		wrap_free(enclosure_doc);
 		return SA_ERR_HPI_INTERNAL_ERROR;
@@ -323,7 +325,8 @@ SaErrorT process_powersupply_removed_event( struct oh_handler_state *handler,
 	ov_rest_update_resource_status (&enclosure->ps_unit,
 			bayNumber,
 			"", SAHPI_UNSPECIFIED_RESOURCE_ID,
-			RES_ABSENT);
+			RES_ABSENT,
+			UNSPECIFIED_RESOURCE);
 
 	wrap_free(enclosure_doc);
 	return SA_OK;
