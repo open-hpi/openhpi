@@ -40,6 +40,7 @@
 
 /* Include files */
 #include "ov_rest.h"
+#include "ov_rest_re_discover.h"
 #include "ov_rest_parser_calls.h"
 #include "ov_rest_server_event.h"
 #include "ov_rest_composer_event.h"

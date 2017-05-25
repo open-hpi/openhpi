@@ -296,7 +296,6 @@ SaErrorT ov_rest_connection_init(struct oh_handler_state *handler)
 	struct ov_rest_handler *ov_handler =
 		(struct ov_rest_handler *) handler->data;
 
-	ov_handler->status = PRE_DISCOVERY;
 	con = (REST_CON *) ov_handler->connection;
 
 	/* Get the Active OV hostname/IP address and check whether it's NULL */
@@ -347,6 +346,7 @@ size_t ov_rest_copy_response_buff(void *ptr, size_t size, size_t nmemb,
 		return 0;
 	}
 	memcpy(s->ptr+s->len, ptr, size*nmemb);
+	dbg("RAW Resposonse \n%s",s->ptr);
 	s->ptr[new_len] = '\0';
 	s->len = new_len;
 	s->jobj = json_tokener_parse(s->ptr);

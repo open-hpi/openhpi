@@ -43,7 +43,6 @@
 #define OV_REST_CALLS_FILE
 /* Include files */
 
-SaErrorT ov_rest_re_discover_interconnect(struct oh_handler_state *handler);
 SaErrorT ov_rest_proc_interconnect_inserted(
                                 struct oh_handler_state *oh_handler,
                                 struct eventInfo* event);

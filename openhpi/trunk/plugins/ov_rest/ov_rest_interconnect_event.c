@@ -36,8 +36,6 @@
  *
  * This file has the interconnect blade related events handling
  *
- *	ov_rest_re_discover_interconnect()	- Rediscovers the interconnect
- *						  Resources
  *	ov_rest_proc_interconnect_inserted	- Process the interconnect
  *						  insertion event
  *	ov_rest_proc_interconnect_add_complete	- Process the interconnect
@@ -153,7 +151,8 @@ SaErrorT remove_interconnect_blade(struct oh_handler_state *oh_handler,
 	/* reset resource_status structure to default values */
 	ov_rest_update_resource_status(
 			&enclosure->interconnect, bay_number,
-			"", SAHPI_UNSPECIFIED_RESOURCE_ID, RES_ABSENT);
+			"", SAHPI_UNSPECIFIED_RESOURCE_ID, 
+                        RES_ABSENT, UNSPECIFIED_RESOURCE);
 	return SA_OK;
 }
 
@@ -285,7 +284,8 @@ SaErrorT ov_rest_proc_interconnect_inserted( struct oh_handler_state *handler,
 					info_result.bayNumber,
 					info_result.serialNumber,
 					resource_id,
-					RES_PRESENT);
+					RES_PRESENT,
+					info_result.type);
 			break;
 		}
 		enclosure = enclosure->next;
@@ -396,6 +396,7 @@ SaErrorT ov_rest_proc_interconnect_add_complete(
 	struct ov_rest_handler *ov_handler = NULL;
 	struct interconnectInfoArrayResponse response = {0};
 	struct interconnectInfo info_result = {0};
+	struct enclosure_status *enclosure = NULL;
 	GSList *asserted_sensors = NULL;
 	char *interconnect_doc = NULL;
 
@@ -404,7 +405,7 @@ SaErrorT ov_rest_proc_interconnect_add_complete(
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 	ov_handler = (struct ov_rest_handler *)handler->data;
-
+	enclosure = ov_handler->ov_rest_resources.enclosure;
         if (event->resourceUri == NULL) {
                  err ("resourceUri is NULL, failed to add interconnect");
 		return SA_ERR_HPI_INVALID_PARAMS;
@@ -441,6 +442,18 @@ SaErrorT ov_rest_proc_interconnect_add_complete(
                 rv = oh_remove_resource(handler->rptcache,
                                         (int)atoi(event->resourceID));
                 return rv;
+        }
+	while(enclosure != NULL){
+                if(strstr(enclosure->serial_number,
+                                        info_result.locationUri)){
+                        ov_rest_update_resource_status(&enclosure->server,
+                                        info_result.bayNumber,
+                                        info_result.serialNumber,
+                                        resource_id, RES_PRESENT,
+                                        info_result.type);
+                        break;
+                }
+                enclosure = enclosure->next;
         }
 
 	rv = ov_rest_populate_event(handler, resource_id, &hs_event,

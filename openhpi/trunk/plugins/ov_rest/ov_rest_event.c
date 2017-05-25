@@ -1428,6 +1428,8 @@ SaErrorT ov_rest_scmb_listner(struct oh_handler_state *handler)
 						res.library_error);
 				if(rv != SA_OK){
 					amqp_bytes_free(queuename);
+					amqp_channel_close(conn, 1, AMQP_REPLY_SUCCESS);
+					amqp_connection_close(conn, AMQP_REPLY_SUCCESS);
 					amqp_destroy_connection(conn);
 					return rv;
 				}
@@ -1459,6 +1461,7 @@ SaErrorT ov_rest_scmb_listner(struct oh_handler_state *handler)
 		scmb_resource = ov_rest_wrap_json_object_object_get(jobj, 
 				"resource");
 		process_ov_events(handler, scmb_resource);
+		ov_rest_wrap_json_object_put(jobj);
 		wrap_g_free(messages);
 		amqp_destroy_envelope(&envelope);
 	}
@@ -1655,15 +1658,17 @@ SaErrorT ov_rest_re_discover(struct oh_handler_state *handler)
 		is_ov_accessible = SAHPI_TRUE;
 		/* Synergy Composer is Accessible. Clean up the Old RPT cache,
  		*  discover all the resources and build the RPT cache */
-		rv = ov_rest_discover_resources(handler);
+		wrap_g_mutex_lock(ov_handler->mutex);
+		rv = ov_rest_re_discover_resources(handler);
 		if (rv != SA_OK) {
 			is_ov_accessible = SAHPI_FALSE;
 			err("Re-discovery failed ");
+			wrap_g_mutex_unlock(ov_handler->mutex);
 			/* waiting for the network connection to restore*/
 			sleep(4);   
 		}
 	}
-
+	wrap_g_mutex_unlock(ov_handler->mutex);
 	return SA_OK;
 }
 

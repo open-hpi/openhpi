@@ -86,10 +86,22 @@ typedef enum resource_presence_status
         RES_PRESENT= 1
 } resource_presence_status_t;
 
+typedef enum resource_category
+{
+	SERVER_HARDWARE = 0,
+	DRIVE_ENCLOSURE = 1,
+	INTERCONNECT = 2,
+	SAS_INTERCONNECT = 3,
+	POWER_SUPPLY = 4,
+	FAN = 5,
+	UNSPECIFIED_RESOURCE = 6
+}resource_category_t;
+
 /* Resource presence matrix per resource type */
 typedef struct resource_status
 {
         SaHpiInt32T max_bays;
+	enum resource_category *type;
         enum resource_presence_status *presence;
         char **serial_number;
         SaHpiResourceIdT *resource_id;

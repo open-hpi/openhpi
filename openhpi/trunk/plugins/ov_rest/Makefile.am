@@ -55,6 +55,8 @@ libov_rest_la_SOURCES   = ov_rest_parser_calls.c  \
                         ov_rest.h  \
                         ov_rest_discover.c \
                         ov_rest_discover.h \
+                        ov_rest_re_discover.c \
+                        ov_rest_re_discover.h \
                         ov_rest_inventory.h \
                         ov_rest_inventory.c \
                         ov_rest_sensor.c \

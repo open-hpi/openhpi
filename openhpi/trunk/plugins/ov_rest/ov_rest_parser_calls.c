@@ -165,6 +165,7 @@ void ov_rest_json_parse_server(json_object *jvalue,
 	if(servInfo->manufacturer){
 		memcpy(servInfo->manufacturer,"HPE", 4);
 	}
+	servInfo->type = SERVER_HARDWARE;
 }
 
 /**
@@ -266,6 +267,7 @@ void ov_rest_json_parse_drive_enclosure(json_object *jvalue,
 	if(drvInfo->manufacturer){
 		memcpy(drvInfo->manufacturer,"HPE", 4);
 	}
+	drvInfo->type = DRIVE_ENCLOSURE;
 }
 
 /**
@@ -627,6 +629,11 @@ void ov_rest_json_parse_interconnect( json_object *jvalue,
 				memcpy(intinfo->uidState,temp,strlen(temp)+1);
 			continue;
 		}
+	}
+	if(strstr(intinfo->uri, "sas-interconnect")){
+		intinfo->type = SAS_INTERCONNECT;
+	}else{
+		intinfo->type = INTERCONNECT;
 	}
 }
 
@@ -1194,6 +1201,7 @@ void ov_rest_json_parse_powersupply( json_object *jvalue,
                         continue;
                 }
         }
+	response->type = POWER_SUPPLY;
 }
 
 /**
@@ -1265,6 +1273,7 @@ void ov_rest_json_parse_fan( json_object *jvalue, struct fanInfo* response)
                 }
 		temp = NULL;
         }
+	response->type = FAN;
 }
 
 /**

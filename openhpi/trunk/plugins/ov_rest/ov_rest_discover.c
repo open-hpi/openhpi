@@ -48,8 +48,6 @@
 int ov_rest_Total_Temp_Sensors = 0;
 
 static void ov_rest_push_disc_res(struct oh_handler_state *oh_handler);
-static SaErrorT ov_rest_build_enc_info(struct oh_handler_state *oh_handler,
-                                       struct enclosureInfo *info);
 /**
  * ov_rest_getapplianceNodeInfo:
  *      @oh_handler: Pointer to openhpi handler.
@@ -2155,7 +2153,7 @@ SaErrorT ov_rest_build_appliance_rpt(struct oh_handler_state *oh_handler,
  *      SA_ERR_HPI_INTERNAL_ERROR - on failure.
  *      SA_ERR_HPI_OUT_OF_MEMORY  - on malloc failure.
  **/
-static SaErrorT ov_rest_build_enc_info(struct oh_handler_state *oh_handler,
+SaErrorT ov_rest_build_enc_info(struct oh_handler_state *oh_handler,
                                        struct enclosureInfo *info)
 {
 	
@@ -2224,6 +2222,16 @@ static SaErrorT ov_rest_build_enc_info(struct oh_handler_state *oh_handler,
 			release_ov_rest_resources(temp_enclosure);
 			return SA_ERR_HPI_OUT_OF_MEMORY;
 		}
+
+		temp_enclosure->server.type =
+			(enum resource_category *)
+			g_malloc0((sizeof(enum resource_category)) *
+					temp_enclosure->server.max_bays);
+		if (temp_enclosure->server.type == NULL) {
+			err("Out of memory");	
+			release_ov_rest_resources(temp_enclosure);
+			return SA_ERR_HPI_OUT_OF_MEMORY;
+		}
 		/* Create the placeholder for serial number
 		 * If the gets replaced during the switchover or when OV 
 		 * is not reachable, we can detect this change by comparing 
@@ -2277,6 +2285,17 @@ static SaErrorT ov_rest_build_enc_info(struct oh_handler_state *oh_handler,
 			release_ov_rest_resources(temp_enclosure);
 			return SA_ERR_HPI_OUT_OF_MEMORY;
 		}
+
+		temp_enclosure->interconnect.type =
+			(enum resource_category *)
+			g_malloc0((sizeof(enum resource_category)) *
+					temp_enclosure->interconnect.max_bays);
+		if (temp_enclosure->interconnect.type == NULL) {
+			err("Out of memory");	
+			release_ov_rest_resources(temp_enclosure);
+			return SA_ERR_HPI_OUT_OF_MEMORY;
+		}
+
 		temp_enclosure->interconnect.serial_number = (char **)
 			g_malloc0(sizeof(char **) *
 					temp_enclosure->interconnect.max_bays);
@@ -2329,6 +2348,16 @@ static SaErrorT ov_rest_build_enc_info(struct oh_handler_state *oh_handler,
 			return SA_ERR_HPI_OUT_OF_MEMORY;
 		}
 
+		temp_enclosure->fan.type =
+			(enum resource_category *)
+			g_malloc0((sizeof(enum resource_category)) *
+					temp_enclosure->fan.max_bays);
+		if (temp_enclosure->fan.type == NULL) {
+			err("Out of memory");	
+			release_ov_rest_resources(temp_enclosure);
+			return SA_ERR_HPI_OUT_OF_MEMORY;
+		}
+
                 temp_enclosure->fan.serial_number = (char **)
                         g_malloc0(sizeof(char **) *
                                         temp_enclosure->fan.max_bays);
@@ -2377,6 +2406,15 @@ static SaErrorT ov_rest_build_enc_info(struct oh_handler_state *oh_handler,
 					temp_enclosure->ps_unit.max_bays));
 		if (temp_enclosure->ps_unit.resource_id == NULL) {
 			err("Out of memory");
+			release_ov_rest_resources(temp_enclosure);
+			return SA_ERR_HPI_OUT_OF_MEMORY;
+		}
+		temp_enclosure->ps_unit.type =
+			(enum resource_category *)
+			g_malloc0((sizeof(enum resource_category)) *
+					temp_enclosure->ps_unit.max_bays);
+		if (temp_enclosure->ps_unit.type == NULL) {
+			err("Out of memory");	
 			release_ov_rest_resources(temp_enclosure);
 			return SA_ERR_HPI_OUT_OF_MEMORY;
 		}
@@ -2855,6 +2893,7 @@ SaErrorT ov_rest_build_server_rpt(struct oh_handler_state *oh_handler,
 	SaErrorT rv = SA_OK;
 	SaHpiEntityPathT entity_path = {{{0}}};
 	char *entity_root = NULL;
+	struct enclosure_status *enclosure = NULL;
 	SaHpiResourceIdT enc_rid;
 	SaHpiRptEntryT *enc_rpt = NULL;
 	struct ov_rest_handler* ov_handler = NULL;
@@ -2891,9 +2930,23 @@ SaErrorT ov_rest_build_server_rpt(struct oh_handler_state *oh_handler,
 		rpt->ResourceEntity.Entry[2].EntityLocation = 0;
 		rpt->ResourceEntity.Entry[1].EntityType = 
 			SAHPI_ENT_SYSTEM_CHASSIS;
-		enc_rid = atol(g_hash_table_lookup(ov_handler->uri_rid, 
-			response->locationUri));
-		enc_rpt = oh_get_resource_by_id(oh_handler->rptcache, enc_rid);
+		enclosure = ov_handler->ov_rest_resources.enclosure;
+		while(enclosure){
+			if(strstr(response->locationUri, enclosure->serial_number)){
+				break;
+			}
+			enclosure = enclosure->next;
+		}
+		if(enclosure){
+			enc_rid = enclosure->enclosure_rid; 
+			enc_rpt = oh_get_resource_by_id(oh_handler->rptcache, 
+						enc_rid);
+		}else{
+			err("Could not find the associated enclosure"
+				" for the server in bay %d, parent location uri"
+				" %s",response->bayNumber, response->locationUri);
+			return SA_ERR_HPI_INTERNAL_ERROR;
+		}
 		rpt->ResourceEntity.Entry[1].EntityLocation = 
 			enc_rpt->ResourceEntity.Entry[0].EntityLocation; 
 
@@ -3209,7 +3262,8 @@ SaErrorT ov_rest_discover_server(struct oh_handler_state *handler)
 						&enclosure->server,
 						info_result.bayNumber,
 						info_result.serialNumber,
-						resource_id, RES_PRESENT);
+						resource_id, RES_PRESENT,
+						info_result.type);
                                         break;
                                 }
                                 enclosure = enclosure->next;
@@ -3262,6 +3316,7 @@ SaErrorT ov_rest_build_drive_enclosure_rpt(struct oh_handler_state *oh_handler,
         char *entity_root = NULL;
         SaHpiResourceIdT enc_rid;
         SaHpiRptEntryT *enc_rpt = NULL;
+        struct enclosure_status *enclosure = NULL;
         struct ov_rest_handler* ov_handler = NULL;
 
         if (oh_handler == NULL || response == NULL || rpt == NULL) {
@@ -3295,9 +3350,23 @@ SaErrorT ov_rest_build_drive_enclosure_rpt(struct oh_handler_state *oh_handler,
                 rpt->ResourceEntity.Entry[2].EntityLocation = 0;
                 rpt->ResourceEntity.Entry[1].EntityType = 
 					SAHPI_ENT_SYSTEM_CHASSIS;
-                enc_rid = atol(g_hash_table_lookup(ov_handler->uri_rid,
-                                response->locationUri));
-                enc_rpt = oh_get_resource_by_id(oh_handler->rptcache, enc_rid);
+		enclosure = ov_handler->ov_rest_resources.enclosure;
+		while(enclosure){
+			if(strstr(response->locationUri, enclosure->serial_number)){
+				break;
+			}
+			enclosure = enclosure->next;
+		}
+		if(enclosure){
+			enc_rid = enclosure->enclosure_rid; 
+			enc_rpt = oh_get_resource_by_id(oh_handler->rptcache, 
+						enc_rid);
+		}else{
+			err("Could not find the associated enclosure"
+				" for the server in bay %d, parent location uri"
+				" %s",response->bayNumber, response->locationUri);
+			return SA_ERR_HPI_INTERNAL_ERROR;
+		}
                 rpt->ResourceEntity.Entry[1].EntityLocation = 
 			enc_rpt->ResourceEntity.Entry[0].EntityLocation;
 
@@ -3610,7 +3679,8 @@ SaErrorT ov_rest_discover_drive_enclosure(struct oh_handler_state *handler)
 						info_result.bayNumber,
 						info_result.serialNumber, 
 						resource_id,
-						RES_PRESENT);
+						RES_PRESENT,
+						info_result.type);
 				break;
 			}
 			enclosure = enclosure->next;
@@ -3659,8 +3729,9 @@ SaErrorT ov_rest_build_interconnect_rpt(struct oh_handler_state *oh_handler,
 	SaHpiRptEntryT rpt = {0};
 	char temp[256];
 	struct ov_rest_handler *ov_handler = NULL;
-        SaHpiResourceIdT enc_rid;
-        SaHpiRptEntryT *enc_rpt = NULL;
+	struct enclosure_status *enclosure = NULL;
+	SaHpiResourceIdT enc_rid;
+	SaHpiRptEntryT *enc_rpt = NULL;
 
 	if (oh_handler == NULL || response->model == NULL ||
 			resource_id == NULL) {
@@ -3696,12 +3767,25 @@ SaErrorT ov_rest_build_interconnect_rpt(struct oh_handler_state *oh_handler,
 	rpt.ResourceEntity.Entry[2].EntityType = SAHPI_ENT_ROOT;
 	rpt.ResourceEntity.Entry[2].EntityLocation = 0;
 	rpt.ResourceEntity.Entry[1].EntityType = SAHPI_ENT_SYSTEM_CHASSIS;
-	enc_rid = atoi(g_hash_table_lookup(ov_handler->uri_rid,
-			response->locationUri));
-	enc_rpt = oh_get_resource_by_id(oh_handler->rptcache, enc_rid);
-
+	enclosure = ov_handler->ov_rest_resources.enclosure;
+	while(enclosure){
+		if(strstr(response->locationUri, enclosure->serial_number)){
+			break;
+		}
+		enclosure = enclosure->next;
+	}
+	if(enclosure){
+		enc_rid = enclosure->enclosure_rid; 
+		enc_rpt = oh_get_resource_by_id(oh_handler->rptcache, 
+				enc_rid);
+	}else{
+		err("Could not find the associated enclosure"
+				" for the server in bay %d, parent location uri"
+				" %s",response->bayNumber, response->locationUri);
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
 	rpt.ResourceEntity.Entry[1].EntityLocation = 
-			enc_rpt->ResourceEntity.Entry[0].EntityLocation;
+		enc_rpt->ResourceEntity.Entry[0].EntityLocation;
 	rpt.ResourceEntity.Entry[0].EntityType = SAHPI_ENT_SWITCH_BLADE;
 	rpt.ResourceEntity.Entry[0].EntityLocation = response->bayNumber;
 	rv = oh_concat_ep(&(rpt.ResourceEntity), &entity_path);
@@ -3721,33 +3805,33 @@ SaErrorT ov_rest_build_interconnect_rpt(struct oh_handler_state *oh_handler,
 	 *       please change the logic accordingly.
 	 */
 	ov_rest_lower_to_upper(response->model, strlen(response->model), temp, 
-		256);
+			256);
 	if (strstr(temp, "CISCO") != NULL)
 		rpt.ResourceInfo.ManufacturerId = CISCO_MANUFACTURING_ID;
 	else
 		rpt.ResourceInfo.ManufacturerId = HPE_MANUFACTURING_ID;
 
-        switch(response->interconnectStatus){
-                case OK:
-                        rpt.ResourceSeverity = SAHPI_OK;
-                        rpt.ResourceFailed = SAHPI_FALSE;
-                        break;
-                case Disabled:
-                        rpt.ResourceSeverity = SAHPI_CRITICAL;
-                        rpt.ResourceFailed = SAHPI_TRUE;
-                        break;
-                case Warning:
-                        rpt.ResourceSeverity = SAHPI_MINOR;
-                        rpt.ResourceFailed = SAHPI_FALSE;
-                        break;
-                case Critical:
-                        rpt.ResourceSeverity = SAHPI_CRITICAL;
-                        rpt.ResourceFailed = SAHPI_FALSE;
-                        break;
-                default:
-                        rpt.ResourceSeverity = SAHPI_MAJOR;
-                        rpt.ResourceFailed = SAHPI_TRUE;
-        }
+	switch(response->interconnectStatus){
+		case OK:
+			rpt.ResourceSeverity = SAHPI_OK;
+			rpt.ResourceFailed = SAHPI_FALSE;
+			break;
+		case Disabled:
+			rpt.ResourceSeverity = SAHPI_CRITICAL;
+			rpt.ResourceFailed = SAHPI_TRUE;
+			break;
+		case Warning:
+			rpt.ResourceSeverity = SAHPI_MINOR;
+			rpt.ResourceFailed = SAHPI_FALSE;
+			break;
+		case Critical:
+			rpt.ResourceSeverity = SAHPI_CRITICAL;
+			rpt.ResourceFailed = SAHPI_FALSE;
+			break;
+		default:
+			rpt.ResourceSeverity = SAHPI_MAJOR;
+			rpt.ResourceFailed = SAHPI_TRUE;
+	}
 	rpt.HotSwapCapabilities = SAHPI_HS_CAPABILITY_AUTOEXTRACT_READ_ONLY;
 	rpt.ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
 	rpt.ResourceTag.Language = SAHPI_LANG_ENGLISH;
@@ -3774,12 +3858,12 @@ SaErrorT ov_rest_build_interconnect_rpt(struct oh_handler_state *oh_handler,
 		switch (response->powerState) {
 			case (On):
 				hotswap_state->currentHsState = 
-					SAHPI_HS_STATE_ACTIVE;
+				SAHPI_HS_STATE_ACTIVE;
 				break;
 			case (Off):
 			case (Unknown):
 				hotswap_state->currentHsState =
-					SAHPI_HS_STATE_INACTIVE;
+				SAHPI_HS_STATE_INACTIVE;
 				break;
 			default:
 				err("Unknown Power State detected");
@@ -3992,7 +4076,8 @@ SaErrorT ov_rest_discover_sas_interconnect(struct oh_handler_state *handler)
 						result.bayNumber,
 						result.serialNumber,
 						resource_id,
-						RES_PRESENT);
+						RES_PRESENT,
+						result.type);
 				break;
 			}
 			enclosure = enclosure->next;
@@ -4120,7 +4205,8 @@ SaErrorT ov_rest_discover_interconnect(struct oh_handler_state *handler)
 				ov_rest_update_resource_status(
 						&enclosure->interconnect,
 						result.bayNumber, result.serialNumber, 
-						resource_id, RES_PRESENT);
+						resource_id, RES_PRESENT,
+						result.type);
 				break;
 			}
 			enclosure = enclosure->next;
@@ -4543,7 +4629,8 @@ SaErrorT ov_rest_discover_powersupply(struct oh_handler_state *oh_handler)
 						&enclosure->ps_unit,
 						result.bayNumber,
 						result.serialNumber, 
-						resource_id, RES_PRESENT);
+						resource_id, RES_PRESENT,
+						result.type);
 					break;
 				}
 				enclosure = enclosure->next;
@@ -4967,7 +5054,8 @@ SaErrorT ov_rest_discover_fan(struct oh_handler_state *oh_handler)
 						&enclosure->fan,
 						result.bayNumber,
 						result.serialNumber, 
-						resource_id, RES_PRESENT);
+						resource_id, RES_PRESENT,
+						result.type);
 					break;
 				}
 				enclosure = enclosure->next;
