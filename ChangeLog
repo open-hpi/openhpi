@@ -1,3 +1,92 @@
+Changelog for 3.7.0 (05/26/2017)
+
+  New Features
+
+   HPE Synergy plugin
+
+       704 - Add support for HPE Synergy Frames
+
+  Fixed Bugs
+
+   Blade Center Plugin
+
+       1902 - disable MD5 in net-snmp will trigger a compile error in openhpi
+
+  HP c-Class Plugin
+
+       1913 - Replace printf calls
+
+       1912 - Array bound exceeded by one
+
+       1903 - Function comment section of oa_soap_close() is misleading
+
+  HPE Synergy plugin
+
+       1957 - Interconnects in the multiple enclosure ring not discovered properly.
+
+       1954 - Memory Leaks in few corner cases
+
+       1952 - Unwanted rediscoveries during AMQP_STATUS_SSL_ERROR from SCMB
+
+       1944 - Memory leak in ov_rest plugin when running hpitree -a from r7686 onwards
+
+       1940 - Operational status sensor RDR is missing for Synergy Composer
+
+       1939 - Rediscovery may have memory leaks
+
+       1936 - Core dump at array_list_get_idx.
+
+       1935 - Getting server sensor info fails or takes long time
+
+       1933 - Daemon takes a long time to terminate after signal
+
+       1932 - Locked/Active alerts in syslog could be removed
+
+       1931 - Composer with many enclosures fails
+
+       1930 - Clean up json objects with json_object_put
+
+       1929 - Compile warnings in json-c
+
+       1928 - amqp_empty_table error in suse12
+
+       1927 - core dumps getting Cert and process events
+
+       1926 - Tasks / Alerts not registered
+
+       1925 - Manufacturer field is not showing up in interconnect
+
+       1924 - ov_rest plugin build fails on SLES12
+
+       1923 - Fix all the issue in below core dumps.
+
+       1922 - openhpi.conf.ov_rest_wrong_passwd
+
+       1921 - Initial status needs to be update after discovery
+
+  HPI Shell
+
+       1900 - hpi_shell fails attempting to unlock not locked mutex
+
+  HPI Utils
+
+       1915 - wrap_g_free does not set pointer to NULL.
+
+       1914 - uid_map creation fails if directory is missing
+
+  IPMI Direct plugin
+
+       1911 - ipmidirect: Check correct variable for resource managed capability
+
+  OpenHPI Daemon
+
+       1916 - umask(0) makes created files world readable/writeable
+
+  Sysfs plugin
+
+       1907 - Fix double free in sysfs
+
+
 Changelog for 3.6.1 (09/14/2015)
 
   New Features
