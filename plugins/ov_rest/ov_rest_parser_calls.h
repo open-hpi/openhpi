@@ -789,6 +789,7 @@ struct interconnectInfoArrayResponse
 {
 	json_object *root_jobj;
 	json_object *interconnect_array;
+	char next_page[MAX_256_CHARS];
 };
 
 /* Below structure is required to parse the interconnect to find the
@@ -942,7 +943,7 @@ struct eventInfo
 #define OV_ENCLOSURE_URI \
 	"https://%s/rest/enclosures"
 #define OV_SERVER_HARDWARE_URI \
-	"https://%s/rest/server-hardware"
+	"https://%s/rest/server-hardware?start=0&count=504"
 #define OV_SERVER_HARDWARE_SSO_URI \
 	"https://%s%s/remoteConsoleUrl"
 #define OV_SERVER_HARDWARE_THERMAL_URI \
@@ -960,11 +961,11 @@ struct eventInfo
 #define OV_APPLIANCE_HA_NODE_ID_URI \
 	"https://%s/rest/appliance/ha-nodes/%s"
 #define OV_DRIVE_ENCLOSURE_URI \
-        "https://%s/rest/drive-enclosures"
+        "https://%s/rest/drive-enclosures?start=0&count=504"
 #define OV_INTERCONNECT_URI \
-	"https://%s/rest/interconnects"
+	"https://%s/rest/interconnects?start=0&count=256"
 #define OV_SAS_INTERCONNECT_URI \
-	"https://%s/rest/sas-interconnects"
+	"https://%s/rest/sas-interconnects?start=0&count=256"
 #define OV_ALERTS \
 	"https://%s/rest/alerts"
 #define OV_ACTIVE_ALERTS \

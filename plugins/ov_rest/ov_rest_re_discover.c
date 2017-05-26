@@ -1379,95 +1379,139 @@ SaErrorT re_discover_interconnect(struct oh_handler_state *oh_handler)
 
 	/*Getting the length of the array*/
 	arraylen = json_object_array_length(response.interconnect_array);
-	for (i=0; i< arraylen; i++){
-		if (ov_handler->shutdown_event_thread == SAHPI_TRUE) {
-			dbg("shutdown_event_thread set. Returning in thread %p",
-					g_thread_self());
-			return SA_OK;
-		}
-		memset(&result, 0, sizeof(struct interconnectInfo));
-		jvalue = json_object_array_get_idx(response.interconnect_array,
-				i);
-		if (!jvalue) {
-			CRIT("Invalid response for the interconnect"
-					" in bay %d", i + 1);
-			continue;
-		}
-		ov_rest_json_parse_interconnect(jvalue,&result);
-		g_hash_table_insert(interconnect_serial_hash,
-				g_strdup(result.serialNumber),
-				g_strdup("TRUE"));
-
-		/* Find the Enclosure for this interconnect to update the
-		 * Resource matrix table */
-		asprintf(&ov_handler->connection->url, "https://%s%s",
-				ov_handler->connection->hostname,
-				result.locationUri);
-		rv = ov_rest_getenclosureInfoArray(oh_handler,
-				&enclosure_response, ov_handler->connection,
-				enclosure_doc);
-		if(rv != SA_OK || enclosure_response.enclosure_array == NULL) {
-			CRIT("Failed to get the response from "
-					"ov_rest_getenclosureInfoArray\n");
-			continue;
-		}
-		ov_rest_json_parse_enclosure(enclosure_response.enclosure_array,
-				&enclosure_info);
-		ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
-		enclosure = ov_handler->ov_rest_resources.enclosure;
-		while(enclosure != NULL){
-			if(strstr(enclosure->serial_number,
-						enclosure_info.serialNumber)){
-				break;
+	while(1){
+		for (i=0; i< arraylen; i++){
+			if (ov_handler->shutdown_event_thread == SAHPI_TRUE) {
+				dbg("shutdown_event_thread set. Returning in "
+						"thread %p", g_thread_self());
+				return SA_OK;
 			}
-			enclosure = enclosure->next;
-		}
-		if(enclosure == NULL){
-			CRIT("Enclosure data of the interconnect with"
-					" serial number %s is unavailable",
-					result.serialNumber);
-			continue;
-		}else {
-			if(enclosure->interconnect.presence[result.bayNumber-1]
-					== RES_ABSENT){
-				rv =add_inserted_interconnect(oh_handler, 
-						enclosure, &result);
-				if(rv != SA_OK){
-					err("Unable to add the inter"
-							"connect in enclosure"
-							" serial: %s and device"
-							" bay: %d", enclosure->
-							serial_number, 
-							result.bayNumber);
-				}
-			}else if(strstr(enclosure->interconnect.serial_number
-						[result.bayNumber-1],
-						result.serialNumber) || 
-				!strcmp(result.serialNumber, "unknown")){
+			memset(&result, 0, sizeof(struct interconnectInfo));
+			jvalue = json_object_array_get_idx(
+					response.interconnect_array, i);
+			if (!jvalue) {
+				CRIT("Invalid response for the interconnect"
+						" in bay %d", i + 1);
+				continue;
+			}
+			ov_rest_json_parse_interconnect(jvalue,&result);
+			g_hash_table_insert(interconnect_serial_hash,
+					g_strdup(result.serialNumber),
+					g_strdup("TRUE"));
 
+			/* Find the Enclosure for this interconnect to update 
+			 * the Resource matrix table */
+			asprintf(&ov_handler->connection->url, "https://%s%s",
+					ov_handler->connection->hostname,
+					result.locationUri);
+			rv = ov_rest_getenclosureInfoArray(oh_handler,
+					&enclosure_response, 
+					ov_handler->connection,
+					enclosure_doc);
+			if(rv != SA_OK || enclosure_response.
+					enclosure_array == NULL) {
+				CRIT("Failed to get the response from "
+					"ov_rest_getenclosureInfoArray\n");
+				continue;
+			}
+			ov_rest_json_parse_enclosure(
+					enclosure_response.enclosure_array,
+					&enclosure_info);
+			ov_rest_wrap_json_object_put(
+					enclosure_response.root_jobj);
+			enclosure = ov_handler->ov_rest_resources.enclosure;
+			while(enclosure != NULL){
+				if(strstr(enclosure->serial_number,
+						enclosure_info.serialNumber)){
+					break;
+				}
+				enclosure = enclosure->next;
+			}
+			if(enclosure == NULL){
+				CRIT("Enclosure data of the interconnect with"
+					" serial number %s is unavailable",
+						result.serialNumber);
 				continue;
 			}else {
-				rv =remove_interconnect_blade(oh_handler, 
-						result.bayNumber, enclosure);
-				if(rv != SA_OK){
-					err("Unable to remove the inter"
+				if(enclosure->interconnect.
+						presence[result.bayNumber-1]
+						== RES_ABSENT){
+					rv =add_inserted_interconnect(
+							oh_handler, 
+							enclosure, 
+							&result);
+					if(rv != SA_OK){
+						err("Unable to add the inter"
 							"connect in enclosure"
 							" serial: %s and device"
 							" bay: %d", enclosure->
 							serial_number, 
 							result.bayNumber);
-				}
-				rv = add_inserted_interconnect(oh_handler, 
-						enclosure, &result);
-				if(rv != SA_OK){
-					err("Unable to add the inter"
+					}
+				}else if(strstr(enclosure->interconnect.
+					serial_number[result.bayNumber-1],
+					result.serialNumber) ||	!strcmp(
+					result.serialNumber, "unknown")){
+
+					continue;
+				}else {
+					rv =remove_interconnect_blade(
+							oh_handler, 
+							result.bayNumber, 
+							enclosure);
+					if(rv != SA_OK){
+						err("Unable to remove the inter"
 							"connect in enclosure"
 							" serial: %s and device"
 							" bay: %d", enclosure->
 							serial_number, 
 							result.bayNumber);
+					}
+					rv = add_inserted_interconnect(
+							oh_handler,
+							enclosure, &result);
+					if(rv != SA_OK){
+						err("Unable to add the inter"
+							"connect in enclosure"
+							" serial: %s and device"
+							" bay: %d", enclosure->
+							serial_number, 
+							result.bayNumber);
+					}
 				}
 			}
+		}
+		ov_rest_wrap_json_object_put(response.root_jobj);
+		if(response.next_page == NULL){
+			break;
+		}else {
+			asprintf(&ov_handler->connection->url, "https://%s%s",
+					ov_handler->connection->hostname,
+					response.next_page);
+			memset(&response, 0, sizeof(response));
+			rv = ov_rest_getinterconnectInfoArray(oh_handler, 
+					&response, ov_handler->connection, 
+					interconnect_doc);
+			if(rv != SA_OK || response.interconnect_array == NULL){
+				CRIT("Failed to get the response from "
+					"ov_rest_getinterconnectInfoArray");
+
+				return SA_OK;
+			}
+
+			/* Checking for json object type, if it is not array, 
+			 * return */
+			if (json_object_get_type(response.interconnect_array) !=
+					json_type_array) {
+				CRIT("Not adding any interconnects as no array"
+						" returned");
+				return SA_OK;
+			}
+
+			/*Getting the length of the array*/
+			arraylen = json_object_array_length(
+					response.interconnect_array);
+
 		}
 	}
 	enclosure = ov_handler->ov_rest_resources.enclosure;
@@ -1496,7 +1540,6 @@ SaErrorT re_discover_interconnect(struct oh_handler_state *oh_handler)
 		enclosure = enclosure->next;
 	}
 	g_hash_table_destroy(interconnect_serial_hash);
-	ov_rest_wrap_json_object_put(response.root_jobj);
 	return SA_OK;
 }
 /*
@@ -1657,96 +1700,137 @@ SaErrorT re_discover_sas_interconnect(struct oh_handler_state *oh_handler)
 
 	/*Getting the length of the array*/
 	arraylen = json_object_array_length(response.interconnect_array);
-	for (i=0; i< arraylen; i++){
-		if (ov_handler->shutdown_event_thread == SAHPI_TRUE) {
-			dbg("shutdown_event_thread set. Returning in thread %p",
-					g_thread_self());
-			return SA_OK;
-		}
-		memset(&result, 0, sizeof(struct interconnectInfo));
-		jvalue = json_object_array_get_idx(response.interconnect_array,
-				i);
-		if (!jvalue) {
-			CRIT("Invalid response for the interconnect"
-					" in bay %d", i + 1);
-			continue;
-		}
-		ov_rest_json_parse_interconnect(jvalue,&result);
-		g_hash_table_insert(interconnect_serial_hash,
-				g_strdup(result.serialNumber),
-				g_strdup("TRUE"));
-
-		/* Find the Enclosure for this interconnect to update the
-		 * Resource matrix table */
-		asprintf(&ov_handler->connection->url, "https://%s%s",
-				ov_handler->connection->hostname,
-				result.locationUri);
-		rv = ov_rest_getenclosureInfoArray(oh_handler,
-				&enclosure_response, ov_handler->connection,
-				enclosure_doc);
-		if(rv != SA_OK || enclosure_response.enclosure_array == NULL) {
-			CRIT("Failed to get the response from "
-					"ov_rest_getenclosureInfoArray\n");
-			continue;
-		}
-		ov_rest_json_parse_enclosure(enclosure_response.enclosure_array,
-				&enclosure_info);
-		ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
-		enclosure = ov_handler->ov_rest_resources.enclosure;
-		while(enclosure != NULL){
-			if(strstr(enclosure->serial_number,
-						enclosure_info.serialNumber)){
-				break;
+	while(1){
+		for (i=0; i< arraylen; i++){
+			if (ov_handler->shutdown_event_thread == SAHPI_TRUE) {
+				dbg("shutdown_event_thread set. Returning in" 
+					"thread %p", g_thread_self());
+				return SA_OK;
 			}
-			enclosure = enclosure->next;
-		}
-		if(enclosure == NULL){
-			CRIT("Enclosure data of the interconnect with"
-					" serial number %s is unavailable",
-					result.serialNumber);
-			continue;
-		}else {
-			if(enclosure->interconnect.presence[result.bayNumber-1]
-					== RES_ABSENT){
-				rv = add_inserted_interconnect(oh_handler, 
-					enclosure, &result);
-				if(rv != SA_OK){
-					err("Unable to add the sas-inter"
-							"connect in enclosure"
-							" serial: %s and device"
-							" bay: %d", enclosure->
-							serial_number, 
-							result.bayNumber);
-				}
-			}else if(strstr(enclosure->interconnect.serial_number
-					[result.bayNumber-1],
-					result.serialNumber) || 
-				!strcmp(result.serialNumber, "unknown")){
+			memset(&result, 0, sizeof(struct interconnectInfo));
+			jvalue = json_object_array_get_idx(
+					response.interconnect_array, i);
+			if (!jvalue) {
+				CRIT("Invalid response for the interconnect"
+						" in bay %d", i + 1);
+				continue;
+			}
+			ov_rest_json_parse_interconnect(jvalue,&result);
+			g_hash_table_insert(interconnect_serial_hash,
+					g_strdup(result.serialNumber),
+					g_strdup("TRUE"));
 
+			/* Find the Enclosure for this interconnect to update 
+			 * the Resource matrix table */
+			asprintf(&ov_handler->connection->url, "https://%s%s",
+					ov_handler->connection->hostname,
+					result.locationUri);
+			rv = ov_rest_getenclosureInfoArray(oh_handler,
+					&enclosure_response, 
+					ov_handler->connection,
+					enclosure_doc);
+			if(rv != SA_OK || enclosure_response.enclosure_array 
+				== NULL) {
+				CRIT("Failed to get the response from "
+					"ov_rest_getenclosureInfoArray\n");
+				continue;
+			}
+			ov_rest_json_parse_enclosure(
+					enclosure_response.enclosure_array,
+					&enclosure_info);
+			ov_rest_wrap_json_object_put(
+					enclosure_response.root_jobj);
+			enclosure = ov_handler->ov_rest_resources.enclosure;
+			while(enclosure != NULL){
+				if(strstr(enclosure->serial_number,
+						enclosure_info.serialNumber)){
+					break;
+				}
+				enclosure = enclosure->next;
+			}
+			if(enclosure == NULL){
+				CRIT("Enclosure data of the interconnect with"
+					" serial number %s is unavailable",
+						result.serialNumber);
 				continue;
 			}else {
-				rv = remove_interconnect_blade(oh_handler, 
-						result.bayNumber, enclosure);
-				if(rv != SA_OK){
-					err("Unable to remove the sas-inter"
-							"connect in enclosure"
-							" serial: %s and device"
-							" bay: %d", enclosure->
-							serial_number, 
-							result.bayNumber);
-				}
-				rv = add_inserted_interconnect(oh_handler, 
-						enclosure, &result);
-				if(rv != SA_OK){
-					err("Unable to add the sas-inter"
-							"connect in enclosure"
-							" serial: %s and device"
-							" bay: %d", enclosure->
-							serial_number, 
-							result.bayNumber);
+				if(enclosure->interconnect.
+					presence[result.bayNumber-1]
+					== RES_ABSENT){
+					rv = add_inserted_interconnect(
+							oh_handler, 
+							enclosure, 
+							&result);
+					if(rv != SA_OK){
+						err("Unable to add the sas"
+						"-interconnect in enclosure"
+						" serial: %s and device"
+						" bay: %d", enclosure->
+						serial_number, 
+						result.bayNumber);
+					}
+				}else if(strstr(enclosure->interconnect.
+					serial_number[result.bayNumber-1],
+					result.serialNumber) ||	!strcmp(result.
+					serialNumber, "unknown")){
+
+					continue;
+				}else {
+					rv = remove_interconnect_blade(
+							oh_handler, 
+							result.bayNumber, 
+							enclosure);
+					if(rv != SA_OK){
+						err("Unable to remove the sas"
+						"-interconnect in enclosure"
+						" serial: %s and device"
+						" bay: %d", enclosure->
+						serial_number, 
+						result.bayNumber);
+					}
+					rv = add_inserted_interconnect(
+							oh_handler,
+							enclosure, 
+							&result);
+					if(rv != SA_OK){
+						err("Unable to add the sas"
+						"-interconnect in enclosure"
+						" serial: %s and device"
+						" bay: %d", enclosure->
+						serial_number, 
+						result.bayNumber);
+					}
 				}
 			}
+		}
+		ov_rest_wrap_json_object_put(response.root_jobj);
+		if(response.next_page == NULL){
+			break;
+		}else{
+			asprintf(&ov_handler->connection->url, "https://%s%s",
+					ov_handler->connection->hostname,
+					response.next_page);
+			rv = ov_rest_getinterconnectInfoArray(oh_handler, 
+					&response, ov_handler->connection, 
+					interconnect_doc);
+			if(rv != SA_OK || response.interconnect_array == NULL){
+				CRIT("Failed to get the response from "
+					"ov_rest_getinterconnectInfoArray");
+				return SA_OK;
+			}
 
+			/* Checking for json object type, if it is not array, 
+ 			 * return */
+			if (json_object_get_type(response.interconnect_array) !=
+					json_type_array) {
+				CRIT("Not adding any interconnects as no array"
+						" returned");
+				return SA_OK;
+			}
+
+			/*Getting the length of the array*/
+			arraylen = json_object_array_length(
+					response.interconnect_array);
 		}
 	}
 	enclosure = ov_handler->ov_rest_resources.enclosure;
@@ -1763,21 +1847,18 @@ SaErrorT re_discover_sas_interconnect(struct oh_handler_state *oh_handler)
 					rv = remove_interconnect_blade(
 						oh_handler, bay, enclosure);
 					if(rv != SA_OK){
-						err("Unable to remove the sas-inter"
-							"connect in enclosure"
-							" serial: %s and device"
-							" bay: %d", enclosure->
-							serial_number, bay);
+						err("Unable to remove the sas"
+						"-interconnect in enclosure"
+						" serial: %s and device"
+						" bay: %d", enclosure->
+						serial_number, bay);
 					}
 				}
-
 			}
-
 		}
 		enclosure = enclosure->next;
 	}
 	g_hash_table_destroy(interconnect_serial_hash);
-	ov_rest_wrap_json_object_put(response.root_jobj);
 	return SA_OK;
 }
 /*
