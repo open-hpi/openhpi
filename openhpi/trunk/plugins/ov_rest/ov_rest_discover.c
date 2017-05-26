@@ -822,6 +822,7 @@ SaErrorT ov_rest_getinterconnectInfoArray(struct oh_handler_state *oh_handler,
 {
 	SaErrorT rv = SA_OK;
 	OV_STRING s = {0};
+	const char *temp = NULL;
 	struct curl_slist *chunk = NULL;
 	curl_global_init(CURL_GLOBAL_ALL);
 	/* Get a curl handle */
@@ -832,6 +833,13 @@ SaErrorT ov_rest_getinterconnectInfoArray(struct oh_handler_state *oh_handler,
 	}else
 	{
 		response->root_jobj = s.jobj;
+		temp = json_object_get_string(
+				ov_rest_wrap_json_object_object_get(
+					s.jobj, "nextPageUri"));
+		memset(response->next_page,0,MAX_256_CHARS);
+		if(temp != NULL){
+			memcpy(response->next_page, temp, strlen(temp)+1);
+		}
 		/*Getting the array if it is a key value pair*/
 		response->interconnect_array = 
 			ov_rest_wrap_json_object_object_get(s.jobj, "members");
@@ -4016,85 +4024,118 @@ SaErrorT ov_rest_discover_sas_interconnect(struct oh_handler_state *handler)
 		CRIT("No sas-interconnects arrays returned");
 		return SA_OK;
 	}
-
 	arraylen = json_object_array_length(response.interconnect_array);
-	for (i=0; i< arraylen; i++){
-		if (ov_handler->shutdown_event_thread == SAHPI_TRUE) {
-			dbg("shutdown_event_thread set. Returning in thread %p",
-					g_thread_self());
-			return SA_OK;
-		}
-		memset(&result, 0, sizeof(struct interconnectInfo));
-		jvalue = json_object_array_get_idx (
-				response.interconnect_array, i);
-		if (!jvalue) {
-			CRIT("Invalid response for the sas-interconnect"
-					" in bay %d", i + 1);
-			continue;
-		}
-		ov_rest_json_parse_interconnect(jvalue,&result);
-		rv = ov_rest_build_interconnect_rpt(handler,
-				&result, &resource_id);
-		if(rv != SA_OK){
-			err("Failed to Add sas-interconnect rpt for bay %d.",
-					result.bayNumber);
-			continue;
-		}
-		itostr(resource_id ,&s);
-		dbg("Uri = %s resource_id = %s, %d",
-				result.uri,s,resource_id);
-		g_hash_table_insert(ov_handler->uri_rid, g_strdup(result.uri),
-				g_strdup(s));
-		wrap_free(s);
-		/* Update resource_status structure with resource_id,
-		 * serial_number, and presence status
-		 */
-		/* Find the Enclosure for this interconnect to update the
-		 * Resource matrix table */
-		asprintf(&ov_handler->connection->url, "https://%s%s",
-				ov_handler->connection->hostname,
-				result.locationUri);
-		rv = ov_rest_getenclosureInfoArray(handler, 
-				&enclosure_response, ov_handler->connection,
-				enclosure_doc);
-		if(rv != SA_OK || enclosure_response.enclosure_array == NULL) {
-			CRIT("Faild to get the response from "
+	while(1){
+		for (i=0; i< arraylen; i++){
+			if (ov_handler->shutdown_event_thread == SAHPI_TRUE) {
+				dbg("shutdown_event_thread set. Returning in "
+					"thread %p", g_thread_self());
+				return SA_OK;
+			}
+			memset(&result, 0, sizeof(struct interconnectInfo));
+			jvalue = json_object_array_get_idx (
+					response.interconnect_array, i);
+			if (!jvalue) {
+				CRIT("Invalid response for the sas-interconnect"
+						" in bay %d", i + 1);
+				continue;
+			}
+			ov_rest_json_parse_interconnect(jvalue,&result);
+			rv = ov_rest_build_interconnect_rpt(handler,
+					&result, &resource_id);
+			if(rv != SA_OK){
+				err("Failed to Add sas-interconnect rpt for "
+					"bay %d.", result.bayNumber);
+				continue;
+			}
+			itostr(resource_id ,&s);
+			dbg("Uri = %s resource_id = %s, %d",
+					result.uri,s,resource_id);
+			g_hash_table_insert(ov_handler->uri_rid, 
+					g_strdup(result.uri),
+					g_strdup(s));
+			wrap_free(s);
+			/* Update resource_status structure with resource_id,
+			 * serial_number, and presence status
+			 */
+			/* Find the Enclosure for this interconnect to update 
+ 			 * the Resource matrix table */
+			asprintf(&ov_handler->connection->url, "https://%s%s",
+					ov_handler->connection->hostname,
+					result.locationUri);
+			rv = ov_rest_getenclosureInfoArray(handler, 
+					&enclosure_response, 
+					ov_handler->connection,
+					enclosure_doc);
+			if(rv != SA_OK || enclosure_response.
+						enclosure_array == NULL) {
+				CRIT("Faild to get the response from "
 					"ov_rest_getenclosureInfoArray\n");
-			continue;
-		}
-		ov_rest_json_parse_enclosure(
-				enclosure_response.enclosure_array, 
-				&enclosure_info);
-		ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
+				continue;
+			}
+			ov_rest_json_parse_enclosure(
+					enclosure_response.enclosure_array,
+					&enclosure_info);
+			ov_rest_wrap_json_object_put(
+					enclosure_response.root_jobj);
 
-		enclosure = ov_handler->ov_rest_resources.enclosure;
-		while(enclosure != NULL){
-			if(strstr(enclosure->serial_number,
+			enclosure = ov_handler->ov_rest_resources.enclosure;
+			while(enclosure != NULL){
+				if(strstr(enclosure->serial_number,
 						enclosure_info.serialNumber)){
-				ov_rest_update_resource_status (
+					ov_rest_update_resource_status (
 						&enclosure->interconnect,
 						result.bayNumber,
-						result.serialNumber,
-						resource_id,
-						RES_PRESENT,
-						result.type);
-				break;
+							result.serialNumber,
+							resource_id,
+							RES_PRESENT,
+							result.type);
+					break;
+				}
+				enclosure = enclosure->next;
 			}
-			enclosure = enclosure->next;
-		}
-		if(enclosure == NULL){
-			CRIT("Enclosure data of the interconnect"
+			if(enclosure == NULL){
+				CRIT("Enclosure data of the interconnect"
 					" serial number %s is unavailable",
-					result.serialNumber);
-			continue;
-		}
+						result.serialNumber);
+				continue;
+			}
 
-		/* Build rdr entry for interconnect */
-		ov_rest_build_interconnect_rdr(handler, resource_id, &result);
-		wrap_g_free(enclosure_doc);
-		wrap_g_free(s);
+			/* Build rdr entry for interconnect */
+			ov_rest_build_interconnect_rdr(handler, 
+						resource_id, &result);
+			wrap_g_free(enclosure_doc);
+			wrap_g_free(s);
+		}
+		ov_rest_wrap_json_object_put(response.root_jobj);
+		if(response.next_page == NULL){
+			break;
+		}
+		else{
+			asprintf(&ov_handler->connection->url, "https://%s%s",
+					ov_handler->connection->hostname,
+					response.next_page);
+			memset(&response, 0, sizeof(response));
+			rv = ov_rest_getinterconnectInfoArray(handler, 
+					&response,
+					ov_handler->connection,
+					interconnect_doc);
+			if (rv != SA_OK || response.interconnect_array == NULL){
+				CRIT("No response from "
+					"ov_rest_getinterconnectInfoArray");
+				return SA_OK;
+			}
+			/* Checking for json object type, if it is not array, 
+ 			* return */
+			if (json_object_get_type(response.interconnect_array) !=
+					json_type_array) {
+				CRIT("No sas-interconnects arrays returned");
+				return SA_OK;
+			}
+			arraylen = json_object_array_length(
+						response.interconnect_array);
+		}
 	}
-	ov_rest_wrap_json_object_put(response.root_jobj);
 	return rv;	
 }
 
@@ -4150,80 +4191,122 @@ SaErrorT ov_rest_discover_interconnect(struct oh_handler_state *handler)
 	}
 
 	/*Getting the length of the array*/
-	arraylen = json_object_array_length(response.interconnect_array); 
-	for (i=0; i< arraylen; i++){
-		if (ov_handler->shutdown_event_thread == SAHPI_TRUE) {
-			dbg("shutdown_event_thread set. Returning in thread %p",
-					g_thread_self());
-			return SA_OK;
-		}
-		memset(&result, 0, sizeof(struct interconnectInfo));
-		jvalue = json_object_array_get_idx(response.interconnect_array,
-				i);
-		if (!jvalue) {
-			CRIT("Invalid response for the interconnect"
-					" in bay %d", i + 1);
-			continue;
-		}
-		ov_rest_json_parse_interconnect(jvalue,&result);
-		rv = ov_rest_build_interconnect_rpt(handler,
-				&result, &resource_id);
-		if(rv != SA_OK){
-			err("Failed to Add Interconnect rpt for bay %d.",
-					result.bayNumber);
-			continue;
-		}
-		itostr(resource_id ,&s);
-		dbg("Uri = %s resource_id = %s, %d",result.uri,s,resource_id);
-		g_hash_table_insert(ov_handler->uri_rid, g_strdup(result.uri), 
-				g_strdup(s));
-		wrap_free(s);
-		/* Update resource_status structure with resource_id,
-		 * serial_number, and presence status
-		 */
-		/* Find the Enclosure for this interconnect to update the
-		 * Resource matrix table */
-		asprintf(&ov_handler->connection->url, "https://%s%s",
-				ov_handler->connection->hostname,
-				result.locationUri);
-		rv = ov_rest_getenclosureInfoArray(handler, 
-				&enclosure_response, ov_handler->connection,
-				enclosure_doc);
-		if(rv != SA_OK || enclosure_response.enclosure_array == NULL) {
-			CRIT("Failed to get the response from "
-					"ov_rest_getenclosureInfoArray\n");
-			continue;
-		} 
-		ov_rest_json_parse_enclosure(enclosure_response.enclosure_array,
-				&enclosure_info);
-		ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
-
-		enclosure = ov_handler->ov_rest_resources.enclosure;
-		while(enclosure != NULL){
-			if(strstr(enclosure->serial_number,
-						enclosure_info.serialNumber)){
-				ov_rest_update_resource_status(
-						&enclosure->interconnect,
-						result.bayNumber, result.serialNumber, 
-						resource_id, RES_PRESENT,
-						result.type);
-				break;
+	arraylen = json_object_array_length(response.interconnect_array);
+	while(1){ 
+		for (i=0; i< arraylen; i++){
+			if (ov_handler->shutdown_event_thread == SAHPI_TRUE) {
+				dbg("shutdown_event_thread set. Returning in "
+					"thread %p", g_thread_self());
+				return SA_OK;
 			}
-			enclosure = enclosure->next;
-		}
-		if(enclosure == NULL){
-			CRIT("Enclosure data of the interconnect with"
-					" serial number %s is unavailable",
-					result.serialNumber);
-			continue;
-		}
+			memset(&result, 0, sizeof(struct interconnectInfo));
+			jvalue = json_object_array_get_idx(
+					response.interconnect_array, i);
+			if (!jvalue) {
+				CRIT("Invalid response for the interconnect"
+						" in bay %d", i + 1);
+				continue;
+			}
+			ov_rest_json_parse_interconnect(jvalue,&result);
+			rv = ov_rest_build_interconnect_rpt(handler,
+					&result, &resource_id);
+			if(rv != SA_OK){
+				err("Failed to Add Interconnect rpt for "
+						"bay %d.", result.bayNumber);
+				continue;
+			}
+			itostr(resource_id ,&s);
+			dbg("Uri = %s resource_id = %s, %d",result.uri,s,
+								resource_id);
+			g_hash_table_insert(ov_handler->uri_rid, 
+					g_strdup(result.uri),
+					g_strdup(s));
+			wrap_free(s);
+			/* Update resource_status structure with resource_id,
+			 * serial_number, and presence status
+			 */
+			/* Find the Enclosure for this interconnect to update 
+ 			 * the Resource matrix table */
+			asprintf(&ov_handler->connection->url, "https://%s%s",
+					ov_handler->connection->hostname,
+					result.locationUri);
+			rv = ov_rest_getenclosureInfoArray(handler, 
+					&enclosure_response, 
+					ov_handler->connection,
+					enclosure_doc);
+			if(rv != SA_OK || enclosure_response.
+					enclosure_array == NULL) {
+				CRIT("Failed to get the response from "
+					"ov_rest_getenclosureInfoArray\n");
+				continue;
+			} 
+			ov_rest_json_parse_enclosure(
+					enclosure_response.enclosure_array,
+					&enclosure_info);
+			ov_rest_wrap_json_object_put(
+				enclosure_response.root_jobj);
 
-		/* Build rdr entry for server */
-		ov_rest_build_interconnect_rdr(handler, resource_id, &result);
-		wrap_g_free(enclosure_doc);
-		wrap_g_free(s);
+			enclosure = ov_handler->ov_rest_resources.enclosure;
+			while(enclosure != NULL){
+				if(strstr(enclosure->serial_number,
+					enclosure_info.serialNumber)){
+					ov_rest_update_resource_status(
+							&enclosure->interconnect,
+							result.bayNumber, 
+							result.serialNumber, 
+							resource_id, RES_PRESENT,
+							result.type);
+					break;
+				}
+				enclosure = enclosure->next;
+			}
+			if(enclosure == NULL){
+				CRIT("Enclosure data of the interconnect with"
+					" serial number %s is unavailable",
+						result.serialNumber);
+				continue;
+			}
+
+			/* Build rdr entry for server */
+			ov_rest_build_interconnect_rdr(handler, 
+							resource_id, &result);
+			wrap_g_free(enclosure_doc);
+			wrap_g_free(s);
+		}
+		ov_rest_wrap_json_object_put(response.root_jobj);
+		if(response.next_page == NULL){
+			break;
+		}else {
+			asprintf(&ov_handler->connection->url, "https://%s%s",
+					ov_handler->connection->hostname,
+					response.next_page);
+			memset(&response, 0, sizeof(response));
+			rv = ov_rest_getinterconnectInfoArray(handler, 
+					&response,
+					ov_handler->connection, 
+					interconnect_doc);
+			if(rv != SA_OK || response.interconnect_array == NULL){
+				CRIT("Failed to get the response from "
+					"ov_rest_getinterconnectInfoArray");
+
+				return SA_OK;
+			}
+
+			/* Checking for json object type, if it is not array, 
+ 			 * return */
+			if (json_object_get_type(response.interconnect_array) !=
+					json_type_array) {
+				CRIT("Not adding any interconnects as no "
+					"array returned");
+				return SA_OK;
+			}
+
+			/*Getting the length of the array*/
+			arraylen = json_object_array_length(
+					response.interconnect_array);
+
+		}
 	}
-	ov_rest_wrap_json_object_put(response.root_jobj);
 	return rv;
 }
 
