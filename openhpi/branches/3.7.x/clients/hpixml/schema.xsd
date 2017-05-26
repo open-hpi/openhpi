@@ -1,0 +1,2448 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="http://openhpi.org/SAI-HPI-B.03.02"
+           xmlns="http://openhpi.org/SAI-HPI-B.03.02"
+           elementFormDefault="qualified">
+
+<xs:annotation>
+ <xs:documentation xml:lang="en">
+  (C) Copyright Pigeon Point Systems. 2011
+
+  This file is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. This
+  file is licensed under a BSD style license. See
+  the Copying file included with the OpenHPI distribution for
+  full licensing terms.
+
+  Author(s):
+      Anton Pak &lt;anton.pak@pigeonpoint.com&gt;
+ </xs:documentation>
+</xs:annotation>
+
+
+<!-- Basic HPI Types -->
+
+<xs:simpleType name="SaHpiUint8T">
+ <xs:restriction base="xs:nonNegativeInteger">
+  <xs:maxInclusive value="255"/>
+ </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiUint16T">
+ <xs:restriction base="xs:nonNegativeInteger">
+  <xs:maxInclusive value="65535"/>
+ </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiUint32T">
+ <xs:restriction base="xs:nonNegativeInteger">
+  <xs:maxInclusive value="4294967295"/>
+ </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiUint64T">
+ <xs:restriction base="xs:nonNegativeInteger">
+  <xs:maxInclusive value="18446744073709551615"/>
+ </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiInt8T">
+ <xs:restriction base="xs:integer">
+  <xs:minInclusive value="-128"/>
+  <xs:maxInclusive value="127"/>
+ </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiInt16T">
+ <xs:restriction base="xs:integer">
+  <xs:minInclusive value="-32768"/>
+  <xs:maxInclusive value="32767"/>
+ </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiInt32T">
+ <xs:restriction base="xs:integer">
+  <xs:minInclusive value="-2147483648"/>
+  <xs:maxInclusive value="2147483647"/>
+ </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiInt64T">
+ <xs:restriction base="xs:integer">
+  <xs:minInclusive value="-9223372036854775808"/>
+  <xs:maxInclusive value="9223372036854775807"/>
+ </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiFloat64T">
+ <xs:restriction base="xs:double"/>
+</xs:simpleType>
+
+<!-- SaHpiBoolT we derive from xs:boolean instead of SaHpiUint8T -->
+<xs:simpleType name="SaHpiBoolT">
+ <xs:restriction base="xs:boolean"/>
+</xs:simpleType>
+
+
+<!-- HPI Typedefs -->
+
+<xs:simpleType name="SaHpiManufacturerIdT">
+ <xs:restriction base="SaHpiUint32T"/>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiVersionT">
+ <xs:restriction base="SaHpiUint32T"/>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiDomainIdT">
+ <xs:restriction base="SaHpiUint32T"/>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiSessionIdT">
+ <xs:restriction base="SaHpiUint32T"/>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiResourceIdT">
+ <xs:restriction base="SaHpiUint32T"/>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiEntryIdT">
+ <xs:restriction base="SaHpiUint32T"/>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiTimeT">
+ <xs:restriction base="SaHpiInt64T"/>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiTimeoutT">
+ <xs:restriction base="SaHpiInt64T"/>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiInstrumentIdT">
+ <xs:restriction base="SaHpiUint32T"/>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiEntityLocationT">
+ <xs:restriction base="SaHpiUint32T"/>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiSensorNumT">
+ <xs:restriction base="SaHpiInstrumentIdT"/>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiCtrlNumT">
+ <xs:restriction base="SaHpiInstrumentIdT"/>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiCtrlStateDiscreteT">
+ <xs:restriction base="SaHpiUint32T"/>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiCtrlStateAnalogT">
+ <xs:restriction base="SaHpiInt32T"/>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiTxtLineNumT">
+ <xs:restriction base="SaHpiUint8T"/>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiIdrIdT">
+ <xs:restriction base="SaHpiInstrumentIdT"/>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiWatchdogNumT">
+ <xs:restriction base="SaHpiInstrumentIdT"/>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiDimiNumT">
+ <xs:restriction base="SaHpiInstrumentIdT"/>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiDimiTestNumT">
+ <xs:restriction base="SaHpiUint32T"/>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiDimiTestPercentCompletedT">
+ <xs:restriction base="SaHpiUint8T"/>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiFumiNumT">
+ <xs:restriction base="SaHpiInstrumentIdT"/>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiBankNumT">
+ <xs:restriction base="SaHpiUint8T"/>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiAnnunciatorNumT">
+ <xs:restriction base="SaHpiInstrumentIdT"/>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiLoadNumberT">
+ <xs:restriction base="SaHpiUint32T"/>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiAlarmIdT">
+ <xs:restriction base="SaHpiEntryIdT"/>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiEventLogEntryIdT">
+ <xs:restriction base="SaHpiUint32T"/>
+</xs:simpleType>
+
+
+<!-- HPI Enum Types -->
+
+<xs:simpleType name="SaHpiLanguageT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="UNDEF"/>
+    <xs:enumeration value="AFAR"/>
+    <xs:enumeration value="ABKHAZIAN"/>
+    <xs:enumeration value="AFRIKAANS"/>
+    <xs:enumeration value="AMHARIC"/>
+    <xs:enumeration value="ARABIC"/>
+    <xs:enumeration value="ASSAMESE"/>
+    <xs:enumeration value="AYMARA"/>
+    <xs:enumeration value="AZERBAIJANI"/>
+    <xs:enumeration value="BASHKIR"/>
+    <xs:enumeration value="BYELORUSSIAN"/>
+    <xs:enumeration value="BULGARIAN"/>
+    <xs:enumeration value="BIHARI"/>
+    <xs:enumeration value="BISLAMA"/>
+    <xs:enumeration value="BENGALI"/>
+    <xs:enumeration value="TIBETAN"/>
+    <xs:enumeration value="BRETON"/>
+    <xs:enumeration value="CATALAN"/>
+    <xs:enumeration value="CORSICAN"/>
+    <xs:enumeration value="CZECH"/>
+    <xs:enumeration value="WELSH"/>
+    <xs:enumeration value="DANISH"/>
+    <xs:enumeration value="GERMAN"/>
+    <xs:enumeration value="BHUTANI"/>
+    <xs:enumeration value="GREEK"/>
+    <xs:enumeration value="ENGLISH"/>
+    <xs:enumeration value="ESPERANTO"/>
+    <xs:enumeration value="SPANISH"/>
+    <xs:enumeration value="ESTONIAN"/>
+    <xs:enumeration value="BASQUE"/>
+    <xs:enumeration value="PERSIAN"/>
+    <xs:enumeration value="FINNISH"/>
+    <xs:enumeration value="FIJI"/>
+    <xs:enumeration value="FAEROESE"/>
+    <xs:enumeration value="FRENCH"/>
+    <xs:enumeration value="FRISIAN"/>
+    <xs:enumeration value="IRISH"/>
+    <xs:enumeration value="SCOTSGAELIC"/>
+    <xs:enumeration value="GALICIAN"/>
+    <xs:enumeration value="GUARANI"/>
+    <xs:enumeration value="GUJARATI"/>
+    <xs:enumeration value="HAUSA"/>
+    <xs:enumeration value="HINDI"/>
+    <xs:enumeration value="CROATIAN"/>
+    <xs:enumeration value="HUNGARIAN"/>
+    <xs:enumeration value="ARMENIAN"/>
+    <xs:enumeration value="INTERLINGUA"/>
+    <xs:enumeration value="INTERLINGUE"/>
+    <xs:enumeration value="INUPIAK"/>
+    <xs:enumeration value="INDONESIAN"/>
+    <xs:enumeration value="ICELANDIC"/>
+    <xs:enumeration value="ITALIAN"/>
+    <xs:enumeration value="HEBREW"/>
+    <xs:enumeration value="JAPANESE"/>
+    <xs:enumeration value="YIDDISH"/>
+    <xs:enumeration value="JAVANESE"/>
+    <xs:enumeration value="GEORGIAN"/>
+    <xs:enumeration value="KAZAKH"/>
+    <xs:enumeration value="GREENLANDIC"/>
+    <xs:enumeration value="CAMBODIAN"/>
+    <xs:enumeration value="KANNADA"/>
+    <xs:enumeration value="KOREAN"/>
+    <xs:enumeration value="KASHMIRI"/>
+    <xs:enumeration value="KURDISH"/>
+    <xs:enumeration value="KIRGHIZ"/>
+    <xs:enumeration value="LATIN"/>
+    <xs:enumeration value="LINGALA"/>
+    <xs:enumeration value="LAOTHIAN"/>
+    <xs:enumeration value="LITHUANIAN"/>
+    <xs:enumeration value="LATVIANLETTISH"/>
+    <xs:enumeration value="MALAGASY"/>
+    <xs:enumeration value="MAORI"/>
+    <xs:enumeration value="MACEDONIAN"/>
+    <xs:enumeration value="MALAYALAM"/>
+    <xs:enumeration value="MONGOLIAN"/>
+    <xs:enumeration value="MOLDAVIAN"/>
+    <xs:enumeration value="MARATHI"/>
+    <xs:enumeration value="MALAY"/>
+    <xs:enumeration value="MALTESE"/>
+    <xs:enumeration value="BURMESE"/>
+    <xs:enumeration value="NAURU"/>
+    <xs:enumeration value="NEPALI"/>
+    <xs:enumeration value="DUTCH"/>
+    <xs:enumeration value="NORWEGIAN"/>
+    <xs:enumeration value="OCCITAN"/>
+    <xs:enumeration value="AFANOROMO"/>
+    <xs:enumeration value="ORIYA"/>
+    <xs:enumeration value="PUNJABI"/>
+    <xs:enumeration value="POLISH"/>
+    <xs:enumeration value="PASHTOPUSHTO"/>
+    <xs:enumeration value="PORTUGUESE"/>
+    <xs:enumeration value="QUECHUA"/>
+    <xs:enumeration value="RHAETOROMANCE"/>
+    <xs:enumeration value="KIRUNDI"/>
+    <xs:enumeration value="ROMANIAN"/>
+    <xs:enumeration value="RUSSIAN"/>
+    <xs:enumeration value="KINYARWANDA"/>
+    <xs:enumeration value="SANSKRIT"/>
+    <xs:enumeration value="SINDHI"/>
+    <xs:enumeration value="SANGRO"/>
+    <xs:enumeration value="SERBOCROATIAN"/>
+    <xs:enumeration value="SINGHALESE"/>
+    <xs:enumeration value="SLOVAK"/>
+    <xs:enumeration value="SLOVENIAN"/>
+    <xs:enumeration value="SAMOAN"/>
+    <xs:enumeration value="SHONA"/>
+    <xs:enumeration value="SOMALI"/>
+    <xs:enumeration value="ALBANIAN"/>
+    <xs:enumeration value="SERBIAN"/>
+    <xs:enumeration value="SISWATI"/>
+    <xs:enumeration value="SESOTHO"/>
+    <xs:enumeration value="SUDANESE"/>
+    <xs:enumeration value="SWEDISH"/>
+    <xs:enumeration value="SWAHILI"/>
+    <xs:enumeration value="TAMIL"/>
+    <xs:enumeration value="TELUGU"/>
+    <xs:enumeration value="TAJIK"/>
+    <xs:enumeration value="THAI"/>
+    <xs:enumeration value="TIGRINYA"/>
+    <xs:enumeration value="TURKMEN"/>
+    <xs:enumeration value="TAGALOG"/>
+    <xs:enumeration value="SETSWANA"/>
+    <xs:enumeration value="TONGA"/>
+    <xs:enumeration value="TURKISH"/>
+    <xs:enumeration value="TSONGA"/>
+    <xs:enumeration value="TATAR"/>
+    <xs:enumeration value="TWI"/>
+    <xs:enumeration value="UKRAINIAN"/>
+    <xs:enumeration value="URDU"/>
+    <xs:enumeration value="UZBEK"/>
+    <xs:enumeration value="VIETNAMESE"/>
+    <xs:enumeration value="VOLAPUK"/>
+    <xs:enumeration value="WOLOF"/>
+    <xs:enumeration value="XHOSA"/>
+    <xs:enumeration value="YORUBA"/>
+    <xs:enumeration value="CHINESE"/>
+    <xs:enumeration value="ZULU"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiTextTypeT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="UNICODE"/>
+    <xs:enumeration value="BCDPLUS"/>
+    <xs:enumeration value="ASCII6"/>
+    <xs:enumeration value="TEXT"/>
+    <xs:enumeration value="BINARY"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiEntityTypeT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="UNSPECIFIED"/>
+    <xs:enumeration value="OTHER"/>
+    <xs:enumeration value="UNKNOWN"/>
+    <xs:enumeration value="PROCESSOR"/>
+    <xs:enumeration value="DISK_BAY"/>
+    <xs:enumeration value="PERIPHERAL_BAY"/>
+    <xs:enumeration value="SYS_MGMNT_MODULE"/>
+    <xs:enumeration value="SYSTEM_BOARD"/>
+    <xs:enumeration value="MEMORY_MODULE"/>
+    <xs:enumeration value="PROCESSOR_MODULE"/>
+    <xs:enumeration value="POWER_SUPPLY"/>
+    <xs:enumeration value="ADD_IN_CARD"/>
+    <xs:enumeration value="FRONT_PANEL_BOARD"/>
+    <xs:enumeration value="BACK_PANEL_BOARD"/>
+    <xs:enumeration value="POWER_SYSTEM_BOARD"/>
+    <xs:enumeration value="DRIVE_BACKPLANE"/>
+    <xs:enumeration value="SYS_EXPANSION_BOARD"/>
+    <xs:enumeration value="OTHER_SYSTEM_BOARD"/>
+    <xs:enumeration value="PROCESSOR_BOARD"/>
+    <xs:enumeration value="POWER_UNIT"/>
+    <xs:enumeration value="POWER_MODULE"/>
+    <xs:enumeration value="POWER_MGMNT"/>
+    <xs:enumeration value="CHASSIS_BACK_PANEL_BOARD"/>
+    <xs:enumeration value="SYSTEM_CHASSIS"/>
+    <xs:enumeration value="SUB_CHASSIS"/>
+    <xs:enumeration value="OTHER_CHASSIS_BOARD"/>
+    <xs:enumeration value="DISK_DRIVE_BAY"/>
+    <xs:enumeration value="PERIPHERAL_BAY_2"/>
+    <xs:enumeration value="DEVICE_BAY"/>
+    <xs:enumeration value="COOLING_DEVICE"/>
+    <xs:enumeration value="COOLING_UNIT"/>
+    <xs:enumeration value="INTERCONNECT"/>
+    <xs:enumeration value="MEMORY_DEVICE"/>
+    <xs:enumeration value="SYS_MGMNT_SOFTWARE"/>
+    <xs:enumeration value="BIOS"/>
+    <xs:enumeration value="OPERATING_SYSTEM"/>
+    <xs:enumeration value="SYSTEM_BUS"/>
+    <xs:enumeration value="GROUP"/>
+    <xs:enumeration value="REMOTE"/>
+    <xs:enumeration value="EXTERNAL_ENVIRONMENT"/>
+    <xs:enumeration value="BATTERY"/>
+    <xs:enumeration value="PROCESSING_BLADE"/>
+    <xs:enumeration value="CONNECTIVITY_SWITCH"/>
+    <xs:enumeration value="PROCESSOR_MEMORY_MODULE"/>
+    <xs:enumeration value="IO_MODULE"/>
+    <xs:enumeration value="PROCESSOR_IO_MODULE"/>
+    <xs:enumeration value="MC_FIRMWARE"/>
+    <xs:enumeration value="IPMI_CHANNEL"/>
+    <xs:enumeration value="PCI_BUS"/>
+    <xs:enumeration value="PCI_EXPRESS_BUS"/>
+    <xs:enumeration value="SCSI_BUS"/>
+    <xs:enumeration value="SATA_BUS"/>
+    <xs:enumeration value="PROC_FSB"/>
+    <xs:enumeration value="CLOCK"/>
+    <xs:enumeration value="SYSTEM_FIRMWARE"/>
+    <xs:enumeration value="CHASSIS_SPECIFIC"/>
+    <xs:enumeration value="BOARD_SET_SPECIFIC"/>
+    <xs:enumeration value="OEM_SYSINT_SPECIFIC"/>
+    <xs:enumeration value="ROOT"/>
+    <xs:enumeration value="RACK"/>
+    <xs:enumeration value="SUBRACK"/>
+    <xs:enumeration value="COMPACTPCI_CHASSIS"/>
+    <xs:enumeration value="ADVANCEDTCA_CHASSIS"/>
+    <xs:enumeration value="RACK_MOUNTED_SERVER"/>
+    <xs:enumeration value="SYSTEM_BLADE"/>
+    <xs:enumeration value="SWITCH"/>
+    <xs:enumeration value="SWITCH_BLADE"/>
+    <xs:enumeration value="SBC_BLADE"/>
+    <xs:enumeration value="IO_BLADE"/>
+    <xs:enumeration value="DISK_BLADE"/>
+    <xs:enumeration value="DISK_DRIVE"/>
+    <xs:enumeration value="FAN"/>
+    <xs:enumeration value="POWER_DISTRIBUTION_UNIT"/>
+    <xs:enumeration value="SPEC_PROC_BLADE"/>
+    <xs:enumeration value="IO_SUBBOARD"/>
+    <xs:enumeration value="SBC_SUBBOARD"/>
+    <xs:enumeration value="ALARM_MANAGER"/>
+    <xs:enumeration value="SHELF_MANAGER"/>
+    <xs:enumeration value="DISPLAY_PANEL"/>
+    <xs:enumeration value="SUBBOARD_CARRIER_BLADE"/>
+    <xs:enumeration value="PHYSICAL_SLOT"/>
+    <xs:enumeration value="PICMG_FRONT_BLADE"/>
+    <xs:enumeration value="SYSTEM_INVENTORY_DEVICE"/>
+    <xs:enumeration value="FILTRATION_UNIT"/>
+    <xs:enumeration value="AMC"/>
+    <xs:enumeration value="BMC"/>
+    <xs:enumeration value="IPMC"/>
+    <xs:enumeration value="MMC"/>
+    <xs:enumeration value="SHMC"/>
+    <xs:enumeration value="CPLD"/>
+    <xs:enumeration value="EPLD"/>
+    <xs:enumeration value="FPGA"/>
+    <xs:enumeration value="DASD"/>
+    <xs:enumeration value="NIC"/>
+    <xs:enumeration value="DSP"/>
+    <xs:enumeration value="UCODE"/>
+    <xs:enumeration value="NPU"/>
+    <xs:enumeration value="OEM"/>
+    <xs:enumeration value="INTERFACE"/>
+    <xs:enumeration value="MICROTCA_CHASSIS"/>
+    <xs:enumeration value="CARRIER"/>
+    <xs:enumeration value="CARRIER_MANAGER"/>
+    <xs:enumeration value="CONFIG_DATA"/>
+    <xs:enumeration value="INDICATOR"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiSensorTypeT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="TEMPERATURE"/>
+    <xs:enumeration value="VOLTAGE"/>
+    <xs:enumeration value="CURRENT"/>
+    <xs:enumeration value="FAN"/>
+    <xs:enumeration value="PHYSICAL_SECURITY"/>
+    <xs:enumeration value="PLATFORM_VIOLATION"/>
+    <xs:enumeration value="PROCESSOR"/>
+    <xs:enumeration value="POWER_SUPPLY"/>
+    <xs:enumeration value="POWER_UNIT"/>
+    <xs:enumeration value="COOLING_DEVICE"/>
+    <xs:enumeration value="OTHER_UNITS_BASED_SENSOR"/>
+    <xs:enumeration value="MEMORY"/>
+    <xs:enumeration value="DRIVE_SLOT"/>
+    <xs:enumeration value="POST_MEMORY_RESIZE"/>
+    <xs:enumeration value="SYSTEM_FW_PROGRESS"/>
+    <xs:enumeration value="EVENT_LOGGING_DISABLED"/>
+    <xs:enumeration value="RESERVED1"/>
+    <xs:enumeration value="SYSTEM_EVENT"/>
+    <xs:enumeration value="CRITICAL_INTERRUPT"/>
+    <xs:enumeration value="BUTTON"/>
+    <xs:enumeration value="MODULE_BOARD"/>
+    <xs:enumeration value="MICROCONTROLLER_COPROCESSOR"/>
+    <xs:enumeration value="ADDIN_CARD"/>
+    <xs:enumeration value="CHASSIS"/>
+    <xs:enumeration value="CHIP_SET"/>
+    <xs:enumeration value="OTHER_FRU"/>
+    <xs:enumeration value="CABLE_INTERCONNECT"/>
+    <xs:enumeration value="TERMINATOR"/>
+    <xs:enumeration value="SYSTEM_BOOT_INITIATED"/>
+    <xs:enumeration value="BOOT_ERROR"/>
+    <xs:enumeration value="OS_BOOT"/>
+    <xs:enumeration value="OS_CRITICAL_STOP"/>
+    <xs:enumeration value="SLOT_CONNECTOR"/>
+    <xs:enumeration value="SYSTEM_ACPI_POWER_STATE"/>
+    <xs:enumeration value="RESERVED2"/>
+    <xs:enumeration value="PLATFORM_ALERT"/>
+    <xs:enumeration value="ENTITY_PRESENCE"/>
+    <xs:enumeration value="MONITOR_ASIC_IC"/>
+    <xs:enumeration value="LAN"/>
+    <xs:enumeration value="MANAGEMENT_SUBSYSTEM_HEALTH"/>
+    <xs:enumeration value="BATTERY"/>
+    <xs:enumeration value="SESSION_AUDIT"/>
+    <xs:enumeration value="VERSION_CHANGE"/>
+    <xs:enumeration value="OPERATIONAL"/>
+    <xs:enumeration value="OEM_SENSOR"/>
+    <xs:enumeration value="COMM_CHANNEL_LINK_STATE"/>
+    <xs:enumeration value="MANAGEMENT_BUS_STATE"/>
+    <xs:enumeration value="COMM_CHANNEL_BUS_STATE"/>
+    <xs:enumeration value="CONFIG_DATA"/>
+    <xs:enumeration value="POWER_BUDGET"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiSensorReadingTypeT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="INT64"/>
+    <xs:enumeration value="UINT64"/>
+    <xs:enumeration value="FLOAT64"/>
+    <xs:enumeration value="BUFFER"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiSensorEventMaskActionT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="ADD_EVENTS_TO_MASKS"/>
+    <xs:enumeration value="REMOVE_EVENTS_FROM_MASKS"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiSensorUnitsT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+<!-- TODO had to comment it and use other enumerations because of oh_lookup_sensorunit()
+    <xs:enumeration value="UNSPECIFIED"/>
+    <xs:enumeration value="DEGREES_C"/>
+    <xs:enumeration value="DEGREES_F"/>
+    <xs:enumeration value="DEGREES_K"/>
+    <xs:enumeration value="VOLTS"/>
+    <xs:enumeration value="AMPS"/>
+    <xs:enumeration value="WATTS"/>
+    <xs:enumeration value="JOULES"/>
+    <xs:enumeration value="COULOMBS"/>
+    <xs:enumeration value="VA"/>
+    <xs:enumeration value="NITS"/>
+    <xs:enumeration value="LUMEN"/>
+    <xs:enumeration value="LUX"/>
+    <xs:enumeration value="CANDELA"/>
+    <xs:enumeration value="KPA"/>
+    <xs:enumeration value="PSI"/>
+    <xs:enumeration value="NEWTON"/>
+    <xs:enumeration value="CFM"/>
+    <xs:enumeration value="RPM"/>
+    <xs:enumeration value="HZ"/>
+    <xs:enumeration value="MICROSECOND"/>
+    <xs:enumeration value="MILLISECOND"/>
+    <xs:enumeration value="SECOND"/>
+    <xs:enumeration value="MINUTE"/>
+    <xs:enumeration value="HOUR"/>
+    <xs:enumeration value="DAY"/>
+    <xs:enumeration value="WEEK"/>
+    <xs:enumeration value="MIL"/>
+    <xs:enumeration value="INCHES"/>
+    <xs:enumeration value="FEET"/>
+    <xs:enumeration value="CU_IN"/>
+    <xs:enumeration value="CU_FEET"/>
+    <xs:enumeration value="MM"/>
+    <xs:enumeration value="CM"/>
+    <xs:enumeration value="M"/>
+    <xs:enumeration value="CU_CM"/>
+    <xs:enumeration value="CU_M"/>
+    <xs:enumeration value="LITERS"/>
+    <xs:enumeration value="FLUID_OUNCE"/>
+    <xs:enumeration value="RADIANS"/>
+    <xs:enumeration value="STERADIANS"/>
+    <xs:enumeration value="REVOLUTIONS"/>
+    <xs:enumeration value="CYCLES"/>
+    <xs:enumeration value="GRAVITIES"/>
+    <xs:enumeration value="OUNCE"/>
+    <xs:enumeration value="POUND"/>
+    <xs:enumeration value="FT_LB"/>
+    <xs:enumeration value="OZ_IN"/>
+    <xs:enumeration value="GAUSS"/>
+    <xs:enumeration value="GILBERTS"/>
+    <xs:enumeration value="HENRY"/>
+    <xs:enumeration value="MILLIHENRY"/>
+    <xs:enumeration value="FARAD"/>
+    <xs:enumeration value="MICROFARAD"/>
+    <xs:enumeration value="OHMS"/>
+    <xs:enumeration value="SIEMENS"/>
+    <xs:enumeration value="MOLE"/>
+    <xs:enumeration value="BECQUEREL"/>
+    <xs:enumeration value="PPM"/>
+    <xs:enumeration value="RESERVED"/>
+    <xs:enumeration value="DECIBELS"/>
+    <xs:enumeration value="DBA"/>
+    <xs:enumeration value="DBC"/>
+    <xs:enumeration value="GRAY"/>
+    <xs:enumeration value="SIEVERT"/>
+    <xs:enumeration value="COLOR_TEMP_DEG_K"/>
+    <xs:enumeration value="BIT"/>
+    <xs:enumeration value="KILOBIT"/>
+    <xs:enumeration value="MEGABIT"/>
+    <xs:enumeration value="GIGABIT"/>
+    <xs:enumeration value="BYTE"/>
+    <xs:enumeration value="KILOBYTE"/>
+    <xs:enumeration value="MEGABYTE"/>
+    <xs:enumeration value="GIGABYTE"/>
+    <xs:enumeration value="WORD"/>
+    <xs:enumeration value="DWORD"/>
+    <xs:enumeration value="QWORD"/>
+    <xs:enumeration value="LINE"/>
+    <xs:enumeration value="HIT"/>
+    <xs:enumeration value="MISS"/>
+    <xs:enumeration value="RETRY"/>
+    <xs:enumeration value="RESET"/>
+    <xs:enumeration value="OVERRUN"/>
+    <xs:enumeration value="UNDERRUN"/>
+    <xs:enumeration value="COLLISION"/>
+    <xs:enumeration value="PACKETS"/>
+    <xs:enumeration value="MESSAGES"/>
+    <xs:enumeration value="CHARACTERS"/>
+    <xs:enumeration value="ERRORS"/>
+    <xs:enumeration value="CORRECTABLE_ERRORS"/>
+    <xs:enumeration value="UNCORRECTABLE_ERRORS"/>
+-->
+    <xs:enumeration value="Unspecified"/>
+    <xs:enumeration value="Degrees C"/>
+    <xs:enumeration value="Degrees F"/>
+    <xs:enumeration value="Degrees K"/>
+    <xs:enumeration value="Volts"/>
+    <xs:enumeration value="Amps"/>
+    <xs:enumeration value="Watts"/>
+    <xs:enumeration value="Joules"/>
+    <xs:enumeration value="Coulombs"/>
+    <xs:enumeration value="Va"/>
+    <xs:enumeration value="Nits"/>
+    <xs:enumeration value="Lumen"/>
+    <xs:enumeration value="Lux"/>
+    <xs:enumeration value="Candela"/>
+    <xs:enumeration value="Kpa"/>
+    <xs:enumeration value="Psi"/>
+    <xs:enumeration value="Newton"/>
+    <xs:enumeration value="Cfm"/>
+    <xs:enumeration value="Rpm"/>
+    <xs:enumeration value="Hz"/>
+    <xs:enumeration value="Microsecond"/>
+    <xs:enumeration value="Millisecond"/>
+    <xs:enumeration value="Second"/>
+    <xs:enumeration value="Minute"/>
+    <xs:enumeration value="Hour"/>
+    <xs:enumeration value="Day"/>
+    <xs:enumeration value="Week"/>
+    <xs:enumeration value="Mil"/>
+    <xs:enumeration value="Inches"/>
+    <xs:enumeration value="Feet"/>
+    <xs:enumeration value="Cu In"/>
+    <xs:enumeration value="Cu Feet"/>
+    <xs:enumeration value="Mm"/>
+    <xs:enumeration value="Cm"/>
+    <xs:enumeration value="M"/>
+    <xs:enumeration value="Cu Cm"/>
+    <xs:enumeration value="Cu M"/>
+    <xs:enumeration value="Liters"/>
+    <xs:enumeration value="Fluid Ounce"/>
+    <xs:enumeration value="Radians"/>
+    <xs:enumeration value="Steradians"/>
+    <xs:enumeration value="Revolutions"/>
+    <xs:enumeration value="Cycles"/>
+    <xs:enumeration value="Gravities"/>
+    <xs:enumeration value="Ounce"/>
+    <xs:enumeration value="Pound"/>
+    <xs:enumeration value="Ft Lb"/>
+    <xs:enumeration value="Oz In"/>
+    <xs:enumeration value="Gauss"/>
+    <xs:enumeration value="Gilberts"/>
+    <xs:enumeration value="Henry"/>
+    <xs:enumeration value="Millihenry"/>
+    <xs:enumeration value="Farad"/>
+    <xs:enumeration value="Microfarad"/>
+    <xs:enumeration value="Ohms"/>
+    <xs:enumeration value="Siemens"/>
+    <xs:enumeration value="Mole"/>
+    <xs:enumeration value="Becquerel"/>
+    <xs:enumeration value="Ppm"/>
+    <xs:enumeration value="Reserved"/>
+    <xs:enumeration value="Decibels"/>
+    <xs:enumeration value="Dba"/>
+    <xs:enumeration value="Dbc"/>
+    <xs:enumeration value="Gray"/>
+    <xs:enumeration value="Sievert"/>
+    <xs:enumeration value="Color Temp Deg K"/>
+    <xs:enumeration value="Bit"/>
+    <xs:enumeration value="Kilobit"/>
+    <xs:enumeration value="Megabit"/>
+    <xs:enumeration value="Gigabit"/>
+    <xs:enumeration value="Byte"/>
+    <xs:enumeration value="Kilobyte"/>
+    <xs:enumeration value="Megabyte"/>
+    <xs:enumeration value="Gigabyte"/>
+    <xs:enumeration value="Word"/>
+    <xs:enumeration value="Dword"/>
+    <xs:enumeration value="Qword"/>
+    <xs:enumeration value="Line"/>
+    <xs:enumeration value="Hit"/>
+    <xs:enumeration value="Miss"/>
+    <xs:enumeration value="Retry"/>
+    <xs:enumeration value="Reset"/>
+    <xs:enumeration value="Overrun"/>
+    <xs:enumeration value="Underrun"/>
+    <xs:enumeration value="Collision"/>
+    <xs:enumeration value="Packets"/>
+    <xs:enumeration value="Messages"/>
+    <xs:enumeration value="Characters"/>
+    <xs:enumeration value="Errors"/>
+    <xs:enumeration value="Correctable Errors"/>
+    <xs:enumeration value="Uncorrectable Errors"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiSensorModUnitUseT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="NONE"/>
+    <xs:enumeration value="BASIC_OVER_MODIFIER"/>
+    <xs:enumeration value="BASIC_TIMES_MODIFIER"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiSensorEventCtrlT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="PER_EVENT"/>
+    <xs:enumeration value="READ_ONLY_MASKS"/>
+    <xs:enumeration value="READ_ONLY"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiCtrlTypeT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="DIGITAL"/>
+    <xs:enumeration value="DISCRETE"/>
+    <xs:enumeration value="ANALOG"/>
+    <xs:enumeration value="STREAM"/>
+    <xs:enumeration value="TEXT"/>
+    <xs:enumeration value="OEM"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiCtrlStateDigitalT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="OFF"/>
+    <xs:enumeration value="ON"/>
+    <xs:enumeration value="PULSE_OFF"/>
+    <xs:enumeration value="PULSE_ON"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiCtrlModeT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="AUTO"/>
+    <xs:enumeration value="MANUAL"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiCtrlOutputTypeT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="GENERIC"/>
+    <xs:enumeration value="LED"/>
+    <xs:enumeration value="FAN_SPEED"/>
+    <xs:enumeration value="DRY_CONTACT_CLOSURE"/>
+    <xs:enumeration value="POWER_SUPPLY_INHIBIT"/>
+    <xs:enumeration value="AUDIBLE"/>
+    <xs:enumeration value="FRONT_PANEL_LOCKOUT"/>
+    <xs:enumeration value="POWER_INTERLOCK"/>
+    <xs:enumeration value="POWER_STATE"/>
+    <xs:enumeration value="LCD_DISPLAY"/>
+    <xs:enumeration value="OEM"/>
+    <xs:enumeration value="GENERIC_ADDRESS"/>
+    <xs:enumeration value="IP_ADDRESS"/>
+    <xs:enumeration value="RESOURCE_ID"/>
+    <xs:enumeration value="POWER_BUDGET"/>
+    <xs:enumeration value="ACTIVATE"/>
+    <xs:enumeration value="RESET"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiIdrAreaTypeT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="INTERNAL_USE"/>
+    <xs:enumeration value="CHASSIS_INFO"/>
+    <xs:enumeration value="BOARD_INFO"/>
+    <xs:enumeration value="PRODUCT_INFO"/>
+    <xs:enumeration value="OEM"/>
+    <xs:enumeration value="UNSPECIFIED"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiIdrFieldTypeT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="CHASSIS_TYPE"/>
+    <xs:enumeration value="MFG_DATETIME"/>
+    <xs:enumeration value="MANUFACTURER"/>
+    <xs:enumeration value="PRODUCT_NAME"/>
+    <xs:enumeration value="PRODUCT_VERSION"/>
+    <xs:enumeration value="SERIAL_NUMBER"/>
+    <xs:enumeration value="PART_NUMBER"/>
+    <xs:enumeration value="FILE_ID"/>
+    <xs:enumeration value="ASSET_TAG"/>
+    <xs:enumeration value="CUSTOM"/>
+    <xs:enumeration value="UNSPECIFIED"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiWatchdogActionT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="NO_ACTION"/>
+    <xs:enumeration value="RESET"/>
+    <xs:enumeration value="POWER_DOWN"/>
+    <xs:enumeration value="POWER_CYCLE"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiWatchdogActionEventT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="NO_ACTION"/>
+    <xs:enumeration value="RESET"/>
+    <xs:enumeration value="POWER_DOWN"/>
+    <xs:enumeration value="POWER_CYCLE"/>
+    <xs:enumeration value="TIMER_INT"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiWatchdogPretimerInterruptT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="NONE"/>
+    <xs:enumeration value="SMI"/>
+    <xs:enumeration value="NMI"/>
+    <xs:enumeration value="MESSAGE_INTERRUPT"/>
+    <xs:enumeration value="OEM"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiWatchdogTimerUseT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="NONE"/>
+    <xs:enumeration value="BIOS_FRB2"/>
+    <xs:enumeration value="BIOS_POST"/>
+    <xs:enumeration value="OS_LOAD"/>
+    <xs:enumeration value="SMS_OS"/>
+    <xs:enumeration value="OEM"/>
+    <xs:enumeration value="UNSPECIFIED"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiDimiTestServiceImpactT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="NONDEGRADING"/>
+    <xs:enumeration value="DEGRADING"/>
+    <xs:enumeration value="VENDOR_DEFINED_LEVEL"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiDimiTestRunStatusT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="STATUS_NOT_RUN"/>
+    <xs:enumeration value="STATUS_FINISHED_NO_ERRORS"/>
+    <xs:enumeration value="STATUS_FINISHED_ERRORS"/>
+    <xs:enumeration value="STATUS_CANCELED"/>
+    <xs:enumeration value="STATUS_RUNNING"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiDimiTestErrCodeT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="STATUSERR_NOERR"/>
+    <xs:enumeration value="STATUSERR_RUNERR"/>
+    <xs:enumeration value="STATUSERR_UNDEF"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiDimiTestParamTypeT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="PARAM_TYPE_BOOLEAN"/>
+    <xs:enumeration value="PARAM_TYPE_INT32"/>
+    <xs:enumeration value="PARAM_TYPE_FLOAT64"/>
+    <xs:enumeration value="PARAM_TYPE_TEXT"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiDimiReadyT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="READY"/>
+    <xs:enumeration value="WRONG_STATE"/>
+    <xs:enumeration value="BUSY"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiFumiSpecInfoTypeT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="SPEC_INFO_NONE"/>
+    <xs:enumeration value="SPEC_INFO_SAF_DEFINED"/>
+    <xs:enumeration value="SPEC_INFO_OEM_DEFINED"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiFumiSafDefinedSpecIdT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="SPEC_HPM1"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiFumiServiceImpactT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="PROCESS_NONDEGRADING"/>
+    <xs:enumeration value="PROCESS_DEGRADING"/>
+    <xs:enumeration value="PROCESS_VENDOR_DEFINED_IMPACT_LEVEL"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiFumiSourceStatusT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="SRC_VALID"/>
+    <xs:enumeration value="SRC_PROTOCOL_NOT_SUPPORTED"/>
+    <xs:enumeration value="SRC_UNREACHABLE"/>
+    <xs:enumeration value="SRC_VALIDATION_NOT_STARTED"/>
+    <xs:enumeration value="SRC_VALIDATION_INITIATED"/>
+    <xs:enumeration value="SRC_VALIDATION_FAIL"/>
+    <xs:enumeration value="SRC_TYPE_MISMATCH"/>
+    <xs:enumeration value="SRC_INVALID"/>
+    <xs:enumeration value="SRC_VALIDITY_UNKNOWN"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiFumiBankStateT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="BANK_VALID"/>
+    <xs:enumeration value="BANK_UPGRADE_IN_PROGRESS"/>
+    <xs:enumeration value="BANK_CORRUPTED"/>
+    <xs:enumeration value="BANK_ACTIVE"/>
+    <xs:enumeration value="BANK_BUSY"/>
+    <xs:enumeration value="BANK_UNKNOWN"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiFumiUpgradeStatusT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="OPERATION_NOTSTARTED"/>
+    <xs:enumeration value="SOURCE_VALIDATION_INITIATED"/>
+    <xs:enumeration value="SOURCE_VALIDATION_FAILED"/>
+    <xs:enumeration value="SOURCE_VALIDATION_DONE"/>
+    <xs:enumeration value="SOURCE_VALIDATION_CANCELLED"/>
+    <xs:enumeration value="INSTALL_INITIATED"/>
+    <xs:enumeration value="INSTALL_FAILED_ROLLBACK_NEEDED"/>
+    <xs:enumeration value="INSTALL_FAILED_ROLLBACK_INITIATED"/>
+    <xs:enumeration value="INSTALL_FAILED_ROLLBACK_NOT_POSSIBLE"/>
+    <xs:enumeration value="INSTALL_DONE"/>
+    <xs:enumeration value="INSTALL_CANCELLED"/>
+    <xs:enumeration value="ROLLBACK_INITIATED"/>
+    <xs:enumeration value="ROLLBACK_FAILED"/>
+    <xs:enumeration value="ROLLBACK_DONE"/>
+    <xs:enumeration value="ROLLBACK_CANCELLED"/>
+    <xs:enumeration value="BACKUP_INITIATED"/>
+    <xs:enumeration value="BACKUP_FAILED"/>
+    <xs:enumeration value="BACKUP_DONE"/>
+    <xs:enumeration value="BACKUP_CANCELLED"/>
+    <xs:enumeration value="BANK_COPY_INITIATED"/>
+    <xs:enumeration value="BANK_COPY_FAILED"/>
+    <xs:enumeration value="BANK_COPY_DONE"/>
+    <xs:enumeration value="BANK_COPY_CANCELLED"/>
+    <xs:enumeration value="TARGET_VERIFY_INITIATED"/>
+    <xs:enumeration value="TARGET_VERIFY_FAILED"/>
+    <xs:enumeration value="TARGET_VERIFY_DONE"/>
+    <xs:enumeration value="TARGET_VERIFY_CANCELLED"/>
+    <xs:enumeration value="ACTIVATE_INITIATED"/>
+    <xs:enumeration value="ACTIVATE_FAILED_ROLLBACK_NEEDED"/>
+    <xs:enumeration value="ACTIVATE_FAILED_ROLLBACK_INITIATED"/>
+    <xs:enumeration value="ACTIVATE_FAILED_ROLLBACK_NOT_POSSIBLE"/>
+    <xs:enumeration value="ACTIVATE_DONE"/>
+    <xs:enumeration value="ACTIVATE_CANCELLED"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiHsIndicatorStateT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="OFF"/>
+    <xs:enumeration value="ON"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiHsActionT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="INSERTION"/>
+    <xs:enumeration value="EXTRACTION"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiHsStateT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="INACTIVE"/>
+    <xs:enumeration value="INSERTION_PENDING"/>
+    <xs:enumeration value="ACTIVE"/>
+    <xs:enumeration value="EXTRACTION_PENDING"/>
+    <xs:enumeration value="NOT_PRESENT"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiHsCauseOfStateChangeT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="CAUSE_AUTO_POLICY"/>
+    <xs:enumeration value="CAUSE_EXT_SOFTWARE"/>
+    <xs:enumeration value="CAUSE_OPERATOR_INIT"/>
+    <xs:enumeration value="CAUSE_USER_UPDATE"/>
+    <xs:enumeration value="CAUSE_UNEXPECTED_DEACTIVATION"/>
+    <xs:enumeration value="CAUSE_SURPRISE_EXTRACTION"/>
+    <xs:enumeration value="CAUSE_EXTRACTION_UPDATE"/>
+    <xs:enumeration value="CAUSE_HARDWARE_FAULT"/>
+    <xs:enumeration value="CAUSE_CONTAINING_FRU"/>
+    <xs:enumeration value="CAUSE_UNKNOWN"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiSeverityT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="CRITICAL"/>
+    <xs:enumeration value="MAJOR"/>
+    <xs:enumeration value="MINOR"/>
+    <xs:enumeration value="INFORMATIONAL"/>
+    <xs:enumeration value="OK"/>
+    <xs:enumeration value="DEBUG"/>
+    <xs:enumeration value="ALL_SEVERITIES"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiResourceEventTypeT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="FAILURE"/>
+    <xs:enumeration value="RESTORED"/>
+    <xs:enumeration value="ADDED"/>
+    <xs:enumeration value="REMOVED"/>
+    <xs:enumeration value="INACCESSIBLE"/>
+    <xs:enumeration value="UPDATED"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiDomainEventTypeT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="ADDED"/>
+    <xs:enumeration value="REMOVED"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiSwEventTypeT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="AUDIT"/>
+    <xs:enumeration value="STARTUP"/>
+    <xs:enumeration value="OTHER"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiEventTypeT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="RESOURCE"/>
+    <xs:enumeration value="DOMAIN"/>
+    <xs:enumeration value="SENSOR"/>
+    <xs:enumeration value="SENSOR_ENABLE_CHANGE"/>
+    <xs:enumeration value="HOTSWAP"/>
+    <xs:enumeration value="WATCHDOG"/>
+    <xs:enumeration value="HPI_SW"/>
+    <xs:enumeration value="OEM"/>
+    <xs:enumeration value="USER"/>
+    <xs:enumeration value="DIMI"/>
+    <xs:enumeration value="DIMI_UPDATE"/>
+    <xs:enumeration value="FUMI"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiStatusCondTypeT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="SENSOR"/>
+    <xs:enumeration value="RESOURCE"/>
+    <xs:enumeration value="OEM"/>
+    <xs:enumeration value="USER"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiAnnunciatorModeT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="AUTO"/>
+    <xs:enumeration value="USER"/>
+    <xs:enumeration value="SHARED"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiAnnunciatorTypeT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="LED"/>
+    <xs:enumeration value="DRY_CONTACT_CLOSURE"/>
+    <xs:enumeration value="AUDIBLE"/>
+    <xs:enumeration value="LCD_DISPLAY"/>
+    <xs:enumeration value="MESSAGE"/>
+    <xs:enumeration value="COMPOSITE"/>
+    <xs:enumeration value="OEM"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiRdrTypeT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="NO_RECORD"/>
+    <xs:enumeration value="CTRL_RDR"/>
+    <xs:enumeration value="SENSOR_RDR"/>
+    <xs:enumeration value="INVENTORY_RDR"/>
+    <xs:enumeration value="WATCHDOG_RDR"/>
+    <xs:enumeration value="ANNUNCIATOR_RDR"/>
+    <xs:enumeration value="DIMI_RDR"/>
+    <xs:enumeration value="FUMI_RDR"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiParmActionT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="DEFAULT_PARM"/>
+    <xs:enumeration value="SAVE_PARM"/>
+    <xs:enumeration value="RESTORE_PARM"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiResetActionT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="COLD_RESET"/>
+    <xs:enumeration value="WARM_RESET"/>
+    <xs:enumeration value="RESET_ASSERT"/>
+    <xs:enumeration value="RESET_DEASSERT"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiPowerStateT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="OFF"/>
+    <xs:enumeration value="ON"/>
+    <xs:enumeration value="CYCLE"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiEventLogOverflowActionT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="xs:nonNegativeInteger"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="OVERFLOW_DROP"/>
+    <xs:enumeration value="OVERFLOW_OVERWRITE"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+
+<!-- SaErrorT is not enum but enum-like -->
+
+<xs:simpleType name="SaErrorT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="SaHpiInt32T"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="ERROR"/>
+    <xs:enumeration value="UNSUPPORTED_API"/>
+    <xs:enumeration value="BUSY"/>
+    <xs:enumeration value="INTERNAL_ERROR"/>
+    <xs:enumeration value="INVALID_CMD"/>
+    <xs:enumeration value="TIMEOUT"/>
+    <xs:enumeration value="OUT_OF_SPACE"/>
+    <xs:enumeration value="OUT_OF_MEMORY"/>
+    <xs:enumeration value="INVALID_PARAMS"/>
+    <xs:enumeration value="INVALID_DATA"/>
+    <xs:enumeration value="NOT_PRESENT"/>
+    <xs:enumeration value="NO_RESPONSE"/>
+    <xs:enumeration value="DUPLICATE"/>
+    <xs:enumeration value="INVALID_SESSION"/>
+    <xs:enumeration value="INVALID_DOMAIN"/>
+    <xs:enumeration value="INVALID_RESOURCE"/>
+    <xs:enumeration value="INVALID_REQUEST"/>
+    <xs:enumeration value="ENTITY_NOT_PRESENT"/>
+    <xs:enumeration value="READ_ONLY"/>
+    <xs:enumeration value="CAPABILITY"/>
+    <xs:enumeration value="UNKNOWN"/>
+    <xs:enumeration value="INVALID_STATE"/>
+    <xs:enumeration value="UNSUPPORTED_PARAMS"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+
+<!-- SaHpiEventCategoryT is not enum but enum-like -->
+
+<xs:simpleType name="SaHpiEventCategoryT">
+ <xs:union>
+  <xs:simpleType>
+   <xs:restriction base="SaHpiUint8T"/>
+  </xs:simpleType>
+  <xs:simpleType>
+   <xs:restriction base="xs:string">
+    <xs:enumeration value="UNSPECIFIED"/>
+    <xs:enumeration value="THRESHOLD"/>
+    <xs:enumeration value="USAGE"/>
+    <xs:enumeration value="STATE"/>
+    <xs:enumeration value="PRED_FAIL"/>
+    <xs:enumeration value="LIMIT"/>
+    <xs:enumeration value="PERFORMANCE"/>
+    <xs:enumeration value="SEVERITY"/>
+    <xs:enumeration value="PRESENCE"/>
+    <xs:enumeration value="ENABLE"/>
+    <xs:enumeration value="AVAILABILITY"/>
+    <xs:enumeration value="REDUNDANCY"/>
+    <xs:enumeration value="SENSOR_SPECIFIC"/>
+    <xs:enumeration value="GENERIC"/>
+   </xs:restriction>
+  </xs:simpleType>
+ </xs:union>
+</xs:simpleType>
+
+
+<!-- Flags HPI Types -->
+
+<xs:simpleType name="SaHpiEventStateT">
+ <xs:list>
+  <xs:simpleType>
+   <xs:union>
+    <xs:simpleType>
+     <xs:restriction base="SaHpiUint16T"/>
+    </xs:simpleType>
+    <xs:simpleType>
+     <xs:restriction base="xs:string">
+      <xs:enumeration value="STATE_00"/>
+      <xs:enumeration value="STATE_01"/>
+      <xs:enumeration value="STATE_02"/>
+      <xs:enumeration value="STATE_03"/>
+      <xs:enumeration value="STATE_04"/>
+      <xs:enumeration value="STATE_05"/>
+      <xs:enumeration value="STATE_06"/>
+      <xs:enumeration value="STATE_07"/>
+      <xs:enumeration value="STATE_08"/>
+      <xs:enumeration value="STATE_09"/>
+      <xs:enumeration value="STATE_10"/>
+      <xs:enumeration value="STATE_11"/>
+      <xs:enumeration value="STATE_12"/>
+      <xs:enumeration value="STATE_13"/>
+      <xs:enumeration value="STATE_14"/>
+     </xs:restriction>
+    </xs:simpleType>
+   </xs:union>
+  </xs:simpleType>
+ </xs:list>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiSensorRangeFlagsT">
+ <xs:list>
+  <xs:simpleType>
+   <xs:union>
+    <xs:simpleType>
+     <xs:restriction base="SaHpiUint8T"/>
+    </xs:simpleType>
+    <xs:simpleType>
+     <xs:restriction base="xs:string">
+      <xs:enumeration value="NOMINAL"/>
+      <xs:enumeration value="NORMAL_MAX"/>
+      <xs:enumeration value="NORMAL_MIN"/>
+      <xs:enumeration value="MAX"/>
+      <xs:enumeration value="MIN"/>
+     </xs:restriction>
+    </xs:simpleType>
+   </xs:union>
+  </xs:simpleType>
+ </xs:list>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiSensorThdMaskT">
+ <xs:list>
+  <xs:simpleType>
+   <xs:union>
+    <xs:simpleType>
+     <xs:restriction base="SaHpiUint8T"/>
+    </xs:simpleType>
+    <xs:simpleType>
+     <xs:restriction base="xs:string">
+      <xs:enumeration value="LOW_MINOR"/>
+      <xs:enumeration value="LOW_MAJOR"/>
+      <xs:enumeration value="LOW_CRIT"/>
+      <xs:enumeration value="UP_MINOR"/>
+      <xs:enumeration value="UP_MAJOR"/>
+      <xs:enumeration value="UP_CRIT"/>
+      <xs:enumeration value="UP_HYSTERESIS"/>
+      <xs:enumeration value="LOW_HYSTERESIS"/>
+     </xs:restriction>
+    </xs:simpleType>
+   </xs:union>
+  </xs:simpleType>
+ </xs:list>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiWatchdogExpFlagsT">
+ <xs:list>
+  <xs:simpleType>
+   <xs:union>
+    <xs:simpleType>
+     <xs:restriction base="SaHpiUint8T"/>
+    </xs:simpleType>
+    <xs:simpleType>
+     <xs:restriction base="xs:string">
+      <xs:enumeration value="BIOS_FRB2"/>
+      <xs:enumeration value="BIOS_POST"/>
+      <xs:enumeration value="OS_LOAD"/>
+      <xs:enumeration value="SMS_OS"/>
+      <xs:enumeration value="OEM"/>
+     </xs:restriction>
+    </xs:simpleType>
+   </xs:union>
+  </xs:simpleType>
+ </xs:list>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiDimiTestCapabilityT">
+ <xs:list>
+  <xs:simpleType>
+   <xs:union>
+    <xs:simpleType>
+     <xs:restriction base="SaHpiUint32T"/>
+    </xs:simpleType>
+    <xs:simpleType>
+     <xs:restriction base="xs:string">
+      <xs:enumeration value="RESULTSOUTPUT"/>
+      <xs:enumeration value="SERVICEMODE"/>
+      <xs:enumeration value="LOOPCOUNT"/>
+      <xs:enumeration value="LOOPTIME"/>
+      <xs:enumeration value="LOGGING"/>
+      <xs:enumeration value="TESTCANCEL"/>
+     </xs:restriction>
+    </xs:simpleType>
+   </xs:union>
+  </xs:simpleType>
+ </xs:list>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiFumiLogicalBankStateFlagsT">
+ <xs:list>
+  <xs:simpleType>
+   <xs:union>
+    <xs:simpleType>
+     <xs:restriction base="SaHpiUint32T"/>
+    </xs:simpleType>
+    <xs:simpleType>
+     <xs:restriction base="xs:string">
+      <xs:enumeration value="NO_MAIN_PERSISTENT_COPY"/>
+     </xs:restriction>
+    </xs:simpleType>
+   </xs:union>
+  </xs:simpleType>
+ </xs:list>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiFumiProtocolT">
+ <xs:list>
+  <xs:simpleType>
+   <xs:union>
+    <xs:simpleType>
+     <xs:restriction base="SaHpiUint32T"/>
+    </xs:simpleType>
+    <xs:simpleType>
+     <xs:restriction base="xs:string">
+      <xs:enumeration value="TFTP"/>
+      <xs:enumeration value="FTP"/>
+      <xs:enumeration value="HTTP"/>
+      <xs:enumeration value="LDAP"/>
+      <xs:enumeration value="LOCAL"/>
+      <xs:enumeration value="NFS"/>
+      <xs:enumeration value="DBACCESS"/>
+     </xs:restriction>
+    </xs:simpleType>
+   </xs:union>
+  </xs:simpleType>
+ </xs:list>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiFumiCapabilityT">
+ <xs:list>
+  <xs:simpleType>
+   <xs:union>
+    <xs:simpleType>
+     <xs:restriction base="SaHpiUint32T"/>
+    </xs:simpleType>
+    <xs:simpleType>
+     <xs:restriction base="xs:string">
+      <xs:enumeration value="ROLLBACK"/>
+      <xs:enumeration value="BANKCOPY"/>
+      <xs:enumeration value="BANKREORDER"/>
+      <xs:enumeration value="BACKUP"/>
+      <xs:enumeration value="TARGET_VERIFY"/>
+      <xs:enumeration value="TARGET_VERIFY_MAIN"/>
+      <xs:enumeration value="COMPONENTS"/>
+      <xs:enumeration value="AUTOROLLBACK"/>
+      <xs:enumeration value="AUTOROLLBACK_CAN_BE_DISABLED"/>
+      <xs:enumeration value="MAIN_NOT_PERSISTENT"/>
+     </xs:restriction>
+    </xs:simpleType>
+   </xs:union>
+  </xs:simpleType>
+ </xs:list>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiSensorOptionalDataT">
+ <xs:list>
+  <xs:simpleType>
+   <xs:union>
+    <xs:simpleType>
+     <xs:restriction base="SaHpiUint8T"/>
+    </xs:simpleType>
+    <xs:simpleType>
+     <xs:restriction base="xs:string">
+      <xs:enumeration value="TRIGGER_READING"/>
+      <xs:enumeration value="TRIGGER_THRESHOLD"/>
+      <xs:enumeration value="OEM"/>
+      <xs:enumeration value="PREVIOUS_STATE"/>
+      <xs:enumeration value="CURRENT_STATE"/>
+      <xs:enumeration value="SENSOR_SPECIFIC"/>
+     </xs:restriction>
+    </xs:simpleType>
+   </xs:union>
+  </xs:simpleType>
+ </xs:list>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiSensorEnableOptDataT">
+ <xs:list>
+  <xs:simpleType>
+   <xs:union>
+    <xs:simpleType>
+     <xs:restriction base="SaHpiUint8T"/>
+    </xs:simpleType>
+    <xs:simpleType>
+     <xs:restriction base="xs:string">
+      <xs:enumeration value="CURRENT_STATE"/>
+      <xs:enumeration value="ALARM_STATES"/>
+     </xs:restriction>
+    </xs:simpleType>
+   </xs:union>
+  </xs:simpleType>
+ </xs:list>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiEvtQueueStatusT">
+ <xs:list>
+  <xs:simpleType>
+   <xs:union>
+    <xs:simpleType>
+     <xs:restriction base="SaHpiUint32T"/>
+    </xs:simpleType>
+    <xs:simpleType>
+     <xs:restriction base="xs:string">
+      <xs:enumeration value="OVERFLOW"/>
+     </xs:restriction>
+    </xs:simpleType>
+   </xs:union>
+  </xs:simpleType>
+ </xs:list>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiCapabilitiesT">
+ <xs:list>
+  <xs:simpleType>
+   <xs:union>
+    <xs:simpleType>
+     <xs:restriction base="SaHpiUint32T"/>
+    </xs:simpleType>
+    <xs:simpleType>
+     <xs:restriction base="xs:string">
+      <xs:enumeration value="SENSOR"/>
+      <xs:enumeration value="RDR"/>
+      <xs:enumeration value="EVENT_LOG"/>
+      <xs:enumeration value="INVENTORY_DATA"/>
+      <xs:enumeration value="RESET"/>
+      <xs:enumeration value="POWER"/>
+      <xs:enumeration value="ANNUNCIATOR"/>
+      <xs:enumeration value="LOAD_ID"/>
+      <xs:enumeration value="FRU"/>
+      <xs:enumeration value="CONTROL"/>
+      <xs:enumeration value="WATCHDOG"/>
+      <xs:enumeration value="MANAGED_HOTSWAP"/>
+      <xs:enumeration value="CONFIGURATION"/>
+      <xs:enumeration value="AGGREGATE_STATUS"/>
+      <xs:enumeration value="DIMI"/>
+      <xs:enumeration value="EVT_DEASSERTS"/>
+      <xs:enumeration value="FUMI"/>
+      <xs:enumeration value="RESOURCE"/>
+     </xs:restriction>
+    </xs:simpleType>
+   </xs:union>
+  </xs:simpleType>
+ </xs:list>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiHsCapabilitiesT">
+ <xs:list>
+  <xs:simpleType>
+   <xs:union>
+    <xs:simpleType>
+     <xs:restriction base="SaHpiUint32T"/>
+    </xs:simpleType>
+    <xs:simpleType>
+     <xs:restriction base="xs:string">
+      <xs:enumeration value="AUTOINSERT_IMMEDIATE"/>
+      <xs:enumeration value="INDICATOR_SUPPORTED"/>
+      <xs:enumeration value="AUTOEXTRACT_READ_ONLY"/>
+     </xs:restriction>
+    </xs:simpleType>
+   </xs:union>
+  </xs:simpleType>
+ </xs:list>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiDomainCapabilitiesT">
+ <xs:list>
+  <xs:simpleType>
+   <xs:union>
+    <xs:simpleType>
+     <xs:restriction base="SaHpiUint32T"/>
+    </xs:simpleType>
+    <xs:simpleType>
+     <xs:restriction base="xs:string">
+      <xs:enumeration value="AUTOINSERT_READ_ONLY"/>
+     </xs:restriction>
+    </xs:simpleType>
+   </xs:union>
+  </xs:simpleType>
+ </xs:list>
+</xs:simpleType>
+
+<xs:simpleType name="SaHpiEventLogCapabilitiesT">
+ <xs:list>
+  <xs:simpleType>
+   <xs:union>
+    <xs:simpleType>
+     <xs:restriction base="SaHpiUint32T"/>
+    </xs:simpleType>
+    <xs:simpleType>
+     <xs:restriction base="xs:string">
+      <xs:enumeration value="ENTRY_ADD"/>
+      <xs:enumeration value="CLEAR"/>
+      <xs:enumeration value="TIME_SET"/>
+      <xs:enumeration value="STATE_SET"/>
+      <xs:enumeration value="OVERFLOW_RESET"/>
+     </xs:restriction>
+    </xs:simpleType>
+   </xs:union>
+  </xs:simpleType>
+ </xs:list>
+</xs:simpleType>
+
+
+<!-- Complex HPI Types -->
+
+<xs:complexType name="SaHpiTextBufferT">
+ <xs:sequence>
+  <xs:element name="DataType" type="SaHpiTextTypeT"/>
+  <xs:element name="Language" type="SaHpiLanguageT"/>
+  <xs:element name="DataLength" type="SaHpiUint8T"/>
+  <!-- TODO more on Data -->
+  <xs:element name="Data" type="xs:string"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:simpleType name="SaHpiEntityPathT">
+ <!-- TODO more on Entity Path -->
+ <xs:restriction base="xs:string"/>
+</xs:simpleType>
+
+
+<xs:complexType name="SaHpiDrtEntryT">
+ <xs:sequence>
+  <xs:element name="DomainId" type="SaHpiDomainIdT"/>
+  <xs:element name="IsPeer" type="SaHpiBoolT"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiResourceInfoT">
+ <xs:sequence>
+  <xs:element name="ResourceRev" type="SaHpiUint8T"/>
+  <xs:element name="SpecificVer" type="SaHpiUint8T"/>
+  <xs:element name="DeviceSupport" type="SaHpiUint8T"/>
+  <xs:element name="ManufacturerId" type="SaHpiManufacturerIdT"/>
+  <xs:element name="ProductId" type="SaHpiUint16T"/>
+  <xs:element name="FirmwareMajorRev" type="SaHpiUint8T"/>
+  <xs:element name="FirmwareMinorRev" type="SaHpiUint8T"/>
+  <xs:element name="AuxFirmwareRev" type="SaHpiUint8T"/>
+  <xs:element name="Guid" type="SaHpiGuidT"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiCtrlDefaultModeT">
+ <xs:sequence>
+  <xs:element name="Mode" type="SaHpiCtrlModeT"/>
+  <xs:element name="ReadOnly" type="SaHpiBoolT"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiCtrlRecDigitalT">
+ <xs:sequence>
+  <xs:element name="Default" type="SaHpiCtrlStateDigitalT"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiCtrlRecDiscreteT">
+ <xs:sequence>
+  <xs:element name="Default" type="SaHpiCtrlStateDiscreteT"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiCtrlRecAnalogT">
+ <xs:sequence>
+  <xs:element name="Min" type="SaHpiCtrlStateAnalogT"/>
+  <xs:element name="Max" type="SaHpiCtrlStateAnalogT"/>
+  <xs:element name="Default" type="SaHpiCtrlStateAnalogT"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiCtrlStateStreamT">
+ <xs:sequence>
+  <xs:element name="Repeat" type="SaHpiBoolT"/>
+  <xs:element name="StreamLength" type="SaHpiUint32T"/>
+  <!-- TODO Stream length -->
+  <xs:element name="Stream" type="xs:hexBinary"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiCtrlRecStreamT">
+ <xs:sequence>
+  <xs:element name="Default" type="SaHpiCtrlStateStreamT"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiCtrlStateTextT">
+ <xs:sequence>
+  <xs:element name="Line" type="SaHpiTxtLineNumT"/>
+  <xs:element name="Text" type="SaHpiTextBufferT"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiCtrlRecTextT">
+ <xs:sequence>
+  <xs:element name="MaxChars" type="SaHpiUint8T"/>
+  <xs:element name="MaxLines" type="SaHpiUint8T"/>
+  <xs:element name="Language" type="SaHpiLanguageT"/>
+  <xs:element name="DataType" type="SaHpiTextTypeT"/>
+  <xs:element name="Default" type="SaHpiCtrlStateTextT"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiCtrlStateOemT">
+ <xs:sequence>
+  <xs:element name="MId" type="SaHpiManufacturerIdT"/>
+  <xs:element name="BodyLength" type="SaHpiUint8T"/>
+  <!-- TODO Body length -->
+  <xs:element name="Body" type="xs:hexBinary"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiCtrlRecOemT">
+ <xs:sequence>
+  <xs:element name="MId" type="SaHpiManufacturerIdT"/>
+  <!-- TODO ConfigData length -->
+  <xs:element name="ConfigData" type="xs:hexBinary"/>
+  <xs:element name="Default" type="SaHpiCtrlStateOemT"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiCtrlRecUnionT">
+ <xs:choice>
+  <xs:element name="Digital" type="SaHpiCtrlRecDigitalT"/>
+  <xs:element name="Discrete" type="SaHpiCtrlRecDiscreteT"/>
+  <xs:element name="Analog" type="SaHpiCtrlRecAnalogT"/>
+  <xs:element name="Stream" type="SaHpiCtrlRecStreamT"/>
+  <xs:element name="Text" type="SaHpiCtrlRecTextT"/>
+  <xs:element name="Oem" type="SaHpiCtrlRecOemT"/>
+ </xs:choice>
+</xs:complexType>
+
+<xs:complexType name="SaHpiCtrlRecT">
+ <xs:sequence>
+  <xs:element name="Num" type="SaHpiCtrlNumT"/>
+  <xs:element name="OutputType" type="SaHpiCtrlOutputTypeT"/>
+  <xs:element name="Type" type="SaHpiCtrlTypeT"/>
+  <xs:element name="TypeUnion" type="SaHpiCtrlRecUnionT"/>
+  <xs:element name="DefaultMode" type="SaHpiCtrlDefaultModeT"/>
+  <xs:element name="WriteOnly" type="SaHpiBoolT"/>
+  <xs:element name="Oem" type="SaHpiUint32T"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiSensorReadingUnionT">
+ <xs:choice>
+  <xs:element name="SensorInt64" type="SaHpiInt64T"/>
+  <xs:element name="SensorUint64" type="SaHpiUint64T"/>
+  <xs:element name="SensorFloat64" type="SaHpiFloat64T"/>
+  <!-- TODO SensorBuffer length -->
+  <xs:element name="SensorBuffer" type="xs:hexBinary"/>
+ </xs:choice>
+</xs:complexType>
+
+<xs:group name="SaHpiSensorReadingGroup">
+ <xs:sequence>
+  <xs:element name="Type" type="SaHpiSensorReadingTypeT"/>
+  <xs:element name="Value" type="SaHpiSensorReadingUnionT"/>
+ </xs:sequence>
+</xs:group>
+
+<xs:complexType name="SaHpiSensorReadingT">
+ <xs:sequence>
+  <xs:element name="IsSupported" type="SaHpiBoolT"/>
+  <xs:group ref="SaHpiSensorReadingGroup" minOccurs="0"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiSensorRangeT">
+ <xs:sequence>
+  <xs:element name="Flags" type="SaHpiSensorRangeFlagsT"/>
+  <xs:element name="Max" type="SaHpiSensorReadingT" minOccurs="0"/>
+  <xs:element name="Min" type="SaHpiSensorReadingT" minOccurs="0"/>
+  <xs:element name="Nominal" type="SaHpiSensorReadingT" minOccurs="0"/>
+  <xs:element name="NormalMax" type="SaHpiSensorReadingT" minOccurs="0"/>
+  <xs:element name="NormalMin" type="SaHpiSensorReadingT" minOccurs="0"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:group name="SaHpiSensorDataFormatGroup">
+ <xs:sequence>
+  <xs:element name="ReadingType" type="SaHpiSensorReadingTypeT"/>
+  <xs:element name="BaseUnits" type="SaHpiSensorUnitsT"/>
+  <xs:element name="ModifierUnits" type="SaHpiSensorUnitsT"/>
+  <xs:element name="ModifierUse" type="SaHpiSensorModUnitUseT"/>
+  <xs:element name="Percentage" type="SaHpiBoolT"/>
+  <xs:element name="Range" type="SaHpiSensorRangeT"/>
+  <xs:element name="AccuracyFactor" type="SaHpiFloat64T"/>
+ </xs:sequence>
+</xs:group>
+
+<xs:complexType name="SaHpiSensorDataFormatT">
+ <xs:sequence>
+  <xs:element name="IsSupported" type="SaHpiBoolT"/>
+  <xs:group ref="SaHpiSensorDataFormatGroup" minOccurs="0"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:group name="SaHpiSensorThdDefnGroup">
+ <xs:sequence>
+  <xs:element name="ReadThold" type="SaHpiSensorThdMaskT"/>
+  <xs:element name="WriteThold" type="SaHpiSensorThdMaskT"/>
+  <xs:element name="Nonlinear" type="SaHpiBoolT"/>
+ </xs:sequence>
+</xs:group>
+
+<xs:complexType name="SaHpiSensorThdDefnT">
+ <xs:sequence>
+  <xs:element name="IsAccessible" type="SaHpiBoolT"/>
+  <xs:group ref="SaHpiSensorThdDefnGroup" minOccurs="0"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiSensorRecT">
+ <xs:sequence>
+  <xs:element name="Num" type="SaHpiSensorNumT"/>
+  <xs:element name="Type" type="SaHpiSensorTypeT"/>
+  <xs:element name="Category" type="SaHpiEventCategoryT"/>
+  <xs:element name="EnableCtrl" type="SaHpiBoolT"/>
+  <xs:element name="EventCtrl" type="SaHpiSensorEventCtrlT"/>
+  <xs:element name="Events" type="SaHpiEventStateT"/>
+  <xs:element name="DataFormat" type="SaHpiSensorDataFormatT"/>
+  <xs:element name="ThresholdDefn" type="SaHpiSensorThdDefnT"/>
+  <xs:element name="Oem" type="SaHpiUint32T"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiInventoryRecT">
+ <xs:sequence>
+  <xs:element name="IdrId" type="SaHpiIdrIdT"/>
+  <xs:element name="Persistent" type="SaHpiBoolT"/>
+  <xs:element name="Oem" type="SaHpiUint32T"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiWatchdogRecT">
+ <xs:sequence>
+  <xs:element name="WatchdogNum" type="SaHpiWatchdogNumT"/>
+  <xs:element name="Oem" type="SaHpiUint32T"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiAnnunciatorRecT">
+ <xs:sequence>
+  <xs:element name="AnnunciatorNum" type="SaHpiAnnunciatorNumT"/>
+  <xs:element name="AnnunciatorType" type="SaHpiAnnunciatorTypeT"/>
+  <xs:element name="ModeReadOnly" type="SaHpiBoolT"/>
+  <xs:element name="MaxConditions" type="SaHpiUint32T"/>
+  <xs:element name="Oem" type="SaHpiUint32T"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiDimiRecT">
+ <xs:sequence>
+  <xs:element name="DimiNum" type="SaHpiDimiNumT"/>
+  <xs:element name="Oem" type="SaHpiUint32T"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiFumiRecT">
+ <xs:sequence>
+  <xs:element name="Num" type="SaHpiFumiNumT"/>
+  <xs:element name="AccessProt" type="SaHpiFumiProtocolT"/>
+  <xs:element name="Capability" type="SaHpiFumiCapabilityT"/>
+  <xs:element name="NumBanks" type="SaHpiUint8T"/>
+  <xs:element name="Oem" type="SaHpiUint32T"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiRdrTypeUnionT">
+ <xs:choice>
+  <xs:element name="CtrlRec" type="SaHpiCtrlRecT"/>
+  <xs:element name="SensorRec" type="SaHpiSensorRecT"/>
+  <xs:element name="InventoryRec" type="SaHpiInventoryRecT"/>
+  <xs:element name="WatchdogRec" type="SaHpiWatchdogRecT"/>
+  <xs:element name="AnnunciatorRec" type="SaHpiAnnunciatorRecT"/>
+  <xs:element name="DimiRec" type="SaHpiDimiRecT"/>
+  <xs:element name="FumiRec" type="SaHpiFumiRecT"/>
+ </xs:choice>
+</xs:complexType>
+
+<xs:complexType name="SaHpiRdrT">
+ <xs:sequence>
+  <xs:element name="RdrType" type="SaHpiRdrTypeT"/>
+  <xs:element name="Entity" type="SaHpiEntityPathT"/>
+  <xs:element name="IsFru" type="SaHpiBoolT"/>
+  <xs:element name="RdrTypeUnion" type="SaHpiRdrTypeUnionT"/>
+  <xs:element name="IdString" type="SaHpiTextBufferT"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiRptEntryT">
+ <xs:sequence>
+  <xs:element name="ResourceId" type="SaHpiResourceIdT"/>
+  <xs:element name="ResourceInfo" type="SaHpiResourceInfoT"/>
+  <xs:element name="ResourceEntity" type="SaHpiEntityPathT"/>
+  <xs:element name="ResourceCapabilities" type="SaHpiCapabilitiesT"/>
+  <xs:element name="HotSwapCapabilities" type="SaHpiHsCapabilitiesT"/>
+  <xs:element name="ResourceSeverity" type="SaHpiSeverityT"/>
+  <xs:element name="ResourceFailed" type="SaHpiBoolT"/>
+  <xs:element name="ResourceTag" type="SaHpiTextBufferT"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiResourceEventT">
+ <xs:sequence>
+  <xs:element name="ResourceEventType" type="SaHpiResourceEventTypeT"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiDomainEventT">
+ <xs:sequence>
+  <xs:element name="Type" type="SaHpiDomainEventTypeT"/>
+  <xs:element name="DomainId" type="SaHpiDomainIdT"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiSensorEventT">
+ <xs:sequence>
+  <xs:element name="SensorNum" type="SaHpiSensorNumT"/>
+  <xs:element name="SensorType" type="SaHpiSensorTypeT"/>
+  <xs:element name="EventCategory" type="SaHpiEventCategoryT"/>
+  <xs:element name="Assertion" type="SaHpiBoolT"/>
+  <xs:element name="EventState" type="SaHpiEventStateT"/>
+  <xs:element name="OptionalDataPresent" type="SaHpiSensorOptionalDataT"/>
+  <xs:element name="TriggerReading" type="SaHpiSensorReadingT" minOccurs="0"/>
+  <xs:element name="TriggerThreshold" type="SaHpiSensorReadingT" minOccurs="0"/>
+  <xs:element name="PreviousState" type="SaHpiEventStateT" minOccurs="0"/>
+  <xs:element name="CurrentState" type="SaHpiEventStateT" minOccurs="0"/>
+  <xs:element name="Oem" type="SaHpiUint32T" minOccurs="0"/>
+  <xs:element name="SensorSpecific" type="SaHpiUint32T" minOccurs="0"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiSensorEnableChangeEventT">
+ <xs:sequence>
+  <xs:element name="SensorNum" type="SaHpiSensorNumT"/>
+  <xs:element name="SensorType" type="SaHpiSensorTypeT"/>
+  <xs:element name="EventCategory" type="SaHpiEventCategoryT"/>
+  <xs:element name="SensorEnable" type="SaHpiBoolT"/>
+  <xs:element name="SensorEventEnable" type="SaHpiBoolT"/>
+  <xs:element name="AssertEventMask" type="SaHpiEventStateT"/>
+  <xs:element name="DeassertEventMask" type="SaHpiEventStateT"/>
+  <xs:element name="OptionalDataPresent" type="SaHpiSensorEnableOptDataT"/>
+  <xs:element name="CurrentState" type="SaHpiEventStateT" minOccurs="0"/>
+  <xs:element name="CriticalAlarms" type="SaHpiEventStateT" minOccurs="0"/>
+  <xs:element name="MajorAlarms" type="SaHpiEventStateT" minOccurs="0"/>
+  <xs:element name="MinorAlarms" type="SaHpiEventStateT" minOccurs="0"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiHotSwapEventT">
+ <xs:sequence>
+  <xs:element name="HotSwapState" type="SaHpiHsStateT"/>
+  <xs:element name="PreviousHotSwapState" type="SaHpiHsStateT"/>
+  <xs:element name="CauseOfStateChange" type="SaHpiHsCauseOfStateChangeT"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiWatchdogEventT">
+ <xs:sequence>
+  <xs:element name="WatchdogNum" type="SaHpiWatchdogNumT"/>
+  <xs:element name="WatchdogAction" type="SaHpiWatchdogActionEventT"/>
+  <xs:element name="WatchdogPreTimerAction" type="SaHpiWatchdogPretimerInterruptT"/>
+  <xs:element name="WatchdogUse" type="SaHpiWatchdogTimerUseT"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiHpiSwEventT">
+ <xs:sequence>
+  <xs:element name="MId" type="SaHpiManufacturerIdT"/>
+  <xs:element name="Type" type="SaHpiSwEventTypeT"/>
+  <xs:element name="EventData" type="SaHpiTextBufferT"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiOemEventT">
+ <xs:sequence>
+  <xs:element name="MId" type="SaHpiManufacturerIdT"/>
+  <xs:element name="OemEventData" type="SaHpiTextBufferT"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiUserEventT">
+ <xs:sequence>
+  <xs:element name="UserEventData" type="SaHpiTextBufferT"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiDimiEventT">
+ <xs:sequence>
+  <xs:element name="DimiNum" type="SaHpiDimiNumT"/>
+  <xs:element name="TestNum" type="SaHpiDimiTestNumT"/>
+  <xs:element name="DimiTestRunStatus" type="SaHpiDimiTestRunStatusT"/>
+  <xs:element name="DimiTestPercentCompleted" type="SaHpiDimiTestPercentCompletedT"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiDimiUpdateEventT">
+ <xs:sequence>
+  <xs:element name="DimiNum" type="SaHpiDimiNumT"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiFumiEventT">
+ <xs:sequence>
+  <xs:element name="FumiNum" type="SaHpiFumiNumT"/>
+  <xs:element name="BankNum" type="SaHpiUint8T"/>
+  <xs:element name="UpgradeStatus" type="SaHpiFumiUpgradeStatusT"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiEventUnionT">
+ <xs:choice>
+  <xs:element name="ResourceEvent" type="SaHpiResourceEventT"/>
+  <xs:element name="DomainEvent" type="SaHpiDomainEventT"/>
+  <xs:element name="SensorEvent" type="SaHpiSensorEventT"/>
+  <xs:element name="SensorEnableChangeEvent" type="SaHpiSensorEnableChangeEventT"/>
+  <xs:element name="HotSwapEvent" type="SaHpiHotSwapEventT"/>
+  <xs:element name="WatchdogEvent" type="SaHpiWatchdogEventT"/>
+  <xs:element name="HpiSwEvent" type="SaHpiHpiSwEventT"/>
+  <xs:element name="OemEvent" type="SaHpiOemEventT"/>
+  <xs:element name="UserEvent" type="SaHpiUserEventT"/>
+  <xs:element name="DimiEvent" type="SaHpiDimiEventT"/>
+  <xs:element name="DimiUpdateEvent" type="SaHpiDimiUpdateEventT"/>
+  <xs:element name="FumiEvent" type="SaHpiFumiEventT"/>
+ </xs:choice>
+</xs:complexType>
+
+<xs:complexType name="SaHpiEventT">
+ <xs:sequence>
+  <xs:element name="Source" type="SaHpiResourceIdT"/>
+  <xs:element name="EventType" type="SaHpiEventTypeT"/>
+  <xs:element name="Timestamp" type="SaHpiTimeT"/>
+  <xs:element name="Severity" type="SaHpiSeverityT"/>
+  <xs:element name="EventDataUnion" type="SaHpiEventUnionT"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiNameT">
+ <xs:sequence>
+  <xs:element name="Length" type="SaHpiUint16T"/>
+  <xs:element name="Value" type="xs:string"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiConditionT">
+ <xs:sequence>
+  <xs:element name="Type" type="SaHpiStatusCondTypeT"/>
+  <xs:element name="Entity" type="SaHpiEntityPathT"/>
+  <xs:element name="DomainId" type="SaHpiDomainIdT"/>
+  <xs:element name="ResourceId" type="SaHpiResourceIdT"/>
+  <xs:element name="SensorNum" type="SaHpiSensorNumT"/>
+  <xs:element name="EventState" type="SaHpiEventStateT"/>
+  <xs:element name="Name" type="SaHpiNameT"/>
+  <xs:element name="Mid" type="SaHpiManufacturerIdT"/>
+  <xs:element name="Data" type="SaHpiTextBufferT"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaHpiAlarmT">
+ <xs:sequence>
+  <xs:element name="AlarmId" type="SaHpiAlarmIdT"/>
+  <xs:element name="Timestamp" type="SaHpiTimeT"/>
+  <xs:element name="Severity" type="SaHpiSeverityT"/>
+  <xs:element name="Acknowledged" type="SaHpiBoolT"/>
+  <xs:element name="AlarmCond" type="SaHpiConditionT"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:simpleType name="SaHpiGuidT">
+ <!-- TODO Guid length -->
+ <xs:restriction base="xs:hexBinary"/>
+</xs:simpleType>
+
+
+<!-- HPI System Blocks -->
+
+<xs:complexType name="DomainReferenceTable">
+ <xs:sequence>
+  <xs:element name="DrtUpdateCount" type="SaHpiUint32T"/>
+  <xs:element name="DrtUpdateTimestamp" type="SaHpiTimeT"/>
+  <xs:element name="Reference" type="SaHpiDrtEntryT" minOccurs="0" maxOccurs="unbounded"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="EventLogEntry">
+ <xs:sequence>
+  <xs:element name="Timestamp" type="SaHpiTimeT"/>
+  <xs:element name="Event" type="SaHpiEventT"/>
+  <xs:element name="Rdr" type="SaHpiRdrT" minOccurs="0"/>
+  <xs:element name="RptEntry" type="SaHpiRptEntryT" minOccurs="0"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="EventLog">
+ <xs:sequence>
+  <xs:element name="Entries" type="SaHpiUint32T"/>
+  <xs:element name="Size" type="SaHpiUint32T"/>
+  <xs:element name="UserEventMaxSize" type="SaHpiUint32T"/>
+  <xs:element name="UpdateTimestamp" type="SaHpiTimeT"/>
+  <xs:element name="CurrentTime" type="SaHpiTimeT"/>
+  <xs:element name="Enabled" type="SaHpiBoolT"/>
+  <xs:element name="OverflowFlag" type="SaHpiBoolT"/>
+  <xs:element name="OverflowResetable" type="SaHpiBoolT"/>
+  <xs:element name="OverflowAction" type="SaHpiEventLogOverflowActionT"/>
+  <xs:element name="Capabilities" type="SaHpiEventLogCapabilitiesT"/>
+  <xs:element name="Entry" type="EventLogEntry" minOccurs="0" maxOccurs="unbounded"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="Instrument">
+ <xs:sequence>
+  <xs:element name="Rdr" type="SaHpiRdrT"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="Resource">
+ <xs:sequence>
+  <xs:element name="RptEntry" type="SaHpiRptEntryT"/>
+  <xs:element name="RdrUpdateCount" type="SaHpiUint32T"/>
+  <xs:element name="EventLog" type="EventLog" minOccurs="0"/>
+  <xs:element name="Instrument" type="Instrument" minOccurs="0" maxOccurs="unbounded"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="ResourcePresenceTable">
+ <xs:sequence>
+  <xs:element name="RptUpdateCount" type="SaHpiUint32T"/>
+  <xs:element name="RptUpdateTimestamp" type="SaHpiTimeT"/>
+  <xs:element name="Resource" type="Resource" minOccurs="0" maxOccurs="unbounded"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="DomainAlarmTable">
+ <xs:sequence>
+  <xs:element name="DatUpdateCount" type="SaHpiUint32T"/>
+  <xs:element name="DatUpdateTimestamp" type="SaHpiTimeT"/>
+  <xs:element name="ActiveAlarms" type="SaHpiUint32T"/>
+  <xs:element name="CriticalAlarms" type="SaHpiUint32T"/>
+  <xs:element name="MajorAlarms" type="SaHpiUint32T"/>
+  <xs:element name="MinorAlarms" type="SaHpiUint32T"/>
+  <xs:element name="DatUserAlarmLimit" type="SaHpiUint32T"/>
+  <xs:element name="DatOverflow" type="SaHpiBoolT"/>
+  <xs:element name="Alarm" type="SaHpiAlarmT" minOccurs="0" maxOccurs="unbounded"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="Domain">
+ <xs:sequence>
+  <xs:element name="DomainId" type="SaHpiUint32T"/>
+  <xs:element name="DomainCapabilities" type="SaHpiDomainCapabilitiesT"/>
+  <xs:element name="IsPeer" type="SaHpiBoolT"/>
+  <xs:element name="DomainTag" type="SaHpiTextBufferT"/>
+  <xs:element name="Guid" type ="SaHpiGuidT"/>
+  <xs:element name="DomainReferenceTable" type="DomainReferenceTable"/>
+  <xs:element name="ResourcePresenceTable" type="ResourcePresenceTable"/>
+  <xs:element name="DomainEventLog" type="EventLog"/>
+  <xs:element name="DomainAlarmTable" type="DomainAlarmTable"/>
+ </xs:sequence>
+</xs:complexType>
+
+<xs:element name="HPI">
+ <xs:complexType>
+  <xs:sequence>
+   <xs:element name="Version" fixed="B.03.02"/>
+   <xs:element name="Domain" type="Domain"/>
+  </xs:sequence>
+ </xs:complexType>
+</xs:element>
+
+</xs:schema>
+

@@ -1,0 +1,112 @@
+=head1 NAME
+
+
+hpitop - A openhpi sample application that displays highlevel topology for a managed openHPI complex.
+
+=head1 SYNOPSIS 
+
+ hpitop [-D nn] [-N host[:port]] [-C <cfgfile>] [-rscwiafd] [-n nn] [-X] [-h]
+ hpitop [--domain=nn] [--host=host[:port]] [--cfgfile=file] [--rpts] [--sensors]
+        [--controls] [--watchdogs] [--inventories] [--annunciators] [--fumis] [--dimis] 
+        [--resource=nn] [--debug] [--help]
+
+=head1 DESCRIPTION
+
+hpitop walks the Resource Present Table (RPT) of the managed openHPI complex and displays all the resources and resources' management instruments. 
+
+If no domain or host is selected, hpitop uses the default domain as specified in the openhpiclient.conf file.
+
+=head1 OPTIONS
+
+(No Option) Display system topology via default domain: rpt & rdr headers
+
+=head2 Help Options:
+
+=over 2
+
+=item B<-h>, B<--help>
+
+Show help options
+
+=back
+
+=head2 Application Options:
+
+=over 2
+
+=item B<-r>, B<--rpts>
+
+Display only rpts
+
+=item B<-s>, B<--sensors>
+
+Display only sensors
+
+=item B<-c>, B<--controls>
+
+Display only controls
+
+=item B<-w>, B<--watchdogs>
+
+Display only watchdogs
+
+=item B<-i>, B<--inventories>
+
+Display only inventories
+
+=item B<-a>, B<--annunciators>
+
+Display only annunciators
+
+=item B<-f>, B<--fumis>
+
+Display only fumis
+
+=item B<-d>, B<--dimis>
+
+Display only dimis
+
+=item B<-n> I<nn>, B<--resource>=I<nn>
+
+Display only resource I<nn> and its topology
+
+=item B<-D> I<nn>, B<--domain>=I<nn>
+
+Select domain id I<nn>
+
+=item B<-X>, B<--debug>
+
+Display debug messages
+
+=item B<-N> I<"host[:port]">, B<--host>=I<"host[:port]">
+
+Open session to the domain served by the daemon at the specified URL (host:port).
+This option overrides the OPENHPI_DAEMON_HOST and OPENHPI_DAEMON_PORT environment variables.
+If host contains ':' (for example IPv6 address) then enclose it in square brackets.
+For example: I<"[::1]"> or I<"[::1]:4743">.
+
+=item B<-C> I<"file">, B<--cfgfile>=I<"file">
+
+Use passed file as client configuration file.
+This option overrides the OPENHPICLIENT_CONF environment variable.
+
+=back
+
+=head1 SEE ALSO
+ 
+         hpi_shell
+         hpialarms      hpifan         hpipower       hpithres
+         hpidomain      hpigensimdata  hpireset       hpitree
+         hpiel          hpiiinv        hpisensor      hpiwdt
+         hpievents      hpionIBMblade  hpisettime     hpixml
+         ohdomainlist   ohhandler      ohparam
+
+
+=head1 AUTHORS
+
+Authors of this man page:
+
+ Peter D Phan (pdphan@users.sourceforge.net)
+ Ulrich Kleber (ulikleber@users.sourceforge.net)
+ Anton Pak (avpak@users.sourceforge.net)
+
