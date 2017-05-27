@@ -2,9 +2,9 @@
 ARCH := x86
 #ARCH := amd64
 
-VERSION := 3.7.0
+VERSION := 3.8.0
 # This is for resource compiler
-BINARY_VERSION := 3,7,0,0
+BINARY_VERSION := 3,8,0,0
 
 ############################################################################
 TOOLCHAIN_PATH := /home/avpak/usr/cross/mingw32
