@@ -36,6 +36,8 @@ AM_CPPFLAGS  += @OPENHPI_INCLUDES@
 
 pkglib_LTLIBRARIES      = libov_rest.la
 
+EXTRA_DIST = \
+             OpenHPI_Synergy_DevGuide.pdf
 
 libov_rest_la_SOURCES   = ov_rest_parser_calls.c  \
                         ov_rest_parser_calls.h  \
