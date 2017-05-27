@@ -1,0 +1,43 @@
+include ../Makefile.mingw32.def
+
+TARGET := libopenhpi.dll
+
+SRC := conf.c \
+       init.cpp \
+       lock.c \
+       ohpi.cpp \
+       safhpi.cpp \
+       session.cpp \
+       version.rc
+
+OBJ := $(patsubst %.rc, %.o, $(patsubst %.c, %.o, $(patsubst %.cpp, %.o, ${SRC})))
+
+DEFS := -DG_LOG_DOMAIN=\"baselib\"
+DEFS += -DSAHPI_API="__declspec(dllexport)"
+
+INCLUDES := ${GLIB_INCLUDES}
+INCLUDES += -I ../mingw32 -I ../include -I ../utils -I ../transport -I ../marshal
+
+LIBS := ${GLIB_LIBS} ${GTHREAD_LIBS}
+LIBS += -L ../utils -lopenhpiutils
+LIBS += -L ../transport -lopenhpitransport
+LIBS += -L ../marshal -lopenhpimarshal
+
+CPPFLAGS += ${DEFS} ${INCLUDES}
+
+.PHONY: all clean
+.SUFFIXES: .rc
+
+all : ${TARGET}
+
+${TARGET} : ${OBJ}
+	${CXX} -shared -o $@ $^ ${LIBS} \
+    -Wl,--out-implib,${@:.dll=.a} \
+    -Wl,--output-def,${@:.dll=.def}
+
+.rc.o:
+	${RC} ${RCFLAGS} $< $@
+
+clean:
+	rm -f ${OBJ} ${TARGET} ${TARGET:.dll=.a} ${TARGET:.dll=.def}
+
