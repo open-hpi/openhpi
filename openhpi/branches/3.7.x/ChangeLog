@@ -22,6 +22,8 @@ Changelog for 3.7.0 (05/26/2017)
 
   HPE Synergy plugin
 
+       1958 - Add Synergy Developer Guide to Makefile
+
        1957 - Interconnects in the multiple enclosure ring not discovered properly.
 
        1954 - Memory Leaks in few corner cases
