@@ -4396,7 +4396,7 @@ SaErrorT build_powersupply_inv_rdr(struct oh_handler_state *oh_handler,
         */
        rv = ov_rest_add_product_area(&local_inventory->info.area_list,
                        response->model,
-                       NULL,
+                       "HPE",
                        &add_success_flag);
        if (rv != SA_OK) {
                err("Add product area failed");
@@ -4604,6 +4604,7 @@ SaErrorT ov_rest_build_powersupply_rpt(struct oh_handler_state *oh_handler,
                         rpt.ResourceFailed = SAHPI_TRUE;
         }
         rpt.HotSwapCapabilities = 0x0;
+        rpt.ResourceInfo.ManufacturerId = HPE_MANUFACTURING_ID;
         rpt.ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
         rpt.ResourceTag.Language = SAHPI_LANG_ENGLISH;
         ov_rest_trim_whitespace(response->model);
@@ -4824,7 +4825,7 @@ SaErrorT ov_rest_build_fan_inv_rdr(struct oh_handler_state *oh_handler,
         */
        rv = ov_rest_add_product_area(&local_inventory->info.area_list,
                        response->model,
-                       NULL,
+                       "HPE",
                        &add_success_flag);
        if (rv != SA_OK) {
                err("Add product area failed");
@@ -5029,6 +5030,7 @@ SaErrorT ov_rest_build_fan_rpt(struct oh_handler_state *oh_handler,
         }
         rpt.ResourceId = oh_uid_from_entity_path(&(rpt.ResourceEntity));
         rpt.HotSwapCapabilities = 0x0;
+        rpt.ResourceInfo.ManufacturerId = HPE_MANUFACTURING_ID;
         rpt.ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
         rpt.ResourceTag.Language = SAHPI_LANG_ENGLISH;
         ov_rest_trim_whitespace(response->model);
