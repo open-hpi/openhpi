@@ -1824,12 +1824,13 @@ SaErrorT ov_rest_discover_appliance(struct oh_handler_state *handler)
  **/
 SaErrorT ov_rest_build_appliance_inv_rdr(struct oh_handler_state *oh_handler,
                                  struct applianceNodeInfo *response,
+                                 struct applianceHaNodeInfo *ha_response,
                                  SaHpiRdrT *rdr,
                                  struct ov_rest_inventory **inventory)
 {
 	SaErrorT rv = SA_OK;
 	SaHpiIdrFieldT hpi_field;
-	char appliance_inv_str[] = APPLIANCE_INVENTORY_STRING;
+	char appliance_inv_str[] = APPLIANCE_INVENTORY_STRING, *tmp = NULL;
 	struct ov_rest_inventory *local_inventory = NULL;
 	struct ov_rest_area *head_area = NULL;
 	SaHpiInt32T add_success_flag = 0;
@@ -1961,6 +1962,26 @@ SaErrorT ov_rest_build_appliance_inv_rdr(struct oh_handler_state *oh_handler,
 			local_inventory->info.area_list->idr_area_head.
 				NumFields++;
 		}
+		if (ha_response->uri != NULL) {
+			hpi_field.AreaId = local_inventory->info.area_list->
+					idr_area_head.AreaId;
+			hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
+			rv = asprintf(&tmp,"URI = %s",ha_response->uri);
+			strcpy ((char *)hpi_field.Field.Data, tmp);
+			wrap_free(tmp);
+
+			rv = ov_rest_idr_field_add(&(
+				local_inventory->info.area_list->field_list),
+				&hpi_field);
+			if (rv != SA_OK) {
+				err("Add idr field failed");
+				return rv;
+			}
+
+			/* Increment the field counter */
+			local_inventory->info.area_list->idr_area_head.
+				NumFields++;
+		}
 	}
 	return SA_OK;
 }
@@ -2003,8 +2024,8 @@ SaErrorT ov_rest_build_appliance_rdr(struct oh_handler_state *oh_handler,
 
         /* Build inventory rdr for the appliance */
         memset(&rdr, 0, sizeof(SaHpiRdrT));
-        rv = ov_rest_build_appliance_inv_rdr(oh_handler, response, &rdr, 
-				&inventory);
+        rv = ov_rest_build_appliance_inv_rdr(oh_handler, response, ha_response,
+				&rdr, &inventory);
         if (rv != SA_OK) {
                 err("Failed to Add appliance inventory RDR");
                 return rv;

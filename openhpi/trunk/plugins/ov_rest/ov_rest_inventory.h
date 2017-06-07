@@ -201,6 +201,7 @@ SaErrorT ov_rest_del_idr_field(void *oh_handler,
 
 SaErrorT ov_rest_build_appliance_inv_rdr(struct oh_handler_state *oh_handler,
                                  struct applianceNodeInfo *response,
+                                 struct applianceHaNodeInfo *ha_response,
                                  SaHpiRdrT *rdr,
                                  struct ov_rest_inventory **inventory);
 
