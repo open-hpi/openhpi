@@ -2702,9 +2702,9 @@ SaErrorT ov_rest_discover_enclosure(struct oh_handler_state *handler)
 	struct enclosureInfo result = {{0}};
         SaHpiResourceIdT resource_id;
 	char* enclosure_doc = NULL, *s = NULL;
-	int i = 0,arraylen = 0;
+	int i = 0, j = 0, arraylen = 0;
 	struct enclosureStatus *enclosure = NULL, *temp = NULL;
-	json_object * jvalue = NULL;
+	json_object *jvalue = NULL, *jvalue_enc = NULL, *jvalue_enc_array=NULL;
 
 	ov_handler = (struct ov_rest_handler *) handler->data;
 
@@ -2732,6 +2732,27 @@ SaErrorT ov_rest_discover_enclosure(struct oh_handler_state *handler)
 			continue;
 		}
 		ov_rest_json_parse_enclosure(jvalue,&result);
+		jvalue_enc_array = ov_rest_wrap_json_object_object_get(jvalue,
+		                        "managerBays");
+		/* Checking for json object type, if it is not array, return */
+		if (json_object_get_type(jvalue_enc_array) != json_type_array) {
+		        CRIT("Not adding managerBay supplied to enclosure %d,"
+		                " no array returned for that",i);
+			continue;
+		}
+
+		for(j = 0; j < arraylen; j++){
+		        jvalue_enc = json_object_array_get_idx(jvalue_enc_array,
+		                        j);
+		        if (!jvalue_enc) {
+		                CRIT("Invalid response for the enclosure"
+		                        " in bay %d", i + 1);
+		                continue;
+		        }
+		        ov_rest_json_parse_enc_manager_bays(jvalue_enc, &result);
+			if(result.presence == Absent)
+		                continue;
+		}
 		enclosure = ov_handler->ov_rest_resources.enclosure;
 		temp = enclosure;
 		while(temp){
