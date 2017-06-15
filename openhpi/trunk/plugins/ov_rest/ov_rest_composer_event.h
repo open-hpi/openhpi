@@ -42,5 +42,5 @@
 
 SaErrorT ov_rest_proc_composer_status(struct oh_handler_state *oh_handler,
                                          struct eventInfo *ov_event,
-                                         enum healthStatus composer_status);
+                                         enum healthStatus composer_health);
 #endif

@@ -64,7 +64,7 @@ SaErrorT build_inserted_server_rdr(struct oh_handler_state *oh_handler,
 				int build_sensors);
 SaErrorT remove_server_blade(struct oh_handler_state *oh_handler, 
 				SaHpiInt32T bay_number,
-                                struct enclosure_status *enclosure);
+                                struct enclosureStatus *enclosure);
 SaErrorT ov_rest_proc_server_status(struct oh_handler_state *oh_handler,
                                      struct eventInfo* event);
 SaErrorT process_drive_enclosure_power_on_event(

@@ -291,7 +291,7 @@ void ov_rest_clean_rptable(struct oh_handler_state *oh_handler)
 {
 	SaErrorT rv = SA_OK;
 	struct ov_rest_handler *ov_handler = NULL;
-	struct enclosure_status *enclosure = NULL, *temp = NULL;
+	struct enclosureStatus *enclosure = NULL, *temp = NULL;
 	REST_CON *con = NULL;
 
 	if (oh_handler == NULL) {
@@ -350,15 +350,15 @@ void ov_rest_clean_rptable(struct oh_handler_state *oh_handler)
  * Return values:
  *      None
  **/
-void release_ov_rest_resources(struct enclosure_status *enclosure)
+void release_ov_rest_resources(struct enclosureStatus *enclosure)
 {
 	SaHpiInt32T i = 0;;
 
 	/* Release memory of blade presence, resource id and blade
 	 * serial number arrays
 	 */
-	if(enclosure->serial_number != NULL){
-		wrap_g_free(enclosure->serial_number);
+	if(enclosure->serialNumber != NULL){
+		wrap_g_free(enclosure->serialNumber);
 	}
 	if (enclosure->server.presence != NULL) {
 		wrap_g_free(enclosure->server.presence);
@@ -369,16 +369,16 @@ void release_ov_rest_resources(struct enclosure_status *enclosure)
 	if (enclosure->server.resource_id != NULL) {
 		wrap_g_free(enclosure->server.resource_id);
 	}
-	if(enclosure->server.serial_number != NULL) {
+	if(enclosure->server.serialNumber != NULL) {
 		for (i = 0; i < enclosure->server.max_bays; i++)
 		{
-			if (enclosure->server.serial_number[i] !=
+			if (enclosure->server.serialNumber[i] !=
 					NULL) {
 				wrap_g_free(enclosure->server.
-						serial_number[i]);
+						serialNumber[i]);
 			}
 		}
-		wrap_g_free(enclosure->server.serial_number);
+		wrap_g_free(enclosure->server.serialNumber);
 	}
 
 	/* Release memory of interconnect presence and serial number array */
@@ -391,16 +391,16 @@ void release_ov_rest_resources(struct enclosure_status *enclosure)
 	if (enclosure->interconnect.resource_id != NULL) {
 		wrap_g_free(enclosure->interconnect.resource_id);
 	}
-	if(enclosure->interconnect.serial_number != NULL) {
+	if(enclosure->interconnect.serialNumber != NULL) {
 		for (i = 0; i < enclosure->interconnect.max_bays;
 				i++) {
 			if (enclosure->interconnect.
-					serial_number[i] != NULL) {
+					serialNumber[i] != NULL) {
 				wrap_g_free(enclosure->interconnect.
-						serial_number[i]);
+						serialNumber[i]);
 			}
 		}
-		wrap_g_free(enclosure->interconnect.serial_number);
+		wrap_g_free(enclosure->interconnect.serialNumber);
 	}
 
 	/* Release memory of fan presence and serial number array */
@@ -413,13 +413,13 @@ void release_ov_rest_resources(struct enclosure_status *enclosure)
 	if (enclosure->fan.resource_id != NULL) {
 		wrap_g_free(enclosure->fan.resource_id);
 	}
-	if(enclosure->fan.serial_number != NULL){
+	if(enclosure->fan.serialNumber != NULL){
 		for(i =0 ; i< enclosure->fan.max_bays; i++){
-			if (enclosure->fan.serial_number != NULL) {
-				wrap_g_free(enclosure->fan.serial_number[i]);
+			if (enclosure->fan.serialNumber != NULL) {
+				wrap_g_free(enclosure->fan.serialNumber[i]);
 			}
 		}
-		wrap_g_free(enclosure->fan.serial_number);
+		wrap_g_free(enclosure->fan.serialNumber);
 	}
 
 
@@ -433,16 +433,16 @@ void release_ov_rest_resources(struct enclosure_status *enclosure)
 	if (enclosure->ps_unit.resource_id !=NULL) {
 		wrap_g_free(enclosure->ps_unit.resource_id);
 	}
-	if(enclosure->ps_unit.serial_number != NULL) {
+	if(enclosure->ps_unit.serialNumber != NULL) {
 		for (i = 0; i < enclosure->ps_unit.max_bays; i++)
 		{
-			if (enclosure->ps_unit.serial_number[i]
+			if (enclosure->ps_unit.serialNumber[i]
 					!= NULL) {
 				wrap_g_free(enclosure->
-						ps_unit.serial_number[i]);
+						ps_unit.serialNumber[i]);
 			}
 		}
-		wrap_g_free(enclosure->ps_unit.serial_number);
+		wrap_g_free(enclosure->ps_unit.serialNumber);
 	}
 	wrap_g_free(enclosure);
 }
@@ -491,38 +491,38 @@ SaErrorT ov_rest_lower_to_upper(char *src,
 }
 
 /**
- * update_resource_status()
- *      @res_status     pointer to resource_status_t
+ * ov_rest_update_resource_status()
+ *      @res_status     pointer to resource_info_t
  *      @index          index into the resource info fields in res_status
- *      @serial_number  serial_number string to be copied into res_status
+ *      @serialNumber  serialNumber string to be copied into res_status
  *      @resource_id    resource id to be updated to res_status
  *      @presence       presence status
  *
  *      Description:
  *      This routine updates the resource status entry with passed in
- *      serial_number, resource_id, and presence.  This routine should be
+ *      serialNumber, resource_id, and presence.  This routine should be
  *      called to set and reset the resource status fields that change
  *      when a a resource gets added and removed.
  *
  *      Return value: none
 **/
-void ov_rest_update_resource_status(resource_status_t *res_status,
+void ov_rest_update_resource_status(resource_info_t *res_status,
                                     SaHpiInt32T index,
-                                    char *serial_number,
+                                    char *serialNumber,
                                     SaHpiResourceIdT resource_id,
-                                    resource_presence_status_t presence,
-                                    resource_category_t type)
+                                    resource_presence_t presence,
+                                    resourceCategory_t type)
 {
         if (index <= 0) {
                 err("Invalid index value %d - returning without update\n",
                     index);
                 return;
         }
-        if ((serial_number != NULL) && (serial_number[0] != '\0')) {
+        if ((serialNumber != NULL) && (serialNumber[0] != '\0')) {
                 size_t len;
-                len = strlen(serial_number);
-                strncpy(res_status->serial_number[index-1], serial_number,len);
-                res_status->serial_number[index-1][len] = '\0';
+                len = strlen(serialNumber);
+                strncpy(res_status->serialNumber[index-1], serialNumber,len);
+                res_status->serialNumber[index-1][len] = '\0';
         }
         res_status->resource_id[index-1] = resource_id;
         res_status->presence[index-1] = presence;
@@ -617,7 +617,7 @@ SaErrorT get_url_from_idr(struct oh_handler_state *handler,
 			SaHpiResourceIdT resource_id, char ** url)
 {
 	struct ov_rest_inventory *idr = NULL;
-	struct ov_rest_field **f = NULL;
+	struct ovRestField **f = NULL;
 
 	idr = (struct ov_rest_inventory*) oh_get_rdr_data(handler->rptcache,
 							resource_id, 0);

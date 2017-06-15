@@ -90,7 +90,7 @@ SaErrorT ov_rest_get_hotswap_state(void *oh_handler,
                                    SaHpiResourceIdT resource_id,
                                    SaHpiHsStateT *state)
 {
-        struct ov_rest_hotswap_state *hotswap_state = NULL;
+        struct ovRestHotswapState *hotswap_state = NULL;
         struct oh_handler_state *handler = NULL;
         SaHpiRptEntryT *rpt = NULL;
 
@@ -123,7 +123,7 @@ SaErrorT ov_rest_get_hotswap_state(void *oh_handler,
          } else {
 
                 /* Get the hotswap structure of MANAGED_HOTSWAP */
-                hotswap_state = (struct ov_rest_hotswap_state *)
+                hotswap_state = (struct ovRestHotswapState *)
                          oh_get_resource_data(handler->rptcache, resource_id);
                 if (hotswap_state == NULL) {
                          err("Unable to get the resource private data");
@@ -248,7 +248,7 @@ SaErrorT ov_rest_request_hotswap_action(void *oh_handler,
                                         SaHpiHsActionT action)
 {
         SaErrorT rv = SA_OK;
-        struct ov_rest_hotswap_state *hotswap_state = NULL;
+        struct ovRestHotswapState *hotswap_state = NULL;
         struct oh_handler_state *handler = NULL;
         struct ov_rest_handler *ov_handler = NULL;
         SaHpiRptEntryT *rpt = NULL;
@@ -286,7 +286,7 @@ SaErrorT ov_rest_request_hotswap_action(void *oh_handler,
         }
 
         /* Get the hotswap structure from rpt entry */
-        hotswap_state = (struct ov_rest_hotswap_state *)
+        hotswap_state = (struct ovRestHotswapState *)
                 oh_get_resource_data(handler->rptcache, resource_id);
         if (hotswap_state == NULL) {
                 err("Unable to get the resource private data");

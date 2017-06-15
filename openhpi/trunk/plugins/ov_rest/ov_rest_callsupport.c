@@ -124,9 +124,9 @@ SaErrorT ov_rest_curl_get_request(REST_CON *connection,
 	chunk = curl_slist_append(chunk, OV_REST_X_API_VERSION);
 	chunk = curl_slist_append(chunk, Auth);
 	wrap_free(Auth);
-	if(connection->x_auth_token != NULL){
+	if(connection->xAuthToken != NULL){
 		asprintf(&X_Auth_Token,OV_REST_X_AUTH_TOKEN,
-				connection->x_auth_token);
+				connection->xAuthToken);
 		chunk = curl_slist_append(chunk, X_Auth_Token);
 	}else {
 		err("Sessionkey for server single sign on is invalid/NULL");

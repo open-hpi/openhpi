@@ -1165,7 +1165,7 @@ static void ov_rest_gen_res_evt(struct oh_handler_state *oh_handler,
 {
 	SaErrorT rv = SA_OK;
 	struct oh_event event = {0};
-	struct ov_rest_hotswap_state *hotswap_state = NULL;
+	struct ovRestHotswapState *hotswap_state = NULL;
 
 	if (oh_handler == NULL || rpt == NULL) {
 		err("Invalid parameters");
@@ -1199,7 +1199,7 @@ static void ov_rest_gen_res_evt(struct oh_handler_state *oh_handler,
 
 	/* Get the hotswap structure */
 	if (rpt->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP) {
-		hotswap_state = (struct ov_rest_hotswap_state *)
+		hotswap_state = (struct ovRestHotswapState *)
                         oh_get_resource_data(oh_handler->rptcache,
                                              rpt->ResourceId);
 	}

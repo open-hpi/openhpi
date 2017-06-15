@@ -396,8 +396,8 @@ SaErrorT ov_rest_getserverConsoleUrl(struct oh_handler_state *oh_handler,
 				sso_url[i] = ' ';
 		}
 		sscanf(sso_url, "hplocons://addr %s %*s %s", 
-						connection->server_ilo,
-						connection->x_auth_token);
+						connection->serverIlo,
+						connection->xAuthToken);
         }
 	wrap_free(s.ptr);
 	ov_rest_wrap_json_object_put(s.jobj);
@@ -896,11 +896,11 @@ SaErrorT ov_rest_build_serverThermalRdr(struct oh_handler_state *oh_handler,
                 wrap_free(connection->url);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
-        if(connection->server_ilo && strlen(connection->server_ilo) &&
-                                     strcmp(connection->server_ilo,"0.0.0.0")){
+        if(connection->serverIlo && strlen(connection->serverIlo) &&
+                                     strcmp(connection->serverIlo,"0.0.0.0")){
                 wrap_free(connection->url);
                 asprintf(&connection->url, OV_SERVER_HARDWARE_THERMAL_URI,
-                                           connection->server_ilo);
+                                           connection->serverIlo);
                 rv = ov_rest_getserverThermalInfo(oh_handler,
                                                   &thermal_response,
                                                   connection);
@@ -965,11 +965,11 @@ SaErrorT ov_rest_build_serverPowerStatusRdr(struct oh_handler_state
                 wrap_free(connection->url);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
-        if(connection->server_ilo && strlen(connection->server_ilo)&&
-                                    strcmp(connection->server_ilo,"0.0.0.0")){
+        if(connection->serverIlo && strlen(connection->serverIlo)&&
+                                    strcmp(connection->serverIlo,"0.0.0.0")){
                 wrap_free(connection->url);
                 asprintf(&connection->url, OV_SERVER_HARDWARE_POWER_STATUS_URI,
-                                           connection->server_ilo);
+                                           connection->serverIlo);
                 rv = ov_rest_getserverPowerStatusInfo(oh_handler,
                                                       &power_response,
                                                       connection);
@@ -1034,11 +1034,11 @@ SaErrorT ov_rest_build_serverSystemsRdr(struct oh_handler_state *oh_handler,
                 wrap_free(connection->url);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
-        if(connection->server_ilo && strlen(connection->server_ilo)&&
-                                     strcmp(connection->server_ilo,"0.0.0.0")){
+        if(connection->serverIlo && strlen(connection->serverIlo)&&
+                                     strcmp(connection->serverIlo,"0.0.0.0")){
                 wrap_free(connection->url);
                 asprintf(&connection->url, OV_SERVER_HARDWARE_SYSTEMS_URI,
-                                           connection->server_ilo);
+                                           connection->serverIlo);
                 rv = ov_rest_getserverSystemsInfo(oh_handler,
                                                   &system_response,
                                                   connection);
@@ -1104,11 +1104,11 @@ SaErrorT ov_rest_build_serverStorageRdr(struct oh_handler_state *oh_handler,
                 wrap_free(connection->url);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
-        if(connection->server_ilo && strlen(connection->server_ilo)&&
-                                     strcmp(connection->server_ilo,"0.0.0.0")){
+        if(connection->serverIlo && strlen(connection->serverIlo)&&
+                                     strcmp(connection->serverIlo,"0.0.0.0")){
                 wrap_free(connection->url);
                 asprintf(&connection->url,OV_SERVER_HARDWARE_SMART_STORAGE_URI,
-                                           connection->server_ilo);
+                                           connection->serverIlo);
                 rv = ov_rest_getserverStorageInfo(oh_handler,
                                                   &storage_response,
                                                   connection);
@@ -1175,12 +1175,12 @@ SaErrorT ov_rest_build_serverNetworkAdaptersRdr(
                 wrap_free(connection->url);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
-        if(connection->server_ilo && strlen(connection->server_ilo)&&
-                                     strcmp(connection->server_ilo,"0.0.0.0")){
+        if(connection->serverIlo && strlen(connection->serverIlo)&&
+                                     strcmp(connection->serverIlo,"0.0.0.0")){
                 wrap_free(connection->url);
                 asprintf(&connection->url,
                                 OV_SERVER_HARDWARE_NETWORK_ADAPTERS_URI,
-                                connection->server_ilo);
+                                connection->serverIlo);
                 rv = ov_rest_getserverNetworkAdaptersInfo(oh_handler,
                                 &network_adapter_response, connection);
                 if(rv == SA_OK){
@@ -1246,12 +1246,12 @@ SaErrorT ov_rest_build_serverEthernetInterfacesRdr(
                 wrap_free(connection->url);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
-        if(connection->server_ilo && strlen(connection->server_ilo)&&
-                                     strcmp(connection->server_ilo,"0.0.0.0")){
+        if(connection->serverIlo && strlen(connection->serverIlo)&&
+                                     strcmp(connection->serverIlo,"0.0.0.0")){
                 wrap_free(connection->url);
                 asprintf(&connection->url,
                                 OV_SERVER_HARDWARE_ETHERNET_INTERFACES_URI,
-                                connection->server_ilo);
+                                connection->serverIlo);
                 rv = ov_rest_getserverEthernetInterfacesInfo(oh_handler,
                                 &ethernet_inetrface_response, connection);
                 if(rv == SA_OK){
@@ -1781,7 +1781,7 @@ SaErrorT ov_rest_discover_appliance(struct oh_handler_state *handler)
 
 	/* Save appliance resource id */
 	ov_handler->ov_rest_resources.composer.resource_id = resource_id;
-	strcpy(ov_handler->ov_rest_resources.composer.serial_number,
+	strcpy(ov_handler->ov_rest_resources.composer.serialNumber,
 					result.version.serialNumber);
         itostr(resource_id ,&s);
         g_hash_table_insert(ov_handler->uri_rid, g_strdup(result.version.uri), 
@@ -1832,7 +1832,7 @@ SaErrorT ov_rest_build_appliance_inv_rdr(struct oh_handler_state *oh_handler,
 	SaHpiIdrFieldT hpi_field;
 	char appliance_inv_str[] = APPLIANCE_INVENTORY_STRING, *tmp = NULL;
 	struct ov_rest_inventory *local_inventory = NULL;
-	struct ov_rest_area *head_area = NULL;
+	struct ovRestArea *head_area = NULL;
 	SaHpiInt32T add_success_flag = 0;
 	SaHpiInt32T product_area_success_flag = 0;
 	SaHpiInt32T area_count = 0;
@@ -2188,8 +2188,8 @@ SaErrorT ov_rest_build_enc_info(struct oh_handler_state *oh_handler,
 	
 	struct ov_rest_handler *ov_handler = NULL;
 	SaHpiInt32T i = 0;;
-	struct enclosure_status *temp_enclosure = NULL;
-	struct enclosure_status *enclosure = NULL, *temp = NULL;
+	struct enclosureStatus *temp_enclosure = NULL;
+	struct enclosureStatus *enclosure = NULL, *temp = NULL;
 
 	if (oh_handler == NULL) {
 		err("Invalid parameters");
@@ -2202,8 +2202,8 @@ SaErrorT ov_rest_build_enc_info(struct oh_handler_state *oh_handler,
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 	enclosure = ov_handler->ov_rest_resources.enclosure;
-	temp_enclosure = (struct enclosure_status* )
-				g_malloc0(sizeof(struct enclosure_status ));
+	temp_enclosure = (struct enclosureStatus* )
+				g_malloc0(sizeof(struct enclosureStatus ));
 
 	temp_enclosure->enclosure_rid =
 		SAHPI_UNSPECIFIED_RESOURCE_ID;
@@ -2212,14 +2212,14 @@ SaErrorT ov_rest_build_enc_info(struct oh_handler_state *oh_handler,
 	temp_enclosure->thermal_subsystem_rid =
 		SAHPI_UNSPECIFIED_RESOURCE_ID;
 	temp_enclosure->lcd_rid = SAHPI_UNSPECIFIED_RESOURCE_ID;
-	temp_enclosure->serial_number = (char *) g_malloc0(sizeof(char *) *
+	temp_enclosure->serialNumber = (char *) g_malloc0(sizeof(char *) *
                                         MAX_256_CHARS);
-	if (temp_enclosure->serial_number == NULL) {
+	if (temp_enclosure->serialNumber == NULL) {
 		err("Out of memory");
 		wrap_g_free(temp_enclosure);
 		return SA_ERR_HPI_OUT_OF_MEMORY;
 	}
-	strcpy(temp_enclosure->serial_number, info->serialNumber);
+	strcpy(temp_enclosure->serialNumber, info->serialNumber);
 	
 
 	/* Create the resource presence matrix for
@@ -2232,12 +2232,12 @@ SaErrorT ov_rest_build_enc_info(struct oh_handler_state *oh_handler,
 	temp_enclosure->server.max_bays = info->bladeBays;
 	if(temp_enclosure->server.max_bays){
 		temp_enclosure->server.presence =
-			(enum resource_presence_status *)
-			g_malloc0((sizeof(enum resource_presence_status)) *
+			(enum resource_presence *)
+			g_malloc0((sizeof(enum resource_presence)) *
 					temp_enclosure->server.max_bays);
 		if (temp_enclosure->server.presence == NULL) {
 			err("Out of memory");	
-			wrap_g_free(temp_enclosure->serial_number);
+			wrap_g_free(temp_enclosure->serialNumber);
 			wrap_g_free(temp_enclosure);
 			return SA_ERR_HPI_OUT_OF_MEMORY;
 		}
@@ -2253,8 +2253,8 @@ SaErrorT ov_rest_build_enc_info(struct oh_handler_state *oh_handler,
 		}
 
 		temp_enclosure->server.type =
-			(enum resource_category *)
-			g_malloc0((sizeof(enum resource_category)) *
+			(enum resourceCategory *)
+			g_malloc0((sizeof(enum resourceCategory)) *
 					temp_enclosure->server.max_bays);
 		if (temp_enclosure->server.type == NULL) {
 			err("Out of memory");	
@@ -2266,10 +2266,10 @@ SaErrorT ov_rest_build_enc_info(struct oh_handler_state *oh_handler,
 		 * is not reachable, we can detect this change by comparing 
 		 * the serial numbers of the old and new blade.
 		 */
-		temp_enclosure->server.serial_number = (char **)
+		temp_enclosure->server.serialNumber = (char **)
 			g_malloc0(sizeof(char **) *
 					temp_enclosure->server.max_bays);
-		if (temp_enclosure->server.serial_number == NULL) {
+		if (temp_enclosure->server.serialNumber == NULL) {
 			err("Out of memory");
 			release_ov_rest_resources(temp_enclosure);
 			return SA_ERR_HPI_OUT_OF_MEMORY;
@@ -2279,9 +2279,9 @@ SaErrorT ov_rest_build_enc_info(struct oh_handler_state *oh_handler,
 			temp_enclosure->server.presence[i] = RES_ABSENT;
 			temp_enclosure->server.resource_id[i] =
 				SAHPI_UNSPECIFIED_RESOURCE_ID;
-			temp_enclosure->server.serial_number[i] = (char *)
+			temp_enclosure->server.serialNumber[i] = (char *)
 				g_malloc0(sizeof(char *) * MAX_256_CHARS);
-			if (temp_enclosure->server.serial_number[i] ==
+			if (temp_enclosure->server.serialNumber[i] ==
 					NULL) {
 				err("Out of memory");
 				release_ov_rest_resources(temp_enclosure);
@@ -2296,8 +2296,8 @@ SaErrorT ov_rest_build_enc_info(struct oh_handler_state *oh_handler,
 	if(temp_enclosure->interconnect.max_bays){
 
 		temp_enclosure->interconnect.presence =
-			(enum resource_presence_status *)
-			g_malloc0((sizeof(enum resource_presence_status)) *
+			(enum resource_presence *)
+			g_malloc0((sizeof(enum resource_presence)) *
 					temp_enclosure->interconnect.max_bays);
 		if (temp_enclosure->interconnect.presence == NULL) {
 			err("Out of memory");
@@ -2316,8 +2316,8 @@ SaErrorT ov_rest_build_enc_info(struct oh_handler_state *oh_handler,
 		}
 
 		temp_enclosure->interconnect.type =
-			(enum resource_category *)
-			g_malloc0((sizeof(enum resource_category)) *
+			(enum resourceCategory *)
+			g_malloc0((sizeof(enum resourceCategory)) *
 					temp_enclosure->interconnect.max_bays);
 		if (temp_enclosure->interconnect.type == NULL) {
 			err("Out of memory");	
@@ -2325,10 +2325,10 @@ SaErrorT ov_rest_build_enc_info(struct oh_handler_state *oh_handler,
 			return SA_ERR_HPI_OUT_OF_MEMORY;
 		}
 
-		temp_enclosure->interconnect.serial_number = (char **)
+		temp_enclosure->interconnect.serialNumber = (char **)
 			g_malloc0(sizeof(char **) *
 					temp_enclosure->interconnect.max_bays);
-		if (temp_enclosure->interconnect.serial_number == NULL) {
+		if (temp_enclosure->interconnect.serialNumber == NULL) {
 			err("Out of memory");
 			release_ov_rest_resources(temp_enclosure);
 			return SA_ERR_HPI_OUT_OF_MEMORY;
@@ -2341,10 +2341,10 @@ SaErrorT ov_rest_build_enc_info(struct oh_handler_state *oh_handler,
 			temp_enclosure->interconnect.resource_id[i] =
 				SAHPI_UNSPECIFIED_RESOURCE_ID;
 
-			temp_enclosure->interconnect.serial_number[i] =
+			temp_enclosure->interconnect.serialNumber[i] =
 				(char *) g_malloc0(sizeof(char *) *
 						MAX_256_CHARS);
-			if (temp_enclosure->interconnect.serial_number[i]
+			if (temp_enclosure->interconnect.serialNumber[i]
 					== NULL) {
 				err("Out of memory");
 				release_ov_rest_resources(temp_enclosure);
@@ -2358,8 +2358,8 @@ SaErrorT ov_rest_build_enc_info(struct oh_handler_state *oh_handler,
 	if(temp_enclosure->fan.max_bays){
 
 		temp_enclosure->fan.presence =
-			(enum resource_presence_status *)
-			g_malloc0((sizeof(enum resource_presence_status)) *
+			(enum resource_presence *)
+			g_malloc0((sizeof(enum resource_presence)) *
 					temp_enclosure->fan.max_bays);
 		if (temp_enclosure->fan.presence == NULL) {
 			err("Out of memory");
@@ -2378,8 +2378,8 @@ SaErrorT ov_rest_build_enc_info(struct oh_handler_state *oh_handler,
 		}
 
 		temp_enclosure->fan.type =
-			(enum resource_category *)
-			g_malloc0((sizeof(enum resource_category)) *
+			(enum resourceCategory *)
+			g_malloc0((sizeof(enum resourceCategory)) *
 					temp_enclosure->fan.max_bays);
 		if (temp_enclosure->fan.type == NULL) {
 			err("Out of memory");	
@@ -2387,10 +2387,10 @@ SaErrorT ov_rest_build_enc_info(struct oh_handler_state *oh_handler,
 			return SA_ERR_HPI_OUT_OF_MEMORY;
 		}
 
-                temp_enclosure->fan.serial_number = (char **)
+                temp_enclosure->fan.serialNumber = (char **)
                         g_malloc0(sizeof(char **) *
                                         temp_enclosure->fan.max_bays);
-                if (temp_enclosure->fan.serial_number == NULL) {
+                if (temp_enclosure->fan.serialNumber == NULL) {
                         err("Out of memory");
                         release_ov_rest_resources(temp_enclosure);
                         return SA_ERR_HPI_OUT_OF_MEMORY;
@@ -2404,10 +2404,10 @@ SaErrorT ov_rest_build_enc_info(struct oh_handler_state *oh_handler,
 			temp_enclosure->fan.resource_id[i] =
 				SAHPI_UNSPECIFIED_RESOURCE_ID;
 
-                        temp_enclosure->fan.serial_number[i] =
+                        temp_enclosure->fan.serialNumber[i] =
                                 (char *) g_malloc0(sizeof(char *) *
                                                 MAX_256_CHARS);
-                        if (temp_enclosure->fan.serial_number[i] ==
+                        if (temp_enclosure->fan.serialNumber[i] ==
                                         NULL) {
                                 err("Out of memory");
                                 release_ov_rest_resources(temp_enclosure);
@@ -2420,8 +2420,8 @@ SaErrorT ov_rest_build_enc_info(struct oh_handler_state *oh_handler,
 	temp_enclosure->ps_unit.max_bays = info->powerSupplyBayCount;
 	if(temp_enclosure->ps_unit.max_bays){
 		temp_enclosure->ps_unit.presence =
-			(enum resource_presence_status *)
-			g_malloc0((sizeof(enum resource_presence_status)) *
+			(enum resource_presence *)
+			g_malloc0((sizeof(enum resource_presence)) *
 					temp_enclosure->ps_unit.max_bays);
 		if (temp_enclosure->ps_unit.presence == NULL) {
 			err("Out of memory");
@@ -2439,18 +2439,18 @@ SaErrorT ov_rest_build_enc_info(struct oh_handler_state *oh_handler,
 			return SA_ERR_HPI_OUT_OF_MEMORY;
 		}
 		temp_enclosure->ps_unit.type =
-			(enum resource_category *)
-			g_malloc0((sizeof(enum resource_category)) *
+			(enum resourceCategory *)
+			g_malloc0((sizeof(enum resourceCategory)) *
 					temp_enclosure->ps_unit.max_bays);
 		if (temp_enclosure->ps_unit.type == NULL) {
 			err("Out of memory");	
 			release_ov_rest_resources(temp_enclosure);
 			return SA_ERR_HPI_OUT_OF_MEMORY;
 		}
-		temp_enclosure->ps_unit.serial_number = (char **)
+		temp_enclosure->ps_unit.serialNumber = (char **)
 			g_malloc0(sizeof(char **) *
 					temp_enclosure->ps_unit.max_bays);
-		if (temp_enclosure->ps_unit.serial_number == NULL) {
+		if (temp_enclosure->ps_unit.serialNumber == NULL) {
 			err("Out of memory");
 			release_ov_rest_resources(temp_enclosure);
 			return SA_ERR_HPI_OUT_OF_MEMORY;
@@ -2461,10 +2461,10 @@ SaErrorT ov_rest_build_enc_info(struct oh_handler_state *oh_handler,
 			temp_enclosure->ps_unit.resource_id[i] =
 				SAHPI_UNSPECIFIED_RESOURCE_ID;
 
-			temp_enclosure->ps_unit.serial_number[i] =
+			temp_enclosure->ps_unit.serialNumber[i] =
 				(char *) g_malloc0(sizeof(char *) *
 						MAX_256_CHARS);
-			if (temp_enclosure->ps_unit.serial_number[i] ==
+			if (temp_enclosure->ps_unit.serialNumber[i] ==
 					NULL) {
 				err("Out of memory");
 				release_ov_rest_resources(temp_enclosure);
@@ -2703,7 +2703,7 @@ SaErrorT ov_rest_discover_enclosure(struct oh_handler_state *handler)
         SaHpiResourceIdT resource_id;
 	char* enclosure_doc = NULL, *s = NULL;
 	int i = 0,arraylen = 0;
-	struct enclosure_status *enclosure = NULL, *temp = NULL;
+	struct enclosureStatus *enclosure = NULL, *temp = NULL;
 	json_object * jvalue = NULL;
 
 	ov_handler = (struct ov_rest_handler *) handler->data;
@@ -2735,13 +2735,13 @@ SaErrorT ov_rest_discover_enclosure(struct oh_handler_state *handler)
 		enclosure = ov_handler->ov_rest_resources.enclosure;
 		temp = enclosure;
 		while(temp){
-			if(strstr(result.serialNumber, temp->serial_number)){
+			if(strstr(result.serialNumber, temp->serialNumber)){
 				break;		
 			}
 			temp = temp->next;
 		}
 		if(temp){
-			if(strstr(result.serialNumber, temp->serial_number)){
+			if(strstr(result.serialNumber, temp->serialNumber)){
 				continue;
 			}
 		}
@@ -2775,7 +2775,7 @@ SaErrorT ov_rest_discover_enclosure(struct oh_handler_state *handler)
 		}
 		/* Save enclosure resource id */
 		temp->enclosure_rid = resource_id;
-		strcpy(temp->serial_number, result.serialNumber);
+		strcpy(temp->serialNumber, result.serialNumber);
 
 		rv = ov_rest_build_enclosure_rdr(handler,
 				&result, resource_id);
@@ -2815,7 +2815,7 @@ SaErrorT build_discovered_server_rpt(struct oh_handler_state *oh_handler,
 {
         SaErrorT rv = SA_OK;
 	SaHpiPowerStateT state = {0};
-        struct ov_rest_hotswap_state *hotswap_state = NULL;
+        struct ovRestHotswapState *hotswap_state = NULL;
         SaHpiRptEntryT rpt = {0};
 
         if (oh_handler == NULL || response == NULL ||
@@ -2856,8 +2856,8 @@ SaErrorT build_discovered_server_rpt(struct oh_handler_state *oh_handler,
                                 return SA_ERR_HPI_INTERNAL_ERROR;
                 }
 
-                hotswap_state = (struct ov_rest_hotswap_state *)
-                        g_malloc0(sizeof(struct ov_rest_hotswap_state));
+                hotswap_state = (struct ovRestHotswapState *)
+                        g_malloc0(sizeof(struct ovRestHotswapState));
                 if (hotswap_state == NULL) {
                         err("Out of memory");
                         return SA_ERR_HPI_OUT_OF_MEMORY;
@@ -2922,7 +2922,7 @@ SaErrorT ov_rest_build_server_rpt(struct oh_handler_state *oh_handler,
 	SaErrorT rv = SA_OK;
 	SaHpiEntityPathT entity_path = {{{0}}};
 	char *entity_root = NULL;
-	struct enclosure_status *enclosure = NULL;
+	struct enclosureStatus *enclosure = NULL;
 	SaHpiResourceIdT enc_rid;
 	SaHpiRptEntryT *enc_rpt = NULL;
 	struct ov_rest_handler* ov_handler = NULL;
@@ -2961,7 +2961,7 @@ SaErrorT ov_rest_build_server_rpt(struct oh_handler_state *oh_handler,
 			SAHPI_ENT_SYSTEM_CHASSIS;
 		enclosure = ov_handler->ov_rest_resources.enclosure;
 		while(enclosure){
-			if(strstr(response->locationUri, enclosure->serial_number)){
+			if(strstr(response->locationUri, enclosure->serialNumber)){
 				break;
 			}
 			enclosure = enclosure->next;
@@ -3207,13 +3207,13 @@ SaErrorT ov_rest_discover_server(struct oh_handler_state *handler)
 	struct serverhardwareInfoArrayResponse response = {0};
 	struct enclosureInfoArrayResponse enclosure_response = {0};
 	struct serverhardwareInfo info_result = {0};
-	struct enclosureInfo enclosure_info = {{0}};
+	struct enclosureInfo enc_info = {{0}};
 	char*  server_doc = NULL, *enclosure_doc = NULL, *s = NULL;        
 	/* this Pointer must be freed at the end of this funtion */
 	int i = 0, arraylen = 0;
 	char* blade_name = NULL;
 	json_object *jvalue = NULL;
-	struct enclosure_status *enclosure = NULL;
+	struct enclosureStatus *enclosure = NULL;
 
 	ov_handler = (struct ov_rest_handler *) handler->data;
 
@@ -3263,8 +3263,8 @@ SaErrorT ov_rest_discover_server(struct oh_handler_state *handler)
 			
 			g_hash_table_insert(ov_handler->uri_rid, g_strdup
 					(info_result.uri), g_strdup(s));
-			/* Update resource_status structure with resource_id,
-			 * serial_number, and presence status
+			/* Update resource_info structure with resource_id,
+			 * serialNumber, and presence status
 			 */
 			wrap_free(s);
 			asprintf(&ov_handler->connection->url, "https://%s%s",
@@ -3280,13 +3280,13 @@ SaErrorT ov_rest_discover_server(struct oh_handler_state *handler)
 			}
 			ov_rest_json_parse_enclosure(
 				enclosure_response.enclosure_array, 
-				&enclosure_info);
+				&enc_info);
 			ov_rest_wrap_json_object_put(
 						enclosure_response.root_jobj);
                         enclosure = ov_handler->ov_rest_resources.enclosure;
                         while(enclosure != NULL){
-                                if(strstr(enclosure->serial_number,
-					enclosure_info.serialNumber)){
+                                if(strstr(enclosure->serialNumber,
+					enc_info.serialNumber)){
                                         ov_rest_update_resource_status(
 						&enclosure->server,
 						info_result.bayNumber,
@@ -3345,7 +3345,7 @@ SaErrorT ov_rest_build_drive_enclosure_rpt(struct oh_handler_state *oh_handler,
         char *entity_root = NULL;
         SaHpiResourceIdT enc_rid;
         SaHpiRptEntryT *enc_rpt = NULL;
-        struct enclosure_status *enclosure = NULL;
+        struct enclosureStatus *enclosure = NULL;
         struct ov_rest_handler* ov_handler = NULL;
 
         if (oh_handler == NULL || response == NULL || rpt == NULL) {
@@ -3381,7 +3381,7 @@ SaErrorT ov_rest_build_drive_enclosure_rpt(struct oh_handler_state *oh_handler,
 					SAHPI_ENT_SYSTEM_CHASSIS;
 		enclosure = ov_handler->ov_rest_resources.enclosure;
 		while(enclosure){
-			if(strstr(response->locationUri, enclosure->serial_number)){
+			if(strstr(response->locationUri, enclosure->serialNumber)){
 				break;
 			}
 			enclosure = enclosure->next;
@@ -3487,7 +3487,7 @@ SaErrorT build_discovered_drive_enclosure_rpt(
 {
         SaErrorT rv = SA_OK;
         SaHpiPowerStateT state;
-        struct ov_rest_hotswap_state *hotswap_state = NULL;
+        struct ovRestHotswapState *hotswap_state = NULL;
         SaHpiRptEntryT rpt = {0};
 
         if (oh_handler == NULL || response == NULL ||
@@ -3525,8 +3525,8 @@ SaErrorT build_discovered_drive_enclosure_rpt(
                                 return SA_ERR_HPI_INTERNAL_ERROR;
                 }
 
-                hotswap_state = (struct ov_rest_hotswap_state *)
-                        g_malloc0(sizeof(struct ov_rest_hotswap_state));
+                hotswap_state = (struct ovRestHotswapState *)
+                        g_malloc0(sizeof(struct ovRestHotswapState));
                 if (hotswap_state == NULL) {
                         err("Out of memory");
                         return SA_ERR_HPI_OUT_OF_MEMORY;
@@ -3642,7 +3642,7 @@ SaErrorT ov_rest_discover_drive_enclosure(struct oh_handler_state *handler)
 	int i = 0, arraylen = 0;
 	char* blade_name = NULL;
 	json_object *jvalue = NULL;
-	struct enclosure_status *enclosure = NULL;
+	struct enclosureStatus *enclosure = NULL;
 
 	ov_handler = (struct ov_rest_handler *) handler->data;
 	asprintf(&ov_handler->connection->url, OV_DRIVE_ENCLOSURE_URI,
@@ -3696,12 +3696,12 @@ SaErrorT ov_rest_discover_drive_enclosure(struct oh_handler_state *handler)
 		g_hash_table_insert(ov_handler->uri_rid, 
 				g_strdup(info_result.uri), g_strdup(s));
 		wrap_free(s);
-		/* Update resource_status structure with resource_id,
-		 * serial_number, and presence status
+		/* Update resource_info structure with resource_id,
+		 * serialNumber, and presence status
 		 */
 		enclosure = ov_handler->ov_rest_resources.enclosure;
 		while(enclosure != NULL){
-			if(strstr(enclosure->serial_number,
+			if(strstr(enclosure->serialNumber,
 						info_result.enc_serialNumber)){
 				ov_rest_update_resource_status (
 						&enclosure->server,
@@ -3754,11 +3754,11 @@ SaErrorT ov_rest_build_interconnect_rpt(struct oh_handler_state *oh_handler,
 	SaErrorT rv = SA_OK;
 	SaHpiEntityPathT entity_path = {{{0}}};
 	char *entity_root = NULL;
-	struct ov_rest_hotswap_state *hotswap_state = NULL;
+	struct ovRestHotswapState *hotswap_state = NULL;
 	SaHpiRptEntryT rpt = {0};
 	char temp[256];
 	struct ov_rest_handler *ov_handler = NULL;
-	struct enclosure_status *enclosure = NULL;
+	struct enclosureStatus *enclosure = NULL;
 	SaHpiResourceIdT enc_rid;
 	SaHpiRptEntryT *enc_rpt = NULL;
 
@@ -3798,7 +3798,7 @@ SaErrorT ov_rest_build_interconnect_rpt(struct oh_handler_state *oh_handler,
 	rpt.ResourceEntity.Entry[1].EntityType = SAHPI_ENT_SYSTEM_CHASSIS;
 	enclosure = ov_handler->ov_rest_resources.enclosure;
 	while(enclosure){
-		if(strstr(response->locationUri, enclosure->serial_number)){
+		if(strstr(response->locationUri, enclosure->serialNumber)){
 			break;
 		}
 		enclosure = enclosure->next;
@@ -3870,8 +3870,8 @@ SaErrorT ov_rest_build_interconnect_rpt(struct oh_handler_state *oh_handler,
 	snprintf((char *) (rpt.ResourceTag.Data),
 			rpt.ResourceTag.DataLength + 1, "%s", response->model);
 
-	hotswap_state = (struct ov_rest_hotswap_state *)
-		g_malloc0(sizeof(struct ov_rest_hotswap_state));
+	hotswap_state = (struct ovRestHotswapState *)
+		g_malloc0(sizeof(struct ovRestHotswapState));
 	if (hotswap_state == NULL) {
 		err("Out of memory");
 		return SA_ERR_HPI_OUT_OF_MEMORY;
@@ -4017,8 +4017,8 @@ SaErrorT ov_rest_discover_sas_interconnect(struct oh_handler_state *handler)
 	struct interconnectInfo result = {0};
 	SaHpiResourceIdT resource_id;
 	struct enclosureInfoArrayResponse enclosure_response = {0};
-	struct enclosureInfo enclosure_info = {{0}};
-	struct enclosure_status *enclosure = NULL;
+	struct enclosureInfo enc_info = {{0}};
+	struct enclosureStatus *enclosure = NULL;
 	char *interconnect_doc = NULL, *enclosure_doc = NULL, *s = NULL;
 	json_object *jvalue = NULL;
 	int i = 0, arraylen = 0;
@@ -4076,8 +4076,8 @@ SaErrorT ov_rest_discover_sas_interconnect(struct oh_handler_state *handler)
 					g_strdup(result.uri),
 					g_strdup(s));
 			wrap_free(s);
-			/* Update resource_status structure with resource_id,
-			 * serial_number, and presence status
+			/* Update resource_info structure with resource_id,
+			 * serialNumber, and presence status
 			 */
 			/* Find the Enclosure for this interconnect to update 
  			 * the Resource matrix table */
@@ -4096,14 +4096,14 @@ SaErrorT ov_rest_discover_sas_interconnect(struct oh_handler_state *handler)
 			}
 			ov_rest_json_parse_enclosure(
 					enclosure_response.enclosure_array,
-					&enclosure_info);
+					&enc_info);
 			ov_rest_wrap_json_object_put(
 					enclosure_response.root_jobj);
 
 			enclosure = ov_handler->ov_rest_resources.enclosure;
 			while(enclosure != NULL){
-				if(strstr(enclosure->serial_number,
-						enclosure_info.serialNumber)){
+				if(strstr(enclosure->serialNumber,
+						enc_info.serialNumber)){
 					ov_rest_update_resource_status (
 						&enclosure->interconnect,
 						result.bayNumber,
@@ -4181,10 +4181,10 @@ SaErrorT ov_rest_discover_interconnect(struct oh_handler_state *handler)
 	struct interconnectInfoArrayResponse response = {0};
 	struct interconnectInfo result = {0};
 	struct enclosureInfoArrayResponse enclosure_response = {0};
-	struct enclosureInfo enclosure_info = {{0}};
+	struct enclosureInfo enc_info = {{0}};
 	char* interconnect_doc = NULL, *enclosure_doc = NULL, *s = NULL;   
 	int i = 0,arraylen = 0;
-	struct enclosure_status *enclosure = NULL;
+	struct enclosureStatus *enclosure = NULL;
 	json_object *jvalue = NULL;
 
 	if (handler == NULL || handler->data == NULL) {
@@ -4243,8 +4243,8 @@ SaErrorT ov_rest_discover_interconnect(struct oh_handler_state *handler)
 					g_strdup(result.uri),
 					g_strdup(s));
 			wrap_free(s);
-			/* Update resource_status structure with resource_id,
-			 * serial_number, and presence status
+			/* Update resource_info structure with resource_id,
+			 * serialNumber, and presence status
 			 */
 			/* Find the Enclosure for this interconnect to update 
  			 * the Resource matrix table */
@@ -4263,14 +4263,14 @@ SaErrorT ov_rest_discover_interconnect(struct oh_handler_state *handler)
 			} 
 			ov_rest_json_parse_enclosure(
 					enclosure_response.enclosure_array,
-					&enclosure_info);
+					&enc_info);
 			ov_rest_wrap_json_object_put(
 				enclosure_response.root_jobj);
 
 			enclosure = ov_handler->ov_rest_resources.enclosure;
 			while(enclosure != NULL){
-				if(strstr(enclosure->serial_number,
-					enclosure_info.serialNumber)){
+				if(strstr(enclosure->serialNumber,
+					enc_info.serialNumber)){
 					ov_rest_update_resource_status(
 							&enclosure->interconnect,
 							result.bayNumber, 
@@ -4363,7 +4363,7 @@ SaErrorT build_powersupply_inv_rdr(struct oh_handler_state *oh_handler,
        SaErrorT rv = SA_OK;
        char power_inv_str[] = POWER_SUPPLY_INVENTORY_STRING;
        struct ov_rest_inventory *local_inventory = NULL;
-       struct ov_rest_area *head_area = NULL;
+       struct ovRestArea *head_area = NULL;
        SaHpiInt32T add_success_flag = 0;
        SaHpiInt32T area_count = 0;
        SaHpiRptEntryT *rpt = NULL;
@@ -4558,7 +4558,7 @@ SaErrorT ov_rest_build_powersupply_rpt(struct oh_handler_state *oh_handler,
         SaErrorT rv = SA_OK;
         SaHpiEntityPathT entity_path = {{{0}}};
         char *entity_root = NULL;
-        struct ov_rest_hotswap_state *hotswap_state = NULL;
+        struct ovRestHotswapState *hotswap_state = NULL;
         SaHpiRptEntryT rpt = {0};
         struct ov_rest_handler *ov_handler = NULL;
 
@@ -4669,7 +4669,7 @@ SaErrorT ov_rest_discover_powersupply(struct oh_handler_state *oh_handler)
 	SaHpiResourceIdT resource_id;
 	char* enclosure_doc = NULL, *s = NULL;
 	int i = 0,j = 0,arraylen = 0;
-	struct enclosure_status *enclosure = NULL;
+	struct enclosureStatus *enclosure = NULL;
 	json_object *jvalue = NULL, *jvalue_ps = NULL, *jvalue_ps_array = NULL;
 
 	ov_handler = (struct ov_rest_handler *) oh_handler->data;
@@ -4725,10 +4725,10 @@ SaErrorT ov_rest_discover_powersupply(struct oh_handler_state *oh_handler)
 				err("build PowerSupply rpt failed");
 				return rv;
 			}
-			enclosure = (struct enclosure_status *)
+			enclosure = (struct enclosureStatus *)
 				ov_handler->ov_rest_resources.enclosure;
 			while(enclosure != NULL){
-				if(!strcmp(enclosure->serial_number,
+				if(!strcmp(enclosure->serialNumber,
 					enclosure_result.serialNumber)){
 					ov_rest_update_resource_status(
 						&enclosure->ps_unit,
@@ -4792,7 +4792,7 @@ SaErrorT ov_rest_build_fan_inv_rdr(struct oh_handler_state *oh_handler,
        SaErrorT rv = SA_OK;
        char fan_inv_str[] = FAN_INVENTORY_STRING;
        struct ov_rest_inventory *local_inventory = NULL;
-       struct ov_rest_area *head_area = NULL;
+       struct ovRestArea *head_area = NULL;
        SaHpiInt32T add_success_flag = 0;
        SaHpiInt32T area_count = 0;
        SaHpiRptEntryT *rpt = NULL;
@@ -5094,7 +5094,7 @@ SaErrorT ov_rest_discover_fan(struct oh_handler_state *oh_handler)
 	SaHpiResourceIdT resource_id;
 	char* enclosure_doc = NULL, *s = NULL;
 	int i = 0,j = 0,arraylen = 0;
-	struct enclosure_status *enclosure = NULL;
+	struct enclosureStatus *enclosure = NULL;
 	json_object *jvalue = NULL, *jvalue_fan = NULL, 
 	*jvalue_fan_array = NULL;
 
@@ -5151,10 +5151,10 @@ SaErrorT ov_rest_discover_fan(struct oh_handler_state *oh_handler)
 							response.root_jobj);
 				return rv;
 			}
-			enclosure = (struct enclosure_status *)
+			enclosure = (struct enclosureStatus *)
 				ov_handler->ov_rest_resources.enclosure;
 			while(enclosure != NULL){
-				if(!strcmp(enclosure->serial_number,
+				if(!strcmp(enclosure->serialNumber,
 					enclosure_result.serialNumber)){
 					ov_rest_update_resource_status(
 						&enclosure->fan,
@@ -6292,7 +6292,7 @@ static void ov_rest_push_disc_res(struct oh_handler_state *oh_handler)
 {
 	SaHpiRptEntryT *rpt = NULL;
 	struct oh_event event = {0};
-	struct ov_rest_hotswap_state *hotswap_state = NULL;
+	struct ovRestHotswapState *hotswap_state = NULL;
 	GSList *assert_sensor_list = NULL;
 
 	if (oh_handler == NULL) {
@@ -6315,7 +6315,7 @@ static void ov_rest_push_disc_res(struct oh_handler_state *oh_handler)
 			/* Get the hotswap state and fill the current
 			 * hotswap state
 			 */
-			hotswap_state = (struct ov_rest_hotswap_state *)
+			hotswap_state = (struct ovRestHotswapState *)
 				oh_get_resource_data(oh_handler->rptcache,
 						event.resource.ResourceId);
 			if (hotswap_state == NULL) {

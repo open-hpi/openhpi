@@ -73,7 +73,7 @@ SaErrorT ov_rest_build_enclosure_inv_rdr(struct oh_handler_state *oh_handler,
 	SaHpiIdrFieldT hpi_field = {0};
 	char enclosure_inv_str[] = ENCLOSURE_INVENTORY_STRING, *tmp = NULL;
 	struct ov_rest_inventory *local_inventory = NULL;
-	struct ov_rest_area *head_area = NULL;
+	struct ovRestArea *head_area = NULL;
 	SaHpiInt32T add_success_flag = 0;
 	SaHpiInt32T product_area_success_flag = 0;
 	SaHpiInt32T area_count = 0;
@@ -259,7 +259,7 @@ SaErrorT ov_rest_build_server_inv_rdr(struct oh_handler_state *oh_handler,
 	SaHpiIdrFieldT hpi_field = {0};
 	char server_inv_str[] = SERVER_INVENTORY_STRING, *tmp = NULL;
 	struct ov_rest_inventory *local_inventory = NULL;
-	struct ov_rest_area *head_area = NULL;
+	struct ovRestArea *head_area = NULL;
 	SaHpiInt32T add_success_flag = 0;
 	SaHpiInt32T product_area_success_flag = 0;
 	SaHpiInt32T area_count = 0;
@@ -449,7 +449,7 @@ SaErrorT ov_rest_build_drive_enclosure_inv_rdr(
 	SaHpiIdrFieldT hpi_field = {0};
 	char server_inv_str[] = SERVER_INVENTORY_STRING, *tmp = NULL;
 	struct ov_rest_inventory *local_inventory = NULL;
-	struct ov_rest_area *head_area = NULL;
+	struct ovRestArea *head_area = NULL;
 	SaHpiInt32T add_success_flag = 0;
 	SaHpiInt32T product_area_success_flag = 0;
 	SaHpiInt32T area_count = 0;
@@ -650,7 +650,7 @@ SaErrorT build_interconnect_inv_rdr(struct oh_handler_state *oh_handler,
 	char interconnect_inv_str[] = INTERCONNECT_INVENTORY_STRING, 
 	     *tmp = NULL;
 	struct ov_rest_inventory *local_inventory = NULL;
-	struct ov_rest_area *head_area = NULL;
+	struct ovRestArea *head_area = NULL;
 	SaHpiInt32T add_success_flag = 0;
 	SaHpiInt32T product_area_success_flag = 0;
 	SaHpiInt32T area_count = 0;
@@ -808,16 +808,16 @@ SaErrorT build_interconnect_inv_rdr(struct oh_handler_state *oh_handler,
  *      SA_ERR_HPI_INVALID_PARAMS - On wrong parameters
  *      SA_ERR_HPI_OUT_OF_MEMORY - Request failed due to insufficient memory
  **/
-SaErrorT ov_rest_add_product_area(struct ov_rest_area **area,
+SaErrorT ov_rest_add_product_area(struct ovRestArea **area,
                           char *name,
                           char *manufacturer,
                           SaHpiInt32T *success_flag)
 {
 	SaErrorT rv = SA_OK;
 	SaHpiIdrFieldT hpi_field = {0};
-	struct ov_rest_area *local_area = NULL;
-	struct ov_rest_field *field = NULL;
-	struct ov_rest_field *head_field = NULL;
+	struct ovRestArea *local_area = NULL;
+	struct ovRestField *field = NULL;
+	struct ovRestField *head_field = NULL;
 	SaHpiInt32T field_count = 0;
 
 	if (area == NULL || success_flag == NULL) {
@@ -898,8 +898,8 @@ SaErrorT ov_rest_add_product_area(struct ov_rest_area **area,
 /**
  * ov_rest_add_chassis_area
  *      @area: IDR area pointer
- *      @part_number: Resource part number
- *      @serial_number: Resource serial_number
+ *      @partNumber: Resource part number
+ *      @serialNumber: Resource serialNumber
  *      @success_flag: Flag for checking area creation
  *
  * Purpose:
@@ -917,16 +917,16 @@ SaErrorT ov_rest_add_product_area(struct ov_rest_area **area,
  *      SA_ERR_HPI_INVALID_PARAMS - On wrong parameters
  *      SA_ERR_HPI_OUT_OF_MEMORY - Request failed due to insufficient memory
  **/
-SaErrorT ov_rest_add_chassis_area(struct ov_rest_area **area,
-                          char *part_number,
-                          char *serial_number,
+SaErrorT ov_rest_add_chassis_area(struct ovRestArea **area,
+                          char *partNumber,
+                          char *serialNumber,
                           SaHpiInt32T *success_flag)
 {
 	SaErrorT rv = SA_OK;
 	SaHpiIdrFieldT hpi_field = {0};
-	struct ov_rest_area *local_area = NULL;
-	struct ov_rest_field *field = NULL;
-	struct ov_rest_field *head_field = NULL;
+	struct ovRestArea *local_area = NULL;
+	struct ovRestField *field = NULL;
+	struct ovRestField *head_field = NULL;
 	SaHpiInt32T field_count = 0;
 
 	if (area == NULL || success_flag == NULL) {
@@ -937,7 +937,7 @@ SaErrorT ov_rest_add_chassis_area(struct ov_rest_area **area,
 	/* If both part number and serial number information is NULL
          * then chassis area is not created
          */
-	if (part_number == NULL && serial_number == NULL) {
+	if (partNumber == NULL && serialNumber == NULL) {
 		err("Chassis Area:Required information not available");
 		err("Chassis area not created");
 		*success_flag = SAHPI_FALSE;
@@ -957,11 +957,11 @@ SaErrorT ov_rest_add_chassis_area(struct ov_rest_area **area,
 
 	/* Add the fields to the newly created chassis area */
 	field = local_area->field_list;
-	if (part_number != NULL) {
+	if (partNumber != NULL) {
 
 		hpi_field.AreaId = local_area->idr_area_head.AreaId;
 		hpi_field.Type = SAHPI_IDR_FIELDTYPE_PART_NUMBER;
-		strcpy ((char *)hpi_field.Field.Data, part_number);
+		strcpy ((char *)hpi_field.Field.Data, partNumber);
 
 		rv = ov_rest_idr_field_add(&(local_area->field_list),
 				&hpi_field);
@@ -975,11 +975,11 @@ SaErrorT ov_rest_add_chassis_area(struct ov_rest_area **area,
 		}
 		local_area->idr_area_head.NumFields++;
 	}
-	if (serial_number != NULL) {
+	if (serialNumber != NULL) {
 
 		hpi_field.AreaId = local_area->idr_area_head.AreaId;
 		hpi_field.Type = SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER;
-		strcpy ((char *)hpi_field.Field.Data, serial_number);
+		strcpy ((char *)hpi_field.Field.Data, serialNumber);
 
 		rv = ov_rest_idr_field_add(&(local_area->field_list),
 				&hpi_field);
@@ -1001,8 +1001,8 @@ SaErrorT ov_rest_add_chassis_area(struct ov_rest_area **area,
 /**
  * ov_rest_add_board_area
  *      @area: IDR area pointer
- *      @part_number: Resource part number
- *      @serial_number: Resource serial_number
+ *      @partNumber: Resource part number
+ *      @serialNumber: Resource serialNumber
  *      @success_flag: Flag for checking area creation
  *
  * Purpose:
@@ -1020,16 +1020,16 @@ SaErrorT ov_rest_add_chassis_area(struct ov_rest_area **area,
  *      SA_ERR_HPI_INVALID_PARAMS - On wrong parameters
  *      SA_ERR_HPI_OUT_OF_MEMORY - Request failed due to insufficient memory
  **/
-SaErrorT ov_rest_add_board_area(struct ov_rest_area **area,
-                        char *part_number,
-                        char *serial_number,
+SaErrorT ov_rest_add_board_area(struct ovRestArea **area,
+                        char *partNumber,
+                        char *serialNumber,
                         SaHpiInt32T *success_flag)
 {
 	SaErrorT rv = SA_OK;
 	SaHpiIdrFieldT hpi_field = {0};
-	struct ov_rest_area *local_area = NULL;
-	struct ov_rest_field *field = NULL;
-	struct ov_rest_field *head_field = NULL;
+	struct ovRestArea *local_area = NULL;
+	struct ovRestField *field = NULL;
+	struct ovRestField *head_field = NULL;
 	SaHpiInt32T field_count = 0;
 
 	if (area == NULL || success_flag == NULL) {
@@ -1040,8 +1040,8 @@ SaErrorT ov_rest_add_board_area(struct ov_rest_area **area,
 	/* If both part number and serial number information is NULL
          * then board area is not created
          */
-	if ((part_number == NULL && serial_number == NULL) &&
-			(part_number[0] == '\0' && serial_number[0] == '\0')) {
+	if ((partNumber == NULL && serialNumber == NULL) &&
+			(partNumber[0] == '\0' && serialNumber[0] == '\0')) {
 		err("Board Area:Required information not available");
 		err("Board area not created");
 		*success_flag = SAHPI_FALSE;
@@ -1061,11 +1061,11 @@ SaErrorT ov_rest_add_board_area(struct ov_rest_area **area,
 
 	/* Add the fields to the newly created product area */
 	field = local_area->field_list;
-	if (part_number != NULL && part_number[0] != '\0') {
+	if (partNumber != NULL && partNumber[0] != '\0') {
 
 		hpi_field.AreaId = local_area->idr_area_head.AreaId;
 		hpi_field.Type = SAHPI_IDR_FIELDTYPE_PART_NUMBER;
-		strcpy ((char *)hpi_field.Field.Data, part_number);
+		strcpy ((char *)hpi_field.Field.Data, partNumber);
 
 		rv = ov_rest_idr_field_add(&(local_area->field_list),
 				&hpi_field);
@@ -1079,10 +1079,10 @@ SaErrorT ov_rest_add_board_area(struct ov_rest_area **area,
 		}
 		local_area->idr_area_head.NumFields++;
 	}
-	if (serial_number != NULL && serial_number[0] != '\0') {
+	if (serialNumber != NULL && serialNumber[0] != '\0') {
 		hpi_field.AreaId = local_area->idr_area_head.AreaId;
 		hpi_field.Type = SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER;
-		strcpy ((char *)hpi_field.Field.Data, serial_number);
+		strcpy ((char *)hpi_field.Field.Data, serialNumber);
 
 		rv = ov_rest_idr_field_add(&(local_area->field_list),
 				&hpi_field);
@@ -1105,8 +1105,8 @@ SaErrorT ov_rest_add_board_area(struct ov_rest_area **area,
  *      @area: IDR area pointer
  *      @manufacturer: Resource manufacturer
  *      @name: Resource name
- *      @part_number: Resource part number
- *      @serial_number: Resource serial_number
+ *      @partNumber: Resource part number
+ *      @serialNumber: Resource serialNumber
  *      @success_flag: Flag for checking area creation
  *
  * Purpose:
@@ -1124,18 +1124,18 @@ SaErrorT ov_rest_add_board_area(struct ov_rest_area **area,
  *      SA_ERR_HPI_INVALID_PARAMS - On wrong parameters
  *      SA_ERR_HPI_OUT_OF_MEMORY - Request failed due to insufficient memory
  */
-SaErrorT ov_rest_add_internal_area(struct ov_rest_area **area,
+SaErrorT ov_rest_add_internal_area(struct ovRestArea **area,
                            char *manufacturer,
                            char *name,
-                           char *part_number,
-                           char *serial_number,
+                           char *partNumber,
+                           char *serialNumber,
                            SaHpiInt32T *success_flag)
 {
 	SaErrorT rv = SA_OK;
 	SaHpiIdrFieldT hpi_field = {0};
-	struct ov_rest_area *local_area = NULL;
-	struct ov_rest_field *field = NULL;
-	struct ov_rest_field *head_field = NULL;
+	struct ovRestArea *local_area = NULL;
+	struct ovRestField *field = NULL;
+	struct ovRestField *head_field = NULL;
 	SaHpiInt32T field_count = 0;
 
 	if (area == NULL || success_flag == NULL) {
@@ -1147,7 +1147,7 @@ SaErrorT ov_rest_add_internal_area(struct ov_rest_area **area,
          * area is not created
          */
 	if (manufacturer == NULL && name == NULL &&
-			part_number == NULL && serial_number == NULL) {
+			partNumber == NULL && serialNumber == NULL) {
 		err("Internal Area:Required information not available");
 		err("Internal area not created");
 		*success_flag = SAHPI_FALSE;
@@ -1203,10 +1203,10 @@ SaErrorT ov_rest_add_internal_area(struct ov_rest_area **area,
 		local_area->idr_area_head.NumFields++;
 	}
 
-	if (part_number != NULL) {
+	if (partNumber != NULL) {
 		hpi_field.AreaId = local_area->idr_area_head.AreaId;
 		hpi_field.Type = SAHPI_IDR_FIELDTYPE_PART_NUMBER;
-		strcpy ((char *)hpi_field.Field.Data, part_number);
+		strcpy ((char *)hpi_field.Field.Data, partNumber);
 
 		rv = ov_rest_idr_field_add(&(local_area->field_list),
 				&hpi_field);
@@ -1222,10 +1222,10 @@ SaErrorT ov_rest_add_internal_area(struct ov_rest_area **area,
 		local_area->idr_area_head.NumFields++;
 	}
 
-	if (serial_number != NULL) {
+	if (serialNumber != NULL) {
 		hpi_field.AreaId = local_area->idr_area_head.AreaId;
 		hpi_field.Type = SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER;
-		strcpy ((char *)hpi_field.Field.Data, serial_number);
+		strcpy ((char *)hpi_field.Field.Data, serialNumber);
 
 		rv = ov_rest_idr_field_add(&(local_area->field_list),
 				&hpi_field);
@@ -1267,11 +1267,11 @@ SaErrorT ov_rest_add_internal_area(struct ov_rest_area **area,
 *      SA_ERR_HPI_INVALID_PARAMS - On wrong parameters
 *      SA_ERR_HPI_OUT_OF_MEMORY - Request failed due to insufficient memory
 */
-SaErrorT ov_rest_idr_area_add(struct ov_rest_area **head_area,
+SaErrorT ov_rest_idr_area_add(struct ovRestArea **head_area,
                       SaHpiIdrAreaTypeT area_type,
-                      struct ov_rest_area **area)
+                      struct ovRestArea **area)
 {
-	struct ov_rest_area *local_area = NULL;
+	struct ovRestArea *local_area = NULL;
 	SaHpiEntryIdT local_area_id;
 
 	if (head_area == NULL || area == NULL) {
@@ -1282,8 +1282,8 @@ SaErrorT ov_rest_idr_area_add(struct ov_rest_area **head_area,
 	local_area = *head_area;
 	/* Check whether the area list is empty */
 	if (local_area == NULL) {
-		local_area = (struct ov_rest_area*)
-			g_malloc0(sizeof(struct ov_rest_area));
+		local_area = (struct ovRestArea*)
+			g_malloc0(sizeof(struct ovRestArea));
 		if (!local_area) {
 			err("OV REST out of memory");
 			return SA_ERR_HPI_OUT_OF_MEMORY;
@@ -1300,8 +1300,8 @@ SaErrorT ov_rest_idr_area_add(struct ov_rest_area **head_area,
 		while (local_area->next_area != NULL) {
 			local_area = local_area->next_area;
 		}
-		local_area->next_area = (struct ov_rest_area*)
-			g_malloc0(sizeof(struct ov_rest_area));
+		local_area->next_area = (struct ovRestArea*)
+			g_malloc0(sizeof(struct ovRestArea));
 		if (!local_area->next_area) {
 			err("OV REST out of memory");
 			return SA_ERR_HPI_OUT_OF_MEMORY;
@@ -1344,12 +1344,12 @@ SaErrorT ov_rest_idr_area_add(struct ov_rest_area **head_area,
  *      SA_ERR_HPI_NOT_PRESENT - Requested object not present
  *      SA_ERR_HPI_OUT_OF_MEMORY - Request failed due to insufficient memory
  **/
-SaErrorT ov_rest_idr_area_add_by_id(struct ov_rest_area **head_area,
+SaErrorT ov_rest_idr_area_add_by_id(struct ovRestArea **head_area,
                             SaHpiIdrAreaTypeT area_type,
                             SaHpiEntryIdT area_id)
 {
-        struct ov_rest_area *local_area = NULL;
-        struct ov_rest_area *temp_area = NULL;
+        struct ovRestArea *local_area = NULL;
+        struct ovRestArea *temp_area = NULL;
 
         if (head_area == NULL || area_id == SAHPI_LAST_ENTRY) {
                 err("Invalid parameter.");
@@ -1357,8 +1357,8 @@ SaErrorT ov_rest_idr_area_add_by_id(struct ov_rest_area **head_area,
         }
 
         temp_area = *head_area;
-        local_area = (struct ov_rest_area*)g_malloc0(
-                      sizeof(struct ov_rest_area));
+        local_area = (struct ovRestArea*)g_malloc0(
+                      sizeof(struct ovRestArea));
         if (!local_area) {
                err("OV REST out of memory");
                return SA_ERR_HPI_OUT_OF_MEMORY;
@@ -1424,11 +1424,11 @@ SaErrorT ov_rest_idr_area_add_by_id(struct ov_rest_area **head_area,
  *      SA_ERR_HPI_NOT_PRESENT - Requested object not present
  *      SA_ERR_HPI_OUT_OF_MEMORY - Request failed due to insufficient memory
  **/
-SaErrorT  ov_rest_idr_field_add(struct ov_rest_field **ov_field,
+SaErrorT  ov_rest_idr_field_add(struct ovRestField **ov_field,
                         SaHpiIdrFieldT *hpi_field)
 {
 	SaHpiEntryIdT field_id;
-	struct ov_rest_field *field = NULL;
+	struct ovRestField *field = NULL;
 
 	if (ov_field == NULL || hpi_field == NULL) {
 		err("Invalid parameter.");
@@ -1441,8 +1441,8 @@ SaErrorT  ov_rest_idr_field_add(struct ov_rest_field **ov_field,
 		/* Create the area and make it as head node(first area) in
 		 * the area list
 		 */
-		field = (struct ov_rest_field*)
-			g_malloc0(sizeof(struct ov_rest_field));
+		field = (struct ovRestField*)
+			g_malloc0(sizeof(struct ovRestField));
 		if (! (field)) {
 			err("OV REST out of memory");
 			return SA_ERR_HPI_OUT_OF_MEMORY;
@@ -1456,8 +1456,8 @@ SaErrorT  ov_rest_idr_field_add(struct ov_rest_field **ov_field,
 		while (field->next_field != NULL) {
 			field = field->next_field;
 		}
-		field->next_field = (struct ov_rest_field*)
-			g_malloc0(sizeof(struct ov_rest_field));
+		field->next_field = (struct ovRestField*)
+			g_malloc0(sizeof(struct ovRestField));
 		if (!(field->next_field)) {
 			return SA_ERR_HPI_OUT_OF_MEMORY;
 		}
@@ -1521,7 +1521,7 @@ SaErrorT ov_rest_fetch_idr_area_header(struct ov_rest_inventory_info
 			SaHpiEntryIdT *next_area_id)
 {
         SaHpiInt32T i = 0;;
-        struct ov_rest_area *local_area = NULL;
+        struct ovRestArea *local_area = NULL;
         SaHpiInt32T found = SAHPI_FALSE;
         SaHpiInt32T area_found = SAHPI_FALSE;
 
@@ -1640,7 +1640,7 @@ SaErrorT ov_rest_fetch_idr_area_header(struct ov_rest_inventory_info
  *      SA_ERR_HPI_INVALID_PARAMS - On wrong parameters
  *      SA_ERR_HPI_NOT_PRESENT - Requested object not present
  **/
-SaErrorT ov_rest_idr_field_update(struct ov_rest_field *ov_field,
+SaErrorT ov_rest_idr_field_update(struct ovRestField *ov_field,
                           SaHpiIdrFieldT *field)
 {
 	if (ov_field == NULL) {
@@ -1717,8 +1717,8 @@ SaErrorT ov_rest_fetch_idr_field(struct ov_rest_inventory_info *inventory_info,
                          SaHpiIdrFieldT *field)
 {
 	SaHpiInt32T i = 0;
-	struct ov_rest_area *local_area = NULL;
-	struct ov_rest_field *local_field = NULL;
+	struct ovRestArea *local_area = NULL;
+	struct ovRestField *local_field = NULL;
 	SaHpiInt32T found = SAHPI_FALSE;
 	SaHpiIdrFieldTypeT usf_type = SAHPI_IDR_FIELDTYPE_UNSPECIFIED;
 	SaHpiInt32T fieldFound = SAHPI_FALSE;
@@ -1904,13 +1904,13 @@ SaErrorT ov_rest_free_inventory_info(struct oh_handler_state *handler,
  *      SA_ERR_HPI_INVALID_PARAMS - On wrong parameters
  *      SA_ERR_HPI_NOT_PRESENT - Requested object not present
  **/
-SaErrorT ov_rest_idr_area_delete(struct ov_rest_area **head_area,
+SaErrorT ov_rest_idr_area_delete(struct ovRestArea **head_area,
                          SaHpiEntryIdT area_id)
 {
         SaErrorT rv = SA_OK;
-        struct ov_rest_area *local_area = NULL;
-        struct ov_rest_area *tmp_area = NULL;
-        struct ov_rest_area *next_area = NULL;
+        struct ovRestArea *local_area = NULL;
+        struct ovRestArea *tmp_area = NULL;
+        struct ovRestArea *next_area = NULL;
         SaHpiInt32T count = -1;
 
         if (head_area == NULL) {
@@ -2009,14 +2009,14 @@ SaErrorT ov_rest_idr_area_delete(struct ov_rest_area **head_area,
  *      SA_ERR_HPI_INVALID_PARAMS - Input parameters are not valid
  *      SA_ERR_HPI_OUT_OF_MEMORY - Request failed due to insufficient memory
  **/
-SaErrorT ov_rest_idr_field_add_by_id(struct ov_rest_field **head_field,
+SaErrorT ov_rest_idr_field_add_by_id(struct ovRestField **head_field,
                              SaHpiEntryIdT area_id,
                              SaHpiIdrFieldTypeT field_type,
                              char *field_data,
                              SaHpiEntryIdT field_id)
 {
-        struct ov_rest_field *field = NULL;
-        struct ov_rest_field *temp_field = NULL;
+        struct ovRestField *field = NULL;
+        struct ovRestField *temp_field = NULL;
 
         if (head_field == NULL || field_data == NULL ||
             area_id == SAHPI_LAST_ENTRY ||
@@ -2026,7 +2026,7 @@ SaErrorT ov_rest_idr_field_add_by_id(struct ov_rest_field **head_field,
         }
 
         temp_field = *head_field;
-        field = (struct ov_rest_field*)g_malloc0(sizeof(struct ov_rest_field));
+        field = (struct ovRestField*)g_malloc0(sizeof(struct ovRestField));
         if (!(field)) {
                 err("OV REST out of memory");
                 return SA_ERR_HPI_OUT_OF_MEMORY;
@@ -2085,10 +2085,10 @@ SaErrorT ov_rest_idr_field_add_by_id(struct ov_rest_field **head_field,
  *      SA_ERR_HPI_INVALID_PARAMS - On wrong parameters
  *      SA_ERR_HPI_NOT_PRESENT - Requested object not present
  **/
-SaErrorT ov_rest_idr_field_delete(struct ov_rest_field **ov_field,
+SaErrorT ov_rest_idr_field_delete(struct ovRestField **ov_field,
                           SaHpiEntryIdT field_id)
 {
-	struct ov_rest_field *field = NULL, *tmp_field = NULL;
+	struct ovRestField *field = NULL, *tmp_field = NULL;
 
 	if (ov_field == NULL) {
 		err("Invalid parameter.");
@@ -2342,7 +2342,7 @@ SaErrorT ov_rest_add_idr_area(void *oh_handler,
         struct oh_handler_state *handler = NULL;
         SaHpiRptEntryT *rpt = NULL;
         SaHpiRdrT *rdr = NULL;
-        struct ov_rest_area *local_area = NULL;
+        struct ovRestArea *local_area = NULL;
         struct ov_rest_inventory *inventory = NULL;
         char *type = NULL;
 
@@ -2781,7 +2781,7 @@ SaErrorT ov_rest_add_idr_field(void *oh_handler,
         SaHpiRptEntryT *rpt = NULL;
         SaHpiRdrT *rdr = NULL;
         struct ov_rest_inventory *inventory = NULL;
-        struct ov_rest_area *local_area = NULL;
+        struct ovRestArea *local_area = NULL;
         char *type = NULL;
 
         if (oh_handler == NULL || field == NULL) {
@@ -2909,7 +2909,7 @@ SaErrorT ov_rest_add_idr_field_by_id(void *oh_handler,
         SaHpiRptEntryT *rpt = NULL;
         SaHpiRdrT *rdr = NULL;
         struct ov_rest_inventory *inventory = NULL;
-        struct ov_rest_area *local_area = NULL;
+        struct ovRestArea *local_area = NULL;
         char *type = NULL;
 
         if (oh_handler == NULL || field == NULL ||
@@ -3044,7 +3044,7 @@ SaErrorT ov_rest_set_idr_field(void *oh_handler,
         SaHpiRptEntryT *rpt = NULL;
         SaHpiRdrT *rdr = NULL;
         struct ov_rest_inventory *inventory = NULL;
-        struct ov_rest_area *local_area = NULL;
+        struct ovRestArea *local_area = NULL;
         char *type = NULL;
 
         if (oh_handler == NULL || field == NULL) {
@@ -3168,7 +3168,7 @@ SaErrorT ov_rest_del_idr_field(void *oh_handler,
         SaHpiRptEntryT *rpt = NULL;
         SaHpiRdrT *rdr = NULL;
         struct ov_rest_inventory *inventory = NULL;
-        struct ov_rest_area *local_area = NULL;
+        struct ovRestArea *local_area = NULL;
 
         if (oh_handler == NULL) {
                 err("Invalid parameter.");
