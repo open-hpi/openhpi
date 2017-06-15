@@ -139,63 +139,9 @@ enum ov_rest_extra_data_health {
 	HEALTH_NRE
 };
 
-/* Maximum number of supported fields in diagnosticChecksEx structure
- *
- * When a new field is added to diagnosticChecksEx structure, please update the
- * #define and enum ov_rest_diag_ex in ov_rest_sensor.h, also update
- * ov_rest_diag_ex_arr in ov_rest_resources.c
- */
-#define OV_REST_MAX_DIAG_EX 17
-
-/* Possible fields supported by diagnosticChecksEx structure 
- *
- * When a new field is added to diagnosticChecksEx structure, please update the
- * #define and enum ov_rest_diag_ex in ov_rest_sensor.h, also update
- * ov_rest_diag_ex_arr in ov_rest_resources.c
- */
-
-enum ov_rest_diag_ex {
-	/* diagnosticChecksEx deviceMissing */
-	DIAG_EX_DEV_MISS,
-	/* diagnosticChecksEx devicePowerSequence */
-	DIAG_EX_DEV_PWR_SEQ,
-	/* diagnosticChecksEx deviceBonding */
-	DIAG_EX_DEV_BOND,
-	/* diagnosticChecksEx profileUnassignedError */
-	DIAG_EX_PROF_UNASSIGN_ERR,
-	/* diagnosticChecksEx deviceNotSupported */
-	DIAG_EX_DEV_NOT_SUPPORT,
-	/* diagnosticChecksEx networkConfiguration */
-	DIAG_EX_NET_CONFIG,
-	/* diagnosticChecksEx tooLowPowerRequest */
-	DIAG_EX_TOO_LOW_PWR_REQ,
-	/* diagnosticChecksEx call HPE */
-	DIAG_EX_CALL_HPE,
-	/* diagnosticChecksEx deviceInformational */
-	DIAG_EX_DEV_INFO,
-	/* diagnosticChecksEx storageDeviceMissing */
-	DIAG_EX_STORAGE_DEV_MISS,
-	/* diagnosticChecksEx firmwareMismatch */
-	DIAG_EX_FW_MISMATCH,
-	/* diagnosticChecksEx enclosureIdMismatch */
-	DIAG_EX_ENC_ID_MISMATCH,
-	/* POWERDELAY_IN_USE is not used as sensor. 'Power delay in use' does
-	 * not indicates any failure.
-	 */
-	DIAG_EX_POWERDELAY_IN_USE,
-	/* diagnosticChecksEx deviceMixMatch */
-	DIAG_EX_DEV_MIX_MATCH,
-	/* diagnosticChecksEx gprcapError */
-	DIAG_EX_GRPCAP_ERR,
-	/* diagnosticChecksEx imlRecordedError */
-	DIAG_EX_IML_ERR,
-	/* diagnosticChecksEx duplicateManagementIpAddress */
-	DIAG_EX_DUP_MGMT_IP_ADDR
-};
-
 #define OV_REST_MAX_THRM_SEN	13
 
-enum ov_rest_thermal_sen {
+enum ovRestThermalSen {
 	SYSTEM_ZONE,
 	CPU_ZONE,
 	CPU_1,
@@ -217,16 +163,16 @@ enum ov_rest_thermal_sen {
 #define OV_REST_BLD_THRM_SEN_END	0x06b
 
 /* Structure required for building thermal sensor when server blade is off */
-struct ov_rest_static_thermal_sensor_info {
+struct ovRestStaticThermalSensorInfo {
 	SaHpiSensorNumT base_sen_num; /* Base sensor number for sensor type */
-	enum ov_rest_thermal_sen sensor; /* thermal sensor type */
+	enum ovRestThermalSen sensor; /* thermal sensor type */
 	SaHpiInt32T sensor_count; /* Number of sensor to be created of 
 				   * above thermal sensor type 
 				   */
 };
 
 /* Structure containing thermal sensor information data*/
-struct ov_rest_thrm_sen_data {
+struct ovRestThrmSenData {
 	SaHpiRdrT rdr_num;
 	SaHpiSensorNumT sen_delta; /* Delta difference of the sensor rdr number
 				    * from the base sensor number of particular
@@ -235,7 +181,7 @@ struct ov_rest_thrm_sen_data {
 };
 	
 /* Structure for sensor reading */
-struct ov_rest_sensor_reading_data {
+struct ovRestSensorReadingData {
         SaHpiSensorReadingT data;
         SaHpiEventStateT event;
 };
@@ -306,7 +252,7 @@ SaErrorT update_sensor_rdr(struct oh_handler_state *oh_handler,
                            SaHpiResourceIdT resource_id,
                            SaHpiSensorNumT num,
                            SaHpiRptEntryT *rpt,
-                           struct ov_rest_sensor_reading_data *data);
+                           struct ovRestSensorReadingData *data);
 
 SaErrorT generate_sensor_enable_event(void *oh_handler,
                                       SaHpiSensorNumT rdr_num,

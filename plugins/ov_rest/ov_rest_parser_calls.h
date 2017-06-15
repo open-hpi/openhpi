@@ -754,7 +754,7 @@ struct serverhardwareInfo
         enum powerState powerState;
         enum healthStatus serverStatus;
 	char uidState[MAX_256_CHARS];
-	enum resource_category type;
+	enum resourceCategory type;
 };
 
 struct driveEnclosureInfoArrayResponse
@@ -781,7 +781,7 @@ struct driveEnclosureInfo
         enum powerState powerState;
 	enum healthStatus drvEncStatus;
         char uidState[MAX_256_CHARS];         
-	enum resource_category type;
+	enum resourceCategory type;
 };
 
 
@@ -828,7 +828,7 @@ struct interconnectInfo
 	enum powerState powerState;	
 	char uidState[MAX_256_CHARS];
         enum healthStatus interconnectStatus;
-	enum resource_category type;
+	enum resourceCategory type;
 };
 
 struct powersupplyArrayResponse
@@ -847,7 +847,7 @@ struct powersupplyInfo
         enum healthStatus status;
         enum presence presence;
         int outputCapacityWatts;
-	enum resource_category type;
+	enum resourceCategory type;
 };
 struct fanArrayResponse
 {
@@ -866,7 +866,7 @@ struct fanInfo
 	char fanBayType[MAX_256_CHARS];
 	enum healthStatus status;
 	enum presence presence;
-	enum resource_category type;
+	enum resourceCategory type;
 	const char uri[MAX_URI_LENGTH];
 	struct fanInfo *next;
 };

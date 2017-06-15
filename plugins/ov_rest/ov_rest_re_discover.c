@@ -245,7 +245,7 @@ SaErrorT re_discover_appliance(struct oh_handler_state *oh_handler)
 
 	ov_rest_wrap_json_object_put(response.root_jobj);
 	ov_rest_wrap_json_object_put(ha_response.root_jobj);
-	if(strstr(composer->serial_number, result.version.serialNumber)){
+	if(strstr(composer->serialNumber, result.version.serialNumber)){
 		return SA_OK;
 	}else{
 		remove_composer(oh_handler);
@@ -287,7 +287,7 @@ SaErrorT add_composer(struct oh_handler_state *handler,
 		return rv;
 	}
 	ov_handler->ov_rest_resources.composer.resource_id = resource_id;
-	strcpy(ov_handler->ov_rest_resources.composer.serial_number,
+	strcpy(ov_handler->ov_rest_resources.composer.serialNumber,
 			result->version.serialNumber);
 	rv = ov_rest_build_appliance_rdr(handler,
 			result, ha_node_result, resource_id);
@@ -342,7 +342,7 @@ SaErrorT remove_composer(struct oh_handler_state *handler)
 
 	ov_handler->ov_rest_resources.composer.resource_id = 
 		SAHPI_UNSPECIFIED_RESOURCE_ID;
-	strcpy(ov_handler->ov_rest_resources.composer.serial_number,"");
+	strcpy(ov_handler->ov_rest_resources.composer.serialNumber,"");
 	/* Remove the resource from plugin RPTable */
 	rv = oh_remove_resource(handler->rptcache,
 			event.resource.ResourceId);
@@ -371,7 +371,7 @@ SaErrorT re_discover_enclosure(struct oh_handler_state *oh_handler)
 	struct enclosureInfoArrayResponse response = {0};
 	struct enclosureInfo result = {{0}};
 	int i = 0,arraylen = 0;
-	struct enclosure_status *enclosure = NULL, *temp = NULL;
+	struct enclosureStatus *enclosure = NULL, *temp = NULL;
 	json_object * jvalue = NULL;
 	char *match = NULL;
 	GHashTable *enc_serial_hash = g_hash_table_new_full(g_str_hash, 
@@ -411,20 +411,20 @@ SaErrorT re_discover_enclosure(struct oh_handler_state *oh_handler)
 		enclosure = ov_handler->ov_rest_resources.enclosure;
 		temp = enclosure;
 		while(temp){
-			if(strstr(result.serialNumber, temp->serial_number)){
+			if(strstr(result.serialNumber, temp->serialNumber)){
 				break;
 			}
 			temp = temp->next;
 		}
 		if(temp){
-			if(strstr(result.serialNumber, temp->serial_number)){
+			if(strstr(result.serialNumber, temp->serialNumber)){
 				continue;
 			}else{
 				rv = remove_enclosure(oh_handler, temp);
 				if(rv != SA_OK){
 					err("Unable to remove enclosure with" 
 						" serial number: %s", 
-						temp->serial_number);
+						temp->serialNumber);
 					return rv;
 				}
 				rv =  add_enclosure(oh_handler, &result);
@@ -452,13 +452,13 @@ SaErrorT re_discover_enclosure(struct oh_handler_state *oh_handler)
 	temp = enclosure;
 	while(temp){
 		match = g_hash_table_lookup(enc_serial_hash, 
-				temp->serial_number);
+				temp->serialNumber);
 		if(match == NULL){
 			rv =remove_enclosure(oh_handler, temp);
 			if(rv != SA_OK){
 				err("Unable to remove enclosure with " 
 					"serial number: %s", 
-					temp->serial_number);
+					temp->serialNumber);
 				return rv;
 			}
 		}
@@ -471,7 +471,7 @@ SaErrorT re_discover_enclosure(struct oh_handler_state *oh_handler)
 /*
  * remove_composer
  *      @oh_handler: Pointer to openhpi handler
- *	@enclosure: Pointer to struct enclosure_status
+ *	@enclosure: Pointer to struct enclosureStatus
  *
  * Purpose:
  *      Removes the enclosure from RPT.
@@ -485,13 +485,13 @@ SaErrorT re_discover_enclosure(struct oh_handler_state *oh_handler)
  **/
 
 SaErrorT remove_enclosure(struct oh_handler_state *handler,
-		struct enclosure_status *enclosure)
+		struct enclosureStatus *enclosure)
 {
 	SaErrorT rv = SA_OK;
 	SaHpiRptEntryT *rpt = NULL;
 	SaHpiResourceIdT resource_id = 0;
 	struct ov_rest_handler *ov_handler = NULL;
-	struct enclosure_status *head = NULL;
+	struct enclosureStatus *head = NULL;
 	int bay;
 
 	if(handler == NULL || enclosure == NULL){
@@ -530,7 +530,7 @@ SaErrorT remove_enclosure(struct oh_handler_state *handler,
 				err("Unable to remove the server blade "
 						"in enclosure serial: %s and "
 						"device bay: %d", 
-						enclosure->serial_number, 
+						enclosure->serialNumber, 
 						bay);
 			}
 		}
@@ -542,7 +542,7 @@ SaErrorT remove_enclosure(struct oh_handler_state *handler,
 				err("Unable to remove the interconnect"
 						"in enclosure serial: %s and "
 						"device bay: %d", 
-						enclosure->serial_number, 
+						enclosure->serialNumber, 
 						bay);
 			}
 		}
@@ -554,7 +554,7 @@ SaErrorT remove_enclosure(struct oh_handler_state *handler,
 				err("Unable to remove the Powersupply Unit "
 						"in enclosure serial: %s and "
 						"device bay: %d", 
-						enclosure->serial_number, 
+						enclosure->serialNumber, 
 						bay);
 			}
 		}
@@ -566,7 +566,7 @@ SaErrorT remove_enclosure(struct oh_handler_state *handler,
 				err("Unable to remove the fan "
 						"in enclosure serial: %s and "
 						"fan bay: %d", 
-						enclosure->serial_number, 
+						enclosure->serialNumber, 
 						bay);
 			}
 		}
@@ -600,7 +600,7 @@ SaErrorT add_enclosure(struct oh_handler_state *handler,
 		struct enclosureInfo *result)
 {
 	SaErrorT rv = SA_OK;
-	struct enclosure_status *temp = NULL;
+	struct enclosureStatus *temp = NULL;
 	SaHpiResourceIdT resource_id = 0;
 	struct ov_rest_handler *ov_handler = NULL;
 	if(handler == NULL || result == NULL){
@@ -629,7 +629,7 @@ SaErrorT add_enclosure(struct oh_handler_state *handler,
 	}
 	/* Save enclosure resource id */
 	temp->enclosure_rid = resource_id;
-	strcpy(temp->serial_number, result->serialNumber);
+	strcpy(temp->serialNumber, result->serialNumber);
 
 	rv = ov_rest_build_enclosure_rdr(handler,
 			result, resource_id);
@@ -663,11 +663,11 @@ SaErrorT re_discover_server(struct oh_handler_state *oh_handler)
 	struct serverhardwareInfoArrayResponse response = {0};
 	struct enclosureInfoArrayResponse enclosure_response = {0};
 	struct serverhardwareInfo info_result = {0};
-	struct enclosureInfo enclosure_info = {{0}};
+	struct enclosureInfo enc_info = {{0}};
 	char *server_doc = NULL, *enclosure_doc = NULL, *match = NULL;
 	int i = 0, arraylen = 0, bay = 0;
 	json_object *jvalue = NULL;
-	struct enclosure_status *enclosure = NULL;
+	struct enclosureStatus *enclosure = NULL;
 	GHashTable *server_serial_hash = g_hash_table_new_full(g_str_hash, 
 			g_str_equal,
 			free_data,
@@ -726,14 +726,14 @@ SaErrorT re_discover_server(struct oh_handler_state *oh_handler)
 		}
 		ov_rest_json_parse_enclosure(
 				enclosure_response.enclosure_array,
-				&enclosure_info);
+				&enc_info);
 		ov_rest_wrap_json_object_put(
 				enclosure_response.root_jobj);
 
 		enclosure = ov_handler->ov_rest_resources.enclosure;
 		while(enclosure != NULL){
-			if(strstr(enclosure->serial_number,
-						enclosure_info.serialNumber)){
+			if(strstr(enclosure->serialNumber,
+						enc_info.serialNumber)){
 				break;
 			}
 			enclosure = enclosure->next;
@@ -753,12 +753,12 @@ SaErrorT re_discover_server(struct oh_handler_state *oh_handler)
 					err("Unable to add the server blade "
 						"in enclosure serial: %s and "
 						"device bay: %d", 
-						enclosure->serial_number, 
+						enclosure->serialNumber, 
 						info_result.bayNumber);
 				}
 
 			}else if(strstr(enclosure->server.
-						serial_number[info_result.
+						serialNumber[info_result.
 						bayNumber-1],
 						info_result.serialNumber) ||
 				!strcmp(info_result.serialNumber, "unknown")){
@@ -772,7 +772,7 @@ SaErrorT re_discover_server(struct oh_handler_state *oh_handler)
 					err("Unable to remove the server blade "
 						"in enclosure serial: %s and "
 						"device bay: %d", 
-						enclosure->serial_number, 
+						enclosure->serialNumber, 
 						info_result.bayNumber);
 				}
 
@@ -783,7 +783,7 @@ SaErrorT re_discover_server(struct oh_handler_state *oh_handler)
 					err("Unable to add the server blade "
 						"in enclosure serial: %s and "
 						"device bay: %d", 
-						enclosure->serial_number, 
+						enclosure->serialNumber, 
 						info_result.bayNumber);
 				}
 			}
@@ -797,7 +797,7 @@ SaErrorT re_discover_server(struct oh_handler_state *oh_handler)
 			== SERVER_HARDWARE){
 				match = g_hash_table_lookup(server_serial_hash,
 						enclosure->server.
-						serial_number[bay-1]);
+						serialNumber[bay-1]);
 				if(match == NULL){
 					rv = remove_server_blade(oh_handler, 
 						bay, enclosure);
@@ -805,7 +805,7 @@ SaErrorT re_discover_server(struct oh_handler_state *oh_handler)
 						err("Unable to remove the "
 						"server blade in enclosure "
 						"serial: %s and device bay: %d", 
-						enclosure->serial_number, 
+						enclosure->serialNumber, 
 						info_result.bayNumber);
 					}
 				}
@@ -821,7 +821,7 @@ SaErrorT re_discover_server(struct oh_handler_state *oh_handler)
  * add_inserted_blade 
  *      @oh_handler: Pointer to openhpi handler
  *      @info_result: Pointer to struct serverhardwareInfo
- *      @enclosure: Pointer to struct enclosure_status
+ *      @enclosure: Pointer to struct enclosureStatus
  *
  * Purpose:
  *      Build the rpt and rdrs and adds the newly discovered server blade to RPT.
@@ -835,7 +835,7 @@ SaErrorT re_discover_server(struct oh_handler_state *oh_handler)
 
 SaErrorT add_inserted_blade(struct oh_handler_state *handler, 
 		struct serverhardwareInfo *info_result,
-		struct enclosure_status *enclosure)
+		struct enclosureStatus *enclosure)
 {
 	SaErrorT rv = SA_OK;
 	SaHpiResourceIdT resource_id = 0;
@@ -869,7 +869,7 @@ SaErrorT add_inserted_blade(struct oh_handler_state *handler,
 					resource_id);
 		}
 		oh_remove_resource(handler->rptcache, resource_id);
-		/* reset resource_status structure to default values */
+		/* reset resource_info structure to default values */
 		ov_rest_update_resource_status(
 				&enclosure->server, info_result->bayNumber,
 				"", SAHPI_UNSPECIFIED_RESOURCE_ID, RES_ABSENT,
@@ -960,7 +960,7 @@ SaErrorT re_discover_drive_enclosure(struct oh_handler_state *oh_handler)
 	char *drive_enc_doc = NULL,*match = NULL;
 	int i = 0, arraylen = 0, bay = 0;
 	json_object *jvalue = NULL;
-	struct enclosure_status *enclosure = NULL;
+	struct enclosureStatus *enclosure = NULL;
 	GHashTable *drive_serial_hash = g_hash_table_new_full(g_str_hash, 
 			g_str_equal,
 			free_data,
@@ -1001,12 +1001,12 @@ SaErrorT re_discover_drive_enclosure(struct oh_handler_state *oh_handler)
 		g_hash_table_insert(drive_serial_hash,
 				g_strdup(info_result.serialNumber),
 				g_strdup("TRUE"));
-		/* Update resource_status structure with resource_id,
-		 * serial_number, and presence status
+		/* Update resource_info structure with resource_id,
+		 * serialNumber, and presence status
 		 */
 		enclosure = ov_handler->ov_rest_resources.enclosure;
 		while(enclosure != NULL){
-			if(strstr(enclosure->serial_number,
+			if(strstr(enclosure->serialNumber,
 						info_result.enc_serialNumber)){
 				break;
 			}
@@ -1027,10 +1027,10 @@ SaErrorT re_discover_drive_enclosure(struct oh_handler_state *oh_handler)
 							"Enclosure in enclosure"
 							" serial: %s and device"
 							" bay: %d", enclosure->
-							serial_number, 
+							serialNumber, 
 							info_result.bayNumber);
 				}
-			}else if(strstr(enclosure->server.serial_number
+			}else if(strstr(enclosure->server.serialNumber
 					[info_result.bayNumber-1], 
 					info_result.serialNumber) || 
 				!strcmp(info_result.serialNumber, "unknown")){
@@ -1045,7 +1045,7 @@ SaErrorT re_discover_drive_enclosure(struct oh_handler_state *oh_handler)
 							"Enclosure in enclosure"
 							" serial: %s and device"
 							" bay: %d", 
-							enclosure->serial_number, 
+							enclosure->serialNumber, 
 							info_result.bayNumber);
 				}
 				rv = add_inserted_drive_enclosure(oh_handler,
@@ -1055,7 +1055,7 @@ SaErrorT re_discover_drive_enclosure(struct oh_handler_state *oh_handler)
 							"Enclosure in enclosure"
 							" serial: %s and device"
 							" bay: %d", enclosure->
-							serial_number, 
+							serialNumber, 
 							info_result.bayNumber);
 				}
 			}
@@ -1069,7 +1069,7 @@ SaErrorT re_discover_drive_enclosure(struct oh_handler_state *oh_handler)
 			== DRIVE_ENCLOSURE){
 				match = g_hash_table_lookup(drive_serial_hash,
 						enclosure->server.
-						serial_number[bay-1]);
+						serialNumber[bay-1]);
 				if(match == NULL){
 					rv = remove_drive_enclosure(oh_handler, 
 							enclosure, bay);
@@ -1078,7 +1078,7 @@ SaErrorT re_discover_drive_enclosure(struct oh_handler_state *oh_handler)
 							"Enclosure in enclosure"
 							" serial: %s and device"
 							" bay: %d", enclosure->
-							serial_number, 
+							serialNumber, 
 							info_result.bayNumber);
 					}
 				}
@@ -1094,7 +1094,7 @@ SaErrorT re_discover_drive_enclosure(struct oh_handler_state *oh_handler)
  * add_composer
  *      @oh_handler: Pointer to openhpi handler
  *	@info_result: Pointer to struct driveEnclosureInfo
- *	@enclosure: Pointer to struct enclosure_status
+ *	@enclosure: Pointer to struct enclosureStatus
  *
  * Purpose:
  *      Build the rpt and rdrs and adds the newly discovered drive 
@@ -1110,7 +1110,7 @@ SaErrorT re_discover_drive_enclosure(struct oh_handler_state *oh_handler)
 
 SaErrorT add_inserted_drive_enclosure(struct oh_handler_state *handler,
 		struct driveEnclosureInfo *info_result,
-                struct enclosure_status *enclosure)
+                struct enclosureStatus *enclosure)
 {
 	SaErrorT rv = SA_OK;
 	SaHpiResourceIdT resource_id = 0;
@@ -1145,7 +1145,7 @@ SaErrorT add_inserted_drive_enclosure(struct oh_handler_state *handler,
 					resource_id);
 		}
 		oh_remove_resource(handler->rptcache, resource_id);
-		/* reset resource_status structure to default values */
+		/* reset resource_info structure to default values */
 		ov_rest_update_resource_status(
 				&enclosure->server, info_result->bayNumber,
 				"", SAHPI_UNSPECIFIED_RESOURCE_ID, RES_ABSENT,
@@ -1226,7 +1226,7 @@ SaErrorT add_inserted_drive_enclosure(struct oh_handler_state *handler,
 /*
  * remove_drive_enclosure
  *      @oh_handler: Pointer to openhpi handler
- *	@enclosure: Pointer to struct enclosure_status
+ *	@enclosure: Pointer to struct enclosureStatus
  *	@bay_number: drive enclosure bay number
  *
  * Purpose:
@@ -1240,13 +1240,13 @@ SaErrorT add_inserted_drive_enclosure(struct oh_handler_state *handler,
  **/
 
 SaErrorT remove_drive_enclosure(struct oh_handler_state *handler,
-			struct enclosure_status *enclosure,
+			struct enclosureStatus *enclosure,
 			SaHpiInt32T bay_number)
 {
 	SaErrorT rv = SA_OK;
 	SaHpiResourceIdT resource_id = 0;
 	struct oh_event event = {0};
-	struct ov_rest_hotswap_state *hotswap_state = NULL;
+	struct ovRestHotswapState *hotswap_state = NULL;
 	SaHpiRptEntryT *rpt = NULL;
 	if (handler == NULL) {
 		err("Invalid parameters");
@@ -1270,7 +1270,7 @@ SaErrorT remove_drive_enclosure(struct oh_handler_state *handler,
 			SAHPI_HS_STATE_ACTIVE;
 	} else {
 		/* Managed hotswap */
-		hotswap_state = (struct ov_rest_hotswap_state *)
+		hotswap_state = (struct ovRestHotswapState *)
 			oh_get_resource_data(handler->rptcache,
 					event.resource.ResourceId);
 		if (hotswap_state == NULL) {
@@ -1313,7 +1313,7 @@ SaErrorT remove_drive_enclosure(struct oh_handler_state *handler,
 	rv = oh_remove_resource(handler->rptcache,
 			resource_id);
 
-	/* reset resource_status structure to default values */
+	/* reset resource_info structure to default values */
 	ov_rest_update_resource_status(
 			&enclosure->server, bay_number,
 			"", SAHPI_UNSPECIFIED_RESOURCE_ID, RES_ABSENT,
@@ -1343,10 +1343,10 @@ SaErrorT re_discover_interconnect(struct oh_handler_state *oh_handler)
 	struct interconnectInfoArrayResponse response = {0};
 	struct interconnectInfo result = {0};
 	struct enclosureInfoArrayResponse enclosure_response = {0};
-	struct enclosureInfo enclosure_info = {{0}};
+	struct enclosureInfo enc_info = {{0}};
 	char* interconnect_doc = NULL, *enclosure_doc = NULL, *match = NULL;
 	int i = 0,arraylen = 0, bay = 0;
-	struct enclosure_status *enclosure = NULL;
+	struct enclosureStatus *enclosure = NULL;
 	json_object *jvalue = NULL;
 	GHashTable *interconnect_serial_hash = g_hash_table_new_full(g_str_hash,
 			g_str_equal,
@@ -1416,13 +1416,13 @@ SaErrorT re_discover_interconnect(struct oh_handler_state *oh_handler)
 			}
 			ov_rest_json_parse_enclosure(
 					enclosure_response.enclosure_array,
-					&enclosure_info);
+					&enc_info);
 			ov_rest_wrap_json_object_put(
 					enclosure_response.root_jobj);
 			enclosure = ov_handler->ov_rest_resources.enclosure;
 			while(enclosure != NULL){
-				if(strstr(enclosure->serial_number,
-						enclosure_info.serialNumber)){
+				if(strstr(enclosure->serialNumber,
+						enc_info.serialNumber)){
 					break;
 				}
 				enclosure = enclosure->next;
@@ -1445,11 +1445,11 @@ SaErrorT re_discover_interconnect(struct oh_handler_state *oh_handler)
 							"connect in enclosure"
 							" serial: %s and device"
 							" bay: %d", enclosure->
-							serial_number, 
+							serialNumber, 
 							result.bayNumber);
 					}
 				}else if(strstr(enclosure->interconnect.
-					serial_number[result.bayNumber-1],
+					serialNumber[result.bayNumber-1],
 					result.serialNumber) ||	!strcmp(
 					result.serialNumber, "unknown")){
 
@@ -1464,7 +1464,7 @@ SaErrorT re_discover_interconnect(struct oh_handler_state *oh_handler)
 							"connect in enclosure"
 							" serial: %s and device"
 							" bay: %d", enclosure->
-							serial_number, 
+							serialNumber, 
 							result.bayNumber);
 					}
 					rv = add_inserted_interconnect(
@@ -1475,7 +1475,7 @@ SaErrorT re_discover_interconnect(struct oh_handler_state *oh_handler)
 							"connect in enclosure"
 							" serial: %s and device"
 							" bay: %d", enclosure->
-							serial_number, 
+							serialNumber, 
 							result.bayNumber);
 					}
 				}
@@ -1523,7 +1523,7 @@ SaErrorT re_discover_interconnect(struct oh_handler_state *oh_handler)
 				match = g_hash_table_lookup(
 						interconnect_serial_hash,
 						enclosure->interconnect.
-						serial_number[bay-1]);
+						serialNumber[bay-1]);
 				if(match == NULL){
 					rv = remove_interconnect_blade(
 						oh_handler, bay, enclosure);
@@ -1532,7 +1532,7 @@ SaErrorT re_discover_interconnect(struct oh_handler_state *oh_handler)
 							"Enclosure in enclosure"
 							" serial: %s and device"
 							" bay: %d", enclosure->
-							serial_number, bay);
+							serialNumber, bay);
 					}
 				}
 			}
@@ -1545,7 +1545,7 @@ SaErrorT re_discover_interconnect(struct oh_handler_state *oh_handler)
 /*
  * add_inserted_interconnect
  *      @oh_handler: Pointer to openhpi handler
- *      @enclosure: Pointer to struct enclosure_status
+ *      @enclosure: Pointer to struct enclosureStatus
  *      @result: Pointer to struct interconnectInfo
  *
  * Purpose:
@@ -1559,7 +1559,7 @@ SaErrorT re_discover_interconnect(struct oh_handler_state *oh_handler)
  **/
 
 SaErrorT add_inserted_interconnect(struct oh_handler_state *handler,
-				struct enclosure_status *enclosure,
+				struct enclosureStatus *enclosure,
 				struct interconnectInfo *result)
 {
 	SaErrorT rv = SA_OK;
@@ -1591,7 +1591,7 @@ SaErrorT add_inserted_interconnect(struct oh_handler_state *handler,
 					resource_id);
 		}
 		oh_remove_resource(handler->rptcache, resource_id);
-		/* reset resource_status structure to default values */
+		/* reset resource_info structure to default values */
 		ov_rest_update_resource_status(
 				&enclosure->interconnect,
 				result->bayNumber,
@@ -1663,10 +1663,10 @@ SaErrorT re_discover_sas_interconnect(struct oh_handler_state *oh_handler)
 	struct interconnectInfoArrayResponse response = {0};
 	struct interconnectInfo result = {0};
 	struct enclosureInfoArrayResponse enclosure_response = {0};
-	struct enclosureInfo enclosure_info = {{0}};
+	struct enclosureInfo enc_info = {{0}};
 	char* interconnect_doc = NULL, *enclosure_doc = NULL, *match = NULL;
 	int i = 0,arraylen = 0, bay = 0;
-	struct enclosure_status *enclosure = NULL;
+	struct enclosureStatus *enclosure = NULL;
 	json_object *jvalue = NULL;
 	GHashTable *interconnect_serial_hash = g_hash_table_new_full(g_str_hash,
 			g_str_equal,
@@ -1737,13 +1737,13 @@ SaErrorT re_discover_sas_interconnect(struct oh_handler_state *oh_handler)
 			}
 			ov_rest_json_parse_enclosure(
 					enclosure_response.enclosure_array,
-					&enclosure_info);
+					&enc_info);
 			ov_rest_wrap_json_object_put(
 					enclosure_response.root_jobj);
 			enclosure = ov_handler->ov_rest_resources.enclosure;
 			while(enclosure != NULL){
-				if(strstr(enclosure->serial_number,
-						enclosure_info.serialNumber)){
+				if(strstr(enclosure->serialNumber,
+						enc_info.serialNumber)){
 					break;
 				}
 				enclosure = enclosure->next;
@@ -1766,11 +1766,11 @@ SaErrorT re_discover_sas_interconnect(struct oh_handler_state *oh_handler)
 						"-interconnect in enclosure"
 						" serial: %s and device"
 						" bay: %d", enclosure->
-						serial_number, 
+						serialNumber, 
 						result.bayNumber);
 					}
 				}else if(strstr(enclosure->interconnect.
-					serial_number[result.bayNumber-1],
+					serialNumber[result.bayNumber-1],
 					result.serialNumber) ||	!strcmp(result.
 					serialNumber, "unknown")){
 
@@ -1785,7 +1785,7 @@ SaErrorT re_discover_sas_interconnect(struct oh_handler_state *oh_handler)
 						"-interconnect in enclosure"
 						" serial: %s and device"
 						" bay: %d", enclosure->
-						serial_number, 
+						serialNumber, 
 						result.bayNumber);
 					}
 					rv = add_inserted_interconnect(
@@ -1797,7 +1797,7 @@ SaErrorT re_discover_sas_interconnect(struct oh_handler_state *oh_handler)
 						"-interconnect in enclosure"
 						" serial: %s and device"
 						" bay: %d", enclosure->
-						serial_number, 
+						serialNumber, 
 						result.bayNumber);
 					}
 				}
@@ -1842,7 +1842,7 @@ SaErrorT re_discover_sas_interconnect(struct oh_handler_state *oh_handler)
 				match = g_hash_table_lookup(
 						interconnect_serial_hash,
 						enclosure->interconnect.
-						serial_number[bay-1]);
+						serialNumber[bay-1]);
 				if(match == NULL){
 					rv = remove_interconnect_blade(
 						oh_handler, bay, enclosure);
@@ -1851,7 +1851,7 @@ SaErrorT re_discover_sas_interconnect(struct oh_handler_state *oh_handler)
 						"-interconnect in enclosure"
 						" serial: %s and device"
 						" bay: %d", enclosure->
-						serial_number, bay);
+						serialNumber, bay);
 					}
 				}
 			}
@@ -1886,7 +1886,7 @@ SaErrorT re_discover_powersupply(struct oh_handler_state *oh_handler)
 	struct powersupplyInfo result = {0};
 	char* enclosure_doc = NULL;
 	int i = 0,j = 0,arraylen = 0;
-	struct enclosure_status *enclosure = NULL;
+	struct enclosureStatus *enclosure = NULL;
 	json_object *jvalue = NULL, *jvalue_ps = NULL, *jvalue_ps_array = NULL;
 
 	ov_handler = (struct ov_rest_handler *) oh_handler->data;
@@ -1924,10 +1924,10 @@ SaErrorT re_discover_powersupply(struct oh_handler_state *oh_handler)
 					" no array returned for that",i);
 			return rv;
 		}
-		enclosure = (struct enclosure_status *)
+		enclosure = (struct enclosureStatus *)
 			ov_handler->ov_rest_resources.enclosure;
 		while(enclosure != NULL){
-			if(!strcmp(enclosure->serial_number,
+			if(!strcmp(enclosure->serialNumber,
 						enclosure_result.serialNumber)){
 				break;
 			}
@@ -1956,7 +1956,7 @@ SaErrorT re_discover_powersupply(struct oh_handler_state *oh_handler)
 					[result.bayNumber-1] == RES_ABSENT){
 					rv = add_inserted_powersupply(
 						oh_handler, enclosure, &result);
-				}else if(strstr(enclosure->ps_unit.serial_number
+				}else if(strstr(enclosure->ps_unit.serialNumber
 					[result.bayNumber-1],result.
 					serialNumber) || !strcmp(result.
 					serialNumber, "unknown")){
@@ -1970,7 +1970,7 @@ SaErrorT re_discover_powersupply(struct oh_handler_state *oh_handler)
 							"supply in enclosure"
 							" serial: %s and device"
 							" bay: %d", enclosure->
-							serial_number, 
+							serialNumber, 
 							result.bayNumber);
 					}
 					rv = add_inserted_powersupply(
@@ -1980,7 +1980,7 @@ SaErrorT re_discover_powersupply(struct oh_handler_state *oh_handler)
 							"supply in enclosure"
 							" serial: %s and device"
 							" bay: %d", enclosure->
-							serial_number,
+							serialNumber,
 							result.bayNumber);
 					}
 				}
@@ -1997,7 +1997,7 @@ SaErrorT re_discover_powersupply(struct oh_handler_state *oh_handler)
 							" supply in enclosure"
 							" serial: %s and device"
 							" bay: %d", enclosure->
-							serial_number,
+							serialNumber,
 							result.bayNumber);
 					}
 				}
@@ -2011,7 +2011,7 @@ SaErrorT re_discover_powersupply(struct oh_handler_state *oh_handler)
 /*
  * add_inserted_interconnect
  *      @oh_handler: Pointer to openhpi handler
- *      @enclosure: Pointer to struct enclosure_status
+ *      @enclosure: Pointer to struct enclosureStatus
  *      @result: Pointer to struct powersupplyInfo
  *
  * Purpose:
@@ -2026,7 +2026,7 @@ SaErrorT re_discover_powersupply(struct oh_handler_state *oh_handler)
  **/
 
 SaErrorT add_inserted_powersupply(struct oh_handler_state *handler,
-				struct enclosure_status *enclosure,
+				struct enclosureStatus *enclosure,
 				struct powersupplyInfo *result)
 {
 	SaErrorT rv = SA_OK;
@@ -2064,7 +2064,7 @@ SaErrorT add_inserted_powersupply(struct oh_handler_state *handler,
 					resource_id);
 		}
 		oh_remove_resource(handler->rptcache, resource_id);
-		/* reset resource_status structure to default values */
+		/* reset resource_info structure to default values */
 		ov_rest_update_resource_status(
 				&enclosure->ps_unit, result->bayNumber, 
 				"", SAHPI_UNSPECIFIED_RESOURCE_ID, RES_ABSENT,
@@ -2098,7 +2098,7 @@ SaErrorT add_inserted_powersupply(struct oh_handler_state *handler,
 /*
  * remove_drive_enclosure
  *      @oh_handler: Pointer to openhpi handler
- *      @enclosure: Pointer to struct enclosure_status
+ *      @enclosure: Pointer to struct enclosureStatus
  *      @bay_number: Power Supply Unit bay number
  *
  * Purpose:
@@ -2113,7 +2113,7 @@ SaErrorT add_inserted_powersupply(struct oh_handler_state *handler,
  **/
 
 SaErrorT remove_powersupply(struct oh_handler_state *handler,
-			struct enclosure_status *enclosure,
+			struct enclosureStatus *enclosure,
 			SaHpiInt32T bay_number)
 {
 
@@ -2159,7 +2159,7 @@ SaErrorT remove_powersupply(struct oh_handler_state *handler,
 	rv = oh_remove_resource(handler->rptcache,
 			event.resource.ResourceId);
 
-	/* reset resource_status structure to default values */
+	/* reset resource_info structure to default values */
 	ov_rest_update_resource_status(
 			&enclosure->ps_unit, bay_number,
 			"", SAHPI_UNSPECIFIED_RESOURCE_ID, RES_ABSENT,
@@ -2192,7 +2192,7 @@ SaErrorT re_discover_fan(struct oh_handler_state *oh_handler)
 	struct fanInfo result = {0};
 	char* enclosure_doc = NULL;
 	int i = 0,j = 0,arraylen = 0;
-	struct enclosure_status *enclosure = NULL;
+	struct enclosureStatus *enclosure = NULL;
 	json_object *jvalue = NULL, *jvalue_fan = NULL; 
 	json_object *jvalue_fan_array = NULL;
 
@@ -2231,10 +2231,10 @@ SaErrorT re_discover_fan(struct oh_handler_state *oh_handler)
 					" no array returned for that",i);
 			return SA_OK;
 		}
-		enclosure = (struct enclosure_status *)
+		enclosure = (struct enclosureStatus *)
 			ov_handler->ov_rest_resources.enclosure;
 		while(enclosure != NULL){
-			if(!strcmp(enclosure->serial_number,
+			if(!strcmp(enclosure->serialNumber,
 						enclosure_result.serialNumber)){
 				break;
 			}
@@ -2262,7 +2262,7 @@ SaErrorT re_discover_fan(struct oh_handler_state *oh_handler)
 				== RES_ABSENT){
 					rv = ov_rest_add_fan(oh_handler, 
 						&result, enclosure);
-				}else if(strstr(enclosure->fan.serial_number
+				}else if(strstr(enclosure->fan.serialNumber
 					[result.bayNumber-1],result.
 					serialNumber) || !strcmp(result.
 					serialNumber, "unknown")){
@@ -2276,7 +2276,7 @@ SaErrorT re_discover_fan(struct oh_handler_state *oh_handler)
 							" in enclosure serial: "
 							"%s and fan bay: %d",
 							enclosure->
-							serial_number, 
+							serialNumber, 
 							result.bayNumber);
 					}
 					rv = ov_rest_add_fan(oh_handler, 
@@ -2286,7 +2286,7 @@ SaErrorT re_discover_fan(struct oh_handler_state *oh_handler)
 							" in enclosure serial: "
 							"%s and fan bay: %d",
 							enclosure->
-							serial_number, 
+							serialNumber, 
 							result.bayNumber);
 					}
 				}
@@ -2302,7 +2302,7 @@ SaErrorT re_discover_fan(struct oh_handler_state *oh_handler)
 							" in enclosure serial: "
 							"%s and fan bay: %d",
 							enclosure->
-							serial_number, 
+							serialNumber, 
 							result.bayNumber);
 					}
 				}

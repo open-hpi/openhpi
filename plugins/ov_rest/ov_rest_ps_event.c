@@ -83,7 +83,7 @@ SaErrorT process_powersupply_insertion_event( struct oh_handler_state *handler,
 	struct enclosureInfoArrayResponse enclosure_response = {0};
 	struct enclosureInfo enclosure_result = {{0}};
 	char* enclosure_doc = NULL;
-	struct enclosure_status *enclosure = NULL;
+	struct enclosureStatus *enclosure = NULL;
 	json_object *jvalue_ps = NULL, *jvalue_ps_array = NULL;
 	SaHpiRptEntryT *enc_rpt = NULL;
 	GSList *asserted_sensors = NULL;
@@ -131,10 +131,10 @@ SaErrorT process_powersupply_insertion_event( struct oh_handler_state *handler,
 	}
 	ov_rest_json_parse_powersupply(jvalue_ps, &response);
 	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
-	enclosure = (struct enclosure_status *)ov_handler->
+	enclosure = (struct enclosureStatus *)ov_handler->
 		ov_rest_resources.enclosure;
 	while(enclosure != NULL){
-		if(!strcmp(enclosure->serial_number,
+		if(!strcmp(enclosure->serialNumber,
 					enclosure_result.serialNumber)){
 			break;
 		}
@@ -174,7 +174,7 @@ SaErrorT process_powersupply_insertion_event( struct oh_handler_state *handler,
 					resource_id);
 		}
 		oh_remove_resource(handler->rptcache, resource_id);
-		/* reset resource_status structure to default values */
+		/* reset resource_info structure to default values */
 		ov_rest_update_resource_status(
 				&enclosure->ps_unit,
 				response.bayNumber,
@@ -240,7 +240,7 @@ SaErrorT process_powersupply_removed_event( struct oh_handler_state *handler,
 	struct enclosureInfoArrayResponse enclosure_response = {0};
 	struct enclosureInfo enclosure_result = {{0}};
 	char* enclosure_doc = NULL;
-	struct enclosure_status *enclosure = NULL;
+	struct enclosureStatus *enclosure = NULL;
 
 	if (handler == NULL || event == NULL) {
 		err("Invalid parameters");
@@ -268,10 +268,10 @@ SaErrorT process_powersupply_removed_event( struct oh_handler_state *handler,
 			&enclosure_result);
 	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
 
-	enclosure = (struct enclosure_status *)ov_handler->
+	enclosure = (struct enclosureStatus *)ov_handler->
 		ov_rest_resources.enclosure;
 	while(enclosure != NULL){
-		if(!strcmp(enclosure->serial_number,
+		if(!strcmp(enclosure->serialNumber,
 					enclosure_result.serialNumber)){
 			break;
 		}

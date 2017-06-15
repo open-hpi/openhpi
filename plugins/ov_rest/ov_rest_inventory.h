@@ -57,24 +57,24 @@
 #define POWER_SUPPLY_RDR_STRING "Power Supply"
 
 /* Inventory data field structure */
-struct ov_rest_field
+struct ovRestField
 {
         SaHpiIdrFieldT      field;
-        struct ov_rest_field *next_field;
+        struct ovRestField *next_field;
 };
 
 /* Inventory data area structure */
-struct ov_rest_area
+struct ovRestArea
 {
         SaHpiIdrAreaHeaderT idr_area_head;
-        struct ov_rest_field *field_list;
-        struct ov_rest_area *next_area;
+        struct ovRestField *field_list;
+        struct ovRestArea *next_area;
 };
 
 struct ov_rest_inventory_info
 {
         SaHpiIdrInfoT       idr_info;
-        struct ov_rest_area  *area_list;
+        struct ovRestArea  *area_list;
 };
 
 /* Inventory data respository header structure */
@@ -101,42 +101,17 @@ struct ov_rest_inventory
  */
 #define OV_REST_MAX_INV_FIELDS 3
 
-struct ov_rest_inv_area {
-	struct ov_rest_area area;
-	struct ov_rest_field field_array[OV_REST_MAX_INV_FIELDS];
+struct ovRestInvArea {
+	struct ovRestArea area;
+	struct ovRestField field_array[OV_REST_MAX_INV_FIELDS];
 };
 
-struct ov_rest_inv_rdr {
+struct ovRestInvRdr {
 	SaHpiRdrT rdr;
 	struct ov_rest_inventory inventory;
-	struct ov_rest_inv_area area_array[OV_REST_MAX_INV_AREAS];
+	struct ovRestInvArea area_array[OV_REST_MAX_INV_AREAS];
 };
 
-/* The maximum size of the fan zone inventory field data.
- * In c3000, it can have the data "1,2,3,4,5,6,7,8" for device bays.
- * 3 bytes of char array is enough to accomodate above information.
- *
- * On supporting new enclosure type, change the below #define value as
- * appropriate
- */
-#define	OV_REST_MAX_FZ_INV_SIZE 31
-
-/* Maximum size of fan zone number digits. In c7000, 4 fan zones are supported.
- * 1 digit is required to represent the fan zone number.
- *
- * On supporting new enclosure type, change the below #define value as
- * appropriate
- */
-#define OV_REST_MAX_FZ_NUM_SIZE 1
-
-/* Structure for mapping the Fans to Fan zones with shared status information.
- * This will be used to construct the inventory data field for Fan
- */
-struct ov_rest_fz_map {
-	SaHpiInt32T zone;
-	SaHpiInt32T secondary_zone;
-	SaHpiBoolT shared;
-};
 
 /* Inventory function declarations */
 SaErrorT ov_rest_get_idr_info(void *oh_handler,
@@ -245,37 +220,37 @@ SaErrorT build_powersupply_inv_rdr(struct oh_handler_state *oh_handler,
                                 struct ov_rest_inventory **inventory,
                                 struct powersupplyInfo *response);
 
-SaErrorT ov_rest_add_product_area(struct ov_rest_area **parea,
+SaErrorT ov_rest_add_product_area(struct ovRestArea **parea,
                           char *name,
                           char *manufacturer,
                           SaHpiInt32T *success_flag);
 
-SaErrorT ov_rest_add_chassis_area(struct ov_rest_area **parea,
-                          char *part_number,
-                          char *serial_number,
+SaErrorT ov_rest_add_chassis_area(struct ovRestArea **parea,
+                          char *partNumber,
+                          char *serialNumber,
                           SaHpiInt32T *success_flag);
 
-SaErrorT ov_rest_add_board_area(struct ov_rest_area **parea,
-                        char *part_number,
-                        char *serial_number,
+SaErrorT ov_rest_add_board_area(struct ovRestArea **parea,
+                        char *partNumber,
+                        char *serialNumber,
                         SaHpiInt32T *success_flag);
 
-SaErrorT ov_rest_add_internal_area(struct ov_rest_area **parea,
+SaErrorT ov_rest_add_internal_area(struct ovRestArea **parea,
                            char *manufacturer,
                            char *name,
-                           char *part_number,
-                           char *serial_number,
+                           char *partNumber,
+                           char *serialNumber,
                            SaHpiInt32T *success_flag);
 
-SaErrorT  ov_rest_idr_area_add(struct ov_rest_area **area_ptr,
+SaErrorT  ov_rest_idr_area_add(struct ovRestArea **area_ptr,
                        SaHpiIdrAreaTypeT area_type,
-                       struct ov_rest_area **return_area);
+                       struct ovRestArea **return_area);
 
-SaErrorT  ov_rest_idr_area_add_by_id(struct ov_rest_area **head_area,
+SaErrorT  ov_rest_idr_area_add_by_id(struct ovRestArea **head_area,
                              SaHpiIdrAreaTypeT area_type,
                              SaHpiEntryIdT area_id);
 
-SaErrorT ov_rest_idr_area_delete(struct ov_rest_area **area_ptr,
+SaErrorT ov_rest_idr_area_delete(struct ovRestArea **area_ptr,
                          SaHpiEntryIdT area_id);
 
 SaErrorT ov_rest_fetch_idr_area_header(struct ov_rest_inventory_info *inv_ptr,
@@ -284,19 +259,19 @@ SaErrorT ov_rest_fetch_idr_area_header(struct ov_rest_inventory_info *inv_ptr,
                              SaHpiIdrAreaHeaderT *area_header,
                              SaHpiEntryIdT *next_area_id);
 
-SaErrorT  ov_rest_idr_field_add(struct ov_rest_field **field_ptr,
+SaErrorT  ov_rest_idr_field_add(struct ovRestField **field_ptr,
                         SaHpiIdrFieldT *field);
 
-SaErrorT  ov_rest_idr_field_add_by_id(struct ov_rest_field **head_field,
+SaErrorT  ov_rest_idr_field_add_by_id(struct ovRestField **head_field,
                               SaHpiEntryIdT area_id,
                               SaHpiIdrFieldTypeT field_type,
                               char *field_data,
                               SaHpiEntryIdT field_id);
 
-SaErrorT ov_rest_idr_field_delete(struct ov_rest_field **field_ptr,
+SaErrorT ov_rest_idr_field_delete(struct ovRestField **field_ptr,
                           SaHpiEntryIdT field_id);
 
-SaErrorT ov_rest_idr_field_update(struct ov_rest_field *field_ptr,
+SaErrorT ov_rest_idr_field_update(struct ovRestField *field_ptr,
                           SaHpiIdrFieldT *field);
 
 SaErrorT ov_rest_fetch_idr_field(struct ov_rest_inventory_info *inv_ptr,

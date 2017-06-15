@@ -52,12 +52,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* The different enclosure types supported by OV REST
- *
- * If a new enclosure is added, please update the OV_REST_MAX_FAN. Add
- * entries for the new enclosure in ov_rest_fz_map_arr in
- * ov_rest_resources.c file.
- */
 #define OV_REST_ENC_C7000       0
 #define OV_REST_ENC_C3000       1
 #define OV_REST_ENC_SYNERGY     2
@@ -73,20 +67,20 @@
 #define OV_POWER_POLL_SLEEP_SECONDS   05
 
 /* Enum for storing the status of the plugin */
-enum ov_rest_plugin_status {
+enum ovRestPluginStatus {
         PRE_DISCOVERY = 0,
         PLUGIN_NOT_INITIALIZED = 1,
         DISCOVERY_FAIL = 2,
         DISCOVERY_COMPLETED = 3
 };
 
-typedef enum resource_presence_status
+typedef enum resource_presence
 {
         RES_ABSENT = 0,
         RES_PRESENT= 1
-} resource_presence_status_t;
+} resource_presence_t;
 
-typedef enum resource_category
+typedef enum resourceCategory
 {
 	SERVER_HARDWARE = 0,
 	DRIVE_ENCLOSURE = 1,
@@ -95,52 +89,52 @@ typedef enum resource_category
 	POWER_SUPPLY = 4,
 	FAN = 5,
 	UNSPECIFIED_RESOURCE = 6
-}resource_category_t;
+}resourceCategory_t;
 
 /* Resource presence matrix per resource type */
-typedef struct resource_status
+typedef struct resource_info
 {
         SaHpiInt32T max_bays;
-	enum resource_category *type;
-        enum resource_presence_status *presence;
-        char **serial_number;
+	enum resourceCategory *type;
+        enum resource_presence *presence;
+        char **serialNumber;
         SaHpiResourceIdT *resource_id;
-} resource_status_t;
+} resource_info_t;
 
 typedef struct composer_status
 {
-        char serial_number[256];
+        char serialNumber[256];
         SaHpiResourceIdT resource_id;
-}resource_composer_t;
+}resourceComposer_t;
 
-typedef struct enclosure_status
+typedef struct enclosureStatus
 {	
 	SaHpiResourceIdT enclosure_rid;
 	SaHpiResourceIdT power_subsystem_rid;
 	SaHpiResourceIdT thermal_subsystem_rid;
 	SaHpiResourceIdT lcd_rid;
 	SaHpiInt32T enc_type;
-	char *serial_number;
-	struct resource_status server;
-	struct resource_status interconnect;
-	struct resource_status ps_unit;
-	struct resource_status fan;
-	struct enclosure_status *next; 
-}resource_enclosure_t;
+	char *serialNumber;
+	struct resource_info server;
+	struct resource_info interconnect;
+	struct resource_info ps_unit;
+	struct resource_info fan;
+	struct enclosureStatus *next; 
+}resourceEnclosure_t;
 
 /* Resource presence matrix for all FRUs in HPE Synergy */
-struct ov_rest_resource_status
+struct ovRestResourceStatus
 {	
 	struct composer_status composer;
-        struct enclosure_status *enclosure;
-	struct resource_status RM_server;
+        struct enclosureStatus *enclosure;
+	struct resource_info RM_server;
 };
 
 struct ov_rest_handler
 {
-        struct ov_connection *connection;
-        enum ov_rest_plugin_status status;
-        struct ov_rest_resource_status ov_rest_resources;
+        struct ovConnection *connection;
+        enum ovRestPluginStatus status;
+        struct ovRestResourceStatus ov_rest_resources;
         GThread *thread_handler;
         GMutex* mutex;
         GMutex* ov_mutex;
@@ -160,7 +154,7 @@ struct ov_rest_handler
 };
 
 /* Structure for storing the current hotswap state of the resource */
-struct ov_rest_hotswap_state {
+struct ovRestHotswapState {
         SaHpiHsStateT currentHsState;
 };
 

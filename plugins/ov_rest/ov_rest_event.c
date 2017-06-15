@@ -320,7 +320,7 @@ SaErrorT process_active_and_locked_alerts(struct oh_handler_state *handler,
         struct interconnectInfo int_info_result = {0};
         struct enclosureInfoArrayResponse enc_response = {0};
         struct enclosureInfo enc_result = {{0}};
-        struct enclosure_status *enclosure = NULL;
+        struct enclosureStatus *enclosure = NULL;
         char *enc_doc = NULL, *server_doc = NULL, *interconnect_doc = NULL;
         char *drive_enc_doc = NULL;
         SaHpiRptEntryT *rpt = NULL;
@@ -368,10 +368,10 @@ SaErrorT process_active_and_locked_alerts(struct oh_handler_state *handler,
                                            enc_response.enclosure_array,
                                            &enc_result);
 			ov_rest_wrap_json_object_put(enc_response.root_jobj);
-                        enclosure = (struct enclosure_status *)ov_handler->
+                        enclosure = (struct enclosureStatus *)ov_handler->
                                 ov_rest_resources.enclosure;
                         while(enclosure != NULL){
-                                if(!strcmp(enclosure->serial_number,
+                                if(!strcmp(enclosure->serialNumber,
                                         enc_result.serialNumber)){
                                         break;
                                 }
@@ -428,10 +428,10 @@ SaErrorT process_active_and_locked_alerts(struct oh_handler_state *handler,
                          * enclosure linked list*/
                         /* FIXME : We could make below code as a funtion to get
                          * the resource id by using enclosure serial number */
-                        enclosure = (struct enclosure_status *)ov_handler->
+                        enclosure = (struct enclosureStatus *)ov_handler->
                                 ov_rest_resources.enclosure;
                         while(enclosure != NULL){
-                                if(!strcmp(enclosure->serial_number,
+                                if(!strcmp(enclosure->serialNumber,
                                         enc_result.serialNumber)){
                                         break;
                                 }
@@ -499,10 +499,10 @@ SaErrorT process_active_and_locked_alerts(struct oh_handler_state *handler,
                          * the enclosure linked list*/
                         /* FIXME : We could make below code as a funtion to get
                          * the resource id by using enclosure serial number */
-                        enclosure = (struct enclosure_status *)ov_handler->
+                        enclosure = (struct enclosureStatus *)ov_handler->
                                 ov_rest_resources.enclosure;
                         while(enclosure != NULL){
-                                if(!strcmp(enclosure->serial_number,
+                                if(!strcmp(enclosure->serialNumber,
                                         enc_result.serialNumber)){
                                         break;
                                 }
@@ -569,10 +569,10 @@ SaErrorT process_active_and_locked_alerts(struct oh_handler_state *handler,
                          * enclosure linked list*/
                         /* FIXME : We could make below code as a funtion to get
                          * the resource id by using enclosure serial number */
-                        enclosure = (struct enclosure_status *)ov_handler->
+                        enclosure = (struct enclosureStatus *)ov_handler->
                                 ov_rest_resources.enclosure;
                         while(enclosure != NULL){
-                                if(!strcmp(enclosure->serial_number,
+                                if(!strcmp(enclosure->serialNumber,
                                         enc_result.serialNumber)){
                                         break;
                                 }
@@ -676,7 +676,7 @@ SaErrorT oem_event_handler(struct oh_handler_state *handler,
         struct interconnectInfo int_info_result = {0};
         struct enclosureInfoArrayResponse enc_response = {0};
         struct enclosureInfo enc_result = {{0}};
-        struct enclosure_status *enclosure = NULL;
+        struct enclosureStatus *enclosure = NULL;
         char *enc_doc = NULL, *server_doc = NULL, *interconnect_doc = NULL;
         char *drive_enc_doc = NULL;
         SaHpiRptEntryT *rpt = NULL;
@@ -702,10 +702,10 @@ SaErrorT oem_event_handler(struct oh_handler_state *handler,
                                            enc_response.enclosure_array,
                                            &enc_result);
 			ov_rest_wrap_json_object_put(enc_response.root_jobj);
-                        enclosure = (struct enclosure_status *)ov_handler->
+                        enclosure = (struct enclosureStatus *)ov_handler->
                                 ov_rest_resources.enclosure;
                         while(enclosure != NULL){
-                                if(!strcmp(enclosure->serial_number,
+                                if(!strcmp(enclosure->serialNumber,
                                         enc_result.serialNumber)){
                                         break;
                                 }
@@ -764,10 +764,10 @@ SaErrorT oem_event_handler(struct oh_handler_state *handler,
                          * enclosure linked list*/
                         /* FIXME : We could make below code as a funtion to get
                          * the resource id by using enclosure serial number */
-                        enclosure = (struct enclosure_status *)ov_handler->
+                        enclosure = (struct enclosureStatus *)ov_handler->
                                 ov_rest_resources.enclosure;
                         while(enclosure != NULL){
-                                if(!strcmp(enclosure->serial_number,
+                                if(!strcmp(enclosure->serialNumber,
                                         enc_result.serialNumber)){
                                         break;
                                 }
@@ -836,10 +836,10 @@ SaErrorT oem_event_handler(struct oh_handler_state *handler,
                          * the enclosure linked list*/
                         /* FIXME : We could make below code as a funtion to get
                          * the resource id by using enclosure serial number */
-                        enclosure = (struct enclosure_status *)ov_handler->
+                        enclosure = (struct enclosureStatus *)ov_handler->
                                 ov_rest_resources.enclosure;
                         while(enclosure != NULL){
-                                if(!strcmp(enclosure->serial_number,
+                                if(!strcmp(enclosure->serialNumber,
                                         enc_result.serialNumber)){
                                         break;
                                 }
@@ -906,10 +906,10 @@ SaErrorT oem_event_handler(struct oh_handler_state *handler,
                          * enclosure linked list*/
                         /* FIXME : We could make below code as a funtion to get
                          * the resource id by using enclosure serial number */
-                        enclosure = (struct enclosure_status *)ov_handler->
+                        enclosure = (struct enclosureStatus *)ov_handler->
                                 ov_rest_resources.enclosure;
                         while(enclosure != NULL){
-                                if(!strcmp(enclosure->serial_number,
+                                if(!strcmp(enclosure->serialNumber,
                                         enc_result.serialNumber)){
                                         break;
                                 }

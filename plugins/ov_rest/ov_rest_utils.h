@@ -73,19 +73,19 @@ SaErrorT ov_rest_delete_all_inv_info(struct oh_handler_state *oh_handler);
 
 void ov_rest_clean_rptable(struct oh_handler_state *oh_handler);
 
-void release_ov_rest_resources(struct enclosure_status *enclosure);
+void release_ov_rest_resources(struct enclosureStatus *enclosure);
 
 SaErrorT ov_rest_lower_to_upper(char *src,
                                 SaHpiInt32T src_len,
                                 char *dest,
                                 SaHpiInt32T dest_len);
 
-void ov_rest_update_resource_status(resource_status_t *res_status,
+void ov_rest_update_resource_status(resource_info_t *res_status,
                                     SaHpiInt32T index,
-                                    char *serial_number,
+                                    char *serialNumber,
                                     SaHpiResourceIdT resource_id,
-                                    resource_presence_status_t presence,
-                                    resource_category_t type);
+                                    resource_presence_t presence,
+                                    resourceCategory_t type);
 
 char * ov_rest_trim_whitespace(char *s);
 void itostr(int x,char **s);

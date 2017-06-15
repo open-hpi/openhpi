@@ -48,8 +48,8 @@ SaErrorT process_fan_removed_event( struct oh_handler_state *handler,
 		struct eventInfo* event);
 SaErrorT ov_rest_add_fan(struct oh_handler_state *handler,
                         struct fanInfo *response,
-                        struct enclosure_status *enclosure);
+                        struct enclosureStatus *enclosure);
 SaErrorT ov_rest_remove_fan(struct oh_handler_state *oh_handler,
                 SaHpiInt32T bayNumber,
-                struct enclosure_status *enclosure);
+                struct enclosureStatus *enclosure);
 #endif

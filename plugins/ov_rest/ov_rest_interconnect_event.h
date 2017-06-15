@@ -53,7 +53,7 @@ SaErrorT ov_rest_proc_interconnect_removed(struct oh_handler_state *oh_handler,
                                 struct eventInfo* event);
 SaErrorT remove_interconnect_blade(struct oh_handler_state *oh_handler,
                                 SaHpiInt32T bay_number,
-                                struct enclosure_status *enclosure);
+                                struct enclosureStatus *enclosure);
 SaErrorT process_interconnect_power_off_task( struct oh_handler_state *handler,
                                 struct eventInfo* event);
 SaErrorT process_interconnect_power_on_task( struct oh_handler_state *handler,

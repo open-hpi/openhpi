@@ -70,7 +70,7 @@
 
 
 /* Structure for storing the sensor RDR and event information  */
-struct ov_rest_sensor {
+struct ovRestSensor {
 	SaHpiSensorRecT sensor;
 	struct ov_rest_sensor_info sensor_info;
 	SaHpiInt32T sensor_class;
@@ -88,7 +88,7 @@ extern const SaHpiInt32T ov_rest_sen_val_map_arr[OV_REST_MAX_SEN_CLASS]
 						[OV_REST_MAX_ENUM];
 extern const SaHpiInt32T ov_rest_sen_assert_map_arr[OV_REST_MAX_SEN_CLASS]
 						   [OV_REST_MAX_ENUM];
-extern const struct ov_rest_sensor ov_rest_sen_arr[];
+extern const struct ovRestSensor ov_rest_sen_arr[];
 
 extern const struct ov_rest_control ov_rest_cntrl_arr[];
 

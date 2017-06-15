@@ -88,13 +88,13 @@ SaErrorT process_server_power_on_event(struct oh_handler_state *oh_handler,
 {
 	SaErrorT rv = SA_OK;
 	struct oh_event event = {0};
-	struct ov_rest_hotswap_state *hotswap_state = NULL;
+	struct ovRestHotswapState *hotswap_state = NULL;
 	struct ov_rest_handler *ov_handler = NULL;
 	struct serverhardwareInfoArrayResponse response = {0};
 	struct serverhardwareInfo info_result = {0};
 	struct enclosureInfoArrayResponse enclosure_response = {0};
 	struct enclosureInfo enclosure_result = {{0}};
-	struct enclosure_status *enclosure = NULL;
+	struct enclosureStatus *enclosure = NULL;
 	char* enclosure_doc = NULL, *server_doc = NULL;
 	SaHpiRptEntryT *rpt = NULL;
 
@@ -132,10 +132,10 @@ SaErrorT process_server_power_on_event(struct oh_handler_state *oh_handler,
 	/* Find the server Resourceid by looking at the enclosure linked list*/
 	/* FIXME : We could make below code as a funtion to get the resource id
 	 * by using enclosure serial number */
-	enclosure = (struct enclosure_status *)ov_handler->
+	enclosure = (struct enclosureStatus *)ov_handler->
 		ov_rest_resources.enclosure;
 	while(enclosure != NULL){
-		if(!strcmp(enclosure->serial_number,
+		if(!strcmp(enclosure->serialNumber,
 					enclosure_result.serialNumber)){
 			break;
 		}
@@ -159,7 +159,7 @@ SaErrorT process_server_power_on_event(struct oh_handler_state *oh_handler,
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 
-	hotswap_state = (struct ov_rest_hotswap_state *)
+	hotswap_state = (struct ovRestHotswapState *)
 		oh_get_resource_data (oh_handler->rptcache, 
 				enclosure->server.
 				resource_id[info_result.bayNumber - 1]);
@@ -267,13 +267,13 @@ SaErrorT process_server_power_off_event(struct oh_handler_state *oh_handler,
 {
 	SaErrorT rv = SA_OK;
 	struct oh_event event = {0};
-	struct ov_rest_hotswap_state *hotswap_state = NULL;
+	struct ovRestHotswapState *hotswap_state = NULL;
 	struct ov_rest_handler *ov_handler = NULL;
 	struct serverhardwareInfoArrayResponse response = {0};
 	struct serverhardwareInfo info_result = {0};
 	struct enclosureInfoArrayResponse enclosure_response = {0};
 	struct enclosureInfo enclosure_result = {{0}};
-	struct enclosure_status *enclosure = NULL;
+	struct enclosureStatus *enclosure = NULL;
 	char* enclosure_doc = NULL, *server_doc = NULL;
 	SaHpiRptEntryT *rpt = NULL;
 
@@ -311,10 +311,10 @@ SaErrorT process_server_power_off_event(struct oh_handler_state *oh_handler,
 	/* Find the server Resourceid by looking at the enclosure linked list*/
 	/* FIXME : We could make below code as a funtion to get the resource id
 	 * by using enclosure serial number */
-	enclosure = (struct enclosure_status *)ov_handler->
+	enclosure = (struct enclosureStatus *)ov_handler->
 		ov_rest_resources.enclosure;
 	while(enclosure != NULL){
-		if(!strcmp(enclosure->serial_number,
+		if(!strcmp(enclosure->serialNumber,
 					enclosure_result.serialNumber)){
 			break;
 		}
@@ -327,7 +327,7 @@ SaErrorT process_server_power_off_event(struct oh_handler_state *oh_handler,
 		return SA_ERR_HPI_INVALID_RESOURCE;
 	}
 
-	hotswap_state = (struct ov_rest_hotswap_state *)
+	hotswap_state = (struct ovRestHotswapState *)
 		oh_get_resource_data (oh_handler->rptcache,
 				enclosure->
 				server.resource_id[info_result.bayNumber - 1]);
@@ -417,13 +417,13 @@ SaErrorT process_server_reset_event(struct oh_handler_state *oh_handler,
 {
 	SaErrorT rv = SA_OK;
 	struct oh_event event = {0};
-	struct ov_rest_hotswap_state *hotswap_state = NULL;
+	struct ovRestHotswapState *hotswap_state = NULL;
 	struct ov_rest_handler *ov_handler = NULL;
 	struct serverhardwareInfoArrayResponse response = {0};
 	struct serverhardwareInfo info_result = {0};
 	struct enclosureInfoArrayResponse enclosure_response = {0};
 	struct enclosureInfo enclosure_result = {{0}};
-	struct enclosure_status *enclosure = NULL;
+	struct enclosureStatus *enclosure = NULL;
 	char* enclosure_doc = NULL, *server_doc = NULL;
 	SaHpiRptEntryT *rpt = NULL;
 
@@ -460,10 +460,10 @@ SaErrorT process_server_reset_event(struct oh_handler_state *oh_handler,
 	/* Find the server Resourceid by looking at the enclosure linked list*/
 	/* FIXME : We could make below code as a funtion to get the resource id
 	 * by using enclosure serial number */
-	enclosure = (struct enclosure_status *)ov_handler->
+	enclosure = (struct enclosureStatus *)ov_handler->
 		ov_rest_resources.enclosure;
 	while(enclosure != NULL){
-		if(!strcmp(enclosure->serial_number,
+		if(!strcmp(enclosure->serialNumber,
 					enclosure_result.serialNumber)){
 			break;
 		}
@@ -476,7 +476,7 @@ SaErrorT process_server_reset_event(struct oh_handler_state *oh_handler,
 		return SA_ERR_HPI_INVALID_RESOURCE;
 	}
 
-	hotswap_state = (struct ov_rest_hotswap_state *)
+	hotswap_state = (struct ovRestHotswapState *)
 		oh_get_resource_data (oh_handler->rptcache,
 				enclosure->server.
 				resource_id[info_result.bayNumber - 1]);
@@ -546,7 +546,7 @@ SaErrorT build_inserted_server_rpt(struct oh_handler_state *oh_handler,
                                    SaHpiRptEntryT *rpt)
 {
 	SaErrorT rv = SA_OK;
-	struct ov_rest_hotswap_state *hotswap_state = NULL;
+	struct ovRestHotswapState *hotswap_state = NULL;
 
 	if (oh_handler == NULL || response == NULL || rpt == NULL) {
 		err("invalid parameters");
@@ -559,8 +559,8 @@ SaErrorT build_inserted_server_rpt(struct oh_handler_state *oh_handler,
 	}
 
 	if (rpt->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP) {
-		hotswap_state = (struct ov_rest_hotswap_state *)
-			g_malloc0(sizeof(struct ov_rest_hotswap_state));
+		hotswap_state = (struct ovRestHotswapState *)
+			g_malloc0(sizeof(struct ovRestHotswapState));
 		if (hotswap_state == NULL) {
 			err("Out of memory");
 			return SA_ERR_HPI_OUT_OF_MEMORY;
@@ -701,7 +701,7 @@ SaErrorT ov_rest_proc_blade_inserted( struct oh_handler_state *oh_handler,
 	struct enclosureStatusResponse enclosure_response = {0};
 	struct enclosureInfo enclosure_result = {{0}};
 	char *server_doc = NULL, *enclosure_doc = NULL;
-	struct enclosure_status *enclosure = NULL;
+	struct enclosureStatus *enclosure = NULL;
 	json_object *jvalue = NULL;
 	char *blade_name = NULL;
 	int bayNumber;
@@ -778,12 +778,12 @@ SaErrorT ov_rest_proc_blade_inserted( struct oh_handler_state *oh_handler,
 		wrap_g_free(server_doc);
 		return rv;
 	}
-	/* Update resource_status structure with resource_id,
-	 * serial_number, and presence status
+	/* Update resource_info structure with resource_id,
+	 * serialNumber, and presence status
 	 */
 	enclosure = ov_handler->ov_rest_resources.enclosure;
 	while(enclosure != NULL){
-		if(strstr(enclosure->serial_number,
+		if(strstr(enclosure->serialNumber,
 				enclosure_result.serialNumber)){
 			ov_rest_update_resource_status (&enclosure->server,
 					info_result.bayNumber,
@@ -815,7 +815,7 @@ SaErrorT ov_rest_proc_blade_inserted( struct oh_handler_state *oh_handler,
 					resource_id);
 		}
 		oh_remove_resource(oh_handler->rptcache, resource_id);
-		/* reset resource_status structure to default values */
+		/* reset resource_info structure to default values */
 		ov_rest_update_resource_status(
 				&enclosure->server, bayNumber,
 				"", SAHPI_UNSPECIFIED_RESOURCE_ID, 
@@ -896,7 +896,7 @@ SaErrorT ov_rest_proc_blade_add_complete( struct oh_handler_state *oh_handler,
         struct serverhardwareInfoArrayResponse response = {0};
         struct serverhardwareInfo info_result = {0};
         char *server_doc = NULL;
-	struct enclosure_status *enclosure = NULL;
+	struct enclosureStatus *enclosure = NULL;
         GSList *asserted_sensors = NULL;
 
         if (oh_handler == NULL || event == NULL) {
@@ -949,7 +949,7 @@ SaErrorT ov_rest_proc_blade_add_complete( struct oh_handler_state *oh_handler,
         }
 	while(enclosure != NULL){
 		if(strstr(info_result.locationUri,
-					enclosure->serial_number)){
+					enclosure->serialNumber)){
 			ov_rest_update_resource_status(&enclosure->server,
 					info_result.bayNumber,
 					info_result.serialNumber,
@@ -1015,10 +1015,10 @@ SaErrorT ov_rest_proc_blade_add_complete( struct oh_handler_state *oh_handler,
  **/
 SaErrorT remove_server_blade(struct oh_handler_state *oh_handler,
                                 SaHpiInt32T bay_number,
-                                struct enclosure_status *enclosure)
+                                struct enclosureStatus *enclosure)
 {
 	SaErrorT rv = SA_OK;
-	struct ov_rest_hotswap_state *hotswap_state = NULL;
+	struct ovRestHotswapState *hotswap_state = NULL;
 	SaHpiRptEntryT *rpt = NULL;
 	struct oh_event event = {0};
 	SaHpiResourceIdT resource_id;
@@ -1051,7 +1051,7 @@ SaErrorT remove_server_blade(struct oh_handler_state *oh_handler,
 			SAHPI_HS_STATE_ACTIVE;
 	} else {
 		/* Managed hotswap */
-		hotswap_state = (struct ov_rest_hotswap_state *)
+		hotswap_state = (struct ovRestHotswapState *)
 			oh_get_resource_data(oh_handler->rptcache,
 					event.resource.ResourceId);
 		if (hotswap_state == NULL) {
@@ -1093,7 +1093,7 @@ SaErrorT remove_server_blade(struct oh_handler_state *oh_handler,
 	rv = oh_remove_resource(oh_handler->rptcache,
 				rpt->ResourceId);
 
-	/* reset resource_status structure to default values */
+	/* reset resource_info structure to default values */
 	ov_rest_update_resource_status(
 			&enclosure->server, bay_number,
 			"", SAHPI_UNSPECIFIED_RESOURCE_ID, 
@@ -1124,7 +1124,7 @@ SaErrorT ov_rest_proc_blade_removed( struct oh_handler_state *handler,
 	struct enclosureStatusResponse enclosure_response = {0};
 	struct enclosureDeviceBays result = {0};
 	struct enclosureInfo enc_info = {{0}};
-	struct enclosure_status *enclosure = NULL;
+	struct enclosureStatus *enclosure = NULL;
 	int bayNumber = 0;
 	char *enclosure_doc = NULL;
 	json_object * jvalue = NULL;
@@ -1166,7 +1166,7 @@ SaErrorT ov_rest_proc_blade_removed( struct oh_handler_state *handler,
 	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
 	enclosure = ov_handler->ov_rest_resources.enclosure;
 	while(enclosure != NULL){
-		if(strstr(enclosure->serial_number,enc_info.serialNumber)){
+		if(strstr(enclosure->serialNumber,enc_info.serialNumber)){
 			break;
 		}
 		enclosure = enclosure->next;
@@ -1224,7 +1224,7 @@ SaErrorT ov_rest_proc_server_status(struct oh_handler_state *oh_handler,
         struct serverhardwareInfo info_result = {0};
         struct enclosureInfoArrayResponse enclosure_response = {0};
         struct enclosureInfo enclosure_result = {{0}};
-        struct enclosure_status *enclosure = NULL;
+        struct enclosureStatus *enclosure = NULL;
         char* enclosure_doc = NULL, *server_doc = NULL;
         SaHpiRptEntryT *rpt = NULL;
 
@@ -1262,10 +1262,10 @@ SaErrorT ov_rest_proc_server_status(struct oh_handler_state *oh_handler,
         /* Find the server Resourceid by looking at the enclosure linked list*/
         /* FIXME : We could make below code as a funtion to get the resource id
          * by using enclosure serial number */
-        enclosure = (struct enclosure_status *)ov_handler->
+        enclosure = (struct enclosureStatus *)ov_handler->
                 ov_rest_resources.enclosure;
         while(enclosure != NULL){
-                if(!strcmp(enclosure->serial_number,
+                if(!strcmp(enclosure->serialNumber,
                                         enclosure_result.serialNumber)){
                         break;
                 }
@@ -1328,13 +1328,13 @@ SaErrorT process_drive_enclosure_power_on_event(
 {
 	SaErrorT rv = SA_OK;
 	struct oh_event event = {0};
-	struct ov_rest_hotswap_state *hotswap_state = NULL;
+	struct ovRestHotswapState *hotswap_state = NULL;
 	struct ov_rest_handler *ov_handler = NULL;
 	struct driveEnclosureInfoArrayResponse response = {0};
 	struct driveEnclosureInfo info_result = {0};
 	struct enclosureInfoArrayResponse enclosure_response = {0};
 	struct enclosureInfo enclosure_result = {{0}};
-	struct enclosure_status *enclosure = NULL;
+	struct enclosureStatus *enclosure = NULL;
 	char* enclosure_doc = NULL, *drive_enc_doc = NULL;
 	SaHpiRptEntryT *rpt = NULL;
 
@@ -1375,10 +1375,10 @@ SaErrorT process_drive_enclosure_power_on_event(
 	 * linked list*/
 	/* FIXME : We could make below code as a funtion to get the resource id
 	 * by using enclosure serial number */
-	enclosure = (struct enclosure_status *)ov_handler->
+	enclosure = (struct enclosureStatus *)ov_handler->
 		ov_rest_resources.enclosure;
 	while(enclosure != NULL){
-		if(!strcmp(enclosure->serial_number,
+		if(!strcmp(enclosure->serialNumber,
 					enclosure_result.serialNumber)){
 			break;
 		}
@@ -1402,7 +1402,7 @@ SaErrorT process_drive_enclosure_power_on_event(
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 
-	hotswap_state = (struct ov_rest_hotswap_state *)
+	hotswap_state = (struct ovRestHotswapState *)
 		oh_get_resource_data (oh_handler->rptcache, 
 				enclosure->server.
 				resource_id[info_result.bayNumber - 1]);
@@ -1510,13 +1510,13 @@ SaErrorT process_drive_enclosure_power_off_event(
 {
 	SaErrorT rv = SA_OK;
 	struct oh_event event = {0};
-	struct ov_rest_hotswap_state *hotswap_state = NULL;
+	struct ovRestHotswapState *hotswap_state = NULL;
 	struct ov_rest_handler *ov_handler = NULL;
 	struct driveEnclosureInfoArrayResponse response = {0};
 	struct driveEnclosureInfo info_result = {0};
 	struct enclosureInfoArrayResponse enclosure_response = {0};
 	struct enclosureInfo enclosure_result = {{0}};
-	struct enclosure_status *enclosure = NULL;
+	struct enclosureStatus *enclosure = NULL;
 	char* enclosure_doc = NULL, *drive_enc_doc = NULL;
 	SaHpiRptEntryT *rpt = NULL;
 
@@ -1557,10 +1557,10 @@ SaErrorT process_drive_enclosure_power_off_event(
  	 * linked list*/
 	/* FIXME : We could make below code as a funtion to get the resource id
 	 * by using enclosure serial number */
-	enclosure = (struct enclosure_status *)ov_handler->
+	enclosure = (struct enclosureStatus *)ov_handler->
 		ov_rest_resources.enclosure;
 	while(enclosure != NULL){
-		if(!strcmp(enclosure->serial_number,
+		if(!strcmp(enclosure->serialNumber,
 					enclosure_result.serialNumber)){
 			break;
 		}
@@ -1573,7 +1573,7 @@ SaErrorT process_drive_enclosure_power_off_event(
 		return SA_ERR_HPI_INVALID_RESOURCE;
 	}
 
-	hotswap_state = (struct ov_rest_hotswap_state *)
+	hotswap_state = (struct ovRestHotswapState *)
 		oh_get_resource_data (oh_handler->rptcache,
 				enclosure->
 				server.resource_id[info_result.bayNumber - 1]);
@@ -1667,7 +1667,7 @@ SaErrorT build_inserted_drive_enclosure_rpt(struct oh_handler_state
 			SaHpiRptEntryT *rpt)
 {
 	SaErrorT rv = SA_OK;
-	struct ov_rest_hotswap_state *hotswap_state = NULL;
+	struct ovRestHotswapState *hotswap_state = NULL;
 
 	if (oh_handler == NULL || response == NULL || rpt == NULL) {
 		err("invalid parameters");
@@ -1681,8 +1681,8 @@ SaErrorT build_inserted_drive_enclosure_rpt(struct oh_handler_state
 	}
 
 	if (rpt->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP) {
-		hotswap_state = (struct ov_rest_hotswap_state *)
-			g_malloc0(sizeof(struct ov_rest_hotswap_state));
+		hotswap_state = (struct ovRestHotswapState *)
+			g_malloc0(sizeof(struct ovRestHotswapState));
 		if (hotswap_state == NULL) {
 			err("Out of memory");
 			return SA_ERR_HPI_OUT_OF_MEMORY;
@@ -1732,7 +1732,7 @@ SaErrorT ov_rest_proc_drive_enclosure_add_complete(
 	struct ov_rest_handler *ov_handler = NULL;
 	struct driveEnclosureInfoArrayResponse response = {0};
 	struct driveEnclosureInfo info_result = {0};
-	struct enclosure_status *enclosure = NULL;
+	struct enclosureStatus *enclosure = NULL;
 	char *drive_enc_doc = NULL;
 	GSList *asserted_sensors = NULL;
 
@@ -1786,7 +1786,7 @@ SaErrorT ov_rest_proc_drive_enclosure_add_complete(
 	}
 	while(enclosure != NULL){
 		if(strstr(info_result.locationUri,
-					enclosure->serial_number)){
+					enclosure->serialNumber)){
 			ov_rest_update_resource_status(&enclosure->server,
 					info_result.bayNumber,
 					info_result.serialNumber,

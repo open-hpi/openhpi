@@ -109,7 +109,7 @@ SaErrorT ov_rest_proc_composer_status(struct oh_handler_state *oh_handler,
 		err("No serial number at appliance bay %d",bayNumber);
 		return SA_ERR_HPI_INVALID_DATA;
 	}
-	if(strcmp(appliance.serialNumber, composer->serial_number)){
+	if(strcmp(appliance.serialNumber, composer->serialNumber)){
 		warn("This alert is not from Active Appliance, ignore");
 		wrap_g_free(enclosure_doc);
 		return SA_OK;	

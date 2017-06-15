@@ -62,7 +62,7 @@
   * ov_rest_add_fan
   *      @handler: Pointer to openhpi handler structure
   *      @response:   pointer fanInfo structure
-  *	 @enclosure: Ponter to enclosure_status structure
+  *	 @enclosure: Ponter to enclosureStatus structure
   *
   *
   * Purpose:
@@ -77,7 +77,7 @@
   */
 SaErrorT ov_rest_add_fan(struct oh_handler_state *handler, 
 			struct fanInfo *response,
-			struct enclosure_status *enclosure)
+			struct enclosureStatus *enclosure)
 {
 	int enc_loc;
 	SaErrorT rv = SA_OK;
@@ -116,7 +116,7 @@ SaErrorT ov_rest_add_fan(struct oh_handler_state *handler,
                              resource_id);
                 }
                 oh_remove_resource(handler->rptcache, resource_id);
-                /* reset resource_status structure to default values */
+                /* reset resource_info structure to default values */
                 ov_rest_update_resource_status(
                               &enclosure->fan,
                               response->bayNumber,
@@ -170,7 +170,7 @@ SaErrorT process_fan_inserted_event( struct oh_handler_state *handler,
 	int bayNumber;
 	struct ov_rest_handler *ov_handler = NULL;
 	struct fanInfo response = {0};
-	struct enclosure_status *enclosure = NULL;
+	struct enclosureStatus *enclosure = NULL;
 	struct enclosureInfo enclosure_result = {{0}};
 	struct enclosureInfoArrayResponse enclosure_response = {0};
 	char* enclosure_doc = NULL;
@@ -214,10 +214,10 @@ SaErrorT process_fan_inserted_event( struct oh_handler_state *handler,
         }
         ov_rest_json_parse_fan(jvalue_fan, &response);
 	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
-        enclosure = (struct enclosure_status *)ov_handler->
+        enclosure = (struct enclosureStatus *)ov_handler->
 						ov_rest_resources.enclosure;
         while(enclosure != NULL){
-                if(!strcmp(enclosure->serial_number,
+                if(!strcmp(enclosure->serialNumber,
 				enclosure_result.serialNumber)){
                         break;
                 }
@@ -245,7 +245,7 @@ SaErrorT process_fan_inserted_event( struct oh_handler_state *handler,
  * ov_rest_remove_fan
  *      @handler: Pointer to openhpi handler structure
  *      @bayNumber: BayNumber/slot number of the fan
- *      @enclosure: Ponter to enclosure_status structure
+ *      @enclosure: Ponter to enclosureStatus structure
  *
  *
  * Purpose:
@@ -260,7 +260,7 @@ SaErrorT process_fan_inserted_event( struct oh_handler_state *handler,
  **/
 SaErrorT ov_rest_remove_fan(struct oh_handler_state *handler,
 		SaHpiInt32T bayNumber,
-		struct enclosure_status *enclosure)
+		struct enclosureStatus *enclosure)
 {
 	SaHpiResourceIdT resource_id;
 	SaErrorT rv = SA_OK;
@@ -331,7 +331,7 @@ SaErrorT process_fan_removed_event( struct oh_handler_state *handler,
 	SaHpiInt32T bayNumber;
 	struct ov_rest_handler *ov_handler = NULL;
 	struct fanInfo response = {0};
-        struct enclosure_status *enclosure = NULL;
+        struct enclosureStatus *enclosure = NULL;
         struct enclosureInfo enclosure_result = {{0}};
         struct enclosureInfoArrayResponse enclosure_response = {0};
         char* enclosure_doc = NULL;
@@ -359,10 +359,10 @@ SaErrorT process_fan_removed_event( struct oh_handler_state *handler,
 					 &enclosure_result);
 	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
 
-        enclosure = (struct enclosure_status *)ov_handler->
+        enclosure = (struct enclosureStatus *)ov_handler->
 						ov_rest_resources.enclosure;
         while(enclosure != NULL){
-                if(!strcmp(enclosure->serial_number,
+                if(!strcmp(enclosure->serialNumber,
 				enclosure_result.serialNumber)){
                         break;
                 }

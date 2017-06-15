@@ -83,7 +83,7 @@ const SaHpiInt32T ov_rest_sen_assert_map_arr[OV_REST_MAX_SEN_CLASS]
  * 
  * Please add new entries to the array on adding a new sensor
  */
-const struct ov_rest_sensor ov_rest_sen_arr[] = {
+const struct ovRestSensor ov_rest_sen_arr[] = {
 	/* operational status sensor */
 	{
 		.sensor = {

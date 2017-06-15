@@ -52,24 +52,24 @@
         enum name { __VA_ARGS__ }; \
         OV_REST_ENUM_STRING(name, __VA_ARGS__)
 
-struct ov_string {
+struct ovString {
   char *ptr;
   int len;
   json_object* jobj;
 };
-typedef struct ov_string OV_STRING;
+typedef struct ovString OV_STRING;
 
-struct ov_connection {
+struct ovConnection {
         char* hostname;
         char* username;
         char* password;
         char auth[255];
-	char server_ilo[16];
-	char x_auth_token[255]; /* SessionKey for Server-Hardware iLO */
+	char serverIlo[16];
+	char xAuthToken[255]; /* SessionKey for Server-Hardware iLO */
         char* url;
 };
 
-typedef struct ov_connection REST_CON;
+typedef struct ovConnection REST_CON;
 
 int rest_get_request   (REST_CON *conn, OV_STRING *response);
 int rest_put_request   (REST_CON *conn, OV_STRING *response, char *postField);

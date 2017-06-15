@@ -53,44 +53,44 @@ SaErrorT remove_composer(struct oh_handler_state *handler);
 
 SaErrorT re_discover_enclosure(struct oh_handler_state *oh_handler);
 SaErrorT remove_enclosure(struct oh_handler_state *handler,
-                struct enclosure_status *enclosure);
+                struct enclosureStatus *enclosure);
 SaErrorT add_enclosure(struct oh_handler_state *handler,
                 struct enclosureInfo *result);
 SaErrorT re_discover_server(struct oh_handler_state *oh_handler);
 SaErrorT add_inserted_blade(struct oh_handler_state *handler,
                 struct serverhardwareInfo *info_result,
-                struct enclosure_status *enclosure);
+                struct enclosureStatus *enclosure);
 SaErrorT remove_server(struct oh_handler_state *handler,
-                struct enclosure_status *enclosure,
+                struct enclosureStatus *enclosure,
                 SaHpiInt32T bay_number);
 SaErrorT re_discover_drive_enclosure(struct oh_handler_state *oh_handler);
 SaErrorT add_inserted_drive_enclosure(struct oh_handler_state *handler,
                 struct driveEnclosureInfo *info_result,
-                struct enclosure_status *enclosure);
+                struct enclosureStatus *enclosure);
 SaErrorT remove_drive_enclosure(struct oh_handler_state *handler,
-                        struct enclosure_status *enclosure,
+                        struct enclosureStatus *enclosure,
                         SaHpiInt32T bay_number);
 SaErrorT re_discover_interconnect(struct oh_handler_state *oh_handler);
 SaErrorT add_inserted_interconnect(struct oh_handler_state *handler,
-                                struct enclosure_status *enclosure,
+                                struct enclosureStatus *enclosure,
                                 struct interconnectInfo *result);
 SaErrorT remove_interconnect(struct oh_handler_state *handler,
-                        struct enclosure_status *enclosure,
+                        struct enclosureStatus *enclosure,
                         SaHpiInt32T bay_number);
 SaErrorT re_discover_sas_interconnect(struct oh_handler_state *oh_handler);
 SaErrorT re_discover_powersupply(struct oh_handler_state *oh_handler);
 SaErrorT add_inserted_powersupply(struct oh_handler_state *handler,
-                                struct enclosure_status *enclosure,
+                                struct enclosureStatus *enclosure,
                                 struct powersupplyInfo *result);
 SaErrorT remove_powersupply(struct oh_handler_state *handler,
-                        struct enclosure_status *enclosure,
+                        struct enclosureStatus *enclosure,
                         SaHpiInt32T bay_number);
 SaErrorT re_discover_fan(struct oh_handler_state *oh_handler);
 SaErrorT add_inserted_fan(struct oh_handler_state *handler,
-                        struct enclosure_status *enclosure,
+                        struct enclosureStatus *enclosure,
                         struct fanInfo *result);
 SaErrorT remove_fan(struct oh_handler_state *handler,
-                struct enclosure_status *enclsoure,
+                struct enclosureStatus *enclsoure,
                 SaHpiInt32T bay_number);
 /*
 SaErrorT update_server_hotswap_state(struct oh_handler_state *oh_handler,

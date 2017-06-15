@@ -356,7 +356,7 @@ SaErrorT ov_rest_build_enc_info(struct oh_handler_state *oh_handler,
                                        struct enclosureInfo *info);
 SaErrorT ov_rest_discover_resources(void *oh_handler);
 
-void release_ov_rest_resources(struct enclosure_status *enclosure);
+void release_ov_rest_resources(struct enclosureStatus *enclosure);
 
 SaErrorT discover_ov_rest_system(struct oh_handler_state *oh_handler);
 
