@@ -648,6 +648,8 @@ struct enclosureInfo
         char model[MAX_256_CHARS];
         char partNumber[MAX_256_CHARS];
         char serialNumber[MAX_256_CHARS];
+        int bayNumber;
+        enum presence presence;
         char uuid[MAX_UUID_LENGTH];
 	char uri[MAX_URI_LENGTH];
         char hwVersion[MAX_256_CHARS];
@@ -1005,6 +1007,8 @@ void ov_rest_json_parse_server_fan_sensors(json_object *jvalue,
                         struct serverhardwareFanInfo *response);
 void ov_rest_json_parse_enc_device_bays( json_object *jarray, 
 			struct enclosureDeviceBays* response);
+void ov_rest_json_parse_enc_manager_bays( json_object *jarray,
+                        struct enclosureInfo* response);
 void ov_rest_json_parse_datacenter( json_object *jarray, int i, 
 			struct datacenterInfo* response);
 void ov_rest_json_parse_events( json_object *jobj, struct eventInfo* response);

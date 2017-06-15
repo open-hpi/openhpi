@@ -1055,6 +1055,43 @@ void ov_rest_json_parse_enc_device_bays( json_object *jvalue,
 }
 
 /**
+ * ov_rest_json_parse_enc_manager_bays:
+ *      @jvalue  : Pointer to json_object.
+ *      @response: Pointer to enclosureInfo structure.
+ *
+ * Purpose:
+ *      Parses the json response for enclosure manager bays.
+ *
+ * Return:
+ *      None.
+ *
+ **/
+void ov_rest_json_parse_enc_manager_bays( json_object *jvalue,
+                                struct enclosureInfo *response)
+{
+        const char *temp = NULL;
+
+        json_object_object_foreach(jvalue, key, val){
+                if(!strcmp(key,"devicePresence")){
+                        response->presence = rest_enum(presence_S,
+                                                json_object_get_string(val));
+                        continue;
+                }
+                if(!strcmp(key,"bayNumber")){
+                        response->bayNumber = json_object_get_int(val);
+                        continue;
+                }
+                if(!strcmp(key,"fwVersion")){
+                        temp = json_object_get_string(val);
+                        if(temp)
+                                memcpy(response->hwVersion,temp,
+                                        strlen(temp)+1);
+                        continue;
+                }
+        }
+}	
+
+/**
  * ov_rest_json_parse_enclosure:
  *      @jvalue  : Pointer to json_object.
  *      @response: Pointer to enclosureInfo structure.
