@@ -1696,9 +1696,10 @@ gpointer ov_rest_event_thread(gpointer ov_pointer)
 	SaHpiBoolT is_discovery_completed = SAHPI_FALSE;
 	struct applianceNodeInfoResponse response = {0};
 	SaErrorT rv = SA_OK;
-
+	FILE *oemfile = NULL;
 	struct eventArrayResponse event_response = {0};
-	char* getallevents_doc = NULL;
+	char* getallevents_doc = NULL, *temp = NULL, *oem_file_path = NULL;
+	int num = 0;
 
 	if (ov_pointer == NULL) {
 		err("Invalid parameter");
@@ -1745,6 +1746,23 @@ gpointer ov_rest_event_thread(gpointer ov_pointer)
 
 	OV_REST_CHEK_SHUTDOWN_REQ(ov_handler, NULL, NULL, NULL);
 	ov_rest_setuplistner(handler);
+	
+	/* if the file is already exist, then flush all of its contents by 
+ 	 * opening in "w" or "w+" mode */
+	temp = (char *)g_hash_table_lookup(handler->config, "entity_root");
+	sscanf(temp, "%*[^0-9]%d", &num);
+	asprintf(&oem_file_path, "%s/%s%s%d%s",
+                        OV_REST_PATH, "oem_event", "_", num, ".log");
+	oemfile = fopen(oem_file_path,"w");
+	if(oemfile == NULL)
+	{
+		CRIT("Error opening OEM_EVENT_FILE file: %s",oem_file_path);
+		wrap_free(oem_file_path);
+		return (gpointer* )SA_ERR_HPI_ERROR;
+	}
+	wrap_free(oem_file_path);
+	oem_file_path = NULL;
+	fclose(oemfile);
 
 	/** Handling Active alerts dring discovery **/
 	asprintf(&ov_handler->connection->url, OV_ACTIVE_ALERTS,
