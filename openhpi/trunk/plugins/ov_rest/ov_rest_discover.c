@@ -1839,6 +1839,9 @@ SaErrorT ov_rest_build_appliance_inv_rdr(struct oh_handler_state *oh_handler,
 	struct ov_rest_handler *ov_handler = NULL;
 	SaHpiResourceIdT resource_id;
 	SaHpiRptEntryT *rpt = NULL;
+	SaHpiFloat64T fm_version;
+	SaHpiInt32T major;
+
 	if (oh_handler == NULL || response == NULL || rdr == NULL ||
 			inventory == NULL) {
 		err("Invalid parameter.");
@@ -1961,6 +1964,19 @@ SaErrorT ov_rest_build_appliance_inv_rdr(struct oh_handler_state *oh_handler,
 			/* Increment the field counter */
 			local_inventory->info.area_list->idr_area_head.
 				NumFields++;
+			
+			/* Check whether Firmware version is NULL. */
+			if (!response->version.softwareVersion) {
+				err("Firmware version is not vailable for the"
+					"resource %d", resource_id);
+				return SA_ERR_HPI_INTERNAL_ERROR;
+			}
+			/* Store Firmware MajorRev & MinorRev data in rpt */
+			fm_version = atof(response->version.softwareVersion);
+			rpt->ResourceInfo.FirmwareMajorRev = major =
+					(SaHpiUint8T)floor(fm_version);
+			rpt->ResourceInfo.FirmwareMinorRev = rintf((
+					fm_version - major) * 100);
 		}
 		if (ha_response->uri != NULL) {
 			hpi_field.AreaId = local_inventory->info.area_list->

@@ -80,6 +80,8 @@ SaErrorT ov_rest_build_enclosure_inv_rdr(struct oh_handler_state *oh_handler,
 	struct ov_rest_handler *ov_handler = NULL;
 	SaHpiResourceIdT resource_id;
 	SaHpiRptEntryT *rpt = NULL;
+	SaHpiFloat64T fm_version;
+	SaHpiInt32T major;
 
 	if (oh_handler == NULL || response == NULL || rdr == NULL ||
 			inventory == NULL) {
@@ -199,6 +201,19 @@ SaErrorT ov_rest_build_enclosure_inv_rdr(struct oh_handler_state *oh_handler,
 			/* Increment the field counter */
 			local_inventory->info.area_list->idr_area_head.
 				NumFields++;
+			
+			/* Check whether Firmware version is NULL. */
+			if (!response->hwVersion) {
+				err("Firmware version is not vailable for the"
+					"resource %d", resource_id);
+				return SA_ERR_HPI_INTERNAL_ERROR;
+			}
+			/* Store Firmware MajorRev & MinorRev data in rpt */
+			fm_version = atof(response->hwVersion);
+			rpt->ResourceInfo.FirmwareMajorRev = major =
+					(SaHpiUint8T)floor(fm_version);
+			rpt->ResourceInfo.FirmwareMinorRev = rintf((
+					fm_version - major) * 100);
 		}
 
 		if (response->uri != NULL) {
@@ -384,6 +399,12 @@ SaErrorT ov_rest_build_server_inv_rdr(struct oh_handler_state *oh_handler,
 			local_inventory->info.area_list->idr_area_head.
 				NumFields++;
 
+			/* Check whether Firmware version is NULL. */
+			if (!response->fwVersion) {
+				err("Firmware version is not vailable for the"
+					"resource %d", resource_id);
+				return SA_ERR_HPI_INTERNAL_ERROR;
+			}
 			/* Store Firmware MajorRev & MinorRev data in rpt */
 			fm_version = atof(response->fwVersion);
 			rpt->ResourceInfo.FirmwareMajorRev = major =
@@ -585,6 +606,12 @@ SaErrorT ov_rest_build_drive_enclosure_inv_rdr(
 			local_inventory->info.area_list->idr_area_head.
 				NumFields++;
 
+			/* Check whether Firmware version is NULL. */
+			if (!response->fwVersion) {
+				err("Firmware version is not vailable for the"
+					"resource %d", resource_id);
+				return SA_ERR_HPI_INTERNAL_ERROR;
+			}
 			/* Store Firmware MajorRev & MinorRev data in rpt */
 			fm_version = atof(response->fwVersion);
 			rpt->ResourceInfo.FirmwareMajorRev = major =
