@@ -888,7 +888,7 @@ SaErrorT ov_rest_build_serverThermalRdr(struct oh_handler_state *oh_handler,
         }
 
         wrap_free(connection->url);
-        asprintf(&connection->url, OV_SERVER_HARDWARE_SSO_URI,
+        WRAP_ASPRINTF(&connection->url, OV_SERVER_HARDWARE_SSO_URI,
                                    connection->hostname, response->uri);
         rv = ov_rest_getserverConsoleUrl(oh_handler, connection);
         if (rv != SA_OK) {
@@ -899,7 +899,7 @@ SaErrorT ov_rest_build_serverThermalRdr(struct oh_handler_state *oh_handler,
         if(connection->serverIlo && strlen(connection->serverIlo) &&
                                      strcmp(connection->serverIlo,"0.0.0.0")){
                 wrap_free(connection->url);
-                asprintf(&connection->url, OV_SERVER_HARDWARE_THERMAL_URI,
+                WRAP_ASPRINTF(&connection->url, OV_SERVER_HARDWARE_THERMAL_URI,
                                            connection->serverIlo);
                 rv = ov_rest_getserverThermalInfo(oh_handler,
                                                   &thermal_response,
@@ -957,7 +957,7 @@ SaErrorT ov_rest_build_serverPowerStatusRdr(struct oh_handler_state
         }
 
         wrap_free(connection->url);
-        asprintf(&connection->url, OV_SERVER_HARDWARE_SSO_URI,
+        WRAP_ASPRINTF(&connection->url, OV_SERVER_HARDWARE_SSO_URI,
                                    connection->hostname, response->uri);
         rv = ov_rest_getserverConsoleUrl(oh_handler, connection);
         if (rv != SA_OK) {
@@ -968,7 +968,7 @@ SaErrorT ov_rest_build_serverPowerStatusRdr(struct oh_handler_state
         if(connection->serverIlo && strlen(connection->serverIlo)&&
                                     strcmp(connection->serverIlo,"0.0.0.0")){
                 wrap_free(connection->url);
-                asprintf(&connection->url, OV_SERVER_HARDWARE_POWER_STATUS_URI,
+                WRAP_ASPRINTF(&connection->url, OV_SERVER_HARDWARE_POWER_STATUS_URI,
                                            connection->serverIlo);
                 rv = ov_rest_getserverPowerStatusInfo(oh_handler,
                                                       &power_response,
@@ -1026,7 +1026,7 @@ SaErrorT ov_rest_build_serverSystemsRdr(struct oh_handler_state *oh_handler,
         }
 
         wrap_free(connection->url);
-        asprintf(&connection->url, OV_SERVER_HARDWARE_SSO_URI,
+        WRAP_ASPRINTF(&connection->url, OV_SERVER_HARDWARE_SSO_URI,
                                    connection->hostname, response->uri);
         rv = ov_rest_getserverConsoleUrl(oh_handler, connection);
         if (rv != SA_OK) {
@@ -1037,7 +1037,7 @@ SaErrorT ov_rest_build_serverSystemsRdr(struct oh_handler_state *oh_handler,
         if(connection->serverIlo && strlen(connection->serverIlo)&&
                                      strcmp(connection->serverIlo,"0.0.0.0")){
                 wrap_free(connection->url);
-                asprintf(&connection->url, OV_SERVER_HARDWARE_SYSTEMS_URI,
+                WRAP_ASPRINTF(&connection->url, OV_SERVER_HARDWARE_SYSTEMS_URI,
                                            connection->serverIlo);
                 rv = ov_rest_getserverSystemsInfo(oh_handler,
                                                   &system_response,
@@ -1096,7 +1096,7 @@ SaErrorT ov_rest_build_serverStorageRdr(struct oh_handler_state *oh_handler,
         }
 
         wrap_free(connection->url);
-        asprintf(&connection->url, OV_SERVER_HARDWARE_SSO_URI,
+        WRAP_ASPRINTF(&connection->url, OV_SERVER_HARDWARE_SSO_URI,
                                    connection->hostname, response->uri);
         rv = ov_rest_getserverConsoleUrl(oh_handler, connection);
         if (rv != SA_OK) {
@@ -1107,7 +1107,7 @@ SaErrorT ov_rest_build_serverStorageRdr(struct oh_handler_state *oh_handler,
         if(connection->serverIlo && strlen(connection->serverIlo)&&
                                      strcmp(connection->serverIlo,"0.0.0.0")){
                 wrap_free(connection->url);
-                asprintf(&connection->url,OV_SERVER_HARDWARE_SMART_STORAGE_URI,
+                WRAP_ASPRINTF(&connection->url,OV_SERVER_HARDWARE_SMART_STORAGE_URI,
                                            connection->serverIlo);
                 rv = ov_rest_getserverStorageInfo(oh_handler,
                                                   &storage_response,
@@ -1167,7 +1167,7 @@ SaErrorT ov_rest_build_serverNetworkAdaptersRdr(
         }
 
         wrap_free(connection->url);
-        asprintf(&connection->url, OV_SERVER_HARDWARE_SSO_URI,
+        WRAP_ASPRINTF(&connection->url, OV_SERVER_HARDWARE_SSO_URI,
                                    connection->hostname, response->uri);
         rv = ov_rest_getserverConsoleUrl(oh_handler, connection);
         if (rv != SA_OK) {
@@ -1178,7 +1178,7 @@ SaErrorT ov_rest_build_serverNetworkAdaptersRdr(
         if(connection->serverIlo && strlen(connection->serverIlo)&&
                                      strcmp(connection->serverIlo,"0.0.0.0")){
                 wrap_free(connection->url);
-                asprintf(&connection->url,
+                WRAP_ASPRINTF(&connection->url,
                                 OV_SERVER_HARDWARE_NETWORK_ADAPTERS_URI,
                                 connection->serverIlo);
                 rv = ov_rest_getserverNetworkAdaptersInfo(oh_handler,
@@ -1238,7 +1238,7 @@ SaErrorT ov_rest_build_serverEthernetInterfacesRdr(
         }
 
         wrap_free(connection->url);
-        asprintf(&connection->url, OV_SERVER_HARDWARE_SSO_URI,
+        WRAP_ASPRINTF(&connection->url, OV_SERVER_HARDWARE_SSO_URI,
                                    connection->hostname, response->uri);
         rv = ov_rest_getserverConsoleUrl(oh_handler, connection);
         if (rv != SA_OK) {
@@ -1249,7 +1249,7 @@ SaErrorT ov_rest_build_serverEthernetInterfacesRdr(
         if(connection->serverIlo && strlen(connection->serverIlo)&&
                                      strcmp(connection->serverIlo,"0.0.0.0")){
                 wrap_free(connection->url);
-                asprintf(&connection->url,
+                WRAP_ASPRINTF(&connection->url,
                                 OV_SERVER_HARDWARE_ETHERNET_INTERFACES_URI,
                                 connection->serverIlo);
                 rv = ov_rest_getserverEthernetInterfacesInfo(oh_handler,
@@ -1746,7 +1746,7 @@ SaErrorT ov_rest_discover_appliance(struct oh_handler_state *handler)
 	
 	ov_handler = (struct ov_rest_handler *) handler->data;
 	memset(&response,0, sizeof(struct applianceNodeInfoResponse));
-	asprintf(&ov_handler->connection->url, OV_APPLIANCE_VERSION_URI, 
+	WRAP_ASPRINTF(&ov_handler->connection->url, OV_APPLIANCE_VERSION_URI, 
 		ov_handler->connection->hostname);
 	rv = ov_rest_getapplianceNodeInfo(handler, &response, 
 		ov_handler->connection, appliance_version_doc);
@@ -1758,7 +1758,7 @@ SaErrorT ov_rest_discover_appliance(struct oh_handler_state *handler)
 	ov_rest_json_parse_appliance_version(response.applianceVersion,
 						&result.version);
 
-	asprintf(&ov_handler->connection->url, OV_APPLIANCE_HA_NODE_ID_URI, 
+	WRAP_ASPRINTF(&ov_handler->connection->url, OV_APPLIANCE_HA_NODE_ID_URI, 
 		ov_handler->connection->hostname, result.version.serialNumber);
 	rv = ov_rest_getapplianceHaNodeInfo(&ha_response, 
 					ov_handler->connection);
@@ -1982,7 +1982,7 @@ SaErrorT ov_rest_build_appliance_inv_rdr(struct oh_handler_state *oh_handler,
 			hpi_field.AreaId = local_inventory->info.area_list->
 					idr_area_head.AreaId;
 			hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
-			rv = asprintf(&tmp,"URI = %s",ha_response->uri);
+			WRAP_ASPRINTF(&tmp,"URI = %s",ha_response->uri);
 			strcpy ((char *)hpi_field.Field.Data, tmp);
 			wrap_free(tmp);
 
@@ -2724,7 +2724,7 @@ SaErrorT ov_rest_discover_enclosure(struct oh_handler_state *handler)
 
 	ov_handler = (struct ov_rest_handler *) handler->data;
 
-	asprintf(&ov_handler->connection->url, OV_ENCLOSURE_URI, 
+	WRAP_ASPRINTF(&ov_handler->connection->url, OV_ENCLOSURE_URI, 
 			ov_handler->connection->hostname);
 	rv = ov_rest_getenclosureInfoArray(handler, &response, 
 			ov_handler->connection, enclosure_doc);
@@ -3254,7 +3254,7 @@ SaErrorT ov_rest_discover_server(struct oh_handler_state *handler)
 
 	ov_handler = (struct ov_rest_handler *) handler->data;
 
-	asprintf(&ov_handler->connection->url, OV_SERVER_HARDWARE_URI, 
+	WRAP_ASPRINTF(&ov_handler->connection->url, OV_SERVER_HARDWARE_URI, 
 			ov_handler->connection->hostname);
 	rv = ov_rest_getserverInfoArray(handler, &response, 
 					ov_handler->connection,server_doc);
@@ -3304,7 +3304,7 @@ SaErrorT ov_rest_discover_server(struct oh_handler_state *handler)
 			 * serialNumber, and presence status
 			 */
 			wrap_free(s);
-			asprintf(&ov_handler->connection->url, "https://%s%s",
+			WRAP_ASPRINTF(&ov_handler->connection->url, "https://%s%s",
 					ov_handler->connection->hostname,
 					info_result.locationUri);
 			rv = ov_rest_getenclosureInfoArray(handler, 
@@ -3682,7 +3682,7 @@ SaErrorT ov_rest_discover_drive_enclosure(struct oh_handler_state *handler)
 	struct enclosureStatus *enclosure = NULL;
 
 	ov_handler = (struct ov_rest_handler *) handler->data;
-	asprintf(&ov_handler->connection->url, OV_DRIVE_ENCLOSURE_URI,
+	WRAP_ASPRINTF(&ov_handler->connection->url, OV_DRIVE_ENCLOSURE_URI,
 			ov_handler->connection->hostname);
 	rv = ov_rest_getdriveEnclosureInfoArray(handler, 
 			&response, 
@@ -4066,7 +4066,7 @@ SaErrorT ov_rest_discover_sas_interconnect(struct oh_handler_state *handler)
 	}
 
 	ov_handler = (struct ov_rest_handler *) handler->data;
-	asprintf(&ov_handler->connection->url, OV_SAS_INTERCONNECT_URI,
+	WRAP_ASPRINTF(&ov_handler->connection->url, OV_SAS_INTERCONNECT_URI,
 			ov_handler->connection->hostname);
 	rv = ov_rest_getinterconnectInfoArray(handler, &response,
 			ov_handler->connection,
@@ -4118,7 +4118,7 @@ SaErrorT ov_rest_discover_sas_interconnect(struct oh_handler_state *handler)
 			 */
 			/* Find the Enclosure for this interconnect to update 
  			 * the Resource matrix table */
-			asprintf(&ov_handler->connection->url, "https://%s%s",
+			WRAP_ASPRINTF(&ov_handler->connection->url, "https://%s%s",
 					ov_handler->connection->hostname,
 					result.locationUri);
 			rv = ov_rest_getenclosureInfoArray(handler, 
@@ -4170,7 +4170,7 @@ SaErrorT ov_rest_discover_sas_interconnect(struct oh_handler_state *handler)
 			break;
 		}
 		else{
-			asprintf(&ov_handler->connection->url, "https://%s%s",
+			WRAP_ASPRINTF(&ov_handler->connection->url, "https://%s%s",
 					ov_handler->connection->hostname,
 					response.next_page);
 			memset(&response, 0, sizeof(response));
@@ -4230,7 +4230,7 @@ SaErrorT ov_rest_discover_interconnect(struct oh_handler_state *handler)
 	}
 
 	ov_handler = (struct ov_rest_handler *) handler->data;
-	asprintf(&ov_handler->connection->url, OV_INTERCONNECT_URI, 
+	WRAP_ASPRINTF(&ov_handler->connection->url, OV_INTERCONNECT_URI, 
 			ov_handler->connection->hostname);
 	rv = ov_rest_getinterconnectInfoArray(handler, &response, 
 			ov_handler->connection, interconnect_doc);
@@ -4285,7 +4285,7 @@ SaErrorT ov_rest_discover_interconnect(struct oh_handler_state *handler)
 			 */
 			/* Find the Enclosure for this interconnect to update 
  			 * the Resource matrix table */
-			asprintf(&ov_handler->connection->url, "https://%s%s",
+			WRAP_ASPRINTF(&ov_handler->connection->url, "https://%s%s",
 					ov_handler->connection->hostname,
 					result.locationUri);
 			rv = ov_rest_getenclosureInfoArray(handler, 
@@ -4335,7 +4335,7 @@ SaErrorT ov_rest_discover_interconnect(struct oh_handler_state *handler)
 		if(response.next_page == NULL){
 			break;
 		}else {
-			asprintf(&ov_handler->connection->url, "https://%s%s",
+			WRAP_ASPRINTF(&ov_handler->connection->url, "https://%s%s",
 					ov_handler->connection->hostname,
 					response.next_page);
 			memset(&response, 0, sizeof(response));
@@ -4711,7 +4711,7 @@ SaErrorT ov_rest_discover_powersupply(struct oh_handler_state *oh_handler)
 
 	ov_handler = (struct ov_rest_handler *) oh_handler->data;
 
-	asprintf(&ov_handler->connection->url, OV_ENCLOSURE_URI,
+	WRAP_ASPRINTF(&ov_handler->connection->url, OV_ENCLOSURE_URI,
 			ov_handler->connection->hostname);
 	rv = ov_rest_getenclosureInfoArray(oh_handler, &response,
 			ov_handler->connection, enclosure_doc);
@@ -5137,7 +5137,7 @@ SaErrorT ov_rest_discover_fan(struct oh_handler_state *oh_handler)
 
 	ov_handler = (struct ov_rest_handler *) oh_handler->data;
 
-	asprintf(&ov_handler->connection->url, OV_ENCLOSURE_URI,
+	WRAP_ASPRINTF(&ov_handler->connection->url, OV_ENCLOSURE_URI,
 			ov_handler->connection->hostname);
 	rv = ov_rest_getenclosureInfoArray(oh_handler, &response,
 			ov_handler->connection, enclosure_doc);

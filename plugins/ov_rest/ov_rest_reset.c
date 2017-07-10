@@ -277,7 +277,7 @@ SaErrorT ov_rest_set_reset_state(void *oh_handler,
                                         " resource id", resource_id);
                                 return int_err_ret;
                         }
-                        asprintf(&conn->url, "https://%s%s", conn->hostname,
+                        WRAP_ASPRINTF(&conn->url, "https://%s%s", conn->hostname,
                                                                         url);
                         wrap_free (url);
 
@@ -291,20 +291,20 @@ SaErrorT ov_rest_set_reset_state(void *oh_handler,
                                          * Reset the server blade
                                          */
                                         if (action == SAHPI_COLD_RESET){
-                                                asprintf(&postField,"%s",
+                                                WRAP_ASPRINTF(&postField,"%s",
                                                  "{\"powerState\":\"On\",\
                                          \"powerControl\":\"ColdBoot\"}");
                                         }
                                         else{
-                                                asprintf(&postField,"%s",
+                                                WRAP_ASPRINTF(&postField,"%s",
                                                  "{\"powerState\":\"On\",\
                                             \"powerControl\":\"Reset\"}");
                                         }
 
-                                        asprintf(&uri,"%s/powerState",
+                                        WRAP_ASPRINTF(&uri,"%s/powerState",
                                                                 conn->url);
                                         wrap_free(conn->url);
-                                        asprintf(&conn->url,"%s",uri);
+                                        WRAP_ASPRINTF(&conn->url,"%s",uri);
                                         wrap_free(uri);
 
                                         rv = rest_put_request(conn, &response,
@@ -330,7 +330,7 @@ SaErrorT ov_rest_set_reset_state(void *oh_handler,
                                         /* Resource type is interconnect blade.
                                          * Reset the interconnect blade
                                          */
-                                        asprintf(&postField,"%s",
+                                        WRAP_ASPRINTF(&postField,"%s",
                                                  "[{ \"op\": \"replace\",\
                                          \"path\": \"/deviceResetState\",\
                                                   \"value\": \"Reset\" }]");

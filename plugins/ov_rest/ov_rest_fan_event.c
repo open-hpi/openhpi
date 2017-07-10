@@ -186,7 +186,7 @@ SaErrorT process_fan_inserted_event( struct oh_handler_state *handler,
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 	bayNumber = ov_rest_get_baynumber(event->resourceID);
-        asprintf(&ov_handler->connection->url, "https://%s%s",
+        WRAP_ASPRINTF(&ov_handler->connection->url, "https://%s%s",
                         ov_handler->connection->hostname,
 			event->resourceUri);
         rv = ov_rest_getenclosureInfoArray(handler, &enclosure_response,
@@ -346,7 +346,7 @@ SaErrorT process_fan_removed_event( struct oh_handler_state *handler,
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 	bayNumber = ov_rest_get_baynumber(event->resourceID);
-        asprintf(&ov_handler->connection->url, "https://%s%s",
+        WRAP_ASPRINTF(&ov_handler->connection->url, "https://%s%s",
                         ov_handler->connection->hostname,
 			event->resourceUri);
         rv = ov_rest_getenclosureInfoArray(handler, &enclosure_response,

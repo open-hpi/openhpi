@@ -117,7 +117,7 @@ SaErrorT ov_rest_curl_get_request(REST_CON *connection,
 {
 	char *Auth=NULL, *X_Auth_Token = NULL;
 	char curlErrStr[CURL_ERROR_SIZE+1];
-	asprintf(&Auth,OV_REST_AUTH,connection->auth);
+	WRAP_ASPRINTF(&Auth,OV_REST_AUTH,connection->auth);
 	chunk = curl_slist_append(chunk, OV_REST_ACCEPT);
 	chunk = curl_slist_append(chunk, OV_REST_CHARSET);
 	chunk = curl_slist_append(chunk, OV_REST_CONTENT_TYPE);
@@ -125,7 +125,7 @@ SaErrorT ov_rest_curl_get_request(REST_CON *connection,
 	chunk = curl_slist_append(chunk, Auth);
 	wrap_free(Auth);
 	if(connection->xAuthToken != NULL){
-		asprintf(&X_Auth_Token,OV_REST_X_AUTH_TOKEN,
+		WRAP_ASPRINTF(&X_Auth_Token,OV_REST_X_AUTH_TOKEN,
 				connection->xAuthToken);
 		chunk = curl_slist_append(chunk, X_Auth_Token);
 	}else {
@@ -182,7 +182,7 @@ SaErrorT ov_rest_curl_put_request(REST_CON *connection,
 {
 	char *Auth=NULL;
         char curlErrStr[CURL_ERROR_SIZE+1];
-	asprintf(&Auth,OV_REST_AUTH,connection->auth);
+	WRAP_ASPRINTF(&Auth,OV_REST_AUTH,connection->auth);
 	chunk = curl_slist_append(chunk, OV_REST_ACCEPT);
 	chunk = curl_slist_append(chunk, OV_REST_CHARSET);
 	chunk = curl_slist_append(chunk, OV_REST_CONTENT_TYPE);
@@ -307,8 +307,8 @@ SaErrorT ov_rest_connection_init(struct oh_handler_state *handler)
 			"OV_User_Name");
 	con->password = (char *) g_hash_table_lookup(handler->config,
 			"OV_Password");
-	asprintf(&con->url, OV_REST_LOGIN_URI, con->hostname);
-	asprintf(&postfields, OV_REST_LOGIN_POST ,con->username,con->password, 
+	WRAP_ASPRINTF(&con->url, OV_REST_LOGIN_URI, con->hostname);
+	WRAP_ASPRINTF(&postfields, OV_REST_LOGIN_POST ,con->username,con->password, 
 			"true");
 
 	rv =  ov_rest_login(con, postfields);
@@ -557,7 +557,7 @@ int  rest_get_request(REST_CON *conn, OV_STRING *response)
 	chunk = curl_slist_append(chunk, OV_REST_CONTENT_TYPE);
 	chunk = curl_slist_append(chunk, OV_REST_X_API_VERSION);
 
-	asprintf(&auth,"Auth: %s",conn->auth);
+	WRAP_ASPRINTF(&auth,"Auth: %s",conn->auth);
 	chunk = curl_slist_append(chunk, auth);
 	wrap_free(auth);
 
@@ -612,7 +612,7 @@ int  rest_put_request(REST_CON *conn, OV_STRING *response, char *postFields)
         chunk = curl_slist_append(chunk, OV_REST_CONTENT_TYPE);
         chunk = curl_slist_append(chunk, OV_REST_X_API_VERSION);
 
-        asprintf(&auth,"Auth: %s",conn->auth);
+        WRAP_ASPRINTF(&auth,"Auth: %s",conn->auth);
         chunk = curl_slist_append(chunk, auth);
         wrap_free(auth);
 
@@ -671,7 +671,7 @@ int  rest_patch_request(REST_CON *conn, OV_STRING *response, char *postFields)
 	chunk = curl_slist_append(chunk, OV_REST_CONTENT_TYPE);
 	chunk = curl_slist_append(chunk, OV_REST_X_API_VERSION);
 
-	asprintf(&auth,"Auth: %s",conn->auth);
+	WRAP_ASPRINTF(&auth,"Auth: %s",conn->auth);
 	chunk = curl_slist_append(chunk, auth);
 	wrap_free(auth);
 

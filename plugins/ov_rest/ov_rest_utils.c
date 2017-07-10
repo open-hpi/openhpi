@@ -633,7 +633,7 @@ SaErrorT get_url_from_idr(struct oh_handler_state *handler,
 			while (*f && (*f)->next_field)
 				f = &(*f)->next_field;
 			
-			asprintf(url,"%s",(char*)&(*f)->field.Field.Data[6]);
+			WRAP_ASPRINTF(url,"%s",(char*)&(*f)->field.Field.Data[6]);
 		}
 	}
 

@@ -203,7 +203,7 @@ SaErrorT ov_rest_proc_interconnect_inserted( struct oh_handler_state *handler,
 	}
 	bayNumber = ov_rest_get_baynumber(event->resourceID);
 
-	asprintf (&ov_handler->connection->url, "https://%s%s",
+	WRAP_ASPRINTF (&ov_handler->connection->url, "https://%s%s",
 			ov_handler->connection->hostname,
 			event->resourceUri);
 	rv = ov_rest_getenclosureInfoArray(handler, &enclosure_response,
@@ -244,7 +244,7 @@ SaErrorT ov_rest_proc_interconnect_inserted( struct oh_handler_state *handler,
 	/* Take the interconnect URI and issue the GET call on it to get full
 	 * details of the interconnect this time
 	 */
-	asprintf (&ov_handler->connection->url, "https://%s%s",
+	WRAP_ASPRINTF (&ov_handler->connection->url, "https://%s%s",
 			ov_handler->connection->hostname,
 			info_result.uri);
 	rv = ov_rest_getinterconnectInfoArray(handler, &response,
@@ -411,7 +411,7 @@ SaErrorT ov_rest_proc_interconnect_add_complete(
 		return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-	asprintf (&ov_handler->connection->url, "https://%s%s",
+	WRAP_ASPRINTF (&ov_handler->connection->url, "https://%s%s",
 			ov_handler->connection->hostname,
 			event->resourceUri);
 	rv = ov_rest_getinterconnectInfoArray(handler, &response,
@@ -550,7 +550,7 @@ SaErrorT ov_rest_proc_interconnect_removed( struct oh_handler_state *handler,
 	}
 	bayNumber = ov_rest_get_baynumber(event->resourceID);
 
-	asprintf (&ov_handler->connection->url,"https://%s%s" ,
+	WRAP_ASPRINTF (&ov_handler->connection->url,"https://%s%s" ,
 			ov_handler->connection->hostname,event->resourceUri);
 	rv = ov_rest_getenclosureStatus(handler, &response,
 			ov_handler->connection, enclosure_doc);
@@ -641,14 +641,9 @@ SaErrorT process_interconnect_power_off_task(
 	ov_handler = (struct ov_rest_handler *)oh_handler->data;
 
 	for (polls=0; polls < OV_MAX_POWER_POLLS; polls++) {
-		rv = asprintf (&ov_handler->connection->url, "https://%s%s",
+		WRAP_ASPRINTF (&ov_handler->connection->url, "https://%s%s",
 				ov_handler->connection->hostname,
 				ov_event->resourceUri);
-		if (rv == -1) {
-			err("Failed to allocate memory for buffer to hold "
-				"interconnect resource URI");
-			return SA_ERR_HPI_OUT_OF_MEMORY;
-		}
 		rv = ov_rest_getinterconnectInfoArray(oh_handler, &response,
 			ov_handler->connection, interconnect_doc);
 		if (rv != SA_OK || response.interconnect_array == NULL) {
@@ -671,14 +666,9 @@ SaErrorT process_interconnect_power_off_task(
 		return( SA_ERR_HPI_INVALID_STATE);
 	}
 	
-	rv = asprintf (&ov_handler->connection->url, "https://%s%s",
+	WRAP_ASPRINTF (&ov_handler->connection->url, "https://%s%s",
 			ov_handler->connection->hostname,
 			info_result.locationUri);
-	if (rv == -1) {
-		err("Failed to allocate memory for buffer to hold "
-			"interconnect location URI");
-		return SA_ERR_HPI_OUT_OF_MEMORY;
-	}
 	rv = ov_rest_getenclosureInfoArray(oh_handler, &enclosure_response,
 			ov_handler->connection, enclosure_doc);
 	if (rv != SA_OK || enclosure_response.enclosure_array == NULL) {
@@ -819,14 +809,9 @@ SaErrorT process_interconnect_power_on_task(
 	ov_handler = (struct ov_rest_handler *)oh_handler->data;
 
 	for (polls=0; polls < OV_MAX_POWER_POLLS; polls++) {
-		rv = asprintf (&ov_handler->connection->url, "https://%s%s",
+		WRAP_ASPRINTF (&ov_handler->connection->url, "https://%s%s",
 				ov_handler->connection->hostname,
 				ov_event->resourceUri);
-		if (rv == -1) {
-			err("Failed to allocate memory for buffer to hold "
-				"interconnect resource URI");
-			return SA_ERR_HPI_OUT_OF_MEMORY;
-		}
 		rv = ov_rest_getinterconnectInfoArray(oh_handler, &response,
 			ov_handler->connection, interconnect_doc);
 		if (rv != SA_OK || response.interconnect_array == NULL) {
@@ -849,14 +834,9 @@ SaErrorT process_interconnect_power_on_task(
 		return( SA_ERR_HPI_INVALID_STATE);
 	}	
 
-	rv = asprintf (&ov_handler->connection->url, "https://%s%s",
+	WRAP_ASPRINTF (&ov_handler->connection->url, "https://%s%s",
 			ov_handler->connection->hostname,
 			info_result.locationUri);
-	if (rv == -1) {
-		err("Failed to allocate memory for buffer to hold "
-			"interconnect location URI");
-		return SA_ERR_HPI_OUT_OF_MEMORY;
-	}
 	rv = ov_rest_getenclosureInfoArray(oh_handler, &enclosure_response,
 			ov_handler->connection, enclosure_doc);
 	if (rv != SA_OK || enclosure_response.enclosure_array == NULL) {
@@ -987,7 +967,7 @@ SaErrorT ov_rest_proc_switch_status_change( struct oh_handler_state
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 	ov_handler = (struct ov_rest_handler *)oh_handler->data;
-	asprintf (&ov_handler->connection->url, "https://%s%s",
+	WRAP_ASPRINTF (&ov_handler->connection->url, "https://%s%s",
 			ov_handler->connection->hostname,
 			ov_event->resourceUri);
 	rv = ov_rest_getinterconnectInfoArray(oh_handler, &response,
@@ -999,7 +979,7 @@ SaErrorT ov_rest_proc_switch_status_change( struct oh_handler_state
 	ov_rest_json_parse_interconnect(response.interconnect_array, 
 			&info_result);
 	ov_rest_wrap_json_object_put(response.root_jobj);
-	asprintf (&ov_handler->connection->url, "https://%s%s",
+	WRAP_ASPRINTF (&ov_handler->connection->url, "https://%s%s",
 			ov_handler->connection->hostname,
 			info_result.locationUri);
 	rv = ov_rest_getenclosureInfoArray(oh_handler, &enclosure_response,
@@ -1184,7 +1164,7 @@ SaErrorT ov_rest_proc_interconnect_fault(struct oh_handler_state *oh_handler,
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 	ov_handler = (struct ov_rest_handler *) oh_handler->data;
-	asprintf (&ov_handler->connection->url, "https://%s%s",
+	WRAP_ASPRINTF (&ov_handler->connection->url, "https://%s%s",
 			ov_handler->connection->hostname,
 			oh_event->resourceUri);
 	rv = ov_rest_getinterconnectInfoArray(oh_handler, &int_response,
@@ -1196,7 +1176,7 @@ SaErrorT ov_rest_proc_interconnect_fault(struct oh_handler_state *oh_handler,
 	ov_rest_json_parse_interconnect(
 			int_response.interconnect_array, &int_info_result);
 	ov_rest_wrap_json_object_put(int_response.root_jobj);
-	asprintf (&ov_handler->connection->url, "https://%s%s",
+	WRAP_ASPRINTF (&ov_handler->connection->url, "https://%s%s",
 			ov_handler->connection->hostname,
 			int_info_result.locationUri);
 	rv = ov_rest_getenclosureInfoArray(oh_handler, &enc_response,
@@ -1343,7 +1323,7 @@ SaErrorT ov_rest_proc_int_status(struct oh_handler_state *oh_handler,
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
         ov_handler = (struct ov_rest_handler *)oh_handler->data;
-        asprintf (&ov_handler->connection->url, "https://%s%s",
+        WRAP_ASPRINTF (&ov_handler->connection->url, "https://%s%s",
                         ov_handler->connection->hostname,
                         ov_event->resourceUri);
         rv = ov_rest_getinterconnectInfoArray(oh_handler, &response,
@@ -1357,7 +1337,7 @@ SaErrorT ov_rest_proc_int_status(struct oh_handler_state *oh_handler,
                                                         &info_result);
 	ov_rest_wrap_json_object_put(response.root_jobj);
         /* Now we have to get the enclosure serial number*/
-        asprintf (&ov_handler->connection->url, "https://%s%s",
+        WRAP_ASPRINTF (&ov_handler->connection->url, "https://%s%s",
                         ov_handler->connection->hostname,
                         info_result.locationUri);
         rv = ov_rest_getenclosureInfoArray(oh_handler, &enclosure_response,
