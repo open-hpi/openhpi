@@ -77,7 +77,7 @@ SaErrorT ov_rest_proc_composer_status(struct oh_handler_state *oh_handler,
 	
 	/* Check whether this alerts is coming from Active Appliance/Composer */
 	bayNumber = ov_rest_get_baynumber(ov_event->resourceID);
-	asprintf (&ov_handler->connection->url,"https://%s%s" ,
+	WRAP_ASPRINTF (&ov_handler->connection->url,"https://%s%s" ,
 			ov_handler->connection->hostname,ov_event->resourceUri);
 	rv = ov_rest_getenclosureStatus(oh_handler, &enclosure_response,
 			ov_handler->connection, enclosure_doc);

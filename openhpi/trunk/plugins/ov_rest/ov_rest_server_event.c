@@ -104,7 +104,7 @@ SaErrorT process_server_power_on_event(struct oh_handler_state *oh_handler,
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 	ov_handler = (struct ov_rest_handler *)oh_handler->data;
-	asprintf (&ov_handler->connection->url, "https://%s%s", 
+	WRAP_ASPRINTF (&ov_handler->connection->url, "https://%s%s", 
 			ov_handler->connection->hostname,
 			ov_event->resourceUri);
 	rv = ov_rest_getserverInfoArray(oh_handler, &response,
@@ -117,7 +117,7 @@ SaErrorT process_server_power_on_event(struct oh_handler_state *oh_handler,
 	ov_rest_json_parse_server (response.server_array, &info_result);
 	ov_rest_wrap_json_object_put(response.root_jobj);
 	/* Now we have to get the enclosure serial number*/
-	asprintf (&ov_handler->connection->url, "https://%s%s", 
+	WRAP_ASPRINTF (&ov_handler->connection->url, "https://%s%s", 
 			ov_handler->connection->hostname,
 			info_result.locationUri);
 	rv = ov_rest_getenclosureInfoArray(oh_handler, &enclosure_response,
@@ -283,7 +283,7 @@ SaErrorT process_server_power_off_event(struct oh_handler_state *oh_handler,
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 	ov_handler = (struct ov_rest_handler *)oh_handler->data;
-	asprintf (&ov_handler->connection->url, "https://%s%s", 
+	WRAP_ASPRINTF (&ov_handler->connection->url, "https://%s%s", 
 			ov_handler->connection->hostname,
 			ov_event->resourceUri);
 	rv = ov_rest_getserverInfoArray(oh_handler, &response,
@@ -296,7 +296,7 @@ SaErrorT process_server_power_off_event(struct oh_handler_state *oh_handler,
 	ov_rest_json_parse_server (response.server_array, &info_result);
 	ov_rest_wrap_json_object_put(response.root_jobj);
 	/* Now we have to get the enclosure serial number*/
-	asprintf (&ov_handler->connection->url, "https://%s%s", 
+	WRAP_ASPRINTF (&ov_handler->connection->url, "https://%s%s", 
 			ov_handler->connection->hostname,
 			info_result.locationUri);
 	rv = ov_rest_getenclosureInfoArray(oh_handler, &enclosure_response,
@@ -433,7 +433,7 @@ SaErrorT process_server_reset_event(struct oh_handler_state *oh_handler,
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 	ov_handler = (struct ov_rest_handler *)oh_handler->data;
-	asprintf (&ov_handler->connection->url, "https://%s%s", 
+	WRAP_ASPRINTF (&ov_handler->connection->url, "https://%s%s", 
 			ov_handler->connection->hostname,
 			ov_event->resourceUri);
 	rv = ov_rest_getserverInfoArray(oh_handler, &response,
@@ -445,7 +445,7 @@ SaErrorT process_server_reset_event(struct oh_handler_state *oh_handler,
 	/* Parse the Server json response*/
 	ov_rest_json_parse_server (response.server_array, &info_result);
 	/* Now we have to get the enclosure serial number*/
-	asprintf (&ov_handler->connection->url, "https://%s%s", 
+	WRAP_ASPRINTF (&ov_handler->connection->url, "https://%s%s", 
 			ov_handler->connection->hostname,
 			info_result.locationUri);
 	rv = ov_rest_getenclosureInfoArray(oh_handler, &enclosure_response,
@@ -714,7 +714,7 @@ SaErrorT ov_rest_proc_blade_inserted( struct oh_handler_state *oh_handler,
 	}
 	bayNumber = ov_rest_get_baynumber(event->resourceID);
 
-	asprintf (&ov_handler->connection->url, "https://%s%s",
+	WRAP_ASPRINTF (&ov_handler->connection->url, "https://%s%s",
 			ov_handler->connection->hostname,
 			event->resourceUri);
 	rv = ov_rest_getenclosureStatus(oh_handler, &enclosure_response,
@@ -752,7 +752,7 @@ SaErrorT ov_rest_proc_blade_inserted( struct oh_handler_state *oh_handler,
 		err("Inserted Blade Resource URI is NULL");
 		return SA_ERR_HPI_INVALID_RESOURCE;
 	}
-	asprintf(&ov_handler->connection->url, "https://%s%s",
+	WRAP_ASPRINTF(&ov_handler->connection->url, "https://%s%s",
 			ov_handler->connection->hostname,
 			info_result.uri);
 	rv = ov_rest_getserverInfoArray(oh_handler, &response,
@@ -911,7 +911,7 @@ SaErrorT ov_rest_proc_blade_add_complete( struct oh_handler_state *oh_handler,
 
         ov_handler = (struct ov_rest_handler *)oh_handler->data;
 	enclosure = ov_handler->ov_rest_resources.enclosure;
-        asprintf(&ov_handler->connection->url, "https://%s%s",
+        WRAP_ASPRINTF(&ov_handler->connection->url, "https://%s%s",
                         ov_handler->connection->hostname,
                         event->resourceUri);
         rv = ov_rest_getserverInfoArray(oh_handler, &response,
@@ -1136,7 +1136,7 @@ SaErrorT ov_rest_proc_blade_removed( struct oh_handler_state *handler,
 	}
 	bayNumber = ov_rest_get_baynumber(event->resourceID);
 
-	asprintf (&ov_handler->connection->url,"https://%s%s" ,
+	WRAP_ASPRINTF (&ov_handler->connection->url,"https://%s%s" ,
 			ov_handler->connection->hostname,event->resourceUri);
 	rv = ov_rest_getenclosureStatus(handler, &enclosure_response,
 			ov_handler->connection, enclosure_doc);
@@ -1234,7 +1234,7 @@ SaErrorT ov_rest_proc_server_status(struct oh_handler_state *oh_handler,
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
         ov_handler = (struct ov_rest_handler *)oh_handler->data;
-        asprintf (&ov_handler->connection->url, "https://%s%s",
+        WRAP_ASPRINTF (&ov_handler->connection->url, "https://%s%s",
                         ov_handler->connection->hostname,
                         ov_event->resourceUri);
         rv = ov_rest_getserverInfoArray(oh_handler, &response,
@@ -1247,7 +1247,7 @@ SaErrorT ov_rest_proc_server_status(struct oh_handler_state *oh_handler,
         ov_rest_json_parse_server (response.server_array, &info_result);
 	ov_rest_wrap_json_object_put(response.root_jobj);
         /* Now we have to get the enclosure serial number*/
-        asprintf (&ov_handler->connection->url, "https://%s%s",
+        WRAP_ASPRINTF (&ov_handler->connection->url, "https://%s%s",
                         ov_handler->connection->hostname,
                         info_result.locationUri);
         rv = ov_rest_getenclosureInfoArray(oh_handler, &enclosure_response,
@@ -1345,7 +1345,7 @@ SaErrorT process_drive_enclosure_power_on_event(
 	}
 
 	ov_handler = (struct ov_rest_handler *)oh_handler->data;
-	asprintf (&ov_handler->connection->url, "https://%s%s", 
+	WRAP_ASPRINTF (&ov_handler->connection->url, "https://%s%s", 
 			ov_handler->connection->hostname,
 			ov_event->resourceUri);
 	rv = ov_rest_getdriveEnclosureInfoArray(oh_handler, &response,
@@ -1359,7 +1359,7 @@ SaErrorT process_drive_enclosure_power_on_event(
 			&info_result);
 	ov_rest_wrap_json_object_put(response.root_jobj);
 	/* Now we have to get the enclosure serial number*/
-	asprintf (&ov_handler->connection->url, "https://%s%s", 
+	WRAP_ASPRINTF (&ov_handler->connection->url, "https://%s%s", 
 			ov_handler->connection->hostname,
 			info_result.locationUri);
 	rv = ov_rest_getenclosureInfoArray(oh_handler, &enclosure_response,
@@ -1527,7 +1527,7 @@ SaErrorT process_drive_enclosure_power_off_event(
 	}
 
 	ov_handler = (struct ov_rest_handler *)oh_handler->data;
-	asprintf (&ov_handler->connection->url, "https://%s%s", 
+	WRAP_ASPRINTF (&ov_handler->connection->url, "https://%s%s", 
 			ov_handler->connection->hostname,
 			ov_event->resourceUri);
 	rv = ov_rest_getdriveEnclosureInfoArray(oh_handler, &response,
@@ -1541,7 +1541,7 @@ SaErrorT process_drive_enclosure_power_off_event(
 			&info_result);
 	ov_rest_wrap_json_object_put(response.root_jobj);
 	/* Now we have to get the enclosure serial number*/
-	asprintf (&ov_handler->connection->url, "https://%s%s", 
+	WRAP_ASPRINTF (&ov_handler->connection->url, "https://%s%s", 
 			ov_handler->connection->hostname,
 			info_result.locationUri);
 	rv = ov_rest_getenclosureInfoArray(oh_handler, &enclosure_response,
@@ -1748,7 +1748,7 @@ SaErrorT ov_rest_proc_drive_enclosure_add_complete(
 
 	ov_handler = (struct ov_rest_handler *)oh_handler->data;
 	enclosure = ov_handler->ov_rest_resources.enclosure;
-	asprintf(&ov_handler->connection->url, "https://%s%s",
+	WRAP_ASPRINTF(&ov_handler->connection->url, "https://%s%s",
 			ov_handler->connection->hostname,
 			event->resourceUri);
 	rv = ov_rest_getdriveEnclosureInfoArray(oh_handler, &response,

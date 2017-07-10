@@ -187,7 +187,7 @@ SaErrorT ov_rest_get_control_state(void *oh_handler,
                                                              resource_id);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
-        asprintf(&conn->url, "https://%s%s", conn->hostname, url);
+        WRAP_ASPRINTF(&conn->url, "https://%s%s", conn->hostname, url);
         free (url);
 
         ctrl = &(rdr->RdrTypeUnion.CtrlRec);
@@ -330,7 +330,7 @@ SaErrorT ov_rest_set_control_state(void *oh_handler,
 								resource_id);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
-        asprintf(&conn->url, "https://%s%s", conn->hostname, url);
+        WRAP_ASPRINTF(&conn->url, "https://%s%s", conn->hostname, url);
         free (url);
 	
         /* If control mode is MANUAL and specified state could be digital,
@@ -596,11 +596,11 @@ static SaErrorT ov_rest_set_uid_cntrl(struct oh_handler_state *oh_handler,
 
 	/* Map the control state to uid status */
 	if (control_state == SAHPI_CTRL_STATE_ON) {
-		asprintf(&postField,"[{ \"op\":\"replace\","
+		WRAP_ASPRINTF(&postField,"[{ \"op\":\"replace\","
 			"\"path\":\"/uidState\","
 			"\"value\":\"%s\"}]","On");
 	} else {
-		asprintf(&postField,"[{ \"op\":\"replace\","
+		WRAP_ASPRINTF(&postField,"[{ \"op\":\"replace\","
 			"\"path\":\"/uidState\","
 			"\"value\":\"%s\"}]","Off");
 	}

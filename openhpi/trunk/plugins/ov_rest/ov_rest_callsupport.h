@@ -51,6 +51,11 @@
 #define OV_REST_ENUM(name, ...) \
         enum name { __VA_ARGS__ }; \
         OV_REST_ENUM_STRING(name, __VA_ARGS__)
+#define WRAP_ASPRINTF(...)              \
+    if (asprintf( __VA_ARGS__ ) == -1) {  \
+        err("Faild to allocate memory, %s",strerror(errno));\
+	abort();	\
+    }
 
 struct ovString {
   char *ptr;

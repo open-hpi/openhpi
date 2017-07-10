@@ -46,6 +46,7 @@
 
 
 /* Include libraries */
+#include <errno.h>
 #include <stdio.h>
 #include <oh_error.h>
 #include <unistd.h>

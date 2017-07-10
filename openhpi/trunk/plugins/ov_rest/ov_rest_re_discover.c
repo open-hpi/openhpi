@@ -220,7 +220,7 @@ SaErrorT re_discover_appliance(struct oh_handler_state *oh_handler)
 
 	ov_handler = (struct ov_rest_handler *) oh_handler->data;
 	composer = &ov_handler->ov_rest_resources.composer;
-	asprintf(&ov_handler->connection->url, OV_APPLIANCE_VERSION_URI,
+	WRAP_ASPRINTF(&ov_handler->connection->url, OV_APPLIANCE_VERSION_URI,
 			ov_handler->connection->hostname);
 	rv = ov_rest_getapplianceNodeInfo(oh_handler, &response,
 			ov_handler->connection, NULL);
@@ -231,7 +231,7 @@ SaErrorT re_discover_appliance(struct oh_handler_state *oh_handler)
 	ov_rest_json_parse_appliance_version(response.applianceVersion,
 			&result.version);
 
-	asprintf(&ov_handler->connection->url, OV_APPLIANCE_HA_NODE_ID_URI,
+	WRAP_ASPRINTF(&ov_handler->connection->url, OV_APPLIANCE_HA_NODE_ID_URI,
 			ov_handler->connection->hostname, 
 			result.version.serialNumber);
 	rv = ov_rest_getapplianceHaNodeInfo(&ha_response,
@@ -380,7 +380,7 @@ SaErrorT re_discover_enclosure(struct oh_handler_state *oh_handler)
 			free_data);
 
 	ov_handler = (struct ov_rest_handler *) oh_handler->data;
-	asprintf(&ov_handler->connection->url, OV_ENCLOSURE_URI,
+	WRAP_ASPRINTF(&ov_handler->connection->url, OV_ENCLOSURE_URI,
 			ov_handler->connection->hostname);
 	rv = ov_rest_getenclosureInfoArray(oh_handler, &response,
 			ov_handler->connection, NULL);
@@ -679,7 +679,7 @@ SaErrorT re_discover_server(struct oh_handler_state *oh_handler)
 	}
 
 	ov_handler = (struct ov_rest_handler *) oh_handler->data;
-	asprintf(&ov_handler->connection->url, OV_SERVER_HARDWARE_URI,
+	WRAP_ASPRINTF(&ov_handler->connection->url, OV_SERVER_HARDWARE_URI,
 			ov_handler->connection->hostname);
 	rv = ov_rest_getserverInfoArray(oh_handler, &response,
 			ov_handler->connection,server_doc);
@@ -713,7 +713,7 @@ SaErrorT re_discover_server(struct oh_handler_state *oh_handler)
 				g_strdup(info_result.serialNumber), 	
 				g_strdup("TRUE"));
 
-		asprintf(&ov_handler->connection->url, "https://%s%s",
+		WRAP_ASPRINTF(&ov_handler->connection->url, "https://%s%s",
 				ov_handler->connection->hostname,
 				info_result.locationUri);
 		rv = ov_rest_getenclosureInfoArray(oh_handler,
@@ -967,7 +967,7 @@ SaErrorT re_discover_drive_enclosure(struct oh_handler_state *oh_handler)
 			free_data);
 
 	ov_handler = (struct ov_rest_handler *) oh_handler->data;
-	asprintf(&ov_handler->connection->url, OV_DRIVE_ENCLOSURE_URI,
+	WRAP_ASPRINTF(&ov_handler->connection->url, OV_DRIVE_ENCLOSURE_URI,
 			ov_handler->connection->hostname);
 	rv = ov_rest_getdriveEnclosureInfoArray(oh_handler,
 			&response,
@@ -1359,7 +1359,7 @@ SaErrorT re_discover_interconnect(struct oh_handler_state *oh_handler)
 	}
 
 	ov_handler = (struct ov_rest_handler *) oh_handler->data;
-	asprintf(&ov_handler->connection->url, OV_INTERCONNECT_URI,
+	WRAP_ASPRINTF(&ov_handler->connection->url, OV_INTERCONNECT_URI,
 			ov_handler->connection->hostname);
 	rv = ov_rest_getinterconnectInfoArray(oh_handler, &response,
 			ov_handler->connection, interconnect_doc);
@@ -1401,7 +1401,7 @@ SaErrorT re_discover_interconnect(struct oh_handler_state *oh_handler)
 
 			/* Find the Enclosure for this interconnect to update 
 			 * the Resource matrix table */
-			asprintf(&ov_handler->connection->url, "https://%s%s",
+			WRAP_ASPRINTF(&ov_handler->connection->url, "https://%s%s",
 					ov_handler->connection->hostname,
 					result.locationUri);
 			rv = ov_rest_getenclosureInfoArray(oh_handler,
@@ -1485,7 +1485,7 @@ SaErrorT re_discover_interconnect(struct oh_handler_state *oh_handler)
 		if(response.next_page == NULL){
 			break;
 		}else {
-			asprintf(&ov_handler->connection->url, "https://%s%s",
+			WRAP_ASPRINTF(&ov_handler->connection->url, "https://%s%s",
 					ov_handler->connection->hostname,
 					response.next_page);
 			memset(&response, 0, sizeof(response));
@@ -1680,7 +1680,7 @@ SaErrorT re_discover_sas_interconnect(struct oh_handler_state *oh_handler)
 	}
 
 	ov_handler = (struct ov_rest_handler *) oh_handler->data;
-	asprintf(&ov_handler->connection->url, OV_SAS_INTERCONNECT_URI,
+	WRAP_ASPRINTF(&ov_handler->connection->url, OV_SAS_INTERCONNECT_URI,
 			ov_handler->connection->hostname);
 	rv = ov_rest_getinterconnectInfoArray(oh_handler, &response,
 			ov_handler->connection, interconnect_doc);
@@ -1722,7 +1722,7 @@ SaErrorT re_discover_sas_interconnect(struct oh_handler_state *oh_handler)
 
 			/* Find the Enclosure for this interconnect to update 
 			 * the Resource matrix table */
-			asprintf(&ov_handler->connection->url, "https://%s%s",
+			WRAP_ASPRINTF(&ov_handler->connection->url, "https://%s%s",
 					ov_handler->connection->hostname,
 					result.locationUri);
 			rv = ov_rest_getenclosureInfoArray(oh_handler,
@@ -1807,7 +1807,7 @@ SaErrorT re_discover_sas_interconnect(struct oh_handler_state *oh_handler)
 		if(response.next_page == NULL){
 			break;
 		}else{
-			asprintf(&ov_handler->connection->url, "https://%s%s",
+			WRAP_ASPRINTF(&ov_handler->connection->url, "https://%s%s",
 					ov_handler->connection->hostname,
 					response.next_page);
 			rv = ov_rest_getinterconnectInfoArray(oh_handler, 
@@ -1891,7 +1891,7 @@ SaErrorT re_discover_powersupply(struct oh_handler_state *oh_handler)
 
 	ov_handler = (struct ov_rest_handler *) oh_handler->data;
 
-	asprintf(&ov_handler->connection->url, OV_ENCLOSURE_URI,
+	WRAP_ASPRINTF(&ov_handler->connection->url, OV_ENCLOSURE_URI,
 			ov_handler->connection->hostname);
 	rv = ov_rest_getenclosureInfoArray(oh_handler, &response,
 			ov_handler->connection, enclosure_doc);
@@ -2198,7 +2198,7 @@ SaErrorT re_discover_fan(struct oh_handler_state *oh_handler)
 
 	ov_handler = (struct ov_rest_handler *) oh_handler->data;
 
-	asprintf(&ov_handler->connection->url, OV_ENCLOSURE_URI,
+	WRAP_ASPRINTF(&ov_handler->connection->url, OV_ENCLOSURE_URI,
 			ov_handler->connection->hostname);
 	rv = ov_rest_getenclosureInfoArray(oh_handler, &response,
 			ov_handler->connection, enclosure_doc);

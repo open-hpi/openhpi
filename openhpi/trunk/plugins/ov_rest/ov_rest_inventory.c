@@ -220,7 +220,7 @@ SaErrorT ov_rest_build_enclosure_inv_rdr(struct oh_handler_state *oh_handler,
 			hpi_field.AreaId = local_inventory->info.area_list->
 				idr_area_head.AreaId;
 			hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
-			rv = asprintf(&tmp,"URI = %s",response->uri);
+			WRAP_ASPRINTF(&tmp,"URI = %s",response->uri);
 			strcpy ((char *)hpi_field.Field.Data, tmp);
 			wrap_free(tmp);
 
@@ -416,7 +416,7 @@ SaErrorT ov_rest_build_server_inv_rdr(struct oh_handler_state *oh_handler,
 			hpi_field.AreaId = local_inventory->info.area_list->
 				idr_area_head.AreaId;
 			hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
-			rv = asprintf(&tmp,"URI = %s",response->uri);
+			WRAP_ASPRINTF(&tmp,"URI = %s",response->uri);
 			strcpy ((char *)hpi_field.Field.Data, tmp);
 			wrap_free(tmp);
 
@@ -623,7 +623,7 @@ SaErrorT ov_rest_build_drive_enclosure_inv_rdr(
 			hpi_field.AreaId = local_inventory->info.area_list->
 				idr_area_head.AreaId;
 			hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
-			rv = asprintf(&tmp,"URI = %s",response->uri);
+			WRAP_ASPRINTF(&tmp,"URI = %s",response->uri);
 			strcpy ((char *)hpi_field.Field.Data, tmp);
 			wrap_free(tmp);
 
@@ -793,7 +793,7 @@ SaErrorT build_interconnect_inv_rdr(struct oh_handler_state *oh_handler,
 			hpi_field.AreaId = local_inventory->info.area_list->
 				idr_area_head.AreaId;
 			hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
-			rv = asprintf(&tmp,"URI = %s",response->uri);
+			WRAP_ASPRINTF(&tmp,"URI = %s",response->uri);
 			strcpy ((char *)hpi_field.Field.Data, tmp);
 			wrap_free(tmp);
 			rv = ov_rest_idr_field_add(&(

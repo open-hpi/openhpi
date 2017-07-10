@@ -132,7 +132,7 @@ SaErrorT oem_event_to_file(struct oh_handler_state *handler,
 	
         temp = (char *)g_hash_table_lookup(handler->config, "entity_root");
         sscanf(temp, "%*[^0-9]%d", &num);
-        asprintf(&oem_file_path, "%s/%s%s%d%s",
+        WRAP_ASPRINTF(&oem_file_path, "%s/%s%s%d%s",
         			OV_REST_PATH, "oem_event", "_", num, ".log");
         oemfile = fopen(oem_file_path,"a+");
         if(oemfile == NULL)
@@ -145,7 +145,7 @@ SaErrorT oem_event_to_file(struct oh_handler_state *handler,
         oem_file_path = NULL;
         oh_decode_entitypath(&oem_event->resource.ResourceEntity, &bigbuf);
         if(!strcmp(ov_event->alertState, "Cleared")){
-               asprintf(&event,"ResourceID: %d \nTime Stamp: %s "
+               WRAP_ASPRINTF(&event,"ResourceID: %d \nTime Stamp: %s "
         		"\nEntity Path: %s"
                         "\nSeverity: %s \nAlert State: %s "
                         "\nEvent Description: %s. "
@@ -157,7 +157,7 @@ SaErrorT oem_event_to_file(struct oh_handler_state *handler,
 			ov_event->severity, ov_event->alertState,
                         ov_event->description, ov_event->correctiveAction );
         } else {
-               asprintf(&event, "ResourceID: %d " 
+               WRAP_ASPRINTF(&event, "ResourceID: %d " 
         		"\nTime Stamp: %s "
         		"\nEntity Path: %s"
                         "\nSeverity: %s \nEvent Description: %s "
@@ -352,7 +352,7 @@ SaErrorT process_active_and_locked_alerts(struct oh_handler_state *handler,
                 ov_rest_json_parse_alerts (jvalue, &event);
                 wrap_free(ov_handler->connection->url);
                 if (!strcmp((event.phyResourceType), "enclosures")) {
-                        asprintf (&ov_handler->connection->url, "https://%s%s",
+                        WRAP_ASPRINTF (&ov_handler->connection->url, "https://%s%s",
                                       ov_handler->connection->hostname,
                                       event.resourceUri);
                         rv = ov_rest_getenclosureInfoArray(handler,
@@ -396,7 +396,7 @@ SaErrorT process_active_and_locked_alerts(struct oh_handler_state *handler,
                         }
                 }
                 else if (!strcmp((event.phyResourceType),"server-hardware")) {
-                        asprintf (&ov_handler->connection->url, "https://%s%s",
+                        WRAP_ASPRINTF (&ov_handler->connection->url, "https://%s%s",
                                       ov_handler->connection->hostname,
                                       event.resourceUri);
                         rv = ov_rest_getserverInfoArray(handler, &response,
@@ -409,7 +409,7 @@ SaErrorT process_active_and_locked_alerts(struct oh_handler_state *handler,
                                                                 &info_result);
 			ov_rest_wrap_json_object_put(response.root_jobj);
                         /* Now we have to get the enclosure serial number*/
-                        asprintf (&ov_handler->connection->url, "https://%s%s",
+                        WRAP_ASPRINTF (&ov_handler->connection->url, "https://%s%s",
                                         ov_handler->connection->hostname,
                                         info_result.locationUri);
                         rv = ov_rest_getenclosureInfoArray(handler,
@@ -461,7 +461,7 @@ SaErrorT process_active_and_locked_alerts(struct oh_handler_state *handler,
                         }
                 }
                 else if (!strcmp((event.phyResourceType),"drive-enclosures")){
-                        asprintf (&ov_handler->connection->url, "https://%s%s",
+                        WRAP_ASPRINTF (&ov_handler->connection->url, "https://%s%s",
                                       ov_handler->connection->hostname,
                                       event.resourceUri);
                         rv = ov_rest_getdriveEnclosureInfoArray(handler,
@@ -481,7 +481,7 @@ SaErrorT process_active_and_locked_alerts(struct oh_handler_state *handler,
 			ov_rest_wrap_json_object_put(
 						drive_enc_response.root_jobj);
                         /* Now we have to get the enclosure serial number*/
-                        asprintf (&ov_handler->connection->url, "https://%s%s",
+                        WRAP_ASPRINTF (&ov_handler->connection->url, "https://%s%s",
                                         ov_handler->connection->hostname,
                                         drive_enc_info_result.locationUri);
                         rv = ov_rest_getenclosureInfoArray(handler, &enc_response,
@@ -532,7 +532,7 @@ SaErrorT process_active_and_locked_alerts(struct oh_handler_state *handler,
                         }
                 }
                 else if (!strcmp((event.phyResourceType), "interconnects")) {
-                        asprintf (&ov_handler->connection->url, "https://%s%s",
+                        WRAP_ASPRINTF (&ov_handler->connection->url, "https://%s%s",
                                       ov_handler->connection->hostname,
                                       event.resourceUri);
                         rv = ov_rest_getinterconnectInfoArray(handler,
@@ -549,7 +549,7 @@ SaErrorT process_active_and_locked_alerts(struct oh_handler_state *handler,
                                                &int_info_result);
 			ov_rest_wrap_json_object_put(int_response.root_jobj);
                         /* Now we have to get the enclosure serial number*/
-                        asprintf (&ov_handler->connection->url, "https://%s%s",
+                        WRAP_ASPRINTF (&ov_handler->connection->url, "https://%s%s",
                                         ov_handler->connection->hostname,
                                         int_info_result.locationUri);
                         rv = ov_rest_getenclosureInfoArray(handler,
@@ -685,7 +685,7 @@ SaErrorT oem_event_handler(struct oh_handler_state *handler,
         ov_handler = (struct ov_rest_handler *)handler->data;
         if(!strcmp(event->severity,"Critical")){
                 if (!strcmp((event->phyResourceType), "enclosures")) {
-                        asprintf (&ov_handler->connection->url, "https://%s%s",
+                        WRAP_ASPRINTF (&ov_handler->connection->url, "https://%s%s",
                                       ov_handler->connection->hostname,
                                       event->resourceUri);
                         rv = ov_rest_getenclosureInfoArray(handler,
@@ -730,7 +730,7 @@ SaErrorT oem_event_handler(struct oh_handler_state *handler,
                         }
                 }
                 else if (!strcmp((event->phyResourceType),"server-hardware")) {
-                        asprintf (&ov_handler->connection->url, "https://%s%s",
+                        WRAP_ASPRINTF (&ov_handler->connection->url, "https://%s%s",
                                       ov_handler->connection->hostname,
                                       event->resourceUri);
                         rv = ov_rest_getserverInfoArray(handler, &response,
@@ -744,7 +744,7 @@ SaErrorT oem_event_handler(struct oh_handler_state *handler,
                                                                 &info_result);
 			ov_rest_wrap_json_object_put(response.root_jobj);
                         /* Now we have to get the enclosure serial number*/
-                        asprintf (&ov_handler->connection->url, "https://%s%s",
+                        WRAP_ASPRINTF (&ov_handler->connection->url, "https://%s%s",
                                         ov_handler->connection->hostname,
                                         info_result.locationUri);
                         rv = ov_rest_getenclosureInfoArray(handler,
@@ -797,7 +797,7 @@ SaErrorT oem_event_handler(struct oh_handler_state *handler,
                         }
                 }
                 else if (!strcmp((event->phyResourceType),"drive-enclosures")){
-                        asprintf (&ov_handler->connection->url, "https://%s%s",
+                        WRAP_ASPRINTF (&ov_handler->connection->url, "https://%s%s",
                                       ov_handler->connection->hostname,
                                       event->resourceUri);
                         rv = ov_rest_getdriveEnclosureInfoArray(handler,
@@ -816,7 +816,7 @@ SaErrorT oem_event_handler(struct oh_handler_state *handler,
                                           &drive_enc_info_result);
 			ov_rest_wrap_json_object_put(drive_enc_response.root_jobj);
                         /* Now we have to get the enclosure serial number*/
-                        asprintf (&ov_handler->connection->url, "https://%s%s",
+                        WRAP_ASPRINTF (&ov_handler->connection->url, "https://%s%s",
                                         ov_handler->connection->hostname,
                                         drive_enc_info_result.locationUri);
                         rv = ov_rest_getenclosureInfoArray(handler,
@@ -869,7 +869,7 @@ SaErrorT oem_event_handler(struct oh_handler_state *handler,
                         }
                 }
                 else if (!strcmp((event->phyResourceType), "interconnects")) {
-                        asprintf (&ov_handler->connection->url, "https://%s%s",
+                        WRAP_ASPRINTF (&ov_handler->connection->url, "https://%s%s",
                                       ov_handler->connection->hostname,
                                       event->resourceUri);
                         rv = ov_rest_getinterconnectInfoArray(handler,
@@ -886,7 +886,7 @@ SaErrorT oem_event_handler(struct oh_handler_state *handler,
                                                &int_info_result);
 			ov_rest_wrap_json_object_put(int_response.root_jobj);
                         /* Now we have to get the enclosure serial number*/
-                        asprintf (&ov_handler->connection->url, "https://%s%s",
+                        WRAP_ASPRINTF (&ov_handler->connection->url, "https://%s%s",
                                         ov_handler->connection->hostname,
                                         int_info_result.locationUri);
                         rv = ov_rest_getenclosureInfoArray(handler,
@@ -1159,18 +1159,24 @@ SaErrorT ov_rest_setuplistner(struct oh_handler_state *handler)
 	ov_handler = (struct ov_rest_handler *)handler->data;
 
 	if (stat(OV_REST_PATH, &st) == -1) {
-		mkdir(OV_REST_PATH, 0600);
+		if(mkdir(OV_REST_PATH, 0600)== -1){
+			CRIT("Failed to create the directory %s, %s", 
+					OV_REST_PATH, strerror(errno));
+		}
 	}
 	if (stat(CA_PATH, &st) == -1) {
-		mkdir(CA_PATH, 0600);
+		if(mkdir(OV_REST_PATH, 0600)== -1){
+			CRIT("Failed to create the directory %s, %s", 
+					OV_REST_PATH, strerror(errno));
+		}
 	}
 	memset(&response,0, sizeof(struct certificateResponse));
-	asprintf(&ov_handler->connection->url, OV_CREATE_CERTIFICATE_URI,
+	WRAP_ASPRINTF(&ov_handler->connection->url, OV_CREATE_CERTIFICATE_URI,
 					ov_handler->connection->hostname);
-	asprintf(&postfields, OV_CERTIFICATE_REQUEST_POST);
+	WRAP_ASPRINTF(&postfields, OV_CERTIFICATE_REQUEST_POST);
 	ov_rest_create_certificate(ov_handler->connection, postfields);
 
-	asprintf(&ov_handler->connection->url, OV_GET_CERTIFICATES_URI,
+	WRAP_ASPRINTF(&ov_handler->connection->url, OV_GET_CERTIFICATES_URI,
 					ov_handler->connection->hostname);
 	rv = ov_rest_getcertificates(NULL, &response, ov_handler->connection,
 							certificate_doc);
@@ -1179,7 +1185,10 @@ SaErrorT ov_rest_setuplistner(struct oh_handler_state *handler)
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 	ov_rest_json_parse_certificate(response.certificate,&result);
-	chdir(CA_PATH); // FIXME 
+	if(chdir(CA_PATH) == -1){
+		CRIT("Failed to change the dir to %s, %s", CA_PATH, 
+						strerror(errno));
+	}
 	temp = (char *)g_hash_table_lookup(handler->config, "entity_root");
 	sscanf(temp, "%*[^0-9]%d", &num);
 	if (num >= 100) {
@@ -1227,7 +1236,7 @@ SaErrorT ov_rest_setuplistner(struct oh_handler_state *handler)
 	fclose(fp);
 	ov_rest_wrap_json_object_put(response.root_jobj);
 
-	asprintf(&ov_handler->connection->url, OV_GET_CA_URI,
+	WRAP_ASPRINTF(&ov_handler->connection->url, OV_GET_CA_URI,
                                        ov_handler->connection->hostname);
 	rv = ov_rest_getca(NULL, &response, ov_handler->connection, ca_doc);
 	if (rv != SA_OK || response.certificate == NULL) {
@@ -1350,7 +1359,10 @@ SaErrorT ov_rest_scmb_listner(struct oh_handler_state *handler)
 		amqp_destroy_connection(conn);
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
-	chdir(CA_PATH); /* FIXME */
+	if(chdir(CA_PATH) == -1){
+		CRIT("Failed to change the dir to %s, %s", CA_PATH, 
+						strerror(errno));
+	}
 	status = amqp_ssl_socket_set_cacert(socket,ov_handler->cert_t.fCaRoot);
 	if (status) {
 		err("Error in setting CA certificate");
@@ -1751,7 +1763,7 @@ gpointer ov_rest_event_thread(gpointer ov_pointer)
  	 * opening in "w" or "w+" mode */
 	temp = (char *)g_hash_table_lookup(handler->config, "entity_root");
 	sscanf(temp, "%*[^0-9]%d", &num);
-	asprintf(&oem_file_path, "%s/%s%s%d%s",
+	WRAP_ASPRINTF(&oem_file_path, "%s/%s%s%d%s",
                         OV_REST_PATH, "oem_event", "_", num, ".log");
 	oemfile = fopen(oem_file_path,"w");
 	if(oemfile == NULL)
@@ -1765,12 +1777,12 @@ gpointer ov_rest_event_thread(gpointer ov_pointer)
 	fclose(oemfile);
 
 	/** Handling Active alerts dring discovery **/
-	asprintf(&ov_handler->connection->url, OV_ACTIVE_ALERTS,
+	WRAP_ASPRINTF(&ov_handler->connection->url, OV_ACTIVE_ALERTS,
 				ov_handler->connection->hostname, "-1");
 	rv = ov_rest_getActiveLockedEventArray(ov_handler->connection,
 							&event_response);
 	if(rv == SA_OK){
-		asprintf(&ov_handler->connection->url, OV_ACTIVE_ALERTS,
+		WRAP_ASPRINTF(&ov_handler->connection->url, OV_ACTIVE_ALERTS,
 				ov_handler->connection->hostname,
 				event_response.total);
 		ov_rest_wrap_json_object_put(event_response.root_jobj);
@@ -1786,12 +1798,12 @@ gpointer ov_rest_event_thread(gpointer ov_pointer)
 	}
 	
 	/** Handling Locked alerts dring discovery **/
-	asprintf(&ov_handler->connection->url, OV_LOCKED_ALERTS,
+	WRAP_ASPRINTF(&ov_handler->connection->url, OV_LOCKED_ALERTS,
 				ov_handler->connection->hostname, "-1");
 	rv = ov_rest_getActiveLockedEventArray(ov_handler->connection,
 							&event_response);
 	if(rv == SA_OK){
-		rv = asprintf(&ov_handler->connection->url, OV_LOCKED_ALERTS,
+		WRAP_ASPRINTF(&ov_handler->connection->url, OV_LOCKED_ALERTS,
 				ov_handler->connection->hostname,
 				event_response.total);
 	}
@@ -1804,7 +1816,7 @@ gpointer ov_rest_event_thread(gpointer ov_pointer)
 		err("Please login to the composer to get complete details.");
 	}
 
-	asprintf(&ov_handler->connection->url, OV_ALERTS, 
+	WRAP_ASPRINTF(&ov_handler->connection->url, OV_ALERTS, 
 			ov_handler->connection->hostname);	
 	ov_rest_getAllEvents(&event_response, ov_handler->connection, 
 			getallevents_doc);
@@ -1820,7 +1832,7 @@ gpointer ov_rest_event_thread(gpointer ov_pointer)
 			 * then go for next loop.
 			 * if sesion id is not valid then go for re-discovery.
 			 * */
-			asprintf(&ov_handler->connection->url,
+			WRAP_ASPRINTF(&ov_handler->connection->url,
 					OV_APPLIANCE_VERSION_URI,
 					ov_handler->connection->hostname);
 			rv = ov_rest_getapplianceNodeInfo(

@@ -64,10 +64,10 @@ static SaErrorT do_server_op (REST_CON *conn,
 
 	/* setup required REST url */
 	prevUrl = conn->url;
-	asprintf(&uri,"%s/powerState",conn->url);
+	WRAP_ASPRINTF(&uri,"%s/powerState",conn->url);
 	conn->url = uri;
 
-	asprintf(&postField,"{\"powerState\":\"%s\",\"powerControl\":\"%s\"}", 
+	WRAP_ASPRINTF(&postField,"{\"powerState\":\"%s\",\"powerControl\":\"%s\"}", 
 				state, control);
 	rv = rest_put_request(conn, &response, postField);
 
@@ -99,7 +99,7 @@ static SaErrorT do_interconnect_op (REST_CON *conn,
 	SaErrorT rv = SA_OK;
 	char *postField=NULL;
 
-	asprintf(&postField,"[{\"op\": \"replace\","
+	WRAP_ASPRINTF(&postField,"[{\"op\": \"replace\","
 			" \"path\": \"/powerState\","
 			" \"value\": \"%s\"}]", state);
 	rv = rest_patch_request(conn, &response, postField);
@@ -172,7 +172,7 @@ SaErrorT ov_rest_get_power_state(void *oh_handler,
 								resource_id);
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
-	asprintf(&conn->url, "https://%s%s", conn->hostname, url);
+	WRAP_ASPRINTF(&conn->url, "https://%s%s", conn->hostname, url);
 	wrap_free (url);
 
         switch (rpt->ResourceEntity.Entry[0].EntityType) {
@@ -254,7 +254,7 @@ SaErrorT ov_rest_set_power_state(void *oh_handler,
 								resource_id);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
-        asprintf(&conn->url, "https://%s%s", conn->hostname, url);
+        WRAP_ASPRINTF(&conn->url, "https://%s%s", conn->hostname, url);
         wrap_free (url);
 
         switch (rpt->ResourceEntity.Entry[0].EntityType) {
