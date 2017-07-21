@@ -95,9 +95,9 @@ SaErrorT remove_interconnect_blade(struct oh_handler_state *oh_handler,
 	/* Get the rpt entry of the resource */
 	rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
 	if (rpt == NULL) {
-		err("resource RPT is NULL for the interconnect removed from "
+		err("RPT is NULL for the interconnect removed from "
 				"bay %d in enclosure rid %d",bay_number, 
-							enclosure->enclosure_rid);
+						enclosure->enclosure_rid);
 		return SA_ERR_HPI_INVALID_RESOURCE;
 	}
 
@@ -109,8 +109,9 @@ SaErrorT remove_interconnect_blade(struct oh_handler_state *oh_handler,
 		oh_get_resource_data(oh_handler->rptcache,
 				event.resource.ResourceId);
 	if (hotswap_state == NULL) {
-		err("Failed to get hotswap state for the interconnect %d in " 
-			"enclosure rid %d", bay_number,enclosure->enclosure_rid);
+		err("Failed to get hotswap state for the interconnect %d in "
+			"enclosure rid %d",
+			bay_number,enclosure->enclosure_rid);
 		event.event.EventDataUnion.HotSwapEvent.PreviousHotSwapState =
 			SAHPI_HS_STATE_INACTIVE;
 	}
@@ -193,7 +194,7 @@ SaErrorT ov_rest_proc_interconnect_inserted( struct oh_handler_state *handler,
 	char *blade_name = NULL;
 
 	if (handler == NULL || event == NULL) {
-		err("wrong parameters passed");
+		err("Wrong parameters passed");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 	ov_handler = (struct ov_rest_handler *)handler->data;
@@ -250,7 +251,8 @@ SaErrorT ov_rest_proc_interconnect_inserted( struct oh_handler_state *handler,
 	rv = ov_rest_getinterconnectInfoArray(handler, &response,
 			ov_handler->connection, interconnect_doc);
 	if (rv != SA_OK || response.interconnect_array == NULL) {
-		CRIT("No response from ov_rest_getinterconnectInfoArray");
+		CRIT("No response from ov_rest_getinterconnectInfoArray for "
+						"interconnects");
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 	ov_rest_json_parse_interconnect(response.interconnect_array,
@@ -327,7 +329,7 @@ SaErrorT ov_rest_proc_interconnect_inserted( struct oh_handler_state *handler,
 	/* Get the rpt entry of the server */
 	rpt = oh_get_resource_by_id(handler->rptcache, resource_id);
 	if (rpt == NULL) {
-		err("resource RPT is NULL for the inserted interconnect in "
+		err("RPT is NULL for the inserted interconnect in "
 				"bay %d in enclosure rid %d", bayNumber, 
 						enclosure->enclosure_rid);
 		wrap_free(enclosure_doc);
@@ -417,7 +419,8 @@ SaErrorT ov_rest_proc_interconnect_add_complete(
 	rv = ov_rest_getinterconnectInfoArray(handler, &response,
 			ov_handler->connection, interconnect_doc);
 	if (rv != SA_OK || response.interconnect_array == NULL) {
-		CRIT("No response from ov_rest_getinterconnectInfoArray");
+		CRIT("No response from ov_rest_getinterconnectInfoArray"
+				" for interconnects");
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 	ov_rest_json_parse_interconnect(response.interconnect_array,
@@ -438,7 +441,8 @@ SaErrorT ov_rest_proc_interconnect_add_complete(
 	/* Build rdr entry for server */
 	rv = ov_rest_build_interconnect_rdr (handler, resource_id, &info_result);
         if (rv != SA_OK) {
-                err("Failed to build the interconnect RDR");
+                err("Failed to build the interconnect RDR in bay %d",
+					info_result.bayNumber);
                 rv = oh_remove_resource(handler->rptcache,
                                         (int)atoi(event->resourceID));
                 return rv;
@@ -459,7 +463,8 @@ SaErrorT ov_rest_proc_interconnect_add_complete(
 	rv = ov_rest_populate_event(handler, resource_id, &hs_event,
 			&asserted_sensors);
 	if (rv != SA_OK) {
-		err("Creating hotswap event failed");
+		err("Creating hotswap event failed for the interconnect"
+			" in bay %d", info_result.bayNumber);
 		wrap_free(interconnect_doc);
 		return rv;
 	}
@@ -479,7 +484,7 @@ SaErrorT ov_rest_proc_interconnect_add_complete(
 	/* Get the rpt entry of the interconnect */
 	rpt = oh_get_resource_by_id(handler->rptcache, resource_id);
 	if (rpt == NULL) {
-		err("resource RPT is NULL for the interconnect in bay %d",
+		err("RPT is NULL for the interconnect in bay %d",
 					 info_result.bayNumber);
 		wrap_free(interconnect_doc);
 		return SA_ERR_HPI_INVALID_RESOURCE;
@@ -488,7 +493,8 @@ SaErrorT ov_rest_proc_interconnect_add_complete(
 	hotswap_state = (struct ovRestHotswapState *)
 		oh_get_resource_data(handler->rptcache, resource_id);
 	if (hotswap_state == NULL) {
-		err("Failed to get hotswap state of interconnect blade");
+		err("Failed to get hotswap state of interconnect blade"
+			" in bay %d", info_result.bayNumber);
 		wrap_free(interconnect_doc);
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
@@ -690,7 +696,8 @@ SaErrorT process_interconnect_power_off_task(
 		enclosure = enclosure->next;
 	}
 	if(enclosure == NULL){
-		CRIT("Enclosure data of the interconnect is unavailable");
+		CRIT("Enclosure data of the interconnect in bay %d"
+			" is unavailable", info_result.bayNumber);
 		wrap_g_free(enclosure_doc);
 		wrap_g_free(interconnect_doc);
 		return SA_ERR_HPI_INVALID_RESOURCE;
@@ -711,7 +718,7 @@ SaErrorT process_interconnect_power_off_task(
 	rpt = oh_get_resource_by_id(oh_handler->rptcache,
 		enclosure->interconnect.resource_id[info_result.bayNumber - 1]);
 	if (rpt == NULL) {
-		err("resource RPT is NULL for the interconnect in bay %d, "
+		err("RPT is NULL for the interconnect in bay %d, "
 				"in enclosure rid %d ",info_result.bayNumber,
 						enclosure->enclosure_rid );
 		wrap_g_free(enclosure_doc);
@@ -859,7 +866,8 @@ SaErrorT process_interconnect_power_on_task(
 		enclosure = enclosure->next;
 	}
 	if(enclosure == NULL){
-		CRIT("Enclosure data of the interconnect is unavailable");
+		CRIT("Enclosure data of the interconnect in bay %d"
+			" is unavailable", info_result.bayNumber);
 		wrap_g_free(enclosure_doc);
 		wrap_g_free(interconnect_doc);
 		return SA_ERR_HPI_INVALID_RESOURCE;
@@ -880,7 +888,7 @@ SaErrorT process_interconnect_power_on_task(
 	rpt = oh_get_resource_by_id(oh_handler->rptcache,
 		enclosure->interconnect.resource_id[info_result.bayNumber - 1]);
 	if (rpt == NULL) {
-		err("resource RPT is NULL for the interconnect in bay %d, "
+		err("RPT is NULL for the interconnect in bay %d, "
 				"in enclosure rid %d ",info_result.bayNumber,
 						enclosure->enclosure_rid );
 		wrap_g_free(enclosure_doc);
@@ -973,7 +981,8 @@ SaErrorT ov_rest_proc_switch_status_change( struct oh_handler_state
 	rv = ov_rest_getinterconnectInfoArray(oh_handler, &response,
 			ov_handler->connection, interconnect_doc);
 	if (rv != SA_OK || response.interconnect_array == NULL) {
-		CRIT("No response from ov_rest_getinterconnectInfoArray");
+		CRIT("No response from ov_rest_getinterconnectInfoArray"
+				" for interconnects");
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 	ov_rest_json_parse_interconnect(response.interconnect_array, 
@@ -1002,7 +1011,8 @@ SaErrorT ov_rest_proc_switch_status_change( struct oh_handler_state
 		enclosure = enclosure->next;
 	}
 	if(enclosure == NULL){
-		CRIT("Enclosure data of the interconnect is unavailable");
+		CRIT("Enclosure data of the interconnect in bay %d"
+			" is unavailable", info_result.bayNumber);
 		wrap_g_free(enclosure_doc);
 		wrap_g_free(interconnect_doc);
 		return SA_ERR_HPI_INVALID_RESOURCE;
@@ -1012,7 +1022,8 @@ SaErrorT ov_rest_proc_switch_status_change( struct oh_handler_state
 		enclosure->interconnect.resource_id[info_result.bayNumber - 1]);
 	if (hotswap_state == NULL)
 	{
-		err ("Failed to get hotswap state of Interconnect blade");
+		err ("Failed to get hotswap state of Interconnect blade in bay"
+			" %d", info_result.bayNumber);
 		wrap_g_free(enclosure_doc);
 		wrap_g_free(interconnect_doc);
 		return SA_ERR_HPI_INTERNAL_ERROR;
@@ -1021,7 +1032,7 @@ SaErrorT ov_rest_proc_switch_status_change( struct oh_handler_state
 	rpt = oh_get_resource_by_id(oh_handler->rptcache,
 		enclosure->interconnect.resource_id[info_result.bayNumber - 1]);
 	if (rpt == NULL) {
-		err("resource RPT is NULL for the interconnect in bay %d, "
+		err("RPT is NULL for the interconnect in bay %d, "
 				"in enclosure rid %d ",info_result.bayNumber, 
 						enclosure->enclosure_rid );
 		wrap_g_free(enclosure_doc);
@@ -1039,7 +1050,9 @@ SaErrorT ov_rest_proc_switch_status_change( struct oh_handler_state
 			event.resource.ResourceSeverity = SAHPI_CRITICAL;
 			hotswap_state->currentHsState = SAHPI_HS_STATE_INACTIVE;
 			if (rv != SA_OK) {
-				err("add rpt entry failed");
+				err("Add rpt entry failed for the "
+					"interconnect in bay %d",
+					info_result.bayNumber);
 				wrap_g_free(enclosure_doc);
 				wrap_g_free(interconnect_doc);
 				return rv;
@@ -1113,7 +1126,9 @@ SaErrorT ov_rest_proc_switch_status_change( struct oh_handler_state
 			break;
 
 		default:
-			err("Wrong power state ");
+			err("Wrong power state %d for the interconnect in "
+				"bay %d", info_result.powerState,
+						info_result.bayNumber);
 			wrap_g_free(enclosure_doc);
 			wrap_g_free(interconnect_doc);
 			return SA_ERR_HPI_INTERNAL_ERROR;
@@ -1170,7 +1185,8 @@ SaErrorT ov_rest_proc_interconnect_fault(struct oh_handler_state *oh_handler,
 	rv = ov_rest_getinterconnectInfoArray(oh_handler, &int_response,
 			ov_handler->connection, interconnect_doc);
 	if (rv != SA_OK || int_response.interconnect_array == NULL) {
-		CRIT("No response from ov_rest_getinterconnectInfoArray");
+		CRIT("No response from ov_rest_getinterconnectInfoArray"
+				" for interconnects");
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 	ov_rest_json_parse_interconnect(

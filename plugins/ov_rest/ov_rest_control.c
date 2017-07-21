@@ -164,18 +164,21 @@ SaErrorT ov_rest_get_control_state(void *oh_handler,
 
         rpt = oh_get_resource_by_id (handler->rptcache, resource_id);
         if (rpt == NULL) {
-                err("INVALID RESOURCE");
+                err("Resource RPT is NULL for resource id %d",
+                                            resource_id);
                 return SA_ERR_HPI_INVALID_RESOURCE;
         }
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_CONTROL)) {
-                err("INVALID RESOURCE CAPABILITY");
+                err("Invalid resource capability for resource id %d",
+                                            resource_id);
                 return SA_ERR_HPI_CAPABILITY;
         }
 
         rdr = oh_get_rdr_by_type(handler->rptcache, resource_id,
                                  SAHPI_CTRL_RDR, rdr_num);
         if (rdr == NULL) {
-                err("INVALID RDR NUMBER");
+                err("Resource RDR %d is NULL for resource id %d",
+                                            rdr_num, resource_id);
                return (SA_ERR_HPI_NOT_PRESENT);
         }
 
@@ -206,7 +209,8 @@ SaErrorT ov_rest_get_control_state(void *oh_handler,
 						   &control_digital_state);
         	        ctrl_state.StateUnion.Digital = control_digital_state;
                         if (rv != SA_OK) {
-                          err("Failed to get the power state RDR");
+                          err("Failed to get the power state RDR for"
+                              " resource id %d", resource_id);
                           return rv;
                         }
 			break;
@@ -215,12 +219,14 @@ SaErrorT ov_rest_get_control_state(void *oh_handler,
                                                    &control_digital_state);
         	        ctrl_state.StateUnion.Digital = control_digital_state;
                         if (rv != SA_OK) {
-                          err("Failed to get the uid status");
+                          err("Failed to get the uid status for"
+                              " resource id %d", resource_id);
                           return rv;
                         }
 			break;
                 default:
-                        err("Invalid control rdr num");
+                        err("Invalid control rdr num %d for the resource id "
+				"%d", rdr_num, resource_id);
                         return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
@@ -284,18 +290,21 @@ SaErrorT ov_rest_set_control_state(void *oh_handler,
 
         rpt = oh_get_resource_by_id (handler->rptcache, resource_id);
         if (rpt == NULL) {
-                err("INVALID RESOURCE");
+                err("Resource RPT is NULL for resource id %d",
+                                               resource_id);
                 return SA_ERR_HPI_INVALID_RESOURCE;
         }
         if (! (rpt->ResourceCapabilities & SAHPI_CAPABILITY_CONTROL)) {
-                err("INVALID RESOURCE CAPABILITY");
+                err("Invalid resource capability for resource id %d",
+                                               resource_id);
                 return SA_ERR_HPI_CAPABILITY;
         }
 
         rdr = oh_get_rdr_by_type (handler->rptcache, resource_id, 
 				  SAHPI_CTRL_RDR, rdr_num);
         if (rdr == NULL) {
-                err("INVALID RDR NUMBER");
+                err("Resource RDR %d is NULL for resource id %d",
+                                     rdr_num, resource_id);
                 return (SA_ERR_HPI_NOT_PRESENT);
         }
         ctrl = &(rdr->RdrTypeUnion.CtrlRec);
@@ -303,13 +312,15 @@ SaErrorT ov_rest_set_control_state(void *oh_handler,
         /* Validate the state specified in the parameter list */
         rv = oh_valid_ctrl_state_mode ((ctrl), mode, state);
         if (rv != SA_OK) {
-                err("Control state specified is invalid");
+                err("Control state specified is invalid for resource"
+                    " id %d", resource_id);
                 return (rv);
         }
 
         /* Auto mode is not supported */
         if (mode == SAHPI_CTRL_MODE_AUTO) {
-                err( "AUTO CONTROL MODE is not supported");
+                err( "AUTO CONTROL MODE is not supported for resource"
+                    " id %d", resource_id);
                 return SA_ERR_HPI_UNSUPPORTED_PARAMS;
         }
 
@@ -317,7 +328,8 @@ SaErrorT ov_rest_set_control_state(void *oh_handler,
 	if ((state->Type != SAHPI_CTRL_TYPE_DIGITAL) &&
 	    (state->Type != SAHPI_CTRL_TYPE_DISCRETE) &&
 	    (state->Type != SAHPI_CTRL_TYPE_ANALOG)) {
-		err("Control type not supported");
+		err("Control type %d not supported for resource id %d",
+                       state->Type, resource_id);
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 // Fix This Below code is duplicated in few functions called after this Block
@@ -355,7 +367,8 @@ SaErrorT ov_rest_set_control_state(void *oh_handler,
 			rv = ov_rest_set_pwr_cntrl(handler, resource_id,
 						   state->StateUnion.Digital);
 			if (rv != SA_OK) {
-			  err("Set power state failed");
+			  err("Set power state failed for resource id %d",
+                                                                resource_id);
 			  return rv;
 			}
 			break;
@@ -363,12 +376,14 @@ SaErrorT ov_rest_set_control_state(void *oh_handler,
 			rv = ov_rest_set_uid_cntrl(handler, rpt,
 						   state->StateUnion.Digital);
 			if (rv != SA_OK) {
-			  err("Set uid state failed");
+			  err("Set uid state failed for resource id %d",
+                                                                resource_id);
 			  return rv;
 			}
 			break;
 		default:
-			err("Invalid control rdr num");
+			err("Invalid control rdr num %d for resource id %d",
+                                                       rdr_num, resource_id);
 			return SA_ERR_HPI_INTERNAL_ERROR;
 	}
         return SA_OK;
@@ -412,7 +427,7 @@ SaErrorT ov_rest_build_control_rdr(struct oh_handler_state *oh_handler,
 
         rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
         if (!rpt) {
-                err("Could not find blade resource rpt");
+                err("Could not find rpt for resource id %d", resource_id);
                 return(SA_ERR_HPI_INTERNAL_ERROR);
         }
 
@@ -479,7 +494,8 @@ static SaErrorT ov_rest_get_uid_cntrl(struct oh_handler_state *oh_handler,
 	 */
         rv = lock_ov_rest_handler(ov_handler);
         if (rv != SA_OK) {
-                err("OV REST handler is locked");
+                err("OV REST handler is locked while calling __func__ "
+			"for resource id %d", rpt->ResourceId);
                 return rv;
         }
 
@@ -487,7 +503,9 @@ static SaErrorT ov_rest_get_uid_cntrl(struct oh_handler_state *oh_handler,
                 case (SAHPI_ENT_SYSTEM_CHASSIS):
 			rv = rest_get_request(conn, &response);
 			if (rv != SA_OK || response.jobj == NULL) {
-				CRIT("Get enclosure status failed");
+				CRIT("Get enclosure status failed "
+					"for resource id %d",
+						rpt->ResourceId);
 				return SA_ERR_HPI_INTERNAL_ERROR;
 			}	
 			ov_rest_json_parse_enclosure(response.jobj, &encInfo);
@@ -499,7 +517,9 @@ static SaErrorT ov_rest_get_uid_cntrl(struct oh_handler_state *oh_handler,
                 case (SAHPI_ENT_DISK_BLADE):
 			rv = rest_get_request(conn, &response);
 			if (rv != SA_OK || response.jobj == NULL) {
-				CRIT("Get Blade status failed");
+				CRIT("Get Blade status failed "
+					"for resource id %d",
+						rpt->ResourceId);
 				return SA_ERR_HPI_INTERNAL_ERROR;
 			}
 			ov_rest_json_parse_server(response.jobj, &servInfo);
@@ -510,7 +530,9 @@ static SaErrorT ov_rest_get_uid_cntrl(struct oh_handler_state *oh_handler,
                 case (SAHPI_ENT_SWITCH_BLADE):
 			rv = rest_get_request(conn, &response);
 			if (rv != SA_OK || response.jobj == NULL) {
-				CRIT("Get Interconnect status failed");
+				CRIT("Get Interconnect status failed "
+					"for resource id %d",
+						rpt->ResourceId);
 				return SA_ERR_HPI_INTERNAL_ERROR;
 			}		
 			ov_rest_json_parse_interconnect(response.jobj, 
@@ -520,7 +542,9 @@ static SaErrorT ov_rest_get_uid_cntrl(struct oh_handler_state *oh_handler,
                         break;
 
                 default:
-                        CRIT("Invalid Resource Type");
+                        CRIT("Invalid Resource Type %d for resource id %d",
+                                rpt->ResourceEntity.Entry[0].EntityType,
+				rpt->ResourceId);
                         return (SA_ERR_HPI_INTERNAL_ERROR);
         }
 
@@ -537,7 +561,10 @@ static SaErrorT ov_rest_get_uid_cntrl(struct oh_handler_state *oh_handler,
 			*control_state = SAHPI_CTRL_STATE_OFF;
 			break;
 		default:
-			err("Invalid uid status");
+			err("Invalid uid status %d for Resource Type %d "
+				"of id %d", uid_status,
+				rpt->ResourceEntity.Entry[0].EntityType,
+				rpt->ResourceId);
 			return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 	return SA_OK;
@@ -583,14 +610,16 @@ static SaErrorT ov_rest_set_uid_cntrl(struct oh_handler_state *oh_handler,
 	 */
         rv = lock_ov_rest_handler(ov_handler);
         if (rv != SA_OK) {
-                err("OV REST handler is locked");
+                err("OV REST handler is locked while calling __func__ "
+			"for resource id %d", rpt->ResourceId);
                 return rv;
         }
 
 	/* Return error if the control state is PULSE_ON or PULSE_OFF */
 	if ((control_state == SAHPI_CTRL_STATE_PULSE_ON) ||
 	    (control_state == SAHPI_CTRL_STATE_PULSE_OFF)) {
-		err("Setting the control state to PULSE ON/OFF not supported");
+		err("Setting the control state to PULSE ON/OFF not supported "
+			"for resource id %d", rpt->ResourceId);
 		return SA_ERR_HPI_INVALID_DATA;
 	}
 
@@ -609,7 +638,8 @@ static SaErrorT ov_rest_set_uid_cntrl(struct oh_handler_state *oh_handler,
                 case (SAHPI_ENT_SYSTEM_CHASSIS):
 			rv = rest_patch_request (conn, &response, postField);
                         if (rv != SA_OK) {
-                                err("Set enclosure UID failed");
+                                err("Set enclosure UID failed for resource "
+					"id %d", rpt->ResourceId);
                                 return SA_ERR_HPI_INTERNAL_ERROR;
                         }
                         break;
@@ -618,19 +648,23 @@ static SaErrorT ov_rest_set_uid_cntrl(struct oh_handler_state *oh_handler,
                 case (SAHPI_ENT_DISK_BLADE):
 			rv = rest_patch_request (conn, &response, postField);
                         if (rv != SA_OK) {
-                                err("Set Blade UID failed");
+                                err("Set Blade UID failed for resource id %d",
+							rpt->ResourceId);
                                 return SA_ERR_HPI_INTERNAL_ERROR;
                         }
                         break;
                 case (SAHPI_ENT_SWITCH_BLADE):
 			rv = rest_patch_request (conn, &response, postField);
                         if (rv != SA_OK) {
-                                err("Set Interconnect UID failed");
+                                err("Set Interconnect UID failed for resource"
+					" id %d", rpt->ResourceId);
                                 return SA_ERR_HPI_INTERNAL_ERROR;
                         }
                         break;
                 default:
-                        err("Invalid Resource Type");
+                        err("Invalid Resource Type %d for resource id %d",
+                              rpt->ResourceEntity.Entry[0].EntityType,
+				rpt->ResourceId);
                         return (SA_ERR_HPI_INTERNAL_ERROR);
         }
         return SA_OK;
@@ -669,7 +703,8 @@ static SaErrorT ov_rest_get_pwr_cntrl(struct oh_handler_state *oh_handler,
 	rv = ov_rest_get_power_state(oh_handler, resource_id,
 				     &power_state);
 	if (rv != SA_OK) {
-		err("Failed to get the power state RDR");
+		err("Failed to get the power state RDR for resource id %d",
+                                         resource_id);
 		return rv;
 	}
 
@@ -722,7 +757,8 @@ static SaErrorT ov_rest_set_pwr_cntrl(struct oh_handler_state *oh_handler,
 	/* Return error if the control state is PULSE_ON or PULSE_OFF */
 	if ((control_state == SAHPI_CTRL_STATE_PULSE_ON) ||
 	    (control_state == SAHPI_CTRL_STATE_PULSE_OFF)) {
-		err("Setting the control state to PULSE ON/OFF not supported");
+		err("Setting the control state to PULSE ON/OFF not supported"
+			" for resource id %d", resource_id);
 		return SA_ERR_HPI_INVALID_DATA;
 	}
 
@@ -735,7 +771,8 @@ static SaErrorT ov_rest_set_pwr_cntrl(struct oh_handler_state *oh_handler,
 	rv = ov_rest_set_power_state(oh_handler, resource_id,
 				     power_state);
 	if (rv != SA_OK) {
-		err("Failed to set the power state of resource");
+		err("Failed to set the power state of resource id %d",
+                                                      resource_id);
 		return rv;
 	}
 	return SA_OK;

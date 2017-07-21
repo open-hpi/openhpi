@@ -90,7 +90,7 @@ SaErrorT add_inserted_fan(struct oh_handler_state *handler,
                         struct enclosureStatus *enclosure,
                         struct fanInfo *result);
 SaErrorT remove_fan(struct oh_handler_state *handler,
-                struct enclosureStatus *enclsoure,
+                struct enclosureStatus *enclosure,
                 SaHpiInt32T bay_number);
 /*
 SaErrorT update_server_hotswap_state(struct oh_handler_state *oh_handler,

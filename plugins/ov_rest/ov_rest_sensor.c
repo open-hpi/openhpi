@@ -143,19 +143,20 @@ SaErrorT ov_rest_get_sensor_reading(void *oh_handler,
         ov_handler = (struct ov_rest_handler *) handler->data;
         rv = lock_ov_rest_handler(ov_handler);
         if (rv != SA_OK) {
-                err("OV REST handler is locked");
+                err("OV REST handler is locked while calling __func__ "
+			"for resource id %d", resource_id);
                 return rv;
         }
 
         rpt = oh_get_resource_by_id(handler->rptcache, resource_id);
         if (rpt == NULL) {
-                err("INVALID RESOURCE for %d resource id", resource_id);
+                err("RPT is NULL for %d resource id", resource_id);
                 return SA_ERR_HPI_INVALID_RESOURCE;
         }
 
         if (! (rpt->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
-                err("INVALID RESOURCE CAPABILITY %x",
-                                          rpt->ResourceCapabilities);
+                err("No SENSOR Capability %x for resource id %d",
+                                     rpt->ResourceCapabilities, resource_id);
                 return SA_ERR_HPI_CAPABILITY;
         }
 
@@ -165,7 +166,8 @@ SaErrorT ov_rest_get_sensor_reading(void *oh_handler,
                                  SAHPI_SENSOR_RDR,
                                  rdr_num);
         if (rdr == NULL) {
-                err("RDR not present for %d rdr number", rdr_num);
+                err("RDR not present for rdr number %d for resource id %d",
+					rdr_num, resource_id);
                 return SA_ERR_HPI_NOT_PRESENT;
         }
 
@@ -253,11 +255,12 @@ SaErrorT ov_rest_get_sensor_thresholds(void *oh_handler,
         handler = (struct oh_handler_state *) oh_handler;
         rpt = oh_get_resource_by_id(handler->rptcache, resource_id);
         if (rpt == NULL) {
-                err("INVALID RESOURCE");
+                err("RPT is NULL for resource id %d", resource_id);
                 return SA_ERR_HPI_INVALID_RESOURCE;
         }
         if (! (rpt->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
-                err("INVALID RESOURCE CAPABILITY");
+                err("No SENSOR Capability for resource id %d",
+							resource_id);
                 return SA_ERR_HPI_CAPABILITY;
         }
 
@@ -267,7 +270,8 @@ SaErrorT ov_rest_get_sensor_thresholds(void *oh_handler,
                                  SAHPI_SENSOR_RDR,
                                  rdr_num);
         if (rdr == NULL) {
-                err("RDR not present");
+                err("Sensor RDR %d not present for resource id %d",
+						rdr_num, resource_id);
                 return SA_ERR_HPI_NOT_PRESENT;
         }
 
@@ -275,7 +279,8 @@ SaErrorT ov_rest_get_sensor_thresholds(void *oh_handler,
         sensor_info = (struct ov_rest_sensor_info*)
                 oh_get_rdr_data(handler->rptcache, resource_id, rdr->RecordId);
         if (sensor_info == NULL) {
-                err("No sensor data. Sensor=%s", rdr->IdString.Data);
+                err("No sensor data. Sensor=%s, for resource id %d",
+					rdr->IdString.Data, resource_id);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
@@ -372,11 +377,12 @@ SaErrorT ov_rest_get_sensor_enable(void *oh_handler,
 
         rpt = oh_get_resource_by_id(handler->rptcache, resource_id);
         if (rpt == NULL) {
-                err("INVALID RESOURCE");
+                err("RPT is NULL for resource id %d", resource_id);
                 return SA_ERR_HPI_INVALID_RESOURCE;
         }
         if (! (rpt->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
-                err("INVALID RESOURCE CAPABILITY");
+                err("No SENSOR Capability for resource id %d",
+								resource_id);
                 return SA_ERR_HPI_CAPABILITY;
         }
 
@@ -386,7 +392,8 @@ SaErrorT ov_rest_get_sensor_enable(void *oh_handler,
                                  SAHPI_SENSOR_RDR,
                                  rdr_num);
         if (rdr == NULL) {
-                err("RDR not present");
+                err("Sensor RDR %d not present for resource id %d",
+						rdr_num, resource_id);
                 return SA_ERR_HPI_NOT_PRESENT;
         }
 
@@ -394,7 +401,8 @@ SaErrorT ov_rest_get_sensor_enable(void *oh_handler,
         sensor_info = (struct ov_rest_sensor_info*)
                 oh_get_rdr_data(handler->rptcache, resource_id, rdr->RecordId);
         if (sensor_info == NULL) {
-                err("No sensor data. Sensor=%s", rdr->IdString.Data);
+                err("No sensor data. Sensor=%s for resource id %d",
+				rdr->IdString.Data, resource_id);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
@@ -455,12 +463,13 @@ SaErrorT ov_rest_set_sensor_enable(void *oh_handler,
         handler = (struct oh_handler_state *) oh_handler;
         rpt = oh_get_resource_by_id(handler->rptcache, resource_id);
         if (rpt == NULL) {
-                err("INVALID RESOURCE");
+                err("RPT is NULL for resource id %d", resource_id);
                 return SA_ERR_HPI_INVALID_RESOURCE;
         }
 
         if (! (rpt->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
-                err("INVALID RESOURCE CAPABILITY");
+                err("No SENSOR Capability for resource id %d",
+							resource_id);
                 return SA_ERR_HPI_CAPABILITY;
         }
 
@@ -470,7 +479,8 @@ SaErrorT ov_rest_set_sensor_enable(void *oh_handler,
                                  SAHPI_SENSOR_RDR,
                                  rdr_num);
         if (rdr == NULL) {
-                err("RDR not present");
+                err("Sensor RDR %d not present for resource id %d",
+						rdr_num, resource_id);
                 return SA_ERR_HPI_NOT_PRESENT;
         }
 
@@ -482,7 +492,8 @@ SaErrorT ov_rest_set_sensor_enable(void *oh_handler,
                         oh_get_rdr_data(handler->rptcache, resource_id,
                                         rdr->RecordId);
                 if (sensor_info == NULL) {
-                        err("No sensor data. Sensor=%s", rdr->IdString.Data);
+                        err("No sensor data. Sensor=%s for resource id %d",
+					rdr->IdString.Data, resource_id);
                         return SA_ERR_HPI_INTERNAL_ERROR;
                 }
 
@@ -496,12 +507,14 @@ SaErrorT ov_rest_set_sensor_enable(void *oh_handler,
                                                            rpt, rdr,
                                                            sensor_info);
                         if (rv != SA_OK) {
-                                err("Event generation failed");
+                                err("Event generation failed for resource "
+					"id %d", resource_id);
                                 return rv;
                         }
                 }
         } else {
-                err("Sensor does not support changing the enable status");
+                err("Sensor %s does not support changing the enable status"
+			" for resource id %d", rdr->IdString.Data, resource_id);
                 return SA_ERR_HPI_READ_ONLY;
         }
         return SA_OK;
@@ -552,11 +565,12 @@ SaErrorT ov_rest_get_sensor_event_enable(void *oh_handler,
 
         rpt = oh_get_resource_by_id(handler->rptcache, resource_id);
         if (rpt == NULL) {
-                err("INVALID RESOURCE");
+                err("RPT is NULL for resource id %d", resource_id);
                 return SA_ERR_HPI_INVALID_RESOURCE;
         }
         if (! (rpt->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
-                err("INVALID RESOURCE CAPABILITY");
+                err("No SENSOR Capability for resource id %d",
+							resource_id);
                 return SA_ERR_HPI_CAPABILITY;
         }
 
@@ -566,7 +580,8 @@ SaErrorT ov_rest_get_sensor_event_enable(void *oh_handler,
                                  SAHPI_SENSOR_RDR,
                                  rdr_num);
         if (rdr == NULL) {
-                err("RDR not present");
+                err("Sensor RDR %d not present for resource id %d",
+						rdr_num, resource_id);
                 return SA_ERR_HPI_NOT_PRESENT;
         }
 
@@ -574,7 +589,8 @@ SaErrorT ov_rest_get_sensor_event_enable(void *oh_handler,
         sensor_info = (struct ov_rest_sensor_info*)
                 oh_get_rdr_data(handler->rptcache, resource_id, rdr->RecordId);
         if (sensor_info == NULL) {
-                err("No sensor data. Sensor=%s", rdr->IdString.Data);
+                err("No sensor data. Sensor=%s for resource id %d",
+					rdr->IdString.Data, resource_id);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
@@ -633,11 +649,12 @@ SaErrorT ov_rest_set_sensor_event_enable(void *oh_handler,
 
         rpt = oh_get_resource_by_id(handler->rptcache, resource_id);
         if (rpt == NULL) {
-                err("INVALID RESOURCE");
+                err("RPT is NULL for resource id %d", resource_id);
                 return SA_ERR_HPI_INVALID_RESOURCE;
         }
         if (! (rpt->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
-                err("INVALID RESOURCE CAPABILITY");
+                err("No SENSOR Capability for resource id %d",
+							resource_id);
                 return SA_ERR_HPI_CAPABILITY;
         }
 
@@ -647,12 +664,14 @@ SaErrorT ov_rest_set_sensor_event_enable(void *oh_handler,
                                  SAHPI_SENSOR_RDR,
                                  rdr_num);
         if (rdr == NULL) {
-                err("RDR not present");
+                err("Sensor RDR %d not present for resource id %d",
+						rdr_num, resource_id);
                 return SA_ERR_HPI_NOT_PRESENT;
         }
 
         if (rdr->RdrTypeUnion.SensorRec.EventCtrl == SAHPI_SEC_READ_ONLY) {
-                err("Sensor does not support changing event enable status");
+                err("Sensor %s does not support changing event enable status "
+			"for resource id %d", rdr->IdString.Data, resource_id);
                 return SA_ERR_HPI_READ_ONLY;
         }
 
@@ -660,7 +679,8 @@ SaErrorT ov_rest_set_sensor_event_enable(void *oh_handler,
         sensor_info = (struct ov_rest_sensor_info*)
                 oh_get_rdr_data(handler->rptcache, resource_id, rdr->RecordId);
         if (sensor_info == NULL) {
-                err("No sensor data. Sensor=%s", rdr->IdString.Data);
+                err("No sensor data. Sensor=%s for resource id %d",
+				rdr->IdString.Data, resource_id);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
         if (sensor_info->event_enable != enable) {
@@ -672,7 +692,8 @@ SaErrorT ov_rest_set_sensor_event_enable(void *oh_handler,
                 rv =  generate_sensor_enable_event(oh_handler, rdr_num,
                                                    rpt, rdr, sensor_info);
                 if (rv != SA_OK) {
-                        err("Event generation failed");
+                        err("Event generation failed for resource id %d",
+								resource_id);
                         return rv;
                 }
         }
@@ -726,11 +747,12 @@ SaErrorT ov_rest_get_sensor_event_masks(void *oh_handler,
 
         rpt = oh_get_resource_by_id(handler->rptcache, resource_id);
         if (rpt == NULL) {
-                err("INVALID RESOURCE");
+                err("RPT is NULL for resource id %d", resource_id);
                 return SA_ERR_HPI_INVALID_RESOURCE;
         }
         if (! (rpt->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
-                err("INVALID RESOURCE CAPABILITY");
+                err("No SENSOR Capability for resource id %d",
+							resource_id);
                 return SA_ERR_HPI_CAPABILITY;
         }
 
@@ -740,14 +762,16 @@ SaErrorT ov_rest_get_sensor_event_masks(void *oh_handler,
                                  SAHPI_SENSOR_RDR,
                                  rdr_num);
         if (rdr == NULL) {
-                err("RDR not present");
+                err("Sensor RDR %d not present for resource id %d",
+						rdr_num, resource_id);
                 return SA_ERR_HPI_NOT_PRESENT;
         }
         /* Retrieve sensor_info structure from the private area of rdr */
         sensor_info = (struct ov_rest_sensor_info*)
                 oh_get_rdr_data(handler->rptcache, resource_id, rdr->RecordId);
         if (sensor_info == NULL) {
-                err("No sensor data. Sensor=%s", rdr->IdString.Data);
+                err("No sensor data. Sensor=%s for resource id %d",
+					rdr->IdString.Data, resource_id);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
@@ -816,12 +840,12 @@ SaErrorT ov_rest_set_sensor_event_masks(void *oh_handler,
         }
 
         if ((assert == 0) && (deassert == 0)) {
-                err("Invalid masks");
+                err("Invalid masks for resource id %d", resource_id);
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
         if (oh_lookup_sensoreventmaskaction(action) == NULL) {
-                err("Invalid action");
+                err("Invalid action for resource id %d", resource_id);
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
@@ -829,11 +853,12 @@ SaErrorT ov_rest_set_sensor_event_masks(void *oh_handler,
 
         rpt = oh_get_resource_by_id(handler->rptcache, resource_id);
         if (rpt == NULL) {
-                err("INVALID RESOURCE");
+                err("RPT is NULL for resource id %d", resource_id);
                 return SA_ERR_HPI_INVALID_RESOURCE;
         }
         if (! (rpt->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
-                err("INVALID RESOURCE CAPABILITY");
+                err("No SENSOR Capability for resource id %d",
+							resource_id);
                 return SA_ERR_HPI_CAPABILITY;
         }
 
@@ -843,12 +868,14 @@ SaErrorT ov_rest_set_sensor_event_masks(void *oh_handler,
                                  SAHPI_SENSOR_RDR,
                                  rdr_num);
         if (rdr == NULL) {
-                err("RDR not present");
+                err("Sensor RDR %d not present for resource id %d",
+						rdr_num, resource_id);
                 return SA_ERR_HPI_NOT_PRESENT;
         }
 
         if (rdr->RdrTypeUnion.SensorRec.EventCtrl != SAHPI_SEC_PER_EVENT) {
-                err("Sensor do no support setting event masks");
+                err("Sensor %s do no support setting event masks for "
+			"resource id %d", rdr->IdString.Data, resource_id);
                 return SA_ERR_HPI_READ_ONLY;
         }
 
@@ -871,17 +898,21 @@ SaErrorT ov_rest_set_sensor_event_masks(void *oh_handler,
 					SAHPI_ES_REDUNDANCY_LOST;
 			break;
 		default :
-			err("Un-supported event category %d detected ",
-			     rdr->RdrTypeUnion.SensorRec.Category);
+			err("Un-supported event category %d detected  for "
+				"resource id %d",
+				rdr->RdrTypeUnion.SensorRec.Category,
+				resource_id);
 			return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 
 	if (assert !=0 && (assert & ~(check_mask))) {
-		err("Assert mask is not valid");
+		err("Assert mask is not valid for resource id %d",
+							resource_id);
 		return SA_ERR_HPI_INVALID_DATA;
 	}
 	if (deassert != 0 && (deassert & ~(check_mask))) {
-		err("Deassert mask is not valid");
+		err("Deassert mask is not valid for resource id %d",
+							resource_id);
 		return SA_ERR_HPI_INVALID_DATA;
 	}
 
@@ -889,7 +920,8 @@ SaErrorT ov_rest_set_sensor_event_masks(void *oh_handler,
 	sensor_info = (struct ov_rest_sensor_info*)
 		oh_get_rdr_data(handler->rptcache, resource_id, rdr->RecordId);
 	if (sensor_info == NULL) {
-		err("No sensor data. Sensor=%s", rdr->IdString.Data);
+		err("No sensor data. Sensor=%s for resource id %d",
+					rdr->IdString.Data, resource_id);
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 
@@ -930,7 +962,8 @@ SaErrorT ov_rest_set_sensor_event_masks(void *oh_handler,
 		rv =  generate_sensor_enable_event(oh_handler, rdr_num, rpt,
 						   rdr, sensor_info);
 		if (rv != SA_OK) {
-			err("Event generation failed");
+			err("Event generation failed for resource id %d",
+								resource_id);
 			return rv;
 		}
 	}
@@ -1053,7 +1086,7 @@ SaErrorT ov_rest_build_sen_rdr(struct oh_handler_state *oh_handler,
 	/* Get the rpt entry of the resource */
 	rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
 	if (rpt == NULL) {
-		err("resource RPT is NULL");
+		err("RPT is NULL for resource id %d", resource_id);
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 
@@ -1062,7 +1095,7 @@ SaErrorT ov_rest_build_sen_rdr(struct oh_handler_state *oh_handler,
 		 g_memdup(&(ov_rest_sen_arr[sensor_num].sensor_info),
 			  sizeof(struct ov_rest_sensor_info));
 	if (*sensor_info == NULL) {
-		err("ov_rest out of memory");
+		err("OV_REST out of memory for resource id %d", resource_id);
 		return SA_ERR_HPI_OUT_OF_MEMORY;
 	}
 
@@ -1114,7 +1147,8 @@ SaErrorT ov_rest_map_sen_val(struct ov_rest_sensor_info *sensor_info,
 
 	/* Check whether the sensor value is supported or not */
 	if (ov_rest_sen_val_map_arr[sensor_class][sensor_value] == -1) {
-		err("Not supported sensor value %d detected.", sensor_value);
+		err("Not supported sensor value %d detected for sensor_num %d",
+					sensor_value, sensor_num);
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 
@@ -1207,7 +1241,7 @@ static void ov_rest_gen_res_evt(struct oh_handler_state *oh_handler,
 	/* Update the RPT entry */
         rv = oh_add_resource(oh_handler->rptcache, rpt, hotswap_state, 0);
         if (rv != SA_OK) {
-                err("Adding resource failed");
+                err("Adding resource failed resource id %d", rpt->ResourceId);
                 return;
         }
 
@@ -1328,7 +1362,7 @@ SaErrorT ov_rest_proc_sen_evt(struct oh_handler_state *oh_handler,
         /* Get the rpt entry of the resource */
         rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
         if (rpt == NULL) {
-                err("resource RPT is NULL");
+                err("RPT is NULL for resource id %d", resource_id);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
@@ -1336,7 +1370,8 @@ SaErrorT ov_rest_proc_sen_evt(struct oh_handler_state *oh_handler,
         rdr = oh_get_rdr_by_type(oh_handler->rptcache, rpt->ResourceId,
                                  SAHPI_SENSOR_RDR, sensor_num);
         if (rdr == NULL) {
-                err("RDR not present");
+                err("Sensor RDR %d not present for resource id %d",
+						sensor_num, resource_id);
                 return SA_ERR_HPI_NOT_PRESENT;
         }
 
@@ -1345,7 +1380,8 @@ SaErrorT ov_rest_proc_sen_evt(struct oh_handler_state *oh_handler,
 		oh_get_rdr_data(oh_handler->rptcache, rpt->ResourceId,
 			        rdr->RecordId);
         if (sensor_info == NULL) {
-                err("No sensor data. Sensor=%s", rdr->IdString.Data);
+                err("No sensor data. Sensor=%s for resource id %d",
+				rdr->IdString.Data, resource_id);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
@@ -1356,7 +1392,9 @@ SaErrorT ov_rest_proc_sen_evt(struct oh_handler_state *oh_handler,
 			rv = ov_rest_map_sen_val(sensor_info, sensor_num,
 						 sensor_value, &sensor_status);
 			if (rv != SA_OK) {
-				err("Setting sensor value has failed");
+				err("Setting sensor value %d has failed"
+					" for resource id %d", sensor_value,
+							resource_id);
 				return rv;
 			}
 
@@ -1388,7 +1426,8 @@ SaErrorT ov_rest_proc_sen_evt(struct oh_handler_state *oh_handler,
 			}
 			break;
 		default:
-			err("No event support for specified class");
+			err("No event support for specified class %d for "
+				"resource id %d", sensor_class, resource_id);
 	}
 	return SA_OK;
 }
@@ -1536,7 +1575,8 @@ SaErrorT ov_rest_gen_res_event(struct oh_handler_state *oh_handler,
         rpt->ResourceSeverity = severity;
         rv = oh_add_resource(oh_handler->rptcache, rpt, NULL, 0);
         if (rv != SA_OK) {
-                err("Failed to update rpt for resource ID %d", rpt->ResourceId);
+                err("Failed to update rpt for resource ID %d",
+						rpt->ResourceId);
                 return rv;
         }
 

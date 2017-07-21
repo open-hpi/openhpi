@@ -389,7 +389,8 @@ SaErrorT process_active_and_locked_alerts(struct oh_handler_state *handler,
                         rpt = oh_get_resource_by_id(handler->rptcache,
                                         enclosure->enclosure_rid);
                         if (rpt == NULL) {
-                                err("Resource RPT is NULL for the Enclosure");
+                                err("Resource RPT is NULL for the Enclosure"
+					" id %d", enclosure->enclosure_rid);
                                 dbg("Skipping the event");
                                 wrap_free(enc_doc);
                                 continue;
@@ -402,7 +403,7 @@ SaErrorT process_active_and_locked_alerts(struct oh_handler_state *handler,
                         rv = ov_rest_getserverInfoArray(handler, &response,
                                       ov_handler->connection, server_doc);
                         if (rv != SA_OK || response.server_array == NULL) {
-                                CRIT("Failed to ov_rest_getserverInfoArray");
+                                CRIT("Failed to get Server Info Array");
                                 continue;
                         }
                         ov_rest_json_parse_server (response.server_array,
@@ -541,7 +542,8 @@ SaErrorT process_active_and_locked_alerts(struct oh_handler_state *handler,
                         if (rv != SA_OK ||
                                   int_response.interconnect_array == NULL) {
                                 CRIT("No response from"
-                                        " ov_rest_getinterconnectInfoArray");
+                                        " ov_rest_getinterconnectInfoArray "
+					" for interconnects");
                                 continue;
                         }
                         ov_rest_json_parse_interconnect(
@@ -723,7 +725,9 @@ SaErrorT oem_event_handler(struct oh_handler_state *handler,
                         rpt = oh_get_resource_by_id(handler->rptcache,
                                         enclosure->enclosure_rid);
                         if (rpt == NULL) {
-                                err("Resource RPT is NULL for the Enclosure");
+                                err("Resource RPT is NULL for the Enclosure"
+					" serial number %s is unavailable",
+						enc_result.serialNumber);
                                 dbg("Skipping the event");
                                 wrap_g_free(enc_doc);
                                 return SA_ERR_HPI_INTERNAL_ERROR;
@@ -878,7 +882,8 @@ SaErrorT oem_event_handler(struct oh_handler_state *handler,
                         if (rv !=SA_OK ||
                                 int_response.interconnect_array == NULL) {
                                 CRIT("No response from"
-                                        " ov_rest_getinterconnectInfoArray");
+                                        " ov_rest_getinterconnectInfoArray "
+					"for interconnects");
                                 return SA_ERR_HPI_INTERNAL_ERROR;
                         }
                         ov_rest_json_parse_interconnect(
@@ -1373,7 +1378,7 @@ SaErrorT ov_rest_scmb_listner(struct oh_handler_state *handler)
 	status = amqp_ssl_socket_set_key(socket, ov_handler->cert_t.fSslCert,
 			ov_handler->cert_t.fSslKey); 
 	if (status) {
-		err("setting client cert");
+		err("Error in setting client cert");
 		amqp_destroy_connection(conn);
 		return SA_ERR_HPI_ERROR;
 	}
@@ -1381,7 +1386,7 @@ SaErrorT ov_rest_scmb_listner(struct oh_handler_state *handler)
 	status = amqp_socket_open(socket, 
 			ov_handler->connection->hostname, AMQP_PORT); 
 	if (status) {
-		err("opening SSL/TLS connection");
+		err("Error in opening SSL/TLS connection");
 		amqp_destroy_connection(conn);
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
@@ -1447,7 +1452,7 @@ SaErrorT ov_rest_scmb_listner(struct oh_handler_state *handler)
 				}
 				continue;
 			default:
-				err("Unknown error");
+				err("Unknown AMQP response %d",res.reply_type);
 				break;
 		}
 

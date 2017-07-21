@@ -245,7 +245,7 @@ SaErrorT ov_rest_login(REST_CON *connection, char* postfields)
 	rv = ov_rest_curl_put_request(connection, chunk, curlHandle, 
 			postfields, &s);
 	if(rv != SA_OK){
-		CRIT("ov_rest_login failed");
+		CRIT("Failed to login to OV");
 		return rv;
 	}
 	jobj = ov_rest_wrap_json_object_object_get(s.jobj, "sessionID");
@@ -487,7 +487,7 @@ int rest_enum(const char *enums, const char *value)
         int             len = 0;
 
         if (! value) {                  /* Can't proceed without a string */
-                err("could not find enum (NULL value) in \"%s\"", enums);
+                err("Could not find enum (NULL value) in \"%s\"", enums);
                 return(-1);
         }
 

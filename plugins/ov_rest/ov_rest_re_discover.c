@@ -225,7 +225,7 @@ SaErrorT re_discover_appliance(struct oh_handler_state *oh_handler)
 	rv = ov_rest_getapplianceNodeInfo(oh_handler, &response,
 			ov_handler->connection, NULL);
 	if(rv != SA_OK || response.applianceVersion == NULL) {
-		CRIT("Failed to get the response from ov_rest_getappliance\n");
+		CRIT("Failed to get the response from ov_rest_getappliance");
 		return rv;
 	}
 	ov_rest_json_parse_appliance_version(response.applianceVersion,
@@ -237,7 +237,7 @@ SaErrorT re_discover_appliance(struct oh_handler_state *oh_handler)
 	rv = ov_rest_getapplianceHaNodeInfo(&ha_response,
 			ov_handler->connection);
 	if(rv != SA_OK) {
-		CRIT("Failed to get the response for Active HA Node \n");
+		CRIT("Failed to get the response for Active HA Node");
 		return rv;
 	}
 	ov_rest_json_parse_appliance_Ha_node(ha_response.haNode,
@@ -251,7 +251,9 @@ SaErrorT re_discover_appliance(struct oh_handler_state *oh_handler)
 		remove_composer(oh_handler);
 		rv = add_composer(oh_handler, &result, &ha_node_result);
 		if(rv != SA_OK){
-			err("Unable to add the newly added composer");
+			err("Unable to add the newly added composer of "
+				"serial number %s",
+				result.version.serialNumber);
 			return rv;
 		}
 	}
@@ -283,7 +285,8 @@ SaErrorT add_composer(struct oh_handler_state *handler,
 	rv = ov_rest_build_appliance_rpt(handler, ha_node_result,
 			&resource_id);
 	if (rv != SA_OK) {
-		err("build appliance rpt failed");
+		err("Build rpt failed for appliance of serial number %s",
+				result->version.serialNumber);
 		return rv;
 	}
 	ov_handler->ov_rest_resources.composer.resource_id = resource_id;
@@ -292,7 +295,8 @@ SaErrorT add_composer(struct oh_handler_state *handler,
 	rv = ov_rest_build_appliance_rdr(handler,
 			result, ha_node_result, resource_id);
 	if (rv != SA_OK) {
-		err("build appliance rdr failed");
+		err("Build rdr failed for appliance resource id %d",
+						resource_id);
 		return rv;
 	}
 	return SA_OK;
@@ -330,13 +334,13 @@ SaErrorT remove_composer(struct oh_handler_state *handler)
 	resource_id = ov_handler->ov_rest_resources.composer.resource_id; 
 	rpt = oh_get_resource_by_id(handler->rptcache, resource_id);
 	if (rpt == NULL) {
-		err("resource RPT is NULL");
+		err("RPT is NULL for composer resource id %d", resource_id);
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 	/* Free the inventory info from inventory RDR */
 	rv = ov_rest_free_inventory_info(handler, rpt->ResourceId);
 	if (rv != SA_OK) {
-		err("Inventory cleanup failed for resource id %d",
+		err("Inventory cleanup failed for composer resource id %d",
 				rpt->ResourceId);
 	}
 
@@ -456,7 +460,7 @@ SaErrorT re_discover_enclosure(struct oh_handler_state *oh_handler)
 		if(match == NULL){
 			rv =remove_enclosure(oh_handler, temp);
 			if(rv != SA_OK){
-				err("Unable to remove enclosure with " 
+				err("Unable to remove enclosure with "
 					"serial number: %s", 
 					temp->serialNumber);
 				return rv;
@@ -504,13 +508,13 @@ SaErrorT remove_enclosure(struct oh_handler_state *handler,
 	resource_id = enclosure->enclosure_rid;
 	rpt = oh_get_resource_by_id(handler->rptcache, resource_id);
 	if (rpt == NULL) {
-		err("resource RPT is NULL");
+		err("RPT is NULL for enclosure id %d", resource_id);
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 	/* Free the inventory info from inventory RDR */
 	rv = ov_rest_free_inventory_info(handler, rpt->ResourceId);
 	if (rv != SA_OK) {
-		err("Inventory cleanup failed for resource id %d",
+		err("Inventory cleanup failed for enclosure id %d",
 				rpt->ResourceId);
 	}
 	/* Add Code to remove all the resourece in this enclosure */
@@ -610,13 +614,15 @@ SaErrorT add_enclosure(struct oh_handler_state *handler,
 	ov_handler = (struct ov_rest_handler *)handler->data;
 	rv = ov_rest_build_enc_info(handler, result);
 	if (rv != SA_OK) {
-		err("build enclosure info failed");
+		err("Build enclosure info failed for resource"
+			" serial number %s", result->serialNumber);
 		return rv;
 	}
 	rv = ov_rest_build_enclosure_rpt(handler, result,
 			&resource_id);
 	if (rv != SA_OK) {
-		err("build enclosure rpt failed");
+		err("Build enclosure rpt failed for resource"
+                        " serial number %s", result->serialNumber);
 		return rv;
 	}
 	temp = ov_handler->ov_rest_resources.enclosure;
@@ -634,7 +640,8 @@ SaErrorT add_enclosure(struct oh_handler_state *handler,
 	rv = ov_rest_build_enclosure_rdr(handler,
 			result, resource_id);
 	if (rv != SA_OK) {
-		err("build enclosure rdr failed");
+		err("Build enclosure rdr failed for resource id %d",
+							resource_id);
 		return rv;
 	}
 
@@ -752,8 +759,8 @@ SaErrorT re_discover_server(struct oh_handler_state *oh_handler)
 				if(rv != SA_OK){
 					err("Unable to add the server blade "
 						"in enclosure serial: %s and "
-						"device bay: %d", 
-						enclosure->serialNumber, 
+						"device bay: %d",
+						enclosure->serialNumber,
 						info_result.bayNumber);
 				}
 
@@ -771,7 +778,7 @@ SaErrorT re_discover_server(struct oh_handler_state *oh_handler)
 				if(rv != SA_OK){
 					err("Unable to remove the server blade "
 						"in enclosure serial: %s and "
-						"device bay: %d", 
+						"device bay: %d",
 						enclosure->serialNumber, 
 						info_result.bayNumber);
 				}
@@ -782,8 +789,8 @@ SaErrorT re_discover_server(struct oh_handler_state *oh_handler)
 				if(rv != SA_OK){
 					err("Unable to add the server blade "
 						"in enclosure serial: %s and "
-						"device bay: %d", 
-						enclosure->serialNumber, 
+						"device bay: %d",
+						enclosure->serialNumber,
 						info_result.bayNumber);
 				}
 			}
@@ -804,8 +811,8 @@ SaErrorT re_discover_server(struct oh_handler_state *oh_handler)
 					if(rv != SA_OK){
 						err("Unable to remove the "
 						"server blade in enclosure "
-						"serial: %s and device bay: %d", 
-						enclosure->serialNumber, 
+						"serial: %s and device bay: %d",
+						enclosure->serialNumber,
 						info_result.bayNumber);
 					}
 				}
@@ -861,12 +868,13 @@ SaErrorT add_inserted_blade(struct oh_handler_state *handler,
 	rv = ov_rest_build_server_rdr(handler, resource_id,
 			info_result);
 	if (rv != SA_OK) {
-		err("build inserted server RDR failed");
+		err("Build RDR failed for inserted server id %d", resource_id);
 		/* Free the inventory info from inventory RDR */
 		rv = ov_rest_free_inventory_info(handler, resource_id);
 		if (rv != SA_OK) {
-			err("Inventory cleanup failed for resource id %d",
-					resource_id);
+			err("Inventory cleanup failed for server blade in bay "
+				" %d with resource id %d",
+				info_result->bayNumber, resource_id);
 		}
 		oh_remove_resource(handler->rptcache, resource_id);
 		/* reset resource_info structure to default values */
@@ -879,12 +887,13 @@ SaErrorT add_inserted_blade(struct oh_handler_state *handler,
 	rv = ov_rest_populate_event(handler, resource_id, &event,
 			&asserted_sensors);
 	if (rv != SA_OK) {
-		err("Populating event struct failed");
+		err("Populating event struct failed for server id %d",
+							resource_id);
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 	rpt = oh_get_resource_by_id (handler->rptcache, resource_id);
 	if (rpt == NULL) {
-		err("INVALID RESOURCE");
+		err("RPT is NULL for server is %d", resource_id);
 		return SA_ERR_HPI_INVALID_RESOURCE;
 	}
 
@@ -1026,8 +1035,8 @@ SaErrorT re_discover_drive_enclosure(struct oh_handler_state *oh_handler)
 					err("Unable to add the drive"
 							"Enclosure in enclosure"
 							" serial: %s and device"
-							" bay: %d", enclosure->
-							serialNumber, 
+							" bay: %d",
+							enclosure->serialNumber,
 							info_result.bayNumber);
 				}
 			}else if(strstr(enclosure->server.serialNumber
@@ -1044,19 +1053,19 @@ SaErrorT re_discover_drive_enclosure(struct oh_handler_state *oh_handler)
 					err("Unable to remove the drive"
 							"Enclosure in enclosure"
 							" serial: %s and device"
-							" bay: %d", 
-							enclosure->serialNumber, 
+							" bay: %d",
+							enclosure->serialNumber,
 							info_result.bayNumber);
 				}
 				rv = add_inserted_drive_enclosure(oh_handler,
 						&info_result, enclosure);
 				if(rv != SA_OK){
 					err("Unable to add the drive"
-							"Enclosure in enclosure"
-							" serial: %s and device"
-							" bay: %d", enclosure->
-							serialNumber, 
-							info_result.bayNumber);
+						"Enclosure in enclosure"
+						" serial: %s and device"
+						" bay: %d",
+						enclosure->serialNumber,
+						info_result.bayNumber);
 				}
 			}
 		}
@@ -1075,11 +1084,11 @@ SaErrorT re_discover_drive_enclosure(struct oh_handler_state *oh_handler)
 							enclosure, bay);
 					if(rv != SA_OK){
 						err("Unable to remove the drive"
-							"Enclosure in enclosure"
-							" serial: %s and device"
-							" bay: %d", enclosure->
-							serialNumber, 
-							info_result.bayNumber);
+						"Enclosure in enclosure"
+						" serial: %s and device"
+						" bay: %d",
+						enclosure-> serialNumber,
+						info_result.bayNumber);
 					}
 				}
 			}
@@ -1137,12 +1146,13 @@ SaErrorT add_inserted_drive_enclosure(struct oh_handler_state *handler,
 	rv = ov_rest_build_drive_enclosure_rdr(handler,
 			resource_id, info_result);
 	if (rv != SA_OK) {
-		err("build inserted Drive enclosure RDR failed");
+		err("Build RDR failed for Drive enclosure in bay %d",
+					info_result->bayNumber);
 		/* Free the inventory info from inventory RDR */
 		rv = ov_rest_free_inventory_info(handler, resource_id);
 		if (rv != SA_OK) {
-			err("Inventory cleanup failed for resource id %d",
-					resource_id);
+			err("Inventory cleanup failed for drive enclosure "
+					"id %d", resource_id);
 		}
 		oh_remove_resource(handler->rptcache, resource_id);
 		/* reset resource_info structure to default values */
@@ -1155,12 +1165,14 @@ SaErrorT add_inserted_drive_enclosure(struct oh_handler_state *handler,
 	rv = ov_rest_populate_event(handler, resource_id, &event,
 			&asserted_sensors);
 	if (rv != SA_OK) {
-		err("Populating event struct failed");
+		err("Populating event struct failed for drive enclosure id %d",
+							resource_id);
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 	rpt = oh_get_resource_by_id (handler->rptcache, resource_id);
 	if (rpt == NULL) {
-		err("INVALID RESOURCE");
+		err("RPT is NULL for drive enclosure in bay %d",
+						info_result->bayNumber);
 		return SA_ERR_HPI_INVALID_RESOURCE;
 	}
 
@@ -1255,7 +1267,7 @@ SaErrorT remove_drive_enclosure(struct oh_handler_state *handler,
 	resource_id = enclosure->server.resource_id[bay_number-1];
 	rpt = oh_get_resource_by_id(handler->rptcache, resource_id);
 	if(rpt == NULL){
-		err("resource RPT is NULL");
+		err("RPT is NULL for drive enclosure in bay %d", bay_number);
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 	/* Push the hotswap event below */
@@ -1274,7 +1286,8 @@ SaErrorT remove_drive_enclosure(struct oh_handler_state *handler,
 			oh_get_resource_data(handler->rptcache,
 					event.resource.ResourceId);
 		if (hotswap_state == NULL) {
-			err("Failed to get hotswap state of drive enclosure");
+			err("Failed to get hotswap state of drive enclosure"
+					" in bay %d", bay_number);
 			event.event.EventDataUnion.HotSwapEvent.
 				PreviousHotSwapState = SAHPI_HS_STATE_INACTIVE;
 		} else {
@@ -1306,7 +1319,7 @@ SaErrorT remove_drive_enclosure(struct oh_handler_state *handler,
 	/* Free the inventory info from inventory RDR */
 	rv = ov_rest_free_inventory_info(handler, rpt->ResourceId);
 	if (rv != SA_OK) {
-		err("Inventory cleanup failed for resource id %d",
+		err("Inventory cleanup failed for drive enclosure id %d",
 				rpt->ResourceId);
 	}
 	/* Remove the resource from plugin RPTable */
@@ -1365,7 +1378,8 @@ SaErrorT re_discover_interconnect(struct oh_handler_state *oh_handler)
 			ov_handler->connection, interconnect_doc);
 	if(rv != SA_OK || response.interconnect_array == NULL){
 		CRIT("Failed to get the response from "
-				"ov_rest_getinterconnectInfoArray");
+				"ov_rest_getinterconnectInfoArray "
+				"for interconnects");
 
 		return SA_OK;
 	}
@@ -1444,8 +1458,8 @@ SaErrorT re_discover_interconnect(struct oh_handler_state *oh_handler)
 						err("Unable to add the inter"
 							"connect in enclosure"
 							" serial: %s and device"
-							" bay: %d", enclosure->
-							serialNumber, 
+							" bay: %d",
+							enclosure->serialNumber,
 							result.bayNumber);
 					}
 				}else if(strstr(enclosure->interconnect.
@@ -1463,8 +1477,8 @@ SaErrorT re_discover_interconnect(struct oh_handler_state *oh_handler)
 						err("Unable to remove the inter"
 							"connect in enclosure"
 							" serial: %s and device"
-							" bay: %d", enclosure->
-							serialNumber, 
+							" bay: %d",
+							enclosure->serialNumber,
 							result.bayNumber);
 					}
 					rv = add_inserted_interconnect(
@@ -1474,8 +1488,8 @@ SaErrorT re_discover_interconnect(struct oh_handler_state *oh_handler)
 						err("Unable to add the inter"
 							"connect in enclosure"
 							" serial: %s and device"
-							" bay: %d", enclosure->
-							serialNumber, 
+							" bay: %d",
+							enclosure->serialNumber,
 							result.bayNumber);
 					}
 				}
@@ -1494,7 +1508,8 @@ SaErrorT re_discover_interconnect(struct oh_handler_state *oh_handler)
 					interconnect_doc);
 			if(rv != SA_OK || response.interconnect_array == NULL){
 				CRIT("Failed to get the response from "
-					"ov_rest_getinterconnectInfoArray");
+					"ov_rest_getinterconnectInfoArray"
+					" for interconnects");
 
 				return SA_OK;
 			}
@@ -1531,8 +1546,9 @@ SaErrorT re_discover_interconnect(struct oh_handler_state *oh_handler)
 						err("Unable to remove the drive"
 							"Enclosure in enclosure"
 							" serial: %s and device"
-							" bay: %d", enclosure->
-							serialNumber, bay);
+							" bay: %d",
+							enclosure->serialNumber,
+							bay);
 					}
 				}
 			}
@@ -1583,11 +1599,12 @@ SaErrorT add_inserted_interconnect(struct oh_handler_state *handler,
 	/* Build rdr entry for interconnect */
 	rv = ov_rest_build_interconnect_rdr(handler, resource_id, result);
 	if (rv != SA_OK) {
-		err("Failed to build interconnect inventory RDR");
+		err("Failed to build inventory RDR for interconnect in bay %d",
+						result->bayNumber);
 		/* Free the inventory info from inventory RDR */
 		rv = ov_rest_free_inventory_info(handler, resource_id);
 		if (rv != SA_OK) {
-			err("Inventory cleanup failed for resource id %d",
+			err("Inventory cleanup failed for interconnect id %d",
 					resource_id);
 		}
 		oh_remove_resource(handler->rptcache, resource_id);
@@ -1602,7 +1619,8 @@ SaErrorT add_inserted_interconnect(struct oh_handler_state *handler,
 	rv = ov_rest_populate_event(handler, resource_id, &event,
 			&asserted_sensors);
 	if (rv != SA_OK) {
-		err("Populating event struct failed");
+		err("Populating event struct failed for interconnect in "
+					"bay %d", result->bayNumber);
 		return rv;
 	}
 	/* Raise the hotswap event for the inserted interconnect blade */
@@ -1686,7 +1704,8 @@ SaErrorT re_discover_sas_interconnect(struct oh_handler_state *oh_handler)
 			ov_handler->connection, interconnect_doc);
 	if(rv != SA_OK || response.interconnect_array == NULL){
 		CRIT("Failed to get the response from "
-				"ov_rest_getinterconnectInfoArray");
+				"ov_rest_getinterconnectInfoArray "
+				" for SAS interconnects");
 
 		return SA_OK;
 	}
@@ -1765,8 +1784,8 @@ SaErrorT re_discover_sas_interconnect(struct oh_handler_state *oh_handler)
 						err("Unable to add the sas"
 						"-interconnect in enclosure"
 						" serial: %s and device"
-						" bay: %d", enclosure->
-						serialNumber, 
+						" bay: %d",
+						enclosure->serialNumber,
 						result.bayNumber);
 					}
 				}else if(strstr(enclosure->interconnect.
@@ -1784,8 +1803,8 @@ SaErrorT re_discover_sas_interconnect(struct oh_handler_state *oh_handler)
 						err("Unable to remove the sas"
 						"-interconnect in enclosure"
 						" serial: %s and device"
-						" bay: %d", enclosure->
-						serialNumber, 
+						" bay: %d",
+						enclosure->serialNumber,
 						result.bayNumber);
 					}
 					rv = add_inserted_interconnect(
@@ -1796,8 +1815,8 @@ SaErrorT re_discover_sas_interconnect(struct oh_handler_state *oh_handler)
 						err("Unable to add the sas"
 						"-interconnect in enclosure"
 						" serial: %s and device"
-						" bay: %d", enclosure->
-						serialNumber, 
+						" bay: %d",
+						enclosure->serialNumber,
 						result.bayNumber);
 					}
 				}
@@ -1815,7 +1834,8 @@ SaErrorT re_discover_sas_interconnect(struct oh_handler_state *oh_handler)
 					interconnect_doc);
 			if(rv != SA_OK || response.interconnect_array == NULL){
 				CRIT("Failed to get the response from "
-					"ov_rest_getinterconnectInfoArray");
+					"ov_rest_getinterconnectInfoArray "
+					"SAS interconnects");
 				return SA_OK;
 			}
 
@@ -1850,8 +1870,8 @@ SaErrorT re_discover_sas_interconnect(struct oh_handler_state *oh_handler)
 						err("Unable to remove the sas"
 						"-interconnect in enclosure"
 						" serial: %s and device"
-						" bay: %d", enclosure->
-						serialNumber, bay);
+						" bay: %d",
+						enclosure->serialNumber, bay);
 					}
 				}
 			}
@@ -1969,8 +1989,8 @@ SaErrorT re_discover_powersupply(struct oh_handler_state *oh_handler)
 						err("Unable to remove the power"
 							"supply in enclosure"
 							" serial: %s and device"
-							" bay: %d", enclosure->
-							serialNumber, 
+							" bay: %d",
+							enclosure->serialNumber,
 							result.bayNumber);
 					}
 					rv = add_inserted_powersupply(
@@ -1979,8 +1999,8 @@ SaErrorT re_discover_powersupply(struct oh_handler_state *oh_handler)
 						err("Unable to remove the power"
 							"supply in enclosure"
 							" serial: %s and device"
-							" bay: %d", enclosure->
-							serialNumber,
+							" bay: %d",
+							enclosure->serialNumber,
 							result.bayNumber);
 					}
 				}
@@ -1996,8 +2016,8 @@ SaErrorT re_discover_powersupply(struct oh_handler_state *oh_handler)
 						err("Unable to remove the power"
 							" supply in enclosure"
 							" serial: %s and device"
-							" bay: %d", enclosure->
-							serialNumber,
+							" bay: %d",
+							enclosure->serialNumber,
 							result.bayNumber);
 					}
 				}
@@ -2056,11 +2076,12 @@ SaErrorT add_inserted_powersupply(struct oh_handler_state *handler,
 	/* Build rdr entry for server */
 	rv = ov_rest_build_powersupply_rdr(handler, resource_id, result);
 	if (rv != SA_OK) {
-		err("build power supply RDR failed");
+		err("Build RDR failed for power supply in bay %d",
+						result->bayNumber);
 		/* Free the inventory info from inventory RDR */
 		rv = ov_rest_free_inventory_info(handler, resource_id);
 		if (rv != SA_OK) {
-			err("Inventory cleanup failed for resource id %d",
+			err("Inventory cleanup failed for powersupply id %d",
 					resource_id);
 		}
 		oh_remove_resource(handler->rptcache, resource_id);
@@ -2075,7 +2096,8 @@ SaErrorT add_inserted_powersupply(struct oh_handler_state *handler,
 	rv = ov_rest_populate_event(handler, resource_id, &event,
 			&asserted_sensors);
 	if (rv != SA_OK) {
-		err("Populating event struct failed");
+		err("Populating event struct failed for powersupply in bay %d",
+						result->bayNumber);
 		return rv;
 	}
 
@@ -2128,8 +2150,8 @@ SaErrorT remove_powersupply(struct oh_handler_state *handler,
 	resource_id = enclosure->ps_unit.resource_id[bay_number-1];
 	rpt = oh_get_resource_by_id(handler->rptcache, resource_id);
 	if(rpt == NULL){
-		err("resource RPT is NULL for the powersupply resource ID %d",
-				resource_id);
+		err("RPT is NULL for the powersupply in bay %d with "
+			"resource ID %d", bay_number, resource_id);
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 	ov_rest_update_hs_event(handler, &event);
@@ -2152,7 +2174,7 @@ SaErrorT remove_powersupply(struct oh_handler_state *handler,
 	/* Free the inventory info from inventory RDR */
 	rv = ov_rest_free_inventory_info(handler, resource_id);
 	if (rv != SA_OK) {
-		err("Inventory cleanup failed for resource id %d",
+		err("Inventory cleanup failed for powersupply id %d",
 				resource_id);
 	}
 	/* Remove the resource from plugin RPTable */
@@ -2275,8 +2297,7 @@ SaErrorT re_discover_fan(struct oh_handler_state *oh_handler)
 						err("Unable to remove the fan"
 							" in enclosure serial: "
 							"%s and fan bay: %d",
-							enclosure->
-							serialNumber, 
+							enclosure->serialNumber,
 							result.bayNumber);
 					}
 					rv = ov_rest_add_fan(oh_handler, 
@@ -2285,8 +2306,7 @@ SaErrorT re_discover_fan(struct oh_handler_state *oh_handler)
 						err("Unable to add the fan"
 							" in enclosure serial: "
 							"%s and fan bay: %d",
-							enclosure->
-							serialNumber, 
+							enclosure->serialNumber,
 							result.bayNumber);
 					}
 				}
@@ -2301,8 +2321,7 @@ SaErrorT re_discover_fan(struct oh_handler_state *oh_handler)
 						err("Unable to remove the fan"
 							" in enclosure serial: "
 							"%s and fan bay: %d",
-							enclosure->
-							serialNumber, 
+							enclosure->serialNumber,
 							result.bayNumber);
 					}
 				}
