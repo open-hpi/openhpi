@@ -85,7 +85,8 @@ SaErrorT ov_rest_proc_composer_status(struct oh_handler_state *oh_handler,
 		return rv;
 	}
 	if(!enclosure_response.enclosure){
-		err("No Response for enclosure status call");
+		err("No Response for enclosure status call for composer in "
+							"bay %d", bayNumber);
 		return SA_ERR_HPI_INVALID_DATA;
 	}
 	appliance_array = ov_rest_wrap_json_object_object_get(
@@ -93,20 +94,20 @@ SaErrorT ov_rest_proc_composer_status(struct oh_handler_state *oh_handler,
 					"applianceBays");
 	if(!appliance_array ||
 		(json_object_get_type(appliance_array) != json_type_array)){
-		err("Invalid Response for appliance bay %d",bayNumber);
+		err("Invalid Response for appliance bay %d", bayNumber);
 		ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
 		return SA_ERR_HPI_INVALID_DATA;
 	}
 	jvalue = json_object_array_get_idx(appliance_array, bayNumber-1);
 	if(!jvalue){
-		err("Invalid Response for appliance bay %d",bayNumber);
+		err("Invalid Response for appliance bay %d", bayNumber);
 		ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
 		return SA_ERR_HPI_INVALID_DATA;
 	}
 	ov_rest_json_parse_applianceInfo(jvalue, &appliance);
 	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
 	if(!appliance.serialNumber){
-		err("No serial number at appliance bay %d",bayNumber);
+		err("No serial number at appliance bay %d", bayNumber);
 		return SA_ERR_HPI_INVALID_DATA;
 	}
 	if(strcmp(appliance.serialNumber, composer->serialNumber)){
@@ -119,8 +120,8 @@ SaErrorT ov_rest_proc_composer_status(struct oh_handler_state *oh_handler,
 	rpt = oh_get_resource_by_id(oh_handler->rptcache,
 			composer->resource_id);
 	if (rpt == NULL) {
-		err("resource RPT is NULL for composure rid %d",
-				composer->resource_id);
+		err("RPT is NULL for composer in bay %d with resource id %d",
+					bayNumber, composer->resource_id);
 		wrap_g_free(enclosure_doc);
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
@@ -151,7 +152,8 @@ SaErrorT ov_rest_proc_composer_status(struct oh_handler_state *oh_handler,
 				ResourceEventType = SAHPI_RESE_RESOURCE_FAILURE;
 			break;
 		default:
-			err("Unknown Composer status %d ", composer_health);
+			err("Unknown status %d for Composer in bay %d",
+						composer_health, bayNumber);
 			wrap_g_free(enclosure_doc);
 			return SA_ERR_HPI_INTERNAL_ERROR;
 	}
@@ -165,7 +167,8 @@ SaErrorT ov_rest_proc_composer_status(struct oh_handler_state *oh_handler,
 	rpt->ResourceSeverity = severity;
 	rv = oh_add_resource(oh_handler->rptcache, rpt, NULL, 0);
 	if (rv != SA_OK) {
-		err("Failed to update Composer rpt");
+		err("Failed to update rpt for composer in bay %d with "
+			" resource id %d", bayNumber, composer->resource_id);
 		wrap_g_free(enclosure_doc);
 		return rv;
 	}

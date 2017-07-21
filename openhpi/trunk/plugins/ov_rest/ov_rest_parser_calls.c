@@ -302,7 +302,7 @@ int ov_rest_trim_alert_string(const char* alert, struct eventInfo *evtinfo)
 	}
 		
 	if (strlen(alert) >= 255 ) {
-		err("alert %s is too long %d",alert, (int)strlen(alert));
+		err("Alert %s is too long %d",alert, (int)strlen(alert));
 		strncpy(dest, alert, 255);
 		dest[255] = '\0';
 	} else
@@ -548,8 +548,8 @@ void ov_rest_json_parse_interconnect( json_object *jvalue,
 			/* Checking for json object type, if it is not array, return */
 			if (bayLocation == NULL || (json_object_get_type(bayLocation)
 					 != json_type_array)) {
-				CRIT("bayLocation is NULL OR no interconnect "
-					"location array.");
+				CRIT("The bayLocation is NULL OR no "
+					"interconnect location array.");
 				return;
 			}
 			arraylen = json_object_array_length(bayLocation);

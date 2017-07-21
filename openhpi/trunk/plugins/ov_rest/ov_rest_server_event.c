@@ -142,7 +142,8 @@ SaErrorT process_server_power_on_event(struct oh_handler_state *oh_handler,
 		enclosure = enclosure->next;
 	}
 	if(enclosure == NULL){
-		CRIT("Enclosure data of the server is unavailable");
+		CRIT("Enclosure data of the server in bay %d is unavailable",
+			info_result.bayNumber);
 		wrap_g_free(enclosure_doc);
 		wrap_g_free(server_doc);
 		return SA_ERR_HPI_INVALID_RESOURCE;
@@ -151,8 +152,8 @@ SaErrorT process_server_power_on_event(struct oh_handler_state *oh_handler,
 	rpt = oh_get_resource_by_id(oh_handler->rptcache, 
 		enclosure->server.resource_id[info_result.bayNumber - 1]);
 	if (rpt == NULL) {
-		err("resource RPT is NULL for server blade in bay %d," 
-				"in enclosure rid %d", info_result.bayNumber, 
+		err("RPT is NULL for server blade in bay %d," 
+				"in enclosure rid %d", info_result.bayNumber,
 						enclosure->enclosure_rid);
 		wrap_g_free(enclosure_doc);
 		wrap_g_free(server_doc);
@@ -166,7 +167,7 @@ SaErrorT process_server_power_on_event(struct oh_handler_state *oh_handler,
 	if (hotswap_state == NULL)
 	{
 		err ("Failed to get hotswap state of server blade in bay %d, "
-				"in enclosure rid %d", info_result.bayNumber, 
+				"in enclosure rid %d", info_result.bayNumber,
 						enclosure->enclosure_rid);
 		wrap_g_free(enclosure_doc);
 		wrap_g_free(server_doc);
@@ -321,7 +322,8 @@ SaErrorT process_server_power_off_event(struct oh_handler_state *oh_handler,
 		enclosure = enclosure->next;
 	}
 	if(enclosure == NULL){
-		CRIT("Enclosure data of the server is unavailable");
+		CRIT("Enclosure data of the server in bay %d is unavailable",
+			info_result.bayNumber);
 		wrap_g_free(enclosure_doc);
 		wrap_g_free(server_doc);
 		return SA_ERR_HPI_INVALID_RESOURCE;
@@ -334,7 +336,7 @@ SaErrorT process_server_power_off_event(struct oh_handler_state *oh_handler,
 	if (hotswap_state == NULL)
 	{
 		err ("Failed to get hotswap state of server blade in bay %d, "
-				"in enclosure rid %d", info_result.bayNumber, 
+				"in enclosure rid %d", info_result.bayNumber,
 						enclosure->enclosure_rid);
 		wrap_g_free(enclosure_doc);
 		wrap_g_free(server_doc);
@@ -345,7 +347,7 @@ SaErrorT process_server_power_off_event(struct oh_handler_state *oh_handler,
 			enclosure->
 			server.resource_id[info_result.bayNumber - 1]);
 	if (rpt == NULL) {
-		err("resource RPT is NULL");
+		err("RPT is NULL for server in bay %d", info_result.bayNumber);
 		wrap_g_free(enclosure_doc);
 		wrap_g_free(server_doc);
 		return SA_ERR_HPI_INTERNAL_ERROR;
@@ -470,7 +472,8 @@ SaErrorT process_server_reset_event(struct oh_handler_state *oh_handler,
 		enclosure = enclosure->next;
 	}
 	if(enclosure == NULL){
-		CRIT("Enclosure data of the server is unavailable");
+		CRIT("Enclosure data of the server in bay %d is unavailable",
+			info_result.bayNumber);
 		wrap_g_free(enclosure_doc);
 		wrap_g_free(server_doc);
 		return SA_ERR_HPI_INVALID_RESOURCE;
@@ -483,7 +486,7 @@ SaErrorT process_server_reset_event(struct oh_handler_state *oh_handler,
 	if (hotswap_state == NULL)
 	{
 		err ("Failed to get hotswap state of server blade in bay %d, "
-				"in enclosure rid %d", info_result.bayNumber, 
+				"in enclosure rid %d", info_result.bayNumber,
 						enclosure->enclosure_rid);
 		wrap_g_free(enclosure_doc);
 		wrap_g_free(server_doc);
@@ -494,7 +497,7 @@ SaErrorT process_server_reset_event(struct oh_handler_state *oh_handler,
 			enclosure->server.
 			resource_id[info_result.bayNumber - 1]);
 	if (rpt == NULL) {
-		err("resource RPT is NULL");
+		err("RPT is NULL for server in bay %d", info_result.bayNumber);
 		wrap_g_free(enclosure_doc);
 		wrap_g_free(server_doc);
 		return SA_ERR_HPI_INTERNAL_ERROR;
@@ -554,7 +557,8 @@ SaErrorT build_inserted_server_rpt(struct oh_handler_state *oh_handler,
 	}
 
 	if (ov_rest_build_server_rpt(oh_handler, response, rpt) != SA_OK) {
-		err("Building Server RPT failed for an inserted blade");
+		err("Building Server RPT failed for inserted blade in bay %d",
+							response->bayNumber);
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 
@@ -562,7 +566,8 @@ SaErrorT build_inserted_server_rpt(struct oh_handler_state *oh_handler,
 		hotswap_state = (struct ovRestHotswapState *)
 			g_malloc0(sizeof(struct ovRestHotswapState));
 		if (hotswap_state == NULL) {
-			err("Out of memory");
+			err("Out of memory for server blade in bay %d",
+							response->bayNumber);
 			return SA_ERR_HPI_OUT_OF_MEMORY;
 		}
 		/* Inserted server needs some time to stabilize.  Put the
@@ -576,7 +581,7 @@ SaErrorT build_inserted_server_rpt(struct oh_handler_state *oh_handler,
 
 	rv = oh_add_resource(oh_handler->rptcache, rpt, hotswap_state, 0);
 	if (rv != SA_OK) {
-		err("Failed to add Server rpt");
+		err("Failed to add Server rpt in bay %d", response->bayNumber);
 		wrap_g_free(hotswap_state);
 		return rv;
 	}
@@ -620,7 +625,7 @@ SaErrorT build_inserted_server_rdr(struct oh_handler_state *oh_handler,
 
 	rpt = oh_get_resource_by_id (oh_handler->rptcache, resource_id);
 	if (rpt == NULL) {
-		err("INVALID RESOURCE");
+		err("RPT is NULL for server in bay %d", response->bayNumber);
 		return SA_ERR_HPI_INVALID_RESOURCE;
 	}
 
@@ -634,7 +639,8 @@ SaErrorT build_inserted_server_rdr(struct oh_handler_state *oh_handler,
 	}
 	rv = oh_add_rdr(oh_handler->rptcache, resource_id, &rdr, inventory, 0);
 	if (rv != SA_OK) {
-		err("Failed to add rdr");
+		err("Failed to add rdr for server in bay %d",
+						response->bayNumber);
 		return rv;
 	}
 
@@ -749,7 +755,8 @@ SaErrorT ov_rest_proc_blade_inserted( struct oh_handler_state *oh_handler,
 	ov_rest_json_parse_server (jvalue, &info_result);
 	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
 	if(info_result.uri == NULL){
-		err("Inserted Blade Resource URI is NULL");
+		err("Resource URI is NULL for inserted server blade in bay %d",
+							bayNumber);
 		return SA_ERR_HPI_INVALID_RESOURCE;
 	}
 	WRAP_ASPRINTF(&ov_handler->connection->url, "https://%s%s",
@@ -758,7 +765,8 @@ SaErrorT ov_rest_proc_blade_inserted( struct oh_handler_state *oh_handler,
 	rv = ov_rest_getserverInfoArray(oh_handler, &response,
 			ov_handler->connection, server_doc);
 	if (rv != SA_OK || response.server_array == NULL) {
-		CRIT("No response from ov_rest_getserverInfoArray");
+		CRIT("No response from ov_rest_getserverInfoArray for "
+			"server blade in bay %d", bayNumber);
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 	ov_rest_json_parse_server(response.server_array, &info_result);
@@ -773,7 +781,8 @@ SaErrorT ov_rest_proc_blade_inserted( struct oh_handler_state *oh_handler,
 	rv = build_discovered_server_rpt(oh_handler, &info_result, 
 					&resource_id);
 	if (rv != SA_OK) {
-		err("build inserted server rpt failed");
+		err("Build rpt failed for inserted server blade in bay %d",
+							bayNumber);
 		wrap_g_free(enclosure_doc);
 		wrap_g_free(server_doc);
 		return rv;
@@ -807,11 +816,12 @@ SaErrorT ov_rest_proc_blade_inserted( struct oh_handler_state *oh_handler,
 	rv = build_inserted_server_rdr(oh_handler, resource_id,
 			&info_result, TRUE);
 	if (rv != SA_OK) {
-		err("build inserted server RDR failed");
+		err("Build RDR failed for inserted server blade in bay %d",
+							bayNumber);
 		/* Free the inventory info from inventory RDR */
 		rv = ov_rest_free_inventory_info(oh_handler, resource_id);
 		if (rv != SA_OK) {
-			err("Inventory cleanup failed for resource id %d",
+			err("Inventory cleanup failed for server id %d",
 					resource_id);
 		}
 		oh_remove_resource(oh_handler->rptcache, resource_id);
@@ -827,7 +837,8 @@ SaErrorT ov_rest_proc_blade_inserted( struct oh_handler_state *oh_handler,
 	rv = ov_rest_populate_event(oh_handler, resource_id, &hs_event,
 			&asserted_sensors);
 	if (rv != SA_OK) {
-		err("Populating event struct failed");
+		err("Populating event struct failed for server in bay %d",
+								bayNumber);
 		wrap_g_free(enclosure_doc);
 		wrap_g_free(server_doc);
 		return SA_ERR_HPI_INTERNAL_ERROR;
@@ -835,7 +846,7 @@ SaErrorT ov_rest_proc_blade_inserted( struct oh_handler_state *oh_handler,
 	
 	rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
 	if (rpt == NULL) {
-		err("resource RPT is NULL");
+		err("RPT is NULL for server in bay %d", bayNumber);
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 	hs_event.event.EventType = SAHPI_ET_HOTSWAP;
@@ -905,7 +916,7 @@ SaErrorT ov_rest_proc_blade_add_complete( struct oh_handler_state *oh_handler,
         }
 
         if (event->resourceUri == NULL) {
-                err ("resourceUri is NULL, failed to add the server blade");
+                err ("Resource uri is NULL, failed to add the server blade");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
@@ -927,7 +938,8 @@ SaErrorT ov_rest_proc_blade_add_complete( struct oh_handler_state *oh_handler,
 	rv = build_discovered_server_rpt(oh_handler, &info_result, 
 					&resource_id);
         if (rv != SA_OK) {
-                err("build inserted server rpt failed");
+                err("Build rpt failed for inserted server in bay %d",
+						info_result.bayNumber);
                 wrap_g_free(server_doc);
                 return rv;
         }
@@ -936,11 +948,11 @@ SaErrorT ov_rest_proc_blade_add_complete( struct oh_handler_state *oh_handler,
         rv = build_inserted_server_rdr(oh_handler, resource_id,
                         &info_result, TRUE);
         if (rv != SA_OK) {
-                err("build inserted server RDR failed");
+                err("Build RDR failed for inserted server id %d", resource_id);
                 /* Free the inventory info from inventory RDR */
                 rv = ov_rest_free_inventory_info(oh_handler, resource_id);
                 if (rv != SA_OK) {
-                        err("Inventory cleanup failed for resource id %d",
+                        err("Inventory cleanup failed for server id %d",
                                         resource_id);
                 }
                 oh_remove_resource(oh_handler->rptcache, resource_id);
@@ -962,7 +974,8 @@ SaErrorT ov_rest_proc_blade_add_complete( struct oh_handler_state *oh_handler,
         rv = ov_rest_populate_event(oh_handler, resource_id, &hs_event,
                         &asserted_sensors);
         if (rv != SA_OK) {
-                err("Populating event struct failed");
+                err("Populating event struct failed for server id %d",
+								resource_id);
                 wrap_g_free(server_doc);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
@@ -1034,7 +1047,7 @@ SaErrorT remove_server_blade(struct oh_handler_state *oh_handler,
 	/* Get the rpt entry of the resource */
 	rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
 	if (rpt == NULL) {
-		err("resource RPT is NULL");
+		err("RPT is NULL for server blade in bay %d", bay_number);
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 
@@ -1055,7 +1068,8 @@ SaErrorT remove_server_blade(struct oh_handler_state *oh_handler,
 			oh_get_resource_data(oh_handler->rptcache,
 					event.resource.ResourceId);
 		if (hotswap_state == NULL) {
-			err("Failed to get hotswap state of server blade");
+			err("Failed to get hotswap state of server blade "
+				"in bay %d", bay_number);
 			event.event.EventDataUnion.HotSwapEvent.
 				PreviousHotSwapState = SAHPI_HS_STATE_INACTIVE;
 		} else {
@@ -1086,7 +1100,7 @@ SaErrorT remove_server_blade(struct oh_handler_state *oh_handler,
 	/* Free the inventory info from inventory RDR */
 	rv = ov_rest_free_inventory_info(oh_handler, rpt->ResourceId);
 	if (rv != SA_OK) {
-		err("Inventory cleanup failed for resource id %d",
+		err("Inventory cleanup failed for server id %d",
 				rpt->ResourceId);
 	}
 	/* Remove the resource from plugin RPTable */
@@ -1172,7 +1186,8 @@ SaErrorT ov_rest_proc_blade_removed( struct oh_handler_state *handler,
 		enclosure = enclosure->next;
 	}
 	if(enclosure == NULL){
-		CRIT("Enclosure is not identified to remove the blade");
+		CRIT("Enclosure is not identified to remove blade in bay %d",
+			bayNumber);
 		wrap_g_free(enclosure_doc);
 		return SA_ERR_HPI_INVALID_RESOURCE;
 	}
@@ -1385,7 +1400,8 @@ SaErrorT process_drive_enclosure_power_on_event(
 		enclosure = enclosure->next;
 	}
 	if(enclosure == NULL){
-		CRIT("Enclosure data of the drive enclosure is unavailable");
+		CRIT("Enclosure data of the drive enclosure in bay %d"
+			" is unavailable", info_result.bayNumber);
 		wrap_g_free(enclosure_doc);
 		wrap_g_free(drive_enc_doc);
 		return SA_ERR_HPI_INVALID_RESOURCE;
@@ -1395,7 +1411,7 @@ SaErrorT process_drive_enclosure_power_on_event(
 			enclosure->server.
 			resource_id[info_result.bayNumber - 1]);
 	if (rpt == NULL) {
-		err("resource RPT is NULL for drive enclosure in bay %d", 
+		err("RPT is NULL for drive enclosure in bay %d", 
 						info_result.bayNumber);
 		wrap_g_free(enclosure_doc);
 		wrap_g_free(drive_enc_doc);
@@ -1409,7 +1425,7 @@ SaErrorT process_drive_enclosure_power_on_event(
 	if (hotswap_state == NULL)
 	{
 		err ("Failed to get hotswap state of server blade in bay %d, "
-				"in enclosure rid %d", info_result.bayNumber, 
+				"in enclosure rid %d", info_result.bayNumber,
 						enclosure->enclosure_rid);
 		wrap_g_free(enclosure_doc);
 		wrap_g_free(drive_enc_doc);
@@ -1477,7 +1493,9 @@ SaErrorT process_drive_enclosure_power_on_event(
 			break;
 
 		default:
-			err ("wrong state detected");
+			err ("Wrong hotswap state %d detected for server blade "
+				"in bay %d", hotswap_state->currentHsState,
+						info_result.bayNumber);
 			wrap_g_free(enclosure_doc);
 			wrap_g_free(drive_enc_doc);
 			return SA_ERR_HPI_INTERNAL_ERROR;
@@ -1567,7 +1585,8 @@ SaErrorT process_drive_enclosure_power_off_event(
 		enclosure = enclosure->next;
 	}
 	if(enclosure == NULL){
-		CRIT("Enclosure data of the drive enclosure is unavailable");
+		CRIT("Enclosure data of the drive enclosure n bay %d"
+			" is unavailable", info_result.bayNumber);
 		wrap_g_free(enclosure_doc);
 		wrap_g_free(drive_enc_doc);
 		return SA_ERR_HPI_INVALID_RESOURCE;
@@ -1579,8 +1598,8 @@ SaErrorT process_drive_enclosure_power_off_event(
 				server.resource_id[info_result.bayNumber - 1]);
 	if (hotswap_state == NULL)
 	{
-		err ("Failed to get hotswap state of server blade in bay %d, "
-				"in enclosure rid %d", info_result.bayNumber, 
+		err ("Failed to get hotswap state of drive enclosure in bay %d"
+				", in enclosure rid %d", info_result.bayNumber,
 						enclosure->enclosure_rid);
 		wrap_g_free(enclosure_doc);
 		wrap_g_free(drive_enc_doc);
@@ -1591,7 +1610,7 @@ SaErrorT process_drive_enclosure_power_off_event(
 			enclosure->
 			server.resource_id[info_result.bayNumber - 1]);
 	if (rpt == NULL) {
-		err("resource RPT is NULL for baynumber %d", 
+		err("RPT is NULL for drive enclosure in bay %d",
 						info_result.bayNumber);
 		wrap_g_free(enclosure_doc);
 		wrap_g_free(drive_enc_doc);
@@ -1676,7 +1695,8 @@ SaErrorT build_inserted_drive_enclosure_rpt(struct oh_handler_state
 
 	if (ov_rest_build_drive_enclosure_rpt(oh_handler, response, rpt) 
 		!= SA_OK) {
-		err("Building RPT failed for the inserted drive enclosure");
+		err("Building RPT failed for the inserted drive enclosure"
+			" in bay %d", response->bayNumber);
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 
@@ -1684,7 +1704,8 @@ SaErrorT build_inserted_drive_enclosure_rpt(struct oh_handler_state
 		hotswap_state = (struct ovRestHotswapState *)
 			g_malloc0(sizeof(struct ovRestHotswapState));
 		if (hotswap_state == NULL) {
-			err("Out of memory");
+			err("Out of memory for drive enclosure in bay %d",
+						response->bayNumber);
 			return SA_ERR_HPI_OUT_OF_MEMORY;
 		}
 		/* Inserted ve enclosure needs some time to stabilize.  Put the
@@ -1698,7 +1719,8 @@ SaErrorT build_inserted_drive_enclosure_rpt(struct oh_handler_state
 
 	rv = oh_add_resource(oh_handler->rptcache, rpt, hotswap_state, 0);
 	if (rv != SA_OK) {
-		err("Failed to add drive enclosure rpt");
+		err("Failed to add RPT for drive enclosure in bay %d",
+							response->bayNumber);
 		wrap_g_free(hotswap_state);
 		return rv;
 	}
@@ -1742,7 +1764,7 @@ SaErrorT ov_rest_proc_drive_enclosure_add_complete(
 	}
 
 	if (event->resourceUri == NULL) {
-		err("resourceUri is NULL, failed to add the drive enclosure");
+		err("Resource uri is NULL, failed to add the drive enclosure");
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 
@@ -1764,7 +1786,8 @@ SaErrorT ov_rest_proc_drive_enclosure_add_complete(
 	/* Build the drive enclosure RPT entry */
 	rv = build_inserted_drive_enclosure_rpt(oh_handler, &info_result, &rpt);
 	if (rv != SA_OK) {
-		err("build inserted drive enclosure rpt failed");
+		err("Build rpt failed for inserted drive enclosure in bay %d",
+							info_result.bayNumber);
 		wrap_g_free(drive_enc_doc);
 		return rv;
 	}
@@ -1773,12 +1796,13 @@ SaErrorT ov_rest_proc_drive_enclosure_add_complete(
 	rv = ov_rest_build_drive_enclosure_rdr(oh_handler,rpt.ResourceId,
 			&info_result);
 	if (rv != SA_OK) {
-		err("build inserted drive enclosure RDR failed");
+		err("Build RDR failed for inserted drive enclosure in bay %d",
+							info_result.bayNumber);
 		/* Free the inventory info from inventory RDR */
 		rv = ov_rest_free_inventory_info(oh_handler, rpt.ResourceId);
 		if (rv != SA_OK) {
-			err("Inventory cleanup failed for resource id %d",
-					rpt.ResourceId);
+			err("Inventory cleanup failed for drive enclosure "
+					"id %d", rpt.ResourceId);
 		}
 		oh_remove_resource(oh_handler->rptcache, rpt.ResourceId);
 		wrap_g_free(drive_enc_doc);
@@ -1800,7 +1824,8 @@ SaErrorT ov_rest_proc_drive_enclosure_add_complete(
 	rv = ov_rest_populate_event(oh_handler, rpt.ResourceId, &hs_event,
 			&asserted_sensors);
 	if (rv != SA_OK) {
-		err("Populating event struct failed");
+		err("Populating event struct failed for drive enclosure "
+				"in bay %d", info_result.bayNumber);
 		wrap_g_free(drive_enc_doc);
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}

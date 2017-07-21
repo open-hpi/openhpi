@@ -99,7 +99,7 @@ SaErrorT build_ov_rest_custom_handler(struct oh_handler_state *oh_handler)
                 ov_handler = (struct ov_rest_handler *)
                         g_malloc0(sizeof(struct ov_rest_handler));
                 if (ov_handler == NULL) {
-                        err("out of memory");
+                        err("The ov_handler is out of memory in __func__");
                         return SA_ERR_HPI_OUT_OF_MEMORY;
                 }
 		ov_handler->mutex = wrap_g_mutex_new_init();
@@ -162,7 +162,7 @@ void *ov_rest_open(GHashTable *handler_config,
 	/* Check whether all the parameters are provided or not */
 	rv = ov_rest_check_config_parameters(handler_config);
 	if (rv != SA_OK) {
-		err("config file has some missing parameters");
+		err("Config file has some missing parameters");
 		return NULL;
 	}
 
@@ -170,7 +170,7 @@ void *ov_rest_open(GHashTable *handler_config,
 	handler = (struct oh_handler_state *)
 		g_malloc0(sizeof(struct oh_handler_state));
 	if (handler == NULL) {
-		err("Out of memory");
+		err("Handler is out of memory in __func__");
 		return NULL;
 	}
 
@@ -180,7 +180,7 @@ void *ov_rest_open(GHashTable *handler_config,
 	handler->rptcache = (RPTable *) g_malloc0(sizeof(RPTable));
 	if (handler->rptcache == NULL) {
 		wrap_g_free(handler);
-		err("Out of memory");
+		err("Handler rptcache is out of memory in __func__");
 		return NULL;
 	}
 
@@ -196,7 +196,7 @@ void *ov_rest_open(GHashTable *handler_config,
 	/* Build the custom handler for OV REST plugin */
 	rv = build_ov_rest_custom_handler(handler);
 	if (rv != SA_OK) {
-		err("Build ov_REST custom handler failed");
+		err("Build OV_REST custom handler failed");
 		/* If the failure due to out of memory, return NULL
 		 * Else, try to build the ov_rest_handler during discovery call
 		 *
@@ -277,7 +277,8 @@ SaErrorT ov_rest_set_resource_tag(void *oh_handler,
         /* Validate the tag */
         valid_tag = oh_valid_textbuffer(tag);
         if (valid_tag == SAHPI_FALSE) {
-                err("The tag = '%s' is not in correct format", (char*)tag);
+                err("The tag = '%s' is not in correct format for resource "
+					"id %d", (char*)tag, resource_id);
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
@@ -291,7 +292,8 @@ SaErrorT ov_rest_set_resource_tag(void *oh_handler,
         /* Copy the tag to the resource tag */
         rv = oh_copy_textbuffer(&(rpt->ResourceTag), tag);
         if (rv != SA_OK) {
-                err("Copying textbuffer failed");
+                err("Copying textbuffer failed for resource id %d",
+							resource_id);
                 return rv;
         }
 
@@ -328,14 +330,15 @@ SaErrorT ov_rest_set_resource_severity(void *oh_handler,
 
         /* Validate the severity */
         if (oh_lookup_severity(severity) == NULL) {
-                err("Invalid parameter severity");
+                err("Invalid severity %d for the resource id %d",
+			severity, resource_id);
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
         handler = (struct oh_handler_state *) oh_handler;
         rpt = oh_get_resource_by_id(handler->rptcache, resource_id);
         if (rpt == NULL) {
-                err("Unable find resource.Invalid resource id %d",resource_id);
+                err("There is no resource for resource id %d",resource_id);
                 return SA_ERR_HPI_NOT_PRESENT;
         }
 
@@ -362,7 +365,7 @@ SaErrorT ov_rest_control_parm(void *oh_handler,
                               SaHpiResourceIdT resource_id,
                               SaHpiParmActionT action)
 {
-        err("ov_rest control parm is not supported");
+        err("The ov_rest control parm is not supported");
         return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
