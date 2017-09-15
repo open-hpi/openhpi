@@ -565,6 +565,11 @@ SaErrorT process_interconnect_info_event(struct oh_handler_state
          */
         rv = build_inserted_interconnect_rdr(oh_handler, con,
                                     bay_number, resource_id, FALSE);
+        if (rv != SA_OK) {
+                err("Failed to build the interconnect RDR");
+                wrap_g_free(serial_number);
+                return rv;
+        }
 	
         wrap_g_free(serial_number);
         return SA_OK;

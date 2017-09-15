@@ -384,6 +384,17 @@ SaErrorT oa_soap_discover_resources(void *oh_handler)
                  * resource information.
                  */
                 cleanup_plugin_rptable(handler);
+
+		/* Cleanup the connection structure */
+		if (oa_handler->oa_1->hpi_con != NULL)
+			soap_close(oa_handler->oa_1->hpi_con);
+		if (oa_handler->oa_1->event_con != NULL)
+			soap_close(oa_handler->oa_1->event_con);
+		if (oa_handler->oa_2->hpi_con != NULL)
+			soap_close(oa_handler->oa_2->hpi_con);
+		if (oa_handler->oa_2->event_con != NULL)
+			soap_close(oa_handler->oa_2->event_con);
+
                 oa_handler->in_discovery_thread = HPOA_FALSE;
                 return rv;
         }
@@ -1427,14 +1438,14 @@ SaErrorT discover_oa(struct oh_handler_state *oh_handler)
         max_bays = oa_handler->oa_soap_resources.oa.max_bays;
 
         rv = oa_soap_get_oa_sts_arr(oa_handler->active_con, max_bays,
-                                    &status_response, oa_sts_doc);
+                                    &status_response, &oa_sts_doc);
         if (rv != SA_OK) {
             err("Failed to get OA status array");
             xmlFreeDoc( oa_sts_doc);
             return rv;
         }
         rv = oa_soap_get_oa_info_arr(oa_handler->active_con, max_bays,
-                                     &info_response, oa_info_doc);
+                                     &info_response, &oa_info_doc);
         if (rv != SA_OK) {
             err("Failed to get OA info array");
             xmlFreeDoc( oa_info_doc);
@@ -2089,15 +2100,15 @@ SaErrorT build_discovered_server_rdr_arr(struct oh_handler_state *oh_handler,
                 return rv;
         }
 
-               /* Make a soap call to OA requesting for the server thermal status */
-               thermal_request.bayNumber = bay_number;
+        /* Make a soap call to OA requesting for the server thermal status */
+        thermal_request.bayNumber = bay_number;
 
-               rv = soap_getBladeThermalInfoArray(con, &thermal_request,
-                                           &thermal_response);
-               if (rv != SOAP_OK) {
-                       err("getBladeThermalInfoArray failed for blade");
-                       return SA_ERR_HPI_INTERNAL_ERROR;
-               }
+        rv = soap_getBladeThermalInfoArray(con, &thermal_request,
+                                    &thermal_response);
+        if (rv != SOAP_OK) {
+                err("getBladeThermalInfoArray failed for blade");
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
 
         /* Build the thermal sensors based on the blade name*/
         rv = oa_soap_build_blade_thermal_rdr(oh_handler, thermal_response, rpt,
@@ -2267,14 +2278,14 @@ SaErrorT discover_server(struct oh_handler_state *oh_handler)
         max_bays = oa_handler->oa_soap_resources.server.max_bays;
         /* Get blade info array information*/
         rv = oa_soap_get_bladeinfo_arr( oa_handler, max_bays, &info_response,
-                                        bl_info_doc);
+                                        &bl_info_doc);
         if (rv != SA_OK) {
             err("Failed to get blade info array");
             xmlFreeDoc(bl_info_doc);
             return rv;
         }
         rv = oa_soap_get_bladests_arr( oa_handler ,max_bays ,&sts_response,
-                                        bl_sts_doc);
+                                        &bl_sts_doc);
         if (rv != SA_OK) {
             err("Failed to get blade status array");
             xmlFreeDoc(bl_sts_doc);
@@ -2282,7 +2293,7 @@ SaErrorT discover_server(struct oh_handler_state *oh_handler)
             return rv;
         }
         rv = oa_soap_get_portmap_arr( oa_handler ,max_bays ,&pm_response,
-                                        bl_pm_doc);
+                                        &bl_pm_doc);
         if (rv != SA_OK) {
             err("Failed to get blade portmap array");
             xmlFreeDoc(bl_pm_doc);
@@ -2323,6 +2334,8 @@ SaErrorT discover_server(struct oh_handler_state *oh_handler)
                           &info_result, &resource_id, &sts_result);
                 if (rv != SA_OK) {
                         err("Failed to get Server rpt for bay %d.",i);
+                        xmlFreeDoc(bl_pm_doc);
+                        xmlFreeDoc(bl_sts_doc);
                         xmlFreeDoc(bl_info_doc);
                         return SA_ERR_HPI_INTERNAL_ERROR;
                 }
@@ -2489,6 +2502,7 @@ SaErrorT build_inserted_intr_rpt(struct oh_handler_state *oh_handler,
         if (rv != SA_OK) {
                 err("Unable to get power status for interconnect Bay %d",
 						bay_number);
+                wrap_g_free(hotswap_state);
                 return rv;
         }
 
@@ -3118,7 +3132,7 @@ SaErrorT discover_interconnect(struct oh_handler_state *oh_handler)
         max_bays = oa_handler->oa_soap_resources.interconnect.max_bays;
 
         rv = oa_soap_get_interconct_traysts_arr(oa_handler ,max_bays ,
-                                                &sts_response,intr_sts_doc);
+                                                &sts_response, &intr_sts_doc);
         if (rv != SA_OK) {
             err("Failed to get interconnect tray status array");
             xmlFreeDoc( intr_sts_doc);
@@ -3126,7 +3140,7 @@ SaErrorT discover_interconnect(struct oh_handler_state *oh_handler)
         }
 
         rv = oa_soap_get_interconct_trayinfo_arr(oa_handler ,max_bays,
-                                                 &info_response,intr_info_doc);
+                                                 &info_response, &intr_info_doc);
         if (rv != SA_OK) {
             err("Failed to get interconnect tray info array");
             xmlFreeDoc( intr_info_doc);
@@ -3135,7 +3149,7 @@ SaErrorT discover_interconnect(struct oh_handler_state *oh_handler)
         }
 
         rv = oa_soap_get_interconct_traypm_arr(oa_handler ,max_bays,
-                                                 &pm_response,intr_pm_doc);
+                                                 &pm_response, &intr_pm_doc);
         if (rv != SA_OK) {
             err("Failed to get interconnect tray portmap array");
             xmlFreeDoc( intr_pm_doc);
@@ -3835,7 +3849,7 @@ SaErrorT discover_power_supply(struct oh_handler_state *oh_handler)
         }
 
         rv = oa_soap_get_ps_info_arr ( oa_handler ,max_bays ,&info_response,
-                                          ps_info_doc);
+                                          &ps_info_doc);
         if( rv != SA_OK) {
             err("Failed to get power supply info array");
             wrap_g_free(result);
@@ -3843,7 +3857,7 @@ SaErrorT discover_power_supply(struct oh_handler_state *oh_handler)
             return rv;
         }
         rv = oa_soap_get_ps_sts_arr ( oa_handler ,max_bays , &sts_response,
-                                      ps_sts_doc);
+                                      &ps_sts_doc);
         if( rv != SA_OK) {
             err("Failed to get power supply status array");
             wrap_g_free(result);
@@ -4577,7 +4591,8 @@ static SaErrorT oa_soap_disc_fan(struct oh_handler_state *oh_handler)
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
         max_bays = oa_handler->oa_soap_resources.fan.max_bays;
 
-        rv = oa_soap_get_fan_info_arr ( oa_handler ,max_bays ,&response,fan_info_doc);
+        rv = oa_soap_get_fan_info_arr ( oa_handler ,max_bays ,&response,
+                                                          &fan_info_doc);
         if (rv != SA_OK) {
                 err("Failed to get blade info array");
                 xmlFreeDoc(fan_info_doc);
@@ -5361,7 +5376,7 @@ SaErrorT oa_soap_modify_blade_thermal_rdr(struct oh_handler_state *oh_handler,
 SaErrorT oa_soap_get_ps_info_arr(struct oa_soap_handler *oa_handler,
                             SaHpiInt32T max_bays,
                             struct getPowerSupplyInfoArrayResponse *response,
-                            xmlDocPtr ps_info_doc)
+                            xmlDocPtr *ps_info_doc)
 {
         SaErrorT rv = SA_OK;
         struct getPowerSupplyInfoArray request;
@@ -5369,7 +5384,7 @@ SaErrorT oa_soap_get_ps_info_arr(struct oa_soap_handler *oa_handler,
         SaHpiInt32T i = 0;
         byte array[max_bays];
         
-        if (oa_handler == NULL || response == NULL || ps_info_doc != NULL) {
+        if (oa_handler == NULL || response == NULL || *ps_info_doc != NULL) {
                 err("Invalid parameter");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
@@ -5415,7 +5430,7 @@ SaErrorT oa_soap_get_ps_info_arr(struct oa_soap_handler *oa_handler,
 SaErrorT oa_soap_get_ps_sts_arr(struct oa_soap_handler *oa_handler,
                             SaHpiInt32T max_bays,
                             struct getPowerSupplyStsArrayResponse *response,
-                            xmlDocPtr ps_sts_doc)
+                            xmlDocPtr *ps_sts_doc)
 {
         SaErrorT rv = SA_OK;
         struct getPowerSupplyStsArray request;
@@ -5423,7 +5438,7 @@ SaErrorT oa_soap_get_ps_sts_arr(struct oa_soap_handler *oa_handler,
         SaHpiInt32T i = 0;
         byte array[max_bays];
 
-        if (oa_handler == NULL || response == NULL || ps_sts_doc != NULL) {
+        if (oa_handler == NULL || response == NULL || *ps_sts_doc != NULL) {
                 err("Invalid parameter");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
@@ -5469,7 +5484,7 @@ SaErrorT oa_soap_get_ps_sts_arr(struct oa_soap_handler *oa_handler,
 SaErrorT oa_soap_get_fan_info_arr(struct oa_soap_handler *oa_handler,
                             SaHpiInt32T max_bays,
                             struct getFanInfoArrayResponse *response,
-                            xmlDocPtr fan_info_doc)
+                            xmlDocPtr *fan_info_doc)
 {
         SaErrorT rv = SA_OK;
         struct getFanInfoArray request;
@@ -5477,7 +5492,7 @@ SaErrorT oa_soap_get_fan_info_arr(struct oa_soap_handler *oa_handler,
         SaHpiInt32T i = 0;
         byte array[max_bays];
 
-        if (oa_handler == NULL || response == NULL || fan_info_doc != NULL) {
+        if (oa_handler == NULL || response == NULL || *fan_info_doc != NULL) {
                 err("Invalid parameter");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
@@ -5522,7 +5537,7 @@ SaErrorT oa_soap_get_fan_info_arr(struct oa_soap_handler *oa_handler,
 SaErrorT oa_soap_get_bladeinfo_arr(struct oa_soap_handler *oa_handler,
                             SaHpiInt32T max_bays,
                             struct getBladeInfoArrayResponse *response,
-                            xmlDocPtr bl_info_doc)
+                            xmlDocPtr *bl_info_doc)
 {
         SaErrorT rv = SA_OK;
         struct getBladeInfoArray request;
@@ -5530,7 +5545,7 @@ SaErrorT oa_soap_get_bladeinfo_arr(struct oa_soap_handler *oa_handler,
         SaHpiInt32T i = 0;
         byte array[max_bays];
 
-        if (oa_handler == NULL || response == NULL || bl_info_doc != NULL ) {
+        if (oa_handler == NULL || response == NULL || *bl_info_doc != NULL ) {
                 err("Invalid parameter");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
@@ -5544,7 +5559,7 @@ SaErrorT oa_soap_get_bladeinfo_arr(struct oa_soap_handler *oa_handler,
         bay_zones.size = max_bays;
         request.bayArray = bay_zones;
         rv = soap_getBladeInfoArray(oa_handler->active_con, &request,
-                                  response,bl_info_doc);
+                                  response, bl_info_doc);
         if (rv != SOAP_OK) {
                 err("Get blade info array SOAP call failed");
                 return SA_ERR_HPI_INTERNAL_ERROR;
@@ -5575,7 +5590,7 @@ SaErrorT oa_soap_get_bladeinfo_arr(struct oa_soap_handler *oa_handler,
 SaErrorT oa_soap_get_interconct_trayinfo_arr(struct oa_soap_handler *oa_handler,
                             SaHpiInt32T max_bays,
                             struct interconnectTrayInfoArrayResponse *response,
-                            xmlDocPtr intr_info_doc)
+                            xmlDocPtr *intr_info_doc)
 {
         SaErrorT rv = SA_OK;
         struct getInterconnectTrayInfoArray request;
@@ -5583,7 +5598,7 @@ SaErrorT oa_soap_get_interconct_trayinfo_arr(struct oa_soap_handler *oa_handler,
         SaHpiInt32T i = 0;
         byte array[max_bays];
 
-        if (oa_handler == NULL || response == NULL || intr_info_doc != NULL) {
+        if (oa_handler == NULL || response == NULL || *intr_info_doc != NULL) {
                 err("Invalid parameter");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
@@ -5628,7 +5643,7 @@ SaErrorT oa_soap_get_interconct_trayinfo_arr(struct oa_soap_handler *oa_handler,
 SaErrorT oa_soap_get_interconct_traysts_arr(struct oa_soap_handler *oa_handler,
                             SaHpiInt32T max_bays,
                             struct interconnectTrayStsArrayResponse *response,
-                            xmlDocPtr intr_sts_doc)
+                            xmlDocPtr *intr_sts_doc)
 {
         SaErrorT rv = SA_OK;
         struct interconnectTrayStsArray request;
@@ -5636,7 +5651,7 @@ SaErrorT oa_soap_get_interconct_traysts_arr(struct oa_soap_handler *oa_handler,
         SaHpiInt32T i = 0;
         byte array[max_bays];
 
-        if (oa_handler == NULL || response == NULL || intr_sts_doc != NULL) {
+        if (oa_handler == NULL || response == NULL || *intr_sts_doc != NULL) {
                 err("Invalid parameter");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
@@ -5681,7 +5696,7 @@ SaErrorT oa_soap_get_interconct_traysts_arr(struct oa_soap_handler *oa_handler,
 SaErrorT oa_soap_get_interconct_traypm_arr(struct oa_soap_handler *oa_handler,
                             SaHpiInt32T max_bays,
                             struct interconnectTrayPmArrayResponse *response,
-                            xmlDocPtr intr_pm_doc)
+                            xmlDocPtr *intr_pm_doc)
 {
         SaErrorT rv = SA_OK;
         struct interconnectTrayPmArray request;
@@ -5689,7 +5704,7 @@ SaErrorT oa_soap_get_interconct_traypm_arr(struct oa_soap_handler *oa_handler,
         SaHpiInt32T i = 0;
         byte array[max_bays];
 
-        if (oa_handler == NULL || response == NULL || intr_pm_doc != NULL) {
+        if (oa_handler == NULL || response == NULL || *intr_pm_doc != NULL) {
                 err("Invalid parameter");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
@@ -5734,7 +5749,7 @@ SaErrorT oa_soap_get_interconct_traypm_arr(struct oa_soap_handler *oa_handler,
 SaErrorT oa_soap_get_oa_info_arr(SOAP_CON *con,
                             SaHpiInt32T max_bays,
                             struct getOaInfoArrayResponse *response,
-                            xmlDocPtr oa_info_doc)
+                            xmlDocPtr *oa_info_doc)
 {
         SaErrorT rv = SA_OK;
         struct getOaInfoArray request;
@@ -5742,7 +5757,7 @@ SaErrorT oa_soap_get_oa_info_arr(SOAP_CON *con,
         SaHpiInt32T i = 0;
         byte array[max_bays];
 
-        if (con == NULL || response == NULL || oa_info_doc != NULL) {
+        if (con == NULL || response == NULL || *oa_info_doc != NULL) {
                 err("Invalid parameter");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
@@ -5787,7 +5802,7 @@ SaErrorT oa_soap_get_oa_info_arr(SOAP_CON *con,
 SaErrorT oa_soap_get_oa_sts_arr(SOAP_CON *con,
                             SaHpiInt32T max_bays,
                             struct getOaStatusArrayResponse *response,
-                            xmlDocPtr oa_sts_doc)
+                            xmlDocPtr *oa_sts_doc)
 {
         SaErrorT rv = SA_OK;
         struct getOaStatusArray request;
@@ -5795,7 +5810,7 @@ SaErrorT oa_soap_get_oa_sts_arr(SOAP_CON *con,
         SaHpiInt32T i = 0;
         byte array[max_bays];
 
-        if (con == NULL || response == NULL || oa_sts_doc != NULL) {
+        if (con == NULL || response == NULL || *oa_sts_doc != NULL) {
                 err("Invalid parameter");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
@@ -5840,7 +5855,7 @@ SaErrorT oa_soap_get_oa_sts_arr(SOAP_CON *con,
 SaErrorT oa_soap_get_bladests_arr(struct oa_soap_handler *oa_handler,
                             SaHpiInt32T max_bays,
                             struct getBladeStsArrayResponse *response,
-                            xmlDocPtr bl_sts_doc)
+                            xmlDocPtr *bl_sts_doc)
 {
         SaErrorT rv = SA_OK;
         struct getBladeStsArray request;
@@ -5848,7 +5863,7 @@ SaErrorT oa_soap_get_bladests_arr(struct oa_soap_handler *oa_handler,
         SaHpiInt32T i = 0;
         byte array[max_bays];
 
-        if ( oa_handler == NULL || response == NULL || bl_sts_doc != NULL ) {
+        if ( oa_handler == NULL || response == NULL || *bl_sts_doc != NULL ) {
                 err("Invalid parameter");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
@@ -5862,7 +5877,7 @@ SaErrorT oa_soap_get_bladests_arr(struct oa_soap_handler *oa_handler,
         bay_zones.size = max_bays;
         request.bayArray = bay_zones;
         rv = soap_getBladeStatusArray(oa_handler->active_con, &request,
-                                  response,bl_sts_doc);
+                                  response, bl_sts_doc);
         if (rv != SOAP_OK) {
                 err("Get blade status array SOAP call failed");
                 return SA_ERR_HPI_INTERNAL_ERROR;
@@ -5893,7 +5908,7 @@ SaErrorT oa_soap_get_bladests_arr(struct oa_soap_handler *oa_handler,
 SaErrorT oa_soap_get_portmap_arr(struct oa_soap_handler *oa_handler,
                             SaHpiInt32T max_bays,
                             struct getBladePortMapArrayResponse *response,
-                            xmlDocPtr bl_pm_doc)
+                            xmlDocPtr *bl_pm_doc)
 {
         SaErrorT rv = SA_OK;
         struct getBladePortMapArray request;
@@ -5901,7 +5916,7 @@ SaErrorT oa_soap_get_portmap_arr(struct oa_soap_handler *oa_handler,
         SaHpiInt32T i = 0;
         byte array[max_bays];
 
-        if ( oa_handler == NULL || response == NULL || bl_pm_doc != NULL ) {
+        if ( oa_handler == NULL || response == NULL || *bl_pm_doc != NULL ) {
                 err("Invalid parameter");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
@@ -5915,7 +5930,7 @@ SaErrorT oa_soap_get_portmap_arr(struct oa_soap_handler *oa_handler,
         bay_zones.size = max_bays;
         request.bayArray = bay_zones;
         rv = soap_getBladePortMapArray(oa_handler->active_con, &request,
-                                  response,bl_pm_doc);
+                                  response, bl_pm_doc);
         if (rv != SOAP_OK) {
                 err("Get blade portmap array SOAP call failed");
                 return SA_ERR_HPI_INTERNAL_ERROR;

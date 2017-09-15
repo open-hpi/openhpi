@@ -2414,57 +2414,57 @@ int soap_getInterconnectTrayPortMap(SOAP_CON *con,
 int soap_getPowerSupplyInfoArray(SOAP_CON *con,
                          const struct getPowerSupplyInfoArray *request,
                          struct getPowerSupplyInfoArrayResponse *response,
-                         xmlDocPtr ps_info_doc);
+                         xmlDocPtr *ps_info_doc);
 
 int soap_getPowerSupplyStatusArray(SOAP_CON *con,
                          const struct getPowerSupplyStsArray *request,
                          struct getPowerSupplyStsArrayResponse *response,
-                         xmlDocPtr ps_sts_doc);
+                         xmlDocPtr *ps_sts_doc);
 
 int soap_getFanInfoArray(SOAP_CON *con,
                          const struct getFanInfoArray *request,
                          struct getFanInfoArrayResponse *response,
-                         xmlDocPtr fan_info_doc);
+                         xmlDocPtr *fan_info_doc);
 
 int soap_getBladeInfoArray(SOAP_CON *con,
                          const struct getBladeInfoArray *request,
                          struct getBladeInfoArrayResponse *response,
-                         xmlDocPtr bl_info_doc);
+                         xmlDocPtr *bl_info_doc);
 
 int soap_getBladeStatusArray(SOAP_CON *con,
                          const struct getBladeStsArray *request,
                          struct getBladeStsArrayResponse *response,
-                         xmlDocPtr bl_sts_doc);
+                         xmlDocPtr *bl_sts_doc);
 
 int soap_getBladePortMapArray(SOAP_CON *con,
                          const struct getBladePortMapArray *request,
                          struct getBladePortMapArrayResponse *response,
-                         xmlDocPtr bl_pm_doc);
+                         xmlDocPtr *bl_pm_doc);
 
 int soap_getInterconnectTrayInfoArray(SOAP_CON *con,
                             const struct getInterconnectTrayInfoArray *request,
                             struct interconnectTrayInfoArrayResponse *response,
-                            xmlDocPtr intr_info_doc);
+                            xmlDocPtr *intr_info_doc);
 
 int soap_getInterconnectTrayStatusArray(SOAP_CON *con,
                             const struct interconnectTrayStsArray *request,
                             struct interconnectTrayStsArrayResponse *response,
-                            xmlDocPtr intr_sts_doc);
+                            xmlDocPtr *intr_sts_doc);
 
 int soap_getInterconnectTrayPortMapArray(SOAP_CON *con,
                             const struct interconnectTrayPmArray *request,
                             struct interconnectTrayPmArrayResponse *response,
-                            xmlDocPtr intr_pm_doc);
+                            xmlDocPtr *intr_pm_doc);
 
 int soap_getOaInfoArray(SOAP_CON *con,
                          const struct getOaInfoArray *request,
                          struct getOaInfoArrayResponse *response,
-                         xmlDocPtr oa_info_doc);
+                         xmlDocPtr *oa_info_doc);
 
 int soap_getOaStatusArray(SOAP_CON *con,
                          const struct getOaStatusArray *request,
                          struct getOaStatusArrayResponse *response,
-                         xmlDocPtr oa_sts_doc);
+                         xmlDocPtr *oa_sts_doc);
 
 /* Function prototypes for OA SOAP helper functions */
 void    soap_getExtraData(xmlNode *extraData, struct extraDataInfo *result);

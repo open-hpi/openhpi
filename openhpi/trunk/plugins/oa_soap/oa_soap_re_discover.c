@@ -293,14 +293,14 @@ SaErrorT re_discover_oa(struct oh_handler_state *oh_handler,
         max_bays = oa_handler->oa_soap_resources.oa.max_bays;
         
         rv = oa_soap_get_oa_sts_arr(oa_handler->active_con ,max_bays ,
-                                    &status_response,oa_sts_doc);
+                                    &status_response, &oa_sts_doc);
         if (rv != SA_OK) {
             err("Failed to get OA status array");
             xmlFreeDoc( oa_sts_doc);
             return rv;
         }
         rv = oa_soap_get_oa_info_arr(oa_handler->active_con ,max_bays ,
-                                     &info_response,oa_info_doc);
+                                     &info_response, &oa_info_doc);
         if (rv != SA_OK) {
             err("Failed to get OA info array");
             xmlFreeDoc( oa_info_doc);
@@ -732,14 +732,14 @@ SaErrorT re_discover_blade(struct oh_handler_state *oh_handler,
         max_bays = oa_handler->oa_soap_resources.server.max_bays;
         /* Get blade info array information*/
         rv = oa_soap_get_bladeinfo_arr( oa_handler ,max_bays ,&info_response,
-                                          bl_info_doc);
+                                          &bl_info_doc);
         if (rv != SA_OK) {
             err("Failed to get blade info array");
             xmlFreeDoc( bl_info_doc);
             return rv;
         }
         rv = oa_soap_get_bladests_arr( oa_handler ,max_bays ,&sts_response,
-                                        bl_sts_doc);
+                                        &bl_sts_doc);
         if (rv != SA_OK) {
             err("Failed to get blade status array");
             xmlFreeDoc(bl_sts_doc);
@@ -747,7 +747,7 @@ SaErrorT re_discover_blade(struct oh_handler_state *oh_handler,
             return rv;
         }
         rv = oa_soap_get_portmap_arr( oa_handler ,max_bays ,&pm_response,
-                                        bl_pm_doc);
+                                        &bl_pm_doc);
         if (rv != SA_OK) {
             err("Failed to get blade portmap array");
             xmlFreeDoc(bl_pm_doc);
@@ -1381,14 +1381,14 @@ SaErrorT re_discover_interconnect(struct oh_handler_state *oh_handler,
         max_bays = oa_handler->oa_soap_resources.interconnect.max_bays;
 
         rv = oa_soap_get_interconct_traysts_arr(oa_handler, max_bays,
-                                                &sts_res, intr_sts_doc);
+                                                &sts_res, &intr_sts_doc);
         if (rv != SA_OK) {
             err("Failed to get interconnect tray status array");
             xmlFreeDoc( intr_sts_doc);
             return rv;
         }
         rv = oa_soap_get_interconct_trayinfo_arr(oa_handler ,max_bays ,
-                                                 &info_res,intr_info_doc);
+                                                 &info_res, &intr_info_doc);
         if (rv != SA_OK) {
             err("Failed to get interconnect tray info array");
             xmlFreeDoc( intr_info_doc);
@@ -1396,7 +1396,7 @@ SaErrorT re_discover_interconnect(struct oh_handler_state *oh_handler,
             return rv;
         }
         rv = oa_soap_get_interconct_traypm_arr(oa_handler ,max_bays,
-                                               &pm_res, intr_pm_doc);
+                                               &pm_res, &intr_pm_doc);
         if (rv != SA_OK) {
             err("Failed to get interconnect tray portmap array");
             xmlFreeDoc( intr_pm_doc);
@@ -1519,6 +1519,9 @@ SaErrorT re_discover_interconnect(struct oh_handler_state *oh_handler,
                                               &status_result, &portmap);
                         if (rv != SA_OK) {
                                 err("Interconnect blade %d add failed", i);
+                                xmlFreeDoc( intr_pm_doc);
+                                xmlFreeDoc( intr_info_doc);
+                                xmlFreeDoc( intr_sts_doc);
                                 return rv;
                         } else
                                 err("Interconnect blade %d added", i);
@@ -1993,7 +1996,8 @@ SaErrorT re_discover_fan(struct oh_handler_state *oh_handler,
 
         oa_handler = (struct oa_soap_handler *) oh_handler->data;
         max_bays = oa_handler->oa_soap_resources.fan.max_bays;
-        rv = oa_soap_get_fan_info_arr ( oa_handler ,max_bays ,&response,fan_info_doc);
+        rv = oa_soap_get_fan_info_arr ( oa_handler ,max_bays ,&response,
+                                                          &fan_info_doc);
         if (rv != SA_OK) {
             err("Failed to get fan info array");
             xmlFreeDoc( fan_info_doc);
@@ -2273,7 +2277,7 @@ SaErrorT re_discover_ps_unit(struct oh_handler_state *oh_handler,
 
         max_bays = oa_handler->oa_soap_resources.ps_unit.max_bays;
         rv = oa_soap_get_ps_info_arr( oa_handler ,max_bays ,&info_response,
-                                        ps_info_doc);
+                                        &ps_info_doc);
         if (rv != SA_OK) {
             err("Failed to get power supply info array");
             xmlFreeDoc( ps_info_doc);
@@ -2281,7 +2285,7 @@ SaErrorT re_discover_ps_unit(struct oh_handler_state *oh_handler,
             return rv;
         }
         rv = oa_soap_get_ps_sts_arr( oa_handler ,max_bays ,&sts_res,
-                                        ps_sts_doc);
+                                        &ps_sts_doc);
         if (rv != SA_OK) {
             err("Failed to get power supply status array");
             xmlFreeDoc( ps_info_doc);

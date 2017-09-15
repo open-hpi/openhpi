@@ -320,57 +320,57 @@ SaErrorT oa_soap_modify_blade_thermal_rdr(
 SaErrorT oa_soap_get_ps_info_arr(struct oa_soap_handler *oa_handler,
                             SaHpiInt32T max_bays,
                             struct getPowerSupplyInfoArrayResponse *response,
-                            xmlDocPtr);
+                            xmlDocPtr *);
 
 SaErrorT oa_soap_get_ps_sts_arr(struct oa_soap_handler *oa_handler,
                             SaHpiInt32T max_bays,
                             struct getPowerSupplyStsArrayResponse *response,
-                            xmlDocPtr);
+                            xmlDocPtr *);
 
 SaErrorT oa_soap_get_fan_info_arr(struct oa_soap_handler *oa_handler,
                             SaHpiInt32T max_bays,
                             struct getFanInfoArrayResponse *response,
-                            xmlDocPtr);
+                            xmlDocPtr *);
 
 SaErrorT oa_soap_get_bladeinfo_arr(struct oa_soap_handler *oa_handler,
                             SaHpiInt32T max_bays,
                             struct getBladeInfoArrayResponse *response,
-                            xmlDocPtr);
+                            xmlDocPtr *);
 
 SaErrorT oa_soap_get_interconct_trayinfo_arr(struct oa_soap_handler *oa_handler,
                             SaHpiInt32T max_bays,
                             struct interconnectTrayInfoArrayResponse *response,
-                            xmlDocPtr);
+                            xmlDocPtr *);
 
 SaErrorT oa_soap_get_interconct_traysts_arr(struct oa_soap_handler *oa_handler,
                             SaHpiInt32T max_bays,
                             struct interconnectTrayStsArrayResponse *response,
-                            xmlDocPtr);
+                            xmlDocPtr *);
 
 SaErrorT oa_soap_get_interconct_traypm_arr(struct oa_soap_handler *oa_handler,
                             SaHpiInt32T max_bays,
                             struct interconnectTrayPmArrayResponse *response,
-                            xmlDocPtr);
+                            xmlDocPtr *);
 
 SaErrorT oa_soap_get_oa_info_arr(SOAP_CON *con,
                             SaHpiInt32T max_bays,
                             struct getOaInfoArrayResponse *response,
-                            xmlDocPtr);
+                            xmlDocPtr *);
 
 SaErrorT oa_soap_get_oa_sts_arr(SOAP_CON *con,
                             SaHpiInt32T max_bays,
                             struct getOaStatusArrayResponse *response,
-                            xmlDocPtr);
+                            xmlDocPtr *);
 
 SaErrorT oa_soap_get_bladests_arr(struct oa_soap_handler *oa_handler,
                             SaHpiInt32T max_bays,
                             struct getBladeStsArrayResponse *response,
-                            xmlDocPtr);
+                            xmlDocPtr *);
 
 SaErrorT oa_soap_get_portmap_arr(struct oa_soap_handler *oa_handler,
                             SaHpiInt32T max_bays,
                             struct getBladePortMapArrayResponse *response,
-                            xmlDocPtr);
+                            xmlDocPtr *);
 
 
 #endif
