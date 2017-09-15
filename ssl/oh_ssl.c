@@ -550,6 +550,7 @@ BIO             *oh_ssl_connect(char *hostname, SSL_CTX *ctx, long timeout)
                 g_free(Server);
                 g_free(Port);
                 freeaddrinfo(AddrInfo);	
+                SSL_free(ssl);
                 close(socket_desc);
                 return (NULL);
         }

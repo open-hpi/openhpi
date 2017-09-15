@@ -2244,7 +2244,7 @@ int soap_getBladeThermalInfoArray(SOAP_CON *con,
 int soap_getPowerSupplyInfoArray(SOAP_CON *con,
                          const struct getPowerSupplyInfoArray *request,
                          struct getPowerSupplyInfoArrayResponse *response,
-                         xmlDocPtr ps_info_doc)
+                         xmlDocPtr *ps_info_doc)
 {
         SOAP_PARM_CHECK
         char    bay_array[(sizeof(BAY) + 1) * request->bayArray.size];
@@ -2255,14 +2255,14 @@ int soap_getPowerSupplyInfoArray(SOAP_CON *con,
         SOAP_ARRAY_REQ
 
         if (!(ret = soap_request(con, GET_POWER_SUPPLY_INFO_ARRAY, bay_array))){
-                if( ps_info_doc != NULL)  { 
+                if( *ps_info_doc != NULL)  { 
                     dbg("ps_info_doc is NOT NULL, Please check");
-                    xmlFreeDoc( ps_info_doc);
+                    xmlFreeDoc(*ps_info_doc);
                 }
-                ps_info_doc = xmlCopyDoc (con->doc,1); 
-                if( ps_info_doc == NULL)
+                *ps_info_doc = xmlCopyDoc (con->doc,1); 
+                if( *ps_info_doc == NULL)
                     return(-1);
-                tmp = soap_walk_doc(ps_info_doc,
+                tmp = soap_walk_doc(*ps_info_doc,
                                     "Body:""getPowerSupplyInfoArrayResponse:");
                 response->powerSupplyInfoArray = soap_walk_tree(tmp,
                                         "powerSupplyInfoArray:powerSupplyInfo");
@@ -2273,7 +2273,7 @@ int soap_getPowerSupplyInfoArray(SOAP_CON *con,
 int soap_getPowerSupplyStatusArray(SOAP_CON *con,
                          const struct getPowerSupplyStsArray *request,
                          struct getPowerSupplyStsArrayResponse *response,
-                         xmlDocPtr ps_sts_doc)
+                         xmlDocPtr *ps_sts_doc)
 {
         SOAP_PARM_CHECK
         char    bay_array[(sizeof(BAY) + 1) * request->bayArray.size];
@@ -2284,14 +2284,14 @@ int soap_getPowerSupplyStatusArray(SOAP_CON *con,
         SOAP_ARRAY_REQ
 
         if (!(ret = soap_request(con, GET_POWER_SUPPLY_STATUS_ARRAY, bay_array))){
-                if( ps_sts_doc != NULL) {
+                if( *ps_sts_doc != NULL) {
                     dbg("ps_sts_doc is NOT NULL, Please check");
-                    xmlFreeDoc(ps_sts_doc);
+                    xmlFreeDoc(*ps_sts_doc);
                 }
-                ps_sts_doc = xmlCopyDoc (con->doc,1);
-                if( ps_sts_doc == NULL)
+                *ps_sts_doc = xmlCopyDoc (con->doc,1);
+                if( *ps_sts_doc == NULL)
                     return(-1);
-                tmp = soap_walk_doc(ps_sts_doc,
+                tmp = soap_walk_doc(*ps_sts_doc,
                                     "Body:""getPowerSupplyStatusArrayResponse:");
                 response->powerSupplyStsArray = soap_walk_tree(tmp,
                                         "powerSupplyStatusArray:powerSupplyStatus");
@@ -2302,7 +2302,7 @@ int soap_getPowerSupplyStatusArray(SOAP_CON *con,
 int soap_getFanInfoArray(SOAP_CON *con,
                          const struct getFanInfoArray *request,
                          struct getFanInfoArrayResponse *response,
-                         xmlDocPtr fan_info_doc)
+                         xmlDocPtr *fan_info_doc)
 {
         SOAP_PARM_CHECK
         char    bay_array[(sizeof(BAY) + 1) * request->bayArray.size];
@@ -2313,14 +2313,14 @@ int soap_getFanInfoArray(SOAP_CON *con,
         SOAP_ARRAY_REQ
 
         if (! (ret = soap_request(con, GET_FAN_INFO_ARRAY, bay_array))) {
-                if( fan_info_doc != NULL) {
+                if( *fan_info_doc != NULL) {
                     dbg("fan_info_doc is NOT NULL, Please check");
-                    xmlFreeDoc(fan_info_doc);
+                    xmlFreeDoc(*fan_info_doc);
                 }
-                fan_info_doc = xmlCopyDoc (con->doc,1);
-                if( fan_info_doc == NULL)
+                *fan_info_doc = xmlCopyDoc (con->doc,1);
+                if( *fan_info_doc == NULL)
                     return(-1);
-                tmp = soap_walk_doc(fan_info_doc,
+                tmp = soap_walk_doc(*fan_info_doc,
                                     "Body:""getFanInfoArrayResponse");
                 response->fanInfoArray = soap_walk_tree(tmp,
                                           "fanInfoArray:fanInfo");
@@ -2331,7 +2331,7 @@ int soap_getFanInfoArray(SOAP_CON *con,
 int soap_getBladeInfoArray(SOAP_CON *con,
                          const struct getBladeInfoArray *request,
                          struct getBladeInfoArrayResponse *response,
-                         xmlDocPtr bl_info_doc)
+                         xmlDocPtr *bl_info_doc)
 {
         SOAP_PARM_CHECK
         char    bay_array[(sizeof(BAY) + 1) * request->bayArray.size];
@@ -2342,14 +2342,14 @@ int soap_getBladeInfoArray(SOAP_CON *con,
         SOAP_ARRAY_REQ
 
         if (! (ret = soap_request(con, GET_BLADE_INFO_ARRAY, bay_array))) {
-                if( bl_info_doc != NULL) {
+                if( *bl_info_doc != NULL) {
                     dbg("bl_info_doc is NOT NULL, Please check");
-                    xmlFreeDoc(bl_info_doc);
+                    xmlFreeDoc(*bl_info_doc);
                 }
-                bl_info_doc = xmlCopyDoc (con->doc,1);
-                if( bl_info_doc == NULL)
+                *bl_info_doc = xmlCopyDoc (con->doc,1);
+                if( *bl_info_doc == NULL)
                     return(-1);
-                tmp = soap_walk_doc(bl_info_doc,
+                tmp = soap_walk_doc(*bl_info_doc,
                                     "Body:""getBladeInfoArrayResponse");
                 response->bladeInfoArray = soap_walk_tree(tmp,
                                           "bladeInfoArray:bladeInfo");
@@ -2360,7 +2360,7 @@ int soap_getBladeInfoArray(SOAP_CON *con,
 int soap_getBladeStatusArray(SOAP_CON *con,
                          const struct getBladeStsArray *request,
                          struct getBladeStsArrayResponse *response,
-                         xmlDocPtr bl_sts_doc)
+                         xmlDocPtr *bl_sts_doc)
 {
         SOAP_PARM_CHECK
         char    bay_array[(sizeof(BAY) + 1) * request->bayArray.size];
@@ -2371,14 +2371,14 @@ int soap_getBladeStatusArray(SOAP_CON *con,
         SOAP_ARRAY_REQ
 
         if (! (ret = soap_request(con, GET_BLADE_STATUS_ARRAY, bay_array))) {
-                if( bl_sts_doc != NULL) {
+                if( *bl_sts_doc != NULL) {
                     dbg("bl_sts_doc is NOT NULL, Please check");
-                    xmlFreeDoc(bl_sts_doc);
+                    xmlFreeDoc(*bl_sts_doc);
                 }
-                bl_sts_doc = xmlCopyDoc(con->doc,1);
-                if( bl_sts_doc == NULL)
+                *bl_sts_doc = xmlCopyDoc(con->doc,1);
+                if( *bl_sts_doc == NULL)
                     return (-1);
-                tmp = soap_walk_doc(bl_sts_doc,
+                tmp = soap_walk_doc(*bl_sts_doc,
                                     "Body:""getBladeStatusArrayResponse");
 
                 response->bladeStsArray = soap_walk_tree(tmp,
@@ -2390,7 +2390,7 @@ int soap_getBladeStatusArray(SOAP_CON *con,
 int soap_getBladePortMapArray(SOAP_CON *con,
                          const struct getBladePortMapArray *request,
                          struct getBladePortMapArrayResponse *response,
-                         xmlDocPtr bl_pm_doc)
+                         xmlDocPtr *bl_pm_doc)
 {
         SOAP_PARM_CHECK
         char    bay_array[(sizeof(BAY) + 1) * request->bayArray.size];
@@ -2401,14 +2401,14 @@ int soap_getBladePortMapArray(SOAP_CON *con,
         SOAP_ARRAY_REQ
 
         if (! (ret = soap_request(con, GET_BLADE_PORTMAP_ARRAY, bay_array))) {
-                if( bl_pm_doc != NULL) {
+                if( *bl_pm_doc != NULL) {
                     dbg("bl_pm_doc is NOT NULL, Please check");
-                    xmlFreeDoc(bl_pm_doc);
+                    xmlFreeDoc(*bl_pm_doc);
                 }
-                bl_pm_doc = xmlCopyDoc(con->doc,1);
-                if( bl_pm_doc == NULL)
+                *bl_pm_doc = xmlCopyDoc(con->doc,1);
+                if( *bl_pm_doc == NULL)
                     return (-1);
-                tmp = soap_walk_doc(bl_pm_doc,
+                tmp = soap_walk_doc(*bl_pm_doc,
                                     "Body:""getBladePortMapArrayResponse");
 
                 response->portMapArray = soap_walk_tree(tmp,
@@ -2419,7 +2419,7 @@ int soap_getBladePortMapArray(SOAP_CON *con,
 int soap_getInterconnectTrayInfoArray(SOAP_CON *con,
                             const struct getInterconnectTrayInfoArray *request,
                             struct interconnectTrayInfoArrayResponse *response,
-                            xmlDocPtr intr_info_doc)
+                            xmlDocPtr *intr_info_doc)
 {
         SOAP_PARM_CHECK
         char    bay_array[(sizeof(BAY) + 1) * request->bayArray.size];
@@ -2431,14 +2431,14 @@ int soap_getInterconnectTrayInfoArray(SOAP_CON *con,
 
         if (! (ret = soap_request(con, GET_INTERCONNECT_TRAY_INFO_ARRAY,
                                     bay_array))) {
-                if( intr_info_doc != NULL) {
+                if( *intr_info_doc != NULL) {
                     dbg("intr_info_doc is NOT NULL, Please check");
-                    xmlFreeDoc(intr_info_doc);
+                    xmlFreeDoc(*intr_info_doc);
                 }
-                intr_info_doc = xmlCopyDoc( con->doc,1);
-                if( intr_info_doc ==NULL)
+                *intr_info_doc = xmlCopyDoc( con->doc,1);
+                if( *intr_info_doc ==NULL)
                     return(-1);
-                tmp = soap_walk_doc(intr_info_doc,
+                tmp = soap_walk_doc(*intr_info_doc,
                                     "Body:"
                                     "getInterconnectTrayInfoArrayResponse");
                 response->interconnectTrayInfoArray = 
@@ -2451,7 +2451,7 @@ int soap_getInterconnectTrayInfoArray(SOAP_CON *con,
 int soap_getInterconnectTrayStatusArray(SOAP_CON *con,
                             const struct interconnectTrayStsArray *request,
                             struct interconnectTrayStsArrayResponse *response,
-                            xmlDocPtr intr_sts_doc)
+                            xmlDocPtr *intr_sts_doc)
 {
         SOAP_PARM_CHECK
         char    bay_array[(sizeof(BAY) + 1) * request->bayArray.size];
@@ -2463,14 +2463,14 @@ int soap_getInterconnectTrayStatusArray(SOAP_CON *con,
 
         if (! (ret = soap_request(con,GET_INTERCONNECT_TRAY_STATUS_ARRAY, 
                                     bay_array))) {
-                if( intr_sts_doc != NULL) {
+                if( *intr_sts_doc != NULL) {
                     dbg("intr_sts_doc is NOT NULL, Please check");
-                    xmlFreeDoc(intr_sts_doc);
+                    xmlFreeDoc(*intr_sts_doc);
                 }
-                intr_sts_doc = xmlCopyDoc(con->doc,1);
-                if( intr_sts_doc == NULL)
+                *intr_sts_doc = xmlCopyDoc(con->doc,1);
+                if( *intr_sts_doc == NULL)
                     return( -1);
-                tmp = soap_walk_doc( intr_sts_doc,
+                tmp = soap_walk_doc( *intr_sts_doc,
                                      "Body:"
                                      "getInterconnectTrayStatusArrayResponse");
                 response->interconnectTrayStsArray = soap_walk_tree(tmp, 
@@ -2482,7 +2482,7 @@ int soap_getInterconnectTrayStatusArray(SOAP_CON *con,
 int soap_getInterconnectTrayPortMapArray(SOAP_CON *con,
                             const struct interconnectTrayPmArray *request,
                             struct interconnectTrayPmArrayResponse *response,
-                            xmlDocPtr intr_pm_doc)
+                            xmlDocPtr *intr_pm_doc)
 {
         SOAP_PARM_CHECK
         char    bay_array[(sizeof(BAY) + 1) * request->bayArray.size];
@@ -2494,14 +2494,14 @@ int soap_getInterconnectTrayPortMapArray(SOAP_CON *con,
 
         if (! (ret = soap_request(con,GET_INTERCONNECT_TRAY_PORTMAP_ARRAY,
                                     bay_array))) {
-                if( intr_pm_doc != NULL) {
+                if( *intr_pm_doc != NULL) {
                     dbg("intr_pm_doc is NOT NULL, Please check");
-                    xmlFreeDoc(intr_pm_doc);
+                    xmlFreeDoc(*intr_pm_doc);
                 }
-                intr_pm_doc = xmlCopyDoc(con->doc,1);
-                if( intr_pm_doc == NULL)
+                *intr_pm_doc = xmlCopyDoc(con->doc,1);
+                if( *intr_pm_doc == NULL)
                     return( -1);
-                tmp = soap_walk_doc( intr_pm_doc,
+                tmp = soap_walk_doc( *intr_pm_doc,
                                      "Body:"
                                      "getInterconnectTrayPortMapArrayResponse");
                 response->interconnectTrayPmArray = soap_walk_tree(tmp,
@@ -2513,7 +2513,7 @@ int soap_getInterconnectTrayPortMapArray(SOAP_CON *con,
 int soap_getOaInfoArray(SOAP_CON *con,
                         const struct getOaInfoArray *request,
                         struct getOaInfoArrayResponse *response,
-                        xmlDocPtr oa_info_doc)
+                        xmlDocPtr *oa_info_doc)
 {
         SOAP_PARM_CHECK
         char    bay_array[(sizeof(BAY) + 1) * request->bayArray.size];
@@ -2524,14 +2524,14 @@ int soap_getOaInfoArray(SOAP_CON *con,
         SOAP_ARRAY_REQ
 
         if (! (ret = soap_request(con, GET_OA_INFO_ARRAY, bay_array))) {
-                if( oa_info_doc != NULL) {
+                if( *oa_info_doc != NULL) {
                     dbg("oa_info_doc is NOT NULL, Please check");
-                    xmlFreeDoc(oa_info_doc);
+                    xmlFreeDoc(*oa_info_doc);
                 }
-                oa_info_doc = xmlCopyDoc(con->doc,1);
-                if( oa_info_doc == NULL)
+                *oa_info_doc = xmlCopyDoc(con->doc,1);
+                if( *oa_info_doc == NULL)
                     return (-1);
-                tmp = soap_walk_doc(oa_info_doc,
+                tmp = soap_walk_doc(*oa_info_doc,
                                     "Body:""getOaInfoArrayResponse");
                 response->oaInfoArray = soap_walk_tree(tmp,
                                                        "oaInfoArray:oaInfo");
@@ -2542,7 +2542,7 @@ int soap_getOaInfoArray(SOAP_CON *con,
 int soap_getOaStatusArray(SOAP_CON *con,
                          const struct getOaStatusArray *request,
                          struct getOaStatusArrayResponse *response,
-                         xmlDocPtr oa_sts_doc)
+                         xmlDocPtr *oa_sts_doc)
 {
         SOAP_PARM_CHECK
         char    bay_array[(sizeof(BAY) + 1) * request->bayArray.size];
@@ -2553,14 +2553,14 @@ int soap_getOaStatusArray(SOAP_CON *con,
         SOAP_ARRAY_REQ
 
         if (! (ret = soap_request(con, GET_OA_STATUS_ARRAY, bay_array))) {
-                if( oa_sts_doc != NULL) {
+                if( *oa_sts_doc != NULL) {
                     dbg("oa_sts_doc is NOT NULL, Please check");
-                    xmlFreeDoc(oa_sts_doc);
+                    xmlFreeDoc(*oa_sts_doc);
                 }
-                oa_sts_doc = xmlCopyDoc(con->doc,1);
-                if( oa_sts_doc == NULL)
+                *oa_sts_doc = xmlCopyDoc(con->doc,1);
+                if( *oa_sts_doc == NULL)
                     return (-1);
-                tmp = soap_walk_doc(oa_sts_doc,
+                tmp = soap_walk_doc(*oa_sts_doc,
                                     "Body:""getOaStatusArrayResponse");
 
                 response->oaStatusArray = soap_walk_tree(tmp,
