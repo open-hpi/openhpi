@@ -160,7 +160,7 @@ AC_DEFUN([OH_CHECK_NETSNMP],
     ],
     [
         have_netsnmp=yes
-        SNMPFLAGS=`${net_snmp_config:-net-snmp-config} --cflags | perl -p -e 's/-O\S*//g'`
+        SNMPFLAGS=`${net_snmp_config:-net-snmp-config} --cflags | perl -p -e 's/ -O\S*//g'`
         SNMPLIBS=`${net_snmp_config:-net-snmp-config} --libs`
         AC_MSG_RESULT(yes)
     ],
