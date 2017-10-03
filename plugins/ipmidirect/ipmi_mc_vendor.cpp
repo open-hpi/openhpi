@@ -322,7 +322,7 @@ cIpmiMcVendor::CreateResources( cIpmiDomain *domain, cIpmiMc *source_mc, cIpmiSd
       if ( addr.m_channel != source_mc->GetChannel() ) 
           stdlog << "WARNING : SDR channel " << addr.m_channel << " NOT equal to MC channel " << source_mc->GetChannel() << "\n";
 
-       if ( FindOrCreateResource( domain, source_mc, fru_id, sdr, sdrs ) == false ) {
+       if ( FindOrCreateResource( domain, source_mc, fru_id, sdr, sdrs ) == NULL ) {
 	    return false;
 	}
      }

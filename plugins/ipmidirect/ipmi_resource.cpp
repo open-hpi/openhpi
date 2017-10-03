@@ -73,7 +73,7 @@ cIpmiResource::SendCommandReadLock( const cIpmiMsg &msg, cIpmiMsg &rsp,
 
   domain->ReadLock();
 
-  if ( domain->VerifyResource( resource ) == false )
+  if ( domain->VerifyResource( resource ) == NULL )
        return SA_ERR_HPI_NOT_PRESENT;
 
   return rv;
@@ -91,7 +91,7 @@ cIpmiResource::SendCommandReadLock( cIpmiRdr *rdr, const cIpmiMsg &msg, cIpmiMsg
   
   domain->ReadLock();
   
-  if ( domain->VerifyRdr( rdr ) == false )
+  if ( domain->VerifyRdr( rdr ) == NULL )
        return SA_ERR_HPI_NOT_PRESENT;
 
   return rv;
