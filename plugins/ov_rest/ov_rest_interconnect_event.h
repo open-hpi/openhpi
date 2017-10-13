@@ -64,4 +64,6 @@ SaErrorT ov_rest_proc_interconnect_fault(struct oh_handler_state *oh_handler,
                                          struct eventInfo* event);
 SaErrorT ov_rest_proc_int_status(struct oh_handler_state *oh_handler,
                                   struct eventInfo* ov_event);
+SaErrorT process_interconnect_reset_task( struct oh_handler_state *handler,
+                                struct eventInfo* event);
 #endif
