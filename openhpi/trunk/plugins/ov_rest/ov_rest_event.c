@@ -1132,6 +1132,42 @@ SaErrorT  ov_rest_proc_power_off_task( struct oh_handler_state *oh_handler,
         return SA_OK;
 }
 
+/**
+ * ov_rest_proc_reset_task
+ *      @oh_handler: Pointer to openhpi handler structure
+ *      @event:      Pointer to the eventInfo structure
+ *
+ * Purpose:
+ *      Call the Task/Event Handler for resource reset task, if taskState
+ *      is "completed" and percentComplete is "100%".
+ *
+ * Detailed Description: NA
+ *
+ * Return values:
+ *      SA_OK                     - success.
+ *      SA_ERR_HPI_INVALID_PARAMS - on wrong parameters.
+ **/
+SaErrorT  ov_rest_proc_reset_task( struct oh_handler_state *oh_handler,
+                                                       struct eventInfo* event)
+{
+        if (oh_handler == NULL || event == NULL)
+        {
+                err ("Invalid parameters");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        if ((!strcmp(event->taskState, "Completed")) &&
+                                   (event->percentComplete == 100)) {
+		if (!strcmp(event->resourceCategory, "interconnects")){
+			process_interconnect_reset_task(oh_handler, event);
+			dbg("TASK_RESET for INTERCONNECT");
+		} else 
+			warn("Not handling reset task for %s category", 
+                                                     event->resourceCategory);
+
+        }
+        return SA_OK;
+}
 
 /**
  * ov_rest_setuplistner
@@ -2398,6 +2434,10 @@ void ov_rest_process_tasks(struct oh_handler_state *oh_handler,
 		case TASK_POWER_OFF:
 			ov_rest_proc_power_off_task(oh_handler,event);
 			dbg("TASK_POWER_OFF");
+			break;
+		case TASK_RESET:
+			ov_rest_proc_reset_task(oh_handler,event);
+			dbg("TASK_RESET");
 			break;
 		case TASK_REMOVE:
 		case TASK_REFRESH:

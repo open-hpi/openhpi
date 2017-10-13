@@ -75,6 +75,8 @@ SaErrorT  ov_rest_proc_power_on_task( struct oh_handler_state *oh_handler,
                                   struct eventInfo* event);
 SaErrorT  ov_rest_proc_power_off_task( struct oh_handler_state *oh_handler,
                                   struct eventInfo* event);
+SaErrorT  ov_rest_proc_reset_task( struct oh_handler_state *oh_handler,
+                                  struct eventInfo* event);
 SaErrorT ov_rest_amqp_err_handling(struct oh_handler_state *handler, 
 				int library_error);
 SaErrorT ov_rest_re_discover(struct oh_handler_state *handler);
