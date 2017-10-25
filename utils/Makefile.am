@@ -94,7 +94,7 @@ libopenhpiutils_la_SOURCES = \
     uid_utils.h
 
 libopenhpiutils_la_LDFLAGS = -version-info @HPI_LIB_VERSION@
-libopenhpiutils_la_LIBADD = @GCRYPT_LIB@
+libopenhpiutils_la_LIBADD = @GCRYPT_LIB@ @SSL_LIB@ -lm -lpthread
 
 # FIXME:: Add when we can auto-generate files for SMP systems
 #$(GENERATED_FILES): $(top_srcdir)/include/SaHpi.h $(top_srcdir)/scripts/SaHpi2code.pl

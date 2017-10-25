@@ -8,6 +8,8 @@
 # the Copying file included with the OpenHPI distribution for
 # full licensing terms.
 
+AUTOMAKE_OPTIONS = -Wno-portability
+
 MAINTAINERCLEANFILES = Makefile.in
 
 REMOTE_SOURCES       = announcement_utils.c \
