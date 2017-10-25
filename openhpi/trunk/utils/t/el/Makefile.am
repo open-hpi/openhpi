@@ -10,6 +10,8 @@
 
 MAINTAINERCLEANFILES = Makefile.in
 
+AUTOMAKE_OPTIONS = -Wno-portability
+
 REMOTE_SOURCES       = announcement_utils.c \
                        el_utils.c \
                        epath_utils.c \

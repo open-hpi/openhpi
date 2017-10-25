@@ -83,7 +83,7 @@ libsnmp_bc_la_SOURCES = \
 			snmp_bc_xml2event.c
 nodist_libsnmp_bc_la_SOURCES = $(GENERATED_EVENT_CODE)
 
-libsnmp_bc_la_LIBADD = -luuid @SNMPLIBS@ $(SNMPUTILBDIR)/libopenhpi_snmp.la $(top_builddir)/utils/libopenhpiutils.la
+libsnmp_bc_la_LIBADD = -luuid -lnetsnmp $(SNMPUTILBDIR)/libopenhpi_snmp.la $(top_builddir)/utils/libopenhpiutils.la
 libsnmp_bc_la_LDFLAGS = -module -version-info @HPI_LIB_VERSION@
 #libsnmp_bc_la_LDFLAGS = -module -avoid-version
 

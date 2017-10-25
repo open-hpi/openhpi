@@ -1,6 +1,8 @@
 MAINTAINERCLEANFILES = Makefile.in
 MOSTLYCLEANFILES     = @TEST_CLEAN@
 
+AUTOMAKE_OPTIONS = -Wno-portability subdir-objects
+
 AM_CPPFLAGS = -DG_LOG_DOMAIN=\"hpixml\"
 AM_CCASFLAGS = -DSCHEMA=\"$(srcdir)/schema.xsd\"
 

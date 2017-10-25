@@ -66,6 +66,7 @@ libilo2_ribcl_la_SOURCES  =	\
 				ilo2_ribcl_hotswap.c \
 				ilo2_ribcl_hotswap.h
 
-libilo2_ribcl_la_LIBADD   = @SSL_LIB@ @XML2_LIB@ $(top_builddir)/utils/libopenhpiutils.la
+libilo2_ribcl_la_LIBADD   = @XML2_LIB@ $(top_builddir)/utils/libopenhpiutils.la \
+                            $(top_builddir)/ssl/libopenhpi_ssl.la
 libilo2_ribcl_la_LDFLAGS  = -module -version-info @HPI_LIB_VERSION@
 
