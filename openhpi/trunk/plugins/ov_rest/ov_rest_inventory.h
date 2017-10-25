@@ -185,6 +185,13 @@ SaErrorT ov_rest_build_enclosure_inv_rdr(struct oh_handler_state *oh_handler,
                                  SaHpiRdrT *rdr,
                                  struct ov_rest_inventory **inventory);
 
+SaErrorT ov_rest_build_composer_inv_rdr(struct oh_handler_state *oh_handler,
+                                struct applianceInfo *response,
+                                struct applianceHaNodeInfo *ha_response,
+				SaHpiResourceIdT resource_id,
+                                SaHpiRdrT *rdr,
+                                struct ov_rest_inventory **inventory);
+
 SaErrorT ov_rest_build_server_inv_rdr(struct oh_handler_state *oh_handler,
 				SaHpiResourceIdT resource_id,
 				SaHpiRdrT *rdr,

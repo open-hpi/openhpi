@@ -1017,8 +1017,10 @@ SaErrorT  ov_rest_proc_add_task( struct oh_handler_state *oh_handler,
 	if(event->taskState == NULL){
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
+	CRIT("TASK_ADD for resource category %s ", event->resourceCategory);
         if ((!strcmp(event->taskState, "Completed")) &&
                                    (event->percentComplete == 100)) {
+	CRIT("TASK_ADD COMPLETE for resource category %s ", event->resourceCategory);
 		if(!strcmp(event->resourceCategory, "server-hardware")) {
 			ov_rest_proc_blade_add_complete(oh_handler, event);
 			dbg("TASK_ADD_SERVER");
@@ -1041,6 +1043,10 @@ SaErrorT  ov_rest_proc_add_task( struct oh_handler_state *oh_handler,
 			ov_rest_proc_interconnect_add_complete(oh_handler,
 								event);
 			dbg("TASK_ADD_INTERCONNECT");
+		}else if(!strcmp(event->resourceCategory, "ha_node")){
+			ov_rest_proc_composer_insertion_event(oh_handler,
+								event);
+			dbg("TASK_ADD_COMPOSER");
 		} else {
 			err("Unknown resourceCategory %s",
 						event->resourceCategory);
@@ -1167,6 +1173,47 @@ SaErrorT  ov_rest_proc_reset_task( struct oh_handler_state *oh_handler,
 
         }
         return SA_OK;
+}
+
+/**
+ * ov_rest_proc_activate_standby_composer
+ *      @oh_handler: Pointer to openhpi handler structure
+ *      @event:      Pointer to the eventInfo structure
+ *
+ * Purpose:
+ *     Task/Event handler for the TASK_ACTIVATE_STANDBY_APPLIANCE
+ *     when the task is 100% complete this function initiates the
+ *     Re-Discovery of the resources.
+ *
+ * Detailed Description: NA
+ *
+ * Return values:
+ *      SA_OK                     - success.
+ *      SA_ERR_HPI_INVALID_PARAMS - on wrong parameters.
+ **/
+
+SaErrorT ov_rest_proc_activate_standby_composer(
+					struct oh_handler_state *oh_handler,
+					struct eventInfo* event)
+{
+	SaErrorT rv = SA_OK;
+
+	if (oh_handler == NULL || event == NULL)
+	{
+		err ("Invalid parameters");
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
+	if ((!strcmp(event->taskState, "Completed")) &&
+			(event->percentComplete == 100)) {
+
+		rv = ov_rest_re_discover(oh_handler);
+		if(rv != SA_OK){
+			CRIT("Re-Discovery faild.");
+			return rv;
+		}
+
+	}
+	return SA_OK;
 }
 
 /**
@@ -1878,7 +1925,7 @@ gpointer ov_rest_event_thread(gpointer ov_pointer)
 					ov_handler->connection->hostname);
 			rv = ov_rest_getapplianceNodeInfo(
 					handler, &response, 
-					ov_handler->connection, NULL);
+					ov_handler->connection);
 			ov_rest_wrap_json_object_put(response.root_jobj);
 			if(rv == SA_OK){
 				err("Composer is Accessible, "
@@ -2035,6 +2082,14 @@ void ov_rest_process_alerts(struct oh_handler_state *oh_handler,
 			dbg("CIManagerCritical");
 			break;
 
+		case CIManagerInserted:
+			ov_rest_proc_composer_insertion_event(oh_handler, event);
+			dbg("CIManagerInserted");
+			break;
+		case CIManagerRemoved:
+			ov_rest_proc_composer_removed_event(oh_handler, event);
+			dbg("CIManagerRemoved");
+			break;
 		case TopologyError:
 		case PartnerSwitchCommunicationFailure:
 		case PartnerSwitchVersionMismatch: 
@@ -2203,8 +2258,6 @@ void ov_rest_process_alerts(struct oh_handler_state *oh_handler,
 		case CIManagerFruContentFault:
 		case CIManagerFruManufacturedForInvalidFault:
 		case CIManagerFruManufacturedForMismatchFault:
-		case CIManagerInserted:
-		case CIManagerRemoved:
 		case CIManagerWarrantySerialUpdate:
 		case CertificateDeleted:
 		case CertificateSaved:
@@ -2439,6 +2492,11 @@ void ov_rest_process_tasks(struct oh_handler_state *oh_handler,
 			ov_rest_proc_reset_task(oh_handler,event);
 			dbg("TASK_RESET");
 			break;
+		case TASK_ACTIVATE_STANDBY_APPLIANCE:
+			ov_rest_proc_activate_standby_composer(oh_handler, event);
+			dbg("TASK_ACTIVATE_STANDBY_APPLIANCE");
+			break;
+			
 		case TASK_REMOVE:
 		case TASK_REFRESH:
 		case TASK_COLLECT_UTILIZATION_DATA:

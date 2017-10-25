@@ -89,7 +89,8 @@ typedef enum resourceCategory
 	SAS_INTERCONNECT = 3,
 	POWER_SUPPLY = 4,
 	FAN = 5,
-	UNSPECIFIED_RESOURCE = 6
+	SYNERGY_COMPOSER = 6,
+	UNSPECIFIED_RESOURCE = 7 
 }resourceCategory_t;
 
 /* Resource presence matrix per resource type */
@@ -116,6 +117,7 @@ typedef struct enclosureStatus
 	SaHpiResourceIdT lcd_rid;
 	SaHpiInt32T enc_type;
 	char *serialNumber;
+	struct resource_info composer;
 	struct resource_info server;
 	struct resource_info interconnect;
 	struct resource_info ps_unit;

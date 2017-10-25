@@ -46,16 +46,18 @@ void free_data(gpointer data);
 
 SaErrorT ov_rest_re_discover_resources(struct oh_handler_state *oh_handler);
 SaErrorT re_discover_appliance(struct oh_handler_state *oh_handler);
-SaErrorT add_composer(struct oh_handler_state * handler,
-                struct applianceNodeInfo *result,
-                struct applianceHaNodeInfo *ha_node_result);
-SaErrorT remove_composer(struct oh_handler_state *handler);
-
 SaErrorT re_discover_enclosure(struct oh_handler_state *oh_handler);
 SaErrorT remove_enclosure(struct oh_handler_state *handler,
                 struct enclosureStatus *enclosure);
 SaErrorT add_enclosure(struct oh_handler_state *handler,
                 struct enclosureInfo *result);
+SaErrorT re_discover_composer(struct oh_handler_state *oh_handler);
+SaErrorT add_composer(struct oh_handler_state *handler,
+                struct applianceInfo *composer_info,
+                struct applianceHaNodeInfo *ha_node_result);
+SaErrorT remove_composer(struct oh_handler_state *handler,
+                struct enclosureStatus *enclosure,
+                byte bayNumber);
 SaErrorT re_discover_server(struct oh_handler_state *oh_handler);
 SaErrorT add_inserted_blade(struct oh_handler_state *handler,
                 struct serverhardwareInfo *info_result,

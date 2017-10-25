@@ -84,6 +84,9 @@ SaErrorT ov_rest_getActiveLockedEventArray(REST_CON *connection,
                 struct eventArrayResponse *response);
 SaErrorT process_active_and_locked_alerts(struct oh_handler_state *handler,
                 struct eventArrayResponse *event_response);
+SaErrorT ov_rest_proc_activate_standby_composer(
+					struct oh_handler_state *oh_handler,
+					struct eventInfo* event);
 SaErrorT oem_event_handler(struct oh_handler_state *oh_handler,
                         struct eventInfo* event);
 SaErrorT oem_event_to_file(struct oh_handler_state *handler,

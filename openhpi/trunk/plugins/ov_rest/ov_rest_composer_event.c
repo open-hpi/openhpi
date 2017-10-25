@@ -209,3 +209,193 @@ SaErrorT ov_rest_proc_composer_status(struct oh_handler_state *oh_handler,
 	return SA_OK;
 }
 
+/**
+ * ov_rest_proc_composer_insertion_event
+ *      @handler: Pointer to openhpi handler structure
+ *      @event:   Pointer to OV REST event response structure
+ *
+ * Purpose:
+ *      Adds the newly inserted Composer information into RPT and
+ *      RDR table.
+ *      Creates the hot swap event.
+ *
+ * Detailed Description: NA
+ *
+ * Return values:
+ *      SA_OK                     - success.
+ *      SA_ERR_HPI_INVALID_PARAMS - on wrong parameters.
+ *      SA_ERR_HPI_INTERNAL_ERROR - on failure.
+ *      SA_ERR_HPI_INVALID_DATA   - On Invalid data.
+ *      SA_ERR_HPI_INVALID_RESOURCE - On Invalid Resource.
+ **/
+SaErrorT ov_rest_proc_composer_insertion_event( 
+					struct oh_handler_state *handler,
+                                        struct eventInfo* event)
+{
+	SaErrorT rv = SA_OK;
+	int bayNumber;
+	struct applianceInfo response = {{0}};
+	struct applianceHaNodeInfoArrayResponse ha_node_response = {0};
+	struct applianceHaNodeInfo ha_node_result = {{0}};
+	struct ov_rest_handler *ov_handler = NULL;
+	struct enclosureInfoArrayResponse enclosure_response = {0};
+	struct enclosureInfo enclosure_result = {{0}};
+	char* enclosure_doc = NULL;
+	json_object *jvalue_cim = NULL, *jvalue_cim_array = NULL;
+
+	if (handler == NULL || event == NULL) {
+		err("Invalid parameters");
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
+	ov_handler = (struct ov_rest_handler *) handler->data;
+	if(!event->resourceID){
+		dbg("Bay Number is Unknown for Inserted Composer,"
+			" Please Restart the Openhpid");
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
+	bayNumber = ov_rest_get_baynumber(event->resourceID);
+	WRAP_ASPRINTF(&ov_handler->connection->url, "https://%s%s",
+			ov_handler->connection->hostname,
+			event->resourceUri);
+	rv = ov_rest_getenclosureInfoArray(handler, &enclosure_response,
+			ov_handler->connection, enclosure_doc);
+	if (rv != SA_OK || enclosure_response.enclosure_array == NULL) {
+		CRIT("No response from ov_rest_getenclosureInfoArray");
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
+	ov_rest_json_parse_enclosure(enclosure_response.enclosure_array,
+			&enclosure_result);
+	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
+	jvalue_cim_array = ov_rest_wrap_json_object_object_get(
+			enclosure_response.enclosure_array,
+			"applianceBays");
+	/* Checking for json object type, if it is not array, return */
+	if (jvalue_cim_array == NULL || (json_object_get_type(jvalue_cim_array)
+				!= json_type_array)) {
+		CRIT("No appliance array for bay %d, Dropping event",
+				bayNumber);
+		return SA_ERR_HPI_INVALID_DATA;
+	}
+	jvalue_cim = json_object_array_get_idx(jvalue_cim_array, bayNumber-1);
+	if(!jvalue_cim){
+		CRIT("Invalid response for the appliance in bay %d",
+				bayNumber);
+		return SA_ERR_HPI_INVALID_DATA;
+	}
+	ov_rest_json_parse_applianceInfo(jvalue_cim, &response);
+	/* Make call to the ha-node  */
+	if(!response.serialNumber || !strcmp(response.serialNumber, "")){
+		CRIT("serial number is NULL in appliance bay %d .\n"
+		"Please Restart the Openhpid.", bayNumber);
+		return SA_ERR_HPI_INVALID_DATA;
+	}
+	WRAP_ASPRINTF(&ov_handler->connection->url, OV_APPLIANCE_HA_NODE_ID_URI,
+			ov_handler->connection->hostname,
+			response.serialNumber);
+	rv = ov_rest_getapplianceHANodeArray(handler,&ha_node_response,
+			ov_handler->connection, NULL);
+	if(rv != SA_OK){
+		CRIT("ov_rest_getapplianceHANodeArray call Failed");
+		return rv;
+	}
+	ov_rest_json_parse_appliance_Ha_node(ha_node_response.haNodeArray,
+			&ha_node_result);
+
+	ov_rest_wrap_json_object_put(ha_node_response.root_jobj);
+	
+	rv  = add_composer(handler, &response, &ha_node_result);
+	if(rv != SA_OK){
+		CRIT("Failed to add the inserted Composer");
+		return rv;
+	}
+	wrap_free(enclosure_doc);
+	return SA_OK;
+}
+
+
+/**
+ * ov_rest_proc_composer_removed_event
+ *      @handler: Pointer to openhpi handler structure
+ *      @event:   Pointer to OV REST event response structure
+ *
+ * Purpose:
+ *      Removes Composer information from Resource Table (RPT) and
+ *      Creates the hot swap event
+ *
+ * Detailed Description: NA
+ *
+ * Return values:
+ *      SA_OK                     - success.
+ *      SA_ERR_HPI_INVALID_PARAMS - on wrong parameters.
+ *      SA_ERR_HPI_INTERNAL_ERROR - on failure
+ *      SA_ERR_HPI_OUT_OF_MEMORY  - on out of memory.
+ *      SA_ERR_HPI_INVALID_RESOURCE - Invalid are unknow resource
+ **/
+SaErrorT ov_rest_proc_composer_removed_event( struct oh_handler_state *handler,
+                                        struct eventInfo* event)
+{
+	int bayNumber;
+	SaErrorT rv = SA_OK;
+	struct ov_rest_handler *ov_handler = NULL;
+	struct enclosureInfoArrayResponse enclosure_response = {0};
+	struct enclosureInfo enclosure_result = {{0}};
+	char* enclosure_doc = NULL;
+	struct enclosureStatus *enclosure = NULL;
+
+	if (handler == NULL || event == NULL) {
+		err("Invalid parameters");
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
+	ov_handler = (struct ov_rest_handler *) handler->data;
+	if(!event->resourceID){
+		dbg("Bay Number is Unknown for removed Composer");
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
+	bayNumber = ov_rest_get_baynumber(event->resourceID);
+	WRAP_ASPRINTF(&ov_handler->connection->url, "https://%s%s",
+			ov_handler->connection->hostname,
+			event->resourceUri);
+	rv = ov_rest_getenclosureInfoArray(handler, &enclosure_response,
+			ov_handler->connection, enclosure_doc);
+	if (rv != SA_OK || enclosure_response.enclosure_array == NULL) {
+		CRIT("No response from ov_rest_getenclosureInfoArray");
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
+	/* we are making this call to get just enclosure serial number
+	 * This is useful to find the enclosure related to this composer
+	 */
+	ov_rest_json_parse_enclosure(enclosure_response.enclosure_array,
+			&enclosure_result);
+	ov_rest_wrap_json_object_put(enclosure_response.root_jobj);
+
+	enclosure = (struct enclosureStatus *)ov_handler->
+		ov_rest_resources.enclosure;
+	while(enclosure != NULL){
+		if(!strcmp(enclosure->serialNumber,
+					enclosure_result.serialNumber)){
+			break;
+		}
+		enclosure = enclosure->next;
+	}
+	if(enclosure == NULL){
+		CRIT("Enclosure data of the composer is unavailable");
+		wrap_free(enclosure_doc);
+		return SA_ERR_HPI_INVALID_RESOURCE;
+	}
+	if(enclosure->composer.presence[bayNumber - 1] == RES_ABSENT){
+		err("Composer does not exist dropping the event, enclosure "
+		"serial number %s in bay number %d", enclosure->serialNumber,
+						  bayNumber);
+		wrap_free(enclosure_doc);
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
+
+	rv = remove_composer(handler, enclosure, bayNumber);
+	if(rv != SA_OK){
+		CRIT("Failed to Remove the Composer");
+		return rv;
+	}
+	return SA_OK;
+}
+
+
