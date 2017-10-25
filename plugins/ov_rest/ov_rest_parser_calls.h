@@ -489,6 +489,7 @@ OV_REST_ENUM(name,
         TASK_REMOVE,
 	TASK_POWER_ON,
 	TASK_POWER_OFF,
+	TASK_ACTIVATE_STANDBY_APPLIANCE,
         TASK_REFRESH,
         TASK_COLLECT_UTILIZATION_DATA,
         TASK_MANAGE_UTILIZATION_DATA,
@@ -577,6 +578,11 @@ struct applianceHaNodeInfoResponse
 	json_object *root_jobj;
 	json_object *haNode;
 };
+struct applianceHaNodeInfoArrayResponse
+{
+	json_object *root_jobj;
+	json_object *haNodeArray;
+};
 struct applianceHaNodeInfo
 {
 	char version[MAX_256_CHARS];
@@ -586,6 +592,10 @@ struct applianceHaNodeInfo
 	char modelNumber[MAX_256_CHARS];
 	char applianceId[MAX_256_CHARS]; /* AKA uuid of the appliance*/
 	char uri[MAX_URI_LENGTH];
+	char enclosure_uri[MAX_URI_LENGTH];
+	char serialNumber[MAX_256_CHARS];
+	byte bayNumber;
+	enum resourceCategory type;
 };
 struct applianceInfo
 {
@@ -645,6 +655,7 @@ struct enclosureInfo
         char rackName[MAX_256_CHARS];
         char enclosureName[MAX_256_CHARS];
         char name[MAX_256_CHARS];
+	byte composerBays;
         byte bladeBays;
         char model[MAX_256_CHARS];
         char partNumber[MAX_256_CHARS];

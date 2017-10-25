@@ -774,6 +774,7 @@ void ov_rest_json_parse_appliance_Ha_node( json_object *jobj,
 				struct applianceHaNodeInfo *response)
 {
 	const char *temp = NULL;
+	json_object * jvalue = NULL;
 
 	json_object_object_foreach(jobj, key, val){
 		ov_rest_prn_json_obj(key, val);
@@ -821,8 +822,32 @@ void ov_rest_json_parse_appliance_Ha_node( json_object *jobj,
 					strlen(temp)+1);
 			continue;
 		}
-	}
+		if(!strcmp(key, "location")){
+			jvalue = ov_rest_wrap_json_object_object_get(jobj, 
+								"location");
+			ov_rest_json_parse_appliance_Ha_node(jvalue, response);
+			continue;
+		}
+		if(!strcmp(key, "bay")){
+			response->bayNumber = json_object_get_int(val);
+			continue;
 
+		}
+		if(!strcmp(key, "enclosure")){
+			jvalue = ov_rest_wrap_json_object_object_get(jobj, 
+								"enclosure");
+			ov_rest_json_parse_appliance_Ha_node(jvalue, response);
+			continue;
+		}
+		if(!strcmp(key, "resourceUri")){
+			temp = json_object_get_string(val);
+			if(temp != NULL)
+				 memcpy(response->enclosure_uri,temp,
+					strlen(temp)+1);	
+			continue;
+		}
+	}
+	response->type = SYNERGY_COMPOSER;
 }
 /**
  * ov_rest_json_parse_appliance_status:
@@ -1171,6 +1196,10 @@ void ov_rest_json_parse_enclosure( json_object *jvalue,
 			temp = json_object_get_string(val);
 			if(temp)
 				memcpy(response->uidState,temp,strlen(temp)+1);
+			continue;
+		}
+		if(!strcmp(key,"applianceBayCount")){
+			response->composerBays = json_object_get_int(val);
 			continue;
 		}
 	}

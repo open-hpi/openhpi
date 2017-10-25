@@ -53,7 +53,6 @@ static void ov_rest_push_disc_res(struct oh_handler_state *oh_handler);
  *      @oh_handler: Pointer to openhpi handler.
  *      @response:   Pointer to the appliance info response structure.
  *      @connection: Pointer to connection structure.
- *      @appliance_doc: Char pointer to hold the appliance response doc.
  *
  * Purpose:
  *      This routine makes the request call to retrive the appliance
@@ -67,8 +66,7 @@ static void ov_rest_push_disc_res(struct oh_handler_state *oh_handler);
  **/
 SaErrorT ov_rest_getapplianceNodeInfo(struct oh_handler_state *oh_handler,
                 struct applianceNodeInfoResponse *response,
-                REST_CON *connection,
-                char* appliance_doc)
+                REST_CON *connection)
 {
 	SaErrorT rv = SA_OK;
 	OV_STRING s = {0};
@@ -273,6 +271,54 @@ SaErrorT ov_rest_getenclosureInfoArray(struct oh_handler_state *oh_handler,
 			ov_rest_wrap_json_object_object_get(s.jobj, "members");
 		if (!response->enclosure_array) {
 			response->enclosure_array = s.jobj;
+		}
+	}
+	wrap_free(s.ptr);
+	wrap_g_free(connection->url);
+	curl_easy_cleanup(curl);
+	curl_global_cleanup();
+	return SA_OK;
+}
+
+/**
+ * ov_rest_getapplianceHANodeArray:
+ *      @oh_handler: Pointer to openhpi handler.
+ *      @response:   Pointer to appliance HA node info array response.
+ *      @connection: Pointer to connection structure.
+ *      @appliance_ha_info: Char pointer to hold the appliance response doc.
+ *
+ * Purpose:
+ *      This routine makes the request call to retrive the composer HA Node 
+ *      information in json object.
+ *
+ * Detailed Description: NA
+ *
+ * Return values:
+ *      SA_OK                     - on success
+ *      SA_ERR                    - on failure
+ **/
+SaErrorT ov_rest_getapplianceHANodeArray(struct oh_handler_state *oh_handler,
+		struct applianceHaNodeInfoArrayResponse* response,
+		REST_CON *connection,
+		char* appliance_ha_info)
+{
+	SaErrorT rv = SA_OK;
+	OV_STRING s = {0};
+	struct curl_slist *chunk = NULL;
+	curl_global_init(CURL_GLOBAL_ALL);
+	/* Get a curl handle */
+	CURL* curl = curl_easy_init();
+	rv = ov_rest_curl_get_request(connection, chunk, curl, &s);
+	if(s.jobj == NULL || s.len == 0){
+		return rv;
+	}else
+	{
+		response->root_jobj = s.jobj;
+		/*Getting the array if it is a key value pair*/
+		response->haNodeArray = 
+			ov_rest_wrap_json_object_object_get(s.jobj, "members");
+		if (!response->haNodeArray) {
+			response->haNodeArray = s.jobj;
 		}
 	}
 	wrap_free(s.ptr);
@@ -1671,11 +1717,27 @@ SaErrorT discover_ov_rest_system(struct oh_handler_state *handler)
                      g_thread_self());
                 return SA_OK;
         }
+	dbg(" Discovering Composers ...................");
+	rv = ov_rest_discover_composer(handler);
+	if (rv != SA_OK) {
+		err("Failed to discover Composers");
+		return rv;
+	}
+        if (ov_handler->shutdown_event_thread == SAHPI_TRUE) {
+                dbg("shutdown_event_thread set. Returning in thread %p",
+                     g_thread_self());
+                return SA_OK;
+        }
         dbg(" Discovering Blades ...................");
         rv = ov_rest_discover_server(handler);
         if (rv != SA_OK) {
                 err("Failed to discover Server Blade");
                 return rv;
+        }
+        if (ov_handler->shutdown_event_thread == SAHPI_TRUE) {
+                dbg("shutdown_event_thread set. Returning in thread %p",
+                     g_thread_self());
+                return SA_OK;
         }
 
         dbg(" Discovering Drive Enclosures ...................");
@@ -1742,6 +1804,9 @@ SaErrorT discover_ov_rest_system(struct oh_handler_state *handler)
  *
  * Purpose:
  *      Discovers the appliance.
+ *      We want a top level entity path that is not removable.
+ *      Appliance is a top level Synergy ring representation.
+ *      Active composer represents Synergy ring
  *
  * Detailed Description: NA
  *
@@ -1754,69 +1819,80 @@ SaErrorT ov_rest_discover_appliance(struct oh_handler_state *handler)
 	SaErrorT rv = 0;
 	struct ov_rest_handler *ov_handler = NULL;
 	struct applianceNodeInfoResponse response = {0};
-	struct applianceHaNodeInfoResponse ha_response = {0};
+	struct applianceHaNodeInfoArrayResponse ha_array_response = {0};
 	struct applianceNodeInfo result = {{{0}}};
 	struct applianceHaNodeInfo ha_node_result = {{0}};
 	SaHpiResourceIdT resource_id;
-	char* appliance_version_doc = NULL, *s = NULL;
-	
+	char* s = NULL;
+	char *appliance_array_doc = NULL;
+	char active_sno[MAX_256_CHARS] = "\0";
+
 	ov_handler = (struct ov_rest_handler *) handler->data;
+
 	memset(&response,0, sizeof(struct applianceNodeInfoResponse));
 	WRAP_ASPRINTF(&ov_handler->connection->url, OV_APPLIANCE_VERSION_URI, 
-		ov_handler->connection->hostname);
+			ov_handler->connection->hostname);
 	rv = ov_rest_getapplianceNodeInfo(handler, &response, 
-		ov_handler->connection, appliance_version_doc);
+			ov_handler->connection);
 	if(rv != SA_OK || response.applianceVersion == NULL) {
 		CRIT("Failed to get the response from ov_rest_getappliance\n");
-		wrap_g_free(appliance_version_doc);
 		return rv;
 	}
 	ov_rest_json_parse_appliance_version(response.applianceVersion,
-						&result.version);
+			&result.version);
+
+	ov_rest_wrap_json_object_put(response.root_jobj);
 
 	WRAP_ASPRINTF(&ov_handler->connection->url, OV_APPLIANCE_HA_NODE_ID_URI, 
-		ov_handler->connection->hostname, result.version.serialNumber);
-	rv = ov_rest_getapplianceHaNodeInfo(&ha_response, 
-					ov_handler->connection);
-	if(rv != SA_OK) {
-		CRIT("Failed to get the response for Active HA Node "
-			"of serial number = %s", result.version.serialNumber);
+			ov_handler->connection->hostname, 
+			result.version.serialNumber);
+	strncpy(active_sno, result.version.serialNumber, MAX_256_CHARS-1);
+	active_sno[MAX_256_CHARS-1] = '\0';
+
+	rv = ov_rest_getapplianceHANodeArray(handler, &ha_array_response, 
+			ov_handler->connection, appliance_array_doc); 
+
+	if(rv != SA_OK || ha_array_response.haNodeArray == NULL) {
+		CRIT("No response from ov_rest_getapplianceHANodeArray");
 		return rv;
 	}
-	ov_rest_json_parse_appliance_Ha_node(ha_response.haNode,
-					&ha_node_result);
-		
-	ov_rest_wrap_json_object_put(response.root_jobj);
-	ov_rest_wrap_json_object_put(ha_response.root_jobj);
-	rv = ov_rest_build_appliance_rpt(handler, &ha_node_result, 
-						&resource_id);
-	if (rv != SA_OK) {
-		err("Build appliance rpt failed for resource id %d",
+	ov_rest_json_parse_appliance_Ha_node(
+			ha_array_response.haNodeArray,
+			&ha_node_result);
+
+	ov_rest_wrap_json_object_put(ha_array_response.root_jobj);
+
+	if (strcmp(ha_node_result.role, "Active") == 0) {
+		if(strstr(active_sno, ha_node_result.uri) == NULL) {  
+			CRIT("Active composer sno %s and uri %s differ",
+					active_sno, ha_node_result.uri);
+		}
+		rv = ov_rest_build_appliance_rpt(handler, 
+				&ha_node_result, &resource_id, "Active");
+		if (rv != SA_OK) {
+			err("Build appliance rpt failed for resource id %d",
 							resource_id);
-		wrap_g_free(appliance_version_doc);
-		return rv;
+			return rv;
+		}
+		/* Save appliance resource id */
+		ov_handler->ov_rest_resources.composer.resource_id = 
+			resource_id;
+		strcpy(ov_handler->ov_rest_resources.composer.serialNumber,
+				result.version.serialNumber);
 	}
-
-	/* Save appliance resource id */
-	ov_handler->ov_rest_resources.composer.resource_id = resource_id;
-	strcpy(ov_handler->ov_rest_resources.composer.serialNumber,
-					result.version.serialNumber);
-        itostr(resource_id ,&s);
-        g_hash_table_insert(ov_handler->uri_rid, g_strdup(result.version.uri), 
-				g_strdup(s));
+	itostr(resource_id ,&s);
+	g_hash_table_insert(ov_handler->uri_rid, 
+			g_strdup(result.version.uri), g_strdup(s));
 	wrap_free(s);
-
-	rv = ov_rest_build_appliance_rdr(handler, &result,
-			&ha_node_result, resource_id);
+	rv = ov_rest_build_appliance_rdr(handler, 
+			&result, &ha_node_result, resource_id);
 	if (rv != SA_OK) {
 		err("Build appliance rdr failed for resource id %d",
 							resource_id);
 		wrap_free(s);
-		wrap_g_free(appliance_version_doc);
 		return rv;
 	}
-	wrap_g_free(appliance_version_doc);
-        return SA_OK;
+	return SA_OK;
 }
 
 /**
@@ -2038,7 +2114,7 @@ SaErrorT ov_rest_build_appliance_inv_rdr(struct oh_handler_state *oh_handler,
  *      Pushes the RDR entry to plugin RPTable
  *
  * Detailed Description:
- *         - Creates the enclosure inventory RDR
+ *         - Creates the appliance RDR
  *
  * Return values:
  *      SA_OK                     - on success.
@@ -2107,9 +2183,11 @@ SaErrorT ov_rest_build_appliance_rdr(struct oh_handler_state *oh_handler,
  *      @oh_handler:  Pointer to openhpi handler.
  *      @name:        Pointer to the name of the appliance.
  *      @resource_id: Pointer to the resource id.
+ *      @type:  Active / Standby.
  *
  * Purpose:
  *      Builds the appliance RPT entry.
+ *      All non-active appliances are added under the respective enclisures.
  *      Pushes the RPT entry to plugin RPTable.
  *
  * Detailed Description: NA
@@ -2121,25 +2199,51 @@ SaErrorT ov_rest_build_appliance_rdr(struct oh_handler_state *oh_handler,
  **/
 SaErrorT ov_rest_build_appliance_rpt(struct oh_handler_state *oh_handler,
                              struct applianceHaNodeInfo *response,
-                             SaHpiResourceIdT *resource_id)
+                             SaHpiResourceIdT *resource_id, char *type)
 {
 	SaErrorT rv = SA_OK;
 	SaHpiEntityPathT entity_path = {{{0}}};
 	struct ov_rest_handler *ov_handler = NULL;
-	char *entity_root = NULL;
+	char *entity_root = NULL, *enclosure_doc = NULL;
+	struct ovRestHotswapState * hotswap_state = NULL;
+	SaHpiPowerStateT state = {0};
+	struct applianceInfo appliancebay_info = {{0}};
+	struct enclosureInfoArrayResponse enc_response = {0};
+	json_object* jvalue_comp_array = NULL, *jvalue_composer = NULL;
 	SaHpiRptEntryT rpt = {0};
 
 	if (oh_handler == NULL || response == NULL) {
 		err("Invalid parameters");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
-
 	ov_handler = (struct ov_rest_handler *) oh_handler->data;
 	if(ov_handler == NULL) {
 		err("Invalid parameters");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
-
+	WRAP_ASPRINTF(&ov_handler->connection->url, "https://%s%s",
+			ov_handler->connection->hostname,
+			response->enclosure_uri);
+	rv = ov_rest_getenclosureInfoArray(oh_handler, &enc_response,
+			ov_handler->connection, enclosure_doc);
+	if(rv != SA_OK || enc_response.enclosure_array == NULL) {
+		CRIT("No response from ov_rest_getenclosureInfoArray");
+		return rv;
+	}
+	jvalue_comp_array = ov_rest_wrap_json_object_object_get(
+			enc_response.enclosure_array,
+			"applianceBays");
+	jvalue_composer = 
+		json_object_array_get_idx(jvalue_comp_array, 
+				response->bayNumber-1);
+	if (!jvalue_composer) {
+		CRIT("Invalid response for the composer"
+				" in bay %d", response->bayNumber);
+		return SA_ERR_HPI_INTERNAL_ERROR;	
+	}
+	ov_rest_json_parse_applianceInfo(jvalue_composer,
+			&appliancebay_info);
+	ov_rest_wrap_json_object_put(enc_response.root_jobj);
 	/* Fetch and encode the entity path required for the rpt field */
 	entity_root = (char *) g_hash_table_lookup(oh_handler->config,
 			"entity_root");
@@ -2152,41 +2256,261 @@ SaErrorT ov_rest_build_appliance_rpt(struct oh_handler_state *oh_handler,
 	/* Populate the rpt with the details of the appliance */
 	memset(&rpt, 0, sizeof(SaHpiRptEntryT));
 	rpt.ResourceCapabilities = SAHPI_CAPABILITY_RDR |
+		SAHPI_CAPABILITY_RESET |
+		SAHPI_CAPABILITY_POWER |
 		SAHPI_CAPABILITY_RESOURCE |
 		SAHPI_CAPABILITY_SENSOR |
 		SAHPI_CAPABILITY_INVENTORY_DATA |
 		SAHPI_CAPABILITY_CONTROL ;
 	rpt.ResourceEntity.Entry[0].EntityType = SAHPI_ENT_ROOT;
 	rpt.ResourceEntity.Entry[0].EntityLocation = 0;
-
 	rv = oh_concat_ep(&(rpt.ResourceEntity), &entity_path);
 	if (rv != SA_OK) {
 		err("Concat of entity path failed for the appliance");
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
-        switch(response->applianceStatus){
-                case OK:
-                        rpt.ResourceSeverity = SAHPI_OK;
-                        rpt.ResourceFailed = SAHPI_FALSE;
-                        break;
-                case Disabled:
-                        rpt.ResourceSeverity = SAHPI_CRITICAL;
-                        rpt.ResourceFailed = SAHPI_TRUE;
-                        break;
-                case Warning:
-                        rpt.ResourceSeverity = SAHPI_MINOR;
-                        rpt.ResourceFailed = SAHPI_FALSE;
-                        break;
-                case Critical:
-                        rpt.ResourceSeverity = SAHPI_CRITICAL;
-                        rpt.ResourceFailed = SAHPI_FALSE;
-                        break;
-                default:
-                        rpt.ResourceSeverity = SAHPI_MAJOR;
-                        rpt.ResourceFailed = SAHPI_TRUE;
-        }
+	switch(response->applianceStatus){
+		case OK:
+			rpt.ResourceSeverity = SAHPI_OK;
+			rpt.ResourceFailed = SAHPI_FALSE;
+			break;
+		case Disabled:
+			rpt.ResourceSeverity = SAHPI_CRITICAL;
+			rpt.ResourceFailed = SAHPI_TRUE;
+			break;
+		case Warning:
+			rpt.ResourceSeverity = SAHPI_MINOR;
+			rpt.ResourceFailed = SAHPI_FALSE;
+			break;
+		case Critical:
+			rpt.ResourceSeverity = SAHPI_CRITICAL;
+			rpt.ResourceFailed = SAHPI_FALSE;
+			break;
+		default:
+			rpt.ResourceSeverity = SAHPI_MAJOR;
+			rpt.ResourceFailed = SAHPI_TRUE;
+	}
 	rpt.ResourceInfo.ManufacturerId = HPE_MANUFACTURING_ID;
-	rpt.HotSwapCapabilities = 0x0;
+	rpt.ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
+	rpt.ResourceTag.Language = SAHPI_LANG_ENGLISH;
+	ov_rest_trim_whitespace(response->name);
+	rpt.ResourceTag.DataLength = strlen("ACTIVE_COMPOSER");
+	memset(rpt.ResourceTag.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+	snprintf((char *) (rpt.ResourceTag.Data),
+			rpt.ResourceTag.DataLength+1, "%s", "ACTIVE_COMPOSER");
+	rpt.ResourceId = oh_uid_from_entity_path(&(rpt.ResourceEntity));
+	/* set default hotswap capability */
+	if (rpt.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP) {
+		rpt.HotSwapCapabilities =
+			SAHPI_HS_CAPABILITY_AUTOEXTRACT_READ_ONLY;
+	} else {
+		rpt.HotSwapCapabilities = 0;
+	}
+	if (rpt.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP) {
+		switch (appliancebay_info.powerState){
+			case Off:
+				state = SAHPI_POWER_OFF;
+				break;
+			case On:
+				state = SAHPI_POWER_ON;
+				break;
+			case PoweringOff:
+				state = SAHPI_POWER_OFF;
+				break;
+			case PoweringOn:
+				state = SAHPI_POWER_ON;
+				break;
+			case Restting:
+				err("Wrong Power State (REBOOT) detected"
+						" for appliance in bay %d",
+						appliancebay_info.bayNumber);
+				return SA_ERR_HPI_INTERNAL_ERROR;
+			default:
+				err("Unknown Power State %d detected"
+						" for the server in bay %d",
+						appliancebay_info.powerState,
+						appliancebay_info.bayNumber);
+				return SA_ERR_HPI_INTERNAL_ERROR;
+		}
+	}
+	if(appliancebay_info.poweredOn){
+		state = SAHPI_POWER_ON;
+	}
+	hotswap_state = (struct ovRestHotswapState *)
+		g_malloc0(sizeof(struct ovRestHotswapState));
+	if(hotswap_state == NULL){
+		err("Out of memory");
+		return SA_ERR_HPI_OUT_OF_MEMORY;
+	}
+	switch (state) {
+		case SAHPI_POWER_ON:
+		case SAHPI_POWER_CYCLE:
+			hotswap_state->currentHsState =
+				SAHPI_HS_STATE_ACTIVE;
+			break;
+		case SAHPI_POWER_OFF:
+			hotswap_state->currentHsState =
+				SAHPI_HS_STATE_INACTIVE;
+			break;
+		default:
+			err("Unknown power status %d for server"
+					" in bay %d", state, 
+					appliancebay_info.bayNumber);
+			wrap_g_free(hotswap_state);
+			return SA_ERR_HPI_INTERNAL_ERROR;
+	}
+	/* Add the Appliance rpt to the plugin RPTable */
+	rv = oh_add_resource(oh_handler->rptcache, &rpt, hotswap_state , 0);
+	if (rv != SA_OK) {
+		err("Failed to Add Appliance Resource");
+		wrap_g_free(hotswap_state);
+		return rv;
+	}
+	*resource_id = rpt.ResourceId;
+	return SA_OK;
+}
+
+/**
+ * ov_rest_build_composer_rpt:
+ *      @oh_handler:  Pointer to openhpi handler.
+ *      @name:        Pointer to the name of the appliance.
+ *      @resource_id: Pointer to the resource id.
+ *      @type:  Active / Standby.
+ *
+ * Purpose:
+ *      Builds the appliance RPT entry.
+ *     All non-active appliances are added under root
+ *      Pushes the RPT entry to plugin RPTable.
+ *
+ * Detailed Description: NA
+ *
+ * Return values:
+ *      SA_OK                     - on success.
+ *      SA_ERR_HPI_INVALID_PARAMS - on wrong parameters
+ *      SA_ERR_HPI_INTERNAL_ERROR - on failure.
+ **/
+SaErrorT ov_rest_build_composer_rpt(struct oh_handler_state *oh_handler,
+                             struct applianceHaNodeInfo *response,
+                             SaHpiResourceIdT *resource_id, char *type)
+{
+	SaErrorT rv = SA_OK;
+	SaHpiEntityPathT entity_path = {{{0}}};
+	struct ov_rest_handler *ov_handler = NULL;
+	char *entity_root = NULL, *enclosure_doc = NULL;
+	SaHpiRptEntryT rpt = {0}, *enc_rpt = NULL;
+	struct enclosureStatus *enclosure = NULL;
+	struct ovRestHotswapState * hotswap_state = NULL;
+	SaHpiPowerStateT state = {0};
+	struct applianceInfo appliancebay_info = {{0}};
+	struct enclosureInfoArrayResponse enc_response = {0};
+	json_object* jvalue_comp_array = NULL, *jvalue_composer = NULL;
+
+	if (oh_handler == NULL || response == NULL) {
+		err("Invalid parameters");
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
+	ov_handler = (struct ov_rest_handler *) oh_handler->data;
+	if(ov_handler == NULL) {
+		err("Invalid parameters");
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
+	WRAP_ASPRINTF(&ov_handler->connection->url, "https://%s%s",
+			ov_handler->connection->hostname,
+			response->enclosure_uri);
+	rv = ov_rest_getenclosureInfoArray(oh_handler, &enc_response,
+			ov_handler->connection, enclosure_doc);
+	if(rv != SA_OK || enc_response.enclosure_array == NULL) {
+		CRIT("No response from ov_rest_getenclosureInfoArray");
+		return rv;
+	}
+	jvalue_comp_array = ov_rest_wrap_json_object_object_get(
+			enc_response.enclosure_array,
+			"applianceBays");
+	jvalue_composer =
+		json_object_array_get_idx(jvalue_comp_array,
+				response->bayNumber-1);
+	if (!jvalue_composer) {
+		CRIT("Invalid response for the composer"
+				" in bay %d", response->bayNumber);
+		ov_rest_wrap_json_object_put(enc_response.root_jobj);
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
+	ov_rest_json_parse_applianceInfo(jvalue_composer,
+			&appliancebay_info);
+	ov_rest_wrap_json_object_put(enc_response.root_jobj);
+	/* Fetch and encode the entity path required for the rpt field */
+	entity_root = (char *) g_hash_table_lookup(oh_handler->config,
+			"entity_root");
+	memset(&entity_path, 0, sizeof(SaHpiEntityPathT));
+	rv = oh_encode_entitypath(entity_root, &entity_path);
+	if (rv != SA_OK) {
+		err("Encoding entity path failed for the appliance");
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
+	/* Populate the rpt with the details of the appliance */
+	memset(&rpt, 0, sizeof(SaHpiRptEntryT));
+	rpt.ResourceCapabilities = SAHPI_CAPABILITY_RDR |
+		SAHPI_CAPABILITY_RESET |
+		SAHPI_CAPABILITY_POWER |
+		SAHPI_CAPABILITY_FRU |
+		SAHPI_CAPABILITY_RESOURCE |
+		SAHPI_CAPABILITY_MANAGED_HOTSWAP |
+		SAHPI_CAPABILITY_SENSOR |
+		SAHPI_CAPABILITY_INVENTORY_DATA |
+		SAHPI_CAPABILITY_CONTROL ;
+	rpt.ResourceEntity.Entry[2].EntityType = SAHPI_ENT_ROOT;
+	rpt.ResourceEntity.Entry[2].EntityLocation = 0;
+	rpt.ResourceEntity.Entry[1].EntityType =
+		SAHPI_ENT_SYSTEM_CHASSIS;
+	enclosure = ov_handler->ov_rest_resources.enclosure;
+	while(enclosure){
+		if(strstr(response->enclosure_uri, enclosure->serialNumber)){
+			break;
+		}
+		enclosure = enclosure->next;
+	}
+	if(enclosure){
+		enc_rpt = oh_get_resource_by_id(oh_handler->rptcache,
+				enclosure->enclosure_rid);
+	}else{
+		err("Could not find the associated enclosure"
+				" for the composer in bay %d, parent location uri"
+				" %s",response->bayNumber, response->enclosure_uri);
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
+	rpt.ResourceEntity.Entry[1].EntityLocation =
+		enc_rpt->ResourceEntity.Entry[0].EntityLocation;
+	rpt.ResourceEntity.Entry[0].EntityType =
+		SAHPI_ENT_SYS_MGMNT_MODULE;
+	rpt.ResourceEntity.Entry[0].EntityLocation =
+		response->bayNumber;
+	rv = oh_concat_ep(&(rpt.ResourceEntity), &entity_path);
+	if (rv != SA_OK) {
+		err("Concat of entity path failed for the appliance");
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
+	switch(response->applianceStatus){
+		case OK:
+			rpt.ResourceSeverity = SAHPI_OK;
+			rpt.ResourceFailed = SAHPI_FALSE;
+			break;
+		case Disabled:
+			rpt.ResourceSeverity = SAHPI_CRITICAL;
+			rpt.ResourceFailed = SAHPI_TRUE;
+			break;
+		case Warning:
+			rpt.ResourceSeverity = SAHPI_MINOR;
+			rpt.ResourceFailed = SAHPI_FALSE;
+			break;
+		case Critical:
+			rpt.ResourceSeverity = SAHPI_CRITICAL;
+			rpt.ResourceFailed = SAHPI_FALSE;
+			break;
+		default:
+			rpt.ResourceSeverity = SAHPI_MAJOR;
+			rpt.ResourceFailed = SAHPI_TRUE;
+	}
+	rpt.ResourceInfo.ManufacturerId = HPE_MANUFACTURING_ID;
 	rpt.ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
 	rpt.ResourceTag.Language = SAHPI_LANG_ENGLISH;
 	ov_rest_trim_whitespace(response->name);
@@ -2195,16 +2519,77 @@ SaErrorT ov_rest_build_appliance_rpt(struct oh_handler_state *oh_handler,
 	snprintf((char *) (rpt.ResourceTag.Data),
 			strlen(response->name) + 1, "%s", response->name);
 	rpt.ResourceId = oh_uid_from_entity_path(&(rpt.ResourceEntity));
-
+	/* set default hotswap capability */
+	if (rpt.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP) {
+		rpt.HotSwapCapabilities =
+			SAHPI_HS_CAPABILITY_AUTOEXTRACT_READ_ONLY;
+	} else {
+		rpt.HotSwapCapabilities = 0;
+	}
+	if (rpt.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP) {
+		switch (appliancebay_info.powerState){
+			case Off:
+				state = SAHPI_POWER_OFF;
+				break;
+			case On:
+				state = SAHPI_POWER_ON;
+				break;
+			case PoweringOff:
+				state = SAHPI_POWER_OFF;
+				break;
+			case PoweringOn:
+				state = SAHPI_POWER_ON;
+				break;
+			case Restting:
+				err("Wrong Power State (REBOOT) detected"
+						" for appliance in bay %d",
+						appliancebay_info.bayNumber);
+				return SA_ERR_HPI_INTERNAL_ERROR;
+			default:
+				err("Unknown Power State %d detected"
+						" for the server in bay %d",
+						appliancebay_info.powerState,
+						appliancebay_info.bayNumber);
+				return SA_ERR_HPI_INTERNAL_ERROR;
+		}
+	}
+	if(appliancebay_info.poweredOn){
+		state = SAHPI_POWER_ON;
+	}
+	hotswap_state = (struct ovRestHotswapState *)
+		g_malloc0(sizeof(struct ovRestHotswapState));
+	if(hotswap_state == NULL){
+		err("Out of memory");
+		return SA_ERR_HPI_OUT_OF_MEMORY;
+	}
+	switch (state) {
+		case SAHPI_POWER_ON:
+		case SAHPI_POWER_CYCLE:
+			hotswap_state->currentHsState =
+				SAHPI_HS_STATE_ACTIVE;
+			break;
+		case SAHPI_POWER_OFF:
+			hotswap_state->currentHsState =
+				SAHPI_HS_STATE_INACTIVE;
+			break;
+		default:
+			err("Unknown power status %d for server"
+					" in bay %d", state,
+					appliancebay_info.bayNumber);
+			wrap_g_free(hotswap_state);
+			return SA_ERR_HPI_INTERNAL_ERROR;
+	}
 	/* Add the Appliance rpt to the plugin RPTable */
-	rv = oh_add_resource(oh_handler->rptcache, &rpt, NULL, 0);
+	rv = oh_add_resource(oh_handler->rptcache, &rpt, hotswap_state , 0);
 	if (rv != SA_OK) {
 		err("Failed to Add Appliance Resource");
+		wrap_g_free(hotswap_state);
 		return rv;
 	}
 	*resource_id = rpt.ResourceId;
 	return SA_OK;
 }
+
 
 
 /**
@@ -2265,10 +2650,67 @@ SaErrorT ov_rest_build_enc_info(struct oh_handler_state *oh_handler,
 	
 
 	/* Create the resource presence matrix for
-         * server, interconnect,power supply and fan unit.
+         * Composer, server, interconnect,power supply and fan unit.
          * We need the resource presence matrix for re-discovery to sync
          * with current states of the resources
          */
+
+	/* Build resource presence matrix for Composers */
+	temp_enclosure->composer.max_bays = info->composerBays;
+	if(temp_enclosure->composer.max_bays){
+		temp_enclosure->composer.presence = 
+			(enum resource_presence *)
+			g_malloc0((sizeof(enum resource_presence)) *
+					temp_enclosure->composer.max_bays);
+		if(temp_enclosure->composer.presence == NULL){
+			err("Out of memory");
+			wrap_g_free(temp_enclosure->serialNumber);
+			wrap_g_free(temp_enclosure);
+			return SA_ERR_HPI_OUT_OF_MEMORY;
+		}
+		/* allocate memory for resource_id matrix for composers */
+		 temp_enclosure->composer.resource_id = 
+			(SaHpiResourceIdT *) g_malloc0((
+				sizeof(SaHpiResourceIdT ) *
+				temp_enclosure->composer.max_bays));
+		if (temp_enclosure->composer.resource_id == NULL) {
+			err("Out of memory");
+			release_ov_rest_resources(temp_enclosure);
+			return SA_ERR_HPI_OUT_OF_MEMORY;
+		}
+		temp_enclosure->composer.type = 
+			(enum resourceCategory *)
+			g_malloc0((sizeof(enum resourceCategory)) *
+					temp_enclosure->composer.max_bays);
+		if(temp_enclosure->composer.type == NULL){
+			
+			err("Out of memory");
+			release_ov_rest_resources(temp_enclosure);
+			return SA_ERR_HPI_OUT_OF_MEMORY;
+		}
+
+		temp_enclosure->composer.serialNumber = (char **)
+			g_malloc0(sizeof(char **) *
+					temp_enclosure->composer.max_bays);
+		if(temp_enclosure->composer.serialNumber == NULL){
+			err("Out of memory");
+			release_ov_rest_resources(temp_enclosure);
+			return SA_ERR_HPI_OUT_OF_MEMORY;
+		}
+		for(i = 0; i < temp_enclosure->composer.max_bays; i++){
+			temp_enclosure->composer.presence[i] = RES_ABSENT;
+			temp_enclosure->composer.resource_id[i] =
+				SAHPI_UNSPECIFIED_RESOURCE_ID;
+			temp_enclosure->composer.serialNumber[i] = (char *)
+				g_malloc0(sizeof(char) * MAX_256_CHARS);
+			if (temp_enclosure->composer.serialNumber[i] ==
+					NULL) {
+				err("Out of memory");
+				release_ov_rest_resources(temp_enclosure);
+				return SA_ERR_HPI_OUT_OF_MEMORY;
+			}
+		}
+	}	
 
 	/* Build resource presence matrix for servers */
 	temp_enclosure->server.max_bays = info->bladeBays;
@@ -2279,8 +2721,7 @@ SaErrorT ov_rest_build_enc_info(struct oh_handler_state *oh_handler,
 					temp_enclosure->server.max_bays);
 		if (temp_enclosure->server.presence == NULL) {
 			err("Out of memory");	
-			wrap_g_free(temp_enclosure->serialNumber);
-			wrap_g_free(temp_enclosure);
+			release_ov_rest_resources(temp_enclosure);
 			return SA_ERR_HPI_OUT_OF_MEMORY;
 		}
 		/* allocate memory for resource_id matrix server blades */
@@ -2858,6 +3299,456 @@ SaErrorT ov_rest_discover_enclosure(struct oh_handler_state *handler)
 
 	}
 	ov_rest_wrap_json_object_put(response.root_jobj);
+	return SA_OK;
+}
+
+/**
+ * ov_rest_build_composer_inv_rdr:
+ *      @oh_handler: Handler data pointer.
+ *      @response: Pointer to appliance Info structure.
+ *	@ha_response: Pointer to struct applianceHaNodeInfo structure
+ *      @rdr: Rdr Structure for inventory data.
+ *      @inventory: Rdr private data structure.
+ *
+ * Purpose:
+ *      Creates an inventory rdr for composer.
+ *
+ * Detailed Description:
+ *      - Populates the composer inventory rdr with default values.
+ *      - Inventory data repository is created and associated in the private
+ *        data area of the Inventory RDR.
+ *
+ * Return values:
+ *      SA_OK                     - On Success.
+ *      SA_ERR_HPI_INVALID_PARAMS - On wrong parameters.
+ *      SA_ERR_HPI_INTERNAL_ERROR - ov_rest plugin has encountered an internal
+ *                                  error.
+ *      SA_ERR_HPI_OUT_OF_MEMORY  - Request failed due to insufficient memory.
+ **/
+
+SaErrorT ov_rest_build_composer_inv_rdr(struct oh_handler_state *oh_handler,
+				struct applianceInfo *response,
+				struct applianceHaNodeInfo *ha_response,
+				SaHpiResourceIdT resource_id,
+				SaHpiRdrT *rdr,
+				struct ov_rest_inventory **inventory)
+{
+
+        SaErrorT rv = SA_OK;
+        SaHpiIdrFieldT hpi_field = {0};
+        char appliance_inv_str[] = APPLIANCE_INVENTORY_STRING, *tmp = NULL;
+        struct ov_rest_inventory *local_inventory = NULL;
+        struct ovRestArea *head_area = NULL;
+        SaHpiInt32T add_success_flag = 0;
+        SaHpiInt32T product_area_success_flag = 0;
+        SaHpiInt32T area_count = 0;
+        SaHpiRptEntryT *rpt = NULL;
+        SaHpiFloat64T fm_version = 0;
+        SaHpiInt32T major = 0;
+
+        if (oh_handler == NULL || response == NULL || rdr == NULL ||
+                        inventory == NULL) {
+                err("Invalid parameter.");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        /* Get the rpt entry of the resource */
+        rpt = oh_get_resource_by_id(oh_handler->rptcache, resource_id);
+        if (rpt == NULL) {
+                err("resource RPT is NULL");
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+
+        /* Populating inventory rdr with default values and resource name */
+        rdr->Entity = rpt->ResourceEntity;
+        rdr->RecordId = 0;
+        rdr->RdrType  = SAHPI_INVENTORY_RDR;
+        rdr->RdrTypeUnion.InventoryRec.IdrId = SAHPI_DEFAULT_INVENTORY_ID;
+        rdr->IdString.DataType = SAHPI_TL_TYPE_TEXT;
+        rdr->IdString.Language = SAHPI_LANG_ENGLISH;
+        ov_rest_trim_whitespace(ha_response->name);
+        rdr->IdString.DataLength = strlen(ha_response->name);
+        snprintf((char *)rdr->IdString.Data,
+                        strlen(ha_response->name) + 1,
+                        "%s", ha_response->name);
+
+        /* Create inventory IDR and populate the IDR header */
+        local_inventory = (struct ov_rest_inventory*)
+                g_malloc0(sizeof(struct ov_rest_inventory));
+        if (!local_inventory) {
+                err("OV REST out of memory");
+                return SA_ERR_HPI_OUT_OF_MEMORY;
+        }
+        local_inventory->inv_rec.IdrId = rdr->RdrTypeUnion.InventoryRec.IdrId;
+        local_inventory->info.idr_info.IdrId =
+                rdr->RdrTypeUnion.InventoryRec.IdrId;
+        local_inventory->info.idr_info.UpdateCount = 1;
+        local_inventory->info.idr_info.ReadOnly = SAHPI_FALSE;
+        local_inventory->info.idr_info.NumAreas = 0;
+        local_inventory->info.area_list = NULL;
+        local_inventory->comment =
+                (char *)g_malloc0(strlen(appliance_inv_str) + 1);
+        strcpy(local_inventory->comment, appliance_inv_str);
+
+        /* Create and add product area if resource name and/or manufacturer
+         * information exist
+         */
+        rv = ov_rest_add_product_area(&local_inventory->info.area_list,
+                        ha_response->name,
+                        "HPE",
+                        &add_success_flag);
+        if (rv != SA_OK) {
+                err("Add product area failed");
+                return rv;
+        }
+
+        /* add_success_flag will be true if product area is added,
+         * if this is the first successful creation of IDR area, then have
+         * area pointer stored as the head node for area list
+         */
+        if (add_success_flag != SAHPI_FALSE) {
+                product_area_success_flag = SAHPI_TRUE;
+                (local_inventory->info.idr_info.NumAreas)++;
+                if (area_count == 0) {
+                        head_area = local_inventory->info.area_list;
+                }
+                ++area_count;
+        }
+
+        /* Create and add chassis area if resource part number and/or
+         * serial number exist
+         */
+        rv = ov_rest_add_chassis_area(&local_inventory->info.area_list,
+                        NULL,
+                        response->serialNumber,
+                        &add_success_flag);
+        if (rv != SA_OK) {
+                err("Add chassis area failed");
+                return rv;
+        }
+        if (add_success_flag != SAHPI_FALSE) {
+                (local_inventory->info.idr_info.NumAreas)++;
+                if (area_count == 0) {
+                        head_area = local_inventory->info.area_list;
+                }
+                ++area_count;
+        }
+
+        /* Create and add internal area if all/atleast one of required
+         * information of resource for internal is available
+         */
+        local_inventory->info.area_list = head_area;
+        *inventory = local_inventory;
+
+        /* Adding the product version in IDR product area.  It is added at
+         * the end of the field list.
+         */
+        if (product_area_success_flag == SAHPI_TRUE) {
+                /* Add the product version field if the appliance hardware info
+                 * is available
+                 */
+                if (ha_response->version != NULL) {
+                        memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
+                        hpi_field.AreaId = local_inventory->info.area_list->
+                                idr_area_head.AreaId;
+                        hpi_field.Type = SAHPI_IDR_FIELDTYPE_PRODUCT_VERSION;
+                        strcpy ((char *)hpi_field.Field.Data,
+                                        ha_response->version);
+
+                        rv = ov_rest_idr_field_add(&(local_inventory
+                                        ->info.area_list->field_list),
+                                        &hpi_field);
+                        if (rv != SA_OK) {
+                                err("Add idr field failed");
+                                return rv;
+                        }
+
+                        /* Increment the field counter */
+                        local_inventory->info.area_list->idr_area_head.
+                                NumFields++;
+
+                        /* Check whether Firmware version is NULL. */
+                        if (!ha_response->version) {
+                                err("Firmware version is not vailable for the"
+                                        "resource %d", resource_id);
+                                return SA_ERR_HPI_INTERNAL_ERROR;
+                        }
+                        /* Store Firmware MajorRev & MinorRev data in rpt */
+                        fm_version = atof(ha_response->version);
+                        rpt->ResourceInfo.FirmwareMajorRev = major =
+                                        (SaHpiUint8T)floor(fm_version);
+                        rpt->ResourceInfo.FirmwareMinorRev = rintf((
+                                        fm_version - major) * 100);
+                }
+                if (ha_response->uri != NULL) {
+                        hpi_field.AreaId = local_inventory->info.area_list->
+                                        idr_area_head.AreaId;
+                        hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
+                        WRAP_ASPRINTF(&tmp,"URI = %s",ha_response->uri);
+                        strcpy ((char *)hpi_field.Field.Data, tmp);
+                        wrap_free(tmp);
+
+                        rv = ov_rest_idr_field_add(&(
+                                local_inventory->info.area_list->field_list),
+                                &hpi_field);
+                        if (rv != SA_OK) {
+                                err("Add idr field failed");
+                                return rv;
+                        }
+
+                        /* Increment the field counter */
+                        local_inventory->info.area_list->idr_area_head.
+                                NumFields++;
+                }
+        }
+        return SA_OK;
+
+}
+
+/**
+ * ov_rest_build_composer_rdr:
+ *      @oh_handler:  Pointer to openhpi handler.
+ *      @composer_info:    Pointer to applianceInfo structure.
+ *      @ha_response: Pointer to appliance ha_node info response structure.
+ *      @resource_id: Resource id
+ *
+ * Purpose:
+ *      Populate the composer RDR.
+ *      Pushes the RDR entry to plugin RPTable
+ *
+ * Detailed Description:
+ *         - Creates the composer RDR
+ *
+ * Return values:
+ *      SA_OK                     - on success.
+ *      SA_ERR_HPI_INVALID_PARAMS - on wrong parameters
+ *      SA_ERR_HPI_INTERNAL_ERROR - on failure.
+ **/
+
+SaErrorT ov_rest_build_composer_rdr( struct oh_handler_state *oh_handler,
+			struct applianceInfo *composer_info,
+			struct applianceHaNodeInfo *ha_response,
+			SaHpiResourceIdT resource_id)
+{	
+        SaErrorT rv = SA_OK;
+        SaHpiRdrT rdr = {0};
+        struct ov_rest_inventory *inventory = NULL;
+        struct ov_rest_sensor_info *sensor_info = NULL;
+        SaHpiInt32T sensor_status = 0;
+        SaHpiInt32T sensor_val = 0;
+
+        if (oh_handler == NULL || composer_info == NULL || ha_response == NULL){
+                err("Invalid parameters");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        /* Build inventory rdr for the appliance */
+        memset(&rdr, 0, sizeof(SaHpiRdrT));
+        rv = ov_rest_build_composer_inv_rdr(oh_handler, composer_info, 
+				ha_response, resource_id, &rdr, &inventory);
+        if (rv != SA_OK) {
+                err("Failed to Add appliance inventory RDR");
+                return rv;
+        }
+
+        rv = oh_add_rdr(oh_handler->rptcache, resource_id, &rdr, inventory, 0);
+        if (rv != SA_OK) {
+                err("Failed to add rdr");
+                return rv;
+        }
+
+        /* Build operational status sensor rdr */
+        switch (ha_response->applianceStatus ) {
+                case OK:
+                        sensor_val = OP_STATUS_OK;
+                        break;
+                case Critical:
+                        sensor_val = OP_STATUS_CRITICAL;
+                        break;
+                case Warning:
+                        sensor_val = OP_STATUS_WARNING;
+                        break;
+                case Disabled:
+                        sensor_val = OP_STATUS_DISABLED;
+                        break;
+                default :
+                        sensor_val = OP_STATUS_UNKNOWN;
+        }
+
+        OV_REST_BUILD_ENABLE_SENSOR_RDR(OV_REST_SEN_OPER_STATUS, sensor_val);
+
+        return SA_OK;
+}
+
+/**
+ * ov_rest_discover_composer:
+ *      @handler: Pointer to openhpi handler.
+ *
+ * Purpose:
+ *      Discovers the composers.
+ *
+ * Detailed Description: NA
+ *
+ * Return values:
+ *      SA_OK    - on success.
+ *      Error    - on failure.
+ **/
+
+SaErrorT ov_rest_discover_composer(struct oh_handler_state *handler)
+{
+
+	SaErrorT rv = 0;
+	SaHpiResourceIdT resource_id;
+	struct enclosureInfoArrayResponse enc_response = {0};
+	struct applianceInfo composer_info = {{0}};
+	struct applianceHaNodeInfo ha_node_result = {{0}};
+	struct applianceHaNodeInfoArrayResponse ha_node_response = {0};
+	struct enclosureInfo enc_result = {{0}};
+	char *enclosure_doc = NULL;
+	/* this Pointer must be freed at the end of this function */
+	int i = 0, j = 0, arraylen = 0, comp_arraylen = 0;
+	json_object *jvalue = NULL, *jvalue_comp_array = NULL;
+	json_object *jvalue_composer = NULL;
+	struct enclosureStatus *enclosure = NULL;
+	struct ov_rest_handler *ov_handler = NULL;
+
+	ov_handler = (struct ov_rest_handler *) handler->data;
+
+	WRAP_ASPRINTF(&ov_handler->connection->url, OV_ENCLOSURE_URI,
+			ov_handler->connection->hostname);
+	rv = ov_rest_getenclosureInfoArray(handler, &enc_response,
+			ov_handler->connection, enclosure_doc);
+	if(rv != SA_OK || enc_response.enclosure_array == NULL) {
+		CRIT("No response from ov_rest_getenclosureInfoArray");
+		return rv;
+	}
+
+	/* Checking for json object type, if it is not array, return */
+	if (json_object_get_type(enc_response.enclosure_array) 
+			!= json_type_array){
+		CRIT("Enclosures may not be added as no array received");
+		ov_rest_wrap_json_object_put(enc_response.root_jobj);
+		return SA_OK;
+	}
+
+	arraylen = json_object_array_length(enc_response.enclosure_array);
+	for (i=0; i< arraylen; i++){
+		jvalue = json_object_array_get_idx(
+				enc_response.enclosure_array,i);
+		if (!jvalue){
+			CRIT("Invalid response for the enclosure in bay %d",
+					i + 1);
+			continue;
+		}
+		ov_rest_json_parse_enclosure(jvalue,&enc_result);
+		jvalue_comp_array = ov_rest_wrap_json_object_object_get(jvalue,
+				"applianceBays");
+		/* Checking for json object type, if it is not array, return */
+		if (json_object_get_type(jvalue_comp_array) != json_type_array){
+			CRIT("Not adding applianceBay supplied to enclosure %d,"
+					" no array returned for that",i);
+			continue;
+		}
+		comp_arraylen = json_object_array_length(jvalue_comp_array);
+		for(j = 0; j < comp_arraylen; j++){
+			jvalue_composer = 
+				json_object_array_get_idx(jvalue_comp_array, j);
+			if (!jvalue_composer) {
+				CRIT("Invalid response for the composer"
+						" in bay %d", j + 1);
+				continue;
+			}
+			ov_rest_json_parse_applianceInfo(jvalue_composer,
+					&composer_info);
+			if(!composer_info.serialNumber){
+				CRIT("Composer Serial Number is NULL in bay %d"
+					" of Enclosure rerial number %s",
+						j+1, enc_result.serialNumber);
+				continue;
+			}
+			WRAP_ASPRINTF(&ov_handler->connection->url, 
+					OV_APPLIANCE_HA_NODE_ID_URI,
+					ov_handler->connection->hostname, 
+					composer_info.serialNumber);
+		        rv = ov_rest_getapplianceHANodeArray(handler, 
+					 &ha_node_response,
+       				         ov_handler->connection, NULL);
+			if(rv != SA_OK || ha_node_response.haNodeArray 
+				== NULL){
+				CRIT("No response from "
+					"ov_rest_getapplianceHANodeArray");
+				ov_rest_wrap_json_object_put(
+						enc_response.root_jobj);
+				return rv;
+			}
+
+			ov_rest_json_parse_appliance_Ha_node(
+					ha_node_response.haNodeArray,
+					&ha_node_result);
+
+			ov_rest_wrap_json_object_put(
+						ha_node_response.root_jobj);
+
+			enclosure = ov_handler->ov_rest_resources.enclosure;
+			while(enclosure != NULL){
+				if(strstr(enclosure->serialNumber,
+						enc_result.serialNumber)){
+					ov_rest_update_resource_status(
+						&enclosure->composer,
+						composer_info.bayNumber,
+						composer_info.serialNumber,
+						resource_id, RES_PRESENT,
+						ha_node_result.type);
+					break;
+				}
+				enclosure = enclosure->next;
+			}
+			if(enclosure == NULL){
+				CRIT("Enclosure data of the Composer"
+					" serial number %s is unavailable",
+					composer_info.serialNumber);
+			}
+			/* Build rpt entry for composer */
+			rv = ov_rest_build_composer_rpt(handler,
+					&ha_node_result, &resource_id, 
+					ha_node_result.role);
+			if(rv != SA_OK){
+				err("Failed to Add Composer rpt for bay %d.",
+						composer_info.bayNumber);
+				continue;
+			}
+			/* Build rdr entry for server */
+			rv = ov_rest_build_composer_rdr(handler, &composer_info,
+					&ha_node_result, resource_id);
+			if(rv != SA_OK){
+				err("build composer rdr failed");
+				rv = ov_rest_free_inventory_info(handler, 
+								resource_id);
+				if (rv != SA_OK) {
+					err("Inventory cleanup failed for the "
+					"composer in bay %d with resource id "
+					"%d", composer_info.bayNumber, 
+					resource_id);
+				}
+
+				oh_remove_resource(handler->rptcache, resource_id);
+				/* reset resource_info structure to default 
+ 				 * values */
+				ov_rest_update_resource_status(
+						&enclosure->composer,
+						composer_info.bayNumber,
+						"",
+						SAHPI_UNSPECIFIED_RESOURCE_ID,
+						RES_ABSENT,
+						UNSPECIFIED_RESOURCE);
+				ov_rest_wrap_json_object_put(
+							enc_response.root_jobj);
+				return SA_ERR_HPI_INTERNAL_ERROR;
+			}
+		}
+	}
+
+	ov_rest_wrap_json_object_put(enc_response.root_jobj);
 	return SA_OK;
 }
 

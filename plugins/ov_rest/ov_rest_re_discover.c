@@ -48,10 +48,10 @@
  *
  *      re_discover_appliance()         - Re-discovers the aooliance/composer
  *
- *      remove_appliance()              - Remove appliance/composer from RPT.
+ *      remove_composer()              - Remove's composer from RPT.
  *
- *      add_appliance()                 - Add newly re-discovered 
- *      				appliance/composer
+ *      add_composer()                 - Add newly re-discovered 
+ *      				 composer
  *
  *      remove_server()                 - Remove server blade from RPT
  *
@@ -153,6 +153,12 @@ SaErrorT ov_rest_re_discover_resources(struct oh_handler_state *oh_handler)
 		return rv;
 	}
 	OV_REST_CHEK_SHUTDOWN_REQ(ov_handler, ov_handler->mutex, NULL, NULL);
+	rv = re_discover_composer(oh_handler);
+	if (rv != SA_OK) {
+		err("Re-discovery of composers failed");
+		return rv;
+	}
+	OV_REST_CHEK_SHUTDOWN_REQ(ov_handler, ov_handler->mutex, NULL, NULL);
 	rv = re_discover_server(oh_handler);
 	if (rv != SA_OK) {
 		err("Re-discovery of Server Blade failed");
@@ -217,13 +223,14 @@ SaErrorT re_discover_appliance(struct oh_handler_state *oh_handler)
 	struct applianceNodeInfo result = {{{0}}};
 	struct applianceHaNodeInfo ha_node_result = {{0}};
 	struct composer_status *composer = NULL;
+	SaHpiRptEntryT *rpt = NULL;
 
 	ov_handler = (struct ov_rest_handler *) oh_handler->data;
 	composer = &ov_handler->ov_rest_resources.composer;
 	WRAP_ASPRINTF(&ov_handler->connection->url, OV_APPLIANCE_VERSION_URI,
 			ov_handler->connection->hostname);
 	rv = ov_rest_getapplianceNodeInfo(oh_handler, &response,
-			ov_handler->connection, NULL);
+			ov_handler->connection);
 	if(rv != SA_OK || response.applianceVersion == NULL) {
 		CRIT("Failed to get the response from ov_rest_getappliance");
 		return rv;
@@ -238,6 +245,7 @@ SaErrorT re_discover_appliance(struct oh_handler_state *oh_handler)
 			ov_handler->connection);
 	if(rv != SA_OK) {
 		CRIT("Failed to get the response for Active HA Node");
+		ov_rest_wrap_json_object_put(response.root_jobj);
 		return rv;
 	}
 	ov_rest_json_parse_appliance_Ha_node(ha_response.haNode,
@@ -248,109 +256,28 @@ SaErrorT re_discover_appliance(struct oh_handler_state *oh_handler)
 	if(strstr(composer->serialNumber, result.version.serialNumber)){
 		return SA_OK;
 	}else{
-		remove_composer(oh_handler);
-		rv = add_composer(oh_handler, &result, &ha_node_result);
-		if(rv != SA_OK){
-			err("Unable to add the newly added composer of "
-				"serial number %s",
-				result.version.serialNumber);
+		rpt = oh_get_resource_by_id(oh_handler->rptcache, composer->resource_id);
+		if (rpt == NULL) {
+			err("RPT is NULL for composer resource id %d", composer->resource_id);
+			return SA_ERR_HPI_INTERNAL_ERROR;
+		}
+		/* Free the inventory info from inventory RDR */
+		rv = ov_rest_free_inventory_info(oh_handler, rpt->ResourceId);
+		if (rv != SA_OK) {
+			err("Inventory cleanup failed for composer resource id %d",
+					rpt->ResourceId);
+		}
+		rv = ov_rest_build_appliance_rdr(oh_handler,
+                        &result, &ha_node_result, composer->resource_id);
+		if (rv != SA_OK) {
+			err("Build rdr failed for appliance resource id %d,"
+			" Please Restart the Openhpid",	composer->resource_id);
 			return rv;
 		}
+		strcpy(ov_handler->ov_rest_resources.composer.serialNumber,
+                        result.version.serialNumber);
+
 	}
-	return SA_OK;
-}
-/*
- * add_composer 
- *      @oh_handler: Pointer to openhpi handler
- *      @result: Pointer to struct applianceNodeInfo
- *      @ha_node_result: Pointer to struct applianceHaNodeInfo
- *
- * Purpose:
- *      Build the rpt and rdrs and adds the newly discovered composer to RPT.
- *
- * Detailed Description: NA
- *
- * Return values:
- *      SA_OK                     - on success.
- *      SA_ERR_HPI_INTERNAL_ERROR - on failure.
- **/
-SaErrorT add_composer(struct oh_handler_state *handler,
-		struct applianceNodeInfo *result,
-		struct applianceHaNodeInfo *ha_node_result)
-{
-	SaErrorT rv = SA_OK;
-	SaHpiResourceIdT resource_id = 0;
-	struct ov_rest_handler *ov_handler = NULL;
-
-	rv = ov_rest_build_appliance_rpt(handler, ha_node_result,
-			&resource_id);
-	if (rv != SA_OK) {
-		err("Build rpt failed for appliance of serial number %s",
-				result->version.serialNumber);
-		return rv;
-	}
-	ov_handler->ov_rest_resources.composer.resource_id = resource_id;
-	strcpy(ov_handler->ov_rest_resources.composer.serialNumber,
-			result->version.serialNumber);
-	rv = ov_rest_build_appliance_rdr(handler,
-			result, ha_node_result, resource_id);
-	if (rv != SA_OK) {
-		err("Build rdr failed for appliance resource id %d",
-						resource_id);
-		return rv;
-	}
-	return SA_OK;
-
-}
-
-/*
- * remove_composer 
- *      @oh_handler: Pointer to openhpi handler
- *
- * Purpose:
- *      Removes the composer from RPT.
- *
- * Detailed Description: NA
- *
- * Return values:
- *      SA_OK                     - on success.
- *      SA_ERR_HPI_INVALID_PARAMS - on failure.
- *      SA_ERR_HPI_INTERNAL_ERROR - on failure.
- **/
-
-SaErrorT remove_composer(struct oh_handler_state *handler)
-{
-
-	SaErrorT rv = NULL;
-	SaHpiResourceIdT resource_id = 0;
-	struct ov_rest_handler *ov_handler = NULL;
-	struct oh_event event = {0};
-	SaHpiRptEntryT *rpt = NULL;
-	if(handler == NULL){
-		CRIT("Invalid parameters");
-		return SA_ERR_HPI_INVALID_PARAMS;
-	}
-	ov_handler = (struct ov_rest_handler *)handler->data;
-	resource_id = ov_handler->ov_rest_resources.composer.resource_id; 
-	rpt = oh_get_resource_by_id(handler->rptcache, resource_id);
-	if (rpt == NULL) {
-		err("RPT is NULL for composer resource id %d", resource_id);
-		return SA_ERR_HPI_INTERNAL_ERROR;
-	}
-	/* Free the inventory info from inventory RDR */
-	rv = ov_rest_free_inventory_info(handler, rpt->ResourceId);
-	if (rv != SA_OK) {
-		err("Inventory cleanup failed for composer resource id %d",
-				rpt->ResourceId);
-	}
-
-	ov_handler->ov_rest_resources.composer.resource_id = 
-		SAHPI_UNSPECIFIED_RESOURCE_ID;
-	strcpy(ov_handler->ov_rest_resources.composer.serialNumber,"");
-	/* Remove the resource from plugin RPTable */
-	rv = oh_remove_resource(handler->rptcache,
-			event.resource.ResourceId);
-
 	return SA_OK;
 }
 
@@ -421,30 +348,13 @@ SaErrorT re_discover_enclosure(struct oh_handler_state *oh_handler)
 			temp = temp->next;
 		}
 		if(temp){
-			if(strstr(result.serialNumber, temp->serialNumber)){
-				continue;
-			}else{
-				rv = remove_enclosure(oh_handler, temp);
-				if(rv != SA_OK){
-					err("Unable to remove enclosure with" 
-						" serial number: %s", 
-						temp->serialNumber);
-					return rv;
-				}
-				rv =  add_enclosure(oh_handler, &result);
-				if(rv != SA_OK){
-					err("Unable to add enclosure with" 
-						" serial number: %s", 
-						result.serialNumber);
-					return rv;
-				}
-			
-			}
 			continue;
 		}
 		/* Add Enclsure here by calling add enclosure
 		 * and continue
 		 * */
+		dbg("Adding the newly found enclosure with Serial number %s", 
+						result.serialNumber);
 		rv = add_enclosure(oh_handler, &result);
 		if(rv != SA_OK){
 			err("Unable to add enclosure with "
@@ -473,7 +383,7 @@ SaErrorT re_discover_enclosure(struct oh_handler_state *oh_handler)
 	return SA_OK;
 }
 /*
- * remove_composer
+ * remove_enclosure
  *      @oh_handler: Pointer to openhpi handler
  *	@enclosure: Pointer to struct enclosureStatus
  *
@@ -648,6 +558,413 @@ SaErrorT add_enclosure(struct oh_handler_state *handler,
 	return SA_OK;
 }
 
+/*
+ * add_composer
+ *      @oh_handler: Pointer to openhpi handler
+ *      @composer_info: Pointer to struct applianceInfo
+ *      @ha_node_result: Pointer to struct applianceHaNodeInfo
+ *
+ * Purpose:
+ *      Build the rpt and rdrs and adds the newly discovered composer to RPT.
+ *
+ * Detailed Description: NA
+ *
+ * Return values:
+ *      SA_OK                     - on success.
+ *      SA_ERR_HPI_INTERNAL_ERROR - on failure.
+ **/
+
+SaErrorT add_composer(struct oh_handler_state *handler,
+		struct applianceInfo *composer_info,
+		struct applianceHaNodeInfo *ha_node_result)
+{
+
+        SaErrorT rv = SA_OK;
+        SaHpiResourceIdT resource_id = 0;
+	struct oh_event event = {0};
+	SaHpiRptEntryT *rpt = NULL;
+        struct ov_rest_handler *ov_handler = NULL;
+	struct enclosureStatus *enclosure = NULL;
+
+	
+        rv = ov_rest_build_composer_rpt(handler, ha_node_result,
+                        &resource_id, ha_node_result->role);
+        if (rv != SA_OK) {
+                err("build composer rpt failed");
+                return rv;
+        }
+	ov_handler =  (struct ov_rest_handler *) handler->data;
+	enclosure = (struct enclosureStatus * )ov_handler->
+					ov_rest_resources.enclosure;
+	while(enclosure != NULL){
+		if(strstr(ha_node_result->enclosure_uri,
+					enclosure->serialNumber)){
+			ov_rest_update_resource_status(
+					&enclosure->composer,
+					composer_info->bayNumber,
+					composer_info->serialNumber,
+					resource_id, RES_PRESENT,
+					ha_node_result->type);
+			break;
+		}
+		enclosure = enclosure->next;
+	}
+ 
+        rv = ov_rest_build_composer_rdr(handler,
+                        composer_info, ha_node_result, resource_id);
+        if (rv != SA_OK) {
+                err("build appliance rdr failed");
+                rv = ov_rest_free_inventory_info(handler, resource_id);
+                if (rv != SA_OK) {
+                        err("Inventory cleanup failed for the composer in bay "
+                                " %d with resource id %d",
+                                composer_info->bayNumber, resource_id);
+                }
+
+		oh_remove_resource(handler->rptcache, resource_id);
+		/* reset resource_info structure to default values */
+		ov_rest_update_resource_status(
+                                        &enclosure->composer,
+                                        composer_info->bayNumber,
+                                        "",
+                                        SAHPI_UNSPECIFIED_RESOURCE_ID,
+					RES_ABSENT,
+                                        UNSPECIFIED_RESOURCE);
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+        rpt = oh_get_resource_by_id (handler->rptcache, resource_id);
+        if (rpt == NULL) {
+                err("RPT is NULL for server is %d", resource_id);
+                return SA_ERR_HPI_INVALID_RESOURCE;
+        }
+
+        /* For composer that don't support  managed hotswap, send simple
+         * hotswap event  */
+        if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
+                event.event.EventType = SAHPI_ET_HOTSWAP;
+                event.event.EventDataUnion.HotSwapEvent.PreviousHotSwapState =
+                        SAHPI_HS_STATE_NOT_PRESENT;
+                event.event.EventDataUnion.HotSwapEvent.HotSwapState =
+                        SAHPI_HS_STATE_ACTIVE;
+                event.event.EventDataUnion.HotSwapEvent.CauseOfStateChange =
+                        SAHPI_HS_CAUSE_OPERATOR_INIT;
+                oh_evt_queue_push(handler->eventq,
+                                copy_ov_rest_event(&event));
+
+                return(SA_OK);
+        }
+        /* Raise the hotswap event for the inserted Composer */
+        event.event.EventType = SAHPI_ET_HOTSWAP;
+        event.event.EventDataUnion.HotSwapEvent.PreviousHotSwapState =
+                SAHPI_HS_STATE_NOT_PRESENT;
+        event.event.EventDataUnion.HotSwapEvent.HotSwapState =
+                SAHPI_HS_STATE_INSERTION_PENDING;
+        /* NOT_PRESENT to INSERTION_PENDING state change happened due
+         * to operator action
+         */
+        event.event.EventDataUnion.HotSwapEvent.CauseOfStateChange =
+                SAHPI_HS_CAUSE_OPERATOR_INIT;
+        oh_evt_queue_push(handler->eventq, copy_ov_rest_event(&event));
+
+        event.rdrs = NULL;
+        event.event.EventDataUnion.HotSwapEvent.PreviousHotSwapState =
+                SAHPI_HS_STATE_INSERTION_PENDING;
+        event.event.EventDataUnion.HotSwapEvent.HotSwapState =
+                SAHPI_HS_STATE_ACTIVE;
+        /* INSERTION_PENDING to ACTIVE state change happened
+         * due to auto policy of Composer 
+         */
+        event.event.EventDataUnion.HotSwapEvent.CauseOfStateChange =
+                SAHPI_HS_CAUSE_AUTO_POLICY;
+        oh_evt_queue_push(handler->eventq, copy_ov_rest_event(&event));
+
+        return SA_OK;
+
+}
+
+/*
+ * remove_composer
+ *      @oh_handler: Pointer to openhpi handler
+ *	@enclosure: Pointer to enclosureStatus structure
+ *	@bayNumber: Bay number of the composer
+ *
+ * Purpose:
+ *      Removes the composer from RPT.
+ *
+ * Detailed Description: NA
+ *
+ * Return values:
+ *      SA_OK                     - on success.
+ *      SA_ERR_HPI_INVALID_PARAMS - on failure.
+ *      SA_ERR_HPI_INTERNAL_ERROR - on failure.
+ **/
+
+SaErrorT remove_composer(struct oh_handler_state *handler,
+		struct enclosureStatus *enclosure,
+		byte bayNumber)
+{
+
+        SaErrorT rv = NULL;
+        SaHpiResourceIdT resource_id = 0;
+        struct oh_event event = {0};
+	struct ovRestHotswapState *hotswap_state = NULL;
+        SaHpiRptEntryT *rpt = NULL;
+        if(handler == NULL){
+                CRIT("Invalid parameters");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+	resource_id = enclosure->composer.resource_id[bayNumber-1];
+        rpt = oh_get_resource_by_id(handler->rptcache, resource_id);
+        if (rpt == NULL) {
+                err("resource RPT is NULL, Dropping the event."
+		" Enclosure serialnumber %s, baynumber %d",
+						enclosure->serialNumber,
+						 bayNumber);
+                return SA_ERR_HPI_INTERNAL_ERROR;
+        }
+        memcpy(&(event.resource), rpt, sizeof(SaHpiRptEntryT));
+        event.event.Source = event.resource.ResourceId;
+        event.hid = handler->hid;
+        event.event.EventType = SAHPI_ET_HOTSWAP;
+        oh_gettimeofday(&(event.event.Timestamp));
+        event.event.Severity = SAHPI_CRITICAL;
+
+        if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
+                /* Simple hotswap */
+                event.event.EventDataUnion.HotSwapEvent.PreviousHotSwapState =
+                        SAHPI_HS_STATE_ACTIVE;
+        } else {
+                /* Managed hotswap */
+                hotswap_state = (struct ovRestHotswapState *)
+                        oh_get_resource_data(handler->rptcache,
+                                        event.resource.ResourceId);
+                if (hotswap_state == NULL) {
+                        err("Failed to get hotswap state of composer "
+                                "in bay %d", bayNumber);
+                        event.event.EventDataUnion.HotSwapEvent.
+                                PreviousHotSwapState = SAHPI_HS_STATE_INACTIVE;
+                } else {
+                        event.event.EventDataUnion.HotSwapEvent.
+                                PreviousHotSwapState =
+                                hotswap_state->currentHsState;
+                }
+        }
+        event.event.EventDataUnion.HotSwapEvent.HotSwapState =
+                SAHPI_HS_STATE_NOT_PRESENT;
+
+        if (event.event.EventDataUnion.HotSwapEvent.PreviousHotSwapState ==
+                        SAHPI_HS_STATE_INACTIVE) {
+                /* INACTIVE to NOT_PRESENT state change happened due to
+                 * operator action */
+                event.event.EventDataUnion.HotSwapEvent.CauseOfStateChange =
+                        SAHPI_HS_CAUSE_OPERATOR_INIT;
+        } else {
+                /* This state change happened due to a surprise extraction */
+                event.event.EventDataUnion.HotSwapEvent.CauseOfStateChange =
+                        SAHPI_HS_CAUSE_SURPRISE_EXTRACTION;
+        }
+
+        /* Push the hotswap event to remove the resource from OpenHPI RPTable
+         */
+        oh_evt_queue_push(handler->eventq, copy_ov_rest_event(&event));
+
+
+        /* Free the inventory info from inventory RDR */
+        rv = ov_rest_free_inventory_info(handler, rpt->ResourceId);
+        if (rv != SA_OK) {
+                err("Inventory cleanup failed for resource id %d",
+                                rpt->ResourceId);
+        }
+        /* Remove the resource from plugin RPTable */
+        rv = oh_remove_resource(handler->rptcache,
+                        rpt->ResourceId);
+	if(rv != SA_OK){
+		CRIT("Failed the remove the Composer Resource with rid %d",
+				rpt->ResourceId);
+	}
+
+        /* reset resource_info structure to default values */
+        ov_rest_update_resource_status(
+                        &enclosure->composer, bayNumber,
+                        "", SAHPI_UNSPECIFIED_RESOURCE_ID, RES_ABSENT,
+                        UNSPECIFIED_RESOURCE);
+        return SA_OK;
+}
+
+/*
+ * re_discover_composer
+ *      @oh_handler: Pointer to openhpi handler
+ *
+ * Purpose:
+ *      Re-discovers the composer.
+ *
+ * Detailed Description: NA
+ *
+ * Return values:
+ *      SA_OK                     - on success.
+ *      SA_ERR_HPI_INTERNAL_ERROR - on failure.
+ **/
+
+SaErrorT re_discover_composer(struct oh_handler_state *oh_handler)
+{
+	SaErrorT rv = SA_OK;
+	struct ov_rest_handler *ov_handler;
+	struct enclosureInfoArrayResponse response = {0};
+	struct enclosureInfo result = {{0}};
+	struct applianceHaNodeInfoArrayResponse ha_node_response = {0};
+	struct applianceHaNodeInfo ha_node_result = {{0}};	
+	struct applianceInfo composer_info = {{0}};
+	int i = 0, j = 0, arraylen = 0, comp_arraylen = 0;
+	struct enclosureStatus *enclosure = NULL;
+	json_object * jvalue = NULL, *jvalue_comp_array = NULL;
+	json_object *jvalue_composer = NULL;
+
+	ov_handler = (struct ov_rest_handler *) oh_handler->data;
+	WRAP_ASPRINTF(&ov_handler->connection->url, OV_ENCLOSURE_URI,
+			ov_handler->connection->hostname);
+	rv = ov_rest_getenclosureInfoArray(oh_handler, &response,
+			ov_handler->connection, NULL);
+	if(rv != SA_OK || response.enclosure_array == NULL) {
+		CRIT("No response from ov_rest_getenclosureInfoArray");
+		return SA_OK;
+	}
+	/* Checking for json object type, if it is not array, return */
+	if (json_object_get_type(response.enclosure_array) != json_type_array){
+		CRIT("Composers may not be added as no array received");
+		return SA_OK;
+	}
+	arraylen = json_object_array_length(response.enclosure_array);
+	/* Below loop is to check if there any new enclosures
+	 * and if found build the RPT.
+	 */
+	for (i=0; i< arraylen; i++){
+		jvalue = json_object_array_get_idx(response.enclosure_array,i);
+		if (!jvalue){
+			CRIT("Invalid response for the enclosure in bay %d",
+					i + 1);
+			continue;
+		}
+
+		ov_rest_json_parse_enclosure(jvalue,&result);
+		jvalue_comp_array = ov_rest_wrap_json_object_object_get(jvalue,
+				"applianceBays");
+		/* Checking for json object type, if it is not array, return */
+		if (json_object_get_type(jvalue_comp_array) != json_type_array) {
+			CRIT("Not adding applianceBay supplied to enclosure %d,"
+					" no array returned for that",i);
+			continue;
+		}
+		comp_arraylen = json_object_array_length(jvalue_comp_array);
+		for(j = 0; j < comp_arraylen; j++){
+			jvalue_composer =
+				json_object_array_get_idx(jvalue_comp_array, j);
+			if (!jvalue_composer) {
+				CRIT("Invalid response for the composer"
+						" in bay %d", j + 1);
+				continue;
+			}
+			ov_rest_json_parse_applianceInfo(jvalue_composer,
+					&composer_info);
+
+			WRAP_ASPRINTF(&ov_handler->connection->url, 
+					OV_APPLIANCE_HA_NODE_ID_URI,
+					ov_handler->connection->hostname,
+					composer_info.serialNumber);
+			rv = ov_rest_getapplianceHANodeArray(oh_handler, 
+					&ha_node_response,
+					ov_handler->connection, NULL);
+			if(rv != SA_OK || ha_node_response.haNodeArray 
+					== NULL) {
+				CRIT("No response from "
+					"ov_rest_getapplianceHANodeArray");
+				return rv;
+			}
+
+			ov_rest_json_parse_appliance_Ha_node(
+					ha_node_response.haNodeArray,
+					&ha_node_result);
+
+			enclosure = ov_handler->ov_rest_resources.enclosure;
+			ov_rest_wrap_json_object_put(
+						ha_node_response.root_jobj);
+			
+			while(enclosure){
+				if(strstr(result.serialNumber, 
+						enclosure->serialNumber)){
+					break;
+				}
+				enclosure = enclosure->next;
+			}
+			if(enclosure){
+				if((enclosure->composer.presence
+				[ha_node_result.bayNumber-1] == RES_ABSENT) && 
+					(composer_info.presence == Present)){
+					rv =  add_composer(oh_handler, 
+							&composer_info, 
+							&ha_node_result);
+					if(rv != SA_OK){
+						err("Unable to add composer "
+							"with serial number:"
+							" %s",
+							result.serialNumber);
+						return rv;
+					}
+				}else if((enclosure->composer.
+					presence[ha_node_result.bayNumber-1]
+					== RES_PRESENT) && 
+					(composer_info.presence == Absent) ){
+
+					rv = remove_composer(oh_handler, enclosure,
+						 ha_node_result.bayNumber);
+					if(rv != SA_OK){
+						err("Unable to remove composer "
+							"with serial number: "
+							"%s",
+							enclosure->serialNumber);
+						return rv;
+					}
+				}else if((enclosure->composer.
+					presence[ha_node_result.bayNumber-1]
+					== RES_PRESENT) && 
+					(composer_info.presence	== Present) ){
+					if(strstr(
+						enclosure->composer.serialNumber
+						[ha_node_result.bayNumber-1], 
+						composer_info.serialNumber)){
+						continue;
+					}else{
+						rv = remove_composer(oh_handler,
+						enclosure, 
+						ha_node_result.bayNumber);
+						if(rv != SA_OK){
+							err("Unable to remove "
+							"composer with"
+							" serial number:"
+							" %s",
+							enclosure->serialNumber);
+							return rv;
+						}
+						rv =  add_composer(oh_handler,
+							&composer_info,
+							&ha_node_result);
+						if(rv != SA_OK){
+							err("Unable to add "
+							"composer with"
+							" serial number: %s",
+							composer_info.serialNumber);
+							return rv;
+						}
+					}
+				}
+				continue;
+			}
+			memset(&composer_info, 0, sizeof(composer_info));
+			memset(&ha_node_result, 0, sizeof(ha_node_result));
+		}
+	}
+	ov_rest_wrap_json_object_put(response.root_jobj);
+	return SA_OK;
+}
 
 /**
  * re_discover_server
@@ -1100,7 +1417,7 @@ SaErrorT re_discover_drive_enclosure(struct oh_handler_state *oh_handler)
 	return SA_OK;
 }
 /*
- * add_composer
+ * add_inserted_drive_enclosure 
  *      @oh_handler: Pointer to openhpi handler
  *	@info_result: Pointer to struct driveEnclosureInfo
  *	@enclosure: Pointer to struct enclosureStatus

@@ -360,8 +360,24 @@ void release_ov_rest_resources(struct enclosureStatus *enclosure)
 	if(enclosure->serialNumber != NULL){
 		wrap_g_free(enclosure->serialNumber);
 	}
-	if (enclosure->server.presence != NULL) {
-		wrap_g_free(enclosure->server.presence);
+	if(enclosure->composer.presence != NULL){
+		wrap_g_free(enclosure->composer.presence);
+	}
+	if(enclosure->composer.type){
+		wrap_g_free(enclosure->composer.type);
+	}
+	if(enclosure->composer.resource_id != NULL){
+		wrap_g_free(enclosure->composer.resource_id);
+	}
+	if(enclosure->composer.serialNumber != NULL){
+		for(i = 0; i < enclosure->composer.max_bays; i++){
+			if(enclosure->composer.serialNumber[i] !=
+					NULL){
+				wrap_g_free(enclosure->composer.
+						serialNumber[i]);
+			}
+		}
+		wrap_g_free(enclosure->composer.serialNumber);
 	}
 	if (enclosure->server.type != NULL) {
 		wrap_g_free(enclosure->server.type);
