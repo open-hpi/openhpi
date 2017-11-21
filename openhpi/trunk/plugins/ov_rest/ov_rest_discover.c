@@ -3956,12 +3956,10 @@ SaErrorT ov_rest_build_server_rpt(struct oh_handler_state *oh_handler,
 			response->bayNumber;
 	}
 	else{
-		rpt->ResourceEntity.Entry[1].EntityType = SAHPI_ENT_ROOT;
-		rpt->ResourceEntity.Entry[1].EntityLocation = 0; 
-		rpt->ResourceEntity.Entry[0].EntityType =
-			SAHPI_ENT_RACK_MOUNTED_SERVER;
-		rpt->ResourceEntity.Entry[0].EntityLocation =
-			++ov_handler->current_rms_count;
+		err("The response doesn't have a bayNumber (bay=%d),"
+			"so it is added as a RACK_MOUNT_SERVER(RMS).", response->bayNumber);
+		err("Please check if a RMS exists in the ring,"
+			"if not please restart the daemon.");
 
 	}	
 
