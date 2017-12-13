@@ -251,11 +251,11 @@ cIpmiConSmi::IfOpen()
   if ( fd < 0 )
        return fd;
 
-  struct ipmi_timing_parms parms;
-  int                      rv;
+  // struct ipmi_timing_parms parms;
+  int                      rv = 0;
 
-  parms.retries       = 0;
-  parms.retry_time_ms = 1000;
+  // parms.retries       = 0;
+  // parms.retry_time_ms = 1000;
 
   /* Some sensors take longer than 1 sec, use driver default.  ARCress */
   // rv = ioctl( fd, IPMICTL_SET_TIMING_PARMS_CMD, &parms );

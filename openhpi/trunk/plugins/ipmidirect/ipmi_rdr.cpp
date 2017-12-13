@@ -25,8 +25,8 @@
 
 cIpmiRdr::cIpmiRdr( cIpmiMc *mc, SaHpiRdrTypeT type )
   : m_mc( mc ), m_resource( 0 ), m_type( type ),
-    m_lun( 0 ), m_populate( false ),
-    m_sa( 0 ), m_snum( 0 ), m_chan( 0 )
+    m_lun( 0 ),  m_chan( 0 ),
+    m_sa( 0 ), m_snum( 0 ), m_populate( false )
 {
    m_sa = mc->GetAddress();
    m_chan = mc->GetChannel();

@@ -40,6 +40,8 @@
 
 #include "server.h"
 
+#include "sahpi_wrappers.h"
+
 
 namespace TA {
 
@@ -155,7 +157,7 @@ cServer::cServer( unsigned short port )
       m_thread( 0 ),
       m_csock( InvalidSockFd )
 {
-    g_static_mutex_init( &m_csock_lock );
+    wrap_g_static_mutex_init( &m_csock_lock );
 }
 
 cServer::~cServer()
@@ -165,7 +167,7 @@ cServer::~cServer()
         g_thread_join( m_thread );
     }
 
-    g_static_mutex_free( &m_csock_lock );
+    wrap_g_static_mutex_free_clear( &m_csock_lock );
 }
 
 bool cServer::Init()
@@ -175,10 +177,10 @@ bool cServer::Init()
     }
 
     if ( g_thread_supported() == FALSE ) {
-        g_thread_init( 0 );
+        wrap_g_thread_init( 0 );
     }
 
-    m_thread = g_thread_create( cServer::ThreadProcAdapter, this, TRUE, 0 );
+    m_thread = wrap_g_thread_create_new( "Init", cServer::ThreadProcAdapter, this, TRUE, 0 );
     if ( m_thread == 0  ) {
         CRIT( "cannot start thread" );
         return false;
@@ -191,11 +193,11 @@ bool cServer::Init()
 
 void cServer::Send( const char * data, size_t len ) const
 {
-    g_static_mutex_lock( &m_csock_lock );
+    wrap_g_static_mutex_lock( &m_csock_lock );
     if ( ( data != 0 ) && ( m_csock != InvalidSockFd ) ) {
         send( m_csock, data, len, 0 );
     }
-    g_static_mutex_unlock( &m_csock_lock );
+    wrap_g_static_mutex_unlock( &m_csock_lock );
 }
 
 gpointer cServer::ThreadProcAdapter( gpointer data )
@@ -208,9 +210,9 @@ gpointer cServer::ThreadProcAdapter( gpointer data )
 
 void cServer::SetClientSocket( SockFdT csock )
 {
-    g_static_mutex_lock( &m_csock_lock );
+    wrap_g_static_mutex_lock( &m_csock_lock );
     m_csock = csock;
-    g_static_mutex_unlock( &m_csock_lock );
+    wrap_g_static_mutex_unlock( &m_csock_lock );
 }
 
 void cServer::ThreadProc()

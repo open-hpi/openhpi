@@ -159,22 +159,20 @@ cIpmiLog::Close()
   m_std_err = false;
 }
 
-
 void
 cIpmiLog::Output( const char *str )
 {
   int l = strlen( str );
-  size_t fwrote;
 
   if ( m_fd )
-       fwrote = fwrite( str, l, 1, m_fd );
+       fwrite( str, l, 1, m_fd );
 
   if ( m_std_out )
-       fwrote = fwrite( str, l, 1, stdout );
+       fwrite( str, l, 1, stdout );
 
   if ( m_std_err )
-       fwrote = fwrite( str, l, 1, stderr );
-}
+       fwrite( str, l, 1, stderr );
+} 
 
 
 void

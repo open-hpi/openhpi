@@ -130,7 +130,7 @@ SaErrorT NewSimulatorControlText::SetState( const SaHpiCtrlModeT &mode,
    SaHpiTextTypeT tmpType;
    NewSimulatorTextBuffer tb;
    int i, pos;
-   unsigned uint;
+   unsigned uint_val;
    
    if (&mode == NULL) 
       return SA_ERR_HPI_INVALID_PARAMS;
@@ -175,11 +175,11 @@ SaErrorT NewSimulatorControlText::SetState( const SaHpiCtrlModeT &mode,
             return SA_ERR_HPI_INVALID_PARAMS;
          
          for (i = 0; i < state.StateUnion.Text.Text.DataLength; i++) {
-         	uint = 0;
-         	uint = state.StateUnion.Text.Text.Data[i];
-         	uint = uint << 8;
-         	uint = uint & state.StateUnion.Text.Text.Data[++i];
-         	if ((uint >= 0xD800) && (uint <= 0xDFFF))
+	    	uint_val = 0;
+        	uint_val = state.StateUnion.Text.Text.Data[i];
+         	uint_val = uint_val << 8;
+         	uint_val = uint_val & state.StateUnion.Text.Text.Data[++i];
+         	if ((uint_val >= 0xD800) && (uint_val <= 0xDFFF))
          	   return SA_ERR_HPI_INVALID_PARAMS;
          }   
       break;
@@ -187,7 +187,7 @@ SaErrorT NewSimulatorControlText::SetState( const SaHpiCtrlModeT &mode,
       case SAHPI_TL_TYPE_BCDPLUS:
       case SAHPI_TL_TYPE_ASCII6:
       case SAHPI_TL_TYPE_TEXT:
-         tmpType = tb.CheckAscii( (char *) state.StateUnion.Text.Text.Data );
+         tmpType = tb.CheckAscii( (const char *) state.StateUnion.Text.Text.Data );
          if (tmpType > state.StateUnion.Text.Text.DataType) 
             return SA_ERR_HPI_INVALID_PARAMS;
          break;
