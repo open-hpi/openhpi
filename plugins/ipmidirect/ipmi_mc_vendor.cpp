@@ -361,7 +361,7 @@ cIpmiMcVendor::FindResource( cIpmiDomain *domain, cIpmiMc *mc,
 
   SaHpiEntityTypeT     type = SAHPI_ENT_UNKNOWN;
   SaHpiEntityLocationT instance = GetUniqueInstance();
-  unsigned char snum;
+  unsigned char snum = 0;
 
   if ( sdr )
      {
@@ -1141,14 +1141,14 @@ bool
 cIpmiMcVendor::CreateInv( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdr *sdr, cIpmiSdrs *sdrs )
 {
   unsigned int fru_id;
-  unsigned int lun;
+  // unsigned int lun;
   unsigned int sa = mc->GetAddress();
   SaHpiEntityTypeT     type;
 
   if ( sdr->m_type == eSdrTypeMcDeviceLocatorRecord ) /*0x12*/
      {
        fru_id = 0;
-       lun    = 0;
+       // lun    = 0;
        sa     = sdr->m_data[5];
        type   = (SaHpiEntityTypeT)sdr->m_data[12];
        /* chan = sdr->m_data[6]; */
@@ -1158,14 +1158,14 @@ cIpmiMcVendor::CreateInv( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdr *sdr, cIpmi
        if ( sdr->m_data[5] != 0) 
           sa  = (sdr->m_data[5] >> 1);  /*access addr*/
        fru_id = (sdr->m_data[6] >> 1) & 0x7f;  /*sa*/
-       lun    = (sdr->m_data[7] >> 3) & 0x03;  /*lun*/
+       // lun    = (sdr->m_data[7] >> 3) & 0x03;  /*lun*/
        type   = (SaHpiEntityTypeT)sdr->m_data[12];
        /* chan = (sdr->m_data[7] >> 5) & 0x07;; */
      }
   else if ( sdr->m_type == eSdrTypeFruDeviceLocatorRecord ) /*0x11*/ 
      {
        fru_id = sdr->m_data[6]; 
-       lun    = (sdr->m_data[7] >> 3) & 3;
+       // lun    = (sdr->m_data[7] >> 3) & 3;
        sa     = sdr->m_data[5];
        type   = (SaHpiEntityTypeT)sdr->m_data[12];
        /* chan = sdr->m_data[8]; */
@@ -1176,7 +1176,7 @@ cIpmiMcVendor::CreateInv( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdr *sdr, cIpmi
         ", sdr[3]=" << sdr->m_data[3] << ", sdr[5]=" << sdr->m_data[5] << 
 	", sdr[6]=" << sdr->m_data[6] << "\n";
        fru_id = sdr->m_data[6];
-       lun    = (sdr->m_data[7] >> 3) & 3;
+       // lun    = (sdr->m_data[7] >> 3) & 3;
        type     = SAHPI_ENT_UNKNOWN;
      }
 

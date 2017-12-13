@@ -17,7 +17,7 @@
 #define __LOCK_H__
 
 #include <glib.h>
-
+#include "sahpi_wrappers.h"
 
 namespace Slave {
 
@@ -33,12 +33,12 @@ public:
 
     explicit cLock()
     {
-        m_mutex = g_mutex_new();
+        m_mutex = wrap_g_mutex_new_init();
     }
 
     ~cLock()
     {
-        g_mutex_free( m_mutex );
+        wrap_g_mutex_free_clear( m_mutex );
     }
 
     void Lock()

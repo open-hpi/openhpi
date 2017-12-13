@@ -90,7 +90,7 @@ bool NewSimulatorFileUtil::process_textbuffer( NewSimulatorTextBuffer &buffer ) 
    bool success = true;
    SaHpiTextBufferT tmp;
    char *datafield = NULL;
-   char *field;
+   char *field = NULL;
    guint val=0;
    guint cur_token = g_scanner_get_next_token(m_scanner);
    

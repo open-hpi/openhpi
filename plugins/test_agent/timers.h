@@ -53,11 +53,19 @@ private:
 /**************************************************************
  * struct Timer
  *************************************************************/
+#if GLIB_CHECK_VERSION (2, 32, 0)
+struct Timer
+{
+    cTimerCallback * callback;
+    gint64 expire;
+};
+#else
 struct Timer
 {
     cTimerCallback * callback;
     GTimeVal         expire;
 };
+#endif
 
 
 /**************************************************************

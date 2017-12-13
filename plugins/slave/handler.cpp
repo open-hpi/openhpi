@@ -31,6 +31,8 @@
 #include "handler.h"
 #include "util.h"
 
+#include "sahpi_wrappers.h"
+
 
 namespace Slave {
 
@@ -74,7 +76,7 @@ cHandler::~cHandler()
 bool cHandler::Init()
 {
     if ( g_thread_supported() == FALSE ) {
-        g_thread_init( 0 );
+        wrap_g_thread_init( 0 );
     }
 
     bool rc;
@@ -141,7 +143,7 @@ SaHpiResourceIdT cHandler::GetOrCreateMaster( const SaHpiRptEntryT& slave_rpte )
 
 bool cHandler::StartThread()
 {
-    m_thread = g_thread_create( cHandler::ThreadProcAdapter, this, TRUE, 0 );
+    m_thread = wrap_g_thread_create_new( "StartThread", cHandler::ThreadProcAdapter, this, TRUE, 0 );
 
     return ( m_thread != 0 );
 }

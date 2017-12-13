@@ -97,7 +97,7 @@ cIpmiConLan::AuthGen( unsigned char *out,
   cIpmiAuthSg l[] =
   {
     { ses_id, 4 },
-    { data,   data_len },
+    { data,   (int) data_len },
     { seq,    4 },
     { NULL,   0 }
   };
@@ -124,7 +124,7 @@ cIpmiConLan::AuthCheck( uint8_t       *ses_id,
   cIpmiAuthSg l[] =
   {
     { ses_id, 4  },
-    { data,   data_len },
+    { data,   (int) data_len },
     { seq,    4 },
     { NULL,   0 }
   };

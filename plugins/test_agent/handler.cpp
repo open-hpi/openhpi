@@ -28,6 +28,8 @@
 #include "timers.h"
 #include "vars.h"
 
+#include "sahpi_wrappers.h"
+
 
 namespace TA {
 
@@ -50,7 +52,7 @@ cHandler::cHandler( unsigned int id,
       m_eventq( eventq ),
       m_ai_timeout( SAHPI_TIMEOUT_IMMEDIATE )
 {
-    g_static_mutex_init( &m_lock );
+    wrap_g_static_mutex_init( &m_lock );
 }
 
 cHandler::~cHandler()
@@ -63,7 +65,7 @@ cHandler::~cHandler()
     }
     m_resources.clear();
 
-    g_static_mutex_free( &m_lock );
+    wrap_g_static_mutex_free_clear( &m_lock );
 }
 
 bool cHandler::Init()
@@ -86,13 +88,13 @@ bool cHandler::Init()
 
 void cHandler::Lock()
 {
-    g_static_mutex_lock( &m_lock );
+    wrap_g_static_mutex_lock( &m_lock );
 
 }
 
 void cHandler::Unlock()
 {
-    g_static_mutex_unlock( &m_lock );
+    wrap_g_static_mutex_unlock( &m_lock );
 }
 
 cResource * cHandler::GetResource( SaHpiResourceIdT rid ) const

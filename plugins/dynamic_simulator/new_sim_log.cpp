@@ -165,15 +165,15 @@ void NewSimulatorLog::Close() {
  * 
  * @param str pointer on string to be printed
  **/
+
 void NewSimulatorLog::Output( const char *str ) {
    int l = strlen( str );
-   size_t fwrote;
 
-   if ( m_fd )      fwrote = fwrite( str, l, 1, m_fd );
+   if ( m_fd )      fwrite( str, l, 1, m_fd );
 
-   if ( m_std_out ) fwrote = fwrite( str, l, 1, stdout );
+   if ( m_std_out ) fwrite( str, l, 1, stdout );
 
-   if ( m_std_err ) fwrote = fwrite( str, l, 1, stderr );
+   if ( m_std_err ) fwrite( str, l, 1, stderr );
 }
 
 
