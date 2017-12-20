@@ -198,7 +198,7 @@ void cTimers::ThreadFunc()
             m_timers.pop_front();
             g_get_current_time( &now );
             // CRIT("GLIB<2.32 now %ld secs, %ld usecs t %ld secs %ld usecs\n",
-		now.tv_sec, no.tv_usec, t.expire.tv_sec, t.expire.tv_usec);
+	    //	now.tv_sec, no.tv_usec, t.expire.tv_sec, t.expire.tv_usec);
             if ( now < t.expire ) {
                 rest.push_back( t );
                 if ( t.expire < next ) {
@@ -216,7 +216,11 @@ void cTimers::ThreadFunc()
             break;
         }
         m_timers.swap( rest );
+        #if GLIB_CHECK_VERSION (2, 32, 0)
         wrap_g_cond_timed_wait( m_cond, m_mutex, next );
+        #else
+        wrap_g_cond_timed_wait( m_cond, m_mutex, &next );
+        #endif
     }
 
     wrap_g_mutex_unlock( m_mutex );
