@@ -3954,14 +3954,22 @@ SaErrorT ov_rest_build_server_rpt(struct oh_handler_state *oh_handler,
 			SAHPI_ENT_SYSTEM_BLADE;
 		rpt->ResourceEntity.Entry[0].EntityLocation = 
 			response->bayNumber;
-	}
-	else{
-		err("The response doesn't have a bayNumber (bay=%d),"
-			"so it is added as a RACK_MOUNT_SERVER(RMS).", response->bayNumber);
-		err("Please check if a RMS exists in the ring,"
-			"if not please restart the daemon.");
 
-	}	
+	}else{
+	/*Below commented code is useful in future when we add support for RMS*/
+/*
+		rpt->ResourceEntity.Entry[1].EntityType = SAHPI_ENT_ROOT;
+		rpt->ResourceEntity.Entry[1].EntityLocation = 0; 
+		rpt->ResourceEntity.Entry[0].EntityType =
+			SAHPI_ENT_RACK_MOUNTED_SERVER;
+		rpt->ResourceEntity.Entry[0].EntityLocation =
+			++ov_handler->current_rms_count;
+*/
+		err("The server-hardware %s bayNumber is %d."
+		"Incomplete information, so this resource can't be added"
+			,response->model, response->bayNumber);
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
 
 	rv = oh_concat_ep(&rpt->ResourceEntity, &entity_path);
 	if (rv != SA_OK) {
