@@ -199,7 +199,7 @@ AC_SUBST(JSON_C_LIB)
 AC_SUBST(JSON_C_INCLUDE)
 AC_CHECK_LIB([rabbitmq],[amqp_new_connection],[RABBITMQ_LIB=-lrabbitmq],[RABBITMQ_LIB=])
 AC_SUBST(RABBITMQ_LIB)
-DISTRO=`grep "^ID=" /etc/os-release | awk -F"\"" '{ print $2 }'`
+AC_CHECK_FILE([/etc/os-release],[DISTRO=`grep "^ID=" /etc/os-release | awk -F"\"" '{ print $2 }'`])
 
 AC_CHECK_HEADERS([amqp.h],[have_rabbitmq=yes],[have_rabbitmq=no])
 
