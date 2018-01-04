@@ -21,8 +21,11 @@ TestFunction( const char *str, const char *file, int line, bool expr )
      }
 }
 
-
+#ifdef __STRING
 #define Test(expr) TestFunction( __STRING(expr), __FILE__, __LINE__, expr )
+#else
+#define Test(expr) TestFunction( #expr, __FILE__, __LINE__, expr )
+#endif
 
 
 static int
