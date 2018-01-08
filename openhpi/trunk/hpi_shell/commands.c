@@ -112,6 +112,7 @@ static ret_code_t help_cmd(void)
         return(HPI_SHELL_OK);
 }
 
+/* This functionality has been currently disabled.
 static ret_code_t add_config(void)
 {
 #if 0
@@ -140,7 +141,7 @@ static ret_code_t add_config(void)
         if (rv == SA_OK) return HPI_SHELL_OK;
 #endif
         return HPI_SHELL_CMD_ERROR;
-}
+}*/
 
 static ret_code_t event(void)
 {
@@ -1504,8 +1505,8 @@ static ret_code_t test_cmd(void)
 #endif
 
 /* command table */
-const char addcfghelp[] = "addcfg: add plugins, domains, handlers from"
-                        " config file\nUsage: addcfg <config file>\n";
+/*const char addcfghelp[] = "addcfg: add plugins, domains, handlers from"
+                        " config file\nUsage: addcfg <config file>\n";*/
 const char annhelp[] =  "ann: annunciator command block\n"
                         "Usage: ann <resourceId> <num>\n";
 const char clevtloghelp[] = "clearevtlog: clear system event logs\n"
@@ -1754,7 +1755,7 @@ const char fumi_cleanuphelp[] = "cleanup: performs cleanup after an upgrade proc
                         "Usage: cleanup <bankNum>";
 
 command_def_t commands[] = {
-    { "addcfg",         add_config,     addcfghelp,     MAIN_COM },
+    /*{ "addcfg",         add_config,     addcfghelp,     MAIN_COM },*/
     { "ann",            ann_block,      annhelp,        MAIN_COM },
     { "clearevtlog",    clear_evtlog,   clevtloghelp,   MAIN_COM },
     { "ctrl",           ctrl_block,     ctrlhelp,       MAIN_COM },
