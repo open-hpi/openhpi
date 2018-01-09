@@ -2256,8 +2256,6 @@ SaErrorT ov_rest_build_appliance_rpt(struct oh_handler_state *oh_handler,
 	/* Populate the rpt with the details of the appliance */
 	memset(&rpt, 0, sizeof(SaHpiRptEntryT));
 	rpt.ResourceCapabilities = SAHPI_CAPABILITY_RDR |
-		SAHPI_CAPABILITY_RESET |
-		SAHPI_CAPABILITY_POWER |
 		SAHPI_CAPABILITY_RESOURCE |
 		SAHPI_CAPABILITY_SENSOR |
 		SAHPI_CAPABILITY_INVENTORY_DATA |
@@ -2450,11 +2448,7 @@ SaErrorT ov_rest_build_composer_rpt(struct oh_handler_state *oh_handler,
 	/* Populate the rpt with the details of the appliance */
 	memset(&rpt, 0, sizeof(SaHpiRptEntryT));
 	rpt.ResourceCapabilities = SAHPI_CAPABILITY_RDR |
-		SAHPI_CAPABILITY_RESET |
-		SAHPI_CAPABILITY_POWER |
-		SAHPI_CAPABILITY_FRU |
 		SAHPI_CAPABILITY_RESOURCE |
-		SAHPI_CAPABILITY_MANAGED_HOTSWAP |
 		SAHPI_CAPABILITY_SENSOR |
 		SAHPI_CAPABILITY_INVENTORY_DATA |
 		SAHPI_CAPABILITY_CONTROL ;
