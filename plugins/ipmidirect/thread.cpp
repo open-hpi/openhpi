@@ -167,7 +167,7 @@ cThread::Exit( void *rv )
 //                  cThreadLock
 //////////////////////////////////////////////////
 
-#if ( defined(__sun) && defined(__SVR4) ) || defined(__FreeBSD__)
+#ifndef PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP
 cThreadLock::cThreadLock()
 {
   pthread_mutexattr_t attr;

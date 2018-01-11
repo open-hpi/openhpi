@@ -229,7 +229,7 @@ cThread::Exit( void *rv )
 /**
  * Constructor
  **/
-#if ( defined(__sun) && defined(__SVR4) ) || defined(__FreeBSD__)
+#ifndef PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP
 cThreadLock::cThreadLock()
 {
   pthread_mutexattr_t attr;
@@ -238,6 +238,7 @@ cThreadLock::cThreadLock()
   pthread_mutexattr_settype( &attr, PTHREAD_MUTEX_RECURSIVE );
   pthread_mutex_init( &m_lock, &attr );
   pthread_mutexattr_destroy( &attr );
+  cout<<"PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP is Defined"
 }
 #else
 static pthread_mutex_t lock_tmpl = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
