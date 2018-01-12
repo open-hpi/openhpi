@@ -533,7 +533,7 @@ SOAP_CON        *soap_open(char *server,
         /* Create and initialize a new SSL_CTX structure */
         if (! (connection->ctx = oh_ssl_ctx_init())) {
                 err("oh_ssl_ctx_init() failed");
-                free(connection);
+                wrap_free(connection);
                 return(NULL);
         }
 
@@ -547,7 +547,7 @@ SOAP_CON        *soap_open(char *server,
                 if (connection->doc) {
                         xmlFreeDoc(connection->doc);
                 }
-                free(connection);
+                wrap_free(connection);
                 return(NULL);
         }
 
@@ -661,7 +661,7 @@ static int      soap_message(SOAP_CON *connection, char *request,
         ret = asprintf(&header, OA_XML_HEADER,			
                  connection->server, nbytes);			
         if(ret == -1){
-                free(header);
+                wrap_free(header);
                 err("Failed to allocate memory for buffer to        \
                                            hold OA XML header");
                 return(-1);
@@ -677,11 +677,11 @@ static int      soap_message(SOAP_CON *connection, char *request,
                          connection->timeout)) {
                 (void) oh_ssl_disconnect(connection->bio, OH_SSL_BI);
                 err("oh_ssl_write() failed");
-                free(header);
+                wrap_free(header);
                 return(-1);
         }
 
-        free(header);
+        wrap_free(header);
         /* Write request to server */
         dbg("OA request(2):\n%s\n", request);
         if (oh_ssl_write(connection->bio, request, nbytes,
@@ -830,7 +830,7 @@ static int      soap_login(SOAP_CON *connection)
         ret = asprintf(&buf, OA_XML_LOGIN,				 
                  connection->username, connection->password); 	
         if(ret == -1){
-                free(buf);
+                wrap_free(buf);
                 err("Failed to allocate memory for buffer to hold    \
 			                      OA login credentials");
                 return -1;
@@ -840,10 +840,10 @@ static int      soap_login(SOAP_CON *connection)
         /* Perform login request */
         if (soap_message(connection, buf, &doc)) {
                 err("failed to communicate with OA during login");
-                free(buf);
+                wrap_free(buf);
                 return(-1);
         }
-        free(buf);
+        wrap_free(buf);
 
 
         /* Parse looking for session ID.

@@ -248,7 +248,7 @@ SaErrorT get_oa_state(struct oh_handler_state *oh_handler,
         /* Create the OA URL */
         rv = asprintf(&url, "%s" PORT, server);			   
         if(rv == -1){
-                free(url);
+                wrap_free(url);
                 err("Failed to allocate memory for buffer to        \
                                            hold OA credentials");
                 return SA_ERR_HPI_OUT_OF_MEMORY;
@@ -263,20 +263,20 @@ SaErrorT get_oa_state(struct oh_handler_state *oh_handler,
         /* Estabish the connection with OA */
         hpi_con = soap_open(url, user_name, password, HPI_CALL_TIMEOUT);
         if (hpi_con == NULL) {
-                free(url);
+                wrap_free(url);
                 err("hpi_con intialization for OA - %s has failed", server);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
         event_con = soap_open(url, user_name, password, EVENT_CALL_TIMEOUT);
         if (event_con == NULL) {
-                free(url);
+                wrap_free(url);
                 err("event_con intialization for OA - %s has failed", server);
                 soap_close(hpi_con);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        free(url);
+        wrap_free(url);
         url = NULL;
         /* Check whether user_name has admin rights */
         rv = check_oa_user_permissions(oa_handler, hpi_con, user_name);
@@ -474,7 +474,7 @@ SaErrorT get_oa_state(struct oh_handler_state *oh_handler,
                 strncpy(other_oa->server, active_ip, strlen(active_ip));
                 rv = asprintf(&url, "%s" PORT, active_ip);		      
                 if (rv == -1){
-                        free(url);
+                        wrap_free(url);
                         err("Failed to allocate memory for buffer to        \
                                                  hold OA credentials");
                         return SA_ERR_HPI_OUT_OF_MEMORY;
@@ -486,7 +486,7 @@ SaErrorT get_oa_state(struct oh_handler_state *oh_handler,
                 strncpy(other_oa->server, standby_ip, strlen(standby_ip));
                 rv = asprintf(&url, "%s" PORT, standby_ip);		      
                 if(rv == -1){
-                       free(url);
+                       wrap_free(url);
                        err("Failed to allocate memory for buffer to        \
                                                  hold OA credentials");
 
@@ -500,7 +500,7 @@ SaErrorT get_oa_state(struct oh_handler_state *oh_handler,
                                       password, HPI_CALL_TIMEOUT);
         if (other_oa->hpi_con == NULL) {
                 err("Initializing the hpi_con for OA %s failed", url);
-                free(url);
+                wrap_free(url);
                 /* If this OA status is ACTIVE, then return error, else ignore
                  * If standby OA is not accessible, then the recovery from
                  * this problem will be done by the event thread.
@@ -523,7 +523,7 @@ SaErrorT get_oa_state(struct oh_handler_state *oh_handler,
                                         password, EVENT_CALL_TIMEOUT);
         if (other_oa->event_con == NULL) {
                 err("Initializing the event_con for OA %s failed", url);
-                free(url);
+                wrap_free(url);
                 /* If this OA status is ACTIVE, then return error, else
                  * ignore
                  */
@@ -543,7 +543,7 @@ SaErrorT get_oa_state(struct oh_handler_state *oh_handler,
                         return SA_OK;
                 }
         }
-	free(url);
+        wrap_free(url);
         return SA_OK;
 }
 
@@ -1192,7 +1192,7 @@ SaErrorT initialize_oa_con(struct oa_info *oa,
         wrap_g_mutex_lock(oa->mutex);
         rv = asprintf(&url, "%s" PORT, oa->server);			
         if(rv == -1){
-                free(url);
+                wrap_free(url);
                 err("Failed to allocate memory for buffer to        \
                                              hold OA credentials");
                 wrap_g_mutex_unlock(oa->mutex);
@@ -1203,7 +1203,7 @@ SaErrorT initialize_oa_con(struct oa_info *oa,
         oa->hpi_con = soap_open(url, user_name, password,
                                 HPI_CALL_TIMEOUT);
         if (oa->hpi_con == NULL) {
-                free(url);
+                wrap_free(url);
                 /* OA may not be reachable */
                 wrap_g_mutex_unlock(oa->mutex);
                 return SA_ERR_HPI_INTERNAL_ERROR;
@@ -1215,7 +1215,7 @@ SaErrorT initialize_oa_con(struct oa_info *oa,
         oa->event_con = soap_open(url, user_name, password,
                                   EVENT_CALL_TIMEOUT);
         if (oa->event_con == NULL) {
-                free(url);
+                wrap_free(url);
                 /* OA may not be reachable */
                 wrap_g_mutex_unlock(oa->mutex);
                 soap_close(oa->hpi_con);
@@ -1223,7 +1223,7 @@ SaErrorT initialize_oa_con(struct oa_info *oa,
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
         wrap_g_mutex_unlock(oa->mutex);
-	free(url);
+        wrap_free(url);
         return SA_OK;
 
 }

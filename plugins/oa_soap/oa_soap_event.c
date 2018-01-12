@@ -224,7 +224,7 @@ gpointer oa_soap_event_thread(gpointer oa_pointer)
         rv = asprintf(&url, 				
                  "%s" PORT, oa->server);
         if(rv == -1){
-                free(url);
+                wrap_free(url);
                 err("Failed to allocate memory for buffer to        \
                                              hold OA credentials");
                 return (gpointer*) SA_ERR_HPI_OUT_OF_MEMORY;
@@ -236,7 +236,7 @@ gpointer oa_soap_event_thread(gpointer oa_pointer)
                 if (oa->event_con2 == NULL) 
                         sleep(2);
         }
-        free(url);
+        wrap_free(url);
         url = NULL;
 
         gettimeofday(&time2, NULL);
@@ -311,7 +311,7 @@ gpointer oa_soap_event_thread(gpointer oa_pointer)
                                 }
                                 rv = asprintf(&url, "%s" PORT, oa->server);  	
                                 if(rv == -1){
-                                        free(url);
+                                        wrap_free(url);
                                         err("Failed to allocate memory for	\
                                                   buffer to hold OA credentials");
 
@@ -342,13 +342,13 @@ gpointer oa_soap_event_thread(gpointer oa_pointer)
                                                         oa->event_con2 failed");
                                         }
                                 }
-                                free(url);
+                                wrap_free(url);
                                 url = NULL;
                         } /* end of else (non-switchover error handling) */
                 } /* end of else (SOAP call failure handling) */
 
         } /* end of 'while(listen_for_events == SAHPI_TRUE)' loop */
-        free(url);
+        wrap_free(url);
         return (gpointer *) SA_OK;
 }
 
