@@ -1319,11 +1319,9 @@ static int ir_xml_scan_fans( ilo2_ribcl_handler_t *ir_handler,
 				speed = xmlGetProp( n, (const xmlChar *)"VALUE");
 				unit =  xmlGetProp( n, (const xmlChar *)"UNIT");
 			}
-
-			ret = ir_xml_record_fandata( ir_handler, (char *)lbl,
-				(char *)zone, (char *)stat, (char *)speed,
-				(char *)unit);
-
+			ret = ir_xml_record_fandata( ir_handler, 
+                        	(char *)lbl, (char *)zone, (char *)stat, 
+                                (char *)speed,(char *)unit);
 			if( lbl){
 				xmlFree( lbl);
 			}
@@ -2025,6 +2023,7 @@ static int ir_xml_scan_power( ilo2_ribcl_handler_t *ir_handler,
 			 *a "Power Supplies" label that we don't care
 			 *about, the same is filtered-out here
 			 */
+			if(lbl && stat)
 			if( xmlStrcmp( lbl, (xmlChar *)"Power Supplies") != 0)
 			if((xmlStrcmp(stat, (xmlChar *)"Not Installed") != 0) ||
 			   ((xmlStrcmp( stat, (xmlChar *)"Unknown") != 0) && 
@@ -3269,7 +3268,12 @@ static int ir_xml_iml_write( struct oh_handler_state *oh_handler,
                 if( n != NULL){
 		    last_update = xmlGetProp(n, (const xmlChar *)"LAST_UPDATE");
 	            time = (struct tm){0,0,0,0,0,0,0,0,-1};
-	            strptime((const char*) last_update,"%m/%d/%Y %H:%M", &time);
+	            if(last_update){
+	                strptime((const char*) last_update,"%m/%d/%Y %H:%M", &time);
+	            }else {
+	                tmp=tmp->next;
+	                continue; 
+	            }
 	            tmp_time = mktime( &time) * 1000000000LL;
 	            if (tmp_time > ir_handler->iml_log_time)
 	                ir_handler->iml_log_time = tmp_time;
@@ -3316,8 +3320,22 @@ static int ir_xml_iml_write( struct oh_handler_state *oh_handler,
 
                         if( ret != SA_OK){
                             err("ilo2_ribcl_iml_event():failed");
-                            if(local_time > ir_handler->iml_log_time)
+                            if(local_time > ir_handler->iml_log_time){
                                   ir_handler->iml_log_time = local_time;
+                            }
+                            if( severity){
+                                  xmlFree(severity);
+                                  severity = NULL;
+                            }
+                            if( class){
+                                  xmlFree(class);
+                                  class = NULL;
+                            }
+                            if( last_update){
+                                  xmlFree(last_update);
+                                  last_update = NULL;
+                            }
+
                             return ( -1); 
                         }
                     } 
@@ -3403,7 +3421,6 @@ static SaErrorT ilo2_ribcl_iml_event(xmlNodePtr n, char *host,
 	count = xmlGetProp( n, (const xmlChar *)"COUNT");
 	description = xmlGetProp( n, (const xmlChar *)"DESCRIPTION");
 
-
 	if( !xmlStrcmp( class, (const xmlChar *)"Main Memory") || 
 		!xmlStrcmp(class, (const xmlChar *)"Cache Memory") || 
 		 !xmlStrcmp( class, (const xmlChar *)"Non-Volatile Memory")){
@@ -3446,12 +3463,11 @@ static SaErrorT ilo2_ribcl_iml_event(xmlNodePtr n, char *host,
                   last_update, initial_update, count);
 	err("Description:\"%s\"", description);
 
-	if(description)
+	if(description){
 	          dbg("description = %s", description);
-        else
-	          dbg("description is NULL");
-	strncpy(log_desc,(const char *)description,
-                   SAHPI_SENSOR_BUFFER_LENGTH-1);
+	          strncpy(log_desc,(const char *)description,
+                               SAHPI_SENSOR_BUFFER_LENGTH-1);
+        }
         ev->resource = *rpt;
         ev->hid = oh_handler->hid;
         ev->event.Source = ev->resource.ResourceId;
@@ -3474,7 +3490,7 @@ static SaErrorT ilo2_ribcl_iml_event(xmlNodePtr n, char *host,
         current_reading.Type = 
                             SAHPI_SENSOR_READING_TYPE_BUFFER;
 	strncpy((char *) current_reading.Value.SensorBuffer, log_desc,
-						SAHPI_SENSOR_BUFFER_LENGTH);
+						SAHPI_SENSOR_BUFFER_LENGTH-1);
         ev->event.EventDataUnion.SensorEvent.TriggerReading = current_reading;
         oh_evt_queue_push(oh_handler->eventq, ev);
 

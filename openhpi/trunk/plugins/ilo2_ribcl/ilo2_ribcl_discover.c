@@ -1066,9 +1066,6 @@ static SaErrorT ilo2_ribcl_discover_fans( struct oh_handler_state *oh_handler,
 		/* Check if the discovery reported a failed fan */
 		failed = SAHPI_FALSE;
 		fanstatus = fandata->status;
-		if( (fanstatus != NULL) && !strcmp( fanstatus, "Failed")){
-			failed = SAHPI_TRUE;
-		}
 		
 		/**	If the FAN is not installed then FAN Status comes as
 		 *	"Not installed" or "Unknown", so do not discover this
@@ -1080,7 +1077,12 @@ static SaErrorT ilo2_ribcl_discover_fans( struct oh_handler_state *oh_handler,
 		 *		<SPEED VALUE = "0" UNIT="Percentage"/>
 		 *        </FAN>	
  		 **/
-		if(!strcmp(fanstatus, "Not Installed")|| !strcmp(fanstatus, "Unknown")){
+		if( (fanstatus != NULL) && !strcmp( fanstatus, "Failed")){
+			failed = SAHPI_TRUE;
+		}else if(fanstatus == NULL){
+			failed = SAHPI_TRUE;
+		} else if(!strcmp(fanstatus, "Not Installed")|| 
+					!strcmp(fanstatus, "Unknown")){
 			fandata->fanflags = ~IR_DISCOVERED;
 		}
 
@@ -1186,12 +1188,12 @@ static SaErrorT ilo2_ribcl_discover_powersupplies( struct oh_handler_state *oh_h
 			                strstr( psustatus, "Lost")) {
 		                  failed = SAHPI_TRUE;
 		        }
+			if(!strcmp(psustatus, "Not Installed") || 
+				   !strcmp(psustatus, "Unknown")){
+				psudata->psuflags = ~IR_DISCOVERED;
+			}
 		}
 
-		if(!strcmp(psustatus, "Not Installed") || 
-			   !strcmp(psustatus, "Unknown")){
-			psudata->psuflags = ~IR_DISCOVERED;
-		}
 
 		if( psudata->psuflags & IR_DISCOVERED ){
 

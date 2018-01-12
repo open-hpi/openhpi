@@ -1902,7 +1902,6 @@ SaErrorT add_interconnect(struct oh_handler_state *oh_handler,
                 case (POWER_REBOOT):
                         err("Wrong (REBOOT) Power State detected");
                         return SA_ERR_HPI_INTERNAL_ERROR;
-                        break;
                 case (POWER_UNKNOWN):
                         state = SAHPI_POWER_OFF;
                         break;
@@ -2331,8 +2330,7 @@ SaErrorT re_discover_ps_unit(struct oh_handler_state *oh_handler,
                         }else
                                 state = RES_ABSENT;
                 } else {
-                        if ((info_result->serialNumber == NULL || 
-                                   info_result->serialNumber[0] == '\0')) {
+                        if ((info_result->serialNumber[0] == '\0')) {
                                strcpy(info_result->serialNumber,"No_Report");
                                err("PSU in slot %d has problem, pls check",i);
                         }

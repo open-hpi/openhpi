@@ -570,7 +570,8 @@ void oa_soap_proc_oa_network_info(struct oh_handler_state *oh_handler,
         struct oa_info *temp = NULL;
         xmlNode *extra_data = NULL;
 
-        if (oh_handler == NULL || nw_info == NULL) {
+        if (oh_handler == NULL || nw_info == NULL || 
+				nw_info->ipAddress == NULL) {
                 err("Invalid parameters");
                 return;
         }
@@ -585,6 +586,9 @@ void oa_soap_proc_oa_network_info(struct oh_handler_state *oh_handler,
                 case 2:
                         temp = oa_handler->oa_2;
                         break;
+                default:
+                        err("Invalid Bay number");
+                        return;
         }
 	resource_id =
 		oa_handler->oa_soap_resources.oa.resource_id[bay_number - 1];
@@ -608,8 +612,14 @@ void oa_soap_proc_oa_network_info(struct oh_handler_state *oh_handler,
         /* Copy the server IP address to oa_info structure */
 	wrap_g_mutex_lock(temp->mutex);
         memset(temp->server, 0, MAX_URL_LEN);
-        strncpy(temp->server, nw_info->ipAddress,
-                        strlen(nw_info->ipAddress));
+	
+        if(strlen(nw_info->ipAddress) < MAX_URL_LEN){
+                strncpy(temp->server, nw_info->ipAddress,
+                              strlen(nw_info->ipAddress));
+        }else{
+                CRIT("IP Address %s is bigger than MAX_URL_LEN", 
+                                            nw_info->ipAddress);
+        }
 	wrap_g_mutex_unlock(temp->mutex);
 
 	/* Process the OA link status sensor */
