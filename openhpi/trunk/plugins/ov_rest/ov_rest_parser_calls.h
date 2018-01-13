@@ -535,6 +535,10 @@ struct certificates
 	const char *SSLKey;
 	const char *ca;
 };
+struct idleTimeout
+{
+	int timeout;
+}; 
 struct applianceNodeInfoResponse
 {
 	json_object *root_jobj;
@@ -934,6 +938,8 @@ struct eventInfo
 	"X-API-Version: 300"
 #define OV_REST_AUTH \
 	"Auth: %s"
+#define OV_REST_SESSIONID \
+	"Session-Id: %s"
 #define OV_REST_X_AUTH_TOKEN \
 	"X-auth-Token: %s"
 #define OV_REST_LOGIN_URI \
@@ -950,6 +956,8 @@ struct eventInfo
 	"https://%s/rest/certificates/ca"
 #define OV_APPLIANCE_VERSION_URI \
 	"https://%s/rest/appliance/nodeinfo/version"
+#define OV_GET_IDLE_TIMEOUT_URI \
+	"https://%s/rest/sessions/idle-timeout"
 #define OV_APPLIANCE_STATUS_URI \
 	"https://%s/rest/appliance/nodeinfo/status"
 #define OV_DATACENTER_URI \

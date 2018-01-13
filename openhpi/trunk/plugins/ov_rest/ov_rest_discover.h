@@ -236,6 +236,9 @@ SaErrorT ov_rest_getca(struct oh_handler_state *oh_handler,
                 REST_CON *connection,
                 char* ca_doc);
 
+SaErrorT ov_rest_session_timeout(struct ov_rest_handler *ov_handler, 
+ 		struct idleTimeout *to);
+
 SaErrorT ov_rest_build_appliance_rdr(struct oh_handler_state *oh_handler,
                 struct applianceNodeInfo *response,
                 struct applianceHaNodeInfo *ha_response,
