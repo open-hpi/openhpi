@@ -1528,6 +1528,55 @@ SaErrorT ov_rest_getca(struct oh_handler_state *oh_handler,
 	return SA_OK;
 }
 
+/**
+ * ov_rest_session_timeout:
+ *      @ov_handler: Pointer to ov_rest plugin handler.
+ *      @to: Pointer to idleTimeout structure.
+ *
+ * Purpose:
+ *      Gets the timeout value to keep the session alive
+ *
+ * Detailed Description: 
+ *      This was created to keep the session alive by getting the 
+ *      idleTimeout value of the session.
+ *
+ * Return values:
+ *     SA_OK 			- On Success.
+ *     SA_ERR_HPI_INVALID_SESSION	- No AuthToken for SSO
+ *     SA_ERR_HPI_TIMEOUT	     - CURLE TIMEOUT
+ *     SA_ERR_HPI_INTERNAL_ERROR     - On all other CURL errors.
+ **/
+SaErrorT ov_rest_session_timeout(struct ov_rest_handler *ov_handler, 
+		struct idleTimeout *to)
+{
+	SaErrorT rv = SA_OK;
+	OV_STRING s = {0};
+	/* struct timeoutResponse response = {0}; */
+	/* json_object *timeoutResponse = NULL;  */
+	struct curl_slist *chunk = NULL;
+	curl_global_init(CURL_GLOBAL_ALL);
+	/* Get a curl handle */
+	CURL* curl = curl_easy_init();
+	WRAP_ASPRINTF(&ov_handler->connection->url, OV_GET_IDLE_TIMEOUT_URI,
+				ov_handler->connection->hostname);
+	rv = ov_rest_curl_get_request(ov_handler->connection, chunk, curl, &s);
+	if(s.jobj == NULL || s.len == 0 || rv != SA_OK) {
+		err("Get session idleTimeout failed");
+                return rv;
+        } 
+	json_object_object_foreach(s.jobj, key, val) {
+		ov_rest_prn_json_obj(key, val);
+		if(!strcmp(key,"idleTimeout")) 
+			to->timeout = json_object_get_int(val);
+	}
+	wrap_free(s.ptr);
+	ov_rest_wrap_json_object_put(s.jobj);
+	wrap_g_free(connection->url);
+	curl_easy_cleanup(curl);
+	curl_global_cleanup();
+	return rv;
+}
+	
 /*
  * ov_rest_discover_resources
  *      @oh_handler: Pointer to openhpi handler
@@ -1609,6 +1658,15 @@ SaErrorT ov_rest_discover_resources(void *oh_handler)
 			break;
 		case DISCOVERY_COMPLETED:
 			dbg("Discovery already done");
+			/* Call a function to keep the session alive */
+			struct idleTimeout sess_timeout = {0};
+			rv = ov_rest_session_timeout(ov_handler,&sess_timeout);
+			if ( rv != SA_OK) {
+                                err("Session is Not Alive. No idleTimeout");
+                                wrap_g_mutex_unlock(ov_handler->mutex);
+                                return rv;
+                        }
+			dbg("Session Idle Timeout is %d", sess_timeout.timeout);
 			wrap_g_mutex_unlock(ov_handler->mutex);
 			return SA_OK;
 		default:

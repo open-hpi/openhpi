@@ -116,14 +116,18 @@ SaErrorT ov_rest_curl_get_request(REST_CON *connection,
 	struct curl_slist *chunk, CURL* curl, OV_STRING *st)
 {
 	char *Auth=NULL, *X_Auth_Token = NULL;
+	char *SessionId = NULL;
 	char curlErrStr[CURL_ERROR_SIZE+1];
 	WRAP_ASPRINTF(&Auth,OV_REST_AUTH,connection->auth);
+	WRAP_ASPRINTF(&SessionId,OV_REST_SESSIONID,connection->auth);
 	chunk = curl_slist_append(chunk, OV_REST_ACCEPT);
 	chunk = curl_slist_append(chunk, OV_REST_CHARSET);
 	chunk = curl_slist_append(chunk, OV_REST_CONTENT_TYPE);
 	chunk = curl_slist_append(chunk, OV_REST_X_API_VERSION);
 	chunk = curl_slist_append(chunk, Auth);
+	chunk = curl_slist_append(chunk, SessionId);
 	wrap_free(Auth);
+	wrap_free(SessionId);
 	if(connection->xAuthToken != NULL){
 		WRAP_ASPRINTF(&X_Auth_Token,OV_REST_X_AUTH_TOKEN,
 				connection->xAuthToken);
@@ -374,34 +378,31 @@ void ov_rest_prn_json_obj(char *key, struct json_object *val)
         type = json_object_get_type(val);
         switch (type) {
                    case json_type_null:
-                       dbg("\n %s = (null)\n",key);
+                       dbg("%s = (null)",key);
                        break;
                    case json_type_boolean:
-                       dbg("\n %s = %s\n",
+                       dbg("%s = (boolean) %s",
 			key, json_object_get_boolean(val)? "true": "false");
                        break;
                    case json_type_double:
-                       dbg("\n %s = %f\n",key, json_object_get_double(val));
+                       dbg("%s = (double) %f",key, json_object_get_double(val));
                        break;
                    case json_type_int:
-                       dbg("\n %s = %d\n",key, json_object_get_int(val));
+                       dbg("%s = (int) %d",key, json_object_get_int(val));
                        break;
                    case json_type_string:
-                       dbg("\n %s = %s\n",key, json_object_get_string(val));
+                       dbg("%s = (string) %s",key, json_object_get_string(val));
                        break;
                    case json_type_object:
-                       dbg("\nHmmm, not expecting an object. Printing and \n");
-                       dbg("\n %s = %s\n",key, json_object_get_string(val));
-                       dbg("\n Skipping \n");
+                       dbg("Hmmm, not expecting an object. Printing and");
+                       dbg("%s = (object as string) %s",key, json_object_get_string(val));
                        break;
                    case json_type_array:
-                       dbg("\n Hmmm, not expecting array. Printing and  \n");
-                       dbg("\n %s = %s\n",key, json_object_get_string(val));
-                       dbg("\n skipping \n");
+                       dbg("Hmmm, not expecting array. Printing and ");
+                       dbg("%s = (array as string) %s",key, json_object_get_string(val));
                        break;
                    default:
-                       dbg("\n ERROR, not expecting %d. What is this?\n",type);
-                       dbg("\n skipping \n");
+                       dbg("ERROR, not expecting %d. What is this?",type);
                        break;
        }
 }
