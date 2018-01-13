@@ -1571,7 +1571,7 @@ SaErrorT ov_rest_session_timeout(struct ov_rest_handler *ov_handler,
 	}
 	wrap_free(s.ptr);
 	ov_rest_wrap_json_object_put(s.jobj);
-	wrap_g_free(connection->url);
+	wrap_g_free(ov_handler->connection->url);
 	curl_easy_cleanup(curl);
 	curl_global_cleanup();
 	return rv;
