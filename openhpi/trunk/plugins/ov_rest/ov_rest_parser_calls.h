@@ -1032,6 +1032,8 @@ void ov_rest_json_parse_enc_manager_bays( json_object *jarray,
 void ov_rest_json_parse_datacenter( json_object *jarray, int i, 
 			struct datacenterInfo* response);
 void ov_rest_json_parse_events( json_object *jobj, struct eventInfo* response);
+void ov_rest_json_parse_alerts_utility( json_object *jobj, 
+					struct eventInfo* response);
 void ov_rest_json_parse_alerts( json_object *jobj, struct eventInfo* response);
 void ov_rest_json_parse_tasks( json_object *jobj, struct eventInfo* response);
 #endif /*_PARSER_CALLS_H*/

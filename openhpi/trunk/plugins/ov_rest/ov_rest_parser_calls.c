@@ -312,6 +312,12 @@ int ov_rest_trim_alert_string(const char* alert, struct eventInfo *evtinfo)
 		if(dest[j] == '.')
 			dest[j] = ' ';
 	}
+	if(!evtinfo->phyResourceType){
+		err("physicalResourceType is null for this alert, so setting "
+						"alertTypeId to OEM_EVENT");
+		evtinfo->alertTypeId = rest_enum(eventType_S,"OEM_EVENT");
+		return -1;		
+	}
 	if(!strcmp(evtinfo->phyResourceType, "sas-interconnects")){
         	ret = sscanf(dest, "hpris %*s %s %*d", trimmed_alert);
 	}else{
@@ -326,8 +332,7 @@ int ov_rest_trim_alert_string(const char* alert, struct eventInfo *evtinfo)
 					trimmed_alert);
 			}
 			if( ret != 1){
-				err("ov_rest_json_parse_alerts: incorrect"
-					" alertTypeID string: %s", dest);
+				err("Incorrect alertTypeID string: %s", dest);
 				evtinfo->alertTypeId = rest_enum(eventType_S, 
 					"OEM_EVENT");
 				return 1;
@@ -361,7 +366,7 @@ void ov_rest_json_parse_events( json_object *jobj, struct eventInfo* evtinfo)
 }
 
 /**
- * ov_rest_json_parse_alerts:
+ * ov_rest_json_parse_alerts_utility:
  *      @jobj    : Pointer to json_object.
  *      @evtinfo: Pointer to eventInfo.
  *
@@ -372,10 +377,10 @@ void ov_rest_json_parse_events( json_object *jobj, struct eventInfo* evtinfo)
  *      None.
  *
  **/
-void ov_rest_json_parse_alerts( json_object *jobj, struct eventInfo* evtinfo)
+void ov_rest_json_parse_alerts_utility( json_object *jobj, 
+				struct eventInfo* evtinfo)
 {
-	int ret;
-	json_object *associatedResource = NULL; 
+//	json_object *associatedResource = NULL; 
 
 	json_object * jvalue = jobj;
 	json_object_object_foreach(jvalue, key, val){
@@ -390,25 +395,24 @@ void ov_rest_json_parse_alerts( json_object *jobj, struct eventInfo* evtinfo)
 			evtinfo->resourceUri = json_object_get_string(val);
 			continue;
 		}
+		/* We are not using the commented code below, But it is for 
+ 		 * future purpose*/
+		/*
 		if(!strcmp(key,"associatedResource")){
 			associatedResource = 
 				ov_rest_wrap_json_object_object_get(jobj, 
 				"associatedResource");
-			ov_rest_json_parse_alerts(associatedResource, evtinfo);
+			ov_rest_json_parse_alerts_utility(associatedResource,
+								evtinfo);
 			continue;
 		}
+		*/
 		if(!strcmp(key,"physicalResourceType")){
 			evtinfo->phyResourceType = json_object_get_string(val);
 			continue;
 		}
 		if(!strcmp(key,"alertTypeID") || !strcmp(key,"name")){
 			evtinfo->alert_name = json_object_get_string(val);
-			ret = ov_rest_trim_alert_string(
-					json_object_get_string(val),
-					 evtinfo);
-			if(ret != 1){
-				dbg("Unknown alert. Skipping it for now");
-			}
 			continue;
 		}
 		if(!strcmp(key,"alertState")){
@@ -435,6 +439,32 @@ void ov_rest_json_parse_alerts( json_object *jobj, struct eventInfo* evtinfo)
 			evtinfo->correctiveAction = json_object_get_string(val);
 			continue;
 		}
+	}
+}
+
+/**
+ * ov_rest_json_parse_alerts:
+ *      @jobj    : Pointer to json_object.
+ *      @evtinfo: Pointer to eventInfo.
+ *
+ * Purpose:
+ *      First it invokes the ov_rest_json_parse_alerts_utility function to 
+ *      fully parse the received alert, and then ov_rest_trim_alert_string 
+ *      function trims the alerttypeID string using parsed alert infomration.
+ *
+ * Return:
+ *      None.
+ *
+ **/
+
+void ov_rest_json_parse_alerts( json_object *jobj, struct eventInfo* evtinfo)
+{
+	int ret;
+	ov_rest_json_parse_alerts_utility( jobj, evtinfo);
+	ret = ov_rest_trim_alert_string( evtinfo->alert_name,
+					evtinfo);
+	if(ret != 1){
+		dbg("Unknown alert.");
 	}
 }
 
