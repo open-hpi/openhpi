@@ -713,8 +713,32 @@ void ov_rest_json_parse_certificate( json_object *jobj,
  **/
 void ov_rest_json_parse_ca( json_object *jobj, struct certificates *response)
 {
-
-	response->ca = json_object_get_string(jobj);
+	json_object *member = NULL, *jvalue = NULL, *cert = NULL;
+	if(jobj == NULL){
+		err("Invalid Parameters");
+		return;
+	}
+	member = ov_rest_wrap_json_object_object_get(jobj, "members");
+	if(member){
+		jvalue = json_object_array_get_idx(member, 0);
+		if(jvalue == NULL){
+			err("Invalid Response");
+			return;
+		}
+		cert = ov_rest_wrap_json_object_object_get(jvalue, 
+						"certificateDetails");
+		if(!cert){
+			err("Invalid Response");
+			return;
+		}
+		json_object_object_foreach(cert, key, val){
+			if(!strcmp(key,"base64Data"))
+				response->ca = json_object_get_string(val);
+		}
+		
+	}else{
+		response->ca = json_object_get_string(jobj);
+	}
 }
 
 /**
