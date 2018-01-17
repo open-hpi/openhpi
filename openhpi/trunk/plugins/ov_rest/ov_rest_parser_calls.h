@@ -935,7 +935,7 @@ struct eventInfo
 #define OV_REST_CONTENT_TYPE \
 	"Content-Type: application/json"
 #define OV_REST_X_API_VERSION \
-	"X-API-Version: 300"
+	"X-API-Version: 600"
 #define OV_REST_AUTH \
 	"Auth: %s"
 #define OV_REST_SESSIONID \
@@ -953,7 +953,7 @@ struct eventInfo
 #define OV_GET_CERTIFICATES_URI \
 	"https://%s/rest/certificates/client/rabbitmq/keypair/default"
 #define OV_GET_CA_URI \
-	"https://%s/rest/certificates/ca"
+	"https://%s/rest/certificates/ca?filter=certType:INTERNAL"
 #define OV_APPLIANCE_VERSION_URI \
 	"https://%s/rest/appliance/nodeinfo/version"
 #define OV_GET_IDLE_TIMEOUT_URI \
