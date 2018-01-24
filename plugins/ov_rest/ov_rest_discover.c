@@ -48,6 +48,7 @@
 int ov_rest_Total_Temp_Sensors = 0;
 
 static void ov_rest_push_disc_res(struct oh_handler_state *oh_handler);
+
 /**
  * ov_rest_getapplianceNodeInfo:
  *      @oh_handler: Pointer to openhpi handler.
@@ -1612,6 +1613,7 @@ SaErrorT ov_rest_discover_resources(void *oh_handler)
 	GError **error = NULL;
 	struct oh_handler_state *handler = NULL;
 	struct ov_rest_handler *ov_handler = NULL;
+	struct idleTimeout sess_timeout = {0};
 
 	handler = (struct oh_handler_state *) oh_handler;
 	ov_handler = (struct ov_rest_handler *) handler->data;
@@ -1629,17 +1631,7 @@ SaErrorT ov_rest_discover_resources(void *oh_handler)
                 return SA_OK;
         }
 
-	/* Take the mutex here. Because discover thread and event thread 
- 	 * may invoke this function */
 	wrap_g_mutex_lock(ov_handler->mutex);
-	if(g_thread_self() == ov_handler->thread_handler){
-		/* Event thread wants to re discover the resources.
- 		 * Set the ov_handler->status to PRE_DISCOVERY
- 		 */
-		ov_handler->status = PRE_DISCOVERY;
-		err("Event thread invoked ov_rest_discover_resources()"
-			" to re discover the resources");
-	}
 	switch(ov_handler->status) {
 		case PRE_DISCOVERY:
 			dbg("First discovery");
@@ -1653,16 +1645,33 @@ SaErrorT ov_rest_discover_resources(void *oh_handler)
 			}
 			break;
 		case DISCOVERY_FAIL:
-			err("Discovery failed for OV IP %s", 
+			err("Re-discovery, after failure, for OneView %s", 
 				ov_handler->connection->hostname);
-			break;
+			rv = ov_rest_connection_init(handler);
+			if(rv != SA_OK){
+				err("Please check whether the Synergy "
+					"Composer %s is accessible",
+					ov_handler->connection->hostname);
+				return rv;
+			}
+			rv = ov_rest_re_discover_resources(handler);
+			if (rv != SA_OK) {
+				err("Re-discovery failed ");
+				wrap_g_mutex_unlock(ov_handler->mutex);
+				return rv;
+			}
+			ov_handler->status = DISCOVERY_COMPLETED;
+			wrap_g_mutex_unlock(ov_handler->mutex);
+			err("Re-discovery successfull");
+			return rv;
+
 		case DISCOVERY_COMPLETED:
 			dbg("Discovery already done");
 			/* Call a function to keep the session alive */
-			struct idleTimeout sess_timeout = {0};
 			rv = ov_rest_session_timeout(ov_handler,&sess_timeout);
 			if ( rv != SA_OK) {
                                 err("Session is Not Alive. No idleTimeout");
+                                ov_handler->status = DISCOVERY_FAIL;
                                 wrap_g_mutex_unlock(ov_handler->mutex);
                                 return rv;
                         }
@@ -1692,23 +1701,6 @@ SaErrorT ov_rest_discover_resources(void *oh_handler)
 	if(rv != SA_OK) {
 		err("Discovery Failed");
 		ov_handler->status = DISCOVERY_FAIL;
-		if(g_thread_self() == ov_handler->thread_handler){
-			/* Event thread faild to re discover the resources.
-	 		 * Set the ov_handler->status back to 
-	 		 * DISCOVERY_COMPLETED, to avoid discovery thread,
-	 		 * entering the discovery code.
-	 		 * Event thread will enter again with proper connection
-	 		 * information to re discover again.
- 			 */
-			ov_handler->status = DISCOVERY_COMPLETED;
-			err("Event thread invoked ov_rest_discover_resources()"
-				" and faild to re discover the resources");
-		}
-		
-		/* Cleanup the RPTable which may have partially discovered
- 		 * resource information.
- 		 */
-                ov_rest_clean_rptable(oh_handler);
 		wrap_g_mutex_unlock(ov_handler->mutex);
                 return rv;
 	}
@@ -1921,9 +1913,9 @@ SaErrorT ov_rest_discover_appliance(struct oh_handler_state *handler)
 	ov_rest_wrap_json_object_put(ha_array_response.root_jobj);
 
 	if (strcmp(ha_node_result.role, "Active") == 0) {
-		if(strstr(active_sno, ha_node_result.uri) == NULL) {  
-			CRIT("Active composer sno %s and uri %s differ",
-					active_sno, ha_node_result.uri);
+		if(strstr(ha_node_result.uri, active_sno) == NULL) {  
+			CRIT("Active composer uri %s and sno %s differ",
+					ha_node_result.uri, active_sno);
 		}
 		rv = ov_rest_build_appliance_rpt(handler, 
 				&ha_node_result, &resource_id, "Active");
@@ -3685,6 +3677,7 @@ SaErrorT ov_rest_discover_composer(struct oh_handler_state *handler)
 
 	arraylen = json_object_array_length(enc_response.enclosure_array);
 	for (i=0; i< arraylen; i++){
+		memset(&enc_result, 0, sizeof(enc_result));
 		jvalue = json_object_array_get_idx(
 				enc_response.enclosure_array,i);
 		if (!jvalue){
@@ -3703,6 +3696,8 @@ SaErrorT ov_rest_discover_composer(struct oh_handler_state *handler)
 		}
 		comp_arraylen = json_object_array_length(jvalue_comp_array);
 		for(j = 0; j < comp_arraylen; j++){
+			memset(&composer_info, 0, sizeof(composer_info));
+			memset(&ha_node_result, 0, sizeof(ha_node_result));
 			jvalue_composer = 
 				json_object_array_get_idx(jvalue_comp_array, j);
 			if (!jvalue_composer) {
@@ -3712,12 +3707,22 @@ SaErrorT ov_rest_discover_composer(struct oh_handler_state *handler)
 			}
 			ov_rest_json_parse_applianceInfo(jvalue_composer,
 					&composer_info);
-			if(!composer_info.serialNumber){
+			/* Check if the composer presence, if Absent ignore it 
+ 			* and go for next composer. 
+ 			* */
+			if(composer_info.presence == Absent){
+				continue;
+			}
+			/* Check if the composer is present but serial number 
+ 			*  is null then ignore and continue.
+ 			* */
+			if(composer_info.serialNumber == '\0'){
 				CRIT("Composer Serial Number is NULL in bay %d"
 					" of Enclosure rerial number %s",
 						j+1, enc_result.serialNumber);
 				continue;
 			}
+			
 			WRAP_ASPRINTF(&ov_handler->connection->url, 
 					OV_APPLIANCE_HA_NODE_ID_URI,
 					ov_handler->connection->hostname, 
@@ -3741,6 +3746,16 @@ SaErrorT ov_rest_discover_composer(struct oh_handler_state *handler)
 			ov_rest_wrap_json_object_put(
 						ha_node_response.root_jobj);
 
+			/* Build rpt entry for composer */
+			rv = ov_rest_build_composer_rpt(handler,
+					&ha_node_result, &resource_id, 
+					ha_node_result.role);
+			if(rv != SA_OK){
+				err("Failed to Add Composer rpt for bay %d.",
+						composer_info.bayNumber);
+				continue;
+			}
+
 			enclosure = ov_handler->ov_rest_resources.enclosure;
 			while(enclosure != NULL){
 				if(strstr(enclosure->serialNumber,
@@ -3759,15 +3774,6 @@ SaErrorT ov_rest_discover_composer(struct oh_handler_state *handler)
 				CRIT("Enclosure data of the Composer"
 					" serial number %s is unavailable",
 					composer_info.serialNumber);
-			}
-			/* Build rpt entry for composer */
-			rv = ov_rest_build_composer_rpt(handler,
-					&ha_node_result, &resource_id, 
-					ha_node_result.role);
-			if(rv != SA_OK){
-				err("Failed to Add Composer rpt for bay %d.",
-						composer_info.bayNumber);
-				continue;
 			}
 			/* Build rdr entry for server */
 			rv = ov_rest_build_composer_rdr(handler, &composer_info,

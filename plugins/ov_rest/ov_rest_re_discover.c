@@ -838,6 +838,7 @@ SaErrorT re_discover_composer(struct oh_handler_state *oh_handler)
 	 * and if found build the RPT.
 	 */
 	for (i=0; i< arraylen; i++){
+		memset(&result, 0, sizeof(result));
 		jvalue = json_object_array_get_idx(response.enclosure_array,i);
 		if (!jvalue){
 			CRIT("Invalid response for the enclosure in bay %d",
@@ -856,6 +857,11 @@ SaErrorT re_discover_composer(struct oh_handler_state *oh_handler)
 		}
 		comp_arraylen = json_object_array_length(jvalue_comp_array);
 		for(j = 0; j < comp_arraylen; j++){
+			/* Set the composer_info and ha_node_result c
+ 			* ontents to 0, at the begining of the loop*/
+			
+			memset(&composer_info, 0, sizeof(composer_info));
+			memset(&ha_node_result, 0, sizeof(ha_node_result));
 			jvalue_composer =
 				json_object_array_get_idx(jvalue_comp_array, j);
 			if (!jvalue_composer) {
@@ -865,29 +871,34 @@ SaErrorT re_discover_composer(struct oh_handler_state *oh_handler)
 			}
 			ov_rest_json_parse_applianceInfo(jvalue_composer,
 					&composer_info);
+			if((!composer_info.serialNumber[0] == '\0')){
+				WRAP_ASPRINTF(&ov_handler->connection->url, 
+						OV_APPLIANCE_HA_NODE_ID_URI,
+						ov_handler->connection->hostname,
+						composer_info.serialNumber);
+				rv = ov_rest_getapplianceHANodeArray(oh_handler, 
+						&ha_node_response,
+						ov_handler->connection, NULL);
+				if(rv != SA_OK || ha_node_response.haNodeArray 
+						== NULL) {
+					CRIT("No response from "
+							"ov_rest_getapplianceHANodeArray");
+					return rv;
+				}
 
-			WRAP_ASPRINTF(&ov_handler->connection->url, 
-					OV_APPLIANCE_HA_NODE_ID_URI,
-					ov_handler->connection->hostname,
-					composer_info.serialNumber);
-			rv = ov_rest_getapplianceHANodeArray(oh_handler, 
-					&ha_node_response,
-					ov_handler->connection, NULL);
-			if(rv != SA_OK || ha_node_response.haNodeArray 
-					== NULL) {
-				CRIT("No response from "
-					"ov_rest_getapplianceHANodeArray");
-				return rv;
-			}
+				ov_rest_json_parse_appliance_Ha_node(
+						ha_node_response.haNodeArray,
+						&ha_node_result);
 
-			ov_rest_json_parse_appliance_Ha_node(
-					ha_node_response.haNodeArray,
-					&ha_node_result);
-
-			enclosure = ov_handler->ov_rest_resources.enclosure;
-			ov_rest_wrap_json_object_put(
+				ov_rest_wrap_json_object_put(
 						ha_node_response.root_jobj);
-			
+			} else if(composer_info.presence == Present){
+				CRIT("Composer serial number is NULL"
+					"for the bay %d", composer_info.bayNumber);
+				continue;
+
+			}
+			enclosure = ov_handler->ov_rest_resources.enclosure;
 			while(enclosure){
 				if(strstr(result.serialNumber, 
 						enclosure->serialNumber)){
@@ -897,7 +908,7 @@ SaErrorT re_discover_composer(struct oh_handler_state *oh_handler)
 			}
 			if(enclosure){
 				if((enclosure->composer.presence
-				[ha_node_result.bayNumber-1] == RES_ABSENT) && 
+				[composer_info.bayNumber-1] == RES_ABSENT) && 
 					(composer_info.presence == Present)){
 					rv =  add_composer(oh_handler, 
 							&composer_info, 
@@ -910,12 +921,12 @@ SaErrorT re_discover_composer(struct oh_handler_state *oh_handler)
 						return rv;
 					}
 				}else if((enclosure->composer.
-					presence[ha_node_result.bayNumber-1]
+					presence[composer_info.bayNumber-1]
 					== RES_PRESENT) && 
 					(composer_info.presence == Absent) ){
 
 					rv = remove_composer(oh_handler, enclosure,
-						 ha_node_result.bayNumber);
+						 composer_info.bayNumber);
 					if(rv != SA_OK){
 						err("Unable to remove composer "
 							"with serial number: "
@@ -924,7 +935,7 @@ SaErrorT re_discover_composer(struct oh_handler_state *oh_handler)
 						return rv;
 					}
 				}else if((enclosure->composer.
-					presence[ha_node_result.bayNumber-1]
+					presence[composer_info.bayNumber-1]
 					== RES_PRESENT) && 
 					(composer_info.presence	== Present) ){
 					if(strstr(
@@ -935,7 +946,7 @@ SaErrorT re_discover_composer(struct oh_handler_state *oh_handler)
 					}else{
 						rv = remove_composer(oh_handler,
 						enclosure, 
-						ha_node_result.bayNumber);
+						composer_info.bayNumber);
 						if(rv != SA_OK){
 							err("Unable to remove "
 							"composer with"
@@ -956,12 +967,9 @@ SaErrorT re_discover_composer(struct oh_handler_state *oh_handler)
 						}
 					}
 				}
-				continue;
-			}
-			memset(&composer_info, 0, sizeof(composer_info));
-			memset(&ha_node_result, 0, sizeof(ha_node_result));
-		}
-	}
+			}// end of if(enclosure)
+		} // end of inner for loop
+	} // end of outer for loop
 	ov_rest_wrap_json_object_put(response.root_jobj);
 	return SA_OK;
 }
