@@ -1253,9 +1253,9 @@ SaErrorT ov_rest_setuplistner(struct oh_handler_state *handler)
 		}
 	}
 	if (stat(CA_PATH, &st) == -1) {
-		if(mkdir(OV_REST_PATH, 0600)== -1){
+		if(mkdir(CA_PATH, 0600)== -1){
 			CRIT("Failed to create the directory %s, %s", 
-					OV_REST_PATH, strerror(errno));
+					CA_PATH, strerror(errno));
 		}
 	}
 	memset(&response,0, sizeof(struct certificateResponse));
