@@ -493,6 +493,9 @@ int rest_enum(const char *enums, const char *value)
         }
 
         len = strlen(value);
+	if (len == 0)
+		return(-1);
+
         /* We have to search repeatedly, in case the match is just a substring
          * of an enum value.
          */

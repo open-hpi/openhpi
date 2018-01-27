@@ -1017,10 +1017,8 @@ SaErrorT  ov_rest_proc_add_task( struct oh_handler_state *oh_handler,
 	if(event->taskState == NULL){
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
-	CRIT("TASK_ADD for resource category %s ", event->resourceCategory);
         if ((!strcmp(event->taskState, "Completed")) &&
                                    (event->percentComplete == 100)) {
-	CRIT("TASK_ADD COMPLETE for resource category %s ", event->resourceCategory);
 		if(!strcmp(event->resourceCategory, "server-hardware")) {
 			ov_rest_proc_blade_add_complete(oh_handler, event);
 			dbg("TASK_ADD_SERVER");
@@ -2004,7 +2002,8 @@ void ov_rest_process_alerts(struct oh_handler_state *oh_handler,
 {
 
 	ov_rest_json_parse_alerts(scmb_resource, event);
-	dbg("%s alert received", event->alert_name);
+	dbg("%s alert received mapped to alertTypeId=%d", event->alert_name, 
+			event->alertTypeId);
 	switch (event->alertTypeId) {
 		case cpqRackServerBladeRemoved2:
 		case BladeRemoved:
@@ -2081,26 +2080,196 @@ void ov_rest_process_alerts(struct oh_handler_state *oh_handler,
 					Critical);
 			dbg("CIManagerCritical");
 			break;
-
 		case CIManagerInserted:
-			ov_rest_proc_composer_insertion_event(oh_handler, event);
+			ov_rest_proc_composer_insertion_event(oh_handler,event);
 			dbg("CIManagerInserted");
 			break;
 		case CIManagerRemoved:
 			ov_rest_proc_composer_removed_event(oh_handler, event);
 			dbg("CIManagerRemoved");
 			break;
+		case CommunicationError:
+			ov_rest_proc_interconnect_fault(oh_handler,
+					event);
+			dbg("%s", event->alert_name);
+			break;
+		case InterconnectPowerRequestGranted:
+		case InterconnectManagerICMReadyFault:
+		case InterconnectManagerICMReadyFaultCleared:
+		case BladeManagerIloInternalCritical:
+		case BladeManagerIloInternalCriticalCleared:
+		case BladeManagerIloInternalWarning:
+		case BladeManagerIloInternalWarningCleared:
+		case EmIsActive:
+		case PowerSupplyInputLossFault:
+		case invalidTopology:
+		case neighbourIcPoweredOff16:
+		case neighbourIcPoweredOff46:
+		case cxpPortConnected:
+		case cxpPortMisCabled:
+		case cxpPortNotConnected:
+		case CxpPortNotConnectedToExpectedICMKind:
+		case failedCableRead:
+		case flexFabric40GbEModuleAtSideANotInFirstEnclosure:
+		case flexFabric40GbEModuleAtSideBNotInFirstOrSecondEnclosure:
+		case icNotinSameBaySet:
+		case InvalidInterconnectKind:
+		case mixedIcInSameBaySet:
+		case mixedIcLnSameBaySet:
+		case moreThanOneflexFabric40GbEModuleAtOneSideofBaySet:
+		case neighbourIcPoweredOff:
+		case noflexFabric40GbEModuleAtSideA:
+		case nonHpeCableInserted:
+		case PortStatusLinked:
+		case PortStatusLinkedInvalidPort:
+		case PortStatusUnlinked:	
+		case unsupportedlc:
+		case PortStatusLinked1:
+		case PortStatusLinked2:
+		case PortStatusLinked4:
+		case PortStatusUnlinked1:
+		case PortStatusUnlinked2:
+		case PortStatusUnlinked4:
+		case opFcoeActiveChange:
+		case ilt:
+		case PowerSupplyInternalCommFault:
+		case PowerSupplyInternalCommFaultCleared:
+                case FanElectronicFuseBlownCleared:
+                case ActivateStagedFirmwareSuccessful:
+                case BladeCommFault:
+                case BladeCommFaultCleared:
+                case BladeFruFault:
+                case BladeIloOperationalStatusCritical:
+                case BladeInsertFault:
+                case BladeInsertFaultCleared:
+                case BladeManagerICMReadyFault:
+                case BladeManagerICMReadyFaultCleared:
+                case BladePowerOn:
+                case ChassisAmbientThermal:
+                case ChassisAmbientThermalCleared:
+                case ChassisUidBlinking:
+                case CIManagerCommFault:
+                case CIManagerCommFaultCleared:
+                case CIManagerEfusePGoodFault:
+                case CIManagerEfusePGoodFaultCleared:
+                case CIManagerFruFault:
+                case CIManagerIloFault:
+                case CIManagerIloFaultCleared:
+                case CIManagerIloInternalCritical:
+                case CIManagerIloInternalCriticalCleared:
+                case CIManagerIloInternalWarning:
+                case CIManagerIloInternalWarningCleared:
+                case CIManagerInsertFault:
+                case CIManagerInsertFaultCleared:
+                case EmCommFault:
+                case EmCommFaultCleared:
+                case EmDataReplicationFault:
+                case EmDataReplicationFaultCleared:
+                case EmFruFault:
+                case EmInsertFault:
+                case EmInsertFaultCleared:
+                case EmOneViewLinkValidationPingAddressMismatch:
+                case EmOneViewLinkValidationPingAddressMismatch_Cleared:
+                case EmOneViewLinkValidationPingFailed:
+                case EmOneViewLinkValidationPingFailed_Cleared:
+                case EmOneViewLinkValidationPingFailedCleared_PingAddressChanged:
+                case EmOneViewLinkValidationPingFailedCleared_PingDisabled:
+                case EmStagedFirmwareUpdated:
+                case EmSwitchHardwareCritical:
+                case EmSwitchHardwareOk:
+                case FanCommFault:
+                case FanCommFaultCleared:
+                case FanEfusePGoodFault:
+                case FanEfusePGoodFaultCleared:
+                case FanFruFault:
+                case FanInsertFault:
+                case FanInsertFaultCleared:
+                case FanRotor1Fault:
+                case FanRotor1FaultCleared:
+                case FanRotor2Fault:
+                case FanRotor2FaultCleared:
+                case FrontPanelCommFault:
+                case FrontPanelCommFaultCleared:
+                case FrontPanelFruFault:
+                case FrontPanelInserted:
+                case FrontPanelInsertFault:
+                case FrontPanelInsertFaultCleared:
+                case InterconnectCommFault:
+                case InterconnectCommFaultCleared:
+                case InterconnectFruFault:
+                case InterconnectInsertFault:
+                case InterconnectInsertFaultCleared:
+                case InterconnectPowerOff:
+                case InterconnectPowerOn:
+                case MidplaneChassisIdUpdated:
+                case MidplaneFruFault:
+                case PowerAllocationCollectionChanged:
+                case PowerAllocationDeleted:
+                case PowerAllocationPatched:
+                case PowerAllocationPosted:
+                case PowerSubsystemOverLimit:
+                case PowerSubsystemOverLimitCleared:
+                case PowerSupplyCommFault:
+                case PowerSupplyCommFaultCleared:
+                case PowerSupplyFruFault:
+                case PowerSupplyFruManufacturedForInvalidFault:
+                case PowerSupplyInputFault:
+                case PowerSupplyInsertFault:
+                case PowerSupplyInsertFaultCleared:
+                case PowerSupplyInterposerCommFault:
+                case PowerSupplyInterposerCommFaultCleared:
+                case PowerSupplyInterposerCritical:
+                case PowerSupplyInterposerDiscoveryComplete:
+                case PowerSupplyInterposerFruContentFault:
+                case PowerSupplyInterposerFruFault:
+                case PowerSupplyInterposerFruManufacturedForInvalidFault:
+                case PowerSupplyInterposerFruManufacturedForMismatchFault:
+                case PowerSupplyInterposerInserted:
+                case PowerSupplyInterposerInsertFault:
+                case PowerSupplyInterposerInsertFaultCleared:
+                case PowerSupplyInterposerOk:
+                case PowerSupplyInterposerPSCommFault:
+                case PowerSupplyInterposerPSCommFaultCleared:
+                case PowerSupplyInterposerRemoved:
+                case PowerSupplyInterposerWarning:
+                case PowerSupplyIpduInfoChanged:
+                case PowerSupplyOvertempFault:
+                case PowerSupplyPowerCycledFault:
+                case PowerSupplyPsOkFault:
+                case PowerSupplyReinsertFault:
+                case PowerSupplyReplaceFault:
+                case RingNoActiveMgmtPort:
+                case RingNoActiveMgmtPortCleared:
+                case RingNoActiveMgmtPortCleared_OwnerChanged:
+                case RingNoActiveMgmtPort_RingDegraded:
+                case StagedFirmwareOperationSuccessful:
+                case BladeRedundantCommFault:
+                case BladeRedundantCommFaultCleared:
+                case ChassisEventServiceSubscriptionOverrunFault:
+                case ChassisEventServiceSubscriptionOverrunFaultCleared:
+                case ChassisRedundantCommFault:
+                case ChassisRedundantCommFaultCleared:
+                case CIManagerRedundantCommFault:
+                case CiManagerRedundantCommFaultCleared:
+                case EmHighAssuranceBootCritical:
+                case EmRedundantCommFault:
+                case EmRedundantCommFaultCleared:
+                case FanRedundantCommFault:
+                case FanRedundantCommFaultCleared:
+                case FrontPanelRedundantCommFault:
+                case FrontPanelRedundantCommFaultCleared:
+                case InterconnectRedundantCommFault:
+                case InterconnectRedundantCommFaultCleared:
+                case OneViewServiceEventsCommFault:
+                case OneViewServiceEventsCommFaultCleared:
+                case PowerSupplyRedundantCommFault:
+                case SupplyRedundantCommFaultCleared:
 		case TopologyError:
 		case PartnerSwitchCommunicationFailure:
 		case PartnerSwitchVersionMismatch: 
 		case PartnerSwitchWWIDMismatch: 
 		case PartnerSwitchNotPresent:
 		case NotConfigured:
-		case CommunicationError:
-			ov_rest_proc_interconnect_fault(oh_handler,
-					event);
-			dbg("%s", event->alert_name);
-			break;
 		case cpqRackServerBladeInserted2:
 		case BladeInserted:
 		case cpqRackNetConnectorInserted:
@@ -2440,7 +2609,6 @@ void ov_rest_process_alerts(struct oh_handler_state *oh_handler,
 		case TooManySessions:
 		case UpdateInterrupted:
 		case UpdateSuccessful:
-		case InterconnectManagerICMReadyFaultCleared:
 			dbg("%s -- Not processed", event->alert_name);
 			break;
 		case OEM_EVENT:
@@ -2525,7 +2693,7 @@ void ov_rest_process_tasks(struct oh_handler_state *oh_handler,
 			dbg("%s -- Not processed", event->task_name);
 			break;
 		default:
-			err("TASK %s IS NOT REGISTERED", event->task_name);
+			warn("TASK %s IS NOT REGISTERED", event->task_name);
 	}
 	return;
 }
