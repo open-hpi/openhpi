@@ -294,13 +294,14 @@ int ov_rest_trim_alert_string(const char* alert, struct eventInfo *evtinfo)
 {
 	char dest[MAX_256_CHARS];
 	char trimmed_alert[MAX_256_CHARS];
-	int j = 0, ret = 0;
+	int j = 0, ret = 0, scount = 0;
 
 	if (( alert == NULL ) ||  (evtinfo == NULL)) {
 		err("Invalid parameters");
 		return(-1);
 	}
-		
+        memset(dest, 0, sizeof(char)*256);
+        memset(trimmed_alert, 0, sizeof(char)*256);
 	if (strlen(alert) >= 255 ) {
 		err("Alert %s is too long %d",alert, (int)strlen(alert));
 		strncpy(dest, alert, 255);
@@ -309,37 +310,49 @@ int ov_rest_trim_alert_string(const char* alert, struct eventInfo *evtinfo)
 		strcpy(dest, alert);
 
 	for (j = 0; dest[j] != '\0'; j++){
-		if(dest[j] == '.')
+		if(dest[j] == '.') {
 			dest[j] = ' ';
+			scount++;
+		}
 	}
 	if(!evtinfo->phyResourceType){
-		err("physicalResourceType is null for this alert, so setting "
+		warn("physicalResourceType is null for this alert, so setting "
 						"alertTypeId to OEM_EVENT");
 		evtinfo->alertTypeId = rest_enum(eventType_S,"OEM_EVENT");
 		return -1;		
 	}
-	if(!strcmp(evtinfo->phyResourceType, "sas-interconnects")){
-        	ret = sscanf(dest, "hpris %*s %s %*d", trimmed_alert);
-	}else{
-        	ret = sscanf(dest, "hpris %*s %*d %*d %s", trimmed_alert);
+
+	if (strstr(dest, "hpris ")) {
+        	ret = sscanf(dest,"hpris %*s %*d %*d %s",trimmed_alert);
+	} else if (strstr(dest, "Trap ")) {
+		ret = sscanf(dest, "Trap %s", trimmed_alert);
+	} else if (strstr(dest, "crm ")) {
+		ret = sscanf(dest, "crm %s", trimmed_alert);
+	} else if (strstr(dest, "swmon ")) {
+		if (scount == 1)
+			ret = sscanf(dest, "swmon %s", trimmed_alert);
+		else if (scount == 2) 
+			ret = sscanf(dest, "swmon %*s %s", trimmed_alert);
+		else
+			ret = sscanf(dest, "swmon %s %*s %*s", trimmed_alert);
+	} else {
+		warn("alert string: %s is not important as of now", alert);
+		warn("Setting it as OEM_EVENT to handle generically");
+		evtinfo->alertTypeId = rest_enum(eventType_S, "OEM_EVENT");
+		return -1;		
+
 	}
-	if( ret != 1){
-		ret = sscanf(dest , "Trap %s", trimmed_alert);
-		if(ret !=1){
-			ret = sscanf(dest , "crm %s", trimmed_alert);
-			if(ret != 1){
-				ret = sscanf(dest , "swmon %s %*s %*s", 
-					trimmed_alert);
-			}
-			if( ret != 1){
-				err("Incorrect alertTypeID string: %s", dest);
-				evtinfo->alertTypeId = rest_enum(eventType_S, 
-					"OEM_EVENT");
-				return 1;
-			}
-		}
-	}
-	evtinfo->alertTypeId = rest_enum(eventType_S, trimmed_alert);
+	if ( ret != 1 || strlen(trimmed_alert) == 0 )
+		evtinfo->alertTypeId = rest_enum(eventType_S, "OEM_EVENT");
+	else
+		evtinfo->alertTypeId = rest_enum(eventType_S, trimmed_alert);
+
+	/* Some alerts are too complex. Make them OEM_EVENTS */
+	if ( evtinfo->alertTypeId == -1 )
+		evtinfo->alertTypeId = rest_enum(eventType_S, "OEM_EVENT");
+
+	dbg("alert=%s, trimmed=%s enum=%d",alert, trimmed_alert, 
+			evtinfo->alertTypeId);
 	return ret;
 }
                                              
