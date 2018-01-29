@@ -2532,6 +2532,8 @@ SaErrorT build_server_inv_rdr_arr(struct oh_handler_state *oh_handler,
                               &add_success_flag);
         if (rv != SA_OK) {
                 err("Add product area failed");
+                wrap_g_free(local_inventory->comment);
+                wrap_g_free(local_inventory);
                 return rv;
         }
 
@@ -2557,6 +2559,8 @@ SaErrorT build_server_inv_rdr_arr(struct oh_handler_state *oh_handler,
                             &add_success_flag);
         if (rv != SA_OK) {
                 err("Add board area failed");
+                wrap_g_free(local_inventory->comment);
+                wrap_g_free(local_inventory);
                 return rv;
         }
         if (add_success_flag != SAHPI_FALSE) {
@@ -2581,6 +2585,8 @@ SaErrorT build_server_inv_rdr_arr(struct oh_handler_state *oh_handler,
                                &blade_mp_request, &blade_mp_response);
                 if (rv != SOAP_OK) {
                         err("Get blade mp info failed");
+                        wrap_g_free(local_inventory->comment);
+                        wrap_g_free(local_inventory);
                         return rv;
                 }
 
@@ -2600,6 +2606,8 @@ SaErrorT build_server_inv_rdr_arr(struct oh_handler_state *oh_handler,
                                            &hpi_field);
                         if (rv != SA_OK) {
                                 err("Add idr field failed");
+                                wrap_g_free(local_inventory->comment);
+                                wrap_g_free(local_inventory);
                                 return rv;
                         }
 
@@ -2623,6 +2631,8 @@ SaErrorT build_server_inv_rdr_arr(struct oh_handler_state *oh_handler,
 					blade_mp_response.modelName);
 			if(rv == -1){
 				wrap_free(tmp);
+				wrap_g_free(local_inventory->comment);
+				wrap_g_free(local_inventory);
 				err("Failed to allocate memory for buffer to  \
 						hold MP Model name");
 				return SA_ERR_HPI_OUT_OF_MEMORY;
@@ -2638,6 +2648,8 @@ SaErrorT build_server_inv_rdr_arr(struct oh_handler_state *oh_handler,
 				if (rv != SA_OK) {
 					err("Add idr field failed");
 					wrap_free(tmp);
+					wrap_g_free(local_inventory->comment);
+					wrap_g_free(local_inventory);
 					return rv;
 				}
 
@@ -2660,6 +2672,8 @@ SaErrorT build_server_inv_rdr_arr(struct oh_handler_state *oh_handler,
 					blade_mp_response.ipAddress);
 			if(rv == -1){
 				wrap_free(tmp);
+				wrap_g_free(local_inventory->comment);
+				wrap_g_free(local_inventory);
 				err("Failed to allocate memory for buffer to  \
 						hold MP IP Address");
 				return SA_ERR_HPI_OUT_OF_MEMORY;
@@ -2675,6 +2689,8 @@ SaErrorT build_server_inv_rdr_arr(struct oh_handler_state *oh_handler,
 				if (rv != SA_OK) {
 					err("Add idr field failed");
 					wrap_free(tmp);
+					wrap_g_free(local_inventory->comment);
+					wrap_g_free(local_inventory);
 					return rv;
 				}
 
@@ -2697,6 +2713,8 @@ SaErrorT build_server_inv_rdr_arr(struct oh_handler_state *oh_handler,
 					blade_mp_response.macAddress);
 			if(rv == -1){
 				wrap_free(tmp);
+				wrap_g_free(local_inventory->comment);
+				wrap_g_free(local_inventory);
 				err("Failed to allocate memory for buffer to  \
 						hold MP MAC Address");
 				return SA_ERR_HPI_OUT_OF_MEMORY;
@@ -2712,6 +2730,8 @@ SaErrorT build_server_inv_rdr_arr(struct oh_handler_state *oh_handler,
 				if (rv != SA_OK) {
 					err("Add idr field failed");
 					wrap_free(tmp);
+					wrap_g_free(local_inventory->comment);
+					wrap_g_free(local_inventory);
 					return rv;
 				}
 
@@ -2734,6 +2754,8 @@ SaErrorT build_server_inv_rdr_arr(struct oh_handler_state *oh_handler,
 					blade_mp_response.dnsName);
 			if(rv == -1){
 				wrap_free(tmp);
+				wrap_g_free(local_inventory->comment);
+				wrap_g_free(local_inventory);
 				err("Failed to allocate memory for buffer to  \
 						hold MP DNS name");
 				return SA_ERR_HPI_OUT_OF_MEMORY;
@@ -2749,6 +2771,8 @@ SaErrorT build_server_inv_rdr_arr(struct oh_handler_state *oh_handler,
 				if (rv != SA_OK) {
 					err("Add idr field failed");
 					wrap_free(tmp);
+					wrap_g_free(local_inventory->comment);
+					wrap_g_free(local_inventory);
 					return rv;
 				}
 
@@ -2771,6 +2795,8 @@ SaErrorT build_server_inv_rdr_arr(struct oh_handler_state *oh_handler,
 					response->numberOfNics);
 			if(rv == -1){
 				wrap_free(tmp);
+				wrap_g_free(local_inventory->comment);
+				wrap_g_free(local_inventory);
 				err("Failed to allocate memory for buffer to  \
 						hold NICs Installed");
 				return SA_ERR_HPI_OUT_OF_MEMORY;
@@ -2786,6 +2812,8 @@ SaErrorT build_server_inv_rdr_arr(struct oh_handler_state *oh_handler,
 				if (rv != SA_OK) {
 					err("Add idr field failed");
 					wrap_free(tmp);
+					wrap_g_free(local_inventory->comment);
+					wrap_g_free(local_inventory);
 					return rv;
 				}
 
@@ -2813,6 +2841,8 @@ SaErrorT build_server_inv_rdr_arr(struct oh_handler_state *oh_handler,
 				nic_info.macAddress);
 		       if(rv == -1){
 			       wrap_free(tmp);
+			       wrap_g_free(local_inventory->comment); 
+			       wrap_g_free(local_inventory);
 			       err("Failed to allocate memory for buffer to   \
 					       hold MAC Address and NIC Port");
 			       return SA_ERR_HPI_OUT_OF_MEMORY;
@@ -2828,6 +2858,8 @@ SaErrorT build_server_inv_rdr_arr(struct oh_handler_state *oh_handler,
 			       if (rv != SA_OK) {
 				       err("Add idr field failed");
 				       wrap_free(tmp);
+				       wrap_g_free(local_inventory->comment);
+				       wrap_g_free(local_inventory);
 				       return rv;
 			       }
 
@@ -2857,6 +2889,8 @@ SaErrorT build_server_inv_rdr_arr(struct oh_handler_state *oh_handler,
 				err("Failed to allocate memory for buffer to  \
 						hold No. of CPUs");
 				wrap_free(tmp);
+				wrap_g_free(local_inventory->comment);
+				wrap_g_free(local_inventory);
 				return SA_ERR_HPI_OUT_OF_MEMORY;
 			}
 			if(strlen(tmp) < SAHPI_MAX_TEXT_BUFFER_LENGTH){
@@ -2870,6 +2904,8 @@ SaErrorT build_server_inv_rdr_arr(struct oh_handler_state *oh_handler,
 				if (rv != SA_OK) {
 					err("Add idr field failed");
 					wrap_free(tmp);
+					wrap_g_free(local_inventory->comment);
+					wrap_g_free(local_inventory);
 					return rv;
 				}
 
@@ -2893,6 +2929,8 @@ SaErrorT build_server_inv_rdr_arr(struct oh_handler_state *oh_handler,
 				++cpu_no,cpu_info.cpuType,cpu_info.cpuSpeed);
 			if(rv == -1){
 				wrap_free(tmp);
+				wrap_g_free(local_inventory->comment);
+				wrap_g_free(local_inventory);
 				err("Failed to allocate memory for buffer to  \
 						hold CPU name and speed");
 				return SA_ERR_HPI_OUT_OF_MEMORY;
@@ -2902,6 +2940,8 @@ SaErrorT build_server_inv_rdr_arr(struct oh_handler_state *oh_handler,
 			rv = asprintf(&tmp, "CPU %d = Not present",++cpu_no);
 			if(rv == -1){
 				wrap_free(tmp);
+				wrap_g_free(local_inventory->comment);
+				wrap_g_free(local_inventory);
 				err("Failed to allocate memory for buffer to  \
 						hold Not present CPU Number");
 				return SA_ERR_HPI_OUT_OF_MEMORY;
@@ -2922,6 +2962,8 @@ SaErrorT build_server_inv_rdr_arr(struct oh_handler_state *oh_handler,
 				if (rv != SA_OK) {
 					err("Add idr field failed");
 					wrap_free(tmp);
+					wrap_g_free(local_inventory->comment);
+					wrap_g_free(local_inventory);
 					return rv;
 				}
 
@@ -2948,6 +2990,8 @@ SaErrorT build_server_inv_rdr_arr(struct oh_handler_state *oh_handler,
 					response->memory);
 			if(rv == -1){
 				wrap_free(tmp);
+				wrap_g_free(local_inventory->comment);
+				wrap_g_free(local_inventory);
 				err("Failed to allocate memory for buffer to  \
 						hold Memory(RAM) size");
 				return SA_ERR_HPI_OUT_OF_MEMORY;
@@ -2963,6 +3007,8 @@ SaErrorT build_server_inv_rdr_arr(struct oh_handler_state *oh_handler,
 				if (rv != SA_OK) {
 					err("Add idr field failed");
 					wrap_free(tmp);
+					wrap_g_free(local_inventory->comment);
+					wrap_g_free(local_inventory);
 					return rv;
 				}
 
@@ -2989,6 +3035,8 @@ SaErrorT build_server_inv_rdr_arr(struct oh_handler_state *oh_handler,
 						mezz_info.mezzNumber);
 				if(rv == -1){
 					wrap_free(tmp);
+					wrap_g_free(local_inventory->comment);
+					wrap_g_free(local_inventory);
 					err("Failed to allocate memory for    \
 							buffer to hold        \
 							Mezz No.");
@@ -3006,6 +3054,8 @@ SaErrorT build_server_inv_rdr_arr(struct oh_handler_state *oh_handler,
 					if (rv != SA_OK) {
 						err("Add idr field failed");
 						wrap_free(tmp);
+						wrap_g_free(local_inventory->comment);
+						wrap_g_free(local_inventory);
 						return rv;
 					}
 
@@ -3029,6 +3079,8 @@ SaErrorT build_server_inv_rdr_arr(struct oh_handler_state *oh_handler,
 						local_inventory);
 				if(rv != SA_OK){
 					err("Add mezz_slot_idr_fields failed");
+					wrap_g_free(local_inventory->comment);
+					wrap_g_free(local_inventory);
 					return rv;
 				}
 			}
@@ -3042,6 +3094,8 @@ SaErrorT build_server_inv_rdr_arr(struct oh_handler_state *oh_handler,
 				if(rv != SA_OK){
 					err("Add mezz_devices_idr_fields \
 							failed");
+					wrap_g_free(local_inventory->comment);
+					wrap_g_free(local_inventory);
 					return rv;
 				}
 				
@@ -4792,6 +4846,7 @@ SaErrorT add_product_area(struct oa_soap_area **area,
                                    &hpi_field);
                 if (rv != SA_OK) {
                         err("Add idr field failed");
+                        wrap_g_free(local_area);
                         return rv;
                 }
                 ++field_count;
@@ -4817,6 +4872,7 @@ SaErrorT add_product_area(struct oa_soap_area **area,
                                    &hpi_field);
                 if (rv != SA_OK) {
                         err("Add idr field failed");
+                        wrap_g_free(local_area);
                         return rv;
                 }
                 ++field_count;
@@ -4902,6 +4958,7 @@ SaErrorT add_chassis_area(struct oa_soap_area **area,
                                    &hpi_field);
                 if (rv != SA_OK) {
                         err("Add idr field failed");
+                        wrap_g_free(local_area);
                         return rv;
                 }
                 ++field_count;
@@ -4921,6 +4978,7 @@ SaErrorT add_chassis_area(struct oa_soap_area **area,
                                    &hpi_field);
                 if (rv != SA_OK) {
                         err("Add idr field failed");
+                        wrap_g_free(local_area);
                         return rv;
                 }
                 ++field_count;
@@ -5007,6 +5065,7 @@ SaErrorT add_board_area(struct oa_soap_area **area,
                                    &hpi_field);
                 if (rv != SA_OK) {
                         err("Add idr field failed");
+                        wrap_g_free(local_area);
                         return rv;
                 }
                 ++field_count;
@@ -5025,6 +5084,7 @@ SaErrorT add_board_area(struct oa_soap_area **area,
                                    &hpi_field);
                 if (rv != SA_OK) {
                         err("Add idr field failed");
+                        wrap_g_free(local_area);
                         return rv;
                 }
                 ++field_count;
@@ -5116,6 +5176,7 @@ SaErrorT add_internal_area(struct oa_soap_area **area,
                                    &hpi_field);
                 if (rv != SA_OK) {
                         err("Add idr field failed");
+                        wrap_g_free(local_area);
                         return rv;
                 }
                 ++field_count;
@@ -5136,6 +5197,7 @@ SaErrorT add_internal_area(struct oa_soap_area **area,
                                    &hpi_field);
                 if (rv != SA_OK) {
                         err("Add idr field failed");
+                        wrap_g_free(local_area);
                         return rv;
                 }
                 ++field_count;
@@ -5156,6 +5218,7 @@ SaErrorT add_internal_area(struct oa_soap_area **area,
                                    &hpi_field);
                 if (rv != SA_OK) {
                         err("Add idr field failed");
+                        wrap_g_free(local_area);
                         return rv;
                 }
                 ++field_count;
@@ -5177,6 +5240,7 @@ SaErrorT add_internal_area(struct oa_soap_area **area,
                                    &hpi_field);
                 if (rv != SA_OK) {
                         err("Add idr field failed");
+                        wrap_g_free(local_area);
                         return rv;
                 }
                 ++field_count;
@@ -6079,6 +6143,7 @@ SaErrorT free_inventory_info(struct oh_handler_state *handler,
         }
 
         wrap_g_free(inventory->comment);
+        wrap_g_free(inventory);
         return SA_OK;
 }
 
