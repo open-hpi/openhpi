@@ -1,0 +1,69 @@
+include Makefile.mingw32.def
+
+out     := openhpi-${VERSION}-win32-${ARCH}
+doc     := ${out}
+deps    := ${out}
+libs    := ${out}
+devel   := ${out}
+progs   := ${out}
+plugins := ${out}
+conf    := ${out}
+
+openhpi_libs := utils \
+                transport \
+                marshal \
+                baselib \
+                clients \
+                clients/hpixml \
+                hpi_shell \
+                openhpid \
+                plugins/slave \
+                plugins/test_agent
+
+.PHONY: all clean $(openhpi_libs)
+
+all: $(openhpi_libs)
+
+$(openhpi_libs):
+	make -f Makefile.mingw32 -C $@
+
+clean:
+	for d in $(openhpi_libs); \
+	do \
+		make -f Makefile.mingw32 -C $$d clean; \
+	done
+	rm -rf ${out}
+
+out: all
+	rm -rf ${out}
+	mkdir -p ${out}
+	mkdir -p ${doc}
+	cp README.windows ${doc}/README.windows.txt
+	mkdir -p ${deps}
+	cp ${GLIB_DIR}/bin/libglib-2.0-0.dll ${deps}
+	cp ${GLIB_DIR}/bin/libgmodule-2.0-0.dll ${deps}
+	cp ${GLIB_DIR}/bin/libgthread-2.0-0.dll ${deps}
+	mkdir -p ${libs}
+	cp transport/libopenhpitransport.dll ${libs}
+	cp marshal/libopenhpimarshal.dll ${libs}
+	cp utils/libopenhpiutils.dll ${libs}
+	cp baselib/libopenhpi.dll ${libs}
+	mkdir -p ${devel}
+	cat include/SaHpi.h | sed -e 's/ __attribute__.*/;/' -e 's/#define SAHPI_API/#define SAHPI_API __declspec(dllimport)/' > ${devel}/SaHpi.h
+	cp include/SaHpiXtca.h ${devel}
+	cp include/oHpi.h ${devel}
+	cp utils/libopenhpiutils.a ${devel}
+	cp utils/libopenhpiutils.def ${devel}
+	cp baselib/libopenhpi.a ${devel}
+	cp baselib/libopenhpi.def ${devel}
+	mkdir -p ${progs}
+	cp clients/*.exe ${progs}
+	cp clients/hpixml/hpixml.exe ${progs}
+	cp hpi_shell/hpi_shell.exe ${progs}
+	cp openhpid/openhpid.exe ${progs}
+	mkdir -p ${plugins}
+	cp plugins/slave/libslave.dll ${plugins}
+	cp plugins/test_agent/libtest_agent.dll ${plugins}
+	mkdir -p ${conf}
+	cp mingw32/openhpi.conf.example ${conf}/openhpi.conf
+
