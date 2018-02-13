@@ -8,7 +8,6 @@ AC_PREREQ(2.57)
 AC_INIT(openhpi, 3.8.0)
 AC_CONFIG_SRCDIR(openhpi.spec.in)
 AM_INIT_AUTOMAKE([1.8])
-AC_CONFIG_MACRO_DIR([m4])
 
 AM_CONFIG_HEADER(config.h)
 AH_TOP([#ifndef __OPENHPI_CONFIG_H
@@ -114,15 +113,12 @@ else
 fi
 
 exact_version=`pkg-config --modversion $GLIB`;
-GLIB_CFLAGS=`pkg-config --cflags $GLIB`
-GLIB_LIBS=`pkg-config --libs $GLIB`
+GLIB_CFLAGS=`pkg-config --cflags $GLIB $GTHREAD`
+GLIB_LIBS=`pkg-config --libs $GLIB $GTHREAD`
 GLIB_ONLY_CFLAGS=`pkg-config --cflags $GLIB`
 GLIB_ONLY_LIBS=`pkg-config --libs $GLIB`
 GMODULE_ONLY_CFLAGS=`pkg-config --cflags $GMODULE`
 GMODULE_ONLY_LIBS=`pkg-config --libs $GMODULE`
-GTHREAD_CFLAGS=`pkg-config --cflags $GTHREAD`
-GTHREAD_LIBS=`pkg-config --libs $GTHREAD`
-
 
 # On some versions of Solaris the pkg-config file for gthread-2.0 contains a
 # compiler option, '-mt', that is incompatible with gcc
@@ -156,8 +152,6 @@ AC_SUBST(GLIB_ONLY_CFLAGS)
 AC_SUBST(GLIB_ONLY_LIBS)
 AC_SUBST(GMODULE_ONLY_CFLAGS)
 AC_SUBST(GMODULE_ONLY_LIBS)
-AC_SUBST(GTHREAD_CFLAGS)
-AC_SUBST(GTHREAD_LIBS)
 
 
 AC_CHECK_LIB([sysfs], [sysfs_get_mnt_path], [have_sysfs=yes])
@@ -749,8 +743,7 @@ dnl replace common includes here
 AC_SUBST(OPENHPI_INCLUDES)
 
 dnl Set up libs that will be linked to
-dnl old LIBS="$LIBS $SSL_LIB $GLIB_LIBS -lm -lpthread" GTHREAD_LIBS
-LIBS="$LIBS $GLIB_LIBS $GTHREAD_LIBS"
+LIBS="$LIBS $SSL_LIB $GLIB_LIBS -lm -lpthread"
 
 AC_CHECK_PROG([found_pod2man], [pod2man], [yes])
 AC_ARG_ENABLE([man],

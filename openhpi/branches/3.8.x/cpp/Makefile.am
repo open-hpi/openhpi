@@ -77,7 +77,7 @@ include_HEADERS		= oSaHpiAlarm.hpp \
 
 pkglib_LTLIBRARIES	= libosahpi.la
 
-#libosahpi_la_LIBADD	= -luuid
+libosahpi_la_LIBADD	= -luuid
 libosahpi_la_SOURCES	= oSaHpiAlarm.cpp oSaHpiAlarm.hpp \
                           oSaHpiAnnouncement.cpp oSaHpiAnnouncement.hpp \
                           oSaHpiAnnunciatorRec.cpp oSaHpiAnnunciatorRec.hpp \

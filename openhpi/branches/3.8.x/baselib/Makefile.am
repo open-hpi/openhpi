@@ -40,8 +40,7 @@ libopenhpi_la_SOURCES = conf.c \
 libopenhpi_la_LDFLAGS = -version-info @HPI_LIB_VERSION@
 libopenhpi_la_LIBADD  = $(top_builddir)/transport/libopenhpitransport.la -lstdc++ \
                         $(top_builddir)/marshal/libopenhpimarshal.la \
-                        $(top_builddir)/utils/libopenhpiutils.la \
-                        @SSL_LIB@ -lm -lpthread
+                        $(top_builddir)/utils/libopenhpiutils.la
 
 clean-local:
 	rm -f *~ core core.* 

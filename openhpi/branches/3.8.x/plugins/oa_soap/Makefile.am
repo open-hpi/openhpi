@@ -96,7 +96,6 @@ liboa_soap_la_SOURCES   = oa_soap.h \
                           oa_soap_callsupport.c
 
 # TODO: What about -luuid in the ilo2_ribcl?
-liboa_soap_la_LIBADD    = @XML2_LIB@ -lm -lpthread \
-                          $(top_builddir)/utils/libopenhpiutils.la \
-                          $(top_builddir)/ssl/libopenhpi_ssl.la
+liboa_soap_la_LIBADD    = @SSL_LIB@ @XML2_LIB@ \
+                          $(top_builddir)/utils/libopenhpiutils.la
 liboa_soap_la_LDFLAGS   = -module -version-info @HPI_LIB_VERSION@
