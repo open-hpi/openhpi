@@ -29,8 +29,6 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #  
 
-AUTOMAKE_OPTIONS = -Wno-portability
-
 REPORTDIR = report_html
 CONFORMDIR = conform_html
 SERVER = shell1.sf.net

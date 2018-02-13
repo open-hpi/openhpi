@@ -10,8 +10,6 @@
 
 MAINTAINERCLEANFILES = Makefile.in
 
-AUTOMAKE_OPTIONS = -Wno-portability
-
 REMOTE_SOURCES		= uid_utils.c \
 			  epath_utils.c \
 			  sahpi_enum_utils.c \
