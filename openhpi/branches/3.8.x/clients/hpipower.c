@@ -234,11 +234,15 @@ int main(int argc, char **argv)
                         Status = saHpiResourcePowerStateGet(SessionId,
                                                             ComputerPtr->ResID,
                                                             &PowerState);
-                        if (Status != SA_OK)
-                        {
-                                printf("%s does not support PowerStateGet",
-                                       ComputerPtr->NameStr);
-                        }
+			if (Status == SA_ERR_HPI_CAPABILITY ) {
+                               	printf("%s does not support PowerStateGet",
+                              	       ComputerPtr->NameStr);
+                        } else if (Status == SA_ERR_HPI_INVALID_PARAMS ) {
+                               	printf("Invalid params in PowerStateGet" );
+			} else if (Status != SA_OK) {
+				printf("%s error. Not in ON or OFF state?",
+                              	       ComputerPtr->NameStr);
+			}
 
                         /* Print out all of the systems */
                         printf("%2d) %20s  - %s \n\r", (Index + 1),
@@ -303,10 +307,16 @@ int main(int argc, char **argv)
                         Status = saHpiResourcePowerStateGet(SessionId,
                                                             ComputerPtr->ResID,
                                                             &PowerState);
-                        if (Status != SA_OK)
-                        {
-                                printf("%s does not support PowerStateGet",ComputerPtr->NameStr);
-                        }
+			if (Status == SA_ERR_HPI_CAPABILITY ) {
+                               	printf("%s does not support PowerStateGet",
+                              	       ComputerPtr->NameStr);
+                        } else if (Status == SA_ERR_HPI_INVALID_PARAMS ) {
+                               	printf("Invalid params in PowerStateGet" );
+			} else if (Status != SA_OK) {
+				printf("%s error. Not in ON or OFF state?",
+                              	       ComputerPtr->NameStr);
+			}
+
                         if (Action == PowerState)
                         {
                                 printf("\n%s -- %20s is already powered %s\n",argv[0],
@@ -339,11 +349,15 @@ int main(int argc, char **argv)
                         Status = saHpiResourcePowerStateGet(SessionId,
                                                             ComputerPtr->ResID,
                                                             &PowerState);
-                        if (Status != SA_OK)
-                        {
-                                printf("%s does not support PowerStateGet",
-                                       ComputerPtr->NameStr);
-                        }
+			if (Status == SA_ERR_HPI_CAPABILITY ) {
+                               	printf("%s does not support PowerStateGet",
+                              	       ComputerPtr->NameStr);
+                        } else if (Status == SA_ERR_HPI_INVALID_PARAMS ) {
+                               	printf("Invalid params in PowerStateGet" );
+			} else if (Status != SA_OK) {
+				printf("%s error. Not in ON or OFF state?",
+                              	       ComputerPtr->NameStr);
+			}
 
                         /* Print out Status for this system */
                         printf("%2d) %20s  - %s \n\r", (ComputerPtr->number + 1),
