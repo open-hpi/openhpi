@@ -19,6 +19,5 @@ lib_LTLIBRARIES		= libopenhpi_ssl.la
 libopenhpi_ssl_la_SOURCES = oh_ssl.c oh_ssl.h
 
 libopenhpi_ssl_la_LDFLAGS = -version-info @HPI_LIB_VERSION@
-libopenhpi_ssl_la_LIBADD  = @CRYPTO_LIB@ $(top_builddir)/utils/libopenhpiutils.la \
-                            -lssl -lpthread -lm
+libopenhpi_ssl_la_LIBADD  = @CRYPTO_LIB@
 

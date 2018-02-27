@@ -56,7 +56,7 @@ libopenhpidaemon_la_SOURCES        = \
     threaded.h
 
 libopenhpidaemon_la_LIBADD         = $(top_builddir)/utils/libopenhpiutils.la \
-                                     @GMODULE_ONLY_LIBS@ -lm -lpthread
+                                     @GMODULE_ONLY_LIBS@
 
 if HAVE_OPENSSL
 libopenhpidaemon_la_LIBADD += $(top_builddir)/$(SSLDIR)/libopenhpi_ssl.la

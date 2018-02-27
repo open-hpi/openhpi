@@ -22,7 +22,7 @@ AM_CPPFLAGS = -DG_LOG_DOMAIN=\"transport\"
 
 AM_CPPFLAGS 		+= @OPENHPI_INCLUDES@
 # just to clear LIBS
-# LIBS			=
+LIBS			=
 
 # marshal and connection used by the daemon and client library
 lib_LTLIBRARIES = libopenhpitransport.la
@@ -32,7 +32,6 @@ libopenhpitransport_la_SOURCES    = \
 	strmsock.h
 
 libopenhpitransport_la_LDFLAGS= -version-info @HPI_LIB_VERSION@
-# libopenhpitransport_la_LIBADD= @GTHREAD_LIBS@
 
 clean-local:
 	rm -f *~ core core.*

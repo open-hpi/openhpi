@@ -28,7 +28,6 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-AUTOMAKE_OPTIONS = -Wno-portability
 
 EXTRA_DIST  = $(srcdir)/README \
 			  $(srcdir)/csharp/Makefile \

@@ -13,8 +13,6 @@ GENERATED_EVENT_XML_MAP = event.xml
 GENERATED_EVENT_CODE = el2event.c
 GENERATED_CODE = $(GENERATED_EVENT_XML_MAP) $(GENERATED_EVENT_CODE)
 
-AUTOMAKE_OPTIONS = -Wno-portability
-
 REMOTE_SIM_SOURCES = \
 		snmp_bc.c \
 		snmp_bc_annunciator.c \
