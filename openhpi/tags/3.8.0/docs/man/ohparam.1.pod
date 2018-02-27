@@ -1,0 +1,95 @@
+=head1 NAME
+
+ohparam - An openhpi sample application that uses the openhpi additional interface to control openhpi configuration parameters
+
+=head1 SYNOPSIS 
+
+ ohparam [-D nn] [-N host[:port]] [-C <cfgfile>] [-X] get
+ ohparam [-D nn] [-N host[:port]] [-C <cfgfile>] [-X] set <paramname newvalue>
+ ohparam [--domain nn] [--host=host[:port]] [--cfgfile=file] [--debug] get
+ ohparam [--domain nn] [--host=host[:port]] [--cfgfile=file] [--debug] set <paramname newvalue>
+
+=head1 DESCRIPTION
+
+ohparam get will display all global configuration parameters of the openhpi daemon for the specified domain.
+
+ohparam set will change the given global configuration parameters of the openhpi daemon for the specified domain to the new value.
+
+If no domain or host is selected, ohparam uses the default domain as specified in the openhpiclient.conf file.
+
+=head1 COMMANDS
+
+=over 2
+
+ Command get: display info about all global parameters  
+         no specific arguments                         
+
+ Command set:                                           
+         one of the daemon's global parameters:        
+         (without the OPENHPI prefix)                  
+           LOG_ON_SEV, EVT_QUEUE_LIMIT,         
+           DEL_SIZE_LIMIT, DEL_SAVE                    
+           DAT_SIZE_LIMIT, DAT_USER_LIMIT, DAT_SAVE    
+           PATH, VARPATH, CONF                         
+         and the desired new value. Example:           
+           ohparam set DEL_SIZE_LIMIT 20000            
+
+=back
+
+=head1 OPTIONS
+
+=head2 Help Options:
+
+=over 2
+
+=item B<-h>, B<--help>
+
+Show help options
+
+=back
+
+=head2 Application Options:
+
+=over 2
+
+=item B<-D> I<nn>, B<--domain>=I<nn>
+
+Select domain id I<nn>
+
+=item B<-X>, B<--debug>
+
+Display debug messages
+
+=item B<-N> I<"host[:port]">, B<--host>=I<"host[:port]">
+
+Open session to the domain served by the daemon at the specified URL (host:port).
+This option overrides the OPENHPI_DAEMON_HOST and OPENHPI_DAEMON_PORT environment variables.
+If host contains ':' (for example IPv6 address) then enclose it in square brackets.
+For example: I<"[::1]"> or I<"[::1]:4743">.
+
+=item B<-C> I<"file">, B<--cfgfile>=I<"file">
+
+Use passed file as client configuration file.
+This option overrides the OPENHPICLIENT_CONF environment variable.
+
+=back
+
+=head1 SEE ALSO
+
+         hpi_shell
+
+         hpialarms      hpifan         hpipower       hpithres
+         hpidomain      hpigensimdata  hpireset       hpitop
+         hpiel          hpiiinv        hpisensor      hpitree
+         hpievents      hpionIBMblade  hpisettime     hpiwdt
+         hpixml
+         ohdomainlist   ohhandler
+
+ 
+=head1 AUTHORS
+
+Authors of this man page:
+
+ Ulrich Kleber (ulikleber@users.sourceforge.net)
+ Anton Pak (avpak@users.sourceforge.net)
+

@@ -1,0 +1,43 @@
+=head1 NAME
+
+hpigcrypt - An openhpi helper application that encrypts and decrypts a config file. 
+
+=head1 SYNOPSIS 
+
+ hpicrypt [-d ] -c config_file 
+
+=head1 DESCRIPTION
+
+hpicrypt is an optional helper application that encrypts or decrypts config_file.
+
+The encryption key is machine specific. File encrypted on one machine may not decrypt on some other machine.
+Please have a backup copy of the file before encrypting.
+
+=head1 OPTIONS
+
+=head2 Application Options:
+
+=over 2
+
+=item B<-d>
+
+Decrypt the config_file and output the text to screen with helpful message
+
+=back
+
+=head1 SEE ALSO
+
+         hpi_shell
+         hpialarms      hpigensimdata  hpireset       hpitop
+         hpidomain      hpiinv         hpisensor      hpitree
+         hpievents      hpionIBMblade  hpisettime     hpiwdt
+         hpifan         hpipower       hpithres
+         ohdomainlist   ohhandler      ohparam
+
+
+=head1 AUTHORS
+
+Authors of this man page:
+
+ Mohan Devarajulu (mohan@fc.hp..com)
+

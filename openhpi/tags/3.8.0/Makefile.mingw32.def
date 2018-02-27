@@ -1,0 +1,30 @@
+############################################################################
+ARCH := x86
+#ARCH := amd64
+
+VERSION := 3.8.0
+# This is for resource compiler
+BINARY_VERSION := 3,8,0,0
+
+############################################################################
+TOOLCHAIN_PATH := /home/avpak/usr/cross/mingw32
+
+CC  := ${TOOLCHAIN_PATH}/bin/i386-mingw32-gcc
+CXX := ${TOOLCHAIN_PATH}/bin/i386-mingw32-g++
+AS  := ${TOOLCHAIN_PATH}/bin/i386-mingw32-as
+RC  := ${TOOLCHAIN_PATH}/bin/i386-mingw32-windres
+
+GLIB_DIR := /home/avpak/usr/cross/mingw32/i386-mingw32/glib-2.0
+
+GLIB_INCLUDES := -I ${GLIB_DIR}/include/glib-2.0 -I ${GLIB_DIR}/lib/glib-2.0/include
+GLIB_LIBS := -L ${GLIB_DIR}/lib -lglib-2.0
+GTHREAD_LIBS := -L ${GLIB_DIR}/lib -lgthread-2.0
+GMODULE_LIBS := -L ${GLIB_DIR}/lib -lgmodule-2.0
+############################################################################
+
+CPPFLAGS := -DVERSION=\"${VERSION}\" -D_WIN32_WINNT=0x0501 -DOH_DBG_MSGS
+RCFLAGS := -DVERSION=\"${VERSION}\" -DBINARY_VERSION=${BINARY_VERSION} --use-temp-file
+CFLAGS := -Wall
+CXXFLAGS := -Wall
+LDFLAGS := -no-undefined --enable-runtime-pseudo-reloc
+

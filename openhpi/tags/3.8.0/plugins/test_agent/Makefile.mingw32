@@ -1,0 +1,57 @@
+include ../../Makefile.mingw32.def
+
+TARGET := libtest_agent.dll
+
+SRC := abi.cpp \
+       announcement.cpp \
+       annunciator.cpp \
+       area.cpp \
+       bank.cpp \
+       codec.cpp \
+       console.cpp \
+       control.cpp \
+       dimi.cpp \
+       fumi.cpp \
+       field.cpp \
+       handler.cpp \
+       instrument.cpp \
+       instruments.cpp \
+       inventory.cpp \
+       log.cpp \
+       object.cpp \
+       resource.cpp \
+       sensor.cpp \
+       server.cpp \
+       structs.cpp \
+       test.cpp \
+       timers.cpp \
+       utils.cpp \
+       vars.cpp \
+       version.rc \
+       watchdog.cpp
+
+OBJ := $(patsubst %.rc, %.o, $(patsubst %.cpp, %.o, ${SRC}))
+
+DEFS := -DG_LOG_DOMAIN=\"test_agent\" -D__STDC_FORMAT_MACROS
+
+INCLUDES := ${GLIB_INCLUDES} -I ../../mingw32 -I ../../include -I ../../utils
+
+LIBS := ${GLIB_LIBS} ${GTHREAD_LIBS} -lws2_32
+LIBS += -L ../../utils -lopenhpiutils
+
+CPPFLAGS += ${DEFS} ${INCLUDES}
+
+.PHONY: all clean
+.SUFFIXES: .rc
+
+all : ${TARGET}
+
+${TARGET} : ${OBJ}
+	${CXX} -shared -o $@ $^ ${LIBS}
+
+.rc.o:
+	${RC} ${RCFLAGS} $< $@
+
+clean:
+	rm -f ${OBJ} ${TARGET}
+
