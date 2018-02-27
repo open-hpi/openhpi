@@ -1,8 +1,6 @@
 
 .NOTPARALLEL:
 
-AUTOMAKE_OPTIONS = -Wno-portability subdir-objects
-
 MAINTAINERCLEANFILES 	= Makefile.in
 MOSTLYCLEANFILES	= @TEST_CLEAN@
 
@@ -16,7 +14,8 @@ AM_CPPFLAGS 		+= -I$(top_srcdir)/openhpid \
 			   -I$(top_srcdir)/marshal \
 			   -I$(top_srcdir)/clients \
 			   -DCLIENT
-COMMONLIBS		= $(top_builddir)/utils/libopenhpiutils.la \
+COMMONLIBS		= $(top_builddir)/transport/libopenhpitransport.la \
+			   $(top_builddir)/utils/libopenhpiutils.la \
 			   $(top_builddir)/baselib/libopenhpi.la
 
 bin_PROGRAMS		= hpi_shell

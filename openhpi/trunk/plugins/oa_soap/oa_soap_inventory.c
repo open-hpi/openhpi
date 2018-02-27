@@ -6143,7 +6143,6 @@ SaErrorT free_inventory_info(struct oh_handler_state *handler,
         }
 
         wrap_g_free(inventory->comment);
-        wrap_g_free(inventory);
         return SA_OK;
 }
 

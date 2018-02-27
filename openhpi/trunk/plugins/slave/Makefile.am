@@ -36,6 +36,5 @@ libslave_la_SOURCES = baselib.cpp \
                       util.h
 
 libslave_la_LDFLAGS = -module -version-info @HPI_LIB_VERSION@
-libslave_la_LIBADD  = @GMODULE_ONLY_LIBS@ -lm \
-                      $(top_builddir)/utils/libopenhpiutils.la
+libslave_la_LIBADD  = @GMODULE_ONLY_LIBS@
 

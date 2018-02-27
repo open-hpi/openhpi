@@ -77,5 +77,5 @@ libtest_agent_la_SOURCES = abi.cpp \
                            watchdog.h
 
 libtest_agent_la_LDFLAGS = -module -version-info @HPI_LIB_VERSION@
-libtest_agent_la_LIBADD  = -lm -lpthread $(top_builddir)/utils/libopenhpiutils.la
+libtest_agent_la_LIBADD  = @GMODULE_ONLY_LIBS@
 

@@ -703,7 +703,7 @@ SaErrorT check_oa_status(struct oa_soap_handler *oa_handler,
         wrap_g_mutex_lock(oa->mutex);
         rv = soap_getOaStatus(con, &status, &status_response);
         if (rv != SOAP_OK) {
-                err("Get OA status call failed");
+                err("Get OA status call failed for OA IP %s ", oa->server);
                 wrap_g_mutex_unlock(oa->mutex);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
@@ -718,7 +718,7 @@ SaErrorT check_oa_status(struct oa_soap_handler *oa_handler,
                 oa_soap_sleep_in_loop(oa_handler, OA_STABILIZE_MAX_TIME);
                 rv = soap_getOaStatus(con, &status, &status_response);
                 if (rv != SOAP_OK) {
-                        err("Get OA status call failed");
+                        err("Get OA status call failed for OA IP %s ", oa->server);
                         wrap_g_mutex_unlock(oa->mutex);
                         return SA_ERR_HPI_INTERNAL_ERROR;
                 }
