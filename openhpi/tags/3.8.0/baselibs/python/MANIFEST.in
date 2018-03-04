@@ -1,0 +1,4 @@
+include README
+include example.py
+include openhpi_baselib/*.py
+

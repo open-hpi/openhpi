@@ -1,0 +1,84 @@
+=head1 NAME
+
+ohdomainlist - A openhpi sample application that shows information about domains on the
+level of the openhpi base library.
+
+=head1 SYNOPSIS 
+
+ hpidomain [-h -V -X]
+ hpidomain [--help] [--verbose] [--debug]
+
+=head1 DESCRIPTION
+
+ohdomainlist displays the list of domains known to the openhpi base library.
+In verbose mode, it displays more information about those domains.
+Clients can only access domains known to the library.
+
+Please note that ohdomainlist can only display the domains defined in the 
+openhpiclient.conf file as specified in the OPENHPICLIEN_CONF environment 
+variable.
+Dynamic changes of the domain list done using the oHpiDomainAdd and oHpiDomainAddById
+API are valid only for the life-time of the client library.
+
+If no domain or host is selected, ohdomainlist lists the domains as specified in the openhpiclient.conf file.
+
+=head1 OPTIONS
+
+=head2 Help Options:
+
+=over 2
+
+=item B<-h>, B<--help>
+
+Show help options
+
+=back
+
+=head2 Application Options:
+
+=over 2
+
+=item B<-D>, B<--domain>=I<nn>
+
+Select domain id nn
+
+=item B<-X>, B<--debug>
+
+Display debug messages
+
+=item B<-V>, B<--verbose>
+
+Verbose mode
+
+=item B<-N>, B<--host>=I<"host[:port]">
+
+Open session to the domain served by the daemon
+at the specified URL (host:port).
+This option overrides the OPENHPI_DAEMON_HOST and
+OPENHPI_DAEMON_PORT environment variables.
+
+=item B<-C>, B<--cfgfile>=I<"file">
+
+Use passed file as client configuration file.
+This option overrides the OPENHPICLIENT_CONF environment variable.
+
+=back
+
+=head1 SEE ALSO
+  
+         hpi_shell
+         hpialarms      hpifan         hpipower       hpithres
+         hpidomain      hpigensimdata  hpireset       hpitop
+         hpiel          hpiiinv        hpisensor      hpitree
+         hpievents      hpionIBMblade  hpisettime     hpiwdt
+         hpixml
+         ohhandler      ohparam
+
+
+=head1 AUTHORS
+
+Authors of this man page:
+
+ Ulrich Kleber (ulikleber@users.sourceforge.net)
+ Anton Pak (avpak@users.sourceforge.net)
+
