@@ -1,0 +1,48 @@
+include ../Makefile.mingw32.def
+
+TARGET := openhpid.exe
+
+SRC := alarm.c \
+       conf.c \
+       domain.c \
+       event.c \
+       hotswap.c \
+       init.c \
+       lock.c \
+       ohpi.c \
+       plugin.c \
+       safhpi.c \
+       session.c \
+       threaded.c \
+       server.cpp \
+       openhpid-win32.cpp \
+       version.rc
+
+OBJ := $(patsubst %.rc, %.o, $(patsubst %.c, %.o, $(patsubst %.cpp, %.o, ${SRC})))
+
+DEFS := -DG_LOG_DOMAIN=\"openhpid\"
+
+INCLUDES := ${GLIB_INCLUDES}
+INCLUDES +=  -I ../mingw32 -I ../include -I ../utils -I ../transport -I ../marshal 
+
+LIBS := ${GLIB_LIBS} ${GTHREAD_LIBS} ${GMODULE_LIBS}
+LIBS += -L ../utils -lopenhpiutils
+LIBS += -L ../transport -lopenhpitransport
+LIBS += -L ../marshal -lopenhpimarshal
+
+CPPFLAGS += ${DEFS} ${INCLUDES}
+
+.PHONY: all clean
+.SUFFIXES: .rc
+
+all : ${TARGET}
+
+${TARGET} : ${OBJ}
+	${CXX} -o $@ $^ ${LIBS}
+
+.rc.o:
+	${RC} ${RCFLAGS} $< $@
+
+clean:
+	rm -f ${OBJ} ${TARGET}
+

@@ -1,0 +1,490 @@
+%define _topdir @abs_top_srcdir@
+%define _tmpdir /tmp
+%define _rpmtopdir %{_topdir}/rpm
+%define _builddir %{_rpmtopdir}/BUILD
+%define _rpmdir %{_rpmtopdir}/RPMS
+%define _sourcedir %{_topdir}
+%define _specdir %{_topdir}
+%define _srcrpmdir %{_rpmtopdir}/SRPMS
+%define _docdir %{_datadir}/doc/%{name}
+
+%if %{undefined suse_version}
+# For systems where libuuid is provided in e2fsprogs rpm
+%define uuid_provider e2fsprogs
+%define uuid libuuid
+%endif
+%if %{defined suse_version}
+# For systems where libuuid is provided in libuuid rpm
+%define uuid_provider libuuid
+%endif
+
+%define with_openssl @WITH_OPENSSL@
+
+%define with_ipmi @WITH_IPMI@
+
+%if "x@IPMIDIRECT@" == "xipmidirect"
+%define with_ipmidirect 1
+%endif
+
+%define with_bladecenter @WITH_SNMP_BC@
+
+%if "x@SIMULATOR@" == "xsimulator"
+%define with_simulator 1
+%endif
+
+%if "x@DYNAMIC_SIMULATOR@" == "xdynamic_simulator"
+%define with_dynamic_simulator 1
+%endif
+
+%define with_rtas @WITH_RTAS@
+%define with_sysfs @WITH_SYSFS@
+
+%if "x@WATCHDOG@" == "xwatchdog"
+%define with_watchdog 1
+%endif
+
+%define with_ilo2_ribcl @WITH_ILO2_RIBCL@
+%define with_oa_soap @WITH_OA_SOAP@
+%define with_ov_rest @WITH_OV_REST@
+
+%if "x@SLAVE@" == "xslave"
+%define with_slave 1
+%endif
+
+%if "x@TEST_AGENT@" == "xtest_agent"
+%define with_test_agent 1
+%endif
+
+%if "x@HPICRYPT@" == "xhpicrypt"
+%define with_gcrypt 1
+%endif
+
+Name: @HPI_PKG@
+Version: @VERSION@
+Release: 1
+#
+Summary: Open implementation of the SAF Hardware Platform Interface
+#
+License: BSD
+Group: System/Monitoring
+#
+Vendor: OpenHPI Project
+Packager: renier@openhpi.org
+#
+URL: http://www.openhpi.org
+Source: http://prdownloads.sourceforge.net/openhpi/%{name}-%{version}.tar.gz
+#
+Buildroot: %{_rpmtopdir}/INSTALL
+BuildRequires: pkgconfig automake autoconf libtool gcc-c++ glib2-devel libstdc++-devel
+%if 0%{?with_openssl}
+BuildRequires: openssl-devel
+%endif
+%if 0%{?with_gcrypt}
+BuildRequires: libgcrypt-devel
+%endif
+#Requires: glib2 libstdc++
+%if 0%{?with_openssl}
+Requires: openssl
+%endif
+%if 0%{?with_gcrypt}
+%if 0%{?suse_version}
+Requires: libgcrypt20
+%else
+Requires: libgcrypt
+%endif
+%endif
+%if %{undefined suse_version}
+Requires: glib2 libstdc++
+%endif
+%if 0%{?suse_version} <= 1100
+Requires:  glib2 libstdc++
+%define uuid libuuid
+%endif
+%if 0%{?suse_version} >= 1100 && 0%{?suse_version} <= 1140
+Requires:  glib2 libstdc++43
+%define uuid libuuid1
+%endif
+%if 0%{?suse_version} >= 1200
+Requires:  glib2 libstdc++6
+%define uuid libuuid1
+%endif
+
+%package devel
+Summary: OpenHPI and SAF header files 
+Group: System/Monitoring
+Requires: openhpi = %{version}
+
+%package clients
+Summary: OpenHPI command-line utilities
+Group: System/Monitoring
+%if 0%{?suse_version}
+BuildRequires: popt-devel
+%endif
+Requires: openhpi = %{version} popt
+
+%if 0%{?with_ipmi}
+%package ipmi
+Summary: OpenHPI plugin for OpenIPMI (deprecated)
+Group: System/Monitoring
+BuildRequires: OpenIPMI-devel
+Requires: openhpi = %{version} OpenIPMI
+%endif
+
+%if 0%{?with_ipmidirect}
+%package ipmidirect
+Summary: OpenHPI plugin for IPMI-enabled systems
+Group: System/Monitoring
+Requires: openhpi = %{version}
+%endif
+
+%if 0%{?with_rtas}
+%package rtas
+Summary: OpenHPI plugin for IBM PPC systems
+Group: System/Monitoring
+BuildRequires: librtas-devel
+Requires: openhpi = %{version} librtas
+%endif
+
+%if 0%{?with_simulator}
+%package simulator
+Summary: OpenHPI plugin for testing the core library
+Group: System/Monitoring
+Requires: openhpi = %{version}
+%endif
+
+%if 0%{?with_dynamic_simulator}
+%package dynamic_simulator
+Summary: OpenHPI plugin for testing the core library
+Group: System/Monitoring
+Requires: openhpi = %{version}
+%endif
+
+%if 0%{?with_bladecenter}
+%package bladecenter
+Summary: OpenHPI plugin for the IBM Blade Center
+Group: System/Monitoring
+BuildRequires: net-snmp-devel %{uuid_provider}-devel
+Requires: openhpi = %{version} net-snmp > 5.0 %{uuid}
+%endif
+
+%if 0%{?with_sysfs}
+%package sysfs
+Summary: OpenHPI plugin for sysfs
+Group: System/Monitoring
+Requires: openhpi = %{version} libsysfs
+%endif
+
+%if 0%{?with_watchdog}
+%package watchdog
+Group: System/Monitoring
+Summary: OpenHPI plugin for Linux software watchdog support
+Requires: openhpi = %{version}
+%endif
+
+%if 0%{?with_ilo2_ribcl}
+%package ilo2_ribcl
+Summary: OpenHPI plugin for HP ProLiant Rack Mount Servers
+Group: System/Monitoring
+BuildRequires: libxml2-devel
+Requires: openhpi = %{version} libxml2 openssl
+%endif
+
+%if 0%{?with_oa_soap}
+%package oa_soap
+Summary: OpenHPI plugin for HP BladeSystem c-Class
+Group: System/Monitoring
+BuildRequires: libxml2-devel
+Requires: openhpi = %{version} libxml2 openssl
+%endif
+
+%if 0%{?with_ov_rest}
+%package ov_rest
+Summary: OpenHPI plugin for HP One View
+Group: System/Monitoring
+%if 0%{?suse_version}
+BuildRequires: libcurl-devel libjson-c-devel
+%else
+BuildRequires: libcurl-devel json-c-devel librabbitmq-devel
+%endif
+%if 0%{?suse_version}
+Requires: openhpi = %{version} libjson-c2 libcurl-devel 
+%else
+Requires: openhpi = %{version} json-c libcurl-devel librabbitmq-devel
+%endif
+%endif
+
+%if 0%{?with_slave}
+%package slave
+Summary: OpenHPI plugin for a slave OpenHPI daemon
+Group: System/Monitoring
+Requires: openhpi = %{version}
+%endif
+
+%if 0%{?with_test_agent}
+%package test_agent
+Summary: OpenHPI plugin for simulation with runtime configuration changes support
+Group: System/Monitoring
+Requires: openhpi = %{version}
+%endif
+
+%description 
+An open implementation of the Service Availability Forum (SAF)
+Hardware Platform Interface (HPI). It includes support for multiple types of
+hardware including: IPMI, IBM Blade Center (via SNMP), Linux Watchdog devices,
+and Sysfs based systems.
+
+%description devel
+Contains header and other include files needed by developers
+to build application that use the OpenHPI library.
+
+%description clients
+These command-line applications serve as HPI utilities that you can use
+for looking at: sensor readings, vpd data, power machines on/off, etc.
+They lso serve as examples to developers of HPI API usage.
+
+%if 0%{?with_ipmi}
+%description ipmi
+This OpenHPI plugin uses OpenIPMI to connect to IPMI-enabled hardware
+locally or over the network. Its focus is wide, created to support
+any generic hardware topology that uses IPMI. This plugin is not maintained
+any more; it is recommended to use ipmidirect plugin instead.
+%endif
+
+%if 0%{?with_ipmidirect}
+%description ipmidirect
+This OpenHPI plugin connects directly to IPMI-enabled hardware
+locally or over the network. Its focus is to support ATCA-type chassis.
+%endif
+
+%if 0%{?with_rtas}
+%description rtas
+Run-Time Abstraction Services (RTAS) plug-in
+%endif
+
+%if 0%{?with_simulator}
+%description simulator
+OpenHPI plugin that reports fakes hardware used for
+testing the core library.
+%endif
+
+%if 0%{?with_dynamic_simulator}
+%description dynamic_simulator
+OpenHPI plugin that reports fakes hardware defined in the file
+simulation.data used for testing the core library.
+%endif
+
+%if 0%{?with_bladecenter}
+%description bladecenter
+OpenHPI plugin supporting the IBM BladeCenter. It also supports
+RSA-enabled IBM systems, in addition to all types of BladeCenters.
+This plugin uses snmp to connect to and gather information from all systems.
+%endif
+
+%if 0%{?with_sysfs}
+%description sysfs
+OpenHPI plugin that reads system information from sysfs.
+%endif
+
+%if 0%{?with_watchdog}
+%description watchdog
+OpenHPI plugin that uses the Linux software watchdog support
+provided by the kernel.
+%endif
+
+%if 0%{?with_ilo2_ribcl}
+%description ilo2_ribcl
+OpenHPI plugin supporting HP ProLiant Rack Mount Servers. This plug-in connects
+to iLO2 on HP ProLiant Rack Mount Server using a SSL connection and exchanges
+information via Remote Insight Board Command Language (RIBCL). 
+%endif
+
+%if 0%{?with_oa_soap}
+%description oa_soap
+OpenHPI plug-in supporting HP BladeSystems c-Class. This plug-in connects
+to the OA of a c-Class chassis using an SSL connection and manages the system
+using an XML-encoded SOAP interface.
+%endif
+
+%if 0%{?with_ov_rest}
+%description ov_rest
+OpenHPI plug-in supporting HP One View. This plug-in connects
+to OneView using curl and processing the output using json-c
+%endif
+
+%if 0%{?with_slave}
+%description slave
+OpenHPI plug-in that allows to aggregate resources from different domains 
+(slave domains) and to provide aggregated resources as part of the one domain 
+(master domain).
+%endif
+
+%if 0%{?with_test_agent}
+%description test_agent
+OpenHPI plugin that reports fakes hardware and allows runtime configuration changes.
+%endif
+
+###################################################
+%prep
+###################################################
+%setup
+
+###################################################
+%build
+###################################################
+%configure @ac_configure_args@ --prefix=/usr --with-varpath=/var/lib/%{name}
+find . -type f -name "Makefile" | xargs -n1 sed -i -e 's/ -Wp,-D_FORTIFY_SOURCE=2//g;'
+%{__make}
+
+###################################################
+%install
+###################################################
+make DESTDIR=%{buildroot} install
+%{__install} -Dd -m 0755 %{buildroot}%{_sysconfdir}/%{name} %{buildroot}/var/lib/%{name}
+%{__install} -m 0600 %{name}.conf.example %{buildroot}%{_sysconfdir}/%{name}/%{name}.conf
+
+%post
+
+###################################################
+%files
+###################################################
+%defattr(-,root,root)
+%{_docdir}/README*
+%{_docdir}/COPYING
+%{_docdir}/ChangeLog
+%dir %{_sysconfdir}/%{name}/
+%config(noreplace) %attr(0600,root,root) %{_sysconfdir}/%{name}/%{name}.conf
+%config(noreplace) %attr(0600,root,root) %{_sysconfdir}/%{name}/simulation.data
+%dir %{_libdir}/%{name}
+%dir /var/lib/%{name}
+%{_libdir}/libopenhpi*.so.*
+%{_mandir}/man7/%{name}.7*
+%{_mandir}/man8/%{name}d.8*
+%{_sbindir}/openhpid
+%{_sysconfdir}/init.d/openhpid
+
+###################################################
+%files devel
+###################################################
+%defattr(-,root,root)
+%{_includedir}/%{name}
+%{_libdir}/pkgconfig/openhpi.pc
+%{_libdir}/pkgconfig/openhpiutils.pc
+%{_libdir}/libopenhpi*.so
+%{_libdir}/libopenhpi*.la
+%{_libdir}/*.a
+
+###################################################
+%files clients
+###################################################
+%defattr(-,root,root)
+%{_bindir}/hpi*
+%{_bindir}/ohhandler
+%{_bindir}/ohparam
+%{_bindir}/ohdomainlist
+%{_mandir}/man1/*.1*
+%{_sysconfdir}/openhpi/openhpiclient.conf
+
+###################################################
+%if 0%{?with_ipmi}
+%files ipmi
+###################################################
+%defattr(-,root,root)
+%{_libdir}/%{name}/libipmi.*
+%endif
+
+###################################################
+%if 0%{?with_ipmidirect}
+%files ipmidirect
+###################################################
+%defattr(-,root,root)
+%{_libdir}/%{name}/libipmidirect.*
+%endif
+
+###################################################
+%if 0%{?with_rtas}
+%files rtas
+###################################################
+%defattr(-,root,root)
+%{_libdir}/%{name}/librtas2hpi.*
+%endif
+
+###################################################
+%if 0%{?with_simulator}
+%files simulator
+###################################################
+%defattr(-,root,root)
+%{_libdir}/%{name}/libsimulator.*
+%endif
+
+###################################################
+%if 0%{?with_dynamic_simulator}
+%files dynamic_simulator
+###################################################
+%defattr(-,root,root)
+%{_libdir}/%{name}/libdyn_simulator.*
+%endif
+
+###################################################
+%if 0%{?with_bladecenter}
+%files bladecenter
+###################################################
+%defattr(-,root,root)
+%{_libdir}/%{name}/libsnmp_bc.*
+%endif
+
+###################################################
+%if 0%{?with_sysfs}
+%files sysfs
+###################################################
+%defattr(-,root,root)
+%{_libdir}/%{name}/libsysfs2hpi.*
+%endif
+
+###################################################
+%if 0%{?with_watchdog}
+%files watchdog
+###################################################
+%defattr(-,root,root)
+%{_libdir}/%{name}/libwatchdog.*
+%endif
+
+###################################################
+%if 0%{?with_ilo2_ribcl}
+%files ilo2_ribcl
+###################################################
+%defattr(-,root,root)
+%{_libdir}/%{name}/libilo2_ribcl.*
+%endif
+
+###################################################
+%if 0%{?with_oa_soap}
+%files oa_soap
+###################################################
+%defattr(-,root,root)
+%{_libdir}/%{name}/liboa_soap.*
+%endif
+
+###################################################
+%if 0%{?with_ov_rest}
+%files ov_rest
+###################################################
+%defattr(-,root,root)
+%{_libdir}/%{name}/libov_rest.*
+%endif
+
+###################################################
+%if 0%{?with_slave}
+%files slave
+###################################################
+%defattr(-,root,root)
+%{_libdir}/%{name}/libslave.*
+%endif
+
+###################################################
+%if 0%{?with_test_agent}
+%files test_agent
+###################################################
+%defattr(-,root,root)
+%{_libdir}/%{name}/libtest_agent.*
+%endif
+
