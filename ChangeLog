@@ -32,6 +32,8 @@ Changelog for 3.8.0 (03/01/2018)
 
    HPE Synergy plugin
 
+       1999 - Handle the error code from Synergy composer
+
        1990 - ov_rest cert path is not getting created
 
        1987 - Alert fields reorder leads to segfault
