@@ -300,6 +300,7 @@ SaErrorT ov_rest_connection_init(struct oh_handler_state *handler)
 	struct ov_rest_handler *ov_handler =
 		(struct ov_rest_handler *) handler->data;
 
+	ov_handler->discover_called_count = 0;
 	con = (REST_CON *) ov_handler->connection;
 
 	/* Get the Active OV hostname/IP address and check whether it's NULL */
