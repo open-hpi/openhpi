@@ -1,0 +1,152 @@
+========================================================================
+This package provides windows version of
+- Base HPI library (libopenhpi.dll)
+- OpenHPI utils library (libopenhpiutils.dll)
+- OpenHPI marshal library (libopenhpimarshal.dll)
+- OpenHPI transport library (libopenhpitransport.dll)
+- OpenHPI clients:
+-- hpialarms.exe
+-- hpidomain.exe
+-- hpiel.exe
+-- hpievents.exe
+-- hpifan.exe
+-- hpigensimdata.exe
+-- hpiinv.exe
+-- hpionIBMblade.exe
+-- hpipower.exe
+-- hpireset.exe
+-- hpisensor.exe
+-- hpisettime.exe
+-- hpithres.exe
+-- hpitop.exe
+-- hpitree.exe
+-- hpiwdt.exe
+-- hpixml.exe
+-- ohdomainlist.exe
+-- ohhandler.exe
+-- ohparam.exe
+- OpenHPI daemon as a console Windows application (openhpid.exe)
+-- Slave plug-in (libslave.dll)
+-- Test Agent plug-in (libtest_agent.dll)
+
+The package also provides necessary glib2 libraries:
+- libglib-2.0-0.dll
+- libgthread-2.0-0.dll
+- libgmodule-2.0-0.dll
+
+NB: glib2 libraries were obtained in binary form from 
+http://www.gtk.org/download-windows.html and were included 
+without any change.
+NB: glib2 is distributed under LGPL2 license.
+
+The package can include additional auxiliary libraries.
+
+========================================================================
+Dependencies:
+
+The only dependence (save for mingw compiler) is glib2.
+Windows version can be obtained at http://www.gtk.org/download-windows.html
+
+========================================================================
+Current windows build system supports only mingw compiler.
+http://www.mingw.org/
+However the built libraries can be use as ordinary windows DLL
+in projects with any compiler.
+
+========================================================================
+Build instructions:
+
+- Get mingw (cross or native).
+- Get archive with glib2 for windows and unpack it somewhere.
+- Enter OpenHPI source tree root directory.
+- Modify Makefile.mingw32.def:
+-- ARCH in order to point architecture for produced binaries
+-- TOOLCHAIN_PATH in order that CC, CXX, AS and RC point to correct files.
+-- GLIB_DIR: in order that GLIB_INCLUDES and GLIB_LIBS
+   point to valid directories with glib headers and libraries.
+- Run "make -f Makefile.mingw32".
+- Run "make -f Makefile.mingw32 out".
+- The openhpi-${VERSION}-win32-${ARCH} sub-directory will contain all produced stuff.
+- For gcc4-based compiler (i.e. mingw-w64.sourceforge.net ) you need to copy more libs:
+-- libgcc_s_*.dll
+-- libstdc++-*.dll
+- Optional step - strip produced exe and dll files.
+
+========================================================================
+Client Usage instructions:
+
+There are two ways:
+
+Way 1) prepare openhpiclient.conf and set env. var. OPENHPICLIENT_CONF
+to its path
+
+Way 2) set env. var. OPENHPI_DAEMON_HOST to OpenHPI daemon address.
+
+========================================================================
+Library Usage instructions:
+
+Header file SaHpi.h contains declarations on provided HPI functions.
+Header file oHpi.h contains declarations on provided OpenHPI extension functions.
+Make sure to use the oHpi.h and SaHpi.h files from  openhpi-3.3.0-win32-x86 or 
+openhpi-3.3.0-win32-amd64 directory, not the ones from trunk/include directory.
+The functions are in libopenhpi.dll.
+
+Define "SAHPI_API" macro as "__declspec(dllimport)".
+
+For mingw compiler it can be just linked.
+
+For MSVC:
+- There is def file libopenhpi.def
+- With lib tool you can create import library
+- Command example "lib /machine:i386 /def:libopenhpi.def"
+- Point produced import library in Project settings
+
+For application running and distribution::
+- copy necessary libraries to your application dir.
+
+And see Client Usage instructions about configuring OpenHPI daemon address
+to connect.
+
+========================================================================
+Library Known Issues:
+
+===================================================
+Seems mingw has its own copy of environment variables.
+So the code:
+
+    _putenv("OPENHPI_DAEMON_HOST=...");
+    rv = saHpiSessionOpen(...)
+
+does not work in MSVC as expected.
+But setting any variable before running executable works!
+
+===================================================
+Seems client applications do not close sockets.
+The sockets remain in TIME_WAIT state.
+It can exhaust system resources.
+
+========================================================================
+Daemon Usage instructions:
+
+Only Slave plug-in and Test agent plug-in are now ported under Windows.
+
+- prepare openhpi.conf
+- openhpid.exe -v -c "path to openhpi.conf"
+
+As an optional step you can do 
+- set OPENHPI_UID_MAP="path to uid map file"
+before running openhpid.exe.
+The uid map file will be used for persistent
+resource id <-> entity path mapping.
+
+NB: -v is optional flag for verbose messages.
+
+========================================================================
+Troubleshouting:
+
+Mailing list: openhpi-devel@lists.sourceforge.net
+
+or
+
+IRC channel #openhpi on FreeNode.
+

@@ -1,0 +1,2470 @@
+Changelog for 3.8.0 (03/01/2018)
+
+  New Features
+
+  Fixed Bugs
+
+   Build System
+
+       1995 - make distcheck fails
+
+       1978 - Compile fails on glib<2.32 version
+
+       1976 - Configure error when json-c-devel not included
+
+       1974 - Remove the warnings from build
+
+       1968 - Bring in build changes from debian build
+
+       1967 - SNMP build fails on debian
+
+   HP ProLiant plugin
+
+       1962 - ilo2_ribcl plugin fails to run against Gen10
+
+   HP c-Class Plugin
+
+       1996 - Segmentation fault in oa_soap plugin during resource inventory cleaning
+
+       1991 - Fix the infinite loop in soap_enum when the string length is 0
+
+       1960 - openhpid process is consuming more than 10G
+
+   HPE Synergy plugin
+
+       1999 - Handle the error code from Synergy composer
+
+       1990 - ov_rest cert path is not getting created
+
+       1987 - Alert fields reorder leads to segfault
+
+       1986 - Increase the X-Api-Version to 600
+
+       1985 - Fix compile error in ov_rest_discover.c
+
+       1984 - handle case DISCOVERY_FAILED in ov_rest_discover_resources
+
+       1983 - Appliance and Composer resources have few wrong Capabilities
+
+       1982 - Session id expires if no activity in a day
+
+       1979 - Do not add Rack Mount Server to Synergy Enclosure
+
+       1975 - Synergy blade added as rack mount server
+
+       1964 - Handle important composer events
+
+       1961 - CRIT messages seen on running openhpid.
+
+       1959 - Create one RPT per composer
+
+       1956 - SuSE12 compile warnings - return value not handled
+
+       1953 - URI field for Synergy composer is missing.
+
+       1951 - Warning messages see during make on SuSE 12
+
+       1950 - CRIT messages could be handled better
+
+       1946 - Handle task Reset for Interconnects.
+
+       1945 - Alerts and Tasks not registered
+
+       1943 - FirmwareMajorRev&FirmwareMinorRev is zero for Synergy Composer and Enclosure.
+
+       1942 - Manufacturer is missing for Synergy Fan Module and Power Supply.
+
+       1941 - Product version is null for Enclosures.
+
+       1937 - oem_event log file needs to be created afresh every time
+
+   HPI Clients
+
+       1994 - hpipower client gives wrong error message
+
+   HPI Shell
+
+       1920 - Remove useless addcfg command from hpi_shell
+
+   HPI Utils
+
+       1980 - Continue with message, if uid_map file creation fails
+
+   IPMI Direct plugin
+
+       1970 - Replace __STRING
+
+       1969 - Use PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP if libc defines it
+
+       1966 - Make the ipmi build to work with gcc-7
+
+   OpenHPI Daemon
+
+       1981 - Configure gives an error on RHEL65
+
+   OpenHPI base library
+
+       1977 - Coverity Scan detects several issues
+
+
+Changelog for 3.7.0 (05/26/2017)
+
+  New Features
+
+   HPE Synergy plugin
+
+       704 - Add support for HPE Synergy Frames
+
+  Fixed Bugs
+
+   Blade Center Plugin
+
+       1902 - disable MD5 in net-snmp will trigger a compile error in openhpi
+
+  HP c-Class Plugin
+
+       1913 - Replace printf calls
+
+       1912 - Array bound exceeded by one
+
+       1903 - Function comment section of oa_soap_close() is misleading
+
+  HPE Synergy plugin
+
+       1958 - Add Synergy Developer Guide to Makefile
+
+       1957 - Interconnects in the multiple enclosure ring not discovered properly.
+
+       1954 - Memory Leaks in few corner cases
+
+       1952 - Unwanted rediscoveries during AMQP_STATUS_SSL_ERROR from SCMB
+
+       1944 - Memory leak in ov_rest plugin when running hpitree -a from r7686 onwards
+
+       1940 - Operational status sensor RDR is missing for Synergy Composer
+
+       1939 - Rediscovery may have memory leaks
+
+       1936 - Core dump at array_list_get_idx.
+
+       1935 - Getting server sensor info fails or takes long time
+
+       1933 - Daemon takes a long time to terminate after signal
+
+       1932 - Locked/Active alerts in syslog could be removed
+
+       1931 - Composer with many enclosures fails
+
+       1930 - Clean up json objects with json_object_put
+
+       1929 - Compile warnings in json-c
+
+       1928 - amqp_empty_table error in suse12
+
+       1927 - core dumps getting Cert and process events
+
+       1926 - Tasks / Alerts not registered
+
+       1925 - Manufacturer field is not showing up in interconnect
+
+       1924 - ov_rest plugin build fails on SLES12
+
+       1923 - Fix all the issue in below core dumps.
+
+       1922 - openhpi.conf.ov_rest_wrong_passwd
+
+       1921 - Initial status needs to be update after discovery
+
+  HPI Shell
+
+       1900 - hpi_shell fails attempting to unlock not locked mutex
+
+  HPI Utils
+
+       1915 - wrap_g_free does not set pointer to NULL.
+
+       1914 - uid_map creation fails if directory is missing
+
+  IPMI Direct plugin
+
+       1911 - ipmidirect: Check correct variable for resource managed capability
+
+  OpenHPI Daemon
+
+       1916 - umask(0) makes created files world readable/writeable
+
+  Sysfs plugin
+
+       1907 - Fix double free in sysfs
+
+
+Changelog for 3.6.1 (09/14/2015)
+
+  New Features
+
+  Fixed Bugs
+
+   Build System
+
+       1898 Checkin 7658 - make fails in libgcrypt-devel systems
+
+   Documentation
+
+       1901 Checkin 7661 - bootstrap information could be added to README
+
+   HPI Clients
+
+       1899 Checkin 7659 - hpithres segfaults on EOF
+
+Changelog for 3.6.0 (08/26/2015)
+
+  New Features
+
+  Fixed Bugs
+
+   Blade Center Plugin
+
+       1866 Checkin 7617 - Make autogenerated file output more stable
+
+   Build System
+
+       1897 Checkin 7654 - openhpi not installable on SLES12
+
+       1886 Checkin 7642 - Warnings from new automake
+
+       1883 Checkin 7638 - /var/lib/openhpi world-writable imposes security risk
+
+       1873 Checkin 7628 - cscope target in Makefile gives error...Incomplete file list in cscope.files
+
+   Documentation
+
+       1807 Checkin 7614 - use standard docdir
+
+   HP ProLiant plugin
+
+       1892 Checkin 7650 - New compile warning in the ilo2_ribcl plugin
+
+       1890 Checkin 7644 - Add support for IML events
+
+       1889 Checkin 7644 - Power supply status differences not handled
+
+       1888 Checkin 7641 - Processor RPT is getting created even if it is not installed
+
+       1885 Checkin 7640 - RPT for FAN is getting Created even if that FAN resource is Not Installed
+
+       1884 Checkin 7645 - Wrong Resource severity set during first time discovery in ilo2_ribcl
+
+       1882 Checkin 7636 - Needs Gen9 also to decide ilo_type
+
+       1876 Checkin 7631 - ilo2_ribcl takes a long time to exit on kill
+
+       1870 Checkin 7625 - Some times saHpiResourcePowerStateSet return is not correct
+
+       1863 Checkin 7612 - Create wrap_g_free to set the freed memory to NULL in ilo2_ribcl  plugin
+
+       1830 Checkin 7620 - Core dump in ilo2_ribcl plugin on kill
+
+       1683 Checkin 7622 - ilo2 ribcl plugin fails when parsing cpu information
+
+       1611 Checkin 7639 - ilo2_ribcl plug-in need to support the get_hotswap_state ABI
+
+       1517 Checkin 7644 - ilo2_ribcl plugin takes a long time, to start a client
+
+   HP c-Class Plugin
+
+       1895 Checkin 7651 - StandBy OA insertion is not handled properly, and RPT is not added
+
+       1894 Checkin 7652 - debug folder make fails when configure with --enable-testcover
+
+       1880 Checkin 7632 - Incorrect Critical messages in oa_soap plugin
+
+       1879 Checkin 7635 - oa_soap_get_hotswap_state() should check SAHPI_CAPABILITY_FRU
+
+       1874 Checkin 7626 - Global variables need to be enclosure specific
+
+       1872 Checkin 7621 - Incorrect OA information structure initialization
+
+       1862 Checkin 7613 - Create wrap_g_free to set the freed memory to NULL
+
+       1861 Checkin 7616 - Openhpi reports Server in slot # is removed / added during OA switchover
+
+       1848 Checkin 7619 - when Kill is issued some times few threads are still alive indefinitly
+
+       1814 Checkin 7629 - Sometimes during kill -15 of daemon core gets generated
+
+       1571 Checkin 7634 - Customer visible messages could be better
+
+   HPI Utils
+
+       1891 Checkin 7646 - make fails for distcheck target
+
+       1887 Checkin 7643 - uid_utils.c generates warnings in RHEL7
+
+       1877 Checkin 7637 - Old functions still used with GLIB>2.31
+
+   OpenHPI Daemon
+
+       1896 Checkin 7653 - Kill SIGTERM does not terminate daemon in new GLIB
+
+       1878 Checkin 7630 - CRIT OpenHPID calling the saHpiSessionOpen could be DBG mesage
+
+       1875 Checkin 7627 - User kill signal need not generate error
+
+       1871 Checkin 7623 - Discovery thread takes long time to terminate after SIGTERM
+
+       1865 Checkin 7615 - docdir is not defined in older autotools
+
+   OpenHPI Daemon Client
+
+       1881 Checkin 7633 - hpisettime exits prematurely with return code 1
+
+   ssl
+
+       1869 Checkin 7618 - Destroying the locked mutex
+
+       1868 Checkin 7624 - SSL_get_error may be reporting an old error
+
+Changelog for 3.5.0 (10/09/2014)
+
+  New Features
+
+   HP c-Class Plugin
+
+       702 Checkin 7595 - Support for BL460c Gen9 server
+
+       653 Checkin 7591 - Supporting Array SOAP calls 
+
+  Fixed Bugs
+
+   Blade Center Plugin
+
+       1845 Checkin 7584 - undefined behavior in snmp_bc_utils.c 
+
+   Build System
+
+       1860 Checkin 7603 - Make fails on cross-compiler
+
+       1857 Checkin 7604 - RPM build error with GCC 4.7.2 
+
+   Documentation
+
+       1850 Checkin 7589 - man page fixes
+
+       1838 Checkin 7583 - Add ChangeLog to openhpi
+
+       1797 Checkin 7586 - Bug number mapping file 
+
+   HP ProLiant plugin
+
+       1854 Checkin 7594 - increased memory consumption during failures
+
+       1843 Checkin 7596 - Create an event for IML log memory error
+
+       1816 Checkin 7576 - saHpiSensorThresholdsGet returns with INTERNAL error with ilo2_ribcl plugin 
+
+   HP c-Class Plugin
+
+       1856 Checkin 7602 - OA status is not updated in the plugin
+
+       1855 Checkin 7601 - Blades addition/removal during switchover not reflected in RPT
+
+       1842 Checkin 7590 - Create an event for memory errors
+
+       1837 Checkin 7582 - Sometimes blade sensors do not reflect the correct state
+
+       1835 Checkin 7581 - openhpid in a loop with OA 4.21 during re-discovery
+
+       1831 Checkin 7579 - New events added in OA FW 4.20 not represented in openhpi
+
+       1827 Checkin 7578 - Resource RPT is NULL error is observed in interconnect blade removal and Re-discovery is getting failed
+
+       1826 Checkin 7577 - Need error messages for DIMM failures in /var/log message
+
+       1824 Checkin 7572 - debug folder test programs are not getting compiled in RHEL 7.0
+
+       1821 Checkin 7575 - Sometimes, oa_soap plugin tries to connect to 0.0.0.0
+
+       1820 Checkin 7569 - The trailing \n needs to be removed from CRITICAL message
+
+       1819 Checkin 7570 - Sensor CRIT information could be WARN/INFO or CRIT
+
+       1818 Checkin 7593 - gcc 4.7 compiler warning in soap plugin
+
+       1817 Checkin 7573 - Adjust the spaces in inventory fields strings for CPU and FAN 
+
+   HPI Clients
+
+       1802 Checkin 7574 - Firmware minor revision filed is missing from hpitree -a output 
+
+   HPI Utils
+
+       1833 Checkin 7580 - oh_utils.h missing one of its dependant header files 
+
+   OpenHPI Daemon
+
+       1834 Checkin 7588 - accept() failed in openhpi daemon 
+
+   OpenHPI Daemon Client
+
+       1822 Checkin 7571 - hpisettime needs to give usage message 
+
+   OpenHPI base library
+
+       1853 Checkin 7592 - gcc 4.7 compiler warning in infrastructure code 
+
+   Web Site
+
+       1847 Checkin 7587 - Release scripts directory www cleanup
+
+       1846 Checkin 7585 - Release scripts in www do not work 
+
+Changelog for 3.4.0 (11/14/2013)
+
+  New Features
+   
+   OpenHPI Daemon
+   
+       OLD 3562300 NEW 697 Checkin 7556 - Clear text authentication credentials is a security problem 
+   
+  Fixed Bugs
+   
+   OpenHPI base library
+   
+       1806 Checkin 7558 - uid_map created as world writable - a security risk 
+   
+   Marshal Library
+   
+       1805 Checkin 7552 - Fix compiler warnings in the build 
+   
+   HP c-Class Plugin
+   
+       1808 Checkin 7553 Checkin 7554 - oa_soap does not work with IPV6 addresses
+   
+       1809 Checkin 7555 - Get Powercapconfig fails sometimes
+   
+       1801 Checkin 7557 - Pulling network cable from Active OA creates OA link status sensor event that never clears
+   
+       OLD 3564813 NEW 1759 Checkin 7556 - OA_SOAP and ilo2_ribcl plugins require plain text passwords
+   
+       1813 Checkin 7559 - Replace getAllEvents with getAllEventsEx call
+   
+       1812 Checkin 7560 - SIGINT(15) is not processed for a long time
+   
+       1815 Checkin 7563 - mutex not unlocked when there is a memory problem
+   
+       1810 Checkin 7564 - RPT is missing when event arrives 
+   
+Changelog for 3.2.1 (07/18/2013)
+   
+  New Features
+   
+   Transport Library
+   
+       OLD 3590103 NEW 698 Checkin 7522 - Improve error message in case of unsupported protocol 
+   
+   Marshal Library
+   
+       OLD 3519485 NEW 673 Checkin 7510 - Rework assertions in marshal code 
+   
+   HP c-Class Plugin
+   
+       OLD 3613747 NEW 699 Checkin 7542 - Handler for EVENT_NETWORK_INFO_CHANGED 
+   
+  Fixed Bugs
+   
+   Build System
+   
+       OLD 3566330 NEW 1763 Checkin 7513 - host-specific PKG_CONFIG_PATH in case of cross-compile
+   
+       OLD 3564447 NEW 1758 Checkin 7512 - Missed build files for hpi_shell(Windows)
+   
+       OLD 3562465 NEW 1755 Checkin 7509 - Not all README* files included in dist tarball
+   
+       NEW BUG 1804 Checkin 7547 - Fix the make distcheck failures 
+   
+   Documentation
+   
+       NEW BUG 1803 Checkin 7548 - Readme.windows needs to info on header file processing 
+   
+   OpenHPI Daemon
+   
+       OLD 3613546 NEW 1790 Checkin 7532 - Make oh_get_global_param() in openhpid/conf.c more robust
+   
+       OLD 3566478 NEW 1764 Checkin 7521 - Daemon needs to check config file security 
+   
+   OpenHPI base library
+   
+       OLD 3613753 NEW 1791 Checkin 7541 - Fix another set of references before checks
+   
+       NEW BUG 1800 Checkin 7545 - Error in 3.2.x\baselibs\csharp\README 
+   
+   HPI Clients
+   
+       OLD 3606640 NEW 1774 Checkin 7525 - Issues with initial svn snapshot builds
+   
+       OLD 3425850 NEW 1673 Checkin 7527 - hpipower command is misleading the user 
+   
+   HP c-Class Plugin
+   
+       OLD 3613757 NEW 1794 Checkin 7538 - Fix typo in oa_soap_proc_server_status()
+   
+       OLD 3613756 NEW 1793 Checkin 7540 - potential double free() in oa_soap_event_thread()
+   
+       OLD 3613545 NEW 1789 Checkin 7531 - remove_interconnect() in oa_soap_plugins code bug
+   
+       OLD 3613544 NEW 1788 Checkin 7536 - build_interconnect_inv_rdr() is missing some ret value assig
+   
+       OLD 3613536 NEW 1787 Checkin 7535 - oa_soap_re_discover_resources() arguments checks need fixing
+   
+       OLD 3613534 NEW 1786 Checkin 7534 - wrong interconnectTrayPortNumber
+   
+       OLD 3613532 NEW 1784 Checkin 7543 - Should not free(foo)when asprintf(foo ...fails)
+   
+       OLD 3612225 NEW 1782 Checkin 7529 - saHpiResourceResetStateSet doesn't implement true COLD_RESET
+   
+       OLD 3610943 NEW 1777 Checkin 7537 - openhpi OA switchover issues
+   
+       OLD 3607674 NEW 1776 Checkin 7528 - Insert Procurve 6120 switch sets and doesn't clear alarms
+   
+       OLD 3578345 NEW 1770 Checkin 7523 - Wrong OA FW Version is displayed by openhpi clients
+   
+       OLD 3572505 NEW 1768 Checkin 7518 - PSU alarms lost if the active OA restarts
+   
+       OLD 3571330 NEW 1766 Checkin 7519 - openhpid cannot re-connect to OA after network failures
+   
+       OLD 3566304 NEW 1762 Checkin 7524 - EVENT_STANDBY_FLASH_BOOTED event is not processed
+   
+       OLD 3564814 NEW 1760 Checkin 7514 - Unknown Board casues openhpid to fail discovery
+   
+       OLD 3562666 NEW 1756 Checkin 7511 - segfaults when retrieving thermal info
+   
+       NEW BUG 1799 Checkin 7546 - oa_soap NULL dereference code paths 
+   
+   HP Proliant plugin
+   
+       OLD 3613758 NEW 1795 Checkin 7539 - Fix typo in ir_xml_record_fandata()
+   
+       OLD 3613533 NEW 1785 Checkin 7533 - ilo2 wrong free()
+   
+       OLD 3603349 NEW 1773 Checkin 7530 - Thresholds for Temp sensors are not showing and state is wrong 
+   
+   IPMI Direct plugin
+   
+       OLD 3580161 NEW 1772 Checkin 7520 - Several sensor bugs with Intel baseboards
+   
+       OLD 3562924 NEW 1757 Checkin 7517 - BIOS sensors and events are not handled 
+   
+Changelog for 3.2.0 (08/27/2012)
+   
+  New Features
+   
+   Build System
+   
+       3533215 - Enable test_agent plug-in by default
+   
+       3533216 - Enable slave plug-in by default 
+   
+   HPI Shell
+   
+       3523023 - hpi_shell for Windows 
+   
+   None
+   
+       3531917 - Assign more telling names to new IPMI-2.0 entities 
+   
+   OpenHPI C# base library
+   
+       3530528 - C#: implement oHpi Handler API
+   
+       3540087 - Add SaHpiAtca.h and SaHpiXtca.h stuff to C# baselib
+   
+       3530524 - C#: implement convenient HPI iterators 
+   
+   OpenHPI Java base library
+   
+       3540086 - Add SaHpiAtca.h and SaHpiXtca.h stuff to java baselib
+   
+       3530525 - Java#: implement convenient HPI iterators
+   
+       3530529 - Java: implement oHpi Handler API 
+   
+   OpenHPI Python base library
+   
+       3532764 - More consistent names for HpiIterators and OhpiIterators
+   
+       3540085 - Add SaHpiAtca.h and SaHpiXtca.h stuff to python baselib
+   
+       3530526 - Python: implement oHpi Handler API 
+   
+   Sysfs Plugin
+   
+       3534266 - Add configuration example in openhpi.conf 
+   
+   Test Agent plugin
+   
+       3530531 - FUMI support for Test Agent plugin
+   
+       3530530 - DIMI support for Test Agent plugin
+   
+       3530522 - Resource Event Log support for Test Agent plugin
+   
+       3530146 - Watchdog support for Test Agent plugin 
+   
+   Transport Library
+   
+       3544208 - Make RPC header cross-platform 
+   
+  Fixed Bugs
+   
+   Build System
+   
+       3538699 - Test Agent plugin has no rpm package 
+   
+   Documentation
+   
+       3161758 - openhpi.conf.example should have all plugins 
+   
+   HP ProLiant plugin
+   
+       3554945 - Combined iLO4 problems needs to be addressed 
+   
+   HP c-Class Plugin
+   
+       3562201 - session ID could have undesirable characters
+   
+       3559102 - Segfault in Power Supply Removal and Reinsertion
+   
+       3559096 - Segfault in EVENT_INTERCONNECT_INFO event handler
+   
+       3552248 - Add PRODUCT_NAME field to power supply
+   
+       3545368 - EVENT_BLADE_MP_INFO event needs to be handled
+   
+       3522592 - Segfualt After Active OA Reset with two Enclosure configured
+   
+       3539516 - Core during OA firmware upgrade
+   
+       3546395 - Double free when a Resource removed
+   
+       3521752 - Server Blade name is shown as [Unknown]
+   
+       3425872 - With Active OA cable unplugged Openhpid getting crashed
+   
+       3526603 - openhpid core with SIGTERM
+   
+       3520845 - Seg fault is seen after switchover after running hpib test
+   
+       3509438 - Analog ctrl default is less than the min value
+   
+       3522915 - Messages are seen when openhpid is run on c3000 enclosure 
+   
+   HPI Clients
+   
+       3522912 - hpixml fails if there is a resource without rdrs 
+   
+   HPI Shell
+   
+       3547194 - gcc-4.7 warnings when building hpi_shell
+   
+       3536627 - hpi_shell: incorrect watchdog timer action can be specified
+   
+       3531947 - hpi_shell on quit:"saHpiEventGet failed with error<-1014>" 
+   
+   Marshal Library
+   
+       3529744 - Remove unnecessary oHpi.h, oh_utils.h from marshal header 
+   
+   None
+   
+       3529766 - Fix clang compilation warnings
+   
+       3530559 - oHpi.h: inaccurate data types for some structs
+   
+       3534444 - oHpiHandlerGetNext(): incomplete description of return codes 
+   
+   OpenHPI C# base library
+   
+       3558493 - C#: SaHpiDimiTestParamValueT is (de)marshalled incorrectly 
+   
+   OpenHPI Daemon
+   
+       3547203 - gcc-4.7/mingw warning when building openhpid
+   
+       3534897 - oHpiHandlerInfo polling causes slow initial discovery
+   
+       3540184 - daemon can crash if there is a failed handler
+   
+       3523021 - auto-insertion timeout limitations in openhpi.conf
+   
+       3522913 - compilation warning in openhpid/plugin.c 
+   
+   OpenHPI Java base library
+   
+       3558494 - Java: SaHpiDimiTestParamValueT is (de)marshalled incorrectly 
+   
+   OpenHPI Python base library
+   
+       3558495 - Py: SaHpiDimiTestParamValueT is (de)marshalled incorrectly 
+   
+   OpenHPI base library
+   
+       3536844 - saHpiFinalize() call can produce segfault
+   
+       3530655 - oHpiHandlerInfo fills handler info entity root incorectly 
+   
+   OpenIPMI plugin
+   
+       3538125 - long delay at startup in openhpi daemon 
+   
+   Test Agent plugin
+   
+       3530154 - TestAgent: hpitest Events/saHpiEventGet/RptEntryAndRdr fails
+   
+       3530761 - Test Agent: second handler is not operational 
+   
+   Transport Library
+   
+       3522916 - Remove "connect failed" messages for IPv6 
+   
+Changelog for 3.1.0 (05/01/2012)
+   
+  New Features
+   
+   HP c-Class Plugin
+   
+       3117718 - Report cpu blade Mezznine card, and memory details
+   
+       3519995 - Add support for c3000 enclosures 
+   
+   None
+   
+       3438302 - Add oHPI API descriptions in oHpi.h
+   
+       3436658 - Windows: default config file location shall be in %APPDATA% 
+   
+   OpenHPI C# base library
+   
+       3497553 - Implement baselib for C# 
+   
+   OpenHPI Daemon
+   
+       3475539 - openhpid: better handling of --ipv4 --ipv6 options 
+   
+   OpenHPI Java base library
+   
+       3497552 - Implement baselib for Java 
+   
+   OpenHPI Python base library
+   
+       3505194 - Add convenient helper functions for RPT/RDRs... iteration
+   
+       3497551 - Implement baselib for Python 
+   
+  Fixed Bugs
+   
+   Build System
+   
+       3487840 - acinclude.m4: remove gcc aux ver check
+   
+       3437013 - RPM: remove tcp_wrappers dependency 
+   
+   HP ProLiant plugin
+   
+       3522116 - Compiler warning seen in 3.1 
+   
+   HP c-Class Plugin
+   
+       3520830 - Error message is seen for one of the interconnects
+   
+       3522644 - Mismatched area count while discovering in C3000 enclosure
+   
+       3520000 - Update oa_soap plugin documentation
+   
+       3324288 - IDR custom field types needs to be visible
+   
+       3025938 - clients hang during/after a OA switchover
+   
+       3285693 - Generate thermal events
+   
+       3388695 - OA soap plugin exits on Switchover - C-7000 with storage
+   
+       3519664 - Some of the thermal sensors are missing 
+   
+   HPI Shell
+   
+       3454319 - hpi_shell: reopen hungs in case of openhpid restart
+   
+       3475530 - hpi_shell: using wrong enumeration for TimerAction field
+   
+       3470221 - time2str does not handle relative timestamps correctly
+   
+       3428181 - hpi_shell: entity for first event printed wrong 
+   
+   HPI Utils
+   
+       3519126 - Manufacturer ID for Cisco System Switches showing as unknown
+   
+       3457592 - oh_decode_time() decodes relative times as"invalid time"
+   
+       3497633 - drop executable stack flag from hpixml 
+   
+   None
+   
+       3471920 - Windows build shall include SaHpiXtca.h header 
+   
+   OpenHPI Daemon
+   
+       3414200 - saHpiMyEntityPathGet impl not flexible enough
+   
+       3461148 - OpenHPI daemon crashes if receives unknown request
+   
+       3434608 - Move libuuid dependency from OpenHPI core to snmpbc plugin 
+   
+   OpenHPI base library
+   
+       3431428 - Add entity_root domain parameter info in openhpiclient.conf 
+   
+   Simulator plugin
+   
+       3434607 - Remove libuuid dependency from simulator plugin 
+   
+   Watchdog plugin
+   
+       3434606 - Remove libuuid dependency from watchdog plugin 
+   
+Changelog for 3.0.0 (10/17/2011)
+   
+  New Features
+   
+   Documentation
+   
+       3411347 - Remove outdated docs/hld subdirectory 
+   
+   HP c-Class Plugin
+   
+       3196244 - Have a field to display aggregate status of the enclosure 
+   
+   OpenHPI Daemon
+   
+       3406760 - openhpid: report client connection address in log 
+   
+  Fixed Bugs
+   
+   Documentation
+   
+       3411893 - Fix formatting of option descriptions in man pages 
+   
+   Dynamic Simulator plugin
+   
+       3414205 - Bad lock release in dynamic simulator 
+   
+   HP ProLiant plugin
+   
+       3423245 - Remove compiler warnings from ilo2_ribcl plugin
+   
+       3416584 - ilo2_ribcl: FreeBSD compilation issue
+   
+       3407032 - ilo2 plugin has problem reading temperature sensor values
+   
+       3109793 - Populate temperature sensors
+   
+       3394069 - duplicate definition of ILO2_RIBCL_DISCOVER_RESP_MAX 
+   
+   HP c-Class Plugin
+   
+       3356142 - Resource Tag displaying as Unknown for some of the blades
+   
+       3025936 - SWITCH_BLADE generates too many events
+   
+       3264695 - Report blade MAC addresses (NICs) information
+   
+       2791727 - serial number goes unknown after extraction and re-insertion
+   
+       2967121 - Incorrect serial number reported
+   
+       3400203 - OA Redundancy is not set properly when standy OA is pulled
+   
+       3403514 - Good Interconnect severity goes to CRITICAL after switchover
+   
+       3374358 - OA Soap plugin need to allow access to operators too 
+   
+   HPI Clients
+   
+       3405673 - client -N "IPv6 address" doesn't work
+   
+       3324287 - hpitree needs verbose output
+   
+       3362952 - hpixml processes failed resources incorrectly 
+   
+   HPI Shell
+   
+       3414470 - hpi_shell: DIMI commands print trailing garbage 
+   
+   HPI Utils
+   
+       3362979 - Incorrect displaying of OEM sensor type 
+   
+   IPMI Direct plugin
+   
+       3414203 - Hang during discovery in ipmidirect plugin 
+   
+   None
+   
+       3416581 - various FreeBSD compilation issues 
+   
+   OpenHPI base library
+   
+       3327878 - saHpiDimiTestStatusGet returns wrong percentage 
+   
+Changelog for 2.17.0 (06/20/2011)
+   
+  New Features
+   
+   Build System
+   
+       3141155 - Move to newer version of glib2 
+   
+   HPI Clients
+   
+       3129972 - change -n and OPENHPI_DAEMON_HOST semantics
+   
+       3130030 - client for providing system view in XML form
+   
+       1493787 - Update clients to use long options and uniform format 
+   
+   HPI Shell
+   
+       2431334 - Proposal to change prompt in hpi_shell
+   
+       3235117 - hpi_shell: running DIMI test with parameters 
+   
+   None
+   
+       3315211 - FreeBSD support
+   
+       3138629 - get rid of many error/debug messages
+   
+       3141721 - oHpi.h shall not depend on oh_utils.h
+   
+       3031797 - Windows version of OpenHPI base library
+   
+       3129960 - Refactoring: baselib, transport, daemon
+   
+       3129977 - Transport: IPv6 support 
+   
+   OpenHPI Daemon
+   
+       2220356 - Supporting the graceful shutdown for openhpi daemon
+   
+       3094859 - Add a possibility to listen only specified network interface
+   
+       3129962 - migration from libltdl to glib
+   
+       3129975 - Generic code to remove destroyed handler resources
+   
+       3143658 - Remove static plug-in feature
+   
+       3153081 - WIndows version of OpenHPI daemon
+   
+       3160127 - Make using uid_map file optional 
+   
+   OpenHPI base library
+   
+       3098224 - Add entity_root parameter to domain configuration
+   
+       1531430 - Upgrade error messaging to use glib\\\\\\\\\\\\\\\'s api
+   
+       1884816 - Finish using OH_CALL_ABI macro throughout safhpi.c
+   
+       3137336 - Implement saHpiInitialize and saHpiFinalize 
+   
+   Slave plugin
+   
+       3136828 - Slave: use g_new instead of g_malloc
+   
+       3139353 - Slave: migration to gmodule 
+   
+   Test Agent plugin
+   
+       3307756 - New plug-in for runtime simulation 
+   
+  Fixed Bugs
+   
+   Build System
+   
+       2012381 - make using of -Werror configurable 
+   
+   Dynamic Simulator plugin
+   
+       3304257 - FUMI - Not supported
+   
+       3304214 - Parsing of DIMI data fails
+   
+       3296552 - simulation.data typo Unknwon should be Unknown
+   
+       3267873 - Dynamic Simulator doesn't parse negative Sensor values
+   
+       3267973 - Dynamic Simulator: Crash for invalid character in text buffe 
+   
+   HP ProLiant plugin
+   
+       3019167 - ilo2_ribcl plugin fails with iLO3 firmware ver 1.0
+   
+       3183680 - gcc 4.5 warning in ilo plugin 
+   
+   HP c-Class Plugin
+   
+       3300931 - Active OA Reset Leads to Segmentation Fault in Openhpid
+   
+       3276450 - hpigensimdata on oa_soap plugin creates invalid character
+   
+       3117681 - Extract romVersion value from bladeStatus to populate it in
+   
+       3152855 - Sensor RDRs missing for the fan resource
+   
+       3167851 - Compilation warnings in OA_SOAP plug-in
+   
+       3203038 - Remove the usage of the"poisoned"snprintf from OA SOAP plu 
+   
+   HPI Clients
+   
+       3304218 - hpigensimdata - wrong FUMI entries
+   
+       3167843 - gcc-4.6 warnings in clients
+   
+       3183692 - clients should use CRIT/DBG macros consistently
+   
+       3198689 - hpiinv displays binary fields as a non-printing data
+   
+       3167842 - strnlen function is not cross-platform 
+   
+   HPI Shell
+   
+       3152879 - user can mix up default ctrl mode and current control mode
+   
+       3183665 - gcc 4.5 warnings in hpi_shell 
+   
+   IPMI Direct plugin
+   
+       3183666 - gcc 4.5 warning in ipmidirect 
+   
+   Marshal Library
+   
+       3141723 - oHpiGlobalParamUnionT is marshalled incorrectly 
+   
+   None
+   
+       2717565 - -Werror produces many 'unused variable' errors
+   
+       3167845 - gcc-4.6 warnings in baselib, marshal, utils, transport 
+   
+   OpenHPI Daemon
+   
+       3314876 - saHpiGetIdByEntityPath returns non-existent resource ids
+   
+       3308411 - saHpiIdrAreaAddById incorrectly check for duplicates
+   
+       2948127 - saHpiHotSwapStateGet() should check SAHPI_CAPABILITY_FRU
+   
+       2798408 - auto-insertion timeout cannot be configured
+   
+       2900765 - saHpiResourceIdGet produces errors in the /var/log/messages
+   
+       3141433 - Deadlock in daemon initialization code 
+   
+   OpenHPI base library
+   
+       3310802 - Race condition in session layer
+   
+       3129991 - Baselib: thread issues
+   
+       3159052 - Typo in openhpiclient.conf.example
+   
+       3220499 - hpib-test"Control/saHpiControlGet/NullParams"failure 
+   
+Changelog for 2.16.0 (02/23/2011)
+   
+  New Features
+   
+   Dynamic Simulator plugin
+   
+       3187136 - Add documentation to rpms 
+   
+   OpenHPI base library
+   
+       3095642 - Using base library with redundant OpenHPI daemons 
+   
+  Fixed Bugs
+   
+   Documentation
+   
+       3141567 - README files are outdated 
+   
+Changelog for 2.15.1 (12/13/2010)
+   
+  New Features
+   
+   Build System
+   
+       3073298 - Configure option to specify net-snmp-config 
+   
+   Dynamic Simulator plugin
+   
+       3064210 - wtd ->wdt for dynamic_simulator plug-in 
+   
+   HPI Clients
+   
+       3032998 - New client for domain information 
+   
+   HPI Shell
+   
+       3102198 - hpi_shell: tune "domain" cmd semantics, introduce "drt" cmd
+   
+       3097473 - Add -D option to hpi_shell to select startup domain id
+   
+       3064208 - wtd ->wdt in hpi_shell
+   
+       3074871 - support for oHpiDomainAdd and oHpiDomainAddById in hpi_shell 
+   
+   HPI Utils
+   
+       3028899 - remove libopenhpiutils dependency on libuuid 
+   
+   Marshal Library
+   
+       3118484 - Marshalling code refactoring 
+   
+   None
+   
+       3074880 - Extend oHpiHandlerInfo for handler params
+   
+       3084837 - A new plug-in for working with slave OpenHPI daemon
+   
+       3120814 - refine include/oh_error.h
+   
+       3121221 - make code working with time routines more cross-platform 
+   
+   OpenHPI Daemon
+   
+       3052337 - Add a way to remove RDR without removing the Resource
+   
+       3060625 - Allow resource/hotswap events without RPT entry attached 
+   
+   OpenHPI Daemon Client
+   
+       3085861 - Provide Clients using oHpi functions 
+   
+   OpenHPI base library
+   
+       3125482 - Additional function oHpiDomainEntryGetById
+   
+       3094865 - Use TCP Keep Alive feature
+   
+       3025777 - Support for domain discovery
+   
+       3061872 - Baselib refactoring
+   
+       3064532 - Add a way to configure domains dynamically 
+   
+  Fixed Bugs
+   
+   Build System
+   
+       3105150 - update LD_LIBRARY_PATH in the test-suite
+   
+       2964276 - openhpi.spec is incorrect
+   
+       2964278 - conditional dependency on SSL in openhpi.spec
+   
+       3101569 - "make rpm" is broken now 
+   
+   Documentation
+   
+       3032617 - openhpi.conf.example uncomplete 
+   
+   Dynamic Simulator plugin
+   
+       3123650 - Dyn Sim: incorrect reading of control state
+   
+       3123648 - Dyn Sim: garbage in text buffer data 
+   
+   HP c-Class Plugin
+   
+       3029670 - OA_SOAP: missed B.02 saHpiEventLogCapabilitiesGet support 
+   
+   HPI Clients
+   
+       3102111 - printf should use %d and %u consistently
+   
+       2964284 - hpifan does not set fan correctly 
+   
+   HPI Shell
+   
+       3018067 - wtdget should be wdtget?
+   
+       3026001 - Typo in help
+   
+       3074867 - hpi_shell -c key processed in a not right way 
+   
+   HPI Utils
+   
+       3030239 - using of uint type is no good
+   
+       3032021 - make usage of strftime cross-platform
+   
+       3108407 - utils: malloc/free is mixed up with g_malloc/g_free
+   
+       3108416 - Windows: open() does not support S_IRGRP flag
+   
+       3119772 - Windows: check for _WIN32 macro instead of MINGW32 
+   
+   IPMI Direct plugin
+   
+       3118246 - saHpiIdrFieldSet in ipmidirect always returns read only
+   
+       3105154 - fix build with gcc 4.5 
+   
+   Marshal Library
+   
+       3124648 - OpenHPI transport only reads single packages
+   
+       3108399 - Marshalling of var arrays 
+   
+   None
+   
+       3028889 - some oversights in function declarations in SaHpi.h
+   
+       3031568 - Fix unpunctual usage of extern "C" and inclusion guards
+   
+       3031574 - sid data member is cstrmsock class is not used
+   
+       3044446 - oHpiParamGet and oHpiParamSet marshalling error
+   
+       3029657 - make check&make distcheck failed 
+   
+   OpenHPI Daemon
+   
+       3023354 - Some eventlog hpib tests failed
+   
+       3093009 - Daemon does not deliver event of SAHPI_ET_HPI_SW type
+   
+       3108401 - openhpid: malloc/free is mixed up with g_malloc/g_free
+   
+       3078699 - oHpi functions don't free hash tables
+   
+       3074876 - oHpiHandlerCreate crashes daemon
+   
+       2936381 - use dbg instead of printf in marshal/strmsock.cpp 
+   
+   OpenHPI base library
+   
+       3125484 - oh_getnext_domainid not threadsafe
+   
+       2986517 - oHPI API does drawback in multi-domain configuration
+   
+       2936377 - libuuid moved from e2fsprogs
+   
+       3031579 - oHpi* functions are not declared correct
+   
+       3108398 - Baselib: malloc/free is mixed up with g_malloc/g_free
+   
+       3118202 - Parameter Checks in oHpiXXX functions
+   
+       3078684 - oHpi functions should use SAHPI_API etc. consistently
+   
+       3031605 - port parameter is cstrmsock::Open shall be unsigned short 
+   
+   OpenIPMI plugin
+   
+       3032995 - disable ipmi plugin by default 
+   
+   Simulator plugin
+   
+       3042194 - When inventory RDR created first, cant dump data
+   
+       3101609 - Simulator: does not remove resources on handler destroy 
+   
+   Slave plugin
+   
+       3122116 - Slave: compilation issues 
+   
+Changelog for 2.15.0 (06/30/2010)
+   
+  New Features
+   
+   Build System
+   
+       2953031 - source tree restructuring
+   
+       3005259 - Split marshal and transport code 
+   
+   OpenHPI Clients
+   
+       2933010 - SAHPI_HS_CAPABILITY_AUTOINSERT_IMMEDIATE support in hpishell
+   
+       2942405 - Bring hpi_shell into accord with HPI-B.03.02 spec
+   
+       2950604 - Add hex representation of Manufacturer Id in hpi_shell
+   
+       3011456 - Domain Support for Clients
+   
+       3015970 - hpi_shell is missing man page 
+   
+   HP c-Class Plugin
+   
+       2982733 - Add power mgmt controls to oa_soap plugin
+   
+       2984110 - Add dynamic power cap control support for OA firmare 3.0
+   
+       2991532 - Add oa_soap unit tests for new power management features
+   
+       2999565 - Enhance oa_soap plugin documentation for pwr management 
+   
+   New Dynamic Simulator Plugin
+   
+       3014476 - Merge dynamic simulator into trunk branch 
+   
+   OpenHPI Infrastructure
+   
+       2964252 - SAIM-HPI-B.03.02-xTCA support in core
+   
+       3005255 - Drop UDP transport
+   
+       3004865 - make endian code simplier
+   
+       3013282 - Implement saHpiRdrUpdateCounterGet()
+   
+       3014655 - Disable daemon until openhpi.conf is configured 
+   
+  Fixed Bugs
+   
+   OpenHPI Infrastructure
+   
+       2907441 - mutex is unlocked in inproper place
+   
+       2932689 - SaHpi.h - inconsistency in the FUMI Logical Bank State Flags
+   
+       2932973 - sahpi_enum_utils.{c,h} do not correspond to SaHpi.h
+   
+       2963277 - wrong comparison of textbuffer.data
+   
+       2969326 - In function SensorThresholdsSet wrong values are checked
+   
+       2973314 - saHpiGetChildEntityPath incorrectly handles root entity
+   
+       2973401 - IdrFieldAddById isn't allowed for FIRST_ENTRY
+   
+       2986453 - Timeout in saHpiEventGet written to error log
+   
+       2986511 - oHpi API returns error
+   
+       2992258 - theoretical memory overflow at writing logfiles
+   
+       3007844 - Confusion with init script
+   
+       3013166 - saHpiInitialize and version compatibility
+   
+       3015981 - Fix misc. spelling errors in source files
+   
+       3016085 - Garbage after printing ResourceTag
+   
+       3016093 - Company Name Change
+   
+       3017744 - Dimi and Fumi should be displayed as DIMI and FUMI
+   
+       3020172 - rdr command does not show Default field for Text/OEM ctrls 
+   
+   Build System
+   
+       2936377 - libuuid moved from e2fsprogs
+   
+       3009912 - remove auto-generated Makefile
+   
+       3014969 - make distcheck failed on svn trunk 
+   
+   OpenHPI Clients
+   
+       2907427 - hpi_shell displays oem control rdr incompletely
+   
+       2932998 - hpi_shell does not print CauseOfStateChange in HS event
+   
+       2948577 - hpitree and hpitop show wrong behavior for resourceId 255
+   
+       2950586 - wrong resource GUID displaying in hpi_shell
+   
+       2992226 - hpitop doesn't show fumi and dimi data
+   
+       3005318 - Resource Tag displaying is not ok in hpiinv and hpipower
+   
+       3014386 - hpisettime input parameter check
+   
+       3014897 - DIMI and FUMI options do not work hpitop 
+   
+   HP c-Class Plugin
+   
+       2979598 - DataLength of IDR Field should not include trailing blanks
+   
+       3015283 - Misc. compile warnings in oa_soap plug-in 
+   
+   New Dynamic Simulator Plugin
+   
+       3015282 - Misc. compile warnings in new simulator 
+   
+Changelog for 2.14.1 (11/23/2009)
+   
+  New Features
+   
+   HP ProLiant plugin
+   
+       2902655 - HP ProLiant Development Guide needs updates
+   
+       2880239 - ilo2_ribcl: Add support for DL380 G6 Server 
+   
+   Build System
+   
+       2878436 - Allow builds on systems with 64 bit integers
+   
+       2546669 - Fix a configure problem with glib on Solaris 
+   
+   IPMI Direct plugin
+   
+       2793974 - Add support to the IPMI Direct Plugin for Sun servers 
+   
+   OpenHPI base library
+   
+       2543954 - Fix a compile problem with sprintf on Solaris 
+   
+  Fixed Bugs
+   
+   OpenHPI base library
+   
+       2890776 - superfluous g_static_rec_mutex_unlock
+   
+       2880409 - issues with saHpiGetIdByEntityPath()
+   
+       2796891 - Error in SaHpi.h 
+   
+   HP c-Class Plugin
+   
+       2884312 - oa_soap: Switchover removes and re-inserts resources
+   
+       2794368 - hot swap event(s) missing after extraction and re-insertion
+   
+       2723870 - OA Soap - saHpiResourcePowerStateSet() sometimes leaves system off after SAHPI_POWER_CYCLE 
+   
+   HPI Clients
+   
+       2883356 - hpitop produces trailing garbage output
+   
+       2800731 - hpiinv stops if saHpiIdrAreaHeaderGet errors
+   
+       2795463 - hpitree produces garbage output 
+   
+   HP ProLiant plugin
+   
+       2873686 - ilo2_ribcl_getfile() doesn't close file before return 
+   
+   SNMP Client plugin
+   
+       2812037 - array index out of bounds. 
+   
+   HPI Shell
+   
+       2799537 - hpi_shell does not print '\n' when displaying error message
+   
+       2798414 - hpi_shell shows "No alarms in DAT" even if there is alarms
+   
+       2798412 - hpi_shell does not correctly obtains sensor thresholds
+   
+       2798402 - HpiBoolT is displayed in differrent ways when show inventory
+   
+       2561038 - Incorrect displaying of Text Buffers 
+   
+   OpenHPI Daemon
+   
+       2782786 - alarm is not removed from DAT 
+   
+   OpenHPI Daemon Client
+   
+       2779881 - Routine get_next_good_token() will skip the "port" token 
+   
+Changelog for 2.14.0 (04/16/2009)
+   
+  Fixed Bugs
+   
+   Build System
+   
+       2726771 - issue with SSL build (Mandriva)
+   
+       2726767 - RPM build issue: watchdog, ilo2_ribcl, simulator, ipmidirect
+   
+       2726740 - Mandriva build: openhpid depends on marshal lib
+   
+       2717570 - -Werror produces many 'unused variable' errors
+   
+       2638458 - 2.13.3 - rpm build fails 
+   
+   HP c-Class Plugin
+   
+       2723789 - Daemon crash - oa_soap plug-in tries to free null pointer
+   
+       2711991 - Critical events are marked informational 
+   
+   HPI Clients
+   
+       2737084 - useless memset with wrong buffer size
+   
+       2668530 - garbage trailing characters when displaying SaHpiTextBufferT 
+   
+   HPI Shell
+   
+       2737908 - hpi_shell: cannot input rdr type in rdr/showrdr command
+   
+       2726719 - Incorrect working with saHpiEventGet
+   
+       2726684 - Text buffers of 1 char length are not displayed
+   
+       2726678 - Incorrect displaying of sensor reading of BUFFER type
+   
+       2726620 - Proposal to improve displaying of timeout value in hpi_shell
+   
+       2726589 - hpi_shell -n option doesn't work
+   
+       2726553 - No space between two text blocks when displaying domain info
+   
+       2726546 - Typo in displaying paging state
+   
+       2726539 - Cannot set TIMEOUT_BLOCK in hpi_shell 
+   
+   OpenHPI base library
+   
+       2737502 - wrong usage of memcmp in oh_compare_sensor reading
+   
+       2737059 - wrong buffer size used fo memcmp in oh_compare_sensorreading
+   
+       2726887 - issue with marshalling of control state(saHpiControlGet)
+   
+       2726800 - incorrect validation of sensor thresholds
+   
+       2726734 - incorrect macro definitions in SaHpiAtca.h 
+   
+   OpenHPI Daemon Client
+   
+       2717641 - Events added by saHpiEventLogEntryAdd gets different Language 
+   
+Changelog for 2.13.3 (02/24/2009)
+   
+  New Features
+   
+   HP c-Class Plugin
+   
+       2540102 - Supporting the graceful shutdown for OA SOAP plugin 
+   
+   OpenHPI Daemon
+   
+       2526862 - HPI-B.03.01 support 
+   
+  Fixed Bugs
+   
+   HP ProLiant plugin
+   
+       2526494 - saHpiResourcePowerStateSet() fails with ilo2-ribcl Plugin 
+   
+   HP c-Class Plugin
+   
+       2567977 - Memory leak in event thread for not reachable OA
+   
+       2567974 - Memory leak in sensor event generation in OA SOAP plugin
+   
+       2543767 - Potential race condition during startup.
+   
+       2529314 - Hotswap event severity is wrong
+   
+       2527902 - SEG FAULT encountered during the blade event processing
+   
+       2515275 - User's Guide needs to be updated
+   
+       2496073 - saHpiResourcePowerStateSet() fails with HP c-Class Plugin 
+   
+   HPI Shell
+   
+       2530818 - incorrect severity when adding announcement to annunciator 
+   
+   IPMI Direct plugin
+   
+       2390475 - saHpiIdrAreaHeaderGet(), saHpiIdrFieldGet() dont handle type 
+   
+   OpenHPI Daemon
+   
+       1804273 - Hysteresis values are not validated correctly 
+   
+   OpenHPI base library
+   
+       2564289 - gcc 4.4 - shadowed global variable
+   
+       2564015 - gcc 4.4 - warning/error in safhpi.c
+   
+       2518985 - SIGSEGV in tsensorget013 
+   
+   Test Suites
+   
+       2568358 - buffer overflows in sahpi_struct_utils_test 
+   
+Changelog for 2.13.2 (01/16/2009)
+   
+  New Features
+   
+   HP c-Class Plugin
+   
+       2056128 - Requesting support for additional temperature sensors
+   
+       2259905 - Add SOAP calls, to allow additional plug-in functionality
+   
+       2420921 - Supporting hardware failure events in OA SOAP plug-in 
+   
+   HPI Shell
+   
+       2141354 - Resolve compile problem on systems without strnlen()
+   
+       1878034 - hpi_shell command to obtain HPI and OpenHPI version 
+   
+  Fixed Bugs
+   
+   HP c-Class Plugin
+   
+       2496251 - Missing"const"declaration causes compile error
+   
+       2493467 - Partial info is stored in custom fan inventory field
+   
+       2493343 - Thermal sensor's setting on few resources incorrect
+   
+       2447057 - Wrong hotswap events raised for IO and storage blades
+   
+       2431211 - Uninitialized parameters when connecting to OA
+   
+       2315536 - Enum parsing issues within SOAP support routine 
+   
+   HPI Utils
+   
+       2435736 - oh_decode functions do not set the DataLength correctly 
+   
+   IPMI Direct plugin
+   
+       2414621 - ipmidirect seg faults when a short pkt is received 
+   
+   OpenHPI Daemon
+   
+       2448141 - Incorrect alarms added to DAT 
+   
+   OpenHPI base library
+   
+       2220086 - New ABI for saHpiResourceFailedRemove() SAF HPI API 
+   
+   Python bindings
+   
+       2435118 - Some decode functions are missing from the python interface 
+   
+Changelog for 2.13.1 (11/19/2008)
+   
+  New Features
+   
+   Documentation
+   
+       2042355 - Missing man pages for most of the client applications 
+   
+   HP c-Class Plugin
+   
+       2175525 - Add underpinnings for additional management functions 
+   
+  Fixed Bugs
+   
+   Build System
+   
+       2191513 - openhpid initscript is not installed 
+   
+   HPI Shell
+   
+       2182034 - Incorrect displaying of SaHpiTextBufferT in hpi_shell
+   
+       2171901 - HPI session is not closed after quit 
+   
+   OpenHPI Daemon Client
+   
+       2230986 - DomainId issues with the new multi-domain implementation. 
+   
+   OpenHPI base library
+   
+       2211619 - Typo in type for session
+   
+       2188639 - saHpiResourceFailedRemove() fails if only FRU cap is set
+   
+       2187132 - Incorrect error returned by saHpiSensorThresholdsSet() 
+   
+Changelog for 2.13.0 (10/10/2008)
+   
+  New Features
+   
+   Build System
+   
+       2144764 - Create new development branch openhpi-2.13.0
+   
+       2022257 - Bump release version to 2.13.0 in trunk 
+   
+   HP c-Class Plugin
+   
+       2091594 - HP c-class-Enhancement to add IO and Storage blade support 
+   
+   OpenHPI base library
+   
+       1945076 - Enable redundant domains with multiple daemon connections 
+   
+   Simulator Plugin
+   
+       2037638 - Add saHpiEventLogCapabilitiesGet to simulator plugin 
+   
+  Fixed Bugs
+   
+   Build System
+   
+       2041977 - Add entry for pdf document in Makefile.am 
+   
+   HP c-Class Plugin
+   
+       2099686 - Support chage in the OA switchover behaviour
+   
+       2027062 - OpenHpi fails on call to saHpiIdrAreaHeaderGet() 
+   
+   OpenHPI Daemon Client
+   
+       2067672 - OPENHPI_DAEMON_PORT env var 
+   
+   OpenHPI base library
+   
+       2122670 - Too many timeout error messages in syslog by hpi_shell 
+   
+Changelog for 2.12.0 (07/25/2008)
+   
+  New Features
+   
+   Build System
+   
+       2021928 - Bump openhpi version number in configure.ac before branching
+   
+       1816198 - Build the watchdog plugin only if linux/watchdog.h exists 
+   
+   Documentation
+   
+       2020974 - Add documentation for new ilo2_ribcl and oa_soap plugins 
+   
+   HP ProLiant plugin
+   
+       1955880 - Make use of common SSL code 
+   
+   HP c-Class Plugin
+   
+       1976961 - saHpiIdrFieldGet() enhancement to support product version 
+   
+  Fixed Bugs
+   
+   Build System
+   
+       2013946 - Build fails (make rpm) if docbook utilities not present
+   
+       1963765 - fix compiler warnings for ignored return values 
+   
+   HP c-Class Plugin
+   
+       2021749 - Correct plugin return values for [In]ActiveSet, PolicyCancel 
+   
+   OpenHPI Daemon
+   
+       1823713 - Memory leak noticed in the daemon 
+   
+   OpenHPI Daemon Client
+   
+       2027371 - Use OH_DEFAULT_DOMAIN_ID as default domain id
+   
+       2027043 - Allow for DomainID == 0 in internal functions.
+   
+       2019614 - openhpi client library crashes on wrong session id 
+   
+   OpenHPI base library
+   
+       2016272 - Segfaulted with hpitest Control/saHpiControlSet/IgnoreState 
+   
+Changelog for 2.11.3 (06/25/2008)
+   
+  New Features
+   
+   Simulator plugin
+   
+       1977471 - Add Dimis and Fumis to Simulator plugin 
+   
+  Fixed Bugs
+   
+   IPMI Direct plugin
+   
+       1930512 - Invalid handling of ATCA Led Controls in Manual Mode 
+   
+Changelog for 2.11.2 (05/26/2008)
+   
+  New Features
+   
+   HP c-Class Plugin
+   
+       1954038 - Support OA firmware version 2.20
+   
+       1954014 - Compliance to SAF HPI B.02.01 spec 
+   
+   HPI Shell
+   
+       1878030 - arg for hpi_shell to point HPI server address 
+   
+   OpenHPI base library
+   
+       1945160 - Add further support routines to SSL support library 
+   
+  Fixed Bugs
+   
+   Build System
+   
+       1912737 - incorrect determination of basic types sizes for cross build
+   
+       1963761 - sim_dimi.h and sim_fumi.h are not distributed
+   
+       1952049 - Check for MD5_Init() in libcrypto not in libssl
+   
+       1949449 - update LD_LIBRARY_PATH for the built-in tests
+   
+       1954205 - headers for the RTAS plugin are not distributed
+   
+       1954212 - cannot configure with --enable-rtas 
+   
+   HP c-Class Plugin
+   
+       1964263 - Discovery of unstabilized OA, crashes the OA SOAP plugin
+   
+       1964261 - Core dumps on stdby OA removal and insertion while discovery
+   
+       1951474 - Re-Discovery hangs on inserting Standby OA
+   
+       1954008 - oa_soap_get_power_state should return proper error code
+   
+       1951466 - Improperly provisioned Power Supply crashes OA SOAP plugin
+   
+       1951470 - Re-Discovery hangs on inserting OA which was removed earlier
+   
+       1932974 - Memory allocated to IDR is not released in error scenario
+   
+       1933089 - Re-discovery may show old FRU inventory details for new FRU
+   
+       1933099 - ManufacturerId missing in resource RPT discovered by OA SOAP
+   
+       1933112 - Multiple events for a state change during OA switchover
+   
+       1933124 - Sensor event not listing correct asserted events in CRITICAL
+   
+       1933109 - Push the resource discovery event after complete discovery 
+   
+   OpenHPI Daemon
+   
+       1939812 - openhpid doesnt work correctly for non-existent machine 
+   
+   OpenHPI base library
+   
+       1794430 - Avoid blank alarms from entering from persisted DAT
+   
+       1944549 - Build fails with --disable-thread --disable-ipmidirect
+   
+       1949719 - move HAVE_OPENSSL from CFLAGS into config.h 
+   
+Changelog for 2.11.1 (04/22/2008)
+   
+  New Features
+   
+   Build System
+   
+       1922399 - Request addition of HP BladeSystem c-Class plugin 
+   
+   OpenHPI Daemon
+   
+       1888910 - Include LSB Init Script section in daemon start-up script 
+   
+   OpenHPI base library
+   
+       1945161 - Create separate SSL support library for future modularity
+   
+       1947016 - Connect to multiple daemons from one client
+   
+       1944141 - Add OpenSSL library initialization to infrastructure 
+   
+  Fixed Bugs
+   
+   Blade Center Plugin
+   
+       1934806 - sessionid uninitialized in snmp_bc tests 
+   
+   Build System
+   
+       1939985 - AM_CFLAGS usage cleanup
+   
+       1925236 - cannot run"make check"in chrooted build environment
+   
+       1856208 - The --mandir configure option is ignored
+   
+       1911396 - configure wrongly thinks libxml2 is installed in system 
+   
+   HPI Shell
+   
+       1919651 - missed Description field printing for FUMI Source Info
+   
+       1877422 - rdr/showrdr command issue
+   
+       1877421 - incorrent prompt when entering ann,ctrl,sen,wtd block 
+   
+   HPI Utils
+   
+       1923111 - rpt_diff should return error code 
+   
+   OpenHPI Daemon
+   
+       1933558 - marshal_028 test fails with gcc 4.3
+   
+       1884615 - Inconsistent use of oh_get_domain() and OH_GET_DOMAIN()
+   
+       1884616 - Inconsisten use of oh_get_hanlder() and OH_GET_HANDLER()
+   
+       1884619 - domain lock is held during dbg() print activity
+   
+       1924661 - force-reload: not a valid identifier 
+   
+   OpenHPI Daemon Client
+   
+       1937234 - oHpiHandlerCreate should only call the daemon once 
+   
+   OpenHPI base library
+   
+       1916910 - wrong source state handling in saHpiFumiTargetVerifyStart
+   
+       1925544 - SaHpiNameT uses unsigned char instead of SaHpiUint8T 
+   
+   Test Suites
+   
+       1923446 - RPT Test cases 79,80,81 using bad rdr member 
+   
+Changelog for 2.11.0 (03/03/2008)
+   
+  New Features
+   
+   Build System
+   
+       1904823 - Add gdb specific debugging symbols to --enable-debuggable 
+   
+   HPI Clients
+   
+       1807275 - Update clients to show OpenHPI and SAF HPI version numbers 
+   
+   HPI Shell
+   
+       1878098 - show single inventory area
+   
+       1878043 - hpi_shell command to reopen session
+   
+       1810225 - Remove hpi_cmd bash script. hpi_shell is sufficient
+   
+       1810177 - Merge hpi_ui_libi into hpi_shell for simplicity 
+   
+   IPMI Direct plugin
+   
+       1840237 - Replace sprintf() by snprintf() 
+   
+   iLO2 RIBCL plug-in
+   
+       1841151 - New iLO2 RIBCL plug-in for HP ProLiant Rack Mounts 
+   
+   OpenHPI Daemon
+   
+       1904829 - Enable gentoo output in openhpid init.d script 
+   
+  Fixed Bugs
+   
+   IPMI Direct plugin
+   
+       1862080 - Type qualifiers ignored on function return type
+   
+       1853460 - ipmidirect parenthesis warning 
+   
+   OpenHPI base library
+   
+       1804512 - Debug output occurring during normal operation
+   
+       1839926 - open calls need mode macros in glibc 2.7
+   
+       1804510 - Current dbg() and trace() macros have confusing names 
+   
+Changelog for 2.10.2 (03/03/2008)
+   
+  New Features
+   
+   Build System
+   
+       1818149 - Remove -Wcast-qual and -Wwrite-strings on Solaris 
+   
+   IPMI Direct plugin
+   
+       1893197 - Fix compile problem on Debian/SPARC (tv.usec size)
+   
+       1789782 - Make plugins/ipmidirect/thread.cpp more portable
+   
+       1855506 - Uninitialized variable warnings on Solaris 
+   
+   OpenHPI Daemon
+   
+       1785223 - Make the marshalling code more portable 
+   
+  Fixed Bugs
+   
+   Build System
+   
+       1907201 - Remove docbook and popt requires from rpm spec file
+   
+       1831717 - openhpid manual is not in openhpi.spec
+   
+       1904849 - Some makefile definitions are not including cpp files 
+   
+   Documentation
+   
+       1853115 - Enable/Disable docs based on docbook-utils presence 
+   
+   HPI Clients
+   
+       1843714 - hpievents and hpi_shell do not print the entity path
+   
+       1840685 - hpipower discriminates on entity type 
+   
+   HPI Shell
+   
+       1878076 - Only upper case should be allowed when entering hex data
+   
+       1878066 - Cannot set BLOCK timeout in hpi_shell
+   
+       1878002 - typo in invetory block subcommands help
+   
+       1765584 - Overflow in set AutoInsert/AutoExtract Timeout 
+   
+   HPI Utils
+   
+       1907179 - oh_uid_initialize should not fail if already called
+   
+       1893972 - oh_lookup_sensortype() does not support some sensor types 
+   
+   IPMI Direct plugin
+   
+       1840241 - Bogus"0"is appended to compact sensors RDR IdString
+   
+       1833028 - Hot swap sensors may trigger events on the wrong resource
+   
+       1833026 - IPMC detection logic does not work on MicroTCA 
+   
+   OpenHPI Daemon
+   
+       1878114 - ai_timeout cannot be set to negative value in config
+   
+       1873903 - missing CauseOfStateChange in marshaling of HotSwap Event
+   
+       1826377 - Change include order to prevent compile error on Solaris 
+   
+   OpenHPI base library
+   
+       1849426 - marshalling problems with saHpiDimiTestStart
+   
+       1867746 - Wrong marshalling of SaHpiFumiBankInfoT
+   
+       1841864 - Improve DIMI and FUMI support
+   
+       1884612 - saHpiControlSet() fails to release handler in an error leg
+   
+       1877606 - saHpiControlSet(): incorrect digital Control state check
+   
+       1849418 - marshalling of SaHpiDimiTestParamsDefinitionT type
+   
+       1827895 - cast-align compile failures on SPARC from g_array_index()
+   
+       1840681 - saHpiGetChildEntityPath: array index is above array bounds
+   
+       1876339 - wrong source state handling in saHpiFumiInstallStart 
+   
+   OpenIPMI plugin
+   
+       1677380 - Port parameter value is not quoted in openhpi.conf.example 
+   
+Changelog for 2.10.1 (11/02/2007)
+   
+  Fixed Bugs
+   
+   Build System
+   
+       1820302 - openhpi.spec.in has obsolete sysfs dependency
+   
+       1824897 - gcc version check does not work with gcc 4.2
+   
+       1803219 - Tarball has files that are not in tree after distclean 
+   
+   HPI Clients
+   
+       1804367 - hpiel coredumps if run without openhpid running 
+   
+   IPMI Direct plugin
+   
+       1808859 - More header files are needed in ipmi_con_smi.cpp on Solaris 
+   
+   OpenHPI Daemon
+   
+       1807689 - Misaligned reads in marshal/marshal.c:DemarshalSimpleTypes()
+   
+       1809894 - A cast is needed in connection.c to compile on Solaris
+   
+       1802968 - Use mkinstalldirs in openhpid/Makefile.am 
+   
+   OpenHPI base library
+   
+       1799966 - saHpiGetIdByEntityPath does not return InstrumentId 
+   
+   OpenIPMI plugin
+   
+       1799550 - Cause of State Change stored in the wrong event data byte 
+   
+Changelog for 2.10 (09/20/2007)
+   
+  New Features
+   
+   HPI Shell
+   
+       1798472 - Modifiy the hpi_shell code for Solaris 
+   
+   HPI Utils
+   
+       1799449 - Add more manufacturer definitions from IANA numbers 
+   
+   IPMI Direct plugin
+   
+       1793588 - Make plugins/ipmidirect/ipmi_con_lan.cpp more portable
+   
+       1789375 - Add basic support for MicroTCA 
+   
+   OpenHPI Daemon
+   
+       1783020 - compile problem in marshal/strmsock.cpp on Solaris 
+   
+   OpenHPI base library
+   
+       1800862 - Add saHpiFumiActivate() base implementation
+   
+       1800861 - Add saHpiFumiRollback() base implementation
+   
+       1800860 - Add saHpiFumiUpgradeCancel() base implementation
+   
+       1800859 - Add saHpiFumiTargetVerifyStart() base implementation
+   
+       1800858 - Add saHpiFumiUpgradeStatusGet() base implementation
+   
+       1800850 - Add saHpiFumiInstallStart() base implementation
+   
+       1800849 - Add saHpiFumiBankCopyStart() base implementation
+   
+       1800848 - Add saHpiFumiBankBootOrderSet() base implementation
+   
+       1800847 - Add saHpiFumiBackupStart() base implementation
+   
+       1800846 - Add saHpiFumiTargetInfoGet() base implementation
+   
+       1800845 - Add saHpiFumiSourceInfoGet() base implementation
+   
+       1800844 - Add saHpiFumiSourceInfoValidateStart() base implementation
+   
+       1800842 - Add saHpiFumiSourceSet() base implementation
+   
+       1800841 - Add saHpiDimiTestResultsGet() base implementation
+   
+       1800840 - Add saHpiDimiTestStatusGet() base implementation
+   
+       1800839 - Add saHpiDimiTestCancel() base implementation
+   
+       1800838 - Add saHpiDimiTestStart() base implementation
+   
+       1800835 - Add saHpiDimiTestReadinessGet() base implementation
+   
+       1782284 - Add saHpiDimiTestInfoGet() base implementation 
+   
+  Fixed Bugs
+   
+   Documentation
+   
+       1723186 - Problem building docs with newer docbook packages 
+   
+   HPI Shell
+   
+       1775387 - SAHPI_SENSOR_READING_TYPE_BUFFER displayed as string
+   
+       1765599 - control/sensor number is not RDR NUM 
+   
+   IPMI Direct plugin
+   
+       1796990 - Communication lost (M7) state is not properly handled 
+   
+   OpenHPI Daemon
+   
+       1789834 - OpenHPI daemon seg fault when a plugin get_event is null 
+   
+   OpenHPI base library
+   
+       1794862 - Check for ResourceFailed is missing in some API calls
+   
+       1791669 - FRU resources cannot be signaled as failed 
+   
+   Sysfs plugin
+   
+       1788986 - Sysfs plugin does not compile with libsysfs 2.0 
+   
+   Watchdog plugin
+   
+       1792701 - watchdog open and close return without free 
+   
+   
+Changelog for 2.9.3 (08/27/2007)
+   
+  New Features
+   
+   HPI Utils
+   
+       1765556 - request to add PICMG into the list of known manufacturers 
+   
+   OpenHPI base library
+   
+       1782277 - Add saHpiDimiInfoGet() base implementation
+   
+       1742902 - Return Code changes from HPI B2 - Phase 2
+   
+       1782276 - Create macro for calling plugin abi 
+   
+   Simulator Plugin
+   
+       1780759 - Add fan analog control to simulator 
+   
+  Fixed Bugs
+   
+   Build System
+   
+       1768864 - Compile errors on cpp wrappers 
+   
+   Documentation
+   
+       1765550 - out-of-date MultipleDomains and DomainTag settings 
+   
+   HPI Clients
+   
+       1780746 - Reinstate hpifan 
+   
+   HPI Shell
+   
+       1777643 - Entity may be missed when Event Log Entry is displayed
+   
+       1765547 - settag command always set empty resource tag 
+   
+   OpenHPI Daemon
+   
+       1777675 - alignment error in the MarshalSimpleTypes() function
+   
+       1756621 - Bind new B2 APIs to the daemon - Phase 1 
+   
+   OpenHPI base library
+   
+       1715462 - sensorEventMasksSet does not properly check INVALID_DATA
+   
+       1699146 - Thresholds order is not always verified 
+   
+   OpenIPMI plugin
+   
+       1768890 - OEM LED color code problems
+   
+       1768881 - OEM LED control length wrong 
+   
+Changelog for 2.9.2 (06/25/2007)
+   
+  New Features
+   
+   Blade Center Plugin
+   
+       1720882 - Enable snmp_bc to use alternate host 
+   
+   HPI Utils
+   
+       1737345 - Change utils function name get_rdr_uid to have proper prefix 
+   
+   OpenHPI base library
+   
+       1714703 - Enable default domain configuration
+   
+       1740725 - Add saHpiIdrAreaAddById API from HPI B.02.01
+   
+       1740726 - Add saHpiIdrFieldAddById API from HPI B.02.01
+   
+       1740089 - Add saHpiEventLogCapabilitiesGet() API from HPI B.02.01
+   
+       1740013 - Add saHpiResourceFailedRemove API from HPI B.02.01
+   
+       1737375 - Add saHpiGetChildEntityPath API from HPI B.02.01
+   
+       1737353 - Add saHpiGetIdByEntityPath API from HPI B.02.01
+   
+       1737351 - Add saHpiResourceLoadIdGet/Set API from HPI B.02.01
+   
+       1712088 - Upgrade SaHpi.h header file to B2 level 
+   
+  Fixed Bugs
+   
+   Blade Center Plugin
+   
+       1719431 - Enhance snmp_bc timeout on AMM Resource discovery 
+   
+Changelog for 2.9.1 (05/04/2007)
+   
+  New Features
+   
+   OpenHPI Daemon
+   
+       1546774 - Adapt daemon readme into manpage for openhpid 
+   
+   Blade Center Plugin
+   
+       1715383 - Add resource firmware inventory data as Product Info 
+   
+   OpenHPI base library
+   
+       1714702 - Return Code changes from HPI B2 - Phase 1 
+   
+  Fixed Bugs
+   
+   Documentation
+   
+       1684816 - Add distribution text to copyright of SaHpi files 
+   
+   OpenHPI base library
+   
+       1684814 - Discovery being called on a failed plugin
+   
+       1713582 - Remove alarms on sensor enable change events 
+   
+   Blade Center Plugin
+   
+       1715743 - gcc warning: mixed declarations/code in snmp_bc_inventory
+   
+       1710895 - Handle zero length, and un-initialized snmp object 
+   
+Changelog for 2.8.1 (02/26/2007)
+   
+  Fixed Bugs
+   
+   Blade Center Plugin
+   
+       1664628 - Adjust for new Daylight Saving Time (DST)
+   
+       1650719 - Hotswap state for Managed Hotswap Resource
+   
+       1649993 - Correct handling of SlotStateSensor for Hotswap-Removal
+   
+       1649101 - Fix mem leaks in snmp_bc plugin
+   
+       1648035 - Use SA_ERR_HPI_OUT_OF_MEMORY 
+   
+   Build System
+   
+       1655375 - spec file has problems on older rpm versions and 64bit archs 
+   
+   HPI Clients
+   
+       1654229 - Enhance IBMblade specific client 
+   
+   HPI Utils
+   
+       1649789 - entity path memory leak 
+   
+   OpenHPI base library
+   
+       1649796 - daemon shuts down if no plugins loaded 
+   
+   OpenIPMI plugin
+   
+       1649797 - array subscript is above array bounds 
+   
+Changelog for 2.8.0 (01/26/2007)
+   
+  New Features
+   
+   Build System
+   
+       1583198 - Break plugins into separate rpms with right prereqs 
+   
+  Fixed Bugs
+   
+   Blade Center Plugin
+   
+       1593676 - Limit the range of blade center EventLog time
+   
+       1628056 - Set initial state of MM Redundancy sensor properly
+   
+       1631640 - Initialize variables to remove compiler warning
+   
+       1642688 - Use sinfo->cur_state for SLOT_SENSOR state
+   
+       1644001 - Properly initialize eventstate of SENSOR_NUM_MGMNT_STANDBY 
+   
+   Build System
+   
+       1636141 - build warning on opensuse 10.x
+   
+       1636159 - Test for the existence of lsvpd for rtas plugin 
+   
+   Documentation
+   
+       1636104 - openhpid readme should be merged into README.daemon
+   
+       1643672 - Documentation building error: docbook dtd problem with sgml 
+   
+   HPI Clients
+   
+       1638923 - Use oHpiHandlerFind() and oHpiHandlerInfo() utilities
+   
+       1644008 - Add option to also display Sensor Event State 
+   
+   IPMI Direct plugin
+   
+       1643407 - Plugin crashes at startup with latest infra event changes
+   
+       1643858 - IPMIDirect compile error: extra qualification 
+   
+   OpenHPI Daemon Client
+   
+       1643804 - Segfault when using oHpi functions and no daemon is running 
+   
+   OpenHPI base library
+   
+       1637958 - oHpiHandlerInfo() in daemon does not work correctly.
+   
+       1643669 - uninitialized variable warning in event.c
+   
+       1643757 - HandlerRetry and HandlerFind do not check for initialization
+   
+       1645731 - saHpiEventAdd adds to DEL even though it is disabled
+   
+       1645733 - Don\'t timestamp events unless they have unspecified time
+   
+       1645736 - ALL_SEVERITIES should not be allowed in EventLogEntryAdd()
+   
+       1645774 - Domain and User events are not being processed 
+   
+   Sysfs plugin
+   
+       1643661 - sysfs plugin possible overflow on property read 
+   
+   

@@ -1,0 +1,111 @@
+=head1 NAME
+
+hpitree - A openhpi sample application that shows in details the resources (rpt's)
+and resources' manamegement instruments (rdr's) data structures of the managed openHPI complex. 
+
+=head1 SYNOPSIS 
+
+ hpitree [-D nn] [-N host[:port]] [-C <cfgfile>] [-acdiorsw ] [-n nn] [-X] [-h]
+ hpitree [--domain=nn] [--host=host[:port]] [--cfgfile=file] [--all] [--controls] [--rdrs] [--inventories] [--rpts]
+         [--sensors] [--watchdogs] [--overview] [--resource=nn] [--debug] [--help]
+
+=head1 DESCRIPTION
+
+hpitree walks the Resource Presence Table (RPT) of the managed openHPI complex, and displays in details the resources (rpt's) and resources' management instruments (rdr's) data structures.
+
+If no domain or host is selected, hpitree uses the default domain as specified in the openhpiclient.conf file.
+
+=head1 OPTIONS
+
+(No Option) Display all rpts and rdrs
+
+=head2 Help Options:
+
+=over 2
+
+=item B<-h>, B<--help>
+
+Show help options
+
+=back
+
+=head2 Application Options:
+
+=over 2
+
+=item B<-a>, B<--all>
+
+Display all rpts and rdrs (default)
+
+=item B<-r>, B<--rpts>
+
+Display only rpts
+
+=item B<-d>, B<--rdrs>
+
+Display rdr records
+
+=item B<-o>, B<--overview>
+
+Display system overview: rpt & rdr headers
+
+=item B<-s>, B<--sensors>
+
+Display only sensors
+
+=item B<-c>, B<--controls>
+
+Display only controls
+
+=item B<-w>, B<--watchdogs>
+
+Display only watchdogs
+
+=item B<-i>, B<--inventories>
+
+Display only inventories
+
+=item B<-n> I<nn>, B<--resource>=I<nn>
+
+Display only resource I<nn> and its topology
+
+=item B<-D> I<nn>, B<--domain>=I<nn>
+
+Select domain id I<nn>
+
+=item B<-X>, B<--debug>
+
+Display debug messages
+
+=item B<-N> I<"host[:port]">, B<--host>=I<"host[:port]">
+
+Open session to the domain served by the daemon at the specified URL (host:port).
+This option overrides the OPENHPI_DAEMON_HOST and OPENHPI_DAEMON_PORT environment variables.
+If host contains ':' (for example IPv6 address) then enclose it in square brackets.
+For example: I<"[::1]"> or I<"[::1]:4743">.
+
+=item B<-C> I<"file">, B<--cfgfile>=I<"file">
+
+Use passed file as client configuration file.
+This option overrides the OPENHPICLIENT_CONF environment variable.
+
+=back
+
+=head1 SEE ALSO
+  
+         hpi_shell
+         hpialarms      hpifan         hpipower       hpithres
+         hpidomain      hpigensimdata  hpireset       hpitop
+         hpiel          hpiiinv        hpisensor      hpiwdt
+         hpievents      hpionIBMblade  hpisettime     hpixml
+         ohdomainlist   ohhandler      ohparam
+
+
+=head1 AUTHORS
+
+Authors of this man page:
+
+ Peter D Phan (pdphan@users.sourceforge.net)
+ Ulrich Kleber (ulikleber@users.sourceforge.net)
+ Anton Pak (avpak@users.sourceforge.net)
+
