@@ -148,6 +148,7 @@ struct ov_rest_handler
 	SaHpiInt32T max_current_enclosure_count;
 	SaHpiInt32T current_rms_count;
 	SaHpiInt32T max_current_rms_count;
+	SaHpiInt32T discover_called_count;
 	GHashTable *uri_rid;
 	struct cert {
 		char fCaRoot[15];
