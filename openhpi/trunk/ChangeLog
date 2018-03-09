@@ -1,3 +1,112 @@
+Changelog for 3.8.0 (03/01/2018)
+
+  New Features
+
+  Fixed Bugs
+
+   Build System
+
+       1995 - make distcheck fails
+
+       1978 - Compile fails on glib<2.32 version
+
+       1976 - Configure error when json-c-devel not included
+
+       1974 - Remove the warnings from build
+
+       1968 - Bring in build changes from debian build
+
+       1967 - SNMP build fails on debian
+
+   HP ProLiant plugin
+
+       1962 - ilo2_ribcl plugin fails to run against Gen10
+
+   HP c-Class Plugin
+
+       1996 - Segmentation fault in oa_soap plugin during resource inventory cleaning
+
+       1991 - Fix the infinite loop in soap_enum when the string length is 0
+
+       1960 - openhpid process is consuming more than 10G
+
+   HPE Synergy plugin
+
+       1999 - Handle the error code from Synergy composer
+
+       1990 - ov_rest cert path is not getting created
+
+       1987 - Alert fields reorder leads to segfault
+
+       1986 - Increase the X-Api-Version to 600
+
+       1985 - Fix compile error in ov_rest_discover.c
+
+       1984 - handle case DISCOVERY_FAILED in ov_rest_discover_resources
+
+       1983 - Appliance and Composer resources have few wrong Capabilities
+
+       1982 - Session id expires if no activity in a day
+
+       1979 - Do not add Rack Mount Server to Synergy Enclosure
+
+       1975 - Synergy blade added as rack mount server
+
+       1964 - Handle important composer events
+
+       1961 - CRIT messages seen on running openhpid.
+
+       1959 - Create one RPT per composer
+
+       1956 - SuSE12 compile warnings - return value not handled
+
+       1953 - URI field for Synergy composer is missing.
+
+       1951 - Warning messages see during make on SuSE 12
+
+       1950 - CRIT messages could be handled better
+
+       1946 - Handle task Reset for Interconnects.
+
+       1945 - Alerts and Tasks not registered
+
+       1943 - FirmwareMajorRev&FirmwareMinorRev is zero for Synergy Composer and Enclosure.
+
+       1942 - Manufacturer is missing for Synergy Fan Module and Power Supply.
+
+       1941 - Product version is null for Enclosures.
+
+       1937 - oem_event log file needs to be created afresh every time
+
+   HPI Clients
+
+       1994 - hpipower client gives wrong error message
+
+   HPI Shell
+
+       1920 - Remove useless addcfg command from hpi_shell
+
+   HPI Utils
+
+       1980 - Continue with message, if uid_map file creation fails
+
+   IPMI Direct plugin
+
+       1970 - Replace __STRING
+
+       1969 - Use PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP if libc defines it
+
+       1966 - Make the ipmi build to work with gcc-7
+
+   OpenHPI Daemon
+
+       1981 - Configure gives an error on RHEL65
+
+   OpenHPI base library
+
+       1977 - Coverity Scan detects several issues
+
+
 Changelog for 3.7.0 (05/26/2017)
 
   New Features
