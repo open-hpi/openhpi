@@ -1552,6 +1552,7 @@ SaErrorT ov_rest_session_timeout(struct ov_rest_handler *ov_handler,
 {
 	SaErrorT rv = SA_OK;
 	OV_STRING s = {0};
+	const char *ecode = NULL;
 	/* struct timeoutResponse response = {0}; */
 	/* json_object *timeoutResponse = NULL;  */
 	struct curl_slist *chunk = NULL;
@@ -1569,7 +1570,15 @@ SaErrorT ov_rest_session_timeout(struct ov_rest_handler *ov_handler,
 		ov_rest_prn_json_obj(key, val);
 		if(!strcmp(key,"idleTimeout")) 
 			to->timeout = json_object_get_int(val);
+		if(!strcmp(key,"errorCode"))
+			ecode = json_object_get_string(val);
 	}
+
+	if (ecode != NULL || to->timeout == 0) {
+		CRIT("Session error %s or timeout=%d", ecode, to->timeout);
+		rv = SA_ERR_HPI_INTERNAL_ERROR;
+	}
+
 	wrap_free(s.ptr);
 	ov_rest_wrap_json_object_put(s.jobj);
 	wrap_g_free(ov_handler->connection->url);
@@ -1614,6 +1623,7 @@ SaErrorT ov_rest_discover_resources(void *oh_handler)
 	struct oh_handler_state *handler = NULL;
 	struct ov_rest_handler *ov_handler = NULL;
 	struct idleTimeout sess_timeout = {0};
+	static int mtl = 480; /* Max timeout loops 86400000/(1000*60*3) */
 
 	handler = (struct oh_handler_state *) oh_handler;
 	ov_handler = (struct ov_rest_handler *) handler->data;
@@ -1645,13 +1655,14 @@ SaErrorT ov_rest_discover_resources(void *oh_handler)
 			}
 			break;
 		case DISCOVERY_FAIL:
-			err("Re-discovery, after failure, for OneView %s", 
+			err("Re-discovery, after failure, for Synergy %s", 
 				ov_handler->connection->hostname);
 			rv = ov_rest_connection_init(handler);
-			if(rv != SA_OK){
+			if(rv != SA_OK) {
 				err("Please check whether the Synergy "
 					"Composer %s is accessible",
 					ov_handler->connection->hostname);
+				wrap_g_mutex_unlock(ov_handler->mutex);
 				return rv;
 			}
 			rv = ov_rest_re_discover_resources(handler);
@@ -1669,15 +1680,29 @@ SaErrorT ov_rest_discover_resources(void *oh_handler)
 			dbg("Discovery already done");
 			/* Call a function to keep the session alive */
 			rv = ov_rest_session_timeout(ov_handler,&sess_timeout);
-			if ( rv != SA_OK) {
-                                err("Session is Not Alive. No idleTimeout");
-                                ov_handler->status = DISCOVERY_FAIL;
+			if (( ov_handler->discover_called_count == 0 ) &&
+				( sess_timeout.timeout != 0 )) {
+				mtl = sess_timeout.timeout/(1000*60*3);
+				dbg("idleTimeout=%d and max loops=%d",
+					sess_timeout.timeout, mtl);
+			}
+			if (( rv == SA_OK ) &&
+				( ov_handler->discover_called_count < mtl-3 )) {
+				ov_handler->discover_called_count++;
                                 wrap_g_mutex_unlock(ov_handler->mutex);
                                 return rv;
                         }
-			dbg("Session Idle Timeout is %d", sess_timeout.timeout);
+			rv = ov_rest_connection_init(handler);
+			if(rv != SA_OK){
+				err("Please check whether the Synergy "
+					"Composer %s is accessible",
+					ov_handler->connection->hostname);
+				wrap_g_mutex_unlock(ov_handler->mutex);
+				return rv;
+			}
 			wrap_g_mutex_unlock(ov_handler->mutex);
-			return SA_OK;
+			return rv;
+
 		default:
 			err("Wrong ov_rest handler state %d detected",
                               ov_handler->status);
