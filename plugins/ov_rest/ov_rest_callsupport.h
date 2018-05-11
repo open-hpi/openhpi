@@ -71,6 +71,7 @@ struct ovConnection {
         char auth[255];
 	char serverIlo[16];
 	char xAuthToken[255]; /* SessionKey for Server-Hardware iLO */
+	char x_api_version[32];
         char* url;
 };
 
@@ -82,6 +83,7 @@ int rest_patch_request (REST_CON *conn, OV_STRING *response, char *postField);
 
 
 SaErrorT curlerr_to_ov_rest_err(CURLcode curlErr);
+SaErrorT ov_rest_get_rest_version(REST_CON *connection);
 int ov_rest_curl_getallevents_request(REST_CON *connection, 
 		struct curl_slist *chunk, CURL* curl, OV_STRING *st);
 int ov_rest_curl_get_request(REST_CON *connection, struct curl_slist *chunk,

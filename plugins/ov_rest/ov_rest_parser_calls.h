@@ -1095,21 +1095,29 @@ struct eventInfo
 #define MAX_EVT_CREATED_LEN 32
 #define MAX_TASK_STATE_LEN 20
 
-
+#define X_API_VERSION 600
 #define OV_REST_ACCEPT \
 	("Accept: application/json")
+#define OV_REST_ACCEPT_LANGUAGE \
+	("Accept-Language: en_US")
 #define OV_REST_CHARSET \
 	"charset: UTF-8"
 #define OV_REST_CONTENT_TYPE \
 	"Content-Type: application/json"
-#define OV_REST_X_API_VERSION \
+#define OV_REST_DEFAULT_X_API_VERSION \
 	"X-API-Version: 600"
+#define OV_REST_MIN_DEFAULT_X_API_VERSION \
+	"X-API-Version: 1"
+#define OV_REST_X_API_VERSION \
+	"X-API-Version: %d"
 #define OV_REST_AUTH \
 	"Auth: %s"
 #define OV_REST_SESSIONID \
 	"Session-Id: %s"
 #define OV_REST_X_AUTH_TOKEN \
 	"X-auth-Token: %s"
+#define OV_REST_X_VERSION_URI \
+	"https://%s/rest/version"
 #define OV_REST_LOGIN_URI \
 	"https://%s/rest/login-sessions"
 #define OV_REST_PATH VARPATH "/ov_rest"

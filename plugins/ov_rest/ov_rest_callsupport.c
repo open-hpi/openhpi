@@ -94,6 +94,83 @@ SaErrorT curlerr_to_ov_rest_err(CURLcode curlErr)
 }
 
 /**
+ * ov_rest_get_rest_version
+ * 	@connection: Pointer to connection structure.
+ * 	@rest_version: Integer pointer to (rest version).
+ * Purpose:
+ * 	Call to get x-api version.
+ * Detailed Description:
+ * 	-NA.
+ * Return values:
+ *
+ */
+
+SaErrorT ov_rest_get_rest_version(REST_CON *connection){
+	int x_version = 0;
+	char *x_api_string = NULL;
+	struct curl_slist *chunk = NULL;
+	curl_global_init(CURL_GLOBAL_ALL);
+	CURL* curl = curl_easy_init();
+	OV_STRING st = {0};
+	json_object *jobj = NULL;		
+	char curlErrStr[CURL_ERROR_SIZE+1];
+	chunk = curl_slist_append(chunk, OV_REST_ACCEPT_LANGUAGE);
+	chunk = curl_slist_append(chunk, OV_REST_MIN_DEFAULT_X_API_VERSION);
+	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 60L);
+	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
+	curl_easy_setopt(curl, CURLOPT_URL, connection->url);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,
+			ov_rest_copy_response_buff);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &st);
+	curl_easy_setopt(curl, CURLOPT_VERBOSE, 0L);
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curlErrStr);
+	CURLcode curlErr = curl_easy_perform(curl);
+	if(curlErr) {
+		err("\nError %s\n", curl_easy_strerror(curlErr));
+		err("\nError %s\n",curlErrStr);
+		memset(connection->x_api_version, '\0', 32);
+		strcpy(connection->x_api_version, 
+				OV_REST_DEFAULT_X_API_VERSION);
+		wrap_free(st.ptr);
+		wrap_g_free(connection->url);
+		curl_easy_cleanup(curl);
+		curl_global_cleanup();
+		return curlerr_to_ov_rest_err(curlErr);
+	}
+	if(st.jobj == NULL || st.len == 0){
+		memset(connection->x_api_version, '\0', 32);
+		strcpy(connection->x_api_version, 
+				OV_REST_DEFAULT_X_API_VERSION);
+		wrap_free(st.ptr);
+		wrap_g_free(connection->url);
+		curl_easy_cleanup(curl);
+		curl_global_cleanup();
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
+	jobj = ov_rest_wrap_json_object_object_get(st.jobj, "currentVersion");
+	x_version = (int) json_object_get_int(jobj);
+	if(x_version <= X_API_VERSION){
+		WRAP_ASPRINTF(&x_api_string, OV_REST_X_API_VERSION, x_version);
+		memset(connection->x_api_version, '\0', 32);
+		strcpy(connection->x_api_version, x_api_string);
+		wrap_free(x_api_string);
+
+	}else{
+		memset(connection->x_api_version, '\0', 32);
+		strcpy(connection->x_api_version, 
+					OV_REST_DEFAULT_X_API_VERSION);
+
+	}
+	wrap_free(st.ptr);
+	wrap_g_free(connection->url);
+	curl_easy_cleanup(curl);
+	curl_global_cleanup();
+	return SA_OK;
+}
+
+/**
  * ov_rest_curl_get_request:
  *      @connection: Pointer to connection structure.
  *      @chunk: Pointer to curl_slist structure.
@@ -123,7 +200,7 @@ SaErrorT ov_rest_curl_get_request(REST_CON *connection,
 	chunk = curl_slist_append(chunk, OV_REST_ACCEPT);
 	chunk = curl_slist_append(chunk, OV_REST_CHARSET);
 	chunk = curl_slist_append(chunk, OV_REST_CONTENT_TYPE);
-	chunk = curl_slist_append(chunk, OV_REST_X_API_VERSION);
+	chunk = curl_slist_append(chunk, connection->x_api_version);
 	chunk = curl_slist_append(chunk, Auth);
 	chunk = curl_slist_append(chunk, SessionId);
 	wrap_free(Auth);
@@ -190,7 +267,7 @@ SaErrorT ov_rest_curl_put_request(REST_CON *connection,
 	chunk = curl_slist_append(chunk, OV_REST_ACCEPT);
 	chunk = curl_slist_append(chunk, OV_REST_CHARSET);
 	chunk = curl_slist_append(chunk, OV_REST_CONTENT_TYPE);
-	chunk = curl_slist_append(chunk, OV_REST_X_API_VERSION);
+	chunk = curl_slist_append(chunk, connection->x_api_version);
 	chunk = curl_slist_append(chunk, Auth);
         wrap_free(Auth);
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
@@ -209,7 +286,6 @@ SaErrorT ov_rest_curl_put_request(REST_CON *connection,
 	CURLcode curlErr = curl_easy_perform(curl);
 	if(curlErr) {
 		err("\nError %s\n", curl_easy_strerror(curlErr));
-//		update_connection(connection);
 		wrap_free(s->ptr);
 		curl_slist_free_all(chunk);
 		return curlerr_to_ov_rest_err(curlErr);
@@ -312,10 +388,20 @@ SaErrorT ov_rest_connection_init(struct oh_handler_state *handler)
 			"OV_User_Name");
 	con->password = (char *) g_hash_table_lookup(handler->config,
 			"OV_Password");
+	WRAP_ASPRINTF(&con->url, OV_REST_X_VERSION_URI, con->hostname);
+	rv = ov_rest_get_rest_version(con);
+	if(rv != SA_OK){
+		err("Failed to get the X-API Version, " 
+			"setting default X-Version %d", X_API_VERSION);
+		memset(con->x_api_version, '\0', 32);
+		strcpy(con->x_api_version, OV_REST_DEFAULT_X_API_VERSION);
+	}
 	WRAP_ASPRINTF(&con->url, OV_REST_LOGIN_URI, con->hostname);
 	WRAP_ASPRINTF(&postfields, OV_REST_LOGIN_POST ,con->username,con->password, 
 			"true");
-
+	/* The ov_rest_get_rest_version() sets the con->x_api_version if no errors
+ 	 * else it sets to 0; 	
+ 	 * */
 	rv =  ov_rest_login(con, postfields);
 	if(rv != SA_OK)
 		err("Login failed. Please check the Composer connection"
@@ -560,7 +646,7 @@ int  rest_get_request(REST_CON *conn, OV_STRING *response)
 	chunk = curl_slist_append(chunk, OV_REST_ACCEPT);
 	chunk = curl_slist_append(chunk, OV_REST_CHARSET);
 	chunk = curl_slist_append(chunk, OV_REST_CONTENT_TYPE);
-	chunk = curl_slist_append(chunk, OV_REST_X_API_VERSION);
+	chunk = curl_slist_append(chunk, conn->x_api_version);
 
 	WRAP_ASPRINTF(&auth,"Auth: %s",conn->auth);
 	chunk = curl_slist_append(chunk, auth);
@@ -615,7 +701,7 @@ int  rest_put_request(REST_CON *conn, OV_STRING *response, char *postFields)
         chunk = curl_slist_append(chunk, OV_REST_ACCEPT);
         chunk = curl_slist_append(chunk, OV_REST_CHARSET);
         chunk = curl_slist_append(chunk, OV_REST_CONTENT_TYPE);
-        chunk = curl_slist_append(chunk, OV_REST_X_API_VERSION);
+        chunk = curl_slist_append(chunk, conn->x_api_version);
 
         WRAP_ASPRINTF(&auth,"Auth: %s",conn->auth);
         chunk = curl_slist_append(chunk, auth);
@@ -674,7 +760,7 @@ int  rest_patch_request(REST_CON *conn, OV_STRING *response, char *postFields)
 	chunk = curl_slist_append(chunk, OV_REST_ACCEPT);
 	chunk = curl_slist_append(chunk, OV_REST_CHARSET);
 	chunk = curl_slist_append(chunk, OV_REST_CONTENT_TYPE);
-	chunk = curl_slist_append(chunk, OV_REST_X_API_VERSION);
+	chunk = curl_slist_append(chunk, conn->x_api_version);
 
 	WRAP_ASPRINTF(&auth,"Auth: %s",conn->auth);
 	chunk = curl_slist_append(chunk, auth);
