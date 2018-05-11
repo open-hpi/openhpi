@@ -16,6 +16,7 @@
 
 #include <snmp_bc_plugin.h>
 #include <sim_init.h>
+#include "sahpi_wrappers.h"
 
 #define check_snmp_parm(input_parm) \
 do { \
@@ -88,7 +89,7 @@ void *snmp_bc_open(GHashTable *handler_config,
 
         /* Initialize the lock */
         /* g_static_rec_mutex_init(&handle->handler_lock); */
-	g_static_rec_mutex_init(&custom_handle->snmp_bc_hlock.lock);
+	wrap_g_static_rec_mutex_init(&custom_handle->snmp_bc_hlock.lock);
 	custom_handle->snmp_bc_hlock.count = 0;
 	
         /* Initialize resource masks */

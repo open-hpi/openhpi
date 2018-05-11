@@ -1617,14 +1617,12 @@ SaErrorT snmp_bc_set_slot_state_sensor(void *hnd,
 	SaHpiRdrT *rdr;	
 	struct SensorInfo *sinfo;
 	struct oh_handler_state *handle;
-	struct snmp_bc_hnd *custom_handle;
 
 	
 	if (!e || !hnd || !slot_ep ) 
 		return(SA_ERR_HPI_INVALID_PARAMS);
 		
 	handle = (struct oh_handler_state *) hnd;
-	custom_handle = (struct snmp_bc_hnd *)handle->data;
 					
 	res = oh_get_resource_by_ep(handle->rptcache, slot_ep);
 	
@@ -1647,7 +1645,9 @@ SaErrorT snmp_bc_set_slot_state_sensor(void *hnd,
 			err = oh_add_rdr(handle->rptcache,
 					 res->ResourceId,
 					 rdr,
-				 	 sinfo, 0);				
+				 	 sinfo, 0);			
+			if(err != SA_OK)
+				err("The call (oh_add_rdr) failed");	
 		
 			break;
 		}
@@ -1678,14 +1678,12 @@ SaErrorT snmp_bc_reset_slot_state_sensor(void *hnd, SaHpiEntityPathT *slot_ep)
 	SaHpiRdrT *rdr;	
 	struct SensorInfo *sinfo;
 	struct oh_handler_state *handle;
-	struct snmp_bc_hnd *custom_handle;
 
 	
 	if (!hnd || !slot_ep ) 
 		return(SA_ERR_HPI_INVALID_PARAMS);
 		
 	handle = (struct oh_handler_state *) hnd;
-	custom_handle = (struct snmp_bc_hnd *)handle->data;
 					
 	res = oh_get_resource_by_ep(handle->rptcache, slot_ep);
 
@@ -1706,7 +1704,9 @@ SaErrorT snmp_bc_reset_slot_state_sensor(void *hnd, SaHpiEntityPathT *slot_ep)
 			err = oh_add_rdr(handle->rptcache,
 					 res->ResourceId,
 					 rdr,
-				 	 sinfo, 0);			
+				 	 sinfo, 0);		
+                        if(err != SA_OK)
+				err("The call (oh_add_rdr) failed");
 		
 			break;
 		}
@@ -1744,6 +1744,8 @@ SaErrorT snmp_bc_set_resource_slot_state_sensor(void *hnd, struct oh_event *e, g
 	handle = (struct oh_handler_state *) hnd;
 	custom_handle = (struct snmp_bc_hnd *)handle->data;				
 	err = snmp_bc_extract_slot_ep( &(e->resource.ResourceEntity), &slot_ep);
+	if( err != SA_OK)
+		err("Invalid parameter");
 
 	j = slot_ep.Entry[0].EntityLocation;
 	if ( (custom_handle->platform == SNMP_BC_PLATFORM_BC) || 
@@ -1754,6 +1756,8 @@ SaErrorT snmp_bc_set_resource_slot_state_sensor(void *hnd, struct oh_event *e, g
 				   slot_ep.Entry[0].EntityType, j+i);
 	
 			err = snmp_bc_set_slot_state_sensor(handle, e, &slot_ep);
+		        if( err != SA_OK)
+		                err("The call (snmp_bc_set_slot_state_sensor) failed");
 		}
 	} else if ( (custom_handle->platform == SNMP_BC_PLATFORM_BCT) || 
 			(custom_handle->platform == SNMP_BC_PLATFORM_BCHT) ){
@@ -1762,6 +1766,8 @@ SaErrorT snmp_bc_set_resource_slot_state_sensor(void *hnd, struct oh_event *e, g
 				   slot_ep.Entry[0].EntityType, j - i);
 	
 			err = snmp_bc_set_slot_state_sensor(handle, e, &slot_ep);
+	        	if( err != SA_OK)
+		                err("The call (snmp_bc_set_slot_state_sensor) failed");
 		}
 	}
 	return(SA_OK);	
@@ -1787,13 +1793,11 @@ SaErrorT snmp_bc_get_slot_state_sensor(void *hnd,
 	SaHpiRdrT *rdr;
 	struct SensorInfo *sinfo;	
 	struct oh_handler_state *handle;
-	struct snmp_bc_hnd *custom_handle;
 			
 	if (!hnd || !reading) 
 		return(SA_ERR_HPI_INVALID_PARAMS);
 
 	handle = (struct oh_handler_state *) hnd;
-	custom_handle = (struct snmp_bc_hnd *)handle->data;	
 		
         rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
 	if (rdr == NULL) return(SA_ERR_HPI_NOT_PRESENT);
@@ -1840,6 +1844,8 @@ SaErrorT snmp_bc_reset_resource_slot_state_sensor(void *hnd, SaHpiRptEntryT *res
 	handler = (struct oh_handler_state *) hnd;
 	custom_handler = (struct snmp_bc_hnd *)handler->data;				
 	err = snmp_bc_extract_slot_ep( &(res->ResourceEntity), &slot_ep);
+	if(err != SA_OK)
+		err("Invalid parameter");
 	res_info_ptr =  (struct ResourceInfo *)oh_get_resource_data(handler->rptcache, res->ResourceId);
 	
 	resourcewidth = res_info_ptr->resourcewidth;
@@ -1854,6 +1860,8 @@ SaErrorT snmp_bc_reset_resource_slot_state_sensor(void *hnd, SaHpiRptEntryT *res
 				   slot_ep.Entry[0].EntityType, j+i);
 	
 			err = snmp_bc_reset_slot_state_sensor(handler, &slot_ep);
+		        if(err != SA_OK)
+		                err("The call (snmp_bc_reset_slot_state_sensor) failed");
 		}
 	} else if ( (custom_handler->platform == SNMP_BC_PLATFORM_BCT) || 
 			(custom_handler->platform == SNMP_BC_PLATFORM_BCHT) ) {
@@ -1862,6 +1870,8 @@ SaErrorT snmp_bc_reset_resource_slot_state_sensor(void *hnd, SaHpiRptEntryT *res
 				   slot_ep.Entry[0].EntityType, j - i);
 	
 			err = snmp_bc_reset_slot_state_sensor(handler, &slot_ep);
+		        if(err != SA_OK)
+		                err("The call (snmp_bc_reset_slot_state_sensor) failed");
 		}
 	}	
 	

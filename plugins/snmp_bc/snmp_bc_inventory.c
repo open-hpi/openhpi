@@ -622,7 +622,6 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 {		
 	SaErrorT rv;
 	struct oh_handler_state *handle;
-	struct snmp_bc_hnd *custom_handle;
 	SaHpiRdrT *rdr;
 	SaHpiEntityPathT valEntity;
 	//struct snmp_value get_value;
@@ -636,7 +635,6 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 
 	rv = SA_OK;
 	handle = (struct oh_handler_state *) hnd;
-	custom_handle = handle->data;
 	rdr = oh_get_rdr_by_type(handle->rptcache, ResourceId, SAHPI_INVENTORY_RDR, IdrId);
 	
 	if (rdr != NULL) {
