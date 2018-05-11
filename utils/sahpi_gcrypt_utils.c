@@ -229,6 +229,7 @@ gchar * oh_crypt(gchar *file_path, SaHpiUint32T type)
                         g_free(plain_text);
                         g_free(out);
                         g_free(key);
+                        fclose(fconf);
                         return(NULL);
                 }
                 err = 0;
@@ -269,6 +270,7 @@ gchar * oh_crypt(gchar *file_path, SaHpiUint32T type)
                         g_free(out);
                         g_free(deout);
                         g_free(key);
+                        fclose(fconf);
                         return(NULL);
                 }
                 /* At this point everything is ok. Able to encrypt and save into a file.
