@@ -21,6 +21,7 @@
 #include "ipmi_auth.h"
 #include <string.h>
 #include <errno.h>
+#include <openssl/opensslconf.h>
 
 
 cIpmiAuth *
@@ -32,7 +33,7 @@ IpmiAuthFactory( tIpmiAuthType type )
             return new cIpmiAuthNone;
 
        case eIpmiAuthTypeMd2:
-#ifdef HAVE_OPENSSL_MD2_H
+#if defined(HAVE_OPENSSL_MD2_H) && !defined(OPENSSL_NO_MD2) 
             return new cIpmiAuthMd2;
 #else
             break;
@@ -78,7 +79,7 @@ cIpmiAuthNone::Check( cIpmiAuthSg /*d*/[], void * /*code*/ )
 }
 
 
-#ifdef HAVE_OPENSSL_MD2_H
+#if defined(HAVE_OPENSSL_MD2_H) && !defined(OPENSSL_NO_MD2) 
 #include <openssl/md2.h>
 
 

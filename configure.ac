@@ -173,8 +173,10 @@ dnl ssl is used for md2/md5 authentification in ipmidirect
 dnl and for SSL-based communication in ilo2_ribcl and oa_soap
 AC_CHECK_LIB([crypto],[MD5_Init],[CRYPTO_LIB=-lcrypto],[CRYPTO_LIB=])
 AC_SUBST(CRYPTO_LIB)
-AC_CHECK_LIB([ssl],[SSL_library_init],[SSL_LIB=-lssl],[SSL_LIB=])
-AC_SUBST(SSL_LIB)
+AC_CHECK_LIB([ssl],[SSL_library_init],[SSL_OLD_LIB=-lssl],[SSL_OLD_LIB=])
+AC_CHECK_LIB([ssl],[OPENSSL_init_ssl],[SSL_NEW_LIB=-lssl],[SSL_NEW_LIB=])
+AC_SUBST(SSL_OLD_LIB)
+AC_SUBST(SSL_NEW_LIB)
 AC_CHECK_HEADERS([openssl/md2.h openssl/md5.h openssl/bio.h openssl/ssl.h openssl/err.h],[have_openssl=yes],[have_openssl=no])
 
 dnl xml is used for XML-based communication in ilo2_ribcl and oa_soap
@@ -743,6 +745,15 @@ dnl replace common includes here
 AC_SUBST(OPENHPI_INCLUDES)
 
 dnl Set up libs that will be linked to
+if test -n "$SSL_OLD_LIB"; then
+	AC_SUBST(SSL_LIB,-lssl)
+else
+	if test -n "$SSL_NEW_LIB"; then
+		AC_SUBST(SSL_LIB,-lssl)
+	else
+		AC_SUBST(SSL_LIB,"")
+	fi
+fi
 LIBS="$LIBS $SSL_LIB $GLIB_LIBS -lm -lpthread"
 
 AC_CHECK_PROG([found_pod2man], [pod2man], [yes])
