@@ -374,11 +374,17 @@ SaErrorT snmp_bc_bulk_selcache(	struct oh_handler_state *handle,
 							
 							
 							err = snmp_bc_parse_sel_entry(handle,logstring, &sel_entry);
+							if(err != SA_OK)
+								err("The call (snmp_bc_parse_sel_entry) failed");
 							isdst = sel_entry.time.tm_isdst;
 							snmp_bc_log2event(handle, logstring, &tmpevent, isdst, &logsrc2res);
 							err = oh_el_prepend(handle->elcache, &tmpevent, NULL, NULL);
+                                                        if(err != SA_OK)
+                                                                err("The call (oh_el_prepend) failed");
 							if (custom_handle->isFirstDiscovery == SAHPI_FALSE)
 		             					err = snmp_bc_add_to_eventq(handle, &tmpevent, SAHPI_TRUE);
+	                                                        if(err != SA_OK)
+	                                                                err("The calle (snmp_bc_add_to_eventq) failed");
 						}
                     			} else {
                         			/* Stop on an exception value */

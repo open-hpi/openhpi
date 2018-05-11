@@ -1565,6 +1565,9 @@ SaErrorT snmp_bc_add_to_eventq(struct oh_handler_state *handle, SaHpiEventT *thi
 			/* Call rediscovery to remove rpt and rdrs from rptcache */
 			if (thisRpt) logsrc2res.ep = thisRpt->ResourceEntity;
 			err = snmp_bc_rediscover(handle, thisEvent, &logsrc2res);
+			if(err != SA_OK) {
+				err("Invalid parameter.");
+			}
 		}
 		break;
 	case SAHPI_ET_OEM:

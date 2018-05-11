@@ -3997,38 +3997,65 @@ SaErrorT snmp_bc_discover_all_slots(struct oh_handler_state *handle,
 	}
 
 	for (i = 0; i < custom_handle->max_pb_supported; i++) {
-		err = snmp_bc_discover_slot(handle, ep_root, SAHPI_ENT_PHYSICAL_SLOT,i); 
+		err = snmp_bc_discover_slot(handle, ep_root, SAHPI_ENT_PHYSICAL_SLOT,i);
+		if(err != SA_OK) {
+			err("The call (snmp_bc_discover_slot) failed");
+		}
 	}							
 
 	for (i = 0; i < custom_handle->max_blower_supported; i++) {
 		err = snmp_bc_discover_slot(handle, ep_root, BLADECENTER_BLOWER_SLOT,i);
+                if(err != SA_OK) {
+			err("The call (snmp_bc_discover_slot) failed");
+                }
 	}							
 	for (i = 0; i < custom_handle->max_pm_supported; i++) {
 		err = snmp_bc_discover_slot(handle, ep_root, BLADECENTER_POWER_SUPPLY_SLOT,i);
+                if(err != SA_OK) {
+			err("The call (snmp_bc_discover_slot) failed");
+                }
 	}
 								
 	for (i = 0; i < custom_handle->max_sm_supported; i++) {
 		err = snmp_bc_discover_slot(handle, ep_root, BLADECENTER_SWITCH_SLOT,i);
+                if(err != SA_OK) {
+			err("The call (snmp_bc_discover_slot) failed");
+                }
 	}
 								
 	for (i = 0; i < custom_handle->max_mm_supported; i++) {
 		err = snmp_bc_discover_slot(handle, ep_root, BLADECENTER_SYS_MGMNT_MODULE_SLOT,i);
+                if(err != SA_OK) {
+			err("The call (snmp_bc_discover_slot) failed");
+                }
 	}
 								
 	for (i = 0; i < custom_handle->max_mt_supported; i++) {
 		err = snmp_bc_discover_slot(handle, ep_root, BLADECENTER_PERIPHERAL_BAY_SLOT,i);
+                if(err != SA_OK) {
+			err("The call (snmp_bc_discover_slot) failed");
+                }
 	}
 									
 	for (i = 0; i < custom_handle->max_tap_supported; i++) {
 		err = snmp_bc_discover_slot(handle, ep_root, BLADECENTER_ALARM_PANEL_SLOT,i);
+                if(err != SA_OK) {
+			err("The call (snmp_bc_discover_slot) failed");
+                }
 	}
 
 	for (i = 0; i < custom_handle->max_nc_supported; i++) {
 		err = snmp_bc_discover_slot(handle, ep_root, BLADECENTER_CLOCK_SLOT,i);
+                if(err != SA_OK) {
+			err("The call (snmp_bc_discover_slot) failed");
+                }
 	}
 	
 	for (i = 0; i < custom_handle->max_mx_supported; i++) {
 		err = snmp_bc_discover_slot(handle, ep_root, BLADECENTER_MUX_SLOT,i);
+                if(err != SA_OK) {
+			err("The call (snmp_bc_discover_slot) failed");
+                }
 	}
 		
 	return(SA_OK);							

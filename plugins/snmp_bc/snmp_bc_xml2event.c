@@ -21,7 +21,10 @@
 
 GHashTable *errlog2event_hash = NULL;
 ohpi_bc_lock snmp_bc_plock = {
+        #if GLIB_CHECK_VERSION (2, 32, 0)
+        #else       
         .lock = G_STATIC_REC_MUTEX_INIT,
+        #endif
         .count = 0
 };
 

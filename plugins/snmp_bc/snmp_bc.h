@@ -24,7 +24,11 @@
 #include <glib.h>
 
 typedef struct {
+        #if GLIB_CHECK_VERSION (2, 32, 0)
+        GRecMutex lock;
+        #else
         GStaticRecMutex lock;
+        #endif
         guint32 count;
 } ohpi_bc_lock;
 
