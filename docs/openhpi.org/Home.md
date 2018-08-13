@@ -66,27 +66,19 @@ class="anchor"></span>
 
 <div>
 
-  ------------------ ------------------ ------------------ ------------------
-  **OpenHPI**        [3.8.0](https://sourceforge.net/projects/openhpi/files/openhpi-stable/3.8.0/) (Stable)   supported          
-  The open implementation of HPI. Includes a library and a                                         daemon.
-                                                  
- **HPI Browser**                   [3.1.0](https://sourceforge.net/projects/openhpi/files/hpibrowser/3.1.0/) (Development) supported          
- HPI-B.03.02 GUI application based on QT4. Best with  OpenHPI-3.1.0                                        
-                        
-**SNMP Subagent**   [2.3.4](http://prdownloads.sourceforge.net/openhpi/openhpi-subagent-2.3.4.tar.gz?download) (Stable) unsupported       
-Exports the HPI API using the  [SAF](http://saforum.org) SNMP MIBs.
-                                                   
-**HPIView**   [2.0](http://prdownloads.sourceforge.net/openhpi/hpiview-2.0.tar.gz?download) unsupported (Stable) 
-OpenHPI GUI application based on GTK.     
-               
-**Python Module**  [1.1](http://downloads.sourceforge.net/openhpi/py-openhpi-1.1.tar.gz?use_mirror=osdn) unsupported        
-The HPI APIs ported to python and using the OpenHPI library.
-                       
-  ------------------ ------------------ ------------------ ------------------
 
+
+| Module| Latest Release | Status | Description | 
+|--|--| -- | -- | 
+| **OpenHPI**| [3.8.0](https://sourceforge.net/projects/openhpi/files/openhpi-stable/3.8.0/) (Stable) |supported |The open implementation of HPI. Includes a library and a daemon. | 
+| **HPI Browser** | [3.1.0](https://sourceforge.net/projects/openhpi/files/hpibrowser/3.1.0/) (Development) |supported |HPI-B.03.02 GUI application based on QT4. Best with OpenHPI-3.1.0| 
+| **SNMP Subagent**  |[2.3.4](http://prdownloads.sourceforge.net/openhpi/openhpi-subagent-2.3.4.tar.gz?download)  (Stable) |unsupported | Exports the HPI API using the [SAF](http://saforum.org/) SNMP MIBs.|
+|**HPIView** | [2.0](http://prdownloads.sourceforge.net/openhpi/hpiview-2.0.tar.gz?download) (Stable)|unsupported| OpenHPI GUI application based on GTK.|
+|**Python Module**  | [1.1](http://downloads.sourceforge.net/openhpi/py-openhpi-1.1.tar.gz?use_mirror=osdn)  (Stable)| unsupported |OpenHPI GUI application based on GTK.|
 </div>
 <span id="Downloads-1.line-7" class="anchor"></span><span
 id="Downloads-1.line-8" class="anchor"></span>
+
 Note: Unsupported portions of the project may be quite out of date and
 would likely require work in order to function. If you are interested in
 one of these, please consider submitting patches or volunteering to
