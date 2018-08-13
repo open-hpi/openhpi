@@ -47,6 +47,7 @@ Closed and Fixed
 
 #### 2.11.3
 **Bugs**
+
 | > |**IPMI Direct plugin** | < | <|
 |--|--| --| --|
 | 1930512|[Invalid handling of ATCA Led Controls in Manual Mode](http://sourceforge.net/tracker/func=detail&aid=1930512&group_id=71730&atid=532251)|Shuah Khan| Closed -Fixed|
@@ -54,6 +55,7 @@ Closed and Fixed
 #### 2.13.3
 
 **Features**
+
 | > | **HP c-Class Plugin**| < | <|
 |--|--|--|--|
 | 2540102|[Supporting the graceful shutdown for OA SOAP plugin](http://sourceforge.net/tracker/func=detail&aid=2540102&group_id=71730&atid=532254) |Raghavendra |Closed -Fixed|
@@ -61,6 +63,7 @@ Closed and Fixed
 |1930512|[Invalid handling of ATCA Led Controls in Manual Mode](http://sourceforge.net/tracker/func=detail&aid=1930512&group_id=71730&atid=532251)|Shuah Khan|Closed -Fixed|
 
 **Bugs**
+
 | > |**HP ProLiant plugin**  |< |< |
 |--|--|--|--|
 | 2526494|[sa HpiResourcePowerStateSet() fails with ilo2-ribcl Plugin](http://sourceforge.net/tracker/func=detail&aid=2526494&group_id=71730&atid=532251)  |Ric White | Closed -Fixed|
