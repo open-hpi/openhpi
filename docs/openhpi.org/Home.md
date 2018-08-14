@@ -6,7 +6,7 @@ Welcome
 class="anchor"></span>
 
 OpenHPI provides an open source implementation of the [Service
-Availability Forum](http://saforum.org){.http} (SAF) Hardware Platform
+Availability Forum](http://saforum.org) (SAF) Hardware Platform
 Interface (HPI). <span id="line-5" class="anchor"></span><span
 id="line-6" class="anchor"></span>
 
@@ -32,14 +32,14 @@ class="anchor"></span><span id="line-12" class="anchor"></span>
 
 **About this wiki**\
 <span id="line-13" class="anchor"></span>This wiki is being graciously
-hosted by [OSDL](http://www.osdl.org){.http} at the Marist College OSDL
+hosted by [OSDL](http://www.osdl.org) at the Marist College OSDL
 laboratory using a zLinux image.\
 <span id="line-14" class="anchor"></span>To use this wiki, you must
-[sign up](http://openhpi.org/UserPreferences){.nonexistent}, create a
+[sign up](http://openhpi.org/UserPreferences), create a
 valid user id and contact [me](BryanSutula) (a spam prevention
 technique) so that you can create and edit pages. If you want to learn
 more about using a wiki, check out the
-[HelpContents](http://openhpi.org/HelpContents){.nonexistent} page.
+[HelpContents](http://openhpi.org/HelpContents) page.
 <span id="line-15" class="anchor"></span><span id="line-16"
 class="anchor"></span>
 
@@ -541,7 +541,7 @@ id="LatestNews.line-186" class="anchor"></span>
 -   Rollup development releases 2.11.0 through 2.11.3. <span
     id="LatestNews.line-188" class="anchor"></span>
 -   Add documentation for new ilo2\_ribcl and oa\_soap plugins HP
-    [ProLiant](http://openhpi.org/ProLiant){.nonexistent} plugin <span
+    [ProLiant](http://openhpi.org/ProLiant) plugin <span
     id="LatestNews.line-189" class="anchor"></span>
 -   Make use of common SSL code HP c-Class Plugin. <span
     id="LatestNews.line-190" class="anchor"></span>
@@ -670,7 +670,7 @@ class="anchor"></span>
 id="LatestNews.line-236" class="anchor"></span>
 
 -   A new iLO2 RIBCL plug-in for managing HP
-    [ProLiant](http://openhpi.org/ProLiant){.nonexistent} Rack
+    [ProLiant](http://openhpi.org/ProLiant) Rack
     Mount servers. <span id="LatestNews.line-237" class="anchor"></span>
 -   Enhancements to hpi\_shell including a command to reopen a session
     and to show a single inventory area (thanks to avpak). <span
@@ -700,7 +700,7 @@ latest version. Following, a summary of the most important bug fixes:
 id="LatestNews.line-246" class="anchor"></span>
 
 -   saHpiGetIdByEntityPath() now returns the
-    [InstrumentId](http://openhpi.org/InstrumentId){.nonexistent} <span
+    [InstrumentId](http://openhpi.org/InstrumentId) <span
     id="LatestNews.line-247" class="anchor"></span>
 -   Solaris patches - Various fixes to make OpenHPI build cleanly on
     Solaris <span id="LatestNews.line-248" class="anchor"></span>

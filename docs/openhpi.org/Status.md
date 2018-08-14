@@ -77,11 +77,11 @@ Closed and Fixed
 | 2496073 | [saHpiResourcePowerStateSet() fails with HP c-Class Plugin](http://sourceforge.net/tracker/?func=detail&aid=2496073&group_id=71730&atid=532251) | Ric White| Closed - Fixed|
 | > | **HPI Shell** | <|< |
 | 2530818 | [incorrect severity when adding announcement to annunciator](http://sourceforge.net/tracker/?func=detail&aid=2530818&group_id=71730&atid=532251) | Anton Pak|Closed - Fixed|
-|  | **IPMI Direct plugin** | <| <|
+| > | **IPMI Direct plugin** | <| <|
 | 2390475| [saHpiIdrAreaHeaderGet(), saHpiIdrFieldGet() dont handle type](http://sourceforge.net/tracker/?func=detail&aid=2390475&group_id=71730&atid=532251) |Shuah Khan | Closed - Fixed|
 | > | **OpenHPI Daemon** | <| <|
 | 1804273 | [Hysteresis values are not validated correctly](http://sourceforge.net/tracker/?func=detail&aid=1804273&group_id=71730&atid=532251) |Anton Pak |Closed - Fixed |
-|  | **OpenHPI base library** | | |
+| > | **OpenHPI base library** | <| <|
 | 2564289 | [gcc 4.4 - shadowed global variable](http://sourceforge.net/tracker/?func=detail&aid=2564289&group_id=71730&atid=532251) |Nobody |Closed - Fixed |
 | 2564015 | [gcc 4.4 - warning/error in safhpi.c](http://sourceforge.net/tracker/?func=detail&aid=2564015&group_id=71730&atid=532251) |Nobody |Closed - Fixed |
 | 2518985 |[SIGSEGV in tsensorget013](http://sourceforge.net/tracker/?func=detail&aid=2518985&group_id=71730&atid=532251)  | Raghavendra|Closed - Fixed|
