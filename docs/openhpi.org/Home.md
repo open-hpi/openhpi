@@ -110,7 +110,7 @@ id="LatestNews.line-1" class="anchor"></span>
 -   Lot of bugfixes <span id="LatestNews.line-5" class="anchor"></span>
 
 Details can be found at the complete 3.8.0
-[changelog](Changelogs/3.8.0). <span id="LatestNews.line-6"
+[changelog](Changelogs/3.8.0.md). <span id="LatestNews.line-6"
 class="anchor"></span><span id="LatestNews.line-7"
 class="anchor"></span>
 
@@ -124,7 +124,7 @@ class="anchor"></span>
 -   Many bugfixes <span id="LatestNews.line-11" class="anchor"></span>
 
 Details can be found at the complete 3.7.0
-[changelog](Changelogs/3.7.0). <span id="LatestNews.line-12"
+[changelog](Changelogs/3.7.0.md). <span id="LatestNews.line-12"
 class="anchor"></span><span id="LatestNews.line-13"
 class="anchor"></span>
 
@@ -137,7 +137,7 @@ class="anchor"></span>
     id="LatestNews.line-16" class="anchor"></span>
 
 Details can be found at the complete 3.6.1
-[changelog](Changelogs/3.6.1). <span id="LatestNews.line-17"
+[changelog](Changelogs/3.6.1.md). <span id="LatestNews.line-17"
 class="anchor"></span><span id="LatestNews.line-18"
 class="anchor"></span>
 
@@ -152,7 +152,7 @@ class="anchor"></span>
 -   Many bugfixes <span id="LatestNews.line-23" class="anchor"></span>
 
 Details can be found at the complete 3.6.0
-[changelog](Changelogs/3.6.0). <span id="LatestNews.line-24"
+[changelog](Changelogs/3.6.0.md). <span id="LatestNews.line-24"
 class="anchor"></span><span id="LatestNews.line-25"
 class="anchor"></span>
 
@@ -168,7 +168,7 @@ class="anchor"></span>
 -   Many bugfixes <span id="LatestNews.line-30" class="anchor"></span>
 
 Details can be found at the complete 3.5.0
-[changelog](Changelogs/3.5.0). <span id="LatestNews.line-31"
+[changelog](Changelogs/3.5.0.md). <span id="LatestNews.line-31"
 class="anchor"></span><span id="LatestNews.line-32"
 class="anchor"></span>
 
@@ -181,7 +181,7 @@ class="anchor"></span>
 -   Lot of bugfixes <span id="LatestNews.line-36" class="anchor"></span>
 
 Details can be found at the complete 3.4.0
-[changelog](http://openhpi.org/Changelogs/3.4.0). <span
+[changelog](Changelogs/3.4.0.md). <span
 id="LatestNews.line-37" class="anchor"></span><span
 id="LatestNews.line-38" class="anchor"></span>
 
@@ -194,7 +194,7 @@ id="LatestNews.line-38" class="anchor"></span>
 -   Lot of bugfixes <span id="LatestNews.line-42" class="anchor"></span>
 
 Details can be found at the complete 3.2.1
-[changelog](http://openhpi.org/Changelogs/3.2.1). <span
+[changelog](Changelogs/3.2.1.md). <span
 id="LatestNews.line-43" class="anchor"></span><span
 id="LatestNews.line-44" class="anchor"></span>
 
@@ -209,7 +209,7 @@ id="LatestNews.line-44" class="anchor"></span>
 -   Lot of bugfixes <span id="LatestNews.line-49" class="anchor"></span>
 
 Details can be found at the complete 3.2.0
-[changelog](http://openhpi.org/Changelogs/3.2.0). <span
+[changelog](Changelogs/3.2.0.md). <span
 id="LatestNews.line-50" class="anchor"></span><span
 id="LatestNews.line-51" class="anchor"></span>
 
@@ -222,7 +222,7 @@ id="LatestNews.line-51" class="anchor"></span>
 -   Bugfixes <span id="LatestNews.line-55" class="anchor"></span>
 
 Details can be found at the complete 3.1.0
-[changelog](http://openhpi.org/Changelogs/HpiBrowser-3.1.0). <span
+[changelog](Changelogs/HpiBrowser-3.1.0.md). <span
 id="LatestNews.line-56" class="anchor"></span><span
 id="LatestNews.line-57" class="anchor"></span>
 
@@ -234,7 +234,7 @@ id="LatestNews.line-57" class="anchor"></span>
 -   Lot of bugfixes <span id="LatestNews.line-60" class="anchor"></span>
 
 Details can be found at the complete 3.1.0
-[changelog](http://openhpi.org/Changelogs/3.1.0). <span
+[changelog](Changelogs/3.1.0.md). <span
 id="LatestNews.line-61" class="anchor"></span><span
 id="LatestNews.line-62" class="anchor"></span>
 
@@ -246,7 +246,7 @@ id="LatestNews.line-62" class="anchor"></span>
 -   Bugfixes <span id="LatestNews.line-65" class="anchor"></span>
 
 Details can be found at the complete 3.0.0
-[changelog](http://openhpi.org/Changelogs/3.0.0). <span
+[changelog](Changelogs/3.0.0.md). <span
 id="LatestNews.line-66" class="anchor"></span><span
 id="LatestNews.line-67" class="anchor"></span>
 
@@ -265,7 +265,7 @@ id="LatestNews.line-67" class="anchor"></span>
     class="anchor"></span>
 
 Details can be found at the complete 2.17.0
-[changelog](http://openhpi.org/Changelogs/2.17.0). <span
+[changelog](Changelogs/2.17.0.md). <span
 id="LatestNews.line-76" class="anchor"></span><span
 id="LatestNews.line-77" class="anchor"></span>
 
@@ -279,7 +279,7 @@ id="LatestNews.line-77" class="anchor"></span>
     id="LatestNews.line-80" class="anchor"></span>
 
 Details can be found at the complete 2.16.0
-[changelog](http://openhpi.org/Changelogs/2.16.0). <span
+[changelog](Changelogs/2.16.0.md). <span
 id="LatestNews.line-81" class="anchor"></span><span
 id="LatestNews.line-82" class="anchor"></span>
 
@@ -334,7 +334,7 @@ id="LatestNews.line-82" class="anchor"></span>
 -   Bugfixes <span id="LatestNews.line-103" class="anchor"></span>
 
 Details can be found at the complete 2.15.1
-[changelog](http://openhpi.org/Changelogs/2.15.1). <span
+[changelog](Changelogs/2.15.1.md). <span
 id="LatestNews.line-104" class="anchor"></span><span
 id="LatestNews.line-105" class="anchor"></span>
 
@@ -369,7 +369,7 @@ id="LatestNews.line-105" class="anchor"></span>
     class="anchor"></span>
 
 Details can be found at the complete 2.15.0
-[changelog](http://openhpi.org/Changelogs/2.15.0). <span
+[changelog](Changelogs/2.15.0.md). <span
 id="LatestNews.line-119" class="anchor"></span><span
 id="LatestNews.line-120" class="anchor"></span>
 
@@ -440,7 +440,7 @@ class="anchor"></span>
     class="anchor"></span>
 
 Details can be found at the complete 2.14.1
-[changelog](http://openhpi.org/Changelogs/2.14.1). <span
+[changelog](Changelogs/2.14.1.md). <span
 id="LatestNews.line-148" class="anchor"></span><span
 id="LatestNews.line-149" class="anchor"></span>
 
@@ -457,7 +457,7 @@ id="LatestNews.line-149" class="anchor"></span>
     class="anchor"></span>
 
 Details can be found at the complete 2.14.0
-[changelog](http://openhpi.org/Changelogs/2.14.0). <span
+[changelog](Changelogs/2.14.0.md). <span
 id="LatestNews.line-155" class="anchor"></span><span
 id="LatestNews.line-156" class="anchor"></span>
 
@@ -474,7 +474,7 @@ id="LatestNews.line-156" class="anchor"></span>
     class="anchor"></span>
 
 Details can be found at the complete 2.13.3
-[changelog](http://openhpi.org/Changelogs/2.13.3). <span
+[changelog](Changelogs/2.13.3.md). <span
 id="LatestNews.line-162" class="anchor"></span><span
 id="LatestNews.line-163" class="anchor"></span>
 
@@ -491,7 +491,7 @@ id="LatestNews.line-163" class="anchor"></span>
     class="anchor"></span>
 
 Details can be found at the complete 2.13.2
-[changelog](http://openhpi.org/Changelogs/2.13.2). <span
+[changelog](Changelogs/2.13.2.md). <span
 id="LatestNews.line-169" class="anchor"></span><span
 id="LatestNews.line-170" class="anchor"></span>
 
@@ -512,7 +512,7 @@ id="LatestNews.line-170" class="anchor"></span>
     id="LatestNews.line-176" class="anchor"></span>
 
 Details can be found at the complete 2.13.1
-[changelog](http://openhpi.org/Changelogs/2.13.1). <span
+[changelog](Changelogs/2.13.1.md). <span
 id="LatestNews.line-177" class="anchor"></span><span
 id="LatestNews.line-178" class="anchor"></span>
 
@@ -531,7 +531,7 @@ id="LatestNews.line-178" class="anchor"></span>
     id="LatestNews.line-184" class="anchor"></span>
 
 Details can be found at the complete 2.13.0
-[changelog](http://openhpi.org/Changelogs/2.13.0). <span
+[changelog](Changelogs/2.13.0.md). <span
 id="LatestNews.line-185" class="anchor"></span><span
 id="LatestNews.line-186" class="anchor"></span>
 
@@ -549,7 +549,7 @@ id="LatestNews.line-186" class="anchor"></span>
     class="anchor"></span>
 
 Details can be found at the complete 2.12.0
-[changelog](http://openhpi.org/Changelogs/2.12.0). <span
+[changelog](Changelogs/2.12.0.md). <span
 id="LatestNews.line-192" class="anchor"></span><span
 id="LatestNews.line-193" class="anchor"></span>
 
@@ -562,7 +562,7 @@ id="LatestNews.line-193" class="anchor"></span>
     Direct plugin. <span id="LatestNews.line-196" class="anchor"></span>
 
 Details can be found at the complete 2.11.3
-[changelog](http://openhpi.org/Changelogs/2.11.3). <span
+[changelog](Changelogs/2.11.3.md). <span
 id="LatestNews.line-197" class="anchor"></span><span
 id="LatestNews.line-198" class="anchor"></span>
 
@@ -583,7 +583,7 @@ id="LatestNews.line-198" class="anchor"></span>
     id="LatestNews.line-204" class="anchor"></span>
 
 Details can be found at the complete 2.11.2
-[changelog](http://openhpi.org/Changelogs/2.11.2). <span
+[changelog](Changelogs/2.11.2.md). <span
 id="LatestNews.line-205" class="anchor"></span><span
 id="LatestNews.line-206" class="anchor"></span>
 
@@ -609,7 +609,7 @@ id="LatestNews.line-209" class="anchor"></span>
     class="anchor"></span>
 
 It also comes with quite a number of bug fixes. Take a look at the
-[changelog](http://openhpi.org/Changelogs/2.11.1) for a complete list of
+[changelog](Changelogs/2.11.1.md) for a complete list of
 bug fixes. <span id="LatestNews.line-214" class="anchor"></span><span
 id="LatestNews.line-215" class="anchor"></span>
 
@@ -656,7 +656,7 @@ provided patches. <span id="LatestNews.line-230"
 class="anchor"></span><span id="LatestNews.line-231"
 class="anchor"></span>
 
-Take a look at the [changelog](http://openhpi.org/Changelogs/2.10.2) for
+Take a look at the [changelog](Changelogs/2.10.2.md) for
 a complete list of bug fixes. <span id="LatestNews.line-232"
 class="anchor"></span><span id="LatestNews.line-233"
 class="anchor"></span>
@@ -684,7 +684,7 @@ and the ability to connect to multiple daemons from one client. <span
 id="LatestNews.line-240" class="anchor"></span><span
 id="LatestNews.line-241" class="anchor"></span>
 
-Take a look at the [changelog](http://openhpi.org/Changelogs/2.11.0) for
+Take a look at the [changelog](Changelogs/2.11.0.md) for
 a complete list of features and bug fixes. <span
 id="LatestNews.line-242" class="anchor"></span><span
 id="LatestNews.line-243" class="anchor"></span>
@@ -724,7 +724,7 @@ id="LatestNews.line-254" class="anchor"></span><span
 id="LatestNews.line-255" class="anchor"></span>
 
 For a complete list of 2.10.1 bug fixes and features, take a look at the
-[changelog](http://openhpi.org/Changelogs/2.10.1). <span
+[changelog](Changelogs/2.10.1.md). <span
 id="LatestNews.line-256" class="anchor"></span><span
 id="LatestNews.line-257" class="anchor"></span>
 
@@ -895,7 +895,7 @@ id="LatestNews.line-332" class="anchor"></span><span
 id="LatestNews.line-333" class="anchor"></span>
 
 For a complete list of 2.10.0 bug fixes and features, take a look at the
-[changelog](http://openhpi.org/Changelogs/2.10.0). <span
+[changelog](Changelogs/2.10.0.md). <span
 id="LatestNews.line-334" class="anchor"></span><span
 id="LatestNews.line-335" class="anchor"></span>
 
@@ -929,7 +929,7 @@ id="LatestNews.line-345" class="anchor"></span><span
 id="LatestNews.line-346" class="anchor"></span>
 
 For a complete list of 2.9.3 bug fixes and features, take a look at the
-[changelog](http://openhpi.org/Changelogs/2.9.3). <span
+[changelog](Changelogs/2.9.3.md). <span
 id="LatestNews.line-347" class="anchor"></span><span
 id="LatestNews.line-348" class="anchor"></span>
 
@@ -973,7 +973,7 @@ configure. <span id="LatestNews.line-362" class="anchor"></span><span
 id="LatestNews.line-363" class="anchor"></span>
 
 For a complete list of 2.9.2 bug fixes and features, take a look at the
-[changelog](http://openhpi.org/Changelogs/2.9.2). <span
+[changelog](Changelogs/2.9.2.md). <span
 id="LatestNews.line-364" class="anchor"></span><span
 id="LatestNews.line-365" class="anchor"></span>
 
@@ -1043,7 +1043,7 @@ class="anchor"></span>
     <span id="LatestNews.line-393" class="anchor"></span>
 
 For a complete list of 2.9.1 bug fixes and features, take a look at the
-[changelog](http://openhpi.org/Changelogs/2.9.1). <span
+[changelog](Changelogs/2.9.1.md). <span
 id="LatestNews.line-394" class="anchor"></span><span
 id="LatestNews.line-395" class="anchor"></span>
 
@@ -1068,7 +1068,7 @@ class="anchor"></span>
     <span id="LatestNews.line-403" class="anchor"></span>
 
 For a complete list of 2.8.1 bugs, take a look at the
-[changelog](http://openhpi.org/Changelogs/2.8.1). <span
+[changelog](Changelogs/2.8.1.md). <span
 id="LatestNews.line-404" class="anchor"></span><span
 id="LatestNews.line-405" class="anchor"></span>
 
@@ -1098,7 +1098,7 @@ id="LatestNews.line-408" class="anchor"></span>
     class="anchor"></span>
 
 For a complete list of 2.8.0 bugs and features, take a look at the
-[changelog](http://openhpi.org/Changelogs/2.8.0). <span
+[changelog](Changelogs/2.8.0.md). <span
 id="LatestNews.line-414" class="anchor"></span><span
 id="LatestNews.bottom" class="anchor"></span>
 
