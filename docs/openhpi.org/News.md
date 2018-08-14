@@ -1,58 +1,4 @@
-﻿<div id="header">
-
-<div id="logo">
-
-[![OpenHPI Logo](http://openhpi.org/wiki/ohpi.png)](Home)
-
-</div>
-
-<div>
-
-Search:
-
-</div>
-
--   [Login](http://openhpi.org/News?action=login)
-<div id="locationline">
-
--   [News](http://openhpi.org/News?action=fullsearch&context=180&value=linkto%3A%22News%22 "Click to do a full-text search for this title")
-
-</div>
-
--   [Home](Home)
--   [News](News)
--   [Status](Status)
--   [Developers](Developers)
--   [Documentation](Documentation)
--   [Downloads](Downloads)
--   [Contact\_Us](Contact_Us)
-
-<div id="pageline">
-
-------------------------------------------------------------------------
-
-</div>
-
--   <span class="disabled">Immutable Page</span>
--   [Comments](News#)
--   [Info](http://openhpi.org/News?action=info)
--   [Attachments](http://openhpi.org/News?action=AttachFile)
-   <div>
-    </div>
-
-</div>
-
-<div id="page" lang="en" dir="ltr">
-
-<div id="content" dir="ltr" lang="en">
-
-<span id="top" class="anchor"></span> <span id="line-1"
-class="anchor"></span>
-For older news, go to [OldNews](http://openhpi.org/OldNews). <span
-id="line-2" class="anchor"></span><span id="line-3"
-class="anchor"></span>
-
-Latest News 
+﻿Latest News 
 ===========
 
 <span id="line-4" class="anchor"></span>
@@ -1054,40 +1000,7 @@ id="LatestNews.bottom" class="anchor"></span>
 <span id="line-5" class="anchor"></span><span id="bottom"
 class="anchor"></span>
 
-</div>
 
-News (last edited 2014-02-21 23:08:46 by <span
-title="??? @ localhost[127.0.0.1]">localhost</span>)
 
-<div id="pagebottom">
-
-</div>
-
-</div>
-
-<div id="footer">
-
--   <span class="disabled">Immutable Page</span>
--   [Comments](News#)
--   [Info](http://openhpi.org/News?action=info)
--   [Attachments](http://openhpi.org/News?action=AttachFile)
-
-  <div>
-      </div>
-
-<!-- -->
-
--   [MoinMoin Powered](http://moinmo.in/ "This site uses the MoinMoin Wiki software.")
--   [Python Powered](http://moinmo.in/Python "MoinMoin is written in Python.")
--   [GPL licensed](http://moinmo.in/GPL "MoinMoin is GPL licensed.")
--   [Valid HTML 4.01](http://validator.w3.org/check?uri=referer "Click here to validate this page.")
-
-</div>
-
-<div style="text-align:center">
-
-**Related Sites:**  [SA Forum](http://saforum.org), [OpenIPMI](http://openipmi.sourceforge.net), [Net-SNMP](http://net-snmp.sourceforge.net), [SourceForge.net](http://sourceforge.net)
-
-</div>
 
 
