@@ -1095,7 +1095,7 @@ struct eventInfo
 #define MAX_EVT_CREATED_LEN 32
 #define MAX_TASK_STATE_LEN 20
 
-#define X_API_VERSION 600
+#define X_API_VERSION 800
 #define OV_REST_ACCEPT \
 	("Accept: application/json")
 #define OV_REST_ACCEPT_LANGUAGE \

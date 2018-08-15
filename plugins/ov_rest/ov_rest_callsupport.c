@@ -65,6 +65,7 @@
  *      rest_patch_request()                   - Curl patch request.
  */
 
+#include <openssl/opensslv.h>
 #include "sahpi_wrappers.h"
 #include "ov_rest_callsupport.h"
 #include "ov_rest_parser_calls.h"
@@ -128,8 +129,8 @@ SaErrorT ov_rest_get_rest_version(REST_CON *connection){
 	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curlErrStr);
 	CURLcode curlErr = curl_easy_perform(curl);
 	if(curlErr) {
-		err("\nError %s\n", curl_easy_strerror(curlErr));
-		err("\nError %s\n",curlErrStr);
+		err("Error %s", curl_easy_strerror(curlErr));
+		err("Error %s",curlErrStr);
 		memset(connection->x_api_version, '\0', 32);
 		strcpy(connection->x_api_version, 
 				OV_REST_DEFAULT_X_API_VERSION);
@@ -163,6 +164,15 @@ SaErrorT ov_rest_get_rest_version(REST_CON *connection){
 					OV_REST_DEFAULT_X_API_VERSION);
 
 	}
+        dbg("X-API-Version is %d,  SSL_VERSION is %lx", x_version, 
+					OPENSSL_VERSION_NUMBER);
+
+	if((x_version < 800) && (OPENSSL_VERSION_NUMBER >= 0x10100000L)) {
+		err("OpenSSL (>=1.1) needs X-Api-Version >=800");
+		err("X-API-Version is %d", x_version);
+		err("Please consider upgrading Synergy firmware");
+	}
+
 	wrap_free(st.ptr);
 	wrap_g_free(connection->url);
 	curl_easy_cleanup(curl);
