@@ -101,7 +101,7 @@ class="anchor"></span>
 <span id="LatestNews.top" class="anchor"></span> <span
 id="LatestNews.line-1" class="anchor"></span>
 
-##### OpenHPI 3.8.0 has been released! (03/09/2018) {#LatestNews.OpenHPI_3.8.0_has_been_released.21_.2803.2F09.2F2018.29}
+##### OpenHPI 3.8.0 has been released! (03/09/2018) 
 
 <span id="LatestNews.line-2" class="anchor"></span>
 -   Stable release <span id="LatestNews.line-3" class="anchor"></span>
@@ -114,7 +114,7 @@ Details can be found at the complete 3.8.0
 class="anchor"></span><span id="LatestNews.line-7"
 class="anchor"></span>
 
-##### OpenHPI 3.7.0 has been released! (05/26/2017) {#LatestNews.OpenHPI_3.7.0_has_been_released.21_.2805.2F26.2F2017.29}
+##### OpenHPI 3.7.0 has been released! (05/26/2017) 
 
 <span id="LatestNews.line-8" class="anchor"></span>
 -   Development release <span id="LatestNews.line-9"
@@ -128,7 +128,7 @@ Details can be found at the complete 3.7.0
 class="anchor"></span><span id="LatestNews.line-13"
 class="anchor"></span>
 
-##### OpenHPI 3.6.1 has been released! (09/15/2015) {#LatestNews.OpenHPI_3.6.1_has_been_released.21_.2809.2F15.2F2015.29}
+##### OpenHPI 3.6.1 has been released! (09/15/2015)
 
 <span id="LatestNews.line-14" class="anchor"></span>
 -   Stable patch release <span id="LatestNews.line-15"
@@ -141,7 +141,7 @@ Details can be found at the complete 3.6.1
 class="anchor"></span><span id="LatestNews.line-18"
 class="anchor"></span>
 
-##### OpenHPI 3.6.0 has been released! (08/26/2015) {#LatestNews.OpenHPI_3.6.0_has_been_released.21_.2808.2F26.2F2015.29}
+##### OpenHPI 3.6.0 has been released! (08/26/2015)
 
 <span id="LatestNews.line-19" class="anchor"></span>
 -   Stable release <span id="LatestNews.line-20" class="anchor"></span>
@@ -156,7 +156,7 @@ Details can be found at the complete 3.6.0
 class="anchor"></span><span id="LatestNews.line-25"
 class="anchor"></span>
 
-##### OpenHPI 3.5.0 has been released! (10/09/2014) {#LatestNews.OpenHPI_3.5.0_has_been_released.21_.2810.2F09.2F2014.29}
+##### OpenHPI 3.5.0 has been released! (10/09/2014)
 
 <span id="LatestNews.line-26" class="anchor"></span>
 -   Development release <span id="LatestNews.line-27"
@@ -172,7 +172,7 @@ Details can be found at the complete 3.5.0
 class="anchor"></span><span id="LatestNews.line-32"
 class="anchor"></span>
 
-##### OpenHPI 3.4.0 has been released! (11/14/2013) {#LatestNews.OpenHPI_3.4.0_has_been_released.21_.2811.2F14.2F2013.29}
+##### OpenHPI 3.4.0 has been released! (11/14/2013) 
 
 <span id="LatestNews.line-33" class="anchor"></span>
 -   Stable release <span id="LatestNews.line-34" class="anchor"></span>
@@ -185,7 +185,7 @@ Details can be found at the complete 3.4.0
 id="LatestNews.line-37" class="anchor"></span><span
 id="LatestNews.line-38" class="anchor"></span>
 
-##### OpenHPI 3.2.1 has been released! (07/18/2013) {#LatestNews.OpenHPI_3.2.1_has_been_released.21_.2807.2F18.2F2013.29}
+##### OpenHPI 3.2.1 has been released! (07/18/2013) 
 
 <span id="LatestNews.line-39" class="anchor"></span>
 -   Stable release <span id="LatestNews.line-40" class="anchor"></span>
@@ -198,7 +198,7 @@ Details can be found at the complete 3.2.1
 id="LatestNews.line-43" class="anchor"></span><span
 id="LatestNews.line-44" class="anchor"></span>
 
-##### OpenHPI 3.2.0 has been released! (08/27/2012) {#LatestNews.OpenHPI_3.2.0_has_been_released.21_.2808.2F27.2F2012.29}
+##### OpenHPI 3.2.0 has been released! (08/27/2012) 
 
 <span id="LatestNews.line-45" class="anchor"></span>
 -   Stable release <span id="LatestNews.line-46" class="anchor"></span>
@@ -213,7 +213,7 @@ Details can be found at the complete 3.2.0
 id="LatestNews.line-50" class="anchor"></span><span
 id="LatestNews.line-51" class="anchor"></span>
 
-##### HpiBrowser 3.1.0 has been released! (05/21/2012) {#LatestNews.HpiBrowser_3.1.0_has_been_released.21_.2805.2F21.2F2012.29}
+##### HpiBrowser 3.1.0 has been released! (05/21/2012) 
 
 <span id="LatestNews.line-52" class="anchor"></span>
 -   Windows support <span id="LatestNews.line-53" class="anchor"></span>
@@ -226,7 +226,7 @@ Details can be found at the complete 3.1.0
 id="LatestNews.line-56" class="anchor"></span><span
 id="LatestNews.line-57" class="anchor"></span>
 
-##### OpenHPI 3.1.0 has been released! (05/01/2012) {#LatestNews.OpenHPI_3.1.0_has_been_released.21_.2805.2F01.2F2012.29}
+##### OpenHPI 3.1.0 has been released! (05/01/2012) 
 
 <span id="LatestNews.line-58" class="anchor"></span>
 -   Base libraries for C\#/Java/Python <span id="LatestNews.line-59"
@@ -238,7 +238,7 @@ Details can be found at the complete 3.1.0
 id="LatestNews.line-61" class="anchor"></span><span
 id="LatestNews.line-62" class="anchor"></span>
 
-##### OpenHPI 3.0.0 has been released! (10/17/2011) {#LatestNews.OpenHPI_3.0.0_has_been_released.21_.2810.2F17.2F2011.29}
+##### OpenHPI 3.0.0 has been released! (10/17/2011) 
 
 <span id="LatestNews.line-63" class="anchor"></span>
 -   Documentation updates <span id="LatestNews.line-64"
@@ -250,7 +250,7 @@ Details can be found at the complete 3.0.0
 id="LatestNews.line-66" class="anchor"></span><span
 id="LatestNews.line-67" class="anchor"></span>
 
-##### OpenHPI 2.17.0 has been released! (06/20/2011) {#LatestNews.OpenHPI_2.17.0_has_been_released.21_.2806.2F20.2F2011.29}
+##### OpenHPI 2.17.0 has been released! (06/20/2011) 
 
 <span id="LatestNews.line-68" class="anchor"></span>
 -   Refactoring <span id="LatestNews.line-69" class="anchor"></span>
@@ -269,7 +269,7 @@ Details can be found at the complete 2.17.0
 id="LatestNews.line-76" class="anchor"></span><span
 id="LatestNews.line-77" class="anchor"></span>
 
-##### OpenHPI 2.16.0 has been released! (02/23/2011) {#LatestNews.OpenHPI_2.16.0_has_been_released.21_.2802.2F23.2F2011.29}
+##### OpenHPI 2.16.0 has been released! (02/23/2011) 
 
 <span id="LatestNews.line-78" class="anchor"></span>
 -   Documentation updates <span id="LatestNews.line-79"
@@ -283,7 +283,7 @@ Details can be found at the complete 2.16.0
 id="LatestNews.line-81" class="anchor"></span><span
 id="LatestNews.line-82" class="anchor"></span>
 
-##### OpenHPI for Windows One more Preview snapshot (01/16/2011) {#LatestNews.OpenHPI_for_Windows_One_more_Preview_snapshot_.2801.2F16.2F2011.29}
+##### OpenHPI for Windows One more Preview snapshot (01/16/2011) 
 
 <span id="LatestNews.line-83" class="anchor"></span>
 -   SVN trunk shapshot, revision 7245, at Jan 16, 2011 <span
@@ -299,7 +299,7 @@ id="LatestNews.line-82" class="anchor"></span>
 -   Necessary glib libraries were included <span id="LatestNews.line-89"
     class="anchor"></span>
 
-##### OpenHPI for Windows One more Preview snapshot (01/08/2011) {#LatestNews.OpenHPI_for_Windows_One_more_Preview_snapshot_.2801.2F08.2F2011.29}
+##### OpenHPI for Windows One more Preview snapshot (01/08/2011) 
 
 <span id="LatestNews.line-90" class="anchor"></span>
 -   SVN trunk shapshot, revision 7239, at Jan 08, 2011 <span
@@ -309,7 +309,7 @@ id="LatestNews.line-82" class="anchor"></span>
 -   Some guidance how to use it in README.windows file <span
     id="LatestNews.line-93" class="anchor"></span>
 
-##### OpenHPI for Windows Preview snapshot (12/18/2010) {#LatestNews.OpenHPI_for_Windows_Preview_snapshot_.2812.2F18.2F2010.29}
+##### OpenHPI for Windows Preview snapshot (12/18/2010) 
 
 <span id="LatestNews.line-94" class="anchor"></span>
 -   SVN trunk shapshot, revision 7209, at Dec 18, 2010 <span
@@ -319,7 +319,7 @@ id="LatestNews.line-82" class="anchor"></span>
 -   Some guidance how to use it in README.windows file <span
     id="LatestNews.line-97" class="anchor"></span>
 
-##### OpenHPI 2.15.1 has been released! (12/13/2010) {#LatestNews.OpenHPI_2.15.1_has_been_released.21_.2812.2F13.2F2010.29}
+##### OpenHPI 2.15.1 has been released! (12/13/2010) 
 
 <span id="LatestNews.line-98" class="anchor"></span>
 -   Development release <span id="LatestNews.line-99"
@@ -338,7 +338,7 @@ Details can be found at the complete 2.15.1
 id="LatestNews.line-104" class="anchor"></span><span
 id="LatestNews.line-105" class="anchor"></span>
 
-##### OpenHPI 2.15.1 is planned for December 2010 release {#LatestNews.OpenHPI_2.15.1_is_planned_for_December_2010_release}
+##### OpenHPI 2.15.1 is planned for December 2010 release 
 
 <span id="LatestNews.line-106" class="anchor"></span>
 -   Development release <span id="LatestNews.line-107"
@@ -352,7 +352,7 @@ id="LatestNews.line-105" class="anchor"></span>
     class="anchor"></span>
 -   Bugfixes <span id="LatestNews.line-111" class="anchor"></span>
 
-##### OpenHPI 2.15.0 has been released! (06/30/2010) {#LatestNews.OpenHPI_2.15.0_has_been_released.21_.2806.2F30.2F2010.29}
+##### OpenHPI 2.15.0 has been released! (06/30/2010) 
 
 <span id="LatestNews.line-112" class="anchor"></span>
 -   Development release <span id="LatestNews.line-113"
@@ -373,7 +373,7 @@ Details can be found at the complete 2.15.0
 id="LatestNews.line-119" class="anchor"></span><span
 id="LatestNews.line-120" class="anchor"></span>
 
-##### OpenHPI 2.15.0 is targeting the week of June 28, 2010 for release {#LatestNews.OpenHPI_2.15.0_is_targeting_the_week_of_June_28.2C_2010_for_release}
+##### OpenHPI 2.15.0 is targeting the week of June 28, 2010 for release 
 
 <span id="LatestNews.line-121" class="anchor"></span>
 
@@ -399,7 +399,7 @@ id="LatestNews.line-123" class="anchor"></span>
 -   \* Defect fixes <span id="LatestNews.line-131"
     class="anchor"></span>
 
-##### OpenHPI 2.15.0 is tentatively planned for a mid-June/early-July 2010 release {#LatestNews.OpenHPI_2.15.0_is_tentatively_planned_for_a_mid-June.2Fearly-July_2010_release}
+##### OpenHPI 2.15.0 is tentatively planned for a mid-June/early-July 2010 release 
 
 <span id="LatestNews.line-132" class="anchor"></span>
 
@@ -424,7 +424,7 @@ schedule - please post on the developer's mailing list:
 class="anchor"></span><span id="LatestNews.line-141"
 class="anchor"></span>
 
-##### OpenHPI 2.14.1 has been released! (11/23/2009) {#LatestNews.OpenHPI_2.14.1_has_been_released.21_.2811.2F23.2F2009.29}
+##### OpenHPI 2.14.1 has been released! (11/23/2009) 
 
 <span id="LatestNews.line-142" class="anchor"></span>
 -   Fixes to the OpenHPI Daemon and base library. <span
@@ -444,7 +444,7 @@ Details can be found at the complete 2.14.1
 id="LatestNews.line-148" class="anchor"></span><span
 id="LatestNews.line-149" class="anchor"></span>
 
-##### OpenHPI 2.14.0 has been released! (04/16/2009) {#LatestNews.OpenHPI_2.14.0_has_been_released.21_.2804.2F16.2F2009.29}
+##### OpenHPI 2.14.0 has been released! (04/16/2009) 
 
 <span id="LatestNews.line-150" class="anchor"></span>
 -   Content from development releases 2.13.0 through 2.13.3 <span
@@ -461,7 +461,7 @@ Details can be found at the complete 2.14.0
 id="LatestNews.line-155" class="anchor"></span><span
 id="LatestNews.line-156" class="anchor"></span>
 
-##### OpenHPI 2.13.3 has been released! (02/24/2009) {#LatestNews.OpenHPI_2.13.3_has_been_released.21_.2802.2F24.2F2009.29}
+##### OpenHPI 2.13.3 has been released! (02/24/2009) 
 
 <span id="LatestNews.line-157" class="anchor"></span>
 -   HPI-B.03.01 support. <span id="LatestNews.line-158"
@@ -478,7 +478,7 @@ Details can be found at the complete 2.13.3
 id="LatestNews.line-162" class="anchor"></span><span
 id="LatestNews.line-163" class="anchor"></span>
 
-##### OpenHPI 2.13.2 has been released! (1/16/2009) {#LatestNews.OpenHPI_2.13.2_has_been_released.21_.281.2F16.2F2009.29}
+##### OpenHPI 2.13.2 has been released! (1/16/2009) 
 
 <span id="LatestNews.line-164" class="anchor"></span>
 -   HP c-Class plugin: additional sensors. <span
@@ -495,7 +495,7 @@ Details can be found at the complete 2.13.2
 id="LatestNews.line-169" class="anchor"></span><span
 id="LatestNews.line-170" class="anchor"></span>
 
-##### OpenHPI 2.13.1 has been released! (11/19/2008) {#LatestNews.OpenHPI_2.13.1_has_been_released.21_.2811.2F19.2F2008.29}
+##### OpenHPI 2.13.1 has been released! (11/19/2008) 
 
 <span id="LatestNews.line-171" class="anchor"></span>
 -   HP c-Class plugin: add underpinnings for additional
@@ -516,7 +516,7 @@ Details can be found at the complete 2.13.1
 id="LatestNews.line-177" class="anchor"></span><span
 id="LatestNews.line-178" class="anchor"></span>
 
-##### OpenHPI 2.13.0 has been released! (10/10/2008) {#LatestNews.OpenHPI_2.13.0_has_been_released.21_.2810.2F10.2F2008.29}
+##### OpenHPI 2.13.0 has been released! (10/10/2008) 
 
 <span id="LatestNews.line-179" class="anchor"></span>
 -   HP c-class-Enhancement to add IO and Storage blade support. <span
@@ -535,7 +535,7 @@ Details can be found at the complete 2.13.0
 id="LatestNews.line-185" class="anchor"></span><span
 id="LatestNews.line-186" class="anchor"></span>
 
-##### OpenHPI 2.12.0 has been released! (07/25/2008) {#LatestNews.OpenHPI_2.12.0_has_been_released.21_.2807.2F25.2F2008.29}
+##### OpenHPI 2.12.0 has been released! (07/25/2008) 
 
 <span id="LatestNews.line-187" class="anchor"></span>
 -   Rollup development releases 2.11.0 through 2.11.3. <span
@@ -553,7 +553,7 @@ Details can be found at the complete 2.12.0
 id="LatestNews.line-192" class="anchor"></span><span
 id="LatestNews.line-193" class="anchor"></span>
 
-##### OpenHPI 2.11.3 has been released! (06/25/2008) {#LatestNews.OpenHPI_2.11.3_has_been_released.21_.2806.2F25.2F2008.29}
+##### OpenHPI 2.11.3 has been released! (06/25/2008) 
 
 <span id="LatestNews.line-194" class="anchor"></span>
 -   Add Dimis and Fumis to Simulator plugin. <span
@@ -566,7 +566,7 @@ Details can be found at the complete 2.11.3
 id="LatestNews.line-197" class="anchor"></span><span
 id="LatestNews.line-198" class="anchor"></span>
 
-##### OpenHPI 2.11.2 has been released! (05/26/2008) {#LatestNews.OpenHPI_2.11.2_has_been_released.21_.2805.2F26.2F2008.29}
+##### OpenHPI 2.11.2 has been released! (05/26/2008)
 
 <span id="LatestNews.line-199" class="anchor"></span>
 
@@ -587,7 +587,7 @@ Details can be found at the complete 2.11.2
 id="LatestNews.line-205" class="anchor"></span><span
 id="LatestNews.line-206" class="anchor"></span>
 
-##### OpenHPI 2.11.1 has been released! (04/22/2008) {#LatestNews.OpenHPI_2.11.1_has_been_released.21_.2804.2F22.2F2008.29}
+##### OpenHPI 2.11.1 has been released! (04/22/2008) 
 
 <span id="LatestNews.line-207" class="anchor"></span>
 
@@ -613,7 +613,7 @@ It also comes with quite a number of bug fixes. Take a look at the
 bug fixes. <span id="LatestNews.line-214" class="anchor"></span><span
 id="LatestNews.line-215" class="anchor"></span>
 
-##### OpenHPI 2.10.2 has been released! (03/03/2008) {#LatestNews.OpenHPI_2.10.2_has_been_released.21_.2803.2F03.2F2008.29}
+##### OpenHPI 2.10.2 has been released! (03/03/2008) 
 
 <span id="LatestNews.line-216" class="anchor"></span>
 
@@ -661,7 +661,7 @@ a complete list of bug fixes. <span id="LatestNews.line-232"
 class="anchor"></span><span id="LatestNews.line-233"
 class="anchor"></span>
 
-##### OpenHPI 2.11.0 has been released (03/03/2008) {#LatestNews.OpenHPI_2.11.0_has_been_released_.2803.2F03.2F2008.29}
+##### OpenHPI 2.11.0 has been released (03/03/2008) 
 
 <span id="LatestNews.line-234" class="anchor"></span>
 
@@ -689,7 +689,7 @@ a complete list of features and bug fixes. <span
 id="LatestNews.line-242" class="anchor"></span><span
 id="LatestNews.line-243" class="anchor"></span>
 
-##### OpenHPI 2.10.1 has been released (11/02/2007) {#LatestNews.OpenHPI_2.10.1_has_been_released_.2811.2F02.2F2007.29}
+##### OpenHPI 2.10.1 has been released (11/02/2007) 
 
 <span id="LatestNews.line-244" class="anchor"></span>
 
@@ -728,7 +728,7 @@ For a complete list of 2.10.1 bug fixes and features, take a look at the
 id="LatestNews.line-256" class="anchor"></span><span
 id="LatestNews.line-257" class="anchor"></span>
 
-##### PyOpenHPI 1.1 is released (09/28/07) {#LatestNews.PyOpenHPI_1.1_is_released_.2809.2F28.2F07.29}
+##### PyOpenHPI 1.1 is released (09/28/07) 
 
 <span id="LatestNews.line-258" class="anchor"></span>
 
@@ -803,7 +803,7 @@ Plus all the corresponding new structures and definitions. <span
 id="LatestNews.line-291" class="anchor"></span><span
 id="LatestNews.line-292" class="anchor"></span>
 
-##### OpenHPI 2.10.0 has been released (09/20/2007) {#LatestNews.OpenHPI_2.10.0_has_been_released_.2809.2F20.2F2007.29}
+##### OpenHPI 2.10.0 has been released (09/20/2007) 
 
 <span id="LatestNews.line-293" class="anchor"></span>
 
@@ -899,7 +899,7 @@ For a complete list of 2.10.0 bug fixes and features, take a look at the
 id="LatestNews.line-334" class="anchor"></span><span
 id="LatestNews.line-335" class="anchor"></span>
 
-##### OpenHPI 2.9.3 has been released (08/27/2007) {#LatestNews.OpenHPI_2.9.3_has_been_released_.2808.2F27.2F2007.29}
+##### OpenHPI 2.9.3 has been released (08/27/2007) 
 
 <span id="LatestNews.line-336" class="anchor"></span>
 
@@ -933,7 +933,7 @@ For a complete list of 2.9.3 bug fixes and features, take a look at the
 id="LatestNews.line-347" class="anchor"></span><span
 id="LatestNews.line-348" class="anchor"></span>
 
-##### OpenHPI 2.9.2 has been released (06/25/2007) {#LatestNews.OpenHPI_2.9.2_has_been_released_.2806.2F25.2F2007.29}
+##### OpenHPI 2.9.2 has been released (06/25/2007) 
 
 <span id="LatestNews.line-349" class="anchor"></span>
 
@@ -977,7 +977,7 @@ For a complete list of 2.9.2 bug fixes and features, take a look at the
 id="LatestNews.line-364" class="anchor"></span><span
 id="LatestNews.line-365" class="anchor"></span>
 
-##### OpenHPI 2.9.1 has been released (05/04/2007) {#LatestNews.OpenHPI_2.9.1_has_been_released_.2805.2F04.2F2007.29}
+##### OpenHPI 2.9.1 has been released (05/04/2007) 
 
 <span id="LatestNews.line-366" class="anchor"></span>
 
@@ -1047,7 +1047,7 @@ For a complete list of 2.9.1 bug fixes and features, take a look at the
 id="LatestNews.line-394" class="anchor"></span><span
 id="LatestNews.line-395" class="anchor"></span>
 
-##### OpenHPI 2.8.1 has been released (02/26/2007) {#LatestNews.OpenHPI_2.8.1_has_been_released_.2802.2F26.2F2007.29}
+##### OpenHPI 2.8.1 has been released (02/26/2007) 
 
 <span id="LatestNews.line-396" class="anchor"></span>
 
@@ -1072,7 +1072,7 @@ For a complete list of 2.8.1 bugs, take a look at the
 id="LatestNews.line-404" class="anchor"></span><span
 id="LatestNews.line-405" class="anchor"></span>
 
-##### OpenHPI 2.8.0 has been released (01/26/2007) {#LatestNews.OpenHPI_2.8.0_has_been_released_.2801.2F26.2F2007.29}
+##### OpenHPI 2.8.0 has been released (01/26/2007) 
 
 <span id="LatestNews.line-406" class="anchor"></span>
 
