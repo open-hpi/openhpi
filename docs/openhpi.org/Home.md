@@ -25,24 +25,6 @@ but is not limited to, IPMI based servers, Blade Center, and machines
 which export data via sysfs. <span id="line-9"
 class="anchor"></span><span id="line-10" class="anchor"></span>
 
-The OpenHPI project is always looking for more participants. If you are
-interested in using and/or taking a part in the evolution of OpenHPI,
-then [contact us](Contact_Us) and we'll tell you how. <span id="line-11"
-class="anchor"></span><span id="line-12" class="anchor"></span>
-
-**About this wiki**\
-<span id="line-13" class="anchor"></span>This wiki is being graciously
-hosted by [OSDL](http://www.osdl.org) at the Marist College OSDL
-laboratory using a zLinux image.\
-<span id="line-14" class="anchor"></span>To use this wiki, you must
-[sign up](http://openhpi.org/UserPreferences), create a
-valid user id and contact [me](BryanSutula) (a spam prevention
-technique) so that you can create and edit pages. If you want to learn
-more about using a wiki, check out the
-[HelpContents](http://openhpi.org/HelpContents) page.
-<span id="line-15" class="anchor"></span><span id="line-16"
-class="anchor"></span>
-
 **OpenHPI has been moved to [github](https://github.com/open-hpi) from [sourceforge](https://sourceforge.net/projects/openhpi/) as of May 2, 2018** 
 <span id="line-17" class="anchor">
 
@@ -61,7 +43,7 @@ id="Downloads-1.line-1" class="anchor"></span>
 [Github Project Page](https://github.com/open-hpi),
  [SourceForge
 Project Page](http://sourceforge.net/projects/openhpi), 
-[Linux distros that carry OpenHPI](Distributions) <span id="Downloads-1.line-2"
+[Linux distros that carry OpenHPI](Distributions.md) <span id="Downloads-1.line-2"
 class="anchor"></span>
 
 <div>
@@ -70,11 +52,11 @@ class="anchor"></span>
 
 | Module| Latest Release | Status | Description | 
 |--|--| -- | -- | 
-| **OpenHPI**| [3.8.0](https://sourceforge.net/projects/openhpi/files/openhpi-stable/3.8.0/) (Stable) |supported |The open implementation of HPI. Includes a library and a daemon. | 
-| **HPI Browser** | [3.1.0](https://sourceforge.net/projects/openhpi/files/hpibrowser/3.1.0/) (Development) |supported |HPI-B.03.02 GUI application based on QT4. Best with OpenHPI-3.1.0| 
-| **SNMP Subagent**  |[2.3.4](http://prdownloads.sourceforge.net/openhpi/openhpi-subagent-2.3.4.tar.gz?download)  (Stable) |unsupported | Exports the HPI API using the [SAF](http://saforum.org/) SNMP MIBs.|
-|**HPIView** | [2.0](http://prdownloads.sourceforge.net/openhpi/hpiview-2.0.tar.gz?download) (Stable)|unsupported| OpenHPI GUI application based on GTK.|
-|**Python Module**  | [1.1](http://downloads.sourceforge.net/openhpi/py-openhpi-1.1.tar.gz?use_mirror=osdn)  (Stable)| unsupported |OpenHPI GUI application based on GTK.|
+| **OpenHPI**| [3.8.0](https://github.com/open-hpi/openhpi/releases/tag/3.8.0) (Stable) |supported |The open implementation of HPI. Includes a library and a daemon. | 
+| **HPI Browser** | [3.1.0](https://github.com/open-hpi/hpibrowser/releases/tag/3.1.0) (Development) |supported |HPI-B.03.02 GUI application based on QT4. Best with OpenHPI-3.1.0| 
+| **SNMP Subagent**  |[2.3.4](https://github.com/open-hpi/snmp-subagent/releases/tag/2.3.4)  (Stable) |unsupported | Exports the HPI API using the [SAF](http://saforum.org/) SNMP MIBs.|
+|**HPIView** | [2.0](https://github.com/open-hpi/hpiview/releases/tag/2.0) (Stable)|unsupported| OpenHPI GUI application based on GTK.|
+|**Python Module**  | [1.1](https://github.com/open-hpi/python/releases/tag/1.1)  (Stable)| unsupported |OpenHPI GUI application based on GTK.|
 </div>
 <span id="Downloads-1.line-7" class="anchor"></span><span
 id="Downloads-1.line-8" class="anchor"></span>
@@ -82,7 +64,7 @@ id="Downloads-1.line-8" class="anchor"></span>
 Note: Unsupported portions of the project may be quite out of date and
 would likely require work in order to function. If you are interested in
 one of these, please consider submitting patches or volunteering to
-maintain it. See [Developers](Developers) <span id="Downloads-1.line-9"
+maintain it. <span id="Downloads-1.line-9"
 class="anchor"></span><span id="Downloads-1.bottom"
 class="anchor"></span>
 </div>
@@ -700,7 +682,7 @@ latest version. Following, a summary of the most important bug fixes:
 id="LatestNews.line-246" class="anchor"></span>
 
 -   saHpiGetIdByEntityPath() now returns the
-    [InstrumentId](http://openhpi.org/InstrumentId) <span
+    InstrumentId <span
     id="LatestNews.line-247" class="anchor"></span>
 -   Solaris patches - Various fixes to make OpenHPI build cleanly on
     Solaris <span id="LatestNews.line-248" class="anchor"></span>
