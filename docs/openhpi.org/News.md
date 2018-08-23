@@ -446,7 +446,7 @@ id="LatestNews.line-186" class="anchor"></span>
 -   Rollup development releases 2.11.0 through 2.11.3. <span
     id="LatestNews.line-188" class="anchor"></span>
 -   Add documentation for new ilo2\_ribcl and oa\_soap plugins HP
-    [ProLiant](http://openhpi.org/ProLiant){.nonexistent} plugin <span
+    ProLiant plugin <span
     id="LatestNews.line-189" class="anchor"></span>
 -   Make use of common SSL code HP c-Class Plugin. <span
     id="LatestNews.line-190" class="anchor"></span>
@@ -507,8 +507,8 @@ id="LatestNews.line-209" class="anchor"></span>
 -   Allows you to connect to multiple daemons from one client - The
     client library sees each daemon as a domain. This is in a beta state
     right now. To learn how to add domain/daemons or change the daemon
-    used as the default domain, [join the mailing list and ask
-    us](Contact_Us). <span id="LatestNews.line-213"
+    used as the default domain, join the mailing list and ask
+    us. <span id="LatestNews.line-213"
     class="anchor"></span>
 
 It also comes with quite a number of bug fixes. Take a look at the
@@ -600,7 +600,7 @@ latest version. Following, a summary of the most important bug fixes:
 id="LatestNews.line-246" class="anchor"></span>
 
 -   saHpiGetIdByEntityPath() now returns the
-    [InstrumentId](http://openhpi.org/InstrumentId){.nonexistent} <span
+    InstrumentId<span
     id="LatestNews.line-247" class="anchor"></span>
 -   Solaris patches - Various fixes to make OpenHPI build cleanly on
     Solaris <span id="LatestNews.line-248" class="anchor"></span>
