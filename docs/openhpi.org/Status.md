@@ -3,8 +3,8 @@
 
 ### Schedule
 
-![openhpi_schedule.png](http://openhpi.org/Status?action=AttachFile&do=get&target=openhpi_schedule.png "openhpi_schedule.png")  
-[openhpi_schedule.svg](http://openhpi.org/Status?action=AttachFile&do=view&target=openhpi_schedule.svg)
+![openhpi_schedule.png](openhpi_schedule.png)  
+[openhpi_schedule.svg](openhpi_schedule.svg)
 
 Released
 
