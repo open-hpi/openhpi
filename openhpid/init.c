@@ -164,6 +164,11 @@ int oh_init(void)
                    config.handlers_loaded < config.handlers_defined) {
                 WARN("*Warning*: Not all handlers defined loaded."
                      " Check previous messages.");
+        } else if(!config.handlers_defined) {
+                   data_access_unlock();
+                   CRIT("No handlers found in the config!");
+                   CRIT("Check the configuration and restart the Daemon");
+                   return SA_ERR_HPI_ERROR;
         }
 
         /* Start discovery and event threads */
