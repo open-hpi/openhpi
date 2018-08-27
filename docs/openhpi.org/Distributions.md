@@ -10,7 +10,7 @@
 | ^ | Fedora Rawhide | 2.14.1 | 2.3.4 | 1.1 |
 | [Red Hat](http://www.redhat.com/) | RHEL5 U4 | 2.14.0 | 2.3.4 | 1.1 in EPEL |
 | ^ | RHEL6 | 2.14.1 | 2.3.4 |  |
-| ^ | RHEL7 | 3.4.0 |  |  |
+| ^ | RHEL7 | 3.6.1 |  |  |
 | [Debian](http://debian.org/) | [Package openhpi in debian](https://packages.debian.org/search?keywords=openhpi) | < |  |  |
 | [Ubuntu](http://www.ubuntu.com/) | [See Launchpad history](https://launchpad.net/ubuntu/+source/openhpi) | < |  |  |
 | [Asianux](http://www.asianux.com/) | Asianux server 2 SP4 | 2.2.0 |  |  |
