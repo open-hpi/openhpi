@@ -233,8 +233,7 @@ SaErrorT ov_rest_getserverEthernetInterfacesInfo(
 
 SaErrorT ov_rest_getca(struct oh_handler_state *oh_handler,
                 struct certificateResponse *response,
-                REST_CON *connection,
-                char* ca_doc);
+                REST_CON *connection);
 
 SaErrorT ov_rest_session_timeout(struct ov_rest_handler *ov_handler, 
  		struct idleTimeout *to);

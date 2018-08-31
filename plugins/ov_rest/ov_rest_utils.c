@@ -529,7 +529,7 @@ void ov_rest_update_resource_status(resource_info_t *res_status,
                                     resource_presence_t presence,
                                     resourceCategory_t type)
 {
-        if (index <= 0) {
+        if (index <= 0 || res_status == NULL) {
                 err("Invalid index value %d - returning without update\n",
                     index);
                 return;

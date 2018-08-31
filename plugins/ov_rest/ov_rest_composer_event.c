@@ -284,7 +284,7 @@ SaErrorT ov_rest_proc_composer_insertion_event(
 	}
 	ov_rest_json_parse_applianceInfo(jvalue_cim, &response);
 	/* Make call to the ha-node  */
-	if(!response.serialNumber || !strcmp(response.serialNumber, "")){
+	if(!strcmp(response.serialNumber, "")){
 		CRIT("serial number is NULL in appliance bay %d .\n"
 		"Please Restart the Openhpid.", bayNumber);
 		return SA_ERR_HPI_INVALID_DATA;

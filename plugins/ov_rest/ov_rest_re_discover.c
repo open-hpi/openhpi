@@ -623,6 +623,8 @@ SaErrorT add_composer(struct oh_handler_state *handler,
 
 		oh_remove_resource(handler->rptcache, resource_id);
 		/* reset resource_info structure to default values */
+		if (enclosure == NULL)
+			return SA_ERR_HPI_INTERNAL_ERROR;
 		ov_rest_update_resource_status(
                                         &enclosure->composer,
                                         composer_info->bayNumber,

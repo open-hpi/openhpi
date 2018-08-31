@@ -3297,7 +3297,9 @@ static int ir_xml_iml_write( struct oh_handler_state *oh_handler,
                 class = xmlGetProp( n, (const xmlChar *)"CLASS");
                 last_update = xmlGetProp( n, (const xmlChar *)"LAST_UPDATE");
                 time = (struct tm){0,0,0,0,0,0,0,0,-1};
-                strptime((const char*) last_update,"%m/%d/%Y %H:%M", &time);
+                if ( last_update )
+          	        strptime((const char*) last_update,"%m/%d/%Y %H:%M",
+                                 &time);
                 seconds = mktime( &time) * 1000000000LL;
                 if( seconds > ir_handler->iml_log_time)
                 {

@@ -77,7 +77,7 @@ SaErrorT ov_rest_getapplianceNodeInfo(struct oh_handler_state *oh_handler,
 	CURL* curl = curl_easy_init();
 	rv = ov_rest_curl_get_request(connection, chunk, curl, &s);
 	if(s.jobj == NULL || s.len == 0){
-		return rv;
+		return -1;
 	}else
 	{
 		response->root_jobj = s.jobj;
@@ -88,7 +88,7 @@ SaErrorT ov_rest_getapplianceNodeInfo(struct oh_handler_state *oh_handler,
 	wrap_g_free(connection->url);
 	curl_easy_cleanup(curl);
 	curl_global_cleanup();
-	return SA_OK;
+	return rv;
 }
 /**
  * ov_rest_getapplianceHaNodeInfo:
@@ -311,7 +311,7 @@ SaErrorT ov_rest_getapplianceHANodeArray(struct oh_handler_state *oh_handler,
 	CURL* curl = curl_easy_init();
 	rv = ov_rest_curl_get_request(connection, chunk, curl, &s);
 	if(s.jobj == NULL || s.len == 0){
-		return rv;
+		return -1;
 	}else
 	{
 		response->root_jobj = s.jobj;
@@ -326,7 +326,7 @@ SaErrorT ov_rest_getapplianceHANodeArray(struct oh_handler_state *oh_handler,
 	wrap_g_free(connection->url);
 	curl_easy_cleanup(curl);
 	curl_global_cleanup();
-	return SA_OK;
+	return rv;
 }
 
 /**
@@ -946,7 +946,7 @@ SaErrorT ov_rest_build_serverThermalRdr(struct oh_handler_state *oh_handler,
                 wrap_free(connection->url);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
-        if(connection->serverIlo && strlen(connection->serverIlo) &&
+        if(strlen(connection->serverIlo) &&
                                      strcmp(connection->serverIlo,"0.0.0.0")){
                 wrap_free(connection->url);
                 WRAP_ASPRINTF(&connection->url, OV_SERVER_HARDWARE_THERMAL_URI,
@@ -1017,10 +1017,11 @@ SaErrorT ov_rest_build_serverPowerStatusRdr(struct oh_handler_state
                 wrap_free(connection->url);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
-        if(connection->serverIlo && strlen(connection->serverIlo)&&
+        if(strlen(connection->serverIlo)&&
                                     strcmp(connection->serverIlo,"0.0.0.0")){
                 wrap_free(connection->url);
-                WRAP_ASPRINTF(&connection->url, OV_SERVER_HARDWARE_POWER_STATUS_URI,
+                WRAP_ASPRINTF(&connection->url, 
+                              OV_SERVER_HARDWARE_POWER_STATUS_URI,
                                            connection->serverIlo);
                 rv = ov_rest_getserverPowerStatusInfo(oh_handler,
                                                       &power_response,
@@ -1031,7 +1032,7 @@ SaErrorT ov_rest_build_serverPowerStatusRdr(struct oh_handler_state
                                                 &power_response, rpt);
                         if (rv != SA_OK) {
                                 err("Building power status sensor rdr failed"
-                                    " for server in bay %d", response->bayNumber);
+                                    " for server bay %d", response->bayNumber);
                         }
                 }
                 else
@@ -1088,7 +1089,7 @@ SaErrorT ov_rest_build_serverSystemsRdr(struct oh_handler_state *oh_handler,
                 wrap_free(connection->url);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
-        if(connection->serverIlo && strlen(connection->serverIlo)&&
+        if(strlen(connection->serverIlo)&&
                                      strcmp(connection->serverIlo,"0.0.0.0")){
                 wrap_free(connection->url);
                 WRAP_ASPRINTF(&connection->url, OV_SERVER_HARDWARE_SYSTEMS_URI,
@@ -1160,7 +1161,7 @@ SaErrorT ov_rest_build_serverStorageRdr(struct oh_handler_state *oh_handler,
                 wrap_free(connection->url);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
-        if(connection->serverIlo && strlen(connection->serverIlo)&&
+        if(strlen(connection->serverIlo)&&
                                      strcmp(connection->serverIlo,"0.0.0.0")){
                 wrap_free(connection->url);
                 WRAP_ASPRINTF(&connection->url,OV_SERVER_HARDWARE_SMART_STORAGE_URI,
@@ -1233,7 +1234,7 @@ SaErrorT ov_rest_build_serverNetworkAdaptersRdr(
                 wrap_free(connection->url);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
-        if(connection->serverIlo && strlen(connection->serverIlo)&&
+        if(strlen(connection->serverIlo)&&
                                      strcmp(connection->serverIlo,"0.0.0.0")){
                 wrap_free(connection->url);
                 WRAP_ASPRINTF(&connection->url,
@@ -1307,7 +1308,7 @@ SaErrorT ov_rest_build_serverEthernetInterfacesRdr(
                 wrap_free(connection->url);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
-        if(connection->serverIlo && strlen(connection->serverIlo)&&
+        if(strlen(connection->serverIlo)&&
                                      strcmp(connection->serverIlo,"0.0.0.0")){
                 wrap_free(connection->url);
                 WRAP_ASPRINTF(&connection->url,
@@ -1490,7 +1491,6 @@ SaErrorT ov_rest_getcertificates(struct oh_handler_state *oh_handler,
  *      @oh_handler: Pointer to openhpi handler.
  *      @response:   Pointer to certificateResponse structure.
  *      @connection: OV REST connection provided by ov_rest_open().
- *      @ca_doc: Char pointer to hold the certificate response doc.
  *
  * Purpose:
  *      Gets a ca certificate.
@@ -1504,8 +1504,7 @@ SaErrorT ov_rest_getcertificates(struct oh_handler_state *oh_handler,
  **/
 SaErrorT ov_rest_getca(struct oh_handler_state *oh_handler,
                 struct certificateResponse *response,
-                REST_CON *connection,
-                char* ca_doc)
+                REST_CON *connection)
 {
 	SaErrorT rv = SA_OK;
 	OV_STRING s = {0};
@@ -1954,18 +1953,18 @@ SaErrorT ov_rest_discover_appliance(struct oh_handler_state *handler)
 			resource_id;
 		strcpy(ov_handler->ov_rest_resources.composer.serialNumber,
 				result.version.serialNumber);
-	}
-	itostr(resource_id ,&s);
-	g_hash_table_insert(ov_handler->uri_rid, 
+		itostr(resource_id ,&s);
+		g_hash_table_insert(ov_handler->uri_rid, 
 			g_strdup(result.version.uri), g_strdup(s));
-	wrap_free(s);
-	rv = ov_rest_build_appliance_rdr(handler, 
-			&result, &ha_node_result, resource_id);
-	if (rv != SA_OK) {
-		err("Build appliance rdr failed for resource id %d",
-							resource_id);
 		wrap_free(s);
-		return rv;
+		rv = ov_rest_build_appliance_rdr(handler, 
+			&result, &ha_node_result, resource_id);
+		if (rv != SA_OK) {
+			err("Build appliance rdr failed for resource id %d",
+							resource_id);
+			wrap_free(s);
+			return rv;
+		}
 	}
 	return SA_OK;
 }
@@ -2140,10 +2139,9 @@ SaErrorT ov_rest_build_appliance_inv_rdr(struct oh_handler_state *oh_handler,
 				NumFields++;
 			
 			/* Check whether Firmware version is NULL. */
-			if (!response->version.softwareVersion) {
+			if (response->version.softwareVersion[0] == '\0') {
 				err("Firmware version is not vailable for the"
 					"resource %d", resource_id);
-				return SA_ERR_HPI_INTERNAL_ERROR;
 			}
 			/* Store Firmware MajorRev & MinorRev data in rpt */
 			fm_version = atof(response->version.softwareVersion);
@@ -2152,27 +2150,26 @@ SaErrorT ov_rest_build_appliance_inv_rdr(struct oh_handler_state *oh_handler,
 			rpt->ResourceInfo.FirmwareMinorRev = rintf((
 					fm_version - major) * 100);
 		}
-		if (ha_response->uri != NULL) {
-			hpi_field.AreaId = local_inventory->info.area_list->
-					idr_area_head.AreaId;
-			hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
-			WRAP_ASPRINTF(&tmp,"URI = %s",ha_response->uri);
-			strcpy ((char *)hpi_field.Field.Data, tmp);
-			wrap_free(tmp);
+		hpi_field.AreaId = local_inventory->info.area_list->
+				idr_area_head.AreaId;
+		hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
+		WRAP_ASPRINTF(&tmp,"URI = %s",ha_response->uri);
+		strncpy ((char *)hpi_field.Field.Data, tmp,
+			SAHPI_MAX_TEXT_BUFFER_LENGTH -1);
+		wrap_free(tmp);
 
-			rv = ov_rest_idr_field_add(&(
-				local_inventory->info.area_list->field_list),
-				&hpi_field);
-			if (rv != SA_OK) {
-				err("Add idr uri field failed for the "
-                                         "appliance id %d", resource_id);
-				return rv;
-			}
-
-			/* Increment the field counter */
-			local_inventory->info.area_list->idr_area_head.
-				NumFields++;
+		rv = ov_rest_idr_field_add(&(
+			local_inventory->info.area_list->field_list),
+			&hpi_field);
+		if (rv != SA_OK) {
+			err("Add idr uri field failed for the "
+                                        "appliance id %d", resource_id);
+			return rv;
 		}
+
+		/* Increment the field counter */
+		local_inventory->info.area_list->idr_area_head.
+			NumFields++;
 	}
 	return SA_OK;
 }
@@ -2759,7 +2756,7 @@ SaErrorT ov_rest_build_enc_info(struct oh_handler_state *oh_handler,
 		}
 
 		temp_enclosure->composer.serialNumber = (char **)
-			g_malloc0(sizeof(char **) *
+			g_malloc0(sizeof(char *) *
 					temp_enclosure->composer.max_bays);
 		if(temp_enclosure->composer.serialNumber == NULL){
 			err("Out of memory");
@@ -3516,59 +3513,59 @@ SaErrorT ov_rest_build_composer_inv_rdr(struct oh_handler_state *oh_handler,
                 /* Add the product version field if the appliance hardware info
                  * is available
                  */
-                if (ha_response->version != NULL) {
-                        memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
-                        hpi_field.AreaId = local_inventory->info.area_list->
-                                idr_area_head.AreaId;
-                        hpi_field.Type = SAHPI_IDR_FIELDTYPE_PRODUCT_VERSION;
-                        strcpy ((char *)hpi_field.Field.Data,
-                                        ha_response->version);
+                 memset(&hpi_field, 0, sizeof(SaHpiIdrFieldT));
+                 hpi_field.AreaId = local_inventory->info.area_list->
+                         idr_area_head.AreaId;
+                 hpi_field.Type = SAHPI_IDR_FIELDTYPE_PRODUCT_VERSION;
+                 strncpy ((char *)hpi_field.Field.Data, 
+ 			ha_response->version,
+			SAHPI_MAX_TEXT_BUFFER_LENGTH -1);
 
-                        rv = ov_rest_idr_field_add(&(local_inventory
-                                        ->info.area_list->field_list),
-                                        &hpi_field);
-                        if (rv != SA_OK) {
-                                err("Add idr field failed");
-                                return rv;
-                        }
+                 rv = ov_rest_idr_field_add(&(local_inventory
+                                 ->info.area_list->field_list),
+                                 &hpi_field);
+                 if (rv != SA_OK) {
+                         err("Add idr field failed");
+                         return rv;
+                 }
 
-                        /* Increment the field counter */
-                        local_inventory->info.area_list->idr_area_head.
-                                NumFields++;
+                 /* Increment the field counter */
+                 local_inventory->info.area_list->idr_area_head.
+                         NumFields++;
 
-                        /* Check whether Firmware version is NULL. */
-                        if (!ha_response->version) {
-                                err("Firmware version is not vailable for the"
-                                        "resource %d", resource_id);
-                                return SA_ERR_HPI_INTERNAL_ERROR;
-                        }
-                        /* Store Firmware MajorRev & MinorRev data in rpt */
-                        fm_version = atof(ha_response->version);
-                        rpt->ResourceInfo.FirmwareMajorRev = major =
-                                        (SaHpiUint8T)floor(fm_version);
-                        rpt->ResourceInfo.FirmwareMinorRev = rintf((
-                                        fm_version - major) * 100);
-                }
-                if (ha_response->uri != NULL) {
-                        hpi_field.AreaId = local_inventory->info.area_list->
-                                        idr_area_head.AreaId;
-                        hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
-                        WRAP_ASPRINTF(&tmp,"URI = %s",ha_response->uri);
-                        strcpy ((char *)hpi_field.Field.Data, tmp);
-                        wrap_free(tmp);
+                 /* Check whether Firmware version is NULL. */
+                 if (ha_response->version[0] == '\0') {
+                         err("Firmware version is not vailable for the"
+                                 "resource %d", resource_id);
+                 }
+                 /* Store Firmware MajorRev & MinorRev data in rpt */
+                 fm_version = atof(ha_response->version);
+                 rpt->ResourceInfo.FirmwareMajorRev = major =
+                                 (SaHpiUint8T)floor(fm_version);
+                 rpt->ResourceInfo.FirmwareMinorRev = rintf((
+                                 fm_version - major) * 100);
+                if (ha_response->uri[0] != '\0') {
+                         err("No information in URI for the"
+                                 "resource %d", resource_id);
+                 }
+                 hpi_field.AreaId = local_inventory->info.area_list->
+                                 idr_area_head.AreaId;
+                 hpi_field.Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
+                 WRAP_ASPRINTF(&tmp,"URI = %s",ha_response->uri);
+                 strncpy ((char *)hpi_field.Field.Data, tmp,
+			SAHPI_MAX_TEXT_BUFFER_LENGTH);
+                 wrap_free(tmp);
 
-                        rv = ov_rest_idr_field_add(&(
-                                local_inventory->info.area_list->field_list),
-                                &hpi_field);
-                        if (rv != SA_OK) {
-                                err("Add idr field failed");
-                                return rv;
-                        }
-
-                        /* Increment the field counter */
-                        local_inventory->info.area_list->idr_area_head.
-                                NumFields++;
-                }
+                 rv = ov_rest_idr_field_add(&(
+                         local_inventory->info.area_list->field_list),
+                         &hpi_field);
+                 if (rv != SA_OK) {
+                         err("Add idr field failed");
+                         return rv;
+                 }
+                 /* Increment the field counter */
+                 local_inventory->info.area_list->idr_area_head.
+                         NumFields++;
         }
         return SA_OK;
 
@@ -3617,6 +3614,7 @@ SaErrorT ov_rest_build_composer_rdr( struct oh_handler_state *oh_handler,
 				ha_response, resource_id, &rdr, &inventory);
         if (rv != SA_OK) {
                 err("Failed to Add appliance inventory RDR");
+                wrap_g_free(inventory);
                 return rv;
         }
 
@@ -3741,11 +3739,10 @@ SaErrorT ov_rest_discover_composer(struct oh_handler_state *handler)
 			/* Check if the composer is present but serial number 
  			*  is null then ignore and continue.
  			* */
-			if(composer_info.serialNumber == '\0'){
+			if(composer_info.serialNumber[0] == '\0'){
 				CRIT("Composer Serial Number is NULL in bay %d"
-					" of Enclosure rerial number %s",
+					" of Enclosure serial number %s",
 						j+1, enc_result.serialNumber);
-				continue;
 			}
 			
 			WRAP_ASPRINTF(&ov_handler->connection->url, 
@@ -3799,6 +3796,7 @@ SaErrorT ov_rest_discover_composer(struct oh_handler_state *handler)
 				CRIT("Enclosure data of the Composer"
 					" serial number %s is unavailable",
 					composer_info.serialNumber);
+				return SA_ERR_HPI_INTERNAL_ERROR;
 			}
 			/* Build rdr entry for server */
 			rv = ov_rest_build_composer_rdr(handler, &composer_info,
@@ -3897,7 +3895,7 @@ SaErrorT build_discovered_server_rpt(struct oh_handler_state *oh_handler,
                                 err("Wrong Power State (REBOOT) detected"
 					" for server in bay %d",
 						response->bayNumber);
-                                return SA_ERR_HPI_INTERNAL_ERROR;
+				state = SAHPI_POWER_CYCLE;
                                 break;
                         default:
                                 err("Unknown Power State %d detected"
@@ -3924,11 +3922,6 @@ SaErrorT build_discovered_server_rpt(struct oh_handler_state *oh_handler,
                                 hotswap_state->currentHsState =
                                         SAHPI_HS_STATE_INACTIVE;
                                 break;
-                        default:
-                                err("Unknown power status %d for server"
-				" in bay %d", state, response->bayNumber);
-                                wrap_g_free(hotswap_state);
-                                return SA_ERR_HPI_INTERNAL_ERROR;
                 }
         }
         /* Add the server rpt to the plugin RPTable */
@@ -4613,12 +4606,6 @@ SaErrorT build_discovered_drive_enclosure_rpt(
                                 hotswap_state->currentHsState =
                                         SAHPI_HS_STATE_INACTIVE;
                                 break;
-                        default:
-                                err("Unknown power status %d for"
-					" drive enclosure in bay %d",
-					state, response->bayNumber);
-                                wrap_g_free(hotswap_state);
-                                return SA_ERR_HPI_INTERNAL_ERROR;
                 }
         }
         /* Add the Drive Enclosure rpt to the plugin RPTable */
@@ -4897,6 +4884,12 @@ SaErrorT ov_rest_build_interconnect_rpt(struct oh_handler_state *oh_handler,
 				" parent location uri %s",
 				response->bayNumber,
 				response->locationUri);
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
+	if (enc_rpt == NULL) {
+		err("Could not find rpt for the enclosure rid %d, "
+				" parent location uri %s",
+				enc_rid, response->locationUri);
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 	rpt.ResourceEntity.Entry[1].EntityLocation = 
@@ -5959,6 +5952,7 @@ SaErrorT ov_rest_build_fan_inv_rdr(struct oh_handler_state *oh_handler,
        if (rv != SA_OK) {
                err("Add product area failed for fan resource id %d",
 							resource_id);
+               wrap_g_free(local_inventory);
                return rv;
        }
 
@@ -5984,6 +5978,7 @@ SaErrorT ov_rest_build_fan_inv_rdr(struct oh_handler_state *oh_handler,
        if (rv != SA_OK) {
                err("Add board area failed for fan resource id %d",
 							resource_id);
+               wrap_g_free(local_inventory);
                return rv;
        }
        if (add_success_flag != SAHPI_FALSE) {

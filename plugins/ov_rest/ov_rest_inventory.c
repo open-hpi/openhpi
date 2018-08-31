@@ -207,10 +207,9 @@ SaErrorT ov_rest_build_enclosure_inv_rdr(struct oh_handler_state *oh_handler,
 				NumFields++;
 			
 			/* Check whether Firmware version is NULL. */
-			if (!response->hwVersion) {
+			if (response->hwVersion[0] == '\0') {
 				err("Firmware version is not vailable for the"
 					"resource %d", resource_id);
-				return SA_ERR_HPI_INTERNAL_ERROR;
 			}
 			/* Store Firmware MajorRev & MinorRev data in rpt */
 			fm_version = atof(response->hwVersion);
@@ -408,10 +407,9 @@ SaErrorT ov_rest_build_server_inv_rdr(struct oh_handler_state *oh_handler,
 				NumFields++;
 
 			/* Check whether Firmware version is NULL. */
-			if (!response->fwVersion) {
+			if (response->fwVersion[0] == '\0') {
 				err("Firmware version is not vailable for the"
 					"resource %d", resource_id);
-				return SA_ERR_HPI_INTERNAL_ERROR;
 			}
 			/* Store Firmware MajorRev & MinorRev data in rpt */
 			fm_version = atof(response->fwVersion);
@@ -621,10 +619,9 @@ SaErrorT ov_rest_build_drive_enclosure_inv_rdr(
 				NumFields++;
 
 			/* Check whether Firmware version is NULL. */
-			if (!response->fwVersion) {
+			if (response->fwVersion[0] == '\0') {
 				err("Firmware version is not vailable for the"
 					"resource %d", resource_id);
-				return SA_ERR_HPI_INTERNAL_ERROR;
 			}
 			/* Store Firmware MajorRev & MinorRev data in rpt */
 			fm_version = atof(response->fwVersion);
@@ -1083,18 +1080,13 @@ SaErrorT ov_rest_add_board_area(struct ovRestArea **area,
 	struct ovRestField *head_field = NULL;
 	SaHpiInt32T field_count = 0;
 
-	if (area == NULL || success_flag == NULL) {
-		err("Invalid Parameters");
-		return SA_ERR_HPI_INVALID_PARAMS;
-	}
-
 	/* If both part number and serial number information is NULL
          * then board area is not created
          */
-	if ((partNumber == NULL && serialNumber == NULL) &&
-			(partNumber[0] == '\0' && serialNumber[0] == '\0')) {
-		err("Board Area:Required information not available");
-		err("Board area not created");
+	if ((partNumber == NULL || partNumber[0] == '\0') && 
+		(serialNumber == NULL || serialNumber[0] == '\0')) {
+		err("partNumber %s SerialNumber %s", partNumber,serialNumber);
+		err("Not enough information. Board area not created");
 		*success_flag = SAHPI_FALSE;
 		return SA_OK;
 	}
