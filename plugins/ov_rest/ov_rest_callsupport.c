@@ -215,15 +215,9 @@ SaErrorT ov_rest_curl_get_request(REST_CON *connection,
 	chunk = curl_slist_append(chunk, SessionId);
 	wrap_free(Auth);
 	wrap_free(SessionId);
-	if(connection->xAuthToken != NULL){
-		WRAP_ASPRINTF(&X_Auth_Token,OV_REST_X_AUTH_TOKEN,
-				connection->xAuthToken);
-		chunk = curl_slist_append(chunk, X_Auth_Token);
-	}else {
-		err("Sessionkey for server single sign on is invalid/NULL");
-		curl_slist_free_all(chunk);
-		return SA_ERR_HPI_INVALID_SESSION;
-	}
+	WRAP_ASPRINTF(&X_Auth_Token,OV_REST_X_AUTH_TOKEN,
+			connection->xAuthToken);
+	chunk = curl_slist_append(chunk, X_Auth_Token);
 	wrap_free(X_Auth_Token);
 	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 60L);
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);

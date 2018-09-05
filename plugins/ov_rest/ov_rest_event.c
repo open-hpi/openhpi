@@ -144,7 +144,7 @@ SaErrorT oem_event_to_file(struct oh_handler_state *handler,
         wrap_free(oem_file_path);
         oem_file_path = NULL;
         oh_decode_entitypath(&oem_event->resource.ResourceEntity, &bigbuf);
-        if(!strcmp(ov_event->alertState, "Cleared")){
+        if(ov_event->alertState && !strcmp(ov_event->alertState, "Cleared")){
                WRAP_ASPRINTF(&event,"ResourceID: %d \nTime Stamp: %s "
         		"\nEntity Path: %s"
                         "\nSeverity: %s \nAlert State: %s "
@@ -351,8 +351,10 @@ SaErrorT process_active_and_locked_alerts(struct oh_handler_state *handler,
                 }
                 ov_rest_json_parse_alerts (jvalue, &event);
                 wrap_free(ov_handler->connection->url);
-                if (!strcmp((event.phyResourceType), "enclosures")) {
-                        WRAP_ASPRINTF (&ov_handler->connection->url, "https://%s%s",
+                if (event.phyResourceType && 
+                          !strcmp((event.phyResourceType), "enclosures")) {
+                        WRAP_ASPRINTF (&ov_handler->connection->url, 
+                                       "https://%s%s",
                                       ov_handler->connection->hostname,
                                       event.resourceUri);
                         rv = ov_rest_getenclosureInfoArray(handler,
@@ -616,25 +618,29 @@ SaErrorT process_active_and_locked_alerts(struct oh_handler_state *handler,
                 oem_event.event.EventType = SAHPI_ET_OEM;
                 /* Coverting event.created time from string to nanoseconds */
                 struct tm tm;
-                strptime(event.created, "%Y-%m-%dT%H:%M:%S.%NZ", &tm);
+                if ( event.created )
+                        strptime(event.created, "%Y-%m-%dT%H:%M:%S.%NZ", &tm);
                 time_t t = mktime(&tm);
                 oem_event.event.Timestamp = (SaHpiTimeT)t * 1000000000;
-                if (!strcmp(event.severity, "Critical"))
-                        oem_event.event.Severity = SAHPI_CRITICAL;
-                else if (!strcmp(event.severity, "Warning"))
-                        oem_event.event.Severity = SAHPI_MAJOR;
-                else
-                        err("Unknown Event Severity %s", event.severity);
+                if (event.severity) {
+                        if (!strcmp(event.severity, "Critical"))
+                                oem_event.event.Severity = SAHPI_CRITICAL;
+                        else if (!strcmp(event.severity, "Warning"))
+                                oem_event.event.Severity = SAHPI_MAJOR;
+                        else
+                                err("Unknown Event Severity %s", event.severity);
+		}
                 oem_event.event.EventDataUnion.OemEvent.MId =
                           oem_event.resource.ResourceInfo.ManufacturerId;
                 oem_event.event.EventDataUnion.OemEvent.OemEventData.DataType =
                                                       SAHPI_TL_TYPE_TEXT;
                 oem_event.event.EventDataUnion.OemEvent.OemEventData.Language =
                                                       SAHPI_LANG_ENGLISH;
-                if (strlen(event.description) > SAHPI_MAX_TEXT_BUFFER_LENGTH)
+                if ( event.description && 
+                          strlen(event.description) > SAHPI_MAX_TEXT_BUFFER_LENGTH)
                         oem_event.event.EventDataUnion.OemEvent.OemEventData.
                            DataLength = SAHPI_MAX_TEXT_BUFFER_LENGTH;
-                else
+                else if (event.description)
                         oem_event.event.EventDataUnion.OemEvent.OemEventData.
                            DataLength = strlen(event.description);
                 snprintf((char *) oem_event.event.EventDataUnion.OemEvent.
@@ -1239,7 +1245,7 @@ SaErrorT ov_rest_setuplistner(struct oh_handler_state *handler)
 	FILE* fp = NULL;
 	struct ov_rest_handler *ov_handler = NULL;
 
-	char* certificate_doc = NULL, *ca_doc = NULL;
+	char* certificate_doc = NULL;
 	struct stat st = {0};
 
 	ov_handler = (struct ov_rest_handler *)handler->data;
@@ -1292,14 +1298,17 @@ SaErrorT ov_rest_setuplistner(struct oh_handler_state *handler)
 		CRIT("Error opening the file %s", ov_handler->cert_t.fSslCert);
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
-        SSLCert_len = strlen(result.SSLCert);
-	if(SSLCert_len != fwrite(result.SSLCert, sizeof(char),SSLCert_len, fp))
-	{
-		CRIT("Error in Writing the file %s",
+	if (result.SSLCert) { 
+        	SSLCert_len = strlen(result.SSLCert);
+		if(SSLCert_len != fwrite(result.SSLCert, sizeof(char),
+					SSLCert_len, fp))
+		{
+			CRIT("Error in Writing the file %s",
 						ov_handler->cert_t.fSslCert);
-		return SA_ERR_HPI_INTERNAL_ERROR;
-	}
-	fclose(fp);
+			return SA_ERR_HPI_INTERNAL_ERROR;
+		}
+		fclose(fp);
+	} 
 
 	memset(ov_handler->cert_t.fSslKey, 0, 
 					sizeof(ov_handler->cert_t.fSslKey));
@@ -1312,19 +1321,24 @@ SaErrorT ov_rest_setuplistner(struct oh_handler_state *handler)
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-	SSLKey_len = strlen(result.SSLKey);
-	if(SSLKey_len != fwrite(result.SSLKey, sizeof(char), SSLKey_len, fp))
-	{
-		CRIT("Error in Writing the file %s",
+	if (result.SSLKey) {
+		SSLKey_len = strlen(result.SSLKey);
+		if(SSLKey_len != fwrite(result.SSLKey, sizeof(char), SSLKey_len, fp))
+		{
+			CRIT("Error in Writing the file %s",
 						ov_handler->cert_t.fSslKey);
-		return SA_ERR_HPI_INTERNAL_ERROR;
+			return SA_ERR_HPI_INTERNAL_ERROR;
+		}
+		fclose(fp);
+	} else {
+		CRIT("SSLKey is NULL"); 
 	}
-	fclose(fp);
+
 	ov_rest_wrap_json_object_put(response.root_jobj);
 
 	WRAP_ASPRINTF(&ov_handler->connection->url, OV_GET_CA_URI,
                                        ov_handler->connection->hostname);
-	rv = ov_rest_getca(NULL, &response, ov_handler->connection, ca_doc);
+	rv = ov_rest_getca(NULL, &response, ov_handler->connection);
 	if (rv != SA_OK || response.certificate == NULL) {
 		CRIT("No response from ov_rest_getcertificates");
 		return SA_ERR_HPI_INTERNAL_ERROR;
@@ -1340,15 +1354,20 @@ SaErrorT ov_rest_setuplistner(struct oh_handler_state *handler)
                 CRIT("Error opening the file %s", ov_handler->cert_t.fCaRoot);
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
-	ca_len = strlen(result.ca);
-	if(ca_len != fwrite(result.ca, sizeof(char), ca_len, fp))
-	{
-		dbg("ca_len = %d",ca_len);
-		CRIT("Error in Writing the file %s",
+	if (result.ca) {
+		ca_len = strlen(result.ca);
+		if(ca_len != fwrite(result.ca, sizeof(char), ca_len, fp))
+		{
+			dbg("ca_len = %d",ca_len);
+			CRIT("Error in Writing the file %s",
 						ov_handler->cert_t.fCaRoot);
-		return SA_ERR_HPI_INTERNAL_ERROR;
+			return SA_ERR_HPI_INTERNAL_ERROR;
+		}
+		fclose(fp);
+	} else {
+		CRIT("ca of certificate is NULL");
 	}
-	fclose(fp);
+
 	ov_rest_wrap_json_object_put(response.root_jobj);
 	return SA_OK;
 }
