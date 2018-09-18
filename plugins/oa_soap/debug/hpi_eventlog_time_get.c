@@ -1,5 +1,6 @@
  /*
  * Copyright (C) 2007-2008, Hewlett-Packard Development Company, LLP
+ * (C) Copyright 2015-2018 Hewlett Packard Enterprise Development LP
  *                     All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or
@@ -12,7 +13,7 @@
  * notice, this list of conditions and the following disclaimer in
  * the documentation and/or other materials provided with the distribution.
  *
- * Neither the name of the Hewlett-Packard Corporation, nor the names
+ * Neither the name of the Hewlett Packard Enterprise, nor the names
  * of its contributors may be used to endorse or promote products
  * derived from this software without specific prior written permission.
  *
