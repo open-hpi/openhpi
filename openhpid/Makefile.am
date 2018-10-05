@@ -28,6 +28,7 @@ DIST_SUBDIRS = t
 
 EXTRA_DIST		= \
     openhpid.sh.in \
+    openhpid.service.in \
     Makefile.mingw32 \
     openhpid-win32.cpp \
     version.rc
@@ -83,11 +84,17 @@ endif
 
 
 install-data-local:
+if ENABLE_SYSTEMD
+	$(mkinstalldirs) $(DESTDIR)$(unitdir)
+	$(INSTALL) -m 0644 openhpid.service $(DESTDIR)$(unitdir)
+else
 	$(mkinstalldirs) $(DESTDIR)$(sysconfdir)/init.d
 	$(INSTALL) -m 0755 openhpid.sh $(DESTDIR)$(sysconfdir)/init.d/openhpid
+endif
 
 uninstall-local:
 	rm -f $(DESTDIR)$(sysconfdir)/init.d/openhpid
+	rm -f $(DESTDIR)$(unitdir)/openhpid.service
 	
 clean-local:
 	rm -f *~ core core.* 

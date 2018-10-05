@@ -775,6 +775,18 @@ AC_ARG_ENABLE([man],
         AC_SUBST(MAN,"")
     fi])
 
+dnl systemd system unit files location
+AC_ARG_WITH([systemdsystemunitdir],
+    AS_HELP_STRING([--with-systemdsystemunitdir@<:@=DIR@:>@],[systemd system files location]),
+    [enable_systemd=yes],
+    [enable_systemd=no])
+
+dnl enable systemd and set unit dir
+AC_SUBST(enable_systemd)
+AM_CONDITIONAL([ENABLE_SYSTEMD], [test "x$enable_systemd" = "xyes"])
+unitdir=$with_systemdsystemunitdir
+AC_SUBST(unitdir)
+
 AC_CONFIG_FILES([openhpi.spec
         openhpi.pc
         rt-env.sh
@@ -818,6 +830,7 @@ AC_CONFIG_FILES([openhpi.spec
         docs/man/Makefile
         openhpid/Makefile
         openhpid/openhpid.sh
+        openhpid/openhpid.service
         openhpid/t/Makefile
         openhpid/t/ohpi/Makefile
         hpi_shell/Makefile

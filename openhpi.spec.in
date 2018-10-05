@@ -360,7 +360,11 @@ make DESTDIR=%{buildroot} install
 %{_mandir}/man7/%{name}.7*
 %{_mandir}/man8/%{name}d.8*
 %{_sbindir}/openhpid
+%if "x@enable_systemd@" == "xyes"
+/@unitdir@/openhpid.service
+%else
 %{_sysconfdir}/init.d/openhpid
+%endif
 
 ###################################################
 %files devel
