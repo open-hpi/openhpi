@@ -74,7 +74,7 @@ nodist_libsnmp_bc_la_SOURCES = $(GENERATED_EVENT_CODE) $(REMOTE_SIM_SOURCES)
 # libopenhpi_la_LIBADD    = $(top_builddir)/utils/libopenhpiutils.la
 # libopenhpi_la_LDFLAGS   = -L$(top_builddir)/utils -version-info @HPI_LIB_VERSION@ -export-symbols $(top_srcdir)/src/hpi.sym
 
-libsnmp_bc_la_LIBADD = -luuid @SNMPLIBS@ $(top_builddir)/utils/libopenhpiutils.la
+libsnmp_bc_la_LIBADD = -luuid @SNMPLIBS@ $(top_builddir)/utils/libopenhpiutils.la $(top_builddir)/baselib/libopenhpi.la
 libsnmp_bc_la_LDFLAGS = -L$(top_builddir)/utils -module -version-info @HPI_LIB_VERSION@
 # libsnmp_bc_la_LDFLAGS = -version 0:0:0
 
@@ -97,7 +97,7 @@ TESTS_ENVIRONMENT  = OPENHPI_CONF=$(srcdir)/openhpi.conf
 TESTS_ENVIRONMENT += OPENHPI_SIMTEST_FILE=$(srcdir)/sim_test_file
 #TESTS_ENVIRONMENT += OPENHPI_ERROR=YES
 #TESTS_ENVIRONMENT += OPENHPI_DEBUG=YES
-TESTS_ENVIRONMENT += LD_LIBRARY_PATH=$(top_srcdir)/openhpid/.libs:$(top_srcdir)/ssl/.libs:$(top_srcdir)/utils/.libs:$(top_srcdir)/plugins/snmp/.libs:$(top_srcdir)/plugins/snmp_bc/t/.libs
+TESTS_ENVIRONMENT += LD_LIBRARY_PATH=$(top_srcdir)/openhpid/.libs:$(top_srcdir)/ssl/.libs:$(top_srcdir)/utils/.libs:$(top_srcdir)/plugins/snmp/.libs:$(top_srcdir)/plugins/snmp_bc/t/.libs:$(top_srcdir)/baselib/.libs:$(top_srcdir)/transport/.libs:$(top_srcdir)/marshal/.libs
 TESTS_ENVIRONMENT += OPENHPI_UID_MAP=$(shell pwd)/uid_map
 TESTS_ENVIRONMENT += OPENHPI_PATH=$(shell pwd)
 
