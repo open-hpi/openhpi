@@ -1933,7 +1933,7 @@ SaErrorT SAHPI_API saHpiSensorThresholdsSet (
         oh_release_domain(d); /* Unlock domain */
 
         OH_CALL_ABI(h, set_sensor_thresholds, SA_ERR_HPI_INVALID_CMD, rv,
-                    ResourceId, SensorNum, SensorThresholds);
+                    ResourceId, SensorNum, &tmp);
         oh_release_handler(h);
 
         return rv;
