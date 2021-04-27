@@ -20,7 +20,7 @@ file as a command line option (-c) to override the default file.
 A command option (-p)  or environment variable determines the port number the
 daemon will listen on for client connections. The default port is 4743.
 
-The daemon creates a PID file in the /var/run subdirectory. This directory is
+The daemon creates a PID file in the /run subdirectory. This directory is
 only writable by the root user. Thus the daemon will fail when run as a normal
 user if the PID file location is not overridden.
 To override the PID file location you can use the -f command line option.
