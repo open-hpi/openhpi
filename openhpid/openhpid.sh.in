@@ -19,7 +19,7 @@
 #              APIs for client programs.
 # processname: openhpid
 # config: the standard openhpi conf file specified on the command line or the env.
-# pidfile: /var/run/openhpid.pid
+# pidfile: /run/openhpid.pid
 # 
 # Author(s):
 #	W. David Ashley <dashley@us.ibm.com>
@@ -148,10 +148,10 @@ stop() {
 		
 		nolsb)
 			echo -n "Stopping $prog: "
-			if test -f /var/run/openhpid.pid && test "`cat /var/run/openhpid.pid`" != ""
+			if test -f /run/openhpid.pid && test "`cat /run/openhpid.pid`" != ""
          		then
-            			kill "`cat /var/run/openhpid.pid`"
-				RETVAL=$?  
+				kill "`cat /run/openhpid.pid`"
+				RETVAL=$?
 			else
 				RETVAL=0
 			fi	          
@@ -161,10 +161,10 @@ stop() {
 	
 	print_outcome
 	
-	if test "$RETVAL" -eq 0 && test -f /var/run/openhpid.pid
+	if test "$RETVAL" -eq 0 && test -f /run/openhpid.pid
 	then
 		rm -f /var/lock/openhpid
-		rm -f /var/run/openhpid.pid
+		rm -f /run/openhpid.pid
 	fi	
 
 }	
@@ -191,9 +191,9 @@ dstatus() {
 			fi	
 			;;
 		gentoo | nolsb)
-			if test -f /var/run/openhpid.pid && 
-				test "`cat /var/run/openhpid.pid`" != "" && 
-				kill -s 0 "`cat /var/run/openhpid.pid`"
+			if test -f /run/openhpid.pid &&
+				test "`cat /run/openhpid.pid`" != "" &&
+				kill -s 0 "`cat /run/openhpid.pid`"
 			then
 				echo "$prog is running"
 			else

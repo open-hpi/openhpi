@@ -84,7 +84,7 @@ listen on for client connections. If a configuration file is not found the
 the daemon will listen on port 4743 by default.
 
 Currently, if you are not running as the root user, you must override the default
-PID file location. Normally the PID file is created in the /var/run subdirectory.
+PID file location. Normally the PID file is created in the /run subdirectory.
 This directory is not writable by normal users and only the root user can write
 to this location. Thus the daemon will fail when run as a normal user if the PID
 file location is not overridden. To override the PID file location you can use

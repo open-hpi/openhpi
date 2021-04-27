@@ -333,7 +333,7 @@ static void sig_handler( int signum )
 int main(int argc, char *argv[])
 {
     int ipvflags;
-    const char *pidfile = "/var/run/openhpid.pid";
+    const char *pidfile = "/run/openhpid.pid";
     GError *error = NULL;
     GOptionContext *context;
 
