@@ -706,7 +706,7 @@ SaErrorT remove_composer(struct oh_handler_state *handler,
 		byte bayNumber)
 {
 
-        SaErrorT rv = NULL;
+        SaErrorT rv = 0;
         SaHpiResourceIdT resource_id = 0;
         struct oh_event event = {0};
 	struct ovRestHotswapState *hotswap_state = NULL;
